@@ -50,7 +50,7 @@ abstract class AbstractOpTypeTest extends AbstractContextTest {
     //
     var resolvedUnit = await resolveFile(testPath);
     var completionTarget =
-        CompletionTarget.forOffset(resolvedUnit.unit!, completionOffset);
+        CompletionTarget.forOffset(resolvedUnit.unit, completionOffset);
     var opType = OpType.forCompletion(completionTarget, completionOffset);
     //
     // Validate the OpType.

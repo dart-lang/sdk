@@ -41,8 +41,8 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     }
 
     return result.mapResult((result) {
-      final code = result.content!;
-      final unit = result.unit!;
+      final code = result.content;
+      final unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
         // It's not uncommon for editors to run this command automatically on-save

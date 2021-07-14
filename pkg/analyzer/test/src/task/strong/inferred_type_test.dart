@@ -22,7 +22,7 @@ class InferredTypeTest extends PubPackageResolutionTest
   // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
   //  test cases.
   CompilationUnitElement get _resultUnitElement {
-    return result.unit!.declaredElement!;
+    return result.unit.declaredElement!;
   }
 
   test_asyncClosureReturnType_flatten() async {

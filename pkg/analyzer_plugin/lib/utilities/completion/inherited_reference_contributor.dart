@@ -35,7 +35,7 @@ class InheritedReferenceContributor
   Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
     var target =
-        CompletionTarget.forOffset(request.result.unit!, request.offset);
+        CompletionTarget.forOffset(request.result.unit, request.offset);
     var optype = OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {
       return;
@@ -59,7 +59,7 @@ class InheritedReferenceContributor
     CompletionTarget? target,
     OpType? optype,
   }) async {
-    target ??= CompletionTarget.forOffset(request.result.unit!, request.offset,
+    target ??= CompletionTarget.forOffset(request.result.unit, request.offset,
         entryPoint: entryPoint);
     optype ??= OpType.forCompletion(target, request.offset);
     if (!optype.includeIdentifiers) {

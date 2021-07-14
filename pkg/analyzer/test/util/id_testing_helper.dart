@@ -196,7 +196,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         });
       } else {
         String _formatError(AnalysisError e) {
-          var locationInfo = result.unit!.lineInfo!.getLocation(e.offset);
+          var locationInfo = result.unit.lineInfo!.getLocation(e.offset);
           return '$locationInfo: ${e.errorCode}: ${e.message}';
         }
 
@@ -209,7 +209,7 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   results.forEach((testUri, result) {
     dataComputer.computeUnitData(
-        driver.testingData!, result.unit!, actualMapFor(testUri));
+        driver.testingData!, result.unit, actualMapFor(testUri));
   });
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);

@@ -208,7 +208,7 @@ class ImpliedTypeComputer {
             continue;
           }
 
-          resolvedUnitResult.unit!.accept(collector);
+          resolvedUnitResult.unit.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');
           print(exception);

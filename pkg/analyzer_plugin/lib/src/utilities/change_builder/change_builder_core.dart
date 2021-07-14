@@ -252,7 +252,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var timeStamp = result.exists ? 0 : -1;
 
-    var declaredUnit = result.unit?.declaredElement;
+    var declaredUnit = result.unit.declaredElement;
     var libraryUnit = declaredUnit?.library.definingCompilationUnit;
 
     DartFileEditBuilderImpl? libraryEditBuilder;

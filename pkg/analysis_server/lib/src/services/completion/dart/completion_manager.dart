@@ -458,7 +458,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return performance.run(
       'build DartCompletionRequest',
       (_) {
-        var unit = request.result.unit!;
+        var unit = request.result.unit;
         var libSource = unit.declaredElement!.library.source;
         var objectType = request.result.typeProvider.objectType;
 

@@ -924,8 +924,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     result = await resolveFile(path);
     expect(result.state, ResultState.VALID);
 
-    findNode = FindNode(result.content!, result.unit!);
-    findElement = FindElement(result.unit!);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Create a new file with the [path] and [content], resolve it into [result].

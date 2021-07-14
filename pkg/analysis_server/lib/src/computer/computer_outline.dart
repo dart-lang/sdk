@@ -17,17 +17,9 @@ class DartUnitOutlineComputer {
 
   DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false});
 
-  CompilationUnit get _unit {
-    var unit = resolvedUnit.unit;
-    if (unit == null) {
-      throw StateError('DartUnitOutlineComputer created with invalid result');
-    }
-    return unit;
-  }
-
   /// Returns the computed outline, not `null`.
   Outline compute() {
-    var unit = _unit;
+    var unit = resolvedUnit.unit;
     var unitContents = <Outline>[];
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
@@ -325,7 +317,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newUnitOutline(List<Outline> unitContents) {
-    var unit = _unit;
+    var unit = resolvedUnit.unit;
     var element = Element(
         ElementKind.COMPILATION_UNIT, '<unit>', Element.makeFlags(),
         location: _getLocationNode(unit));

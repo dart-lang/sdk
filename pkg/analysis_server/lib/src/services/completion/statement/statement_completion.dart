@@ -128,7 +128,7 @@ class StatementCompletionProcessor {
 
   Source get source => unitElement.source;
 
-  CompilationUnit get unit => statementContext.resolveResult.unit!;
+  CompilationUnit get unit => statementContext.resolveResult.unit;
 
   CompilationUnitElement get unitElement => unit.declaredElement!;
 

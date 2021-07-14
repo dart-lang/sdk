@@ -195,7 +195,7 @@ void a(String b) {
     newFile(sourcePath, content: sourceContent);
     var result =
         await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
-    var computer = DartSelectionRangeComputer(result.unit!, offset);
+    var computer = DartSelectionRangeComputer(result.unit, offset);
     return computer.compute();
   }
 

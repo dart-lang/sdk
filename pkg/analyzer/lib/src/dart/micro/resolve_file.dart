@@ -208,7 +208,7 @@ class FileResolver {
       result.forEach((filePath) {
         var resolved = resolve(path: filePath);
         var collector = ReferencesCollector(element);
-        resolved.unit?.accept(collector);
+        resolved.unit.accept(collector);
         var offsets = collector.offsets;
         if (offsets.isNotEmpty) {
           references.add(CiderSearchMatch(filePath, offsets));

@@ -224,7 +224,7 @@ class FlutterMetricsComputer {
             continue;
           }
 
-          resolvedUnitResult.unit!.accept(collector);
+          resolvedUnitResult.unit.accept(collector);
         } catch (exception, stackTrace) {
           print('');
           print('Exception caught analyzing: "$filePath"');

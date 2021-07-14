@@ -27,7 +27,7 @@ mixin DartNavigationMixin implements NavigationMixin {
     var length = parameters.length;
     if (offset < 0 && length < 0) {
       offset = 0;
-      length = result.content?.length ?? 0;
+      length = result.content.length;
     }
     return DartNavigationRequestImpl(resourceProvider, offset, length, result);
   }

@@ -381,7 +381,7 @@ class Search {
       var unitResult = await _driver.getResult2(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _ImportElementReferencesVisitor(element, unitElement);
-        unitResult.unit!.accept(visitor);
+        unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -400,7 +400,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResult2(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        CompilationUnit unit = unitResult.unit!;
+        CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
           if (directive is PartOfDirective && directive.element == element) {
             results.add(
@@ -433,9 +433,6 @@ class Search {
       return const <SearchResult>[];
     }
     var unit = unitResult.unit;
-    if (unit == null) {
-      return const <SearchResult>[];
-    }
 
     // Prepare the node.
     var node = NodeLocator(element.nameOffset).searchWithin(unit);
@@ -487,7 +484,7 @@ class Search {
       var unitResult = await _driver.getResult2(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor(element, unitElement);
-        unitResult.unit!.accept(visitor);
+        unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
     }

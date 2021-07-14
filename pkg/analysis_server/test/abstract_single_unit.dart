@@ -72,8 +72,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   Future<void> resolveTestFile() async {
     var result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
     testAnalysisResult = result;
-    testCode = result.content!;
-    testUnit = result.unit!;
+    testCode = result.content;
+    testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
       expect(result.errors.where((AnalysisError error) {
         return error.errorCode != HintCode.DEAD_CODE &&

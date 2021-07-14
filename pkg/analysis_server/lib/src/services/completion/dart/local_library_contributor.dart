@@ -158,7 +158,7 @@ class LocalLibraryContributor extends DartCompletionContributor {
       return;
     }
 
-    var libraryUnits = request.result.unit?.declaredElement?.library.units;
+    var libraryUnits = request.result.unit.declaredElement?.library.units;
     if (libraryUnits == null) {
       return;
     }

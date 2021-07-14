@@ -448,9 +448,9 @@ part of 'lib.dart';
     ResolvedUnitResult partResult1 = await driver.getResultValid(part1);
     ResolvedUnitResult partResult2 = await driver.getResultValid(part2);
 
-    CompilationUnit libUnit = libResult.unit!;
-    CompilationUnit partUnit1 = partResult1.unit!;
-    CompilationUnit partUnit2 = partResult2.unit!;
+    CompilationUnit libUnit = libResult.unit;
+    CompilationUnit partUnit1 = partResult1.unit;
+    CompilationUnit partUnit2 = partResult2.unit;
 
     CompilationUnitElement unitElement = libUnit.declaredElement!;
     CompilationUnitElement partElement1 = partUnit1.declaredElement!;
@@ -676,7 +676,7 @@ var A = B;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A', 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     allResults.clear();
 
@@ -695,7 +695,7 @@ var A = B;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A', 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
@@ -751,14 +751,14 @@ var B1 = A1;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A1', 'int');
-      _assertTopLevelVarType(ar.unit!, 'A2', 'int');
+      _assertTopLevelVarType(ar.unit, 'A1', 'int');
+      _assertTopLevelVarType(ar.unit, 'A2', 'int');
     }
     {
       ResolvedUnitResult br = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit!, 'B1', 'int');
+      _assertTopLevelVarType(br.unit, 'B1', 'int');
     }
 
     // Clear the results and update "a".
@@ -778,14 +778,14 @@ var A2 = B1;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A1', 'double');
-      _assertTopLevelVarType(ar.unit!, 'A2', 'double');
+      _assertTopLevelVarType(ar.unit, 'A1', 'double');
+      _assertTopLevelVarType(ar.unit, 'A2', 'double');
     }
     {
       ResolvedUnitResult br = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit!, 'B1', 'double');
+      _assertTopLevelVarType(br.unit, 'B1', 'double');
     }
   }
 
@@ -798,7 +798,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       var result = allResults[0] as ResolvedUnitResult;
       expect(result.path, testFile);
-      _assertTopLevelVarType(result.unit!, 'V', 'int');
+      _assertTopLevelVarType(result.unit, 'V', 'int');
     }
 
     // Update the file, but don't notify the driver.
@@ -821,7 +821,7 @@ var A2 = B1;
       expect(allResults, hasLength(1));
       var result = allResults[0] as ResolvedUnitResult;
       expect(result.path, testFile);
-      _assertTopLevelVarType(result.unit!, 'V', 'double');
+      _assertTopLevelVarType(result.unit, 'V', 'double');
     }
   }
 
@@ -836,7 +836,7 @@ class A {
 class C {}
 ''');
     var result = await driver.getResultValid(testFile);
-    var atD = AstFinder.getClass(result.unit!, 'C').metadata[0];
+    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
     var value = atDI.evaluationResult!.value;
     // That is illegal.
@@ -853,7 +853,7 @@ class D {
 }
 ''');
     var result = await driver.getResultValid(testFile);
-    var atD = AstFinder.getClass(result.unit!, 'C').metadata[0];
+    var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
     var value = atDI.evaluationResult!.value!;
     expect(value.type, isNotNull);
@@ -869,7 +869,7 @@ const x = 1;
 @x class C {}
 ''');
     var result = await driver.getResultValid(testFile);
-    Annotation at_x = AstFinder.getClass(result.unit!, 'C').metadata[0];
+    Annotation at_x = AstFinder.getClass(result.unit, 'C').metadata[0];
     expect(at_x.elementAnnotation!.computeConstantValue()!.toIntValue(), 1);
   }
 
@@ -879,7 +879,7 @@ const x = y + 1;
 const y = x + 1;
 ''');
     var result = await driver.getResultValid(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x')
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x')
         as TopLevelVariableElementImpl;
     _expectCircularityError(x.evaluationResult!);
   }
@@ -890,8 +890,8 @@ const x = y + 1;
 const y = 1;
 ''');
     var result = await driver.getResultValid(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
-    var y = AstFinder.getTopLevelVariableElement(result.unit!, 'y');
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
+    var y = AstFinder.getTopLevelVariableElement(result.unit, 'y');
     expect(x.computeConstantValue()!.toIntValue(), 2);
     expect(y.computeConstantValue()!.toIntValue(), 1);
   }
@@ -907,7 +907,7 @@ class C extends B {
 class B {}
 ''');
     var result = await driver.getResultValid(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
     expect(x.computeConstantValue(), isNotNull);
   }
 
@@ -973,7 +973,7 @@ class Derived extends Base {
 const x = const Derived();
 ''');
     var result = await driver.getResultValid(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
     expect(x.computeConstantValue(), isNotNull);
   }
 
@@ -982,7 +982,7 @@ const x = const Derived();
 const x = 1;
 ''');
     var result = await driver.getResultValid(testFile);
-    var x = AstFinder.getTopLevelVariableElement(result.unit!, 'x');
+    var x = AstFinder.getTopLevelVariableElement(result.unit, 'x');
     expect(x.computeConstantValue()!.toIntValue(), 1);
   }
 
@@ -1528,7 +1528,7 @@ class B {}
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
-    var f = result.unit!.declarations[0] as FunctionDeclaration;
+    var f = result.unit.declarations[0] as FunctionDeclaration;
     assertType(f.declaredElement!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
 
@@ -1673,7 +1673,7 @@ class C {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResultValid(testFile);
-    _assertClassFieldType(result.unit!, 'C', 'f', 'int');
+    _assertClassFieldType(result.unit, 'C', 'f', 'int');
   }
 
   test_getResult_inferTypes_instanceMethod() async {
@@ -1688,8 +1688,8 @@ class B extends A {
     await waitForIdleWithoutExceptions();
 
     ResolvedUnitResult result = await driver.getResultValid(testFile);
-    _assertClassMethodReturnType(result.unit!, 'A', 'm', 'int');
-    _assertClassMethodReturnType(result.unit!, 'B', 'm', 'int');
+    _assertClassMethodReturnType(result.unit, 'A', 'm', 'int');
+    _assertClassMethodReturnType(result.unit, 'B', 'm', 'int');
   }
 
   test_getResult_invalid_annotation_functionAsConstructor() async {
@@ -1701,7 +1701,7 @@ class C {}
 ''', priority: true);
 
     ResolvedUnitResult result = await driver.getResultValid(testFile);
-    ClassDeclaration c = result.unit!.declarations[1] as ClassDeclaration;
+    ClassDeclaration c = result.unit.declarations[1] as ClassDeclaration;
     Annotation a = c.metadata[0];
     expect(a.name.name, 'fff');
     expect(a.name.staticElement, isFunctionElement);
@@ -1788,7 +1788,7 @@ class A{}
 ''');
 
     var result = await driver.getResultValid(path);
-    var languageVersion = result.unit!.languageVersionToken!;
+    var languageVersion = result.unit.languageVersionToken!;
     expect(languageVersion.major, 2);
     expect(languageVersion.minor, 7);
   }
@@ -1871,7 +1871,7 @@ main() {
 
     ResolvedUnitResult result = await driver.getResultValid(path);
     expect(result, isNotNull);
-    expect(result.unit!.declaredElement!.classes.map((e) => e.name), ['A']);
+    expect(result.unit.declaredElement!.classes.map((e) => e.name), ['A']);
   }
 
   test_getResult_recursiveFlatten() async {
@@ -1904,18 +1904,18 @@ var VC = new A<double>();
 
     {
       ResolvedUnitResult result = await driver.getResultValid(b);
-      expect(_getImportSource(result.unit!, 0).uri.toString(),
+      expect(_getImportSource(result.unit, 0).uri.toString(),
           'package:test/a.dart');
-      _assertTopLevelVarType(result.unit!, 'VB', 'A<int>');
+      _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
     }
 
     {
       ResolvedUnitResult result = await driver.getResultValid(c);
       expect(
-        _getImportSource(result.unit!, 0).uri,
+        _getImportSource(result.unit, 0).uri,
         toUri('/test/lib/a.dart'),
       );
-      _assertTopLevelVarType(result.unit!, 'VC', 'A<double>');
+      _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
     }
   }
 
@@ -1938,8 +1938,8 @@ var B1 = A1;
 
     {
       ResolvedUnitResult result = await driver.getResultValid(a);
-      _assertTopLevelVarType(result.unit!, 'A1', 'int');
-      _assertTopLevelVarType(result.unit!, 'A2', 'int');
+      _assertTopLevelVarType(result.unit, 'A1', 'int');
+      _assertTopLevelVarType(result.unit, 'A2', 'int');
     }
 
     // Update "a" so that "A1" is now "double".
@@ -1958,8 +1958,8 @@ var A2 = B1;
 
     {
       ResolvedUnitResult result = await driver.getResultValid(a);
-      _assertTopLevelVarType(result.unit!, 'A1', 'double');
-      _assertTopLevelVarType(result.unit!, 'A2', 'double');
+      _assertTopLevelVarType(result.unit, 'A1', 'double');
+      _assertTopLevelVarType(result.unit, 'A2', 'double');
     }
   }
 
@@ -2094,7 +2094,7 @@ class C {
 ''');
 
     var result = await driver.getResultValid(b);
-    var c = _getTopLevelVar(result.unit!, 'c');
+    var c = _getTopLevelVar(result.unit, 'c');
     var typeC = c.declaredElement!.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element.getField('foo'), isNotNull);
@@ -2533,15 +2533,15 @@ var b = new B();
     {
       ResolvedUnitResult result = await driver.getResultValid(a);
       expect(result.errors, isEmpty);
-      _assertTopLevelVarType(result.unit!, 'c', 'C');
+      _assertTopLevelVarType(result.unit, 'c', 'C');
     }
 
     // Now c.dart can be resolved without errors in the context of a.dart
     {
       ResolvedUnitResult result = await driver.getResultValid(c);
       expect(result.errors, isEmpty);
-      _assertTopLevelVarType(result.unit!, 'a', 'A');
-      _assertTopLevelVarType(result.unit!, 'b', 'B');
+      _assertTopLevelVarType(result.unit, 'a', 'A');
+      _assertTopLevelVarType(result.unit, 'b', 'B');
     }
   }
 
@@ -2572,8 +2572,8 @@ var b = new B();
     // So, A and B references are resolved.
     ResolvedUnitResult result = await driver.getResultValid(c);
     expect(result.errors, isEmpty);
-    _assertTopLevelVarType(result.unit!, 'a', 'A');
-    _assertTopLevelVarType(result.unit!, 'b', 'B');
+    _assertTopLevelVarType(result.unit, 'a', 'A');
+    _assertTopLevelVarType(result.unit, 'b', 'B');
   }
 
   test_part_getResult_changePart_invalidatesLibraryCycle() async {
@@ -2883,13 +2883,13 @@ var A = B;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A', 'int');
+      _assertTopLevelVarType(ar.unit, 'A', 'int');
     }
     {
       ResolvedUnitResult br = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == b);
-      _assertTopLevelVarType(br.unit!, 'B', 'int');
+      _assertTopLevelVarType(br.unit, 'B', 'int');
     }
     allResults.clear();
 
@@ -2907,7 +2907,7 @@ var A = B;
       ResolvedUnitResult ar = allResults
           .whereType<ResolvedUnitResult>()
           .firstWhere((r) => r.path == a);
-      _assertTopLevelVarType(ar.unit!, 'A', 'double');
+      _assertTopLevelVarType(ar.unit, 'A', 'double');
     }
   }
 
@@ -3119,7 +3119,7 @@ class F extends X {}
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
 
-    var f = result.unit!.declarations[0] as FunctionDeclaration;
+    var f = result.unit.declarations[0] as FunctionDeclaration;
     assertType(f.declaredElement!.type, 'int Function()');
     assertType(f.returnType!.typeOrThrow, 'int');
   }

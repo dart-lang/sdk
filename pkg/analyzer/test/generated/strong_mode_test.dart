@@ -59,7 +59,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest
 
   late final AsserterBuilder<Element, DartType> _hasElement;
 
-  CompilationUnit get unit => result.unit!;
+  CompilationUnit get unit => result.unit;
 
   @override
   Future<void> resolveTestFile() async {
@@ -2404,7 +2404,7 @@ class B<T2, U2> {
 }
 ''');
 
-    var b = result.unit!.declarations[1] as ClassDeclaration;
+    var b = result.unit.declarations[1] as ClassDeclaration;
     var bConstructor = b.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 

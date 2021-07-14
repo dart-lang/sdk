@@ -83,7 +83,7 @@ class ReferencesHandler
         convert(results, toLocation).whereNotNull().toList();
 
     final compilationUnit = unit.unit;
-    if (compilationUnit != null && params.context.includeDeclaration == true) {
+    if (params.context.includeDeclaration == true) {
       // Also include the definition for the symbol at this location.
       referenceResults.addAll(_getDeclarations(compilationUnit, offset));
     }

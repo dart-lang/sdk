@@ -790,7 +790,7 @@ class MyClass {}''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
 
-    var A = unit?.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -821,7 +821,7 @@ class MyClass {}''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
 
-    var A = unit?.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -857,7 +857,7 @@ class MyClass {}''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
 
-    var A = unit?.declarations[1] as ClassDeclaration;
+    var A = unit.declarations[1] as ClassDeclaration;
 
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
@@ -1026,7 +1026,7 @@ class A {}
 ''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
-    var g = unit?.declarations[1] as FunctionDeclaration;
+    var g = unit.declarations[1] as FunctionDeclaration;
     var body = g.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -1048,7 +1048,7 @@ class A {}
     addSource(path, content);
 
     var unit = (await resolveFile(path)).unit;
-    var f = unit?.declarations[0] as FunctionDeclaration;
+    var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
@@ -1068,7 +1068,7 @@ class A {}
     var content = 'f(int a, [bool b = false, String c]) {}';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
-    var f = unit?.declarations[0] as FunctionDeclaration;
+    var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
@@ -1088,7 +1088,7 @@ class A {}
     var content = 'f(int i, String s) {}';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
-    var f = unit?.declarations[0] as FunctionDeclaration;
+    var f = unit.declarations[0] as FunctionDeclaration;
     var parameters = f.functionExpression.parameters;
     var elements = parameters?.parameters.map((p) => p.declaredElement!);
 
@@ -1110,7 +1110,7 @@ f(int i, String s) {
 }''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
-    var f = unit?.declarations[0] as FunctionDeclaration;
+    var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -1133,7 +1133,7 @@ f(int i, String s) {
 }''';
     addSource(path, content);
     var unit = (await resolveFile(path)).unit;
-    var f = unit?.declarations[0] as FunctionDeclaration;
+    var f = unit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
@@ -1330,7 +1330,7 @@ import 'a.dart' as p;
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unit!.declaredElement!.library.typeProvider;
+        var typeProvider = unit.declaredElement!.library.typeProvider;
         builder.writeType(typeProvider.dynamicType);
       });
     });
@@ -1543,7 +1543,7 @@ class B {}
     var builder = newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unit!.declaredElement!.library.typeProvider;
+        var typeProvider = unit.declaredElement!.library.typeProvider;
         builder.writeType(typeProvider.dynamicType, required: true);
       });
     });
@@ -1690,13 +1690,13 @@ class B {}
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var result = (await resolveFile(path)).unit;
-    return result!.declaredElement!.getType(name)!;
+    return result.declaredElement!.getType(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelAccessorElement(
       String path, String name) async {
     var result = (await resolveFile(path)).unit;
-    return result!.declaredElement!.accessors.firstWhere((v) => v.name == name);
+    return result.declaredElement!.accessors.firstWhere((v) => v.name == name);
   }
 
   Future<InterfaceType> _getType(
@@ -1720,7 +1720,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     addSource(path, '''var f = () {}''');
 
     var resolvedUnit = await resolveFile(path);
-    var findNode = FindNode(resolvedUnit.content!, resolvedUnit.unit!);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
     var builder = newBuilder();
@@ -1737,7 +1737,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     addSource(path, 'String f() {}');
 
     var resolvedUnit = await resolveFile(path);
-    var findNode = FindNode(resolvedUnit.content!, resolvedUnit.unit!);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var body = findNode.functionBody('{}');
 
     var builder = newBuilder();
@@ -1850,7 +1850,7 @@ void functionAfter() {
     addSource(path, 'String f() {}');
 
     var resolvedUnit = await resolveFile(path);
-    var findNode = FindNode(resolvedUnit.content!, resolvedUnit.unit!);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
     var type = findNode.typeAnnotation('String');
 
     var builder = newBuilder();
@@ -1873,7 +1873,7 @@ class B extends A {}
 class C extends B {}
 ''');
     var unit = (await resolveFile(path)).unit;
-    var classC = unit?.declarations[2] as ClassDeclaration;
+    var classC = unit.declarations[2] as ClassDeclaration;
     var builder = DartLinkedEditBuilderImpl(MockEditBuilderImpl());
     builder.addSuperTypesAsSuggestions(
       classC.declaredElement?.instantiate(
@@ -2895,10 +2895,10 @@ class B extends A {
     {
       var unitResult = (await resolveFile(path)).unit;
       if (targetMixinName != null) {
-        targetElement = unitResult!.declaredElement!.mixins
+        targetElement = unitResult.declaredElement!.mixins
             .firstWhere((e) => e.name == targetMixinName);
       } else {
-        targetElement = unitResult!.declaredElement!.classes
+        targetElement = unitResult.declaredElement!.classes
             .firstWhere((e) => e.name == targetClassName);
       }
     }

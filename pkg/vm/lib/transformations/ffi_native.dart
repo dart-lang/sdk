@@ -30,6 +30,7 @@ class FfiNativeTransformer extends Transformer {
   final Class ffiNativeClass;
   final Class nativeFunctionClass;
   final Field ffiNativeNameField;
+  final Field ffiNativeIsLeafField;
   final Field resolverField;
   final Procedure asFunctionProcedure;
   final Procedure fromAddressInternal;
@@ -39,6 +40,8 @@ class FfiNativeTransformer extends Transformer {
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         ffiNativeNameField =
             index.getField('dart:ffi', 'FfiNative', 'nativeName'),
+        ffiNativeIsLeafField =
+            index.getField('dart:ffi', 'FfiNative', 'isLeaf'),
         resolverField = index.getTopLevelField('dart:ffi', '_ffi_resolver'),
         asFunctionProcedure = index.getProcedure(
             'dart:ffi', 'NativeFunctionPointer', 'asFunction'),
@@ -71,14 +74,14 @@ class FfiNativeTransformer extends Transformer {
   }
 
   // Transform:
-  //   @FfiNative<Double Function(Double)>('Math_sqrt')
+  //   @FfiNative<Double Function(Double)>('Math_sqrt', isLeaf:true)
   //   external double _square_root(double x);
   //
   // Into:
   //   final _@FfiNative__square_root =
   //       Pointer<NativeFunction<Double Function(Double)>>
   //           .fromAddress(_ffi_resolver('dart:math', 'Math_sqrt'))
-  //           .asFunction<double Function(double)>();
+  //           .asFunction<double Function(double)>(isLeaf:true);
   //   double _square_root(double x) => _@FfiNative__square_root(x);
   Statement transformFfiNative(
       Procedure node, InstanceConstant annotationConst) {
@@ -86,6 +89,8 @@ class FfiNativeTransformer extends Transformer {
     final params = node.function.positionalParameters;
     final functionName = annotationConst
         .fieldValues[ffiNativeNameField.getterReference] as StringConstant;
+    final isLeaf = annotationConst
+        .fieldValues[ffiNativeIsLeafField.getterReference] as BoolConstant;
 
     // double Function(double)
     final DartType dartType =
@@ -115,9 +120,12 @@ class FfiNativeTransformer extends Transformer {
         Arguments([resolverInvocation], types: [nativeInterfaceType]));
 
     // NativeFunctionPointer.asFunction
-    //     <Double Function(Double), double Function(double)>(...)
-    final asFunctionInvocation = StaticInvocation(asFunctionProcedure,
-        Arguments([fromAddressInvocation], types: [nativeType, dartType]));
+    //     <Double Function(Double), double Function(double)>(..., isLeaf:true)
+    final asFunctionInvocation = StaticInvocation(
+        asFunctionProcedure,
+        Arguments([fromAddressInvocation],
+            types: [nativeType, dartType],
+            named: [NamedExpression("isLeaf", BoolLiteral(isLeaf.value))]));
 
     // final _@FfiNative__square_root = ...
     final fieldName = Name('_@FfiNative_${node.name.text}', currentLibrary);
@@ -127,7 +135,8 @@ class FfiNativeTransformer extends Transformer {
         isStatic: true,
         isFinal: true,
         fileUri: currentLibrary!.fileUri,
-        getterReference: currentLibraryIndex?.lookupGetterReference(fieldName));
+        getterReference: currentLibraryIndex?.lookupGetterReference(fieldName))
+      ..fileOffset = node.fileOffset;
     currentLibrary!.addField(funcPtrField);
 
     // _@FfiNative__square_root(x)

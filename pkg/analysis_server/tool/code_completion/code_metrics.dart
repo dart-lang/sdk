@@ -1411,7 +1411,7 @@ class CodeShapeMetricsComputer {
             continue;
           }
 
-          resolvedUnitResult.unit!.accept(collector);
+          resolvedUnitResult.unit.accept(collector);
         } catch (exception) {
           print('Exception caught analyzing: "$filePath"');
           print(exception.toString());

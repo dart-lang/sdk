@@ -53,7 +53,7 @@ class RuntimeCompletionComputer {
 
     // Compute the patched context file content.
     var targetCode = SourceEdit.applySequence(
-      contextResult.content!,
+      contextResult.content,
       changeBuilder.sourceChange.edits[0].edits,
     );
 

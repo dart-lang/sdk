@@ -205,7 +205,7 @@ class CompletionHandler
   ) async {
     final performance = CompletionPerformance();
     performance.path = unit.path;
-    performance.setContentsAndOffset(unit.content!, offset);
+    performance.setContentsAndOffset(unit.content, offset);
     server.performanceStats.completion.add(performance);
 
     return await performance.runRequestOperation((perf) async {
