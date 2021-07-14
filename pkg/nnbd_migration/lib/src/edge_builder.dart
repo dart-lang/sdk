@@ -192,7 +192,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   ///
   /// Note that this is not guaranteed to be complete. It is used to make hard
   /// edges on a best-effort basis.
-  var _postDominatedLocals = _ScopedLocalSet();
+  var _postDominatedLocals = ScopedSet<Element>();
 
   /// Map whose keys are expressions of the form `a?.b` on the LHS of
   /// assignments, and whose values are the nullability nodes corresponding to
@@ -241,6 +241,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       : _inheritanceManager = InheritanceManager3(),
         _whereOrNullTransformer =
             WhereOrNullTransformer(typeProvider, _typeSystem);
+
+  /// The synthetic element we use as a stand-in for `this` when analyzing
+  /// extension methods.
+  Element get _extensionThis => DynamicElementImpl.instance;
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -319,7 +323,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             source: targetType,
             destination: onType,
             hard: targetExpression == null ||
-                _postDominatedLocals.isReferenceInScope(targetExpression));
+                _isReferenceInScope(targetExpression));
         // (3) substitute those decorated types into the declared type of the
         // extension method or extension property, so that the caller will match
         // up parameter types and the return type appropriately.
@@ -507,8 +511,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         bool isPure = otherOperand is SimpleIdentifier;
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
-            postDominatingIntent:
-                _postDominatedLocals.isReferenceInScope(otherOperand),
+            postDominatingIntent: _isReferenceInScope(otherOperand),
             trueGuard: otherNode,
             falseDemonstratesNonNullIntent: otherNode);
         _conditionInfo = notEqual ? conditionInfo.not(node) : conditionInfo;
@@ -928,7 +931,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _elementsWrittenToInLocalFunction;
       try {
         _elementsWrittenToInLocalFunction = {};
-        _postDominatedLocals = _ScopedLocalSet();
+        _postDominatedLocals = ScopedSet<Element>();
         _flowAnalysis!.functionExpression_begin(node);
         _dispatch(node.functionExpression);
         _flowAnalysis!.functionExpression_end();
@@ -993,7 +996,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (node.parent is! FunctionDeclaration) {
         _elementsWrittenToInLocalFunction = {};
       }
-      _postDominatedLocals = _ScopedLocalSet();
+      _postDominatedLocals = ScopedSet<Element>();
       _postDominatedLocals.doScoped(
           elements: node.declaredElement!.parameters,
           action: () => _dispatch(node.body));
@@ -1238,8 +1241,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedType.node, IsCheckMainTypeOrigin(source, type));
     _conditionInfo = _ConditionInfo(node,
         isPure: expression is SimpleIdentifier,
-        postDominatingIntent:
-            _postDominatedLocals.isReferenceInScope(expression),
+        postDominatingIntent: _isReferenceInScope(expression),
         trueDemonstratesNonNullIntent: expressionNode);
     if (node.notOperator != null) {
       _conditionInfo = _conditionInfo!.not(node);
@@ -2061,8 +2063,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // there's nothing to do.
     if (_currentExtendedType == null) return;
     var origin = ImplicitThisOrigin(source, node);
-    var hard =
-        _postDominatedLocals.isInScope(_postDominatedLocals.extensionThis);
+    var hard = _postDominatedLocals.isInScope(_extensionThis);
     _graph.makeNonNullable(thisType!.node, origin, hard: hard, guards: _guards);
   }
 
@@ -2329,8 +2330,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         callee!.name == 'checkNotNull' &&
         node.argumentList.arguments.isNotEmpty) {
       var argument = node.argumentList.arguments.first;
-      if (argument is SimpleIdentifier &&
-          _postDominatedLocals.isReferenceInScope(argument)) {
+      if (argument is SimpleIdentifier && _isReferenceInScope(argument)) {
         var argumentType =
             _variables!.decoratedElementType(argument.staticElement!);
         _graph.makeNonNullable(argumentType.node,
@@ -2475,8 +2475,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     if (assignmentExpression != null) {
-      var element = _postDominatedLocals
-          .referencedElement(assignmentExpression.leftHandSide);
+      var element = _referencedElement(assignmentExpression.leftHandSide);
       if (element != null) {
         _postDominatedLocals.removeFromAllScopes(element);
         _elementsWrittenToInLocalFunction?.add(element);
@@ -2531,7 +2530,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     if (declaredElement.enclosingElement is ExtensionElement) {
-      _postDominatedLocals.add(_postDominatedLocals.extensionThis);
+      _postDominatedLocals.add(_extensionThis);
     }
     try {
       _dispatchList(initializers);
@@ -3090,8 +3089,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (isQuiverCheckNull && node.argumentList.arguments.isNotEmpty) {
       var argument = node.argumentList.arguments.first;
-      if (argument is SimpleIdentifier &&
-          _postDominatedLocals.isReferenceInScope(argument)) {
+      if (argument is SimpleIdentifier && _isReferenceInScope(argument)) {
         var argumentType =
             _variables!.decoratedElementType(argument.staticElement!);
         _graph.makeNonNullable(
@@ -3146,6 +3144,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   bool _isPrefix(Expression? e) =>
       e is SimpleIdentifier && e.staticElement is PrefixElement;
+
+  bool _isReferenceInScope(Expression expression) {
+    var element = _referencedElement(expression);
+    return element != null && _postDominatedLocals.isInScope(element);
+  }
 
   bool _isUntypedParameter(NormalFormalParameter parameter) {
     if (parameter is SimpleFormalParameter) {
@@ -3261,6 +3264,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return node;
   }
 
+  /// Returns the element referenced directly by [expression], if any; otherwise
+  /// returns `null`.
+  Element? _referencedElement(Expression expression) {
+    expression = expression.unParenthesized;
+    if (expression is SimpleIdentifier) {
+      return expression.staticElement;
+    } else if (expression is ThisExpression || expression is SuperExpression) {
+      return _extensionThis;
+    } else {
+      return null;
+    }
+  }
+
   /// Determines whether uses of [expression] should cause hard edges to be
   /// created in the nullability graph.
   ///
@@ -3288,8 +3304,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // expression is unconditionally executed, and (b) the expression is a
     // reference to a local variable or parameter and it post-dominates the
     // declaration of that local variable or parameter.
-    return !isConditionallyExecuted &&
-        _postDominatedLocals.isReferenceInScope(expression);
+    return !isConditionallyExecuted && _isReferenceInScope(expression);
   }
 
   DecoratedType? _thisOrSuper(Expression node) {
@@ -3771,31 +3786,4 @@ class _ConditionInfo {
       falseGuard: trueGuard,
       trueDemonstratesNonNullIntent: falseDemonstratesNonNullIntent,
       falseDemonstratesNonNullIntent: trueDemonstratesNonNullIntent);
-}
-
-/// A [ScopedSet] specific to the [Element]s of locals/parameters.
-///
-/// Contains helpers for dealing with expressions as if they were elements.
-class _ScopedLocalSet extends ScopedSet<Element> {
-  /// The synthetic element we use as a stand-in for `this` when analyzing
-  /// extension methods.
-  Element get extensionThis => DynamicElementImpl.instance;
-
-  bool isReferenceInScope(Expression expression) {
-    var element = referencedElement(expression);
-    return element != null && isInScope(element);
-  }
-
-  /// Returns the element referenced directly by [expression], if any; otherwise
-  /// returns `null`.
-  Element? referencedElement(Expression expression) {
-    expression = expression.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      return expression.staticElement;
-    } else if (expression is ThisExpression || expression is SuperExpression) {
-      return extensionThis;
-    } else {
-      return null;
-    }
-  }
 }
