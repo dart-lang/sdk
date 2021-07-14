@@ -2004,7 +2004,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     //
     // We cannot make a hard edge from y to never in this case.
     if (node.variables.length == 1) {
-      _postDominatedLocals.add(node.variables.single.declaredElement);
+      _postDominatedLocals.add(node.variables.single.declaredElement!);
     }
 
     return null;
@@ -3776,7 +3776,7 @@ class _ConditionInfo {
 /// A [ScopedSet] specific to the [Element]s of locals/parameters.
 ///
 /// Contains helpers for dealing with expressions as if they were elements.
-class _ScopedLocalSet extends ScopedSet<Element?> {
+class _ScopedLocalSet extends ScopedSet<Element> {
   /// The synthetic element we use as a stand-in for `this` when analyzing
   /// extension methods.
   Element get extensionThis => DynamicElementImpl.instance;
