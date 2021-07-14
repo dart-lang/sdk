@@ -143,7 +143,7 @@ class FfiNativeTransformer extends Transformer {
     final callFuncPtrInvocation = FunctionInvocation(
         FunctionAccessKind.FunctionType,
         StaticGet(funcPtrField),
-        Arguments(params.map((p) => VariableGet(p)).toList()),
+        Arguments(params.map<Expression>((p) => VariableGet(p)).toList()),
         functionType: dartType as FunctionType);
 
     return ReturnStatement(callFuncPtrInvocation);
