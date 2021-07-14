@@ -36,9 +36,9 @@ class ObjectPointerVisitor;
 //
 // R_ - needs getter only
 // RW - needs getter and setter
-// CW - needs lazy Core init getter and setter
-// FW - needs lazy Future init getter and setter
-#define OBJECT_STORE_FIELD_LIST(R_, RW, CW, FW)                                \
+// CR - needs lazy Core init getter
+// FR - needs lazy Future init getter
+#define OBJECT_STORE_FIELD_LIST(R_, RW, CR, FR)                                \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
@@ -81,12 +81,12 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
-  CW(Class, list_class)                    /* maybe be null, lazily built */   \
-  CW(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
-  CW(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
-  FW(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
-  FW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
-  FW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
+  CR(Class, list_class)                    /* maybe be null, lazily built */   \
+  CR(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
+  CR(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
+  FR(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
+  FR(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  FR(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_non_nullable_int)                            \
@@ -395,27 +395,25 @@ class ObjectStore {
   void set_##name(const Type& value) { name##_ = value.ptr(); }
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \
-    if (name##_ == Type::null()) {                                             \
+    if (name##_.load() == Type::null()) {                                      \
       init();                                                                  \
     }                                                                          \
-    return name##_;                                                            \
+    return name##_.load();                                                     \
   }                                                                            \
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
-#define DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER(Type, name)                   \
-  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)                      \
-  void set_##name(const Type& value) { name##_ = value.ptr(); }
-#define DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER(Type, name)                 \
-  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)                    \
-  void set_##name(const Type& value) { name##_ = value.ptr(); }
+#define DECLARE_LAZY_INIT_CORE_GETTER(Type, name)                              \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)
+#define DECLARE_LAZY_INIT_FUTURE_GETTER(Type, name)                            \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
-                          DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER,
-                          DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER)
+                          DECLARE_LAZY_INIT_CORE_GETTER,
+                          DECLARE_LAZY_INIT_FUTURE_GETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
 #undef DECLARE_LAZY_INIT_GETTER
-#undef DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER
-#undef DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER
+#undef DECLARE_LAZY_INIT_CORE_GETTER
+#undef DECLARE_LAZY_INIT_FUTURE_GETTER
 
   LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
@@ -471,10 +469,13 @@ class ObjectStore {
 
   ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&object_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
+#define DECLARE_LAZY_OBJECT_STORE_FIELD(type, name)                            \
+  AcqRelAtomic<type##Ptr> name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD,
-                          DECLARE_OBJECT_STORE_FIELD,
-                          DECLARE_OBJECT_STORE_FIELD)
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD)
+#undef DECLARE_LAZY_OBJECT_STORE_FIELD
 #undef DECLARE_OBJECT_STORE_FIELD
   ObjectPtr* to() {
     return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);

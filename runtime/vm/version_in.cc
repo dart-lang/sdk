@@ -10,7 +10,7 @@
 
 namespace dart {
 
-// We use require-release semantics to ensure initializing stores to the string
+// We use acquire-release semantics to ensure initializing stores to the string
 // are visible when the string becomes visible.
 static AcqRelAtomic<const char*> formatted_version = nullptr;
 
