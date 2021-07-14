@@ -2,23 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/version.h"
+#include "platform/atomic.h"
 
 #include "vm/cpu.h"
 #include "vm/os.h"
+#include "vm/version.h"
 
 namespace dart {
 
-// TODO(iposva): Avoid racy initialization.
-static const char* formatted_version = NULL;
+// We use require-release semantics to ensure initializing stores to the string
+// are visible when the string becomes visible.
+static AcqRelAtomic<const char*> formatted_version = nullptr;
 
 const char* Version::String() {
-  if (formatted_version == NULL) {
+  if (formatted_version.load() == nullptr) {
     const char* os = OS::Name();
     const char* arch = CPU::Id();
-    formatted_version = OS::SCreate(NULL, "%s on \"%s_%s\"", str_, os, arch);
+    char* version_string =
+        OS::SCreate(nullptr, "%s on \"%s_%s\"", str_, os, arch);
+    const char* expect_old_is_null = nullptr;
+    if (!formatted_version.compare_exchange_strong(expect_old_is_null,
+                                                   version_string)) {
+      free(version_string);
+    }
   }
-  return formatted_version;
+  return formatted_version.load();
 }
 
 const char* Version::SnapshotString() {
