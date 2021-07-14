@@ -182,6 +182,22 @@ class BulkFixProcessor {
     return builder;
   }
 
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (library is ResolvedLibraryResult) {
+        await _fixErrorsInLibrary(library);
+      }
+    }
+
+    return builder;
+  }
+
   /// Return a change builder that has been used to create all fixes for a
   /// specific diagnostic code in the given [unit].
   Future<ChangeBuilder> fixOfTypeInUnit(
