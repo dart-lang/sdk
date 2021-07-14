@@ -1584,9 +1584,10 @@ dart_ci_builder(
 )
 
 # Isolate stress test builder
-dart_vm_nightly_builder(
+dart_vm_extra_builder(
     "iso-stress-linux",
     channels = [],
+    notifies = "dart-vm-team",
 )
 
 # external
