@@ -3023,8 +3023,11 @@ void Class::InitEmptyFields() {
 }
 
 ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
-  if (untag()->offset_in_words_to_field() == Array::null()) {
-    ASSERT(is_finalized());
+  ASSERT(is_finalized());
+  if (untag()->offset_in_words_to_field<std::memory_order_acquire>() ==
+      Array::null()) {
+    // Even if multiple threads are calling this concurrently, all of them would
+    // compute the same array, so we intentionally don't acquire any locks here.
     const intptr_t length = untag()->host_instance_size_in_words_;
     const Array& array = Array::Handle(Array::New(length, Heap::kOld));
     Class& cls = Class::Handle(this->ptr());
@@ -3040,9 +3043,10 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
       }
       cls = cls.SuperClass(original_classes);
     }
-    untag()->set_offset_in_words_to_field(array.ptr());
+    untag()->set_offset_in_words_to_field<std::memory_order_release>(
+        array.ptr());
   }
-  return untag()->offset_in_words_to_field();
+  return untag()->offset_in_words_to_field<std::memory_order_acquire>();
 }
 
 bool Class::HasInstanceFields() const {

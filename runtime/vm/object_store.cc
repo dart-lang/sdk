@@ -334,40 +334,46 @@ void ObjectStore::InitKnownObjects() {
 }
 
 void ObjectStore::LazyInitCoreTypes() {
-  if (list_class_ == Type::null()) {
-    ASSERT(non_nullable_list_rare_type_ == Type::null());
-    ASSERT(non_nullable_map_rare_type_ == Type::null());
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-    Class& cls = Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (list_class_.load() == Type::null()) {
+    ASSERT(non_nullable_list_rare_type_.load() == Type::null());
+    ASSERT(non_nullable_map_rare_type_.load() == Type::null());
+
+    auto* const zone = thread->zone();
+    const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    auto& cls = Class::Handle(zone);
+
+    cls = core_lib.LookupClass(Symbols::List());
     ASSERT(!cls.IsNull());
-    set_list_class(cls);
-    Type& type = Type::Handle(zone);
+    list_class_.store(cls.ptr());
+
+    auto& type = Type::Handle(zone);
     type ^= cls.RareType();
-    set_non_nullable_list_rare_type(type);
+    non_nullable_list_rare_type_.store(type.ptr());
+
     cls = core_lib.LookupClass(Symbols::Map());
     ASSERT(!cls.IsNull());
     type ^= cls.RareType();
-    set_non_nullable_map_rare_type(type);
+    non_nullable_map_rare_type_.store(type.ptr());
   }
 }
 
 void ObjectStore::LazyInitFutureTypes() {
-  if (non_nullable_future_rare_type_ == Type::null()) {
-    ASSERT(non_nullable_future_never_type_ == Type::null() &&
-           nullable_future_null_type_ == Type::null());
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    Class& cls = Class::Handle(zone, future_class());
-    if (cls.IsNull()) {
-      const Library& async_lib = Library::Handle(zone, async_library());
-      ASSERT(!async_lib.IsNull());
-      cls = async_lib.LookupClass(Symbols::Future());
-      ASSERT(!cls.IsNull());
-    }
-    TypeArguments& type_args = TypeArguments::Handle(zone);
-    Type& type = Type::Handle(zone);
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (non_nullable_future_rare_type_.load() == Type::null()) {
+    ASSERT(non_nullable_future_never_type_.load() == Type::null());
+    ASSERT(nullable_future_null_type_.load() == Type::null());
+
+    auto* const zone = thread->zone();
+    const auto& cls = Class::Handle(zone, future_class());
+    ASSERT(!cls.IsNull());
+
+    auto& type_args = TypeArguments::Handle(zone);
+    auto& type = Type::Handle(zone);
     type = never_type();
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
@@ -375,7 +381,8 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, Nullability::kNonNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
-    set_non_nullable_future_never_type(type);
+    non_nullable_future_never_type_.store(type.ptr());
+
     type = null_type();
     ASSERT(!type.IsNull());
     type_args = TypeArguments::New(1);
@@ -383,9 +390,10 @@ void ObjectStore::LazyInitFutureTypes() {
     type = Type::New(cls, type_args, Nullability::kNullable);
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
-    set_nullable_future_null_type(type);
+    nullable_future_null_type_.store(type.ptr());
+
     type ^= cls.RareType();
-    set_non_nullable_future_rare_type(type);
+    non_nullable_future_rare_type_.store(type.ptr());
   }
 }
 
