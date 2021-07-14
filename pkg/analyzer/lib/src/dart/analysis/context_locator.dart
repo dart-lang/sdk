@@ -10,14 +10,16 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/context/builder.dart' as old;
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/workspace/basic.dart';
+import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:analyzer/src/workspace/gn.dart';
+import 'package:analyzer/src/workspace/package_build.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart';
@@ -366,12 +368,34 @@ class ContextLocatorImpl implements ContextLocator {
       packages = Packages.empty;
     }
 
-    return old.ContextBuilder.createWorkspace(
-      resourceProvider: resourceProvider,
-      packages: packages,
-      options: ContextBuilderOptions(), // TODO(scheglov) remove it
-      rootPath: folder.path,
-    );
+    // TODO(scheglov) Can we use Packages instead?
+    var packageMap = <String, List<Folder>>{};
+    for (var package in packages.packages) {
+      packageMap[package.name] = [package.libFolder];
+    }
+
+    var rootPath = folder.path;
+
+    // TODO(scheglov) Do we need this?
+    if (_hasPackageFileInPath(rootPath)) {
+      // A Bazel or Gn workspace that includes a '.packages' file is treated
+      // like a normal (non-Bazel/Gn) directory. But may still use
+      // package:build or Pub.
+      return PackageBuildWorkspace.find(
+              resourceProvider, packageMap, rootPath) ??
+          PubWorkspace.find(resourceProvider, packageMap, rootPath) ??
+          BasicWorkspace.find(resourceProvider, packageMap, rootPath);
+    }
+
+    Workspace? workspace;
+    workspace = BazelWorkspace.find(resourceProvider, rootPath,
+        lookForBuildFileSubstitutes: false);
+    workspace ??= GnWorkspace.find(resourceProvider, rootPath);
+    workspace ??=
+        PackageBuildWorkspace.find(resourceProvider, packageMap, rootPath);
+    workspace ??= PubWorkspace.find(resourceProvider, packageMap, rootPath);
+    workspace ??= BasicWorkspace.find(resourceProvider, packageMap, rootPath);
+    return workspace;
   }
 
   File? _findDefaultOptionsFile(Workspace workspace) {
@@ -489,6 +513,15 @@ class ContextLocatorImpl implements ContextLocator {
     }
 
     return _getFile(folder, file_paths.dotPackages);
+  }
+
+  /// Return `true` if either the directory at [rootPath] or a parent of that
+  /// directory contains a `.packages` file.
+  bool _hasPackageFileInPath(String rootPath) {
+    var folder = resourceProvider.getFolder(rootPath);
+    return folder.withAncestors.any((current) {
+      return current.getChildAssumingFile('.packages').exists;
+    });
   }
 
   /// Add to the given lists of [folders] and [files] all of the resources in
