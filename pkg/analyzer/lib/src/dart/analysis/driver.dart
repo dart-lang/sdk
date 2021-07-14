@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -1000,11 +999,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         }
         // Notify the completers.
         _requestedFiles.remove(path)!.forEach((completer) {
-          completer.complete(result);
+          completer.complete(result.unitResult!);
         });
         // Remove from to be analyzed and produce it now.
         _fileTracker.fileWasAnalyzed(path);
-        _resultController.add(result);
+        _resultController.add(result.unitResult!);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         _fileTracker.fileWasAnalyzed(path);
@@ -1129,7 +1128,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             if (result == null) {
               _partsToAnalyze.add(path);
             } else {
-              _resultController.add(result);
+              _resultController.add(result.unitResult!);
             }
           } catch (exception, stackTrace) {
             _reportException(path, exception, stackTrace);
@@ -1150,12 +1149,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             withUnit: false, skipIfSameSignature: true);
         if (result == null) {
           _partsToAnalyze.add(path);
-        } else if (result == AnalysisResult._UNCHANGED) {
+        } else if (result.isUnchangedErrors) {
           // We found that the set of errors is the same as we produced the
           // last time, so we don't need to produce it again now.
         } else {
-          _resultController.add(result);
-          _lastProducedSignatures[result.path] = result._signature;
+          _resultController.add(result.errorsResult!);
+          _lastProducedSignatures[path] = result._signature;
         }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
@@ -1174,11 +1173,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             withUnit: true, asIsIfPartWithoutLibrary: true)!;
         // Notify the completers.
         _requestedParts.remove(path)!.forEach((completer) {
-          completer.complete(result);
+          completer.complete(result.unitResult!);
         });
         // Remove from to be analyzed and produce it now.
         _partsToAnalyze.remove(path);
-        _resultController.add(result);
+        _resultController.add(result.unitResult!);
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         _partsToAnalyze.remove(path);
@@ -1195,10 +1194,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       String path = _partsToAnalyze.first;
       _partsToAnalyze.remove(path);
       try {
-        var result = _computeAnalysisResult(path,
-            withUnit: _priorityFiles.contains(path),
-            asIsIfPartWithoutLibrary: true)!;
-        _resultController.add(result);
+        var withUnit = _priorityFiles.contains(path);
+        if (withUnit) {
+          var result = _computeAnalysisResult(path,
+              withUnit: true, asIsIfPartWithoutLibrary: true)!;
+          _resultController.add(result.unitResult!);
+        } else {
+          var result = _computeAnalysisResult(path,
+              withUnit: false, asIsIfPartWithoutLibrary: true)!;
+          _resultController.add(result.errorsResult!);
+        }
       } catch (exception, stackTrace) {
         _reportException(path, exception, stackTrace);
         _clearLibraryContextAfterException();
@@ -1300,8 +1305,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the cached or newly computed analysis result of the file with the
   /// given [path].
   ///
-  /// The result will have the fully resolved unit and will always be newly
-  /// compute only if [withUnit] is `true`.
+  /// The [withUnit] flag control which result will be returned.
+  /// When `true`, [AnalysisResult.unitResult] will be set.
+  /// Otherwise [AnalysisResult.errorsResult] will be set.
   ///
   /// Return `null` if the file is a part of an unknown library, so cannot be
   /// analyzed yet. But [asIsIfPartWithoutLibrary] is `true`, then the file is
@@ -1311,7 +1317,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the resolved signature of the file in its library is the same as the one
   /// that was the most recently produced to the client.
   AnalysisResult? _computeAnalysisResult(String path,
-      {bool withUnit = false,
+      {required bool withUnit,
       bool asIsIfPartWithoutLibrary = false,
       bool skipIfSameSignature = false}) {
     FileState file = _fsState.getFileForPath(path);
@@ -1334,7 +1340,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (skipIfSameSignature) {
       assert(!withUnit);
       if (_lastProducedSignatures[path] == signature) {
-        return AnalysisResult._UNCHANGED;
+        return AnalysisResult.unchangedErrors(signature);
       }
     }
 
@@ -1394,7 +1400,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             content: withUnit ? file.content : null,
             resolvedUnit: withUnit ? resolvedUnit : null);
         if (withUnit && _priorityFiles.contains(path)) {
-          _priorityResults[path] = result;
+          _priorityResults[path] = result.unitResult!;
         }
         return result;
       } catch (exception, stackTrace) {
@@ -1416,8 +1422,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return null;
     }
 
-    return ErrorsResultImpl(currentSession, path, analysisResult.uri,
-        analysisResult.lineInfo, analysisResult.isPart, analysisResult.errors);
+    return analysisResult.errorsResult;
   }
 
   AnalysisDriverUnitIndex _computeIndex(String path) {
@@ -1666,7 +1671,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
     List<AnalysisError> errors = _getErrorsFromSerialized(file, unit.errors);
     _updateHasErrorOrWarningFlag(file, errors);
-    return AnalysisResult(
+    var index = unit.index!;
+    if (resolvedUnit != null) {
+      var resolvedUnitResult = ResolvedUnitResultImpl(
         currentSession,
         file.path,
         file.uri,
@@ -1674,10 +1681,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         content,
         file.lineInfo,
         file.isPart,
-        signature,
         resolvedUnit,
         errors,
-        unit.index);
+      );
+      return AnalysisResult.unit(signature, resolvedUnitResult, index);
+    } else {
+      var errorsResult = ErrorsResultImpl(
+        currentSession,
+        file.path,
+        file.uri,
+        file.lineInfo,
+        file.isPart,
+        errors,
+      );
+      return AnalysisResult.errors(signature, errorsResult, index);
+    }
   }
 
   /// Return [AnalysisError]s for the given [serialized] errors.
@@ -1726,21 +1744,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisResult _newMissingDartLibraryResult(
       FileState file, String missingUri) {
     // TODO(scheglov) Find a better way to report this.
-    return AnalysisResult(
-        currentSession,
-        file.path,
-        file.uri,
-        file.exists,
-        null,
-        file.lineInfo,
-        file.isPart,
-        'missing',
-        null,
-        [
-          AnalysisError(file.source, 0, 0,
-              CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
-        ],
-        null);
+    var errorsResult = ErrorsResultImpl(
+      currentSession,
+      file.path,
+      file.uri,
+      file.lineInfo,
+      file.isPart,
+      [
+        AnalysisError(file.source, 0, 0,
+            CompileTimeErrorCode.MISSING_DART_LIBRARY, [missingUri])
+      ],
+    );
+    return AnalysisResult.errors(
+        'missing', errorsResult, AnalysisDriverUnitIndexBuilder());
   }
 
   void _reportException(String path, Object exception, StackTrace stackTrace) {
@@ -2121,38 +2137,50 @@ class AnalysisDriverTestView {
 
 /// The result of analyzing of a single file.
 ///
-/// These results are self-consistent, i.e. [content], [lineInfo], the
-/// resolved [unit] correspond to each other. All referenced elements, even
+/// These results are self-consistent, i.e. the file content, line info, the
+/// resolved unit correspond to each other. All referenced elements, even
 /// external ones, are also self-consistent. But none of the results is
 /// guaranteed to be consistent with the state of the files.
 ///
 /// Every result is independent, and is not guaranteed to be consistent with
 /// any previously returned result, even inside of the same library.
-class AnalysisResult extends ResolvedUnitResultImpl {
-  static final _UNCHANGED = _UnchangedAnalysisResult();
-
+class AnalysisResult {
   /// The signature of the result based on the content of the file, and the
   /// transitive closure of files imported and exported by the library of
   /// the requested file.
   final String _signature;
 
+  final bool isUnchangedErrors;
+
+  /// Is not `null` if this result is a result with errors.
+  /// Otherwise is `null`, and usually [unitResult] is set.
+  final ErrorsResultImpl? errorsResult;
+
+  /// Is not `null` if this result is a result with a resolved unit.
+  /// Otherwise is `null`, and usually [errorsResult] is set.
+  final ResolvedUnitResultImpl? unitResult;
+
   /// The index of the unit.
   final AnalysisDriverUnitIndex? _index;
 
-  AnalysisResult(
-      AnalysisSession session,
-      String path,
-      Uri uri,
-      bool exists,
-      String? content,
-      LineInfo lineInfo,
-      bool isPart,
-      this._signature,
-      CompilationUnit? unit,
-      List<AnalysisError> errors,
-      this._index)
-      : super(session, path, uri, exists, content, lineInfo, isPart, unit,
-            errors);
+  AnalysisResult.errors(
+      this._signature, this.errorsResult, AnalysisDriverUnitIndex index)
+      : isUnchangedErrors = false,
+        unitResult = null,
+        _index = index;
+
+  AnalysisResult.unchangedErrors(this._signature)
+      : isUnchangedErrors = true,
+        errorsResult = null,
+        unitResult = null,
+        _index = null;
+
+  AnalysisResult.unit(this._signature, ResolvedUnitResultImpl unitResult,
+      AnalysisDriverUnitIndex index)
+      : isUnchangedErrors = false,
+        errorsResult = null,
+        unitResult = unitResult,
+        _index = index;
 }
 
 /// An object that watches for the creation and removal of analysis drivers.
@@ -2493,9 +2521,4 @@ class _FilesReferencingNameTask {
     completer.complete(referencingFiles);
     return true;
   }
-}
-
-class _UnchangedAnalysisResult implements AnalysisResult {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

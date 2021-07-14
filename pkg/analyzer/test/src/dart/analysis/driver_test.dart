@@ -59,7 +59,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   late final AnalysisDriverScheduler scheduler;
 
-  List<ResolvedUnitResult> allResults = [];
+  final List<AnalysisResultWithErrors> allResults = [];
 
   AnalysisDriver newDriver() {
     sdk = MockSdk(resourceProvider: resourceProvider);
@@ -75,7 +75,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
       packages: Packages.empty,
     );
     driver.results.listen((result) {
-      if (result is ResolvedUnitResult) {
+      if (result is AnalysisResultWithErrors) {
         allResults.add(result);
       }
     });
@@ -673,7 +673,9 @@ var A = B;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A', 'int');
     }
     allResults.clear();
@@ -690,7 +692,9 @@ var A = B;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A', 'double');
     }
   }
@@ -744,12 +748,16 @@ var B1 = A1;
     // We have results for both "a" and "b".
     expect(allResults, hasLength(2));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A1', 'int');
       _assertTopLevelVarType(ar.unit!, 'A2', 'int');
     }
     {
-      ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
+      ResolvedUnitResult br = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == b);
       _assertTopLevelVarType(br.unit!, 'B1', 'int');
     }
 
@@ -767,12 +775,16 @@ var A2 = B1;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(2));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A1', 'double');
       _assertTopLevelVarType(ar.unit!, 'A2', 'double');
     }
     {
-      ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
+      ResolvedUnitResult br = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == b);
       _assertTopLevelVarType(br.unit!, 'B1', 'double');
     }
   }
@@ -784,7 +796,7 @@ var A2 = B1;
     {
       await waitForIdleWithoutExceptions();
       expect(allResults, hasLength(1));
-      ResolvedUnitResult result = allResults[0];
+      var result = allResults[0] as ResolvedUnitResult;
       expect(result.path, testFile);
       _assertTopLevelVarType(result.unit!, 'V', 'int');
     }
@@ -807,7 +819,7 @@ var A2 = B1;
     {
       await waitForIdleWithoutExceptions();
       expect(allResults, hasLength(1));
-      ResolvedUnitResult result = allResults[0];
+      var result = allResults[0] as ResolvedUnitResult;
       expect(result.path, testFile);
       _assertTopLevelVarType(result.unit!, 'V', 'double');
     }
@@ -2739,9 +2751,9 @@ var b = new B();
 
       // c.dart was added after a.dart, so it is analyzed after a.dart,
       // so we know that a.dart is the library of c.dart, so no errors.
-      ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
+      var result =
+          allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
       expect(result.errors, isEmpty);
-      expect(result.unit, isNull);
     }
 
     // Update a.dart so that c.dart is not a part.
@@ -2752,9 +2764,9 @@ var b = new B();
 
       // Now c.dart does not have a library context, so A and B cannot be
       // resolved, so there are errors.
-      ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
+      var result =
+          allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
       expect(result.errors, isNotEmpty);
-      expect(result.unit, isNull);
     }
   }
 
@@ -2788,9 +2800,9 @@ var b = new B();
     // a.dart, but we cannot find the library for it, so we delay analysis
     // until all other files are analyzed, including a.dart, after which we
     // analyze the delayed parts.
-    ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
+    var result =
+        allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
     expect(result.errors, isEmpty);
-    expect(result.unit, isNull);
   }
 
   test_part_results_noLibrary() async {
@@ -2808,9 +2820,9 @@ var b = new B();
 
     // There is no library which c.dart is a part of, so it has unresolved
     // A and B references.
-    ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
+    var result =
+        allResults.whereType<ErrorsResult>().lastWhere((r) => r.path == c);
     expect(result.errors, isNotEmpty);
-    expect(result.unit, isNull);
   }
 
   test_part_results_priority_beforeLibrary() async {
@@ -2844,7 +2856,9 @@ var b = new B();
     // a.dart, but we cannot find the library for it, so we delay analysis
     // until all other files are analyzed, including a.dart, after which we
     // analyze the delayed parts.
-    ResolvedUnitResult result = allResults.lastWhere((r) => r.path == c);
+    ResolvedUnitResult result = allResults
+        .whereType<ResolvedUnitResult>()
+        .lastWhere((r) => r.path == c);
     expect(result.errors, isEmpty);
     expect(result.unit, isNotNull);
   }
@@ -2866,11 +2880,15 @@ var A = B;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(2));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A', 'int');
     }
     {
-      ResolvedUnitResult br = allResults.firstWhere((r) => r.path == b);
+      ResolvedUnitResult br = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == b);
       _assertTopLevelVarType(br.unit!, 'B', 'int');
     }
     allResults.clear();
@@ -2886,7 +2904,9 @@ var A = B;
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(1));
     {
-      ResolvedUnitResult ar = allResults.firstWhere((r) => r.path == a);
+      ResolvedUnitResult ar = allResults
+          .whereType<ResolvedUnitResult>()
+          .firstWhere((r) => r.path == a);
       _assertTopLevelVarType(ar.unit!, 'A', 'double');
     }
   }
@@ -3092,7 +3112,7 @@ class F extends X {}
     await waitForIdleWithoutExceptions();
 
     expect(allResults, hasLength(1));
-    ResolvedUnitResult result = allResults.single;
+    var result = allResults.single as ResolvedUnitResult;
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
     expect(result.content, content);
@@ -3119,7 +3139,7 @@ class F extends X {}
     await waitForIdleWithoutExceptions();
 
     expect(allResults, hasLength(3));
-    ResolvedUnitResult result = allResults[0];
+    var result = allResults[0] as ResolvedUnitResult;
     expect(result.path, b);
     expect(result.unit, isNotNull);
     expect(result.errors, hasLength(0));
@@ -3131,11 +3151,9 @@ class F extends X {}
     await waitForIdleWithoutExceptions();
 
     expect(allResults, hasLength(1));
-    ResolvedUnitResult result = allResults.single;
+    var result = allResults.single as ErrorsResult;
     expect(result.path, testFile);
     expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.content, isNull);
-    expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
   }
 

@@ -4023,8 +4023,11 @@ void Class::Finalize() const {
     // fields.
     const auto host_bitmap = CalculateFieldOffsets();
     if (ptr() == isolate_group->class_table()->At(id())) {
-      // Sets the new size in the class table.
-      isolate_group->class_table()->SetAt(id(), ptr());
+      if (!ClassTable::IsTopLevelCid(id())) {
+        // Unless class is top-level, which don't get instantiated,
+        // sets the new size in the class table.
+        isolate_group->class_table()->UpdateClassSize(id(), ptr());
+      }
       if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
         isolate_group->shared_class_table()->SetUnboxedFieldsMapAt(id(),
                                                                    host_bitmap);

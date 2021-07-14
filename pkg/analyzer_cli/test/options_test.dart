@@ -318,7 +318,6 @@ class ArgumentsTest with ResourceProviderMixin {
     _parse(['a.dart']);
     var builderOptions = commandLineOptions.contextBuilderOptions;
     expect(builderOptions, isNotNull);
-    expect(builderOptions.dartSdkSummaryPath, isNull);
     expect(builderOptions.declaredVariables, isEmpty);
     expect(builderOptions.defaultAnalysisOptionsFilePath, isNull);
     expect(builderOptions.defaultPackageFilePath, isNull);

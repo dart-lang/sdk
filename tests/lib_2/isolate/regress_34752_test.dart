@@ -4,7 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --no-enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --enable-fast-object-copy
 // VMOptions=--no-enable-isolate-groups
 
 // Verifies that large BigInt can be passed through a message port and

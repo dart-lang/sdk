@@ -150,6 +150,8 @@ enum TypedDataElementType {
   friend class object##DeserializationCluster;                                 \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
+  template <typename Base>                                                     \
+  friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
 // RawObject is the base class of all raw objects; even though it carries the
@@ -540,7 +542,7 @@ class UntaggedObject {
   void StorePointer(type const* addr, type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
   }
@@ -552,7 +554,7 @@ class UntaggedObject {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
         ->store(static_cast<compressed_type>(value), order);
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
   }
@@ -560,7 +562,7 @@ class UntaggedObject {
   template <typename type>
   void StorePointer(type const* addr, type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
   }
@@ -570,7 +572,7 @@ class UntaggedObject {
                               type value,
                               Thread* thread) {
     *const_cast<compressed_type*>(addr) = value;
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
   }
@@ -772,6 +774,9 @@ class UntaggedObject {
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
   friend class Object;
+  friend uword TagsFromUntaggedObject(UntaggedObject*);                // tags_
+  friend void SetNewSpaceTaggingWord(ObjectPtr, classid_t, uint32_t);  // tags_
+  friend class ObjectCopyBase;  // LoadPointer/StorePointer
   friend void ReportImpossibleNullError(intptr_t cid,
                                         StackFrame* caller_frame,
                                         Thread* thread);
@@ -2808,6 +2813,12 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
 
  private:
   friend class UntaggedTypedDataView;
+  friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
+  friend void InitializeExternalTypedData(
+      intptr_t,
+      ExternalTypedDataPtr,
+      ExternalTypedDataPtr);  // initialize fields.
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
 
@@ -2899,6 +2910,7 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   VISIT_TO(offset_in_bytes)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend void InitializeTypedDataView(TypedDataViewPtr);
   friend class Api;
   friend class Object;
   friend class ObjectPoolDeserializationCluster;
@@ -2964,6 +2976,8 @@ class UntaggedArray : public UntaggedInstance {
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
   friend class OldPage;
+  friend class FastObjectCopy;  // For initializing fields.
+  friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
 
 class UntaggedImmutableArray : public UntaggedArray {

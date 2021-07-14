@@ -620,6 +620,8 @@ class Object {
   };
 
  protected:
+  friend ObjectPtr AllocateObject(intptr_t, intptr_t);
+
   // Used for extracting the C++ vtable during bringup.
   Object() : ptr_(null_) {}
 
@@ -1510,6 +1512,9 @@ class Class : public Object {
   uint16_t num_native_fields() const { return untag()->num_native_fields_; }
   void set_num_native_fields(uint16_t value) const {
     StoreNonPointer(&untag()->num_native_fields_, value);
+  }
+  static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
+    return clazz->untag()->num_native_fields_;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -8978,6 +8983,11 @@ class Smi : public Integer {
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
+#if defined(DART_COMPRESSED_POINTERS)
+  static intptr_t Value(const CompressedSmiPtr raw_smi) {
+    return Smi::Value(static_cast<SmiPtr>(raw_smi.DecompressSmi()));
+  }
+#endif
 
   static intptr_t RawValue(intptr_t value) {
     return static_cast<intptr_t>(New(value));
@@ -11221,6 +11231,9 @@ class Closure : public Instance {
   static intptr_t function_offset() {
     return OFFSET_OF(UntaggedClosure, function_);
   }
+  static FunctionPtr FunctionOf(ClosurePtr closure) {
+    return closure.untag()->function();
+  }
 
 #if defined(DART_PRECOMPILER)
   FunctionTypePtr signature() const {
@@ -11236,6 +11249,9 @@ class Closure : public Instance {
   ContextPtr context() const { return untag()->context(); }
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);
+  }
+  static ContextPtr ContextOf(ClosurePtr closure) {
+    return closure.untag()->context();
   }
 
   bool IsGeneric(Thread* thread) const { return NumTypeParameters(thread) > 0; }

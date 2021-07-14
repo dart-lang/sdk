@@ -186,6 +186,8 @@ vm_sources = [
   "object.h",
   "object_graph.cc",
   "object_graph.h",
+  "object_graph_copy.cc",
+  "object_graph_copy.h",
   "object_id_ring.cc",
   "object_id_ring.h",
   "object_reload.cc",

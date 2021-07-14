@@ -5724,7 +5724,10 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
   void PostLoad(Deserializer* d, const Array& refs) {
     auto isolate_group = d->isolate_group();
-    isolate_group->class_table()->CopySizesFromClassObjects();
+    {
+      SafepointWriteRwLocker ml(d->thread(), isolate_group->program_lock());
+      isolate_group->class_table()->CopySizesFromClassObjects();
+    }
     d->heap()->old_space()->EvaluateAfterLoading();
 
     const Array& units =
@@ -7800,6 +7803,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
     {
       TIMELINE_DURATION(thread(), Isolate, "ReadFill");
+      SafepointWriteRwLocker ml(thread(), isolate_group()->program_lock());
       for (intptr_t i = 0; i < num_clusters_; i++) {
         TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
         clusters_[i]->ReadFill(this, primary);
