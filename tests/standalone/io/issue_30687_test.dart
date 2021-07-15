@@ -34,11 +34,11 @@ main() async {
       Expect.isTrue(renamed.existsSync());
       Expect.equals(renamed.path, link2.path);
     } finally {
-      target1.delete();
-      target2.delete();
-      link2.delete();
+      target1.deleteSync();
+      target2.deleteSync();
+      link2.deleteSync();
       if (link1.existsSync()) {
-        link1.delete();
+        link1.deleteSync();
       }
     }
   });
