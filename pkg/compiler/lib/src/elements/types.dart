@@ -911,86 +911,29 @@ abstract class DartTypeVisitor<R, A> {
 
   R visit(covariant DartType type, A argument) => type.accept(this, argument);
 
-  R visitLegacyType(covariant LegacyType type, A argument) => null;
+  R visitLegacyType(covariant LegacyType type, A argument);
 
-  R visitNullableType(covariant NullableType type, A argument) => null;
+  R visitNullableType(covariant NullableType type, A argument);
 
-  R visitNeverType(covariant NeverType type, A argument) => null;
+  R visitNeverType(covariant NeverType type, A argument);
 
-  R visitVoidType(covariant VoidType type, A argument) => null;
+  R visitVoidType(covariant VoidType type, A argument);
 
-  R visitTypeVariableType(covariant TypeVariableType type, A argument) => null;
+  R visitTypeVariableType(covariant TypeVariableType type, A argument);
 
-  R visitFunctionTypeVariable(
-          covariant FunctionTypeVariable type, A argument) =>
-      null;
+  R visitFunctionTypeVariable(covariant FunctionTypeVariable type, A argument);
 
-  R visitFunctionType(covariant FunctionType type, A argument) => null;
+  R visitFunctionType(covariant FunctionType type, A argument);
 
-  R visitInterfaceType(covariant InterfaceType type, A argument) => null;
+  R visitInterfaceType(covariant InterfaceType type, A argument);
 
-  R visitDynamicType(covariant DynamicType type, A argument) => null;
+  R visitDynamicType(covariant DynamicType type, A argument);
 
-  R visitErasedType(covariant ErasedType type, A argument) => null;
+  R visitErasedType(covariant ErasedType type, A argument);
 
-  R visitAnyType(covariant AnyType type, A argument) => null;
+  R visitAnyType(covariant AnyType type, A argument);
 
-  R visitFutureOrType(covariant FutureOrType type, A argument) => null;
-}
-
-abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
-  const BaseDartTypeVisitor();
-
-  R visitType(covariant DartType type, A argument);
-
-  @override
-  R visitLegacyType(covariant LegacyType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitNullableType(covariant NullableType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitNeverType(covariant NeverType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitVoidType(covariant VoidType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitTypeVariableType(covariant TypeVariableType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitFunctionTypeVariable(
-          covariant FunctionTypeVariable type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitFunctionType(covariant FunctionType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitInterfaceType(covariant InterfaceType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitDynamicType(covariant DynamicType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitErasedType(covariant ErasedType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitAnyType(covariant AnyType type, A argument) =>
-      visitType(type, argument);
-
-  @override
-  R visitFutureOrType(covariant FutureOrType type, A argument) =>
-      visitType(type, argument);
+  R visitFutureOrType(covariant FutureOrType type, A argument);
 }
 
 class _LegacyErasureVisitor extends DartTypeVisitor<DartType, Null> {
