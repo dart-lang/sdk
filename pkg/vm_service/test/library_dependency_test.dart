@@ -8,7 +8,6 @@ import 'dart:isolate' show Isolate, SendPort hide Capability;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 export 'dart:io' show Socket hide SecureSocket;
