@@ -895,18 +895,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _dispatch(node.parameters);
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables!.decoratedElementType(parameterElement);
-    var field = parameterElement.field!;
-    _fieldsNotInitializedByConstructor!.remove(field);
-    var fieldType = _variables!.decoratedElementType(field);
-    var origin = FieldFormalParameterOrigin(source, node);
-    if (node.type == null) {
-      _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
-      _checkAssignment(origin, FixReasonTarget.root,
-          source: fieldType, destination: parameterType, hard: false);
-    } else {
-      _dispatch(node.type);
-      _checkAssignment(origin, FixReasonTarget.root,
-          source: parameterType, destination: fieldType, hard: true);
+    var field = parameterElement.field;
+    if (field != null) {
+      _fieldsNotInitializedByConstructor!.remove(field);
+      var fieldType = _variables!.decoratedElementType(field);
+      var origin = FieldFormalParameterOrigin(source, node);
+      if (node.type == null) {
+        _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: false);
+        _checkAssignment(origin, FixReasonTarget.root,
+            source: fieldType, destination: parameterType, hard: false);
+      } else {
+        _dispatch(node.type);
+        _checkAssignment(origin, FixReasonTarget.root,
+            source: parameterType, destination: fieldType, hard: true);
+      }
     }
 
     return null;
@@ -2083,7 +2085,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var result = <PropertyAccessorElement, FieldFormalParameterElement>{};
     for (var parameter in constructorElement.parameters) {
       if (parameter is FieldFormalParameterElement) {
-        result[parameter.field!.getter!] = parameter;
+        var getter = parameter.field?.getter;
+        if (getter != null) {
+          result[getter] = parameter;
+        }
       }
     }
     return result;

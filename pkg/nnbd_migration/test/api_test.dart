@@ -116,7 +116,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   ///
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
-  Future<void> _checkSingleFileChanges(String content, String expected,
+  Future<void> _checkSingleFileChanges(String content, dynamic expected,
       {Map<String, String> migratedInput = const {},
       bool removeViaComments = false,
       bool warnOnWeakCode = false,
@@ -1162,6 +1162,41 @@ void main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_constructor_field_formal_resolves_to_getter() async {
+    var content = '''
+class C {
+  int get i => 0;
+  C(this.i);
+}
+''';
+    // It doesn't matter what the migration produces; we just want to make sure
+    // there isn't a crash.
+    await _checkSingleFileChanges(content, anything, allowErrors: true);
+  }
+
+  Future<void> test_constructor_field_formal_resolves_to_setter() async {
+    var content = '''
+class C {
+  set i(int value) {}
+  C(this.i);
+}
+''';
+    // It doesn't matter what the migration produces; we just want to make sure
+    // there isn't a crash.
+    await _checkSingleFileChanges(content, anything, allowErrors: true);
+  }
+
+  Future<void> test_constructor_field_formal_unresolved() async {
+    var content = '''
+class C {
+  C(this.i);
+}
+''';
+    // It doesn't matter what the migration produces; we just want to make sure
+    // there isn't a crash.
+    await _checkSingleFileChanges(content, anything, allowErrors: true);
   }
 
   Future<void> test_constructor_optional_param_factory() async {

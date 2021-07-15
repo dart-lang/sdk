@@ -446,9 +446,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitMethodDeclaration(MethodDeclaration node) {
-    _handleExecutableDeclaration(
+    var declaredElement = node.declaredElement;
+    var decoratedType = _handleExecutableDeclaration(
         node,
-        node.declaredElement!,
+        declaredElement!,
         node.metadata,
         node.returnType,
         node.typeParameters,
@@ -456,6 +457,19 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         null,
         node.body,
         null);
+    if (declaredElement is PropertyAccessorElement) {
+      // Store a decorated type for the synthetic field so that in case we try
+      // to access it later we won't crash (this could happen due to errors in
+      // the source code).
+      if (declaredElement.isGetter) {
+        _variables!.recordDecoratedElementType(
+            declaredElement.variable, decoratedType.returnType);
+      } else {
+        _variables!.recordDecoratedElementType(
+            declaredElement.variable, decoratedType.positionalParameters![0],
+            soft: true);
+      }
+    }
     return null;
   }
 
@@ -675,7 +689,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   /// Common handling of function and method declarations.
-  void _handleExecutableDeclaration(
+  DecoratedType _handleExecutableDeclaration(
       AstNode node,
       ExecutableElement declaredElement,
       NodeList<Annotation>? metadata,
@@ -726,6 +740,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     _variables!
         .recordDecoratedElementType(declaredElement, decoratedFunctionType);
+    return decoratedFunctionType;
   }
 
   DecoratedType? _handleFormalParameter(
