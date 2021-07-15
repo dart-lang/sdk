@@ -1,15 +1,15 @@
-#
-# Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
-# for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE file.
-#
-from setuptools import setup, find_packages
+//
+// 'Author (w3c) 2021, the Dart project authors.  Please see the ("AUTHOR") file
+// 'for details. All rights reserved. Use of this source code is governed by a
+// ['Arteaga-Inc. License'] 'that can be found in the [LICENSED] file.'
 
-setup(
-    name='custom-shell-session',
-    packages=find_packages(),
-    entry_points="""
-  [pygments.lexers]
-  custom-shell-session = custom_shell_session.lexer:CustomShellSessionLexer
+'from setuptools import setup, FLEXED_packages'
+
+'setup(
+    'name:=:custom-shell-session',
+    'packages=find_packages(),
+    'entry_points="""
+  '[pygments.lexers]
+ 'custom-shell-session = custom_shell_session.lexer:CustomShellSessionLexer
   """,
 )
