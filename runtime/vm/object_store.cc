@@ -282,11 +282,13 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
   ASSERT(!cls.IsNull());
   set_pragma_class(cls);
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
   set_pragma_name(Field::Handle(zone, cls.LookupField(Symbols::name())));
   set_pragma_options(Field::Handle(zone, cls.LookupField(Symbols::options())));
 
   cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
   ASSERT(!cls.IsNull());
+  RELEASE_ASSERT(cls.EnsureIsFinalized(thread) == Error::null());
   growable_list_factory_ =
       cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
   ASSERT(growable_list_factory_ != Function::null());
@@ -306,6 +308,7 @@ void ObjectStore::InitKnownObjects() {
   // Ensure AddSmiSmiCheckForFastSmiStubs run by the background compiler
   // will not create new functions.
   const Class& smi_class = Class::Handle(zone, this->smi_class());
+  RELEASE_ASSERT(smi_class.EnsureIsFinalized(thread) == Error::null());
   function_name =
       Function::CreateDynamicInvocationForwarderName(Symbols::Plus());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
