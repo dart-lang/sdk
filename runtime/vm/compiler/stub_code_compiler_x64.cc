@@ -359,9 +359,10 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Load the target from the thread.
   __ movq(TMP, compiler::Address(
                    THR, compiler::target::Thread::callback_code_offset()));
-  __ movq(TMP, compiler::FieldAddress(
-                   TMP, compiler::target::GrowableObjectArray::data_offset()));
-  __ movq(
+  __ LoadCompressed(
+      TMP, compiler::FieldAddress(
+               TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ LoadCompressed(
       TMP,
       __ ElementAddressForRegIndex(
           /*external=*/false,

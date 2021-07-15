@@ -415,8 +415,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the code object.
   __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R10, R10,
-                         compiler::target::GrowableObjectArray::data_offset());
+  __ LoadCompressedFieldFromOffset(
+      R10, R10, compiler::target::GrowableObjectArray::data_offset());
   __ LoadCompressed(
       R10,
       __ ElementAddressForRegIndex(
