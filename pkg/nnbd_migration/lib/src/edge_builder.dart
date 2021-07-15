@@ -141,6 +141,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// return statements.
   DecoratedType? _currentFunctionType;
 
+  /// If the innermost enclosing executable is a constructor with field formal
+  /// parameters, a map from each field's getter to the corresponding field
+  /// formal parameter element.  Otherwise, an empty map.
+  Map<PropertyAccessorElement, FieldFormalParameterElement>
+      _currentFieldFormals = const {};
+
   FunctionExpression? _currentFunctionExpression;
 
   /// The [ClassElement] or [ExtensionElement] of the current class or extension
@@ -986,9 +992,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _addParametersToFlowAnalysis(node.parameters);
     var previousFunction = _currentFunctionExpression;
     var previousFunctionType = _currentFunctionType;
+    var previousFieldFormals = _currentFieldFormals;
     _currentFunctionExpression = node;
     _currentFunctionType =
         _variables!.decoratedElementType(node.declaredElement!);
+    _currentFieldFormals = const {};
     var previousPostDominatedLocals = _postDominatedLocals;
     var previousElementsWrittenToInLocalFunction =
         _elementsWrittenToInLocalFunction;
@@ -1013,6 +1021,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             previousElementsWrittenToInLocalFunction;
       }
       _currentFunctionType = previousFunctionType;
+      _currentFieldFormals = previousFieldFormals;
       _currentFunctionExpression = previousFunction;
       _postDominatedLocals = previousPostDominatedLocals;
     }
@@ -1647,7 +1656,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType? visitSimpleIdentifier(SimpleIdentifier node) {
     DecoratedType? targetType;
     DecoratedType? result;
-    var staticElement = getWriteOrReadElement(node);
+    var staticElement = _favorFieldFormalElements(getWriteOrReadElement(node));
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
         var promotedType = _flowAnalysis!.variableRead(node, staticElement);
@@ -2067,6 +2076,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _graph.makeNonNullable(thisType!.node, origin, hard: hard, guards: _guards);
   }
 
+  /// Computes the map to be stored in [_currentFieldFormals] while visiting the
+  /// constructor having the given [constructorElement].
+  Map<PropertyAccessorElement, FieldFormalParameterElement>
+      _computeFieldFormalMap(ConstructorElement constructorElement) {
+    var result = <PropertyAccessorElement, FieldFormalParameterElement>{};
+    for (var parameter in constructorElement.parameters) {
+      if (parameter is FieldFormalParameterElement) {
+        result[parameter.field!.getter!] = parameter;
+      }
+    }
+    return result;
+  }
+
   @override
   void _connect(NullabilityNode? source, NullabilityNode? destination,
       EdgeOrigin origin, FixReasonTarget? edgeTarget,
@@ -2286,6 +2308,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var node in nodeList) {
       _dispatch(node);
     }
+  }
+
+  /// If the innermost enclosing executable is a constructor with field formal
+  /// parameters, and [staticElement] refers to the getter associated with one
+  /// of those fields, returns the corresponding field formal parameter element.
+  /// Otherwise returns [staticElement] unchanged.
+  ///
+  /// This allows us to treat null checks on the field as though they were null
+  /// checks on the field formal parameter, which is not strictly correct, but
+  /// tends to produce migrations that are more in line with user intent.
+  Element? _favorFieldFormalElements(Element? staticElement) {
+    if (staticElement is PropertyAccessorElement) {
+      var fieldFormal = _currentFieldFormals[staticElement];
+      if (fieldFormal != null) {
+        return fieldFormal;
+      }
+    }
+    return staticElement;
   }
 
   DecoratedType _fixNumericTypes(
@@ -2521,11 +2561,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FunctionBody body,
       ConstructorName? redirectedConstructor) {
     assert(_currentFunctionType == null);
+    assert(_currentFieldFormals.isEmpty);
     _dispatchList(metadata);
     _dispatch(returnType);
     _createFlowAnalysis(node, parameters);
     _dispatch(parameters);
     _currentFunctionType = _variables!.decoratedElementType(declaredElement);
+    _currentFieldFormals = declaredElement is ConstructorElement
+        ? _computeFieldFormalMap(declaredElement)
+        : const {};
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
@@ -2618,6 +2662,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis = null;
       _assignedVariables = null;
       _currentFunctionType = null;
+      _currentFieldFormals = const {};
       _postDominatedLocals.popScope();
     }
   }
@@ -3269,7 +3314,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   Element? _referencedElement(Expression expression) {
     expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
-      return expression.staticElement;
+      return _favorFieldFormalElements(expression.staticElement);
     } else if (expression is ThisExpression || expression is SuperExpression) {
       return _extensionThis;
     } else {

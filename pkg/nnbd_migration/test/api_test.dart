@@ -6106,6 +6106,84 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_non_null_intent_field_formal_assert() async {
+    var content = '''
+class C {
+  int i;
+  C(this.i) {
+    assert(i != null);
+  }
+}
+f(int j, bool b) {
+  if (b) {
+    C(j);
+  }
+}
+g() {
+  f(null, false);
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C(this.i) {
+    assert(i != null);
+  }
+}
+f(int? j, bool b) {
+  if (b) {
+    C(j!);
+  }
+}
+g() {
+  f(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_non_null_intent_field_formal_use() async {
+    var content = '''
+class C {
+  int i;
+  C(this.i) {
+    f(i);
+  }
+}
+f(int j) {
+  assert(j != null);
+}
+g(int k, bool b) {
+  if (b) {
+    C(k);
+  }
+}
+h() {
+  g(null, false);
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C(this.i) {
+    f(i);
+  }
+}
+f(int j) {
+  assert(j != null);
+}
+g(int? k, bool b) {
+  if (b) {
+    C(k!);
+  }
+}
+h() {
+  g(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_non_null_intent_propagated_through_substitution_nodes() async {
     var content = '''
