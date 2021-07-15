@@ -1388,7 +1388,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       _variables!.recordDecoratedExpressionType(node, expressionType);
     }
-    _handleArgumentErrorCheckNotNull(node);
+    _handleCustomCheckNotNull(node);
     _handleQuiverCheckNotNull(node);
     return expressionType;
   }
@@ -2356,29 +2356,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         .decoratedTypeParameterBound((type.type as TypeParameterType).element);
   }
 
-  void _handleArgumentErrorCheckNotNull(MethodInvocation node) {
-    var callee = node.methodName.staticElement;
-    var calleeIsStatic = callee is ExecutableElement && callee.isStatic;
-    var target = node.realTarget;
-    bool targetIsArgumentError =
-        (target is SimpleIdentifier && target.name == 'ArgumentError') ||
-            (target is PrefixedIdentifier &&
-                target.identifier.name == 'ArgumentError');
-
-    if (calleeIsStatic &&
-        targetIsArgumentError &&
-        callee!.name == 'checkNotNull' &&
-        node.argumentList.arguments.isNotEmpty) {
-      var argument = node.argumentList.arguments.first;
-      if (argument is SimpleIdentifier && _isReferenceInScope(argument)) {
-        var argumentType =
-            _variables!.decoratedElementType(argument.staticElement!);
-        _graph.makeNonNullable(argumentType.node,
-            ArgumentErrorCheckNotNullOrigin(source, argument));
-      }
-    }
-  }
-
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   ///
@@ -2549,6 +2526,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArgumentTypes,
         calleeType,
         redirectedClass.typeParameters);
+  }
+
+  void _handleCustomCheckNotNull(MethodInvocation node) {
+    var callee = node.methodName.staticElement;
+    if (node.argumentList.arguments.isNotEmpty &&
+        callee is ExecutableElement &&
+        callee.isStatic) {
+      var enclosingElement = callee.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        if (callee.name == 'checkNotNull' &&
+                enclosingElement.name == 'ArgumentError' &&
+                callee.library.isDartCore ||
+            callee.name == 'checkNotNull' &&
+                enclosingElement.name == 'BuiltValueNullFieldError' &&
+                callee.library.source.uri.toString() ==
+                    'package:built_value/built_value.dart') {
+          var argument = node.argumentList.arguments.first;
+          if (argument is SimpleIdentifier && _isReferenceInScope(argument)) {
+            var argumentType = _variables!.decoratedElementType(
+                _favorFieldFormalElements(getWriteOrReadElement(argument))!);
+            _graph.makeNonNullable(argumentType.node,
+                ArgumentErrorCheckNotNullOrigin(source, argument));
+          }
+        }
+      }
+    }
   }
 
   void _handleExecutableDeclaration(
