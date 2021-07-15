@@ -402,7 +402,7 @@ class _Transform extends RecursiveVisitor {
     //    as required positional parameters, alphabetically by name.
     final List<VariableDeclaration> sortedNamed = function.namedParameters
         .toList()
-          ..sort((var1, var2) => var1.name.compareTo(var2.name));
+      ..sort((var1, var2) => var1.name.compareTo(var2.name));
     for (VariableDeclaration variable in sortedNamed) {
       final _ParameterInfo param = info.named[variable.name];
       if (param.isAlwaysPassed) {

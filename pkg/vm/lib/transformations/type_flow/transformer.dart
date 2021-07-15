@@ -9,6 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -1030,20 +1031,35 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   bool _isThrowExpression(Expression expr) {
-    while (expr is Let) {
-      expr = (expr as Let).body;
+    for (;;) {
+      if (expr is Let) {
+        expr = (expr as Let).body;
+      } else if (expr is BlockExpression) {
+        expr = (expr as BlockExpression).value;
+      } else {
+        break;
+      }
     }
     return expr is Throw;
   }
 
-  TreeNode _evaluateArguments(List<Expression> args, Expression result) {
-    Expression node = result;
-    for (var arg in args.reversed) {
+  Expression _evaluateArguments(List<Expression> args, Expression result) {
+    final List<ast.Statement> statements = <ast.Statement>[];
+    for (var arg in args) {
       if (mayHaveSideEffects(arg)) {
-        node = Let(VariableDeclaration(null, initializer: arg), node);
+        statements.add(ExpressionStatement(arg));
       }
     }
-    return node;
+    if (statements.isEmpty) {
+      return result;
+    }
+    // Merge nested BlockExpression nodes.
+    Expression value = result;
+    if (result is BlockExpression) {
+      statements.addAll(result.body.statements);
+      value = result.value;
+    }
+    return BlockExpression(Block(statements), value);
   }
 
   TreeNode _makeUnreachableCall(List<Expression> args) {

@@ -846,8 +846,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isStatic: true)
       ..fileOffset = compound.fileOffset
       ..isNonNullableByDefault = true
-      ..addAnnotation(ConstantExpression(InstanceConstant(pragmaClass.reference,
-          /*type_arguments=*/ [], {
+      ..addAnnotation(ConstantExpression(
+          InstanceConstant(pragmaClass.reference, /*type_arguments=*/ [], {
         pragmaName.getterReference: StringConstant("vm:prefer-inline"),
         pragmaOptions.getterReference: NullConstant(),
       })));
