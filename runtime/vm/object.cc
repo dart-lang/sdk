@@ -2397,8 +2397,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     const bool injected = cls.InjectCIDFields();
     ASSERT(injected);
 
-    isolate_group->object_store()->InitKnownObjects();
-
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
