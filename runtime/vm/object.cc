@@ -10768,7 +10768,9 @@ FieldPtr Field::Clone(const Field& original) const {
   }
   ASSERT(original.IsOriginal());
   Field& clone = Field::Handle();
-  clone ^= Object::Clone(*this, Heap::kOld);
+  // Using relaxed loading is fine because concurrent fields changes are all
+  // guarded, will be reconciled during optimized code installation.
+  clone ^= Object::Clone(*this, Heap::kOld, /*load_with_relaxed_atomics=*/true);
   clone.SetOriginal(original);
   clone.InheritKernelOffsetFrom(original);
   return clone.ptr();
