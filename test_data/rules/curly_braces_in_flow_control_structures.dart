@@ -55,6 +55,9 @@ testIfElse() {
 
   if (false) { print('should be on next line'); // OK
   }
+
+  if (true) {
+  } else if (true) return; //LINT
 }
 
 testWhile() {
