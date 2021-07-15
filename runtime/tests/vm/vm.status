@@ -15,6 +15,8 @@ dart/boxmint_test: Pass, Slow # Uses slow path
 dart/data_uri_import_test/none: SkipByDesign
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
+dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
+dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -25,6 +27,8 @@ dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/data_uri_import_test/none: SkipByDesign
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
+dart_2/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
+dart_2/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart_2/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart_2/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
 dart_2/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
