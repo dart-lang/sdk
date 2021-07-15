@@ -1,6 +1,7 @@
 # master
 
 - New lint: `eol_at_end_of_file`
+- Update `analyzer` constraint to `>=2.0.0 <3.0.0`.
 
 # 1.7.1
 
