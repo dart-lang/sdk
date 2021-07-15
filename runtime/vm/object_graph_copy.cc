@@ -182,8 +182,10 @@ static bool MightNeedReHashing(ObjectPtr object) {
   if (cid == kExternalTwoByteStringCid) return false;
   if (cid == kMintCid) return false;
   if (cid == kDoubleCid) return false;
+  if (cid == kBoolCid) return false;
   if (cid == kSendPortCid) return false;
   if (cid == kCapabilityCid) return false;
+  if (cid == kNullCid) return false;
 
   // These are shared and use identity hash codes. If they are used as a key in
   // a map or a value in a set, they will already have the identity hash code
