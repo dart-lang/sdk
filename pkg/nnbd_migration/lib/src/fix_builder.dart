@@ -1201,6 +1201,31 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isGetter && node.isAbstract) {
+      for (var annotation in node.metadata) {
+        if (annotation.arguments == null) {
+          var element = annotation.element;
+          if (element is PropertyAccessorElement &&
+              element.name == 'nullable') {
+            if (element.enclosingElement is CompilationUnitElement) {
+              if (element.library.source.uri.toString() ==
+                  'package:built_value/built_value.dart') {
+                var info = AtomicEditInfo(
+                    NullabilityFixDescription.removeNullableAnnotation, {});
+                (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
+                  ..annotationToRemove = annotation
+                  ..removeAnnotationInfo = info;
+              }
+            }
+          }
+        }
+      }
+    }
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
   void visitTypeName(TypeName node) {
     var decoratedType = _fixBuilder._variables!
         .decoratedTypeAnnotation(_fixBuilder.source, node);

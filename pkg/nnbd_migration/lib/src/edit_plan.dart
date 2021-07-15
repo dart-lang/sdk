@@ -838,6 +838,8 @@ class EditPlanner {
       return node.members;
     } else if (node is CompilationUnit) {
       return [...node.directives, ...node.declarations];
+    } else if (node is MethodDeclaration) {
+      return node.metadata;
     } else {
       return null;
     }
@@ -1542,7 +1544,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     if (parent is Block ||
         parent is ClassDeclaration ||
         parent is CompilationUnit ||
-        parent is FormalParameter) {
+        parent is FormalParameter ||
+        parent is MethodDeclaration) {
       // These parent types don't use separators.
       return null;
     } else {
