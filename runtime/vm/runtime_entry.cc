@@ -3666,30 +3666,29 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
   return return_value;
 }
+
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     AllocateHandle,
     1,
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
 
+#if defined(USING_THREAD_SANITIZER)
+#define TSAN_ACQUIRE reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
+#define TSAN_RELEASE reinterpret_cast<RuntimeFunction>(&__tsan_release)
+#else
+#define TSAN_ACQUIRE nullptr
+#define TSAN_RELEASE nullptr
+#endif
+
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
                               /*argument_count=*/1,
                               /*is_float=*/false,
-#if defined(USING_THREAD_SANITIZER)
-                              reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
-#else
-                              nullptr
-#endif
-);
+                              TSAN_ACQUIRE);
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanStoreRelease,
                               /*argument_count=*/1,
                               /*is_float=*/false,
-#if defined(USING_THREAD_SANITIZER)
-                              reinterpret_cast<RuntimeFunction>(&__tsan_release)
-#else
-                              nullptr
-#endif
-);
+                              TSAN_RELEASE);
 
 }  // namespace dart
