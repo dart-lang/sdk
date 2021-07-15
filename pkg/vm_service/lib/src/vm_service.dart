@@ -44,7 +44,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 
   if (json is List) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
-  } else if (json is Map) {
+  } else if (json is Map<String, dynamic>) {
     String? type = json['type'];
 
     // Not a Response type.
@@ -53,7 +53,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       if (expectedTypes.length == 1) {
         type = expectedTypes.first;
       } else {
-        return null;
+        return Response.parse(json);
       }
     } else if (_isNullInstance(json) &&
         (!expectedTypes.contains('InstanceRef'))) {
@@ -824,8 +824,7 @@ abstract class VmServiceInterface {
   /// returned.
   Future<SourceReport> getSourceReport(
     String isolateId,
-    /*List<SourceReportKind>*/
-    List<String> reports, {
+    /*List<SourceReportKind>*/ List<String> reports, {
     String? scriptId,
     int? tokenPos,
     int? endTokenPos,
@@ -1923,8 +1922,7 @@ class VmService implements VmServiceInterface {
   @override
   Future<SourceReport> getSourceReport(
     String isolateId,
-    /*List<SourceReportKind>*/
-    List<String> reports, {
+    /*List<SourceReportKind>*/ List<String> reports, {
     String? scriptId,
     int? tokenPos,
     int? endTokenPos,
@@ -2196,7 +2194,7 @@ class VmService implements VmServiceInterface {
       request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
-      String type = result['type'];
+      String? type = result['type'];
       if (type == 'Sentinel') {
         request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
@@ -4307,8 +4305,7 @@ class Frame extends Response {
   List<BoundVariable>? vars;
 
   @optional
-  /*FrameKind*/
-  String? kind;
+  /*FrameKind*/ String? kind;
 
   Frame({
     required this.index,
@@ -5447,18 +5444,19 @@ class IsolateGroupRef extends Response {
       'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}]';
 }
 
-/// An `Isolate` object provides information about one isolate in the VM.
+/// An `IsolateGroup` object provides information about an isolate group in the
+/// VM.
 class IsolateGroup extends Response implements IsolateGroupRef {
   static IsolateGroup? parse(Map<String, dynamic>? json) =>
       json == null ? null : IsolateGroup._fromJson(json);
 
-  /// The id which is passed to the getIsolate RPC to reload this isolate.
+  /// The id which is passed to the getIsolateGroup RPC to reload this isolate.
   String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
   String? number;
 
-  /// A name identifying this isolate. Not guaranteed to be unique.
+  /// A name identifying this isolate group. Not guaranteed to be unique.
   String? name;
 
   /// Specifies whether the isolate group was spawned by the VM or embedder for
