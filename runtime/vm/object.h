@@ -1175,7 +1175,13 @@ class Class : public Object {
   intptr_t NumTypeArguments() const;
 
   // Return true if this class declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
+  bool IsGeneric() const {
+    // If the declaration is not loaded, fall back onto NumTypeParameters.
+    if (!is_declaration_loaded()) {
+      return NumTypeParameters(Thread::Current()) > 0;
+    }
+    return type_parameters() != Object::null();
+  }
 
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
@@ -2675,32 +2681,22 @@ class Function : public Object {
     return signature()->untag()->type_parameters();
   }
 
-  intptr_t NumTypeParameters() const {
-    return signature()
-        ->untag()
-        ->packed_type_parameter_counts_
-        .Read<UntaggedFunctionType::PackedNumTypeParameters>();
-  }
-
+  // Returns the number of local type arguments for this function.
+  intptr_t NumTypeParameters() const;
   // Return the cumulative number of type arguments in all parent functions.
   intptr_t NumParentTypeArguments() const;
-
-  // Return the cumulative number of type arguments in all parent functions and
-  // own type arguments.
-  intptr_t NumTypeArguments() const {
-    return NumParentTypeArguments() + NumTypeParameters();
-  }
+  // Return the cumulative number of type arguments for this function, including
+  // type arguments for all parent functions.
+  intptr_t NumTypeArguments() const;
+  // Return whether this function declares local type arguments.
+  bool IsGeneric() const;
+  // Returns whether any parent function of this function is generic.
+  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Return the type parameter declared at index.
   TypeParameterPtr TypeParameterAt(
       intptr_t index,
       Nullability nullability = Nullability::kNonNullable) const;
-
-  // Return true if this function declares type parameters.
-  // Generic dispatchers only set the number without actual type parameters.
-  bool IsGeneric() const { return NumTypeParameters() > 0; }
-  // Return true if any parent function of this function is generic.
-  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -3001,46 +2997,25 @@ class Function : public Object {
     return OFFSET_OF(UntaggedFunction, packed_fields_);
   }
 
-  intptr_t num_fixed_parameters() const {
-    return signature()
-        ->untag()
-        ->packed_parameter_counts_
-        .Read<UntaggedFunctionType::PackedNumFixedParameters>();
-  }
-
-  bool HasOptionalParameters() const {
-    return signature()
-               ->untag()
-               ->packed_parameter_counts_
-               .Read<UntaggedFunctionType::PackedNumOptionalParameters>() > 0;
-  }
-  bool HasOptionalNamedParameters() const {
-    return HasOptionalParameters() &&
-           signature()
-               ->untag()
-               ->packed_parameter_counts_
-               .Read<UntaggedFunctionType::PackedHasNamedOptionalParameters>();
-  }
+  // Returns the number of required positional parameters.
+  intptr_t num_fixed_parameters() const;
+  // Returns the number of optional parameters, whether positional or named.
+  bool HasOptionalParameters() const;
+  // Returns whether the function has optional named parameters.
+  bool HasOptionalNamedParameters() const;
+  // Returns whether the fuction has required named parameters.
   bool HasRequiredNamedParameters() const;
-  bool HasOptionalPositionalParameters() const {
-    return HasOptionalParameters() && !HasOptionalNamedParameters();
-  }
-  intptr_t NumOptionalParameters() const {
-    return signature()
-        ->untag()
-        ->packed_parameter_counts_
-        .Read<UntaggedFunctionType::PackedNumOptionalParameters>();
-  }
-  intptr_t NumOptionalPositionalParameters() const {
-    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
-  }
-
-  intptr_t NumOptionalNamedParameters() const {
-    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
-  }
-
+  // Returns whether the function has optional positional parameters.
+  bool HasOptionalPositionalParameters() const;
+  // Returns the number of optional parameters, or 0 if none.
+  intptr_t NumOptionalParameters() const;
+  // Returns the number of optional positional parameters, or 0 if none.
+  intptr_t NumOptionalPositionalParameters() const;
+  // Returns the number of optional named parameters, or 0 if none.
+  intptr_t NumOptionalNamedParameters() const;
+  // Returns the total number of both required and optional parameters.
   intptr_t NumParameters() const;
-
+  // Returns the number of implicit parameters, e.g., this for instance methods.
   intptr_t NumImplicitParameters() const;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -8446,61 +8421,90 @@ class FunctionType : public AbstractType {
 
   bool IsSubtypeOf(const FunctionType& other, Heap::Space space) const;
 
-  intptr_t NumParameters() const;
-
-  // Return the number of type arguments in enclosing signature.
-  intptr_t NumParentTypeArguments() const {
-    return untag()
+  static intptr_t NumParentTypeArgumentsOf(FunctionTypePtr ptr) {
+    return ptr->untag()
         ->packed_type_parameter_counts_.Read<PackedNumParentTypeArguments>();
   }
+  // Return the number of type arguments in the enclosing signature.
+  intptr_t NumParentTypeArguments() const {
+    return NumParentTypeArgumentsOf(ptr());
+  }
   void SetNumParentTypeArguments(intptr_t value) const;
-  intptr_t NumTypeParameters() const {
-    return PackedNumTypeParameters::decode(
-        untag()->packed_type_parameter_counts_);
+  static intptr_t NumTypeParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_type_parameter_counts_.Read<PackedNumTypeParameters>();
   }
+  intptr_t NumTypeParameters() const { return NumTypeParametersOf(ptr()); }
 
-  intptr_t NumTypeArguments() const {
-    return NumParentTypeArguments() + NumTypeParameters();
+  static intptr_t NumTypeArgumentsOf(FunctionTypePtr ptr) {
+    return NumTypeParametersOf(ptr) + NumParentTypeArgumentsOf(ptr);
   }
+  intptr_t NumTypeArguments() const { return NumTypeArgumentsOf(ptr()); }
 
   intptr_t num_implicit_parameters() const {
     return untag()
         ->packed_parameter_counts_.Read<PackedNumImplicitParameters>();
   }
   void set_num_implicit_parameters(intptr_t value) const;
-  intptr_t num_fixed_parameters() const {
-    return untag()->packed_parameter_counts_.Read<PackedNumFixedParameters>();
+
+  static intptr_t NumFixedParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedNumFixedParameters>();
   }
+  intptr_t num_fixed_parameters() const { return NumFixedParametersOf(ptr()); }
   void set_num_fixed_parameters(intptr_t value) const;
 
-  bool HasOptionalParameters() const {
-    return untag()
+  static bool HasOptionalParameters(FunctionTypePtr ptr) {
+    return ptr->untag()
                ->packed_parameter_counts_.Read<PackedNumOptionalParameters>() >
            0;
   }
+  bool HasOptionalParameters() const { return HasOptionalParameters(ptr()); }
+
+  static bool HasOptionalNamedParameters(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedHasNamedOptionalParameters>();
+  }
   bool HasOptionalNamedParameters() const {
-    return HasOptionalParameters() &&
-           untag()
-               ->packed_parameter_counts_
-               .Read<PackedHasNamedOptionalParameters>();
+    return HasOptionalNamedParameters(ptr());
+  }
+  bool HasRequiredNamedParameters() const;
+
+  static bool HasOptionalPositionalParameters(FunctionTypePtr ptr) {
+    return !HasOptionalNamedParameters(ptr) && HasOptionalParameters(ptr);
   }
   bool HasOptionalPositionalParameters() const {
-    return HasOptionalParameters() && !HasOptionalNamedParameters();
+    return HasOptionalPositionalParameters(ptr());
+  }
+
+  static intptr_t NumOptionalParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedNumOptionalParameters>();
   }
   intptr_t NumOptionalParameters() const {
-    return untag()
-        ->packed_parameter_counts_.Read<PackedNumOptionalParameters>();
+    return NumOptionalParametersOf(ptr());
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
 
+  static intptr_t NumOptionalPositionalParametersOf(FunctionTypePtr ptr) {
+    return HasOptionalNamedParameters(ptr) ? 0 : NumOptionalParametersOf(ptr);
+  }
   intptr_t NumOptionalPositionalParameters() const {
-    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
+    return NumOptionalPositionalParametersOf(ptr());
   }
 
-  intptr_t NumOptionalNamedParameters() const {
-    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
+  static intptr_t NumOptionalNamedParametersOf(FunctionTypePtr ptr) {
+    return HasOptionalNamedParameters(ptr) ? NumOptionalParametersOf(ptr) : 0;
   }
+  intptr_t NumOptionalNamedParameters() const {
+    return NumOptionalNamedParametersOf(ptr());
+  }
+
+  static intptr_t NumParametersOf(FunctionTypePtr ptr) {
+    return NumFixedParametersOf(ptr) + NumOptionalParametersOf(ptr);
+  }
+  intptr_t NumParameters() const { return NumParametersOf(ptr()); }
 
   uint32_t packed_parameter_counts() const {
     return untag()->packed_parameter_counts_;
@@ -8595,7 +8599,10 @@ class FunctionType : public AbstractType {
                                       TrailPtr trail = nullptr) const;
 
   // Return true if this function type declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters() > 0; }
+  static bool IsGeneric(FunctionTypePtr ptr) {
+    return ptr->untag()->type_parameters() != TypeParameters::null();
+  }
+  bool IsGeneric() const { return IsGeneric(ptr()); }
 
   // Return true if any enclosing signature of this signature is generic.
   bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
@@ -11254,10 +11261,11 @@ class Closure : public Instance {
     return closure.untag()->context();
   }
 
-  bool IsGeneric(Thread* thread) const { return NumTypeParameters(thread) > 0; }
-  intptr_t NumTypeParameters(Thread* thread) const;
-  // No need for num_parent_type_arguments, as a closure is always closed
-  // over its parents type parameters (i.e., function_type_parameters() above).
+  // Returns whether the closure is generic, that is, it has a generic closure
+  // function and no delayed type arguments.
+  bool IsGeneric() const {
+    return delayed_type_arguments() == Object::empty_type_arguments().ptr();
+  }
 
   SmiPtr hash() const { return untag()->hash(); }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedClosure, hash_); }

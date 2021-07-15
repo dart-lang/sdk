@@ -3389,6 +3389,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
   ASSERT(type_parameter_count >= 0);
   if (type_parameter_count == 0) {
+    ASSERT(parameterized_class.IsNull() ||
+           parameterized_class.type_parameters() == TypeParameters::null());
+    ASSERT(parameterized_signature.IsNull() ||
+           parameterized_signature.type_parameters() == TypeParameters::null());
     return;
   }
 

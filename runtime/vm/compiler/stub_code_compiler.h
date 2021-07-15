@@ -54,7 +54,8 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateBuildMethodExtractorStub(
       Assembler* assembler,
       const Code& closure_allocation_stub,
-      const Code& context_allocation_stub);
+      const Code& context_allocation_stub,
+      bool generic);
 #endif
 
   static void EnsureIsNewOrRemembered(Assembler* assembler,

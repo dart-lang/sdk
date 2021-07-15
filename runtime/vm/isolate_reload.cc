@@ -2222,13 +2222,11 @@ class FieldInvalidator {
     cls_ = value.clazz();
     const intptr_t cid = cls_.id();
     if (cid == kClosureCid) {
-      instance_cid_or_signature_ = Closure::Cast(value).signature();
-      instance_type_arguments_ =
-          Closure::Cast(value).instantiator_type_arguments();
-      parent_function_type_arguments_ =
-          Closure::Cast(value).function_type_arguments();
-      delayed_function_type_arguments_ =
-          Closure::Cast(value).delayed_type_arguments();
+      const auto& closure = Closure::Cast(value);
+      instance_cid_or_signature_ = closure.signature();
+      instance_type_arguments_ = closure.instantiator_type_arguments();
+      parent_function_type_arguments_ = closure.function_type_arguments();
+      delayed_function_type_arguments_ = closure.delayed_type_arguments();
     } else {
       instance_cid_or_signature_ = Smi::New(cid);
       if (cls_.NumTypeArguments() > 0) {

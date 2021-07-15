@@ -114,17 +114,17 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
 
   const Class& cls = Class::Handle(left.clazz());
   if (cls.IsClosureClass()) {
-    const Function& left_function =
-        Function::Handle(zone, Closure::Cast(left).function());
-    const Function& right_function =
-        Function::Handle(zone, Closure::Cast(right).function());
-    if (left_function.signature() == right_function.signature() &&
-        Closure::Cast(left).function_type_arguments() ==
-            Closure::Cast(right).function_type_arguments() &&
-        Closure::Cast(left).delayed_type_arguments() ==
-            Closure::Cast(right).delayed_type_arguments() &&
-        Closure::Cast(left).instantiator_type_arguments() ==
-            Closure::Cast(right).instantiator_type_arguments()) {
+    const auto& left_closure = Closure::Cast(left);
+    const auto& right_closure = Closure::Cast(right);
+    // If all the components that make up the instantiated signature are equal,
+    // then no need to instantiate.
+    if (left_closure.signature() == right_closure.signature() &&
+        left_closure.function_type_arguments() ==
+            right_closure.function_type_arguments() &&
+        left_closure.delayed_type_arguments() ==
+            right_closure.delayed_type_arguments() &&
+        left_closure.instantiator_type_arguments() ==
+            right_closure.instantiator_type_arguments()) {
       return Bool::True().ptr();
     }
     const AbstractType& left_type =
@@ -462,6 +462,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 0, 2) {
   const Closure& closure =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
   const Function& target = Function::Handle(zone, closure.function());
+  ASSERT(target.IsGeneric());  // No need to check bounds for non-generics.
   const TypeParameters& type_params =
       TypeParameters::Handle(zone, target.type_parameters());
   if (type_params.IsNull() || type_params.AllDynamicBounds()) {

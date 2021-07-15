@@ -7961,19 +7961,11 @@ intptr_t FunctionType::GetRequiredFlagIndex(intptr_t index,
 bool Function::HasRequiredNamedParameters() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (signature() == FunctionType::null()) {
-    // Signature is not dropped in aot when any named parameter is required.
+    // Signatures for functions with required named parameters are not dropped.
     return false;
   }
 #endif
-  if (!HasOptionalNamedParameters()) {
-    return false;
-  }
-  const FunctionType& sig = FunctionType::Handle(signature());
-  const Array& parameter_names = Array::Handle(sig.named_parameter_names());
-  if (parameter_names.IsNull()) {
-    return false;
-  }
-  return parameter_names.Length() > NumOptionalNamedParameters();
+  return FunctionType::Handle(signature()).HasRequiredNamedParameters();
 }
 
 bool Function::IsRequiredAt(intptr_t index) const {
@@ -8043,6 +8035,15 @@ void FunctionType::FinalizeNameArray() const {
 #endif
 }
 
+bool FunctionType::HasRequiredNamedParameters() const {
+  const intptr_t num_named_params = NumOptionalNamedParameters();
+  if (num_named_params == 0) return false;
+  // Check for flag slots in the named parameter names array.
+  const auto& parameter_names = Array::Handle(named_parameter_names());
+  ASSERT(!parameter_names.IsNull());
+  return parameter_names.Length() > num_named_params;
+}
+
 static void ReportTooManyTypeParameters(const FunctionType& sig) {
   Report::MessageF(Report::kError, Script::Handle(), TokenPosition::kNoSource,
                    Report::AtLocation,
@@ -8070,10 +8071,41 @@ void FunctionType::SetNumParentTypeArguments(intptr_t value) const {
       value);
 }
 
+bool Function::IsGeneric() const {
+  return FunctionType::IsGeneric(signature());
+}
+intptr_t Function::NumTypeParameters() const {
+  return FunctionType::NumTypeParametersOf(signature());
+}
 intptr_t Function::NumParentTypeArguments() const {
-  // Don't allocate handle in cases where we know it is 0.
-  if (!IsClosureFunction()) return 0;
-  return FunctionType::Handle(signature()).NumParentTypeArguments();
+  return FunctionType::NumParentTypeArgumentsOf(signature());
+}
+intptr_t Function::NumTypeArguments() const {
+  return FunctionType::NumTypeArgumentsOf(signature());
+}
+intptr_t Function::num_fixed_parameters() const {
+  return FunctionType::NumFixedParametersOf(signature());
+}
+bool Function::HasOptionalParameters() const {
+  return FunctionType::HasOptionalParameters(signature());
+}
+bool Function::HasOptionalNamedParameters() const {
+  return FunctionType::HasOptionalNamedParameters(signature());
+}
+bool Function::HasOptionalPositionalParameters() const {
+  return FunctionType::HasOptionalPositionalParameters(signature());
+}
+intptr_t Function::NumOptionalParameters() const {
+  return FunctionType::NumOptionalParametersOf(signature());
+}
+intptr_t Function::NumOptionalPositionalParameters() const {
+  return FunctionType::NumOptionalPositionalParametersOf(signature());
+}
+intptr_t Function::NumOptionalNamedParameters() const {
+  return FunctionType::NumOptionalNamedParametersOf(signature());
+}
+intptr_t Function::NumParameters() const {
+  return FunctionType::NumParametersOf(signature());
 }
 
 TypeParameterPtr Function::TypeParameterAt(intptr_t index,
@@ -8166,10 +8198,6 @@ bool Function::CanBeInlined() const {
   return is_inlinable() && !is_external() && !is_generated_body();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-intptr_t Function::NumParameters() const {
-  return num_fixed_parameters() + NumOptionalParameters();
-}
 
 intptr_t Function::NumImplicitParameters() const {
   const UntaggedFunction::Kind k = kind();
@@ -10239,10 +10267,6 @@ void FunctionType::set_packed_type_parameter_counts(
   untag()->packed_type_parameter_counts_ = packed_type_parameter_counts;
 }
 
-intptr_t FunctionType::NumParameters() const {
-  return num_fixed_parameters() + NumOptionalParameters();
-}
-
 void FunctionType::set_num_implicit_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   untag()->packed_parameter_counts_.Update<PackedNumImplicitParameters>(value);
@@ -10297,6 +10321,8 @@ void FfiTrampolineData::set_callback_target(const Function& value) const {
 void FunctionType::SetNumOptionalParameters(
     intptr_t value,
     bool are_optional_positional) const {
+  // HasOptionalNamedParameters only checks this bit, so only set it if there
+  // are actual named parameters.
   untag()->packed_parameter_counts_.Update<PackedHasNamedOptionalParameters>(
       (value > 0) && !are_optional_positional);
   untag()->packed_parameter_counts_.Update<PackedNumOptionalParameters>(value);
@@ -25082,17 +25108,6 @@ void Closure::CanonicalizeFieldsLocked(Thread* thread) const {
   // Ignore function, context, hash.
 }
 
-intptr_t Closure::NumTypeParameters(Thread* thread) const {
-  // Only check for empty here, as the null TAV is used to mean that the
-  // closed-over delayed type parameters were all of dynamic type.
-  if (delayed_type_arguments() != Object::empty_type_arguments().ptr()) {
-    return 0;
-  } else {
-    const auto& closure_function = Function::Handle(thread->zone(), function());
-    return closure_function.NumTypeParameters();
-  }
-}
-
 const char* Closure::ToCString() const {
   auto const thread = Thread::Current();
   auto const zone = thread->zone();
@@ -25153,6 +25168,10 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const Function& function,
                         const Context& context,
                         Heap::Space space) {
+  // We store null delayed type arguments, not empty ones, in closures with
+  // non-generic functions a) to make method extraction slightly faster and
+  // b) to make the Closure::IsGeneric check fast.
+  // Keep in sync with StubCodeCompiler::GenerateBuildMethodExtractorStub.
   return Closure::New(instantiator_type_arguments, function_type_arguments,
                       function.IsGeneric() ? Object::empty_type_arguments()
                                            : Object::null_type_arguments(),
@@ -25210,7 +25229,7 @@ FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
   // We detect the case of a partial tearoff type application and substitute the
   // type arguments for the type parameters of the function.
   intptr_t num_free_params;
-  if (delayed_type_args.ptr() != Object::empty_type_arguments().ptr()) {
+  if (!IsGeneric() && fun.IsGeneric()) {
     num_free_params = kCurrentAndEnclosingFree;
     fn_type_args = delayed_type_args.Prepend(
         zone, fn_type_args, sig.NumParentTypeArguments(),
