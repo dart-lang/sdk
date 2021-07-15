@@ -888,6 +888,21 @@ class C {
     expect(changes.keys, [entry.offset]);
   }
 
+  Future<void>
+      test_remove_metadata_from_defaultFormalParameter_all_full_line() async {
+    await analyze('''
+f({
+  @deprecated
+  int? x}) {}''');
+    var deprecated = findNode.annotation('@deprecated');
+    checkPlan(
+        planner!.passThrough(deprecated.parent,
+            innerPlans: [planner!.removeNode(deprecated)]),
+        '''
+f({
+  int? x}) {}''');
+  }
+
   Future<void> test_remove_parameter() async {
     await analyze('f(int x, int y, int z) => null;');
     var parameter = findNode.simple('y').parent!;

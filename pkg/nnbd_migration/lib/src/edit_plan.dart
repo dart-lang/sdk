@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
@@ -1424,8 +1425,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
       if (firstPlanIndex == 0 && lastPlanIndex == sequenceNodes!.length - 1) {
         // We're removing everything.  Try to remove additional whitespace so
         // that we're left with just `()`, `{}`, or `[]`.
-        var candidateFirstRemovalOffset =
-            planner._backAcrossWhitespace(firstRemovalOffset, node!.offset);
+        var candidateFirstRemovalOffset = planner._backAcrossWhitespace(
+            firstRemovalOffset, min(firstRemovalOffset, node!.offset));
         if (planner
             ._isJustAfter(candidateFirstRemovalOffset, const ['(', '[', '{'])) {
           var candidateLastRemovalEnd =
