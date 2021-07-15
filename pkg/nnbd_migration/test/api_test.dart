@@ -48,7 +48,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkMultipleFileChanges(
-      Map<String, String> input, Map<String, String> expectedOutput,
+      Map<String, String> input, Map<String, dynamic> expectedOutput,
       {Map<String, String> migratedInput = const {},
       bool removeViaComments = false,
       bool warnOnWeakCode = false,
@@ -493,6 +493,59 @@ main() {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_built_value_non_nullable_getter() async {
+    addBuiltValuePackage();
+    var root = '$projectPath/lib';
+    var path1 = convertPath('$root/lib.dart');
+    var file1 = r'''
+import 'package:built_value/built_value.dart';
+
+part 'lib.g.dart';
+
+abstract class Foo implements Built<Foo, FooBuilder> {
+  int get value;
+  Foo._();
+  factory Foo([void Function(FooBuilder) updates]) = _$Foo;
+}
+''';
+    var expected1 = r'''
+import 'package:built_value/built_value.dart';
+
+part 'lib.g.dart';
+
+abstract class Foo implements Built<Foo, FooBuilder> {
+  int get value;
+  Foo._();
+  factory Foo([void Function(FooBuilder) updates]) = _$Foo;
+}
+''';
+    // Note: in a real-world scenario the generated file would be in a different
+    // directory but we don't need to simulate that detail for this test.  Also,
+    // the generated file would have a lot more code in it, but we don't need to
+    // simulate all the details of what is generated.
+    var path2 = convertPath('$root/lib.g.dart');
+    var file2 = r'''
+part of 'lib.dart';
+
+class _$Foo extends Foo {
+  @override
+  final int value;
+
+  factory _$Foo([void Function(FooBuilder) updates]) => throw '';
+
+  _$Foo._({this.value}) : super._() {
+    BuiltValueNullFieldError.checkNotNull(value, 'Foo', 'value');
+  }
+}
+
+class FooBuilder implements Builder<Foo, FooBuilder> {
+  int get value => throw '';
+}
+''';
+    await _checkMultipleFileChanges(
+        {path1: file1, path2: file2}, {path1: expected1, path2: anything});
   }
 
   Future<void> test_call_already_migrated_extension() async {
@@ -6101,6 +6154,84 @@ int f(int i, [int j]) {
 int f(int i, [int? j]) {
   if (i == 0) return i;
   return i + j!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_non_null_intent_field_formal_assert() async {
+    var content = '''
+class C {
+  int i;
+  C(this.i) {
+    assert(i != null);
+  }
+}
+f(int j, bool b) {
+  if (b) {
+    C(j);
+  }
+}
+g() {
+  f(null, false);
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C(this.i) {
+    assert(i != null);
+  }
+}
+f(int? j, bool b) {
+  if (b) {
+    C(j!);
+  }
+}
+g() {
+  f(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_non_null_intent_field_formal_use() async {
+    var content = '''
+class C {
+  int i;
+  C(this.i) {
+    f(i);
+  }
+}
+f(int j) {
+  assert(j != null);
+}
+g(int k, bool b) {
+  if (b) {
+    C(k);
+  }
+}
+h() {
+  g(null, false);
+}
+''';
+    var expected = '''
+class C {
+  int i;
+  C(this.i) {
+    f(i);
+  }
+}
+f(int j) {
+  assert(j != null);
+}
+g(int? k, bool b) {
+  if (b) {
+    C(k!);
+  }
+}
+h() {
+  g(null, false);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

@@ -652,6 +652,9 @@ class SymbolHashTable : public Section {
 
 class DynamicTable : public Section {
  public:
+  // .dynamic section is expected to be writable on most Linux systems
+  // unless dynamic linker is explicitly built with support for an read-only
+  // .dynamic section (DL_RO_DYN_SECTION).
   DynamicTable(Zone* zone, SymbolTable* symtab, SymbolHashTable* hash)
       : Section(elf::SectionHeaderType::SHT_DYNAMIC,
                 /*allocate=*/true,
@@ -897,7 +900,7 @@ class NoteSection : public BitsContainer {
       : BitsContainer(elf::SectionHeaderType::SHT_NOTE,
                       /*allocate=*/true,
                       /*executable=*/false,
-                      /*writable=*/true,
+                      /*writable=*/false,
                       kNoteAlignment) {}
 };
 
@@ -989,11 +992,10 @@ class PseudoSection : public Section {
 
 class ProgramTable : public PseudoSection {
  public:
-  // See SectionTable::CreateProgramTable as to why this section is writable.
   explicit ProgramTable(Zone* zone)
       : PseudoSection(/*allocate=*/true,
                       /*executable=*/false,
-                      /*writable=*/true),
+                      /*writable=*/false),
         segments_(zone, 0) {
     entry_size = sizeof(elf::ProgramHeader);
   }
@@ -1101,12 +1103,11 @@ class SectionTable : public PseudoSection {
 
 class ElfHeader : public PseudoSection {
  public:
-  // See SectionTable::CreateProgramTable as to why this section is writable.
   ElfHeader(const ProgramTable& program_table,
             const SectionTable& section_table)
       : PseudoSection(/*allocate=*/true,
                       /*executable=*/false,
-                      /*writable=*/true),
+                      /*writable=*/false),
         program_table_(program_table),
         section_table_(section_table) {}
 
@@ -1521,17 +1522,29 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
   // entry containing only 0 values, so copy it over from sections_.
   add_to_reordered_sections(sections_[0]);
 
-  // Android requires the program header table be in the first load segment, so
-  // create PseudoSections representing the ELF header and program header
-  // table to initialize that segment.
+  // There are few important invariants originating from Android idiosyncrasies
+  // we are trying to maintain when ordering sections:
   //
-  // The Android dynamic linker in Jelly Bean incorrectly assumes that all
-  // non-writable segments are continguous. Thus, we make the first segment
-  // writable and put all writable sections (like the BSS) into it, which means
-  // we mark the created PseudoSections as writable to pass the segment checks.
+  //   - Android requires the program header table be in the first load segment,
+  //     so create PseudoSections representing the ELF header and program header
+  //     table to initialize that segment.
   //
-  // The bug is here:
-  //   https://github.com/aosp-mirror/platform_bionic/blob/94963af28e445384e19775a838a29e6a71708179/linker/linker.c#L1991-L2001
+  //   - The Android dynamic linker in Jelly Bean incorrectly assumes that all
+  //     non-writable segments are continguous. Thus we write them all together.
+  //     The bug is here: https://github.com/aosp-mirror/platform_bionic/blob/94963af28e445384e19775a838a29e6a71708179/linker/linker.c#L1991-L2001
+  //
+  //   - On Android native libraries can be mapped directly from an APK
+  //     they are stored uncompressed in it. In such situations the name
+  //     of the mapping no longer provides enough information for libunwindstack
+  //     to find the original ELF file and instead it has to rely on heuristics
+  //     to locate program header table. These heuristics currently assume that
+  //     program header table will be located in the RO mapping which precedes
+  //     RX mapping.
+  //
+  // These invariants imply the following order of segments: RO (program
+  // header,  .note.gnu.build-id, .dynstr, .dynsym, .hash, .rodata
+  // and .eh_frame), RX (.text), RW (.dynamic and .bss).
+  //
   auto* const elf_header = new (zone_) ElfHeader(*program_table, *this);
 
   // Self-reference to program header table. Required by Android but not by
@@ -1556,26 +1569,26 @@ ProgramTable* SectionTable::CreateProgramTable(SymbolTable* symtab) {
     ASSERT(build_id->type == elf::SectionHeaderType::SHT_NOTE);
     add_to_reordered_sections(build_id);
   }
-  // Now add all the other writable sections.
-  for (auto* const section : sections_) {
-    if (section == build_id) continue;
-    if (section->IsWritable()) {  // Implies IsAllocated() && !IsExecutable()
-      add_to_reordered_sections(section);
-    }
-  }
 
-  // Now add the non-writable, non-executable allocated sections in a new
-  // segment, starting with the data sections.
+  // Now add the other non-writable, non-executable allocated sections.
   for (auto* const section : sections_) {
+    if (section == build_id) continue;  // Already added.
     if (section->IsAllocated() && !section->IsWritable() &&
         !section->IsExecutable()) {
       add_to_reordered_sections(section);
     }
   }
 
-  // Now add the non-writable, executable sections in a new segment.
+  // Now add the executable sections in a new segment.
   for (auto* const section : sections_) {
     if (section->IsExecutable()) {  // Implies IsAllocated() && !IsWritable()
+      add_to_reordered_sections(section);
+    }
+  }
+
+  // Now add all the writable sections.
+  for (auto* const section : sections_) {
+    if (section->IsWritable()) {  // Implies IsAllocated() && !IsExecutable()
       add_to_reordered_sections(section);
     }
   }

@@ -4,6 +4,7 @@
 
 #include "vm/runtime_entry.h"
 
+#include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
@@ -3670,5 +3671,25 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     1,
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+#if defined(USING_THREAD_SANITIZER)
+                              reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
+#else
+                              nullptr
+#endif
+);
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanStoreRelease,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+#if defined(USING_THREAD_SANITIZER)
+                              reinterpret_cast<RuntimeFunction>(&__tsan_release)
+#else
+                              nullptr
+#endif
+);
 
 }  // namespace dart

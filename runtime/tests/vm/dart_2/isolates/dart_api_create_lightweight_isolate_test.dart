@@ -19,6 +19,9 @@ import '../../../../../tests/ffi/dylib_utils.dart';
 final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
 final bool isolateGroupsEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
+final bool usesDwarfStackTraces = Platform.executableArguments
+    .any((entry) => RegExp('--dwarf[-_]stack[-_]traces').hasMatch(entry));
+final bool hasSymbolicStackTraces = !usesDwarfStackTraces;
 final bool isolateGroupsEnabledInJIT = Platform.executableArguments
     .contains('--experimental-enable-isolate-groups-jit');
 final sdkRoot = Platform.script.resolve('../../../../../');
@@ -173,8 +176,10 @@ Future testMultipleErrors() async {
     Expect.equals(10, accumulatedErrors.length);
     for (int i = 0; i < 10; ++i) {
       Expect.equals('error-$i', accumulatedErrors[i][0]);
-      Expect.isTrue(
-          accumulatedErrors[i][1].contains('childTestMultipleErrors'));
+      if (hasSymbolicStackTraces) {
+        Expect.isTrue(
+            accumulatedErrors[i][1].contains('childTestMultipleErrors'));
+      }
     }
 
     exit.close();
@@ -204,7 +209,9 @@ Future testFatalError() async {
     await exit.first;
     Expect.equals(1, accumulatedErrors.length);
     Expect.equals('error-0', accumulatedErrors[0][0]);
-    Expect.contains('childTestFatalError', accumulatedErrors[0][1]);
+    if (hasSymbolicStackTraces) {
+      Expect.contains('childTestFatalError', accumulatedErrors[0][1]);
+    }
 
     exit.close();
     errors.close();

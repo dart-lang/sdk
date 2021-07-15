@@ -6167,6 +6167,110 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                Address(RSP, 0),
                __ popq(RAX))
 
+ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
+  __ pushq(RCX);
+  __ xorq(RCX, RCX);
+  __ pushq(RCX);
+
+  for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(i);
+    if ((CallingConventions::kVolatileXmmRegisters & (1 << xmm_reg)) != 0) {
+      __ movq(RCX, Immediate(bit_cast<int32_t, float>(12.34f + i)));
+      __ movd(xmm_reg, RCX);
+    }
+  }
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
+    if (reg == CallingConventions::kArg3Reg) {
+      continue;
+    }
+    if ((CallingConventions::kVolatileCpuRegisters & (1 << reg)) != 0) {
+      __ movq(reg, Immediate(0xAABBCCDD + i));
+    }
+  }
+  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 0);
+
+  __ pushq(TMP);
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
+    if (reg == CallingConventions::kArg3Reg) {
+      continue;
+    }
+    if ((CallingConventions::kVolatileCpuRegisters & (1 << reg)) != 0) {
+      Label ok;
+      if (reg == TMP) {
+        __ popq(TMP);
+        // Use kArg3Reg to validate TMP because TMP is
+        // needed for 64-bit cmpq below.
+        __ pushq(CallingConventions::kArg3Reg);
+        __ movq(CallingConventions::kArg3Reg, TMP);
+        reg = CallingConventions::kArg3Reg;
+      }
+      __ cmpq(reg, Immediate(0xAABBCCDD + i));
+      __ j(EQUAL, &ok);
+      __ int3();
+      __ Bind(&ok);
+      if (reg == CallingConventions::kArg3Reg) {
+        __ popq(CallingConventions::kArg3Reg);
+      }
+    }
+  }
+
+  for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+    XmmRegister xmm_reg = static_cast<XmmRegister>(i);
+    if ((CallingConventions::kVolatileXmmRegisters & (1 << xmm_reg)) != 0) {
+      Label ok;
+      __ movq(RCX, xmm_reg);
+      __ cmpq(RCX, Immediate(bit_cast<int32_t, float>(12.34f + i)));
+      __ j(EQUAL, &ok);
+      __ int3();
+      __ Bind(&ok);
+    }
+  }
+  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 0);
+  __ popq(RCX);
+  __ popq(RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
+  int res = test->InvokeWithCodeAndThread<int>(123);
+  EXPECT_EQ(123, res);
+}
+
+ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
+  __ pushq(RCX);
+  __ xorq(RCX, RCX);
+  __ pushq(RCX);
+  __ subq(RSP, Immediate(1024));
+  __ StoreRelease(CallingConventions::kArg3Reg, RSP, 1024);
+  __ LoadAcquire(CallingConventions::kReturnReg, RSP, 1024);
+  __ addq(RSP, Immediate(1024));
+  __ popq(RCX);
+  __ popq(RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
+  int res = test->InvokeWithCodeAndThread<int>(123);
+  EXPECT_EQ(123, res);
+#if !defined(USING_THREAD_SANITIZER)
+  EXPECT_DISASSEMBLY_NOT_WINDOWS(
+      "push rcx\n"
+      "xorq rcx,rcx\n"
+      "push rcx\n"
+      "subq rsp,0x...\n"
+      "movq [rsp+0x...],rdx\n"
+      "movq rax,[rsp+0x...]\n"
+      "addq rsp,0x...\n"
+      "pop rcx\n"
+      "pop rcx\n"
+      "ret\n");
+#endif
+}
+
 }  // namespace compiler
 }  // namespace dart
 
