@@ -6,7 +6,6 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -51,8 +50,18 @@ typedef ExitHandler = void Function(int code);
 class CommandLineOptions {
   final ArgResults _argResults;
 
-  /// The options defining the context in which analysis is performed.
-  final ContextBuilderOptions contextBuilderOptions;
+  /// The file path of the analysis options file that should be used in place of
+  /// any file in the root directory or a parent of the root directory,
+  /// or `null` if the normal lookup mechanism should be used.
+  String defaultAnalysisOptionsPath;
+
+  /// The file path of the .packages file that should be used in place of any
+  /// file found using the normal (Package Specification DEP) lookup mechanism,
+  /// or `null` if the normal lookup mechanism should be used.
+  String defaultPackagesPath;
+
+  /// A table mapping variable names to values for the declared variables.
+  final Map<String, String> declaredVariables = {};
 
   /// The path to the dart SDK.
   String dartSdkPath;
@@ -124,10 +133,6 @@ class CommandLineOptions {
     ResourceProvider resourceProvider,
     ArgResults args,
   )   : _argResults = args,
-        contextBuilderOptions = _createContextBuilderOptions(
-          resourceProvider,
-          args,
-        ),
         dartSdkPath = cast(args[_sdkPathOption]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
@@ -149,21 +154,47 @@ class CommandLineOptions {
         lintsAreFatal = cast(args['fatal-lints']),
         trainSnapshot = cast(args['train-snapshot']),
         verbose = cast(args['verbose']),
-        color = cast(args['color']);
+        color = cast(args['color']) {
+    //
+    // File locations.
+    //
+    defaultAnalysisOptionsPath = _absoluteNormalizedPath(
+      resourceProvider,
+      cast(args[_analysisOptionsFileOption]),
+    );
+    defaultPackagesPath = _absoluteNormalizedPath(
+      resourceProvider,
+      cast(args[_packagesOption]),
+    );
 
-  /// The path to an analysis options file
-  String get analysisOptionsFile =>
-      contextBuilderOptions.defaultAnalysisOptionsFilePath;
+    //
+    // Declared variables.
+    //
+    var variables = (args[_defineVariableOption] as List).cast<String>();
+    for (var variable in variables) {
+      var index = variable.indexOf('=');
+      if (index < 0) {
+        // TODO (brianwilkerson) Decide the semantics we want in this case.
+        // The VM prints "No value given to -D option", then tries to load '-Dfoo'
+        // as a file and dies. Unless there was nothing after the '-D', in which
+        // case it prints the warning and ignores the option.
+      } else {
+        var name = variable.substring(0, index);
+        if (name.isNotEmpty) {
+          // TODO (brianwilkerson) Decide the semantics we want in the case where
+          // there is no name. If there is no name, the VM tries to load a file
+          // named '-D' and dies.
+          declaredVariables[name] = variable.substring(index + 1);
+        }
+      }
+    }
+  }
 
   /// The default language version for files that are not in a package.
   /// (Or null if no default language version to force.)
   String get defaultLanguageVersion {
     return cast(_argResults[_defaultLanguageVersionOption]);
   }
-
-  /// A table mapping the names of defined variables to their values.
-  Map<String, String> get definedVariables =>
-      contextBuilderOptions.declaredVariables;
 
   /// A list of the names of the experiments that are to be enabled.
   List<String> get enabledExperiments {
@@ -175,9 +206,6 @@ class CommandLineOptions {
   bool get lints => _argResults[_lintsFlag] as bool;
 
   bool get noImplicitDynamic => _argResults[_noImplicitDynamicFlag] as bool;
-
-  /// The path to a `.packages` configuration file
-  String get packageConfigPath => contextBuilderOptions.defaultPackageFilePath;
 
   /// Update the [analysisOptions] with flags that the user specified
   /// explicitly. The [analysisOptions] are usually loaded from one of
@@ -307,57 +335,17 @@ class CommandLineOptions {
     return options;
   }
 
-  /// Use the command-line [args] to create a context builder options.
-  static ContextBuilderOptions _createContextBuilderOptions(
+  static String _absoluteNormalizedPath(
     ResourceProvider resourceProvider,
-    ArgResults args,
+    String path,
   ) {
-    String absoluteNormalizedPath(String path) {
-      if (path == null) {
-        return null;
-      }
-      var pathContext = resourceProvider.pathContext;
-      return pathContext.normalize(
-        pathContext.absolute(path),
-      );
+    if (path == null) {
+      return null;
     }
-
-    var builderOptions = ContextBuilderOptions();
-
-    //
-    // File locations.
-    //
-    builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
-      cast(args[_analysisOptionsFileOption]),
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.normalize(
+      pathContext.absolute(path),
     );
-    builderOptions.defaultPackageFilePath = absoluteNormalizedPath(
-      cast(args[_packagesOption]),
-    );
-    //
-    // Declared variables.
-    //
-    var declaredVariables = <String, String>{};
-    var variables = (args[_defineVariableOption] as List).cast<String>();
-    for (var variable in variables) {
-      var index = variable.indexOf('=');
-      if (index < 0) {
-        // TODO (brianwilkerson) Decide the semantics we want in this case.
-        // The VM prints "No value given to -D option", then tries to load '-Dfoo'
-        // as a file and dies. Unless there was nothing after the '-D', in which
-        // case it prints the warning and ignores the option.
-      } else {
-        var name = variable.substring(0, index);
-        if (name.isNotEmpty) {
-          // TODO (brianwilkerson) Decide the semantics we want in the case where
-          // there is no name. If there is no name, the VM tries to load a file
-          // named '-D' and dies.
-          declaredVariables[name] = variable.substring(index + 1);
-        }
-      }
-    }
-    builderOptions.declaredVariables = declaredVariables;
-
-    return builderOptions;
   }
 
   /// Add the standard flags and options to the given [parser]. The standard flags

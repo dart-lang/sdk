@@ -8,25 +8,6 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:yaml/yaml.dart';
 
-/// TODO(scheglov) It is not used, inline it.
-class ContextBuilderOptions {
-  /// The file path of the analysis options file that should be used in place of
-  /// any file in the root directory or a parent of the root directory, or `null`
-  /// if the normal lookup mechanism should be used.
-  String? defaultAnalysisOptionsFilePath;
-
-  /// A table mapping variable names to values for the declared variables.
-  Map<String, String> declaredVariables = {};
-
-  /// The file path of the .packages file that should be used in place of any
-  /// file found using the normal (Package Specification DEP) lookup mechanism,
-  /// or `null` if the normal lookup mechanism should be used.
-  String? defaultPackageFilePath;
-
-  /// Initialize a newly created set of options
-  ContextBuilderOptions();
-}
-
 /// Given a package map, check in each package's lib directory for the existence
 /// of an `_embedder.yaml` file. If the file contains a top level YamlMap, it
 /// will be added to the [embedderYamls] map.

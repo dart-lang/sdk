@@ -4,10 +4,11 @@
 
 import 'dart:async';
 
-import 'package:devtools_shared/devtools_server.dart';
 import 'package:json_rpc_2/src/server.dart' as json_rpc;
 import 'package:sse/src/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
+
+import 'server_api.dart';
 
 class LoggingMiddlewareSink<S> implements StreamSink<S> {
   LoggingMiddlewareSink(this.sink);

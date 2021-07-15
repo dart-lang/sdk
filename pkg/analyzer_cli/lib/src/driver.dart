@@ -431,7 +431,7 @@ class Driver implements CommandLineStarter {
   }
 
   void _verifyAnalysisOptionsFileExists(CommandLineOptions options) {
-    var path = options.analysisOptionsFile;
+    var path = options.defaultAnalysisOptionsPath;
     if (path != null) {
       if (!resourceProvider.getFile(path).exists) {
         printAndFail('Options file not found: $path',
@@ -449,8 +449,8 @@ class Driver implements CommandLineStarter {
       CommandLineOptions previous, CommandLineOptions newOptions) {
     return previous != null &&
         newOptions != null &&
-        newOptions.packageConfigPath == previous.packageConfigPath &&
-        _equalMaps(newOptions.definedVariables, previous.definedVariables) &&
+        newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
+        _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
         newOptions.disableHints == previous.disableHints &&
         newOptions.showPackageWarnings == previous.showPackageWarnings &&
@@ -554,8 +554,8 @@ class _AnalysisContextProvider {
     _collection = AnalysisContextCollectionImpl(
       byteStore: Driver.analysisDriverMemoryByteStore,
       includedPaths: _pathList,
-      optionsFile: _commandLineOptions.analysisOptionsFile,
-      packagesFile: _commandLineOptions.packageConfigPath,
+      optionsFile: _commandLineOptions.defaultAnalysisOptionsPath,
+      packagesFile: _commandLineOptions.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions.dartSdkPath,
       updateAnalysisOptions: _updateAnalysisOptions,
