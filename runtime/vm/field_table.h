@@ -58,11 +58,33 @@ class FieldTable {
   // to an existing static field value.
   void Free(intptr_t index);
 
-  ObjectPtr At(intptr_t index) const {
+  ObjectPtr At(intptr_t index, bool concurrent_use = false) const {
     ASSERT(IsValidIndex(index));
-    return table_[index];
+    ObjectPtr* slot = &table_[index];
+    if (concurrent_use) {
+      return reinterpret_cast<AcqRelAtomic<ObjectPtr>*>(slot)->load();
+    } else {
+      // There is no concurrent access expected for this field, so we avoid
+      // using atomics. This will allow us to detect via TSAN if there are
+      // racy uses.
+      return *slot;
+    }
   }
-  void SetAt(intptr_t index, ObjectPtr raw_instance);
+
+  void SetAt(intptr_t index,
+             ObjectPtr raw_instance,
+             bool concurrent_use = false) {
+    ASSERT(index < capacity_);
+    ObjectPtr* slot = &table_[index];
+    if (concurrent_use) {
+      reinterpret_cast<AcqRelAtomic<ObjectPtr>*>(slot)->store(raw_instance);
+    } else {
+      // There is no concurrent access expected for this field, so we avoid
+      // using atomics. This will allow us to detect via TSAN if there are
+      // racy uses.
+      *slot = raw_instance;
+    }
+  }
 
   FieldTable* Clone(Isolate* for_isolate);
 
