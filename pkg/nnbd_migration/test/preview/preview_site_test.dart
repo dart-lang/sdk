@@ -65,7 +65,7 @@ class PreviewSiteTest with ResourceProviderMixin, PreviewSiteTestMixin {
     // Add a source change for analysis_options, which has no UnitInfo.
     dartfixListener!.addSourceFileEdit(
         'enable experiment',
-        Location(analysisOptionsPath, 9, 0, 1, 9, 1, 9),
+        Location(analysisOptionsPath, 9, 0, 1, 9, endLine: 1, endColumn: 9),
         SourceFileEdit(analysisOptionsPath, 0, edits: [
           SourceEdit(9, 0, '\n  enable-experiment:\n  - non-nullable')
         ]));
@@ -100,7 +100,7 @@ analyzer:
     file.writeAsStringSync(currentContent);
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     expect(() => site.performApply([]), throwsA(isA<StateError>()));
     expect(file.readAsStringSync(), currentContent);
@@ -115,7 +115,7 @@ analyzer:
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [
           SourceEdit(10, 0, 'List args'),
           SourceEdit(13, 0, '\n  print(args);\n')
@@ -136,7 +136,7 @@ void main(List args) {
     site.unitInfoMap[path] = UnitInfo(path)..diskContent = content;
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     site.performApply([]);
     expect(file.readAsStringSync(), 'void main(List args) {}');
@@ -430,7 +430,7 @@ void main() {}''';
       ..wasExplicitlyOptedOut = true;
     dartfixListener!.addSourceFileEdit(
         'remove DLV comment',
-        Location(path, 0, 14, 1, 1, 3, 1),
+        Location(path, 0, 14, 1, 1, endLine: 3, endColumn: 1),
         SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
     var navigationTree =
         NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
@@ -471,7 +471,7 @@ Opted 1 file out of null safety with a new Dart language version comment:
       ..wasExplicitlyOptedOut = false;
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(path, 10, 0, 1, 10, 1, 10),
+        Location(path, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(path, 0, edits: [SourceEdit(10, 0, 'List args')]));
     var navigationTree =
         NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
@@ -525,11 +525,11 @@ Opted 1 file out of null safety with a new Dart language version comment:
       ..wasExplicitlyOptedOut = false;
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(pathA, 10, 0, 1, 10, 1, 10),
+        Location(pathA, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(pathA, 0, edits: [SourceEdit(10, 0, 'List args')]));
     dartfixListener!.addSourceFileEdit(
         'test change',
-        Location(pathB, 10, 0, 1, 10, 1, 10),
+        Location(pathB, 10, 0, 1, 10, endLine: 1, endColumn: 10),
         SourceFileEdit(pathB, 0, edits: [SourceEdit(10, 0, 'List args')]));
     var navigationTree =
         NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();
@@ -563,7 +563,7 @@ int a;''';
       ..wasExplicitlyOptedOut = true;
     dartfixListener!.addSourceFileEdit(
         'remove DLV comment',
-        Location(path, 0, 14, 1, 1, 3, 1),
+        Location(path, 0, 14, 1, 1, endLine: 3, endColumn: 1),
         SourceFileEdit(path, 0, edits: [SourceEdit(0, 14, '')]));
     var navigationTree =
         NavigationTreeRenderer(migrationInfo, state!.pathMapper).render();

@@ -126,8 +126,8 @@ AnalysisError newAnalysisError_fromEngine(
     var endLine = endLocation.lineNumber;
     var endColumn = endLocation.columnNumber;
 
-    location = Location(
-        file, offset, length, startLine, startColumn, endLine, endColumn);
+    location = Location(file, offset, length, startLine, startColumn,
+        endLine: endLine, endColumn: endColumn);
   }
 
   // Default to the error's severity if none is specified.
@@ -171,8 +171,8 @@ DiagnosticMessage newDiagnosticMessage(
 
   return DiagnosticMessage(
       message.messageText(includeUrl: true),
-      Location(
-          file, offset, length, startLine, startColumn, endLine, endColumn));
+      Location(file, offset, length, startLine, startColumn,
+          endLine: endLine, endColumn: endColumn));
 }
 
 /// Create a Location based on an [engine.Element].
@@ -317,5 +317,6 @@ Location _locationForArgs(
     //  should be able to throw an exception. Try removing the try statement.
   }
   return Location(unitElement.source.fullName, range.offset, range.length,
-      startLine, startColumn, endLine, endColumn);
+      startLine, startColumn,
+      endLine: endLine, endColumn: endColumn);
 }

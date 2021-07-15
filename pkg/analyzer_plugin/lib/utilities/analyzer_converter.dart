@@ -48,8 +48,9 @@ class AnalyzerConverter {
     return plugin.AnalysisError(
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
-        plugin.Location(error.source.fullName, offset, error.length, startLine,
-            startColumn, endLine, endColumn),
+        plugin.Location(
+            error.source.fullName, offset, error.length, startLine, startColumn,
+            endLine: endLine, endColumn: endColumn),
         error.message,
         errorCode.name.toLowerCase(),
         contextMessages: contextMessages,
@@ -107,8 +108,8 @@ class AnalyzerConverter {
     }
     return plugin.DiagnosticMessage(
         message.messageText(includeUrl: true),
-        plugin.Location(
-            file, offset, length, startLine, startColumn, endLine, endColumn));
+        plugin.Location(file, offset, length, startLine, startColumn,
+            endLine: endLine, endColumn: endColumn));
   }
 
   /// Convert the given [element] from the 'analyzer' package to an element
@@ -407,6 +408,7 @@ class AnalyzerConverter {
       // Ignore exceptions
     }
     return plugin.Location(unitElement.source.fullName, range.offset,
-        range.length, startLine, startColumn, endLine, endColumn);
+        range.length, startLine, startColumn,
+        endLine: endLine, endColumn: endColumn);
   }
 }
