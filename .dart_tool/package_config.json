@@ -250,7 +250,7 @@
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "devtools_shared",
