@@ -11130,7 +11130,8 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   // We can safely cache the value of the static const field in the initial
   // field table.
-  auto& value = Object::Handle(zone, initial_field_table->At(field_id()));
+  auto& value = Object::Handle(
+      zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
     ASSERT(has_initializer());
     value = EvaluateInitializer();
@@ -11152,9 +11153,10 @@ void Field::SetStaticConstFieldValue(const Instance& value,
   ASSERT(initial_field_table->At(field_id()) == Object::sentinel().ptr() ||
          initial_field_table->At(field_id()) == value.ptr() ||
          !assert_initializing_store);
-  initial_field_table->SetAt(field_id(), value.IsNull()
-                                             ? Instance::null_instance().ptr()
-                                             : Instance::Cast(value).ptr());
+  initial_field_table->SetAt(field_id(),
+                             value.IsNull() ? Instance::null_instance().ptr()
+                                            : Instance::Cast(value).ptr(),
+                             /*concurrent_use=*/true);
 }
 
 ObjectPtr Field::EvaluateInitializer() const {
