@@ -51,7 +51,7 @@ class DartTypeUtilities {
 
     // And no subclasses in the defining library.
     var compilationUnit = classElement.library.definingCompilationUnit;
-    for (var cls in compilationUnit.types) {
+    for (var cls in compilationUnit.classes) {
       InterfaceType? classType = cls.thisType;
       do {
         classType = classType?.superclass;
