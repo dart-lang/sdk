@@ -60,7 +60,6 @@ class PackageBuildPackageUriResolver extends UriResolver {
       : _workspace = workspace,
         _context = workspace.provider.pathContext;
 
-  /// TODO(scheglov) Finish switching to [Packages].
   Map<String, List<Folder>> get packageMap => _workspace.packageMap;
 
   @override
@@ -153,8 +152,9 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// We read it once, so that all usages return consistent results.
   final String? _pubspecContent;
 
+  /// The map from a package name to the list of its `lib/` folders.
   @override
-  final Packages packages;
+  final Map<String, List<Folder>> packageMap;
 
   /// The resource provider used to access the file system.
   @override
@@ -182,7 +182,7 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
 
   PackageBuildWorkspace._(
     this.provider,
-    this.packages,
+    this.packageMap,
     this.root,
     this.projectPackageName,
     this.generatedRootPath,
@@ -198,16 +198,6 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
     return _fileContentOrNull(_pubspecFile) == _pubspecContent;
   }
 
-  /// TODO(scheglov) Finish switching to [packages].
-  @override
-  Map<String, List<Folder>> get packageMap {
-    var packageMap = <String, List<Folder>>{};
-    for (var package in packages.packages) {
-      packageMap[package.name] = [package.libFolder];
-    }
-    return packageMap;
-  }
-
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
       this, PackageMapUriResolver(provider, packageMap));
@@ -220,7 +210,7 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// use [builtPackageSourcePath]. For `bin/`, `web/`, etc, it must be relative
   /// to the project root.
   File? builtFile(String builtPath, String packageName) {
-    if (packages[packageName] == null) {
+    if (!packageMap.containsKey(packageName)) {
       return null;
     }
     path.Context context = provider.pathContext;
@@ -309,8 +299,8 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// Find the package:build workspace that contains the given [filePath].
   ///
   /// Return `null` if the filePath is not in a package:build workspace.
-  static PackageBuildWorkspace? find(
-      ResourceProvider provider, Packages packages, String filePath) {
+  static PackageBuildWorkspace? find(ResourceProvider provider,
+      Map<String, List<Folder>> packageMap, String filePath) {
     var startFolder = provider.getFolder(filePath);
     for (var folder in startFolder.withAncestors) {
       final File pubspec = folder.getChildAssumingFile(_pubspecName);
@@ -329,7 +319,7 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
               .joinAll([folder.path, ..._generatedPathParts]);
           final generatedThisPath =
               provider.pathContext.join(generatedRootPath, packageName);
-          return PackageBuildWorkspace._(provider, packages, folder.path,
+          return PackageBuildWorkspace._(provider, packageMap, folder.path,
               packageName, generatedRootPath, generatedThisPath, pubspec);
         } catch (_) {
           return null;
@@ -394,7 +384,8 @@ class PackageBuildWorkspacePackage extends WorkspacePackage
   }
 
   @override
-  Packages packagesAvailableTo(String libraryPath) => workspace.packages;
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace.packageMap;
 
   @override
   bool sourceIsInPublicApi(Source source) {

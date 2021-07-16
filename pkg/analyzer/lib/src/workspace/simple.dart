@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -16,23 +15,13 @@ abstract class SimpleWorkspace extends Workspace {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider provider;
 
-  /// Information about packages available in the workspace.
-  final Packages packages;
+  final Map<String, List<Folder>> packageMap;
 
   /// The absolute workspace root path.
   @override
   final String root;
 
-  SimpleWorkspace(this.provider, this.packages, this.root);
-
-  /// TODO(scheglov) Finish switching to [packages].
-  Map<String, List<Folder>> get packageMap {
-    var packageMap = <String, List<Folder>>{};
-    for (var package in packages.packages) {
-      packageMap[package.name] = [package.libFolder];
-    }
-    return packageMap;
-  }
+  SimpleWorkspace(this.provider, this.packageMap, this.root);
 
   @override
   UriResolver get packageUriResolver =>

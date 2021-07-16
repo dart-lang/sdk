@@ -30,12 +30,12 @@ class PubWorkspace extends SimpleWorkspace {
 
   PubWorkspace._(
     ResourceProvider provider,
-    Packages packages,
+    Map<String, List<Folder>> packageMap,
     String root,
     File pubspecFile,
   )   : _pubspecFile = pubspecFile,
         _pubspecContent = _fileContentOrNull(pubspecFile),
-        super(provider, packages, root) {
+        super(provider, packageMap, root) {
     _theOnlyPackage = PubWorkspacePackage(root, this);
   }
 
@@ -63,7 +63,7 @@ class PubWorkspace extends SimpleWorkspace {
   /// Find the pub workspace that contains the given [filePath].
   static PubWorkspace? find(
     ResourceProvider provider,
-    Packages packages,
+    Map<String, List<Folder>> packageMap,
     String filePath,
   ) {
     var start = provider.getFolder(filePath);
@@ -71,7 +71,7 @@ class PubWorkspace extends SimpleWorkspace {
       var pubspec = current.getChildAssumingFile(_pubspecName);
       if (pubspec.exists) {
         var root = current.path;
-        return PubWorkspace._(provider, packages, root, pubspec);
+        return PubWorkspace._(provider, packageMap, root, pubspec);
       }
     }
   }
@@ -127,10 +127,10 @@ class PubWorkspacePackage extends WorkspacePackage {
   }
 
   @override
-  Packages packagesAvailableTo(String libraryPath) {
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) {
     // TODO(brianwilkerson) Consider differentiating based on whether the
     //  [libraryPath] is inside the `lib` directory.
-    return workspace.packages;
+    return workspace.packageMap;
   }
 
   @override

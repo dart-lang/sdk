@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
@@ -23,23 +22,12 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   setUp() {
     newPubspecYamlFile('/workspace', 'name: project');
     workspace = PubWorkspace.find(
-      resourceProvider,
-      Packages({
-        'p1': Package(
-          name: 'p1',
-          rootFolder: getFolder('/.pubcache/p1'),
-          libFolder: getFolder('/.pubcache/p1/lib'),
-          languageVersion: null,
-        ),
-        'workspace': Package(
-          name: 'workspace',
-          rootFolder: getFolder('/workspace'),
-          libFolder: getFolder('/workspace/lib'),
-          languageVersion: null,
-        ),
-      }),
-      convertPath('/workspace'),
-    )!;
+        resourceProvider,
+        {
+          'p1': [getFolder('/.pubcache/p1/lib')],
+          'workspace': [getFolder('/workspace/lib')]
+        },
+        convertPath('/workspace'))!;
     expect(workspace.isBazel, isFalse);
   }
 
@@ -89,11 +77,8 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   void test_packagesAvailableTo() {
     var libraryPath = convertPath('/workspace/lib/test.dart');
     var package = findPackage(libraryPath)!;
-    var packages = package.packagesAvailableTo(libraryPath);
-    expect(
-      packages.packages.map((e) => e.name),
-      unorderedEquals(['p1', 'workspace']),
-    );
+    var packageMap = package.packagesAvailableTo(libraryPath);
+    expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
   }
 }
 
@@ -101,8 +86,8 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
 class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
     newPubspecYamlFile('/workspace', 'name: project');
-    var workspace = PubWorkspace.find(
-        resourceProvider, Packages.empty, convertPath('/workspace'))!;
+    var workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'))!;
     expect(workspace.isBazel, isFalse);
     expect(workspace.root, convertPath('/workspace'));
   }
@@ -110,27 +95,27 @@ class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_fail_notAbsolute() {
     expect(
         () => PubWorkspace.find(
-            resourceProvider, Packages.empty, convertPath('not_absolute')),
+            resourceProvider, {}, convertPath('not_absolute')),
         throwsA(TypeMatcher<ArgumentError>()));
   }
 
   void test_find_file() {
     newPubspecYamlFile('/workspace', 'name: project');
-    var workspace = PubWorkspace.find(resourceProvider, Packages.empty,
-        convertPath('/workspace/lib/lib1.dart'))!;
+    var workspace = PubWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'))!;
     expect(workspace.root, convertPath('/workspace'));
   }
 
   void test_find_missingPubspec() {
-    var workspace = PubWorkspace.find(resourceProvider, Packages.empty,
-        convertPath('/workspace/lib/lib1.dart'));
+    var workspace = PubWorkspace.find(
+        resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace, isNull);
   }
 
   void test_isConsistentWithFileSystem() {
     newPubspecYamlFile('/workspace', 'name: my');
-    var workspace = PubWorkspace.find(
-        resourceProvider, Packages.empty, convertPath('/workspace'))!;
+    var workspace =
+        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'))!;
     expect(workspace.isConsistentWithFileSystem, isTrue);
 
     newPubspecYamlFile('/workspace', 'name: my2');
