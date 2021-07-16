@@ -29,9 +29,9 @@ class TransformSetManager {
     if (package == null) {
       return transformSets;
     }
-    var packageMap = package.packagesAvailableTo(libraryPath);
-    for (var entry in packageMap.entries) {
-      var directory = entry.value[0];
+    var packages = package.packagesAvailableTo(libraryPath);
+    for (var package in packages.packages) {
+      var directory = package.libFolder;
       var file = directory.getChildAssumingFile(dataFileName);
       var transformSet = _loadTransformSet(file);
       if (transformSet != null) {

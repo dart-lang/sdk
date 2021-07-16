@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -92,7 +92,7 @@ abstract class WorkspacePackage {
   /// Return a map from the names of packages to the absolute and normalized
   /// path of the root of those packages for all of the packages that could
   /// validly be imported by the library with the given [libraryPath].
-  Map<String, List<Folder>> packagesAvailableTo(String libraryPath);
+  Packages packagesAvailableTo(String libraryPath);
 
   /// Return whether [source] is located in this package's public API.
   bool sourceIsInPublicApi(Source source);
