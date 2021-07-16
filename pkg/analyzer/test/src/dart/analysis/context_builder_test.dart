@@ -218,7 +218,7 @@ environment:
       resourceProvider: resourceProvider,
     ).createContext(
       contextRoot: roots.single,
-      sdkPath: sdkRoot,
+      sdkPath: convertPath(sdkRoot),
     );
   }
 
