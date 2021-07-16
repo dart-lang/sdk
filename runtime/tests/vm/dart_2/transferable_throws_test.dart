@@ -11,7 +11,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:math';

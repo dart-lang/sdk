@@ -785,8 +785,6 @@ void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
   // rpc method returns.
-  // TODO(dartbug.com/36097): Once the heap moves from Isolate to IsolateGroup
-  // this code needs to be adjusted to not double-count memory.
   jsobj.AddProperty("type", "MemoryUsage");
   jsobj.AddProperty64("heapUsage", used * kWordSize);
   jsobj.AddProperty64("heapCapacity", capacity * kWordSize);

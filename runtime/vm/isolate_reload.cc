@@ -95,12 +95,6 @@ static bool HasNoTasks(Heap* heap) {
   return heap->old_space()->tasks() == 0;
 }
 
-// TODO(dartbug.com/36097): Once classes are split up into a read-only
-// descriptor which can be shared across isolates, we can make this function
-// take descriptors instead of the isolate-specific [Class] objects.
-//
-// (The information we access from [from]/[to] *must* be the same across
-// isolates.)
 InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     Zone* zone,
     SharedClassTable* shared_class_table,

@@ -40,7 +40,3 @@ vmspecific_function_callbacks_exit_test: SkipByDesign
 
 [ $compiler == dart2analyzer || $compiler == fasta ]
 vmspecific_enable_ffi_test: SkipByDesign # This is a check for VM only.
-
-[ $hot_reload || $hot_reload_rollback ]
-snapshot_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-vmspecific_function_callbacks_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.

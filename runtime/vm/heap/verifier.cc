@@ -118,22 +118,16 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
   const bool old_verify_flag = FLAG_verify_handles;
   FLAG_verify_handles = false;
 
-  // TODO(dartbug.com/36097): The heap walk can encounter canonical objects of
-  // other isolates. We should either scan live objects from the roots of each
-  // individual isolate, or wait until we are ready to share constants across
-  // isolates.
-  if (!IsolateGroup::AreIsolateGroupsEnabled() || FLAG_precompiled_mode) {
-    if ((obj->GetClassId() >= kInstanceCid) &&
-        (obj->GetClassId() != kTypeArgumentsCid)) {
-      if (obj->untag()->IsCanonical()) {
-        instanceHandle_ ^= obj;
-        const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
-        if (!is_canonical) {
-          OS::PrintErr("Instance `%s` is not canonical!\n",
-                       instanceHandle_.ToCString());
-        }
-        ASSERT(is_canonical);
+  if ((obj->GetClassId() >= kInstanceCid) &&
+      (obj->GetClassId() != kTypeArgumentsCid)) {
+    if (obj->untag()->IsCanonical()) {
+      instanceHandle_ ^= obj;
+      const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
+      if (!is_canonical) {
+        OS::PrintErr("Instance `%s` is not canonical!\n",
+                     instanceHandle_.ToCString());
       }
+      ASSERT(is_canonical);
     }
   }
   FLAG_verify_handles = old_verify_flag;

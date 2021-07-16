@@ -172,21 +172,8 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
-// isolate group.
-//
-// Any subsequent isolates created via `Isolate.spawn()` will be created using
-// the same [IsolateGroupSource] (the object itself is shared among all isolates
-// within the same group).
-//
-// Issue(http://dartbug.com/36097): It is still possible to run into issues if
-// an isolate has spawned another one and then loads more code into the first
-// one, which the latter will not get. Though it makes the status quo better
-// than what we had before (where the embedder needed to maintain the
-// same-source guarantee).
-//
-// => This is only the first step towards having multiple isolates share the
-//    same heap (and therefore the same program structure).
-//
+// isolate group. All isolates within a group will refer to this
+// [IsolateGroupSource].
 class IsolateGroupSource {
  public:
   IsolateGroupSource(const char* script_uri,
@@ -228,11 +215,6 @@ class IsolateGroupSource {
   // The kernel buffer used in `Dart_LoadScriptFromKernel`.
   const uint8_t* script_kernel_buffer;
   intptr_t script_kernel_size;
-
-  // During AppJit training we perform a permutation of the class ids before
-  // invoking the "main" script.
-  // Any newly spawned isolates need to use this permutation map.
-  std::unique_ptr<intptr_t[]> cid_permutation_map;
 
   // List of weak pointers to external typed data for loaded blobs.
   ArrayPtr loaded_blobs_;

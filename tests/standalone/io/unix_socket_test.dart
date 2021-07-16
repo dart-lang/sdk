@@ -58,22 +58,23 @@ testBindShared(String name) async {
 }
 
 testBind(String name) async {
-  var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
-  var server = await ServerSocket.bind(address, 0, shared: false);
+  final address = InternetAddress('$name/sock', type: InternetAddressType.unix);
+  final server = await ServerSocket.bind(address, 0, shared: false);
   Expect.isTrue(server.address.toString().contains(name));
   // Unix domain socket does not have a valid port number.
   Expect.equals(server.port, 0);
 
-  var type = FileSystemEntity.typeSync(address.address);
-
-  var sub;
-  sub = server.listen((s) {
-    sub.cancel();
-    server.close();
+  final serverContinue = Completer();
+  final clientContinue = Completer();
+  server.listen((s) async {
+    await serverContinue.future;
+    clientContinue.complete();
   });
 
-  var socket = await Socket.connect(address, server.port);
+  final socket = await Socket.connect(address, server.port);
   socket.write(" socket content");
+  serverContinue.complete();
+  await clientContinue.future;
 
   socket.destroy();
   await server.close();

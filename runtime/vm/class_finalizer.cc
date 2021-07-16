@@ -1457,10 +1457,6 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
-
-  // Ensure any newly spawned isolate will apply this permutation map right
-  // after kernel loading.
-  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
