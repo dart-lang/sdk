@@ -265,6 +265,10 @@ class InfoBuilder {
       case NullabilityFixKind.addThen:
         // We don't offer any edits around addition of `.then` to a future.
         break;
+      case NullabilityFixKind.removeNullableAnnotation:
+        // We don't offer any edits around removal of built_value `@nullable`
+        // annotations.
+        break;
     }
     return edits;
   }

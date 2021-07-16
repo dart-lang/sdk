@@ -175,6 +175,12 @@ class NullabilityFixDescription {
           'Removed a null-aware assignment, because the target cannot be null',
       kind: NullabilityFixKind.removeDeadCode);
 
+  /// A built_value `@nullable` annotation has been discarded.
+  static const removeNullableAnnotation = NullabilityFixDescription._(
+    appliedMessage: 'Discarded a use of the built_value annotation @nullable',
+    kind: NullabilityFixKind.removeNullableAnnotation,
+  );
+
   /// A message used to indicate a fix has been applied.
   final String appliedMessage;
 
@@ -293,6 +299,7 @@ enum NullabilityFixKind {
   removeAs,
   removeDeadCode,
   removeLanguageVersionComment,
+  removeNullableAnnotation,
   replaceVar,
   typeNotMadeNullable,
   typeNotMadeNullableDueToHint,

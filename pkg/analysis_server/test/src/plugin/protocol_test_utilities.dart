@@ -79,7 +79,8 @@ class ProtocolTestUtilities {
   Element element(int stringIndex, int intIndex, {ElementKind? kind}) =>
       Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: Location(fileName(stringIndex++), intIndex++, intIndex++,
-              intIndex++, intIndex++, intIndex++, intIndex++),
+              intIndex++, intIndex++,
+              endLine: intIndex++, endColumn: intIndex++),
           parameters: strings[stringIndex++],
           returnType: strings[stringIndex++],
           typeParameters: strings[stringIndex++]);
@@ -99,8 +100,8 @@ class ProtocolTestUtilities {
       intIndex++,
       intIndex++,
       intIndex++,
-      intIndex++,
-      intIndex++);
+      endLine: intIndex++,
+      endColumn: intIndex++);
 
   /// On return, increment [stringIndex] by 5 and [intIndex] by 7.
   Occurrences occurrences(int stringIndex, int intIndex) {

@@ -270,8 +270,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       edit.length,
       startLocation.lineNumber,
       startLocation.columnNumber,
-      endLocation.lineNumber,
-      endLocation.columnNumber,
+      endLine: endLocation.lineNumber,
+      endColumn: endLocation.columnNumber,
     );
     return location;
   }

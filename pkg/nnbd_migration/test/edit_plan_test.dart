@@ -903,6 +903,24 @@ f({
   int? x}) {}''');
   }
 
+  Future<void> test_remove_metadata_from_method_declaration() async {
+    await analyze('''
+class C {
+  @deprecated
+  f() {}
+}
+''');
+    var deprecated = findNode.annotation('@deprecated');
+    checkPlan(
+        planner!.passThrough(deprecated.parent,
+            innerPlans: [planner!.removeNode(deprecated)]),
+        '''
+class C {
+  f() {}
+}
+''');
+  }
+
   Future<void> test_remove_parameter() async {
     await analyze('f(int x, int y, int z) => null;');
     var parameter = findNode.simple('y').parent!;

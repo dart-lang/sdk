@@ -2884,8 +2884,8 @@ class LinkedEditSuggestionKind implements Enum {
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
-///   "endLine": int
-///   "endColumn": int
+///   "endLine": optional int
+///   "endColumn": optional int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2909,14 +2909,15 @@ class Location implements HasToJson {
 
   /// The one-based index of the line containing the character immediately
   /// following the range.
-  int endLine;
+  int? endLine;
 
   /// The one-based index of the column containing the character immediately
   /// following the range.
-  int endColumn;
+  int? endColumn;
 
-  Location(this.file, this.offset, this.length, this.startLine,
-      this.startColumn, this.endLine, this.endColumn);
+  Location(
+      this.file, this.offset, this.length, this.startLine, this.startColumn,
+      {this.endLine, this.endColumn});
 
   factory Location.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -2954,21 +2955,17 @@ class Location implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
-      int endLine;
+      int? endLine;
       if (json.containsKey('endLine')) {
         endLine = jsonDecoder.decodeInt(jsonPath + '.endLine', json['endLine']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'endLine');
       }
-      int endColumn;
+      int? endColumn;
       if (json.containsKey('endColumn')) {
         endColumn =
             jsonDecoder.decodeInt(jsonPath + '.endColumn', json['endColumn']);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'endColumn');
       }
-      return Location(
-          file, offset, length, startLine, startColumn, endLine, endColumn);
+      return Location(file, offset, length, startLine, startColumn,
+          endLine: endLine, endColumn: endColumn);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'Location', json);
     }
@@ -2982,8 +2979,14 @@ class Location implements HasToJson {
     result['length'] = length;
     result['startLine'] = startLine;
     result['startColumn'] = startColumn;
-    result['endLine'] = endLine;
-    result['endColumn'] = endColumn;
+    var endLine = this.endLine;
+    if (endLine != null) {
+      result['endLine'] = endLine;
+    }
+    var endColumn = this.endColumn;
+    if (endColumn != null) {
+      result['endColumn'] = endColumn;
+    }
     return result;
   }
 

@@ -1147,15 +1147,18 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       // Potentially add an explicit type to a field formal parameter.
       var decl = node.declaredElement as FieldFormalParameterElement;
       var decoratedType = _fixBuilder._variables!.decoratedElementType(decl);
-      var decoratedFieldType =
-          _fixBuilder._variables!.decoratedElementType(decl.field!);
-      var typeToAdd = _fixBuilder._variables!.toFinalType(decoratedType);
-      var fieldFinalType =
-          _fixBuilder._variables!.toFinalType(decoratedFieldType);
-      if (typeToAdd is InterfaceType &&
-          !_fixBuilder._typeSystem.isSubtypeOf(fieldFinalType, typeToAdd)) {
-        (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
-            .addExplicitType = typeToAdd;
+      var field = decl.field;
+      if (field != null) {
+        var decoratedFieldType =
+            _fixBuilder._variables!.decoratedElementType(field);
+        var typeToAdd = _fixBuilder._variables!.toFinalType(decoratedType);
+        var fieldFinalType =
+            _fixBuilder._variables!.toFinalType(decoratedFieldType);
+        if (typeToAdd is InterfaceType &&
+            !_fixBuilder._typeSystem.isSubtypeOf(fieldFinalType, typeToAdd)) {
+          (_fixBuilder._getChange(node) as NodeChangeForFieldFormalParameter)
+              .addExplicitType = typeToAdd;
+        }
       }
     } else if (node.parameters != null) {
       // Handle function-typed field formal parameters.
@@ -1195,6 +1198,31 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     (node as GenericFunctionTypeImpl).type =
         _fixBuilder._variables!.toFinalType(decoratedType);
     super.visitGenericFunctionType(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isGetter && node.isAbstract) {
+      for (var annotation in node.metadata) {
+        if (annotation.arguments == null) {
+          var element = annotation.element;
+          if (element is PropertyAccessorElement &&
+              element.name == 'nullable') {
+            if (element.enclosingElement is CompilationUnitElement) {
+              if (element.library.source.uri.toString() ==
+                  'package:built_value/built_value.dart') {
+                var info = AtomicEditInfo(
+                    NullabilityFixDescription.removeNullableAnnotation, {});
+                (_fixBuilder._getChange(node) as NodeChangeForMethodDeclaration)
+                  ..annotationToRemove = annotation
+                  ..removeAnnotationInfo = info;
+              }
+            }
+          }
+        }
+      }
+    }
+    super.visitMethodDeclaration(node);
   }
 
   @override

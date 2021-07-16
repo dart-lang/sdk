@@ -1098,6 +1098,9 @@ static void* FfiNativeResolver(const char* name) {
   if (strcmp(name, "ReturnIntPtr") == 0) {
     return reinterpret_cast<void*>(ReturnIntPtr);
   }
+  if (strcmp(name, "IsThreadInGenerated") == 0) {
+    return reinterpret_cast<void*>(IsThreadInGenerated);
+  }
   // This should be unreachable in tests.
   ENSURE(false);
 }

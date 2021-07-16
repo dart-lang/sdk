@@ -557,9 +557,12 @@ class Namer extends ModularNamer {
   /// key into maps.
   final Map<LibraryEntity, String> _libraryKeys = {};
 
+  _TypeConstantRepresentationVisitor _typeConstantRepresenter;
+
   Namer(this._closedWorld, this.fixedNames) {
     _literalGetterPrefix = new StringBackedName(fixedNames.getterPrefix);
     _literalSetterPrefix = new StringBackedName(fixedNames.setterPrefix);
+    _typeConstantRepresenter = _TypeConstantRepresentationVisitor(this);
   }
 
   JElementEnvironment get _elementEnvironment =>
@@ -1460,32 +1463,79 @@ class Namer extends ModularNamer {
     }
   }
 
-  String getTypeRepresentationForTypeConstant(DartType type) {
-    type = type.withoutNullability;
-    if (type is DynamicType) return "dynamic";
-    if (type is NeverType) return "Never";
-    if (type is FutureOrType) {
-      return "FutureOr<dynamic>";
-    }
-    if (type is FunctionType) {
-      // TODO(johnniwinther): Add naming scheme for function type literals.
-      // These currently only occur from kernel.
-      return '()->';
-    }
-    InterfaceType interface = type;
-    String name = uniqueNameForTypeConstantElement(
-        interface.element.library, interface.element);
+  String getTypeRepresentationForTypeConstant(DartType type) =>
+      _typeConstantRepresenter.visit(type, null);
+}
+
+class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
+  final Namer _namer;
+
+  _TypeConstantRepresentationVisitor(this._namer);
+
+  String _represent(DartType type) => visit(type, null);
+
+  @override
+  String visitLegacyType(LegacyType type, _) => '${_represent(type.baseType)}*';
+
+  @override
+  String visitNullableType(NullableType type, _) =>
+      '${_represent(type.baseType)}?';
+
+  @override
+  String visitNeverType(NeverType type, _) => 'Never';
+
+  @override
+  String visitVoidType(VoidType type, _) => 'void';
+
+  @override
+  String visitTypeVariableType(TypeVariableType type, _) {
+    throw StateError('Unexpected TypeVariableType $type');
+  }
+
+  @override
+  String visitFunctionTypeVariable(FunctionTypeVariable type, _) {
+    throw StateError('Unexpected FunctionTypeVariable $type');
+  }
+
+  @override
+  String visitFunctionType(FunctionType type, _) {
+    // TODO(johnniwinther): Add naming scheme for function type literals.
+    // These currently only occur from kernel.
+    return '()->';
+  }
+
+  @override
+  String visitInterfaceType(InterfaceType type, _) {
+    String name = _namer.uniqueNameForTypeConstantElement(
+        type.element.library, type.element);
 
     // Type constants can currently only be raw types, so there is no point
     // adding ground-term type parameters, as they would just be 'dynamic'.
     // TODO(sra): Since the result string is used only in constructing constant
     // names, it would result in more readable names if the final string was a
     // legal JavaScript identifier.
-    if (interface.typeArguments.isEmpty) return name;
+    if (type.typeArguments.isEmpty) return name;
     String arguments =
-        new List.filled(interface.typeArguments.length, 'dynamic').join(', ');
+        new List.filled(type.typeArguments.length, 'dynamic').join(', ');
     return '$name<$arguments>';
   }
+
+  @override
+  String visitDynamicType(DynamicType type, _) => 'dynamic';
+
+  @override
+  String visitErasedType(ErasedType type, _) {
+    throw StateError('Unexpected ErasedType $type');
+  }
+
+  @override
+  String visitAnyType(AnyType type, _) {
+    throw StateError('Unexpected AnyType $type');
+  }
+
+  @override
+  String visitFutureOrType(FutureOrType type, _) =>
+      'FutureOr<${_represent(type.typeArgument)}>';
 }
 
 /// Returns a unique suffix for an intercepted accesses to [classes]. This is

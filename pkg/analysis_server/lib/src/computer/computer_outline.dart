@@ -85,8 +85,8 @@ class DartUnitOutlineComputer {
     var endLocation = resolvedUnit.lineInfo.getLocation(offset + length);
     var endLine = endLocation.lineNumber;
     var endColumn = endLocation.columnNumber;
-    return Location(
-        path, offset, length, startLine, startColumn, endLine, endColumn);
+    return Location(path, offset, length, startLine, startColumn,
+        endLine: endLine, endColumn: endColumn);
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {

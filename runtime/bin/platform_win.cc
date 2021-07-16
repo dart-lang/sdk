@@ -25,7 +25,6 @@ namespace dart {
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
-char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 

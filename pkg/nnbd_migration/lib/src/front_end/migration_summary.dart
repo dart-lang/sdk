@@ -113,6 +113,8 @@ class MigrationSummary {
         return 'typeNotMadeNullable';
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return 'typeNotMadeNullableDueToHint';
+      case NullabilityFixKind.removeNullableAnnotation:
+        return 'removeNullableAnnotation';
     }
   }
 }

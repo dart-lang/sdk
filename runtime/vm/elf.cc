@@ -893,9 +893,6 @@ class BitsContainer : public Section {
 
 class NoteSection : public BitsContainer {
  public:
-  // While the build ID section does not need to be writable, the first load
-  // segment in our ELF files is writable (see Elf::WriteProgramTable). Thus,
-  // this ensures we can put it in that segment right after the program table.
   NoteSection()
       : BitsContainer(elf::SectionHeaderType::SHT_NOTE,
                       /*allocate=*/true,
