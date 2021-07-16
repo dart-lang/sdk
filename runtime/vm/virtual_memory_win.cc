@@ -62,7 +62,7 @@ void VirtualMemory::Init() {
                             PAGE_READWRITE, nullptr);
     if (address == nullptr) {
       int error = GetLastError();
-      FATAL2("Failed to reserve region for compressed heap: %d", error);
+      FATAL("Failed to reserve region for compressed heap: %d", error);
     }
     VirtualMemoryCompressedHeap::Init(address);
   }
