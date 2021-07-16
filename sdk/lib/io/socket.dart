@@ -615,6 +615,20 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// is returned.
   Uint8List? read([int? len]);
 
+  /// Reads a message containing up to [len] bytes from the socket.
+  /// This function differs from [read] in that it will also return any
+  /// [SocketControlMessage] that have been sent.
+  ///
+  /// This function is non-blocking and will only return data
+  /// if data is available.
+  /// The number of bytes read can be less then [len] if fewer bytes are
+  /// available for immediate reading. If no data is available `null`
+  /// is returned.
+  ///
+  /// Throws an [OSError] if the platform doesn't support receiving messages.
+  @Since("2.15")
+  SocketMessage? receiveMessage([int? len]);
+
   /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
   /// the socket.
   ///
@@ -625,6 +639,19 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// The default value for [offset] is 0, and the default value for [count] is
   /// `buffer.length - offset`.
   int write(List<int> buffer, [int offset = 0, int? count]);
+
+  /// Writes socket control messages and up to [count] bytes of the buffer from
+  /// [offset] buffer offset to the socket. Use [write] instead if no control
+  /// messages are required to be sent.
+  ///
+  /// The number of successfully written bytes is returned.
+  /// This function is non-blocking and will only write data
+  /// if buffer space is available in the socket.
+  ///
+  /// Throws an [OSError] if the platform doesn't support sending messages.
+  @Since("2.15")
+  int sendMessage(List<SocketControlMessage> controlMessages, List<int> data,
+      [int offset = 0, int? count]);
 
   /// The port used by this socket.
   ///
@@ -823,6 +850,66 @@ class Datagram {
   int port;
 
   Datagram(this.data, this.address, this.port);
+}
+
+abstract class SocketControlMessage {}
+
+/// An unknown received socket control message.
+/// This is provided to help in debugging unsupported control messages.
+class UnknownControlMessage extends SocketControlMessage {
+  /// The socket level the control message relates to.
+  /// The value is platform dependant, and only suitable for debugging purposes.
+  final int level;
+
+  /// The socket control message type.
+  /// The value is platform dependant, and only suitable for debugging purposes.
+  final int type;
+
+  /// Data received with the message.
+  final Uint8List data;
+
+  UnknownControlMessage(this.level, this.type, this.data);
+}
+
+/// A socket control message containing the Unix credentials of the sending process.
+class UnixCredentialsControlMessage extends SocketControlMessage {
+  /// Process ID of the sending process.
+  final int pid;
+
+  /// User ID of the sending process.
+  final int uid;
+
+  /// Group ID of the sending process.
+  final int gid;
+
+  UnixCredentialsControlMessage(this.pid, this.uid, this.gid);
+}
+
+/// A socket control message containing file descriptors.
+class UnixFileDescriptorsControlMessage extends SocketControlMessage {
+  // File descriptors being passed in this message.
+  // If received, it is the responsibility of the caller to close these file
+  // descriptors when no longer required.
+  final List<int> fileDescriptors;
+
+  UnixFileDescriptorsControlMessage(this.fileDescriptors);
+}
+
+/// A socket message received by a [RawDatagramSocket].
+class SocketMessage {
+  /// The actual bytes of the message.
+  Uint8List data;
+
+  /// The address of the socket which sends the data.
+  InternetAddress address;
+
+  /// The port of the socket which sends the data.
+  int port;
+
+  /// Control messages passed with the data.
+  List<SocketControlMessage> controlMessages;
+
+  SocketMessage(this.data, this.address, this.port, this.controlMessages);
 }
 
 /// An unbuffered interface to a UDP socket.

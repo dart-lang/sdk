@@ -98,6 +98,16 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return read_bytes;
 }
 
+intptr_t SocketBase::RecvMsg(intptr_t fd,
+                             void* buffer,
+                             intptr_t num_bytes,
+                             RawAddr* addr,
+                             SocketControlMessageList** control_messages,
+                             SocketOpKind sync) {
+  errno = ENOSYS;
+  return -1;
+}
+
 bool SocketBase::AvailableDatagram(intptr_t fd,
                                    void* buffer,
                                    intptr_t num_bytes) {
@@ -138,6 +148,16 @@ intptr_t SocketBase::SendTo(intptr_t fd,
     written_bytes = 0;
   }
   return written_bytes;
+}
+
+intptr_t SocketBase::SendMsg(intptr_t fd,
+                             const void* buffer,
+                             intptr_t num_bytes,
+                             RawAddr* addr,
+                             SocketControlMessageList* control_messages,
+                             SocketOpKind sync) {
+  errno = ENOSYS;
+  return -1;
 }
 
 intptr_t SocketBase::GetPort(intptr_t fd) {

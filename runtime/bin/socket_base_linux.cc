@@ -23,6 +23,8 @@
 #include "bin/thread.h"
 #include "platform/signal_blocker.h"
 
+static const size_t kMaxSocketMessageControlLength = 2048;
+
 namespace dart {
 namespace bin {
 
@@ -99,6 +101,77 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return read_bytes;
 }
 
+intptr_t SocketBase::RecvMsg(intptr_t fd,
+                             void* buffer,
+                             intptr_t num_bytes,
+                             RawAddr* addr,
+                             SocketControlMessageList** control_messages,
+                             SocketOpKind sync) {
+  ASSERT(fd >= 0);
+
+  struct iovec iov[1];
+  memset(iov, 0, sizeof(iov));
+  iov[0].iov_base = buffer;
+  iov[0].iov_len = num_bytes;
+
+  struct msghdr msg;
+  memset(&msg, 0, sizeof(msg));
+  msg.msg_name = &addr->addr;
+  msg.msg_namelen = sizeof(addr->ss);
+  msg.msg_iov = iov;
+  msg.msg_iovlen = 1;
+  uint8_t control_buffer[kMaxSocketMessageControlLength];
+  msg.msg_control = control_buffer;
+  msg.msg_controllen = sizeof(control_buffer);
+
+  ssize_t read_bytes = TEMP_FAILURE_RETRY(recvmsg(fd, &msg, MSG_CMSG_CLOEXEC));
+
+  if (read_bytes < 0) {
+    return read_bytes;
+  }
+
+  if (control_messages != NULL) {
+    struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
+    size_t control_message_count = 0;
+    while (cmsg != NULL) {
+      if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
+        control_message_count++;
+      }
+      cmsg = CMSG_NXTHDR(&msg, cmsg);
+    }
+    SocketControlMessageList* control_messages_ =
+        new SocketControlMessageList(control_message_count);
+
+    size_t control_message_index = 0;
+    for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
+         cmsg = CMSG_NXTHDR(&msg, cmsg), control_message_index++) {
+      void* data = CMSG_DATA(cmsg);
+      size_t data_length = cmsg->cmsg_len - (reinterpret_cast<uint8_t*>(data) -
+                                             reinterpret_cast<uint8_t*>(cmsg));
+      SocketControlMessage* control_message;
+      if (cmsg->cmsg_level == SOL_SOCKET &&
+          cmsg->cmsg_type == SCM_CREDENTIALS) {
+        struct ucred* credentials = reinterpret_cast<struct ucred*>(data);
+        control_message = new UnixCredentialsControlMessage(
+            credentials->pid, credentials->uid, credentials->gid);
+      } else if (cmsg->cmsg_level == SOL_SOCKET &&
+                 cmsg->cmsg_type == SCM_RIGHTS) {
+        int* fds = reinterpret_cast<int*>(data);
+        control_message =
+            new UnixFileDescriptorsControlMessage(fds, data_length / 4);
+      } else {
+        control_message = new UnknownControlMessage(
+            cmsg->cmsg_level, cmsg->cmsg_type, data, data_length);
+      }
+      control_messages_->SetAt(control_message_index, control_message);
+    }
+
+    *control_messages = control_messages_;
+  }
+
+  return read_bytes;
+}
+
 bool SocketBase::AvailableDatagram(intptr_t fd,
                                    void* buffer,
                                    intptr_t num_bytes) {
@@ -138,6 +211,99 @@ intptr_t SocketBase::SendTo(intptr_t fd,
     // the number of bytes written.
     written_bytes = 0;
   }
+  return written_bytes;
+}
+
+intptr_t SocketBase::SendMsg(intptr_t fd,
+                             const void* buffer,
+                             intptr_t num_bytes,
+                             RawAddr* addr,
+                             SocketControlMessageList* control_messages,
+                             SocketOpKind sync) {
+  ASSERT(fd >= 0);
+
+  struct iovec iov[1];
+  memset(iov, 0, sizeof(iov));
+  iov[0].iov_base = const_cast<void*>(buffer);
+  iov[0].iov_len = num_bytes;
+
+  struct msghdr msg;
+  memset(&msg, 0, sizeof(msg));
+  if (addr != NULL) {
+    msg.msg_name =
+        reinterpret_cast<void*>(const_cast<struct sockaddr*>(&addr->addr));
+    msg.msg_namelen = sizeof(addr->ss);
+  }
+  msg.msg_iov = iov;
+  msg.msg_iovlen = 1;
+
+  uint8_t control_buffer[kMaxSocketMessageControlLength];
+  if (control_messages != NULL) {
+    memset(control_buffer, 0, sizeof(control_buffer));
+    msg.msg_control = control_buffer;
+    msg.msg_controllen = sizeof(control_buffer);
+    size_t total_length = 0;
+    struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
+    for (intptr_t i = 0; i < control_messages->count(); i++) {
+      SocketControlMessage* control_message = control_messages->GetAt(i);
+      size_t data_length;
+      switch (control_message->type()) {
+        case SocketControlMessage::kUnixCredentials: {
+          UnixCredentialsControlMessage* unix_credentials_control_message =
+              static_cast<UnixCredentialsControlMessage*>(control_message);
+          data_length = sizeof(struct ucred);
+
+          cmsg->cmsg_level = SOL_SOCKET;
+          cmsg->cmsg_type = SCM_CREDENTIALS;
+          cmsg->cmsg_len = CMSG_LEN(data_length);
+          ASSERT(total_length + CMSG_SPACE(data_length) <
+                 kMaxSocketMessageControlLength);
+
+          struct ucred* credentials =
+              reinterpret_cast<struct ucred*>(CMSG_DATA(cmsg));
+          credentials->pid = unix_credentials_control_message->pid();
+          credentials->uid = unix_credentials_control_message->uid();
+          credentials->gid = unix_credentials_control_message->gid();
+          break;
+        }
+        case SocketControlMessage::kUnixFileDescriptors: {
+          UnixFileDescriptorsControlMessage*
+              unix_file_descriptors_control_message =
+                  static_cast<UnixFileDescriptorsControlMessage*>(
+                      control_message);
+          intptr_t file_descriptors_count =
+              unix_file_descriptors_control_message->count();
+          data_length = sizeof(int) * file_descriptors_count;
+
+          cmsg->cmsg_level = SOL_SOCKET;
+          cmsg->cmsg_type = SCM_RIGHTS;
+          cmsg->cmsg_len = CMSG_LEN(data_length);
+          ASSERT(total_length + CMSG_SPACE(data_length) <
+                 kMaxSocketMessageControlLength);
+
+          int* cmsg_fds = reinterpret_cast<int*>(CMSG_DATA(cmsg));
+          for (intptr_t j = 0; j < file_descriptors_count; j++) {
+            cmsg_fds[j] = unix_file_descriptors_control_message->GetAt(j);
+          }
+          break;
+        }
+        default:
+          UNREACHABLE();
+      }
+      total_length += CMSG_SPACE(data_length);
+      cmsg = CMSG_NXTHDR(&msg, cmsg);
+    }
+    msg.msg_controllen = total_length;
+  }
+
+  ssize_t written_bytes = TEMP_FAILURE_RETRY(sendmsg(fd, &msg, 0));
+  ASSERT(EAGAIN == EWOULDBLOCK);
+  if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
+    // If the would block we need to retry and therefore return 0 as
+    // the number of bytes written.
+    written_bytes = 0;
+  }
+
   return written_bytes;
 }
 
