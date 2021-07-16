@@ -741,8 +741,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
   int get length => keys.length;
 
   ConstantValue lookup(ConstantValue key) {
-    var lookupMap = _lookupMap ??=
-        new Map<ConstantValue, ConstantValue>.fromIterables(keys, values);
+    var lookupMap = _lookupMap ??= Map.fromIterables(keys, values);
     return lookupMap[key];
   }
 

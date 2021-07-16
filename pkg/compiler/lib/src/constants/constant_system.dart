@@ -157,23 +157,10 @@ MapConstantValue createMap(
     InterfaceType sourceType,
     List<ConstantValue> keys,
     List<ConstantValue> values) {
-  bool onlyStringKeys = true;
-  ConstantValue protoValue = null;
-  for (int i = 0; i < keys.length; i++) {
-    dynamic key = keys[i];
-    if (key.isString) {
-      if (key.stringValue == JavaScriptMapConstant.PROTO_PROPERTY) {
-        protoValue = values[i];
-      }
-    } else {
-      onlyStringKeys = false;
-      // Don't handle __proto__ values specially in the general map case.
-      protoValue = null;
-      break;
-    }
-  }
+  bool onlyStringKeys = keys.every((key) =>
+      key is StringConstantValue &&
+      key.stringValue != JavaScriptMapConstant.PROTO_PROPERTY);
 
-  bool hasProtoKey = (protoValue != null);
   InterfaceType keysType;
   if (commonElements.dartTypes.treatAsRawType(sourceType)) {
     keysType = commonElements.listType();
@@ -182,9 +169,8 @@ MapConstantValue createMap(
   }
   ListConstantValue keysList = createList(commonElements, keysType, keys);
   InterfaceType type = commonElements.getConstantMapTypeFor(sourceType,
-      hasProtoKey: hasProtoKey, onlyStringKeys: onlyStringKeys);
-  return new JavaScriptMapConstant(
-      type, keysList, values, protoValue, onlyStringKeys);
+      onlyStringKeys: onlyStringKeys);
+  return JavaScriptMapConstant(type, keysList, values, onlyStringKeys);
 }
 
 ConstantValue createSymbol(CommonElements commonElements, String text) {
@@ -1035,20 +1021,17 @@ class JavaScriptMapConstant extends MapConstantValue {
   /// The dart class implementing constant map literals.
   static const String DART_CLASS = "ConstantMap";
   static const String DART_STRING_CLASS = "ConstantStringMap";
-  static const String DART_PROTO_CLASS = "ConstantProtoMap";
   static const String DART_GENERAL_CLASS = "GeneralConstantMap";
   static const String LENGTH_NAME = "_length";
   static const String JS_OBJECT_NAME = "_jsObject";
   static const String KEYS_NAME = "_keys";
-  static const String PROTO_VALUE = "_protoValue";
   static const String JS_DATA_NAME = "_jsData";
 
   final ListConstantValue keyList;
-  final ConstantValue protoValue;
   final bool onlyStringKeys;
 
   JavaScriptMapConstant(InterfaceType type, ListConstantValue keyList,
-      List<ConstantValue> values, this.protoValue, this.onlyStringKeys)
+      List<ConstantValue> values, this.onlyStringKeys)
       : this.keyList = keyList,
         super(type, keyList.entries, values);
   @override

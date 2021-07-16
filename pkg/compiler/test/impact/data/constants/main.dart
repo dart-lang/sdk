@@ -108,13 +108,27 @@ symbolLiteral() => #foo;
   inst:List<bool*>]*/
 listLiteral() => const [true, false];
 
-/*member: mapLiteral:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
+/*member: mapLiteral:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool]*/
 mapLiteral() => const {true: false};
 
-/*member: stringMapLiteral:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
+/*member: stringMapLiteral:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:JSString]*/
 stringMapLiteral() => const {'foo': false};
 
-/*member: setLiteral:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
+/*member: setLiteral:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:_UnmodifiableSet<dynamic>]*/
 setLiteral() => const {true, false};
 
 /*member: instanceConstant:
@@ -190,13 +204,27 @@ symbolLiteralRef() => symbolLiteralField;
   inst:List<bool*>]*/
 listLiteralRef() => listLiteralField;
 
-/*member: mapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
+/*member: mapLiteralRef:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool]*/
 mapLiteralRef() => mapLiteralField;
 
-/*member: stringMapLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
+/*member: stringMapLiteralRef:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:JSString]*/
 stringMapLiteralRef() => stringMapLiteralField;
 
-/*member: setLiteralRef:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
+/*member: setLiteralRef:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:_UnmodifiableSet<dynamic>]*/
 setLiteralRef() => setLiteralField;
 
 /*member: instanceConstantRef:
@@ -263,15 +291,29 @@ symbolLiteralDeferred() => defer.symbolLiteralField;
 listLiteralDeferred() => defer.listLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*member: mapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool]*/
+/*member: mapLiteralDeferred:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool]*/
 mapLiteralDeferred() => defer.mapLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*member: stringMapLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:JSString]*/
+/*member: stringMapLiteralDeferred:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:JSString]*/
 stringMapLiteralDeferred() => defer.stringMapLiteralField;
 
 // TODO(johnniwinther): Should we record that this is deferred?
-/*member: setLiteralDeferred:type=[inst:ConstantMap<dynamic,dynamic>,inst:ConstantProtoMap<dynamic,dynamic>,inst:ConstantStringMap<dynamic,dynamic>,inst:GeneralConstantMap<dynamic,dynamic>,inst:JSBool,inst:_UnmodifiableSet<dynamic>]*/
+/*member: setLiteralDeferred:type=[
+  inst:ConstantMap<dynamic,dynamic>,
+  inst:ConstantStringMap<dynamic,dynamic>,
+  inst:GeneralConstantMap<dynamic,dynamic>,
+  inst:JSBool,
+  inst:_UnmodifiableSet<dynamic>]*/
 setLiteralDeferred() => defer.setLiteralField;
 
 /*member: instanceConstantDeferred:

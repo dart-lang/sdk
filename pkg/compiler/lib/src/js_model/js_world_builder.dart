@@ -944,15 +944,13 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     ListConstantValue keys = constant.keyList.accept(this, null);
     List<ConstantValue> values = _handleValues(constant.values);
-    ConstantValue protoValue = constant.protoValue?.accept(this, null);
     if (identical(keys, constant.keys) &&
         identical(values, constant.values) &&
-        type == constant.type &&
-        protoValue == constant.protoValue) {
+        type == constant.type) {
       return constant;
     }
     return new constant_system.JavaScriptMapConstant(
-        type, keys, values, protoValue, constant.onlyStringKeys);
+        type, keys, values, constant.onlyStringKeys);
   }
 
   @override

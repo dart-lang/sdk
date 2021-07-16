@@ -330,10 +330,6 @@ class ConstantEmitter extends ModularConstantEmitter {
           constant_system.JavaScriptMapConstant.KEYS_NAME) {
         arguments.add(_constantReferenceGenerator(constant.keyList));
       } else if (field.name ==
-          constant_system.JavaScriptMapConstant.PROTO_VALUE) {
-        assert(constant.protoValue != null);
-        arguments.add(_constantReferenceGenerator(constant.protoValue));
-      } else if (field.name ==
           constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
       } else {
@@ -344,8 +340,6 @@ class ConstantEmitter extends ModularConstantEmitter {
     });
     if ((className == constant_system.JavaScriptMapConstant.DART_STRING_CLASS &&
             emittedArgumentCount != 3) ||
-        (className == constant_system.JavaScriptMapConstant.DART_PROTO_CLASS &&
-            emittedArgumentCount != 4) ||
         (className ==
                 constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
