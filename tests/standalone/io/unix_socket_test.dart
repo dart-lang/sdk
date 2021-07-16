@@ -12,8 +12,6 @@ Future testAddress(String name) async {
   var address = InternetAddress('$name/sock', type: InternetAddressType.unix);
   var server = await ServerSocket.bind(address, 0);
 
-  var type = FileSystemEntity.typeSync(address.address);
-
   var client = await Socket.connect(address, server.port);
   var completer = Completer<void>();
   server.listen((socket) async {
@@ -90,8 +88,6 @@ Future testListenCloseListenClose(String name) async {
   // test if it is working correctly.
   await socket.close();
 
-  var type = FileSystemEntity.typeSync(address.address);
-
   // For robustness we ignore any clients unrelated to this test.
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   socket2.listen((Socket client) async {
@@ -128,8 +124,6 @@ Future testSourceAddressConnect(String name) async {
     completer.complete();
   });
 
-  var type = FileSystemEntity.typeSync(address.address);
-
   Socket client =
       await Socket.connect(address, server.port, sourceAddress: localAddress);
   Expect.equals(client.remoteAddress.address, address.address);
@@ -139,12 +133,12 @@ Future testSourceAddressConnect(String name) async {
   await server.close();
 }
 
-Future testAbstractAddress() async {
+Future testAbstractAddress(String uniqueName) async {
   if (!Platform.isLinux && !Platform.isAndroid) {
     return;
   }
   var serverAddress =
-      InternetAddress('@temp.sock', type: InternetAddressType.unix);
+      InternetAddress('@temp.sock.$uniqueName', type: InternetAddressType.unix);
   ServerSocket server = await ServerSocket.bind(serverAddress, 0);
   final completer = Completer<void>();
   final content = 'random string';
@@ -172,7 +166,7 @@ String getAbstractSocketTestFileName() {
   return buffer.toString();
 }
 
-Future testShortAbstractAddress() async {
+Future testShortAbstractAddress(String uniqueName) async {
   if (!Platform.isLinux && !Platform.isAndroid) {
     return;
   }
@@ -182,7 +176,7 @@ Future testShortAbstractAddress() async {
   Future? stdoutFuture;
   Future? stderrFuture;
   try {
-    var socketAddress = '@hidden';
+    var socketAddress = '@temp.sock.$uniqueName';
     var abstractSocketServer = getAbstractSocketTestFileName();
     // check if the executable exists, some build configurations do not
     // build it (e.g: precompiled simarm/simarm64)
@@ -190,7 +184,7 @@ Future testShortAbstractAddress() async {
       return;
     }
 
-    // Start up a subprocess that listens on '@hidden'.
+    // Start up a subprocess that listens on [socketAddress].
     process = await Process.start(abstractSocketServer, [socketAddress]);
     stdoutFuture = process.stdout
         .transform(const Utf8Decoder(allowMalformed: true))
@@ -454,10 +448,10 @@ Future withTempDir(String prefix, Future<void> test(Directory dir)) async {
 void main() async {
   try {
     await withTempDir('unix_socket_test', (Directory dir) async {
-      await testBind('${dir.path}');
+      await testAddress('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
-      await testAddress('${dir.path}');
+      await testBind('${dir.path}');
     });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testBindShared('${dir.path}');
@@ -468,7 +462,9 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testSourceAddressConnect('${dir.path}');
     });
-    await testAbstractAddress();
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testAbstractAddress(dir.uri.pathSegments.last);
+    });
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testExistingFile('${dir.path}');
     });
@@ -478,7 +474,9 @@ void main() async {
     await withTempDir('unix_socket_test', (Directory dir) async {
       await testHttpServer('${dir.path}');
     });
-    await testShortAbstractAddress();
+    await withTempDir('unix_socket_test', (Directory dir) async {
+      await testShortAbstractAddress(dir.uri.pathSegments.last);
+    });
   } catch (e) {
     if (Platform.isMacOS || Platform.isLinux || Platform.isAndroid) {
       Expect.fail("Unexpected exception $e is thrown");
