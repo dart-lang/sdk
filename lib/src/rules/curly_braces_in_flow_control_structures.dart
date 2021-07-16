@@ -89,8 +89,8 @@ class _Visitor extends SimpleAstVisitor {
   void visitIfStatement(IfStatement node) {
     var elseStatement = node.elseStatement;
     if (elseStatement == null) {
-      if (node.parent is IfStatement &&
-          node == (node.parent! as IfStatement).elseStatement) {
+      var parent = node.parent;
+      if (parent is IfStatement && node == parent.elseStatement) {
         _check(node.thenStatement);
         return;
       }
