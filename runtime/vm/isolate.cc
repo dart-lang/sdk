@@ -785,8 +785,6 @@ void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
   // rpc method returns.
-  // TODO(dartbug.com/36097): Once the heap moves from Isolate to IsolateGroup
-  // this code needs to be adjusted to not double-count memory.
   jsobj.AddProperty("type", "MemoryUsage");
   jsobj.AddProperty64("heapUsage", used * kWordSize);
   jsobj.AddProperty64("heapCapacity", capacity * kWordSize);
@@ -2587,7 +2585,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {
-    if (IsolateGroup::AreIsolateGroupsEnabled()) {
+    if (FLAG_enable_isolate_groups) {
       // TODO(dartbug.com/36097): An isolate just died. A significant amount of
       // memory might have become unreachable. We should evaluate how to best
       // inform the GC about this situation.
@@ -2760,7 +2758,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
-  if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
     single_current_mutator->Call();
     return;
   }

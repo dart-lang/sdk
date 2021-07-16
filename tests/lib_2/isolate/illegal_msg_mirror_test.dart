@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups
 // VMOptions=--no-enable-isolate-groups
 
 library illegal_msg_mirror_test;

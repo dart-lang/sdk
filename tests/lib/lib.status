@@ -76,9 +76,6 @@ isolate/int32_length_overflow_test: SkipSlow
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
-[ $runtime == dart_precompiled || $runtime == vm ]
-isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
-
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.

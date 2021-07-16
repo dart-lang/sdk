@@ -11242,17 +11242,6 @@ class Closure : public Instance {
     return closure.untag()->function();
   }
 
-#if defined(DART_PRECOMPILER)
-  FunctionTypePtr signature() const {
-    return FunctionType::RawCast(WeakSerializationReference::Unwrap(
-        untag()->function()->untag()->signature()));
-  }
-#else
-  FunctionTypePtr signature() const {
-    return untag()->function()->untag()->signature();
-  }
-#endif
-
   ContextPtr context() const { return untag()->context(); }
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);

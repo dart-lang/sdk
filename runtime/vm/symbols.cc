@@ -403,7 +403,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       // In DEBUG mode the snapshot writer also calls this method inside a
       // safepoint.
 #if !defined(DEBUG)
-      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
+      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
 #endif
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);

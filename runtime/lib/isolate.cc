@@ -112,7 +112,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
     PortMap::PostMessage(
         Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
   } else {
-    const bool same_group = IsolateGroup::AreIsolateGroupsEnabled() &&
+    const bool same_group = FLAG_enable_isolate_groups &&
                             PortMap::IsReceiverInThisIsolateGroup(
                                 destination_port_id, isolate->group());
     if (same_group) {
@@ -614,7 +614,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();
-    if (!IsolateGroup::AreIsolateGroupsEnabled() || group == nullptr) {
+    if (!FLAG_enable_isolate_groups || group == nullptr) {
       RunHeavyweight(name);
     } else {
       RunLightweight(name);

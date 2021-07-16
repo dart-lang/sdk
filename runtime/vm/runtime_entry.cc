@@ -758,7 +758,9 @@ static void UpdateTypeTestCache(
   auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
   if (instance_class.IsClosureClass()) {
     const auto& closure = Closure::Cast(instance);
-    instance_class_id_or_signature = closure.signature();
+    const auto& function = Function::Handle(zone, closure.function());
+    instance_class_id_or_signature = function.signature();
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
     instance_type_arguments = closure.instantiator_type_arguments();
     instance_parent_function_type_arguments = closure.function_type_arguments();
     instance_delayed_type_arguments = closure.delayed_type_arguments();
@@ -827,7 +829,7 @@ static void UpdateTypeTestCache(
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
       }
-      if (!IsolateGroup::AreIsolateGroupsEnabled()) {
+      if (!FLAG_enable_isolate_groups) {
         FATAL("Duplicate subtype test cache entry");
       }
       if (old_result.ptr() != result.ptr()) {
@@ -1190,7 +1192,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(IsolateGroup::AreIsolateGroupsEnabled() ||
+  ASSERT(FLAG_enable_isolate_groups ||
          target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=
@@ -2964,8 +2966,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   // With isolate groups enabled, it is possible that the target code
   // has been deactivated just now(as a result of re-optimizatin for example),
   // which will result in another run through FixCallersTarget.
-  ASSERT(!current_target_code.IsDisabled() ||
-         IsolateGroup::AreIsolateGroupsEnabled());
+  ASSERT(!current_target_code.IsDisabled() || FLAG_enable_isolate_groups);
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();

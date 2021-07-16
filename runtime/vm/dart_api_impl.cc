@@ -1453,16 +1453,14 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (!FLAG_enable_isolate_groups) {
     *error = Utils::StrDup(
-        "Lightweight isolates are only implemented in AOT "
-        "mode and need to be explicitly enabled by passing "
+        "Lightweight isolates need to be explicitly enabled by passing "
         "--enable-isolate-groups.");
     return nullptr;
   }
 
   Isolate* isolate;
-#if defined(DART_PRECOMPILED_RUNTIME)
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
     isolate->set_origin_id(member->origin_id());
@@ -1470,10 +1468,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
     isolate->set_on_shutdown_callback(shutdown_callback);
     isolate->set_on_cleanup_callback(cleanup_callback);
   }
-#else
-  *error = Utils::StrDup("Lightweight isolates are not yet ready in JIT mode.");
-  isolate = nullptr;
-#endif
 
   return Api::CastIsolate(isolate);
 }

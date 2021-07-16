@@ -18243,7 +18243,6 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
     buffer->Printf("%sclass id: %" Pd "", separator,
                    Smi::Cast(instance_class_id_or_signature).Value());
   } else {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf(
         "%ssignature: %s", separator,
         FunctionType::Cast(instance_class_id_or_signature).ToCString());
@@ -18282,12 +18281,10 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
                    function_type_arguments.ToCString());
   }
   if (!instance_parent_function_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure parent function type arguments: %s", separator,
                    instance_parent_function_type_arguments.ToCString());
   }
   if (!instance_delayed_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure delayed function type arguments: %s", separator,
                    instance_delayed_type_arguments.ToCString());
   }
