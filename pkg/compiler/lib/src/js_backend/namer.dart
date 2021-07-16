@@ -435,6 +435,26 @@ class Namer extends ModularNamer {
         ..remove('P')
         ..remove('W');
 
+  static final RegExp _identifierStartRE = RegExp(r'[A-Za-z_$]');
+  static final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');
+
+  /// Returns `true` iff [s] begins with an ASCII character that can begin a
+  /// JavaScript identifier.
+  ///
+  /// In particular, [s] must begin with an ASCII letter, an underscore, or a
+  /// dollar sign.
+  static bool startsWithIdentifierCharacter(String s) =>
+      s.startsWith(_identifierStartRE);
+
+  /// Returns a copy of [s] in which characters which cannot be part of an ASCII
+  /// JavaScript identifier have been replaced by underscores.
+  ///
+  /// Note that the result may not be unconditionally used as a JavaScript
+  /// identifier. For example, the result may still begin with a digit or it may
+  /// be a reserved keyword.
+  static String replaceNonIdentifierCharacters(String s) =>
+      s.replaceAll(_nonIdentifierRE, '_');
+
   Set<String> _jsReserved = null;
 
   /// Names that cannot be used by members, top level and static
@@ -621,9 +641,7 @@ class Namer extends ModularNamer {
   ///
   /// The resulting name is a *proposed name* and is never minified.
   String privateName(Name originalName) {
-    String text = originalName.text;
-
-    text = text.replaceAll(_nonIdentifierRE, '_');
+    String text = replaceNonIdentifierCharacters(originalName.text);
 
     // Public names are easy.
     if (!originalName.isPrivate) return text;
@@ -673,7 +691,7 @@ class Namer extends ModularNamer {
       // TODO(sra): If the generator is for a closure's 'call' method, we don't
       // need to incorporate the enclosing class.
       String className =
-          method.enclosingClass.name.replaceAll(_nonIdentifierRE, '_');
+          replaceNonIdentifierCharacters(method.enclosingClass.name);
       return '${invocationName}\$body\$${className}';
     });
   }
@@ -847,9 +865,8 @@ class Namer extends ModularNamer {
     if (element is JSEntity) {
       return _disambiguateInternalMember(
           element,
-          () => (element as JSEntity)
-              .declaredName
-              .replaceAll(_nonIdentifierRE, '_'));
+          () => replaceNonIdentifierCharacters(
+              (element as JSEntity).declaredName));
     }
 
     // If the name of the field might clash with another field,
@@ -862,8 +879,8 @@ class Namer extends ModularNamer {
     if (_closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
-      String proposeName() => '${enclosingClass.name}_${element.name}'
-          .replaceAll(_nonIdentifierRE, '_');
+      String proposeName() => replaceNonIdentifierCharacters(
+          '${enclosingClass.name}_${element.name}');
       return _disambiguateInternalMember(element, proposeName);
     }
 
@@ -1207,10 +1224,8 @@ class Namer extends ModularNamer {
   /// Returns a proposed name for the given typedef or class [element].
   /// The returned id is guaranteed to be a valid JavaScript identifier.
   String _proposeNameForType(Entity element) {
-    return element.name.replaceAll(_nonIdentifierRE, '_');
+    return replaceNonIdentifierCharacters(element.name);
   }
-
-  static RegExp _nonIdentifierRE = new RegExp(r'[^A-Za-z0-9_$]');
 
   /// Returns a proposed name for the given top-level or static member
   /// [element]. The returned id is guaranteed to be a valid JavaScript
@@ -1222,10 +1237,10 @@ class Namer extends ModularNamer {
       return _proposeNameForMember(element.function) + r'$body';
     } else if (element.enclosingClass != null) {
       ClassEntity enclosingClass = element.enclosingClass;
-      return '${enclosingClass.name}_${element.name}'
-          .replaceAll(_nonIdentifierRE, '_');
+      return replaceNonIdentifierCharacters(
+          '${enclosingClass.name}_${element.name}');
     }
-    return element.name.replaceAll(_nonIdentifierRE, '_');
+    return replaceNonIdentifierCharacters(element.name);
   }
 
   String _proposeNameForLazyStaticGetter(MemberEntity element) {
@@ -1360,7 +1375,7 @@ class Namer extends ModularNamer {
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
     String library = _proposeNameForLibrary(element.library);
-    String name = element.name.replaceAll(_nonIdentifierRE, '_');
+    String name = replaceNonIdentifierCharacters(element.name);
     return _disambiguateInternalGlobal(
         "${library}_${enclosing}_${name}\$closure");
   }
