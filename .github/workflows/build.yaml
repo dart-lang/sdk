@@ -33,8 +33,7 @@ jobs:
         with:
           sdk: dev
 
-      - name: pub get
-        run: dart pub get
+      - run: dart pub get
 
       - name: tool/bot.sh
         env:
