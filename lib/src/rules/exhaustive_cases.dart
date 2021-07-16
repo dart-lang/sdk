@@ -26,21 +26,21 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 ```dart
 class EnumLike {
   final int i;
-  const E._(this.i);
+  const EnumLike._(this.i);
 
-  static const e = E._(1);
-  static const f = E._(2);
-  static const g = E._(3);
+  static const e = EnumLike._(1);
+  static const f = EnumLike._(2);
+  static const g = EnumLike._(3);
 }
 
 void bad(EnumLike e) {
   // Missing case.
   switch(e) { // LINT
-    case E.e :
+    case EnumLike.e :
       print('e');
       break;
-    case E.f :
-      print('e');
+    case EnumLike.f :
+      print('f');
       break;
   }
 }
@@ -50,24 +50,24 @@ void bad(EnumLike e) {
 ```dart
 class EnumLike {
   final int i;
-  const E._(this.i);
+  const EnumLike._(this.i);
 
-  static const e = E._(1);
-  static const f = E._(2);
-  static const g = E._(3);
+  static const e = EnumLike._(1);
+  static const f = EnumLike._(2);
+  static const g = EnumLike._(3);
 }
 
-void ok(E e) {
+void ok(EnumLike e) {
   // All cases covered.
   switch(e) { // OK
-    case E.e :
+    case EnumLike.e :
       print('e');
       break;
-    case E.f :
-      print('e');
+    case EnumLike.f :
+      print('f');
       break;
-    case E.g :
-      print('e');
+    case EnumLike.g :
+      print('g');
       break;
   }
 }
