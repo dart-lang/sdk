@@ -1,6 +1,7 @@
 # master
 
 - New lint: `eol_at_end_of_file`
+- Fix false negative case of else-if in `curly_braces_in_flow_control_structures.dart`
 - Update `analyzer` constraint to `>=2.0.0 <3.0.0`.
 
 # 1.7.1
