@@ -74,40 +74,45 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
   operator []=(int index, E value);
 }
 
-/// The interface implemented by JavaScript objects.
-///
-/// These are methods in addition to the regular Dart Object methods like
-/// [Object.hashCode]. This is the type that should be exported by a JavaScript
-/// interop library.
+/**
+ * The interface implemented by JavaScript objects.  These are methods in
+ * addition to the regular Dart Object methods like [Object.hashCode].
+ *
+ * This is the type that should be exported by a JavaScript interop library.
+ */
 abstract class JSObject {}
 
-/// Interceptor base class for JavaScript objects not recognized as some more
-/// specific native type.
-
-/// Unlike dart2js, ddc does not intercept JS objects, so this is only used as
-/// an on-type for JS interop extension types. All JS interop objects should be
-/// castable to this type.
+/**
+ * Interceptor base class for JavaScript objects not recognized as some more
+ * specific native type.
+ */
 abstract class JavaScriptObject extends Interceptor implements JSObject {
   const JavaScriptObject();
+
+  // It would be impolite to stash a property on the object.
+  int get hashCode => 0;
+
+  Type get runtimeType => JSObject;
 }
 
-/// Interceptor for plain JavaScript objects created as JavaScript object
-/// literals or `new Object()`.
-///
-/// Note that this isn't being used today in ddc. Instead of using interceptors,
-/// we have other type logic to distinguish JS types.
+/**
+ * Interceptor for plain JavaScript objects created as JavaScript object
+ * literals or `new Object()`.
+ */
 class PlainJavaScriptObject extends JavaScriptObject {
   const PlainJavaScriptObject();
 }
 
-/// Interceptor for unclassified JavaScript objects, typically objects with a
-/// non-trivial prototype chain.
-///
-/// This class also serves as a fallback for unknown JavaScript exceptions.
-/// Note that this isn't being used today in ddc. Instead of using interceptors,
-/// we have other type logic to distinguish JS types.
+/**
+ * Interceptor for unclassified JavaScript objects, typically objects with a
+ * non-trivial prototype chain.
+ *
+ * This class also serves as a fallback for unknown JavaScript exceptions.
+ */
 class UnknownJavaScriptObject extends JavaScriptObject {
   const UnknownJavaScriptObject();
+
+  String toString() => JS<String>('!', 'String(#)', this);
 }
 
 class NativeError extends Interceptor {

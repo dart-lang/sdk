@@ -154,8 +154,7 @@ class DynamicType extends DartType {
 }
 
 @notNull
-bool _isJsObject(obj) =>
-    JS('!', '# === #', getReifiedType(obj), typeRep<JavaScriptObject>());
+bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
 /// Asserts that [f] is a native JS functions and returns it if so.
 ///
@@ -238,7 +237,7 @@ class LazyJSType extends DartType {
     return raw;
   }
 
-  Object rawJSTypeForCheck() => _getRawJSType() ?? typeRep<JavaScriptObject>();
+  Object rawJSTypeForCheck() => _getRawJSType() ?? jsobject;
 
   @notNull
   @JSExportName('is')
@@ -478,6 +477,12 @@ class BottomType extends DartType {
 }
 
 final bottom = unwrapType(Null);
+
+class JSObjectType extends DartType {
+  toString() => 'NativeJavaScriptObject';
+}
+
+final jsobject = JSObjectType();
 
 /// Dev Compiler's implementation of Type, wrapping its internal [_type].
 class _Type extends Type {
@@ -1513,43 +1518,8 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
       return ${_equalType(t2, Function)};
     }
 
-    // Even though lazy and anonymous JS types are natural subtypes of
-    // JavaScriptObject, JS types should be treated as mutual subtypes of each
-    // other. This allows users to be able to interface with both extension
-    // types on JavaScriptObject and package:js using the same object.
-    //
-    // Therefore, the following relationships hold true:
-    //
-    // JavaScriptObject <: package:js types
-    // package:js types <: JavaScriptObject
-    //
-    // TODO: This doesn't allow package:js type <: another package:js type yet.
-
-    if (${_isInterfaceSubtype(t1, JavaScriptObject, strictMode)}
-        && (${_jsInstanceOf(t2, LazyJSType)}
-            || ${_jsInstanceOf(t2, AnonymousJSType)}
-            // TODO: Since package:js types are instances of LazyJSType and
-            // AnonymousJSType, we don't have a mechanism to determine if *some*
-            // package:js type implements t2. This will possibly require keeping
-            // a map of these relationships for this subtyping check. For now,
-            // don't execute the following checks.
-            // || _isInterfaceSubtype(LazyJSType, t2, strictMode)
-            // || _isInterfaceSubtype(AnonymousJSType, t2, strictMode)
-            )) {
-      return true;
-    }
-
-    if (${_isInterfaceSubtype(JavaScriptObject, t2, strictMode)}
-        && (${_jsInstanceOf(t1, LazyJSType)}
-            || ${_jsInstanceOf(t1, AnonymousJSType)}
-            // TODO: We don't have a check in `isInterfaceSubtype` to check that
-            // a class is a subtype of *some* package:js class. This will likely
-            // require modifying `_isInterfaceSubtype` to check if the
-            // interfaces of t1 include a package:js type. For now, don't
-            // execute the following checks.
-            // || _isInterfaceSubtype(t1, LazyJSType, strictMode)
-            // || _isInterfaceSubtype(t1, AnonymousJSType, strictMode)
-            )) {
+    // All JS types are subtypes of anonymous JS types.
+    if ($t1 === $jsobject && ${_jsInstanceOf(t2, AnonymousJSType)}) {
       return true;
     }
 
