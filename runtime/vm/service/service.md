@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.48
+# Dart VM Service Protocol 3.49
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.48_ of the Dart VM Service Protocol. This
+This document describes of _version 3.49_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1477,7 +1477,7 @@ streamId | event types provided
 VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
-Profiler | UserTagChanged
+Profiler | CpuSamples, UserTagChanged
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -2161,6 +2161,9 @@ class Event extends Response {
 
   // The previous UserTag label.
   string previousTag [optional];
+
+  // A CPU profile containing recent samples.
+  CpuSamples cpuSamples [optional];
 }
 ```
 
@@ -2274,6 +2277,9 @@ enum EventKind {
 
   // Notification that the UserTag for an isolate has been changed.
   UserTagChanged,
+
+  // A block of recently collected CPU samples.
+  CpuSamples,
 }
 ```
 
@@ -4069,5 +4075,6 @@ version | comments
 3.46 | Moved `sourceLocation` property into reference types for `Class`, `Field`, and `Function`.
 3.47 | Added `shows` and `hides` properties to `LibraryDependency`.
 3.48 | Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and `previousTag` properties to `Event`.
+3.49 | Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

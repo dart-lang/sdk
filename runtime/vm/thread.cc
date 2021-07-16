@@ -448,6 +448,15 @@ ErrorPtr Thread::HandleInterrupts() {
       }
       heap()->CollectGarbage(Heap::kNew);
     }
+
+#if !defined(PRODUCT)
+    // Processes completed SampleBlocks and sends CPU sample events over the
+    // service protocol when applicable.
+    SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
+    if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
+      sample_buffer->ProcessCompletedBlocks();
+    }
+#endif  // !defined(PRODUCT)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {
     MessageHandler::MessageStatus status =

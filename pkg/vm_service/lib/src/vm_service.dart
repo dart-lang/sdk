@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.48.0';
+const String vmServiceVersion = '3.49.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1149,7 +1149,7 @@ abstract class VmServiceInterface {
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
   /// BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
-  /// Profiler | UserTagChanged
+  /// Profiler | CpuSamples, UserTagChanged
   /// GC | GC
   /// Extension | Extension
   /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1690,7 +1690,7 @@ class VmService implements VmServiceInterface {
   // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
 
-  // UserTagChanged
+  // CpuSamples, UserTagChanged
   Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
 
   // GC
@@ -2502,6 +2502,9 @@ class EventKind {
 
   /// Notification that the UserTag for an isolate has been changed.
   static const String kUserTagChanged = 'UserTagChanged';
+
+  /// A block of recently collected CPU samples.
+  static const String kCpuSamples = 'CpuSamples';
 }
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
@@ -3899,6 +3902,10 @@ class Event extends Response {
   @optional
   String? previousTag;
 
+  /// A CPU profile containing recent samples.
+  @optional
+  CpuSamples? cpuSamples;
+
   /// Binary data associated with the event.
   ///
   /// This is provided for the event kinds:
@@ -3933,6 +3940,7 @@ class Event extends Response {
     this.last,
     this.updatedTag,
     this.previousTag,
+    this.cpuSamples,
     this.data,
   });
 
@@ -3977,6 +3985,8 @@ class Event extends Response {
     last = json['last'];
     updatedTag = json['updatedTag'];
     previousTag = json['previousTag'];
+    cpuSamples = createServiceObject(json['cpuSamples'], const ['CpuSamples'])
+        as CpuSamples?;
     data = json['data'];
   }
 
@@ -4018,6 +4028,7 @@ class Event extends Response {
     _setIfNotNull(json, 'last', last);
     _setIfNotNull(json, 'updatedTag', updatedTag);
     _setIfNotNull(json, 'previousTag', previousTag);
+    _setIfNotNull(json, 'cpuSamples', cpuSamples?.toJson());
     _setIfNotNull(json, 'data', data);
     return json;
   }

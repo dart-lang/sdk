@@ -45,6 +45,10 @@ class RelaxedAtomic {
     return value_.fetch_and(arg, order);
   }
 
+  T exchange(T arg, std::memory_order order = std::memory_order_relaxed) {
+    return value_.exchange(arg, order);
+  }
+
   bool compare_exchange_weak(
       T& expected,  // NOLINT
       T desired,
@@ -76,6 +80,10 @@ class RelaxedAtomic {
   }
   T operator+=(T arg) { return fetch_add(arg) + arg; }
   T operator-=(T arg) { return fetch_sub(arg) - arg; }
+  T& operator++() { return fetch_add(1) + 1; }
+  T& operator--() { return fetch_sub(1) - 1; }
+  T operator++(int) { return fetch_add(1); }
+  T operator--(int) { return fetch_sub(1); }
 
  private:
   std::atomic<T> value_;

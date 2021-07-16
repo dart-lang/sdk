@@ -7,6 +7,7 @@
 
 #include "vm/globals.h"
 #include "vm/heap/heap.h"
+#include "vm/profiler_service.h"
 
 namespace dart {
 
@@ -61,6 +62,8 @@ class ServiceEvent {
     kTimelineStreamSubscriptionsUpdate,
 
     kUserTagChanged,
+
+    kCpuSamples,
 
     kIllegal,
   };
@@ -213,6 +216,9 @@ class ServiceEvent {
     timeline_event_block_ = block;
   }
 
+  Profile* cpu_profile() const { return cpu_profile_; }
+  void set_cpu_profile(Profile* profile) { cpu_profile_ = profile; }
+
   void PrintJSON(JSONStream* js) const;
 
   void PrintJSONHeader(JSONObject* jsobj) const;
@@ -246,6 +252,7 @@ class ServiceEvent {
   intptr_t bytes_length_;
   LogRecord log_record_;
   ExtensionEvent extension_event_;
+  Profile* cpu_profile_;
   int64_t timestamp_;
 };
 
