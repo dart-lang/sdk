@@ -222,7 +222,7 @@ ObjectPtr DartEntry::ResolveCallable(Thread* thread,
       if (matches && type_args_len > 0 && function.IsClosureFunction()) {
         // Though the closure function is generic, the closure itself may
         // not be because it closes over delayed function type arguments.
-        matches = Closure::Cast(instance).IsGeneric(thread);
+        matches = Closure::Cast(instance).IsGeneric();
       }
 
       if (matches) {

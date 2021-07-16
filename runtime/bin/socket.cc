@@ -130,13 +130,13 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
         // created the socket. Feed same fd and store it into native field
         // of dart socket_object. Sockets here will share same fd but contain a
         // different port() through EventHandler_SendData.
-        Socket* socketfd = new Socket(os_socket->fd);
-        os_socket->ref_count++;
+        Socket* socketfd = new Socket(os_socket_same_addr->fd);
+        os_socket_same_addr->ref_count++;
         // We set as a side-effect the file descriptor on the dart
         // socket_object.
         Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                          Socket::kFinalizerListening);
-        InsertByFd(socketfd, os_socket);
+        InsertByFd(socketfd, os_socket_same_addr);
         return Dart_True();
       }
     }
@@ -234,13 +234,13 @@ Dart_Handle ListeningSocketRegistry::CreateUnixDomainBindListen(
         // created the socket. Feed the same fd and store it into the native
         // field of dart socket_object. Sockets here will share same fd but
         // contain a different port() through EventHandler_SendData.
-        Socket* socketfd = new Socket(os_socket->fd);
-        os_socket->ref_count++;
+        Socket* socketfd = new Socket(os_socket_same_addr->fd);
+        os_socket_same_addr->ref_count++;
         // We set as a side-effect the file descriptor on the dart
         // socket_object.
         Socket::ReuseSocketIdNativeField(socket_object, socketfd,
                                          Socket::kFinalizerListening);
-        InsertByFd(socketfd, os_socket);
+        InsertByFd(socketfd, os_socket_same_addr);
         return Dart_True();
       }
     }

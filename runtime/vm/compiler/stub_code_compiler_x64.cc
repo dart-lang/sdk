@@ -359,9 +359,10 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Load the target from the thread.
   __ movq(TMP, compiler::Address(
                    THR, compiler::target::Thread::callback_code_offset()));
-  __ movq(TMP, compiler::FieldAddress(
-                   TMP, compiler::target::GrowableObjectArray::data_offset()));
-  __ movq(
+  __ LoadCompressed(
+      TMP, compiler::FieldAddress(
+               TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ LoadCompressed(
       TMP,
       __ ElementAddressForRegIndex(
           /*external=*/false,
@@ -403,7 +404,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Code& closure_allocation_stub,
-    const Code& context_allocation_stub) {
+    const Code& context_allocation_stub,
+    bool generic) {
   const intptr_t kReceiverOffsetInWords =
       target::frame_layout.param_end_from_fp + 1;
 
@@ -471,12 +473,15 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
       FieldAddress(AllocateClosureABI::kResultReg,
                    target::Closure::instantiator_type_arguments_offset()),
       AllocateClosureABI::kScratchReg);
-  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-  __ StoreCompressedIntoObjectNoBarrier(
-      AllocateClosureABI::kResultReg,
-      FieldAddress(AllocateClosureABI::kResultReg,
-                   target::Closure::delayed_type_arguments_offset()),
-      AllocateClosureABI::kScratchReg);
+  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
+  if (generic) {
+    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+    __ StoreCompressedIntoObjectNoBarrier(
+        AllocateClosureABI::kResultReg,
+        FieldAddress(AllocateClosureABI::kResultReg,
+                     target::Closure::delayed_type_arguments_offset()),
+        AllocateClosureABI::kScratchReg);
+  }
 
   __ LeaveStubFrame();
   // No-op if the two are the same.
