@@ -58,6 +58,10 @@ testIfElse() {
 
   if (true) {
   } else if (true) return; //LINT
+
+  if (true) {
+  } else if (true)
+    return; //LINT
 }
 
 testWhile() {
