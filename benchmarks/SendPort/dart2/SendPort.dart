@@ -177,8 +177,11 @@ class SendPortBenchmark {
 }
 
 class TreeNode {
+  @pragma('vm:entry-point') // Prevent tree shaking of this field.
   final TreeNode left;
+  @pragma('vm:entry-point') // Prevent tree shaking of this field.
   final TreeNode right;
+  @pragma('vm:entry-point') // Prevent tree shaking of this field.
   final int value;
 
   TreeNode(this.left, this.right, this.value);
