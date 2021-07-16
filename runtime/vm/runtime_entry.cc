@@ -758,7 +758,9 @@ static void UpdateTypeTestCache(
   auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
   if (instance_class.IsClosureClass()) {
     const auto& closure = Closure::Cast(instance);
-    instance_class_id_or_signature = closure.signature();
+    const auto& function = Function::Handle(zone, closure.function());
+    instance_class_id_or_signature = function.signature();
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
     instance_type_arguments = closure.instantiator_type_arguments();
     instance_parent_function_type_arguments = closure.function_type_arguments();
     instance_delayed_type_arguments = closure.delayed_type_arguments();

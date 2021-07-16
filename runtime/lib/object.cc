@@ -91,57 +91,56 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
   return instance.GetType(Heap::kNew);
 }
 
-DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
-  const Instance& left =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  const Instance& right =
-      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
-
+static bool HaveSameRuntimeTypeHelper(Zone* zone,
+                                      const Instance& left,
+                                      const Instance& right) {
   const intptr_t left_cid = left.GetClassId();
   const intptr_t right_cid = right.GetClassId();
 
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
-      return Bool::Get(IsIntegerClassId(right_cid)).ptr();
-    } else if (IsStringClassId(left_cid)) {
-      return Bool::Get(IsStringClassId(right_cid)).ptr();
-    } else if (IsTypeClassId(left_cid)) {
-      return Bool::Get(IsTypeClassId(right_cid)).ptr();
-    } else {
-      return Bool::False().ptr();
+      return IsIntegerClassId(right_cid);
     }
+    if (IsStringClassId(left_cid)) {
+      return IsStringClassId(right_cid);
+    }
+    if (IsTypeClassId(left_cid)) {
+      return IsTypeClassId(right_cid);
+    }
+    return false;
   }
 
-  const Class& cls = Class::Handle(left.clazz());
-  if (cls.IsClosureClass()) {
+  if (left_cid == kClosureCid) {
     const auto& left_closure = Closure::Cast(left);
     const auto& right_closure = Closure::Cast(right);
     // If all the components that make up the instantiated signature are equal,
     // then no need to instantiate.
-    if (left_closure.signature() == right_closure.signature() &&
-        left_closure.function_type_arguments() ==
+    if (left_closure.function_type_arguments() ==
             right_closure.function_type_arguments() &&
         left_closure.delayed_type_arguments() ==
             right_closure.delayed_type_arguments() &&
         left_closure.instantiator_type_arguments() ==
             right_closure.instantiator_type_arguments()) {
-      return Bool::True().ptr();
+      const auto& left_fun = Function::Handle(zone, left_closure.function());
+      const auto& right_fun = Function::Handle(zone, right_closure.function());
+      if (left_fun.signature() == right_fun.signature()) {
+        return true;
+      }
     }
     const AbstractType& left_type =
         AbstractType::Handle(zone, left.GetType(Heap::kNew));
     const AbstractType& right_type =
         AbstractType::Handle(zone, right.GetType(Heap::kNew));
-    return Bool::Get(
-               left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
-        .ptr();
+    return left_type.IsEquivalent(right_type, TypeEquality::kSyntactical);
   }
 
+  const Class& cls = Class::Handle(zone, left.clazz());
   if (!cls.IsGeneric()) {
-    return Bool::True().ptr();
+    return true;
   }
 
   if (left.GetTypeArguments() == right.GetTypeArguments()) {
-    return Bool::True().ptr();
+    return true;
   }
   const TypeArguments& left_type_arguments =
       TypeArguments::Handle(zone, left.GetTypeArguments());
@@ -149,10 +148,17 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
       TypeArguments::Handle(zone, right.GetTypeArguments());
   const intptr_t num_type_args = cls.NumTypeArguments();
   const intptr_t num_type_params = cls.NumTypeParameters();
-  return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
-                       right_type_arguments, num_type_args - num_type_params,
-                       num_type_params, TypeEquality::kSyntactical))
-      .ptr();
+  return left_type_arguments.IsSubvectorEquivalent(
+      right_type_arguments, num_type_args - num_type_params, num_type_params,
+      TypeEquality::kSyntactical);
+}
+
+DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
+  const Instance& left =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Instance& right =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(1));
+  return Bool::Get(HaveSameRuntimeTypeHelper(zone, left, right)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {

@@ -2113,6 +2113,7 @@ class FieldInvalidator {
         type_(AbstractType::Handle(zone)),
         cache_(SubtypeTestCache::Handle(zone)),
         entries_(Array::Handle(zone)),
+        closure_function_(Function::Handle(zone)),
         instantiator_type_arguments_(TypeArguments::Handle(zone)),
         function_type_arguments_(TypeArguments::Handle(zone)),
         instance_cid_or_signature_(Object::Handle(zone)),
@@ -2217,7 +2218,8 @@ class FieldInvalidator {
     const intptr_t cid = cls_.id();
     if (cid == kClosureCid) {
       const auto& closure = Closure::Cast(value);
-      instance_cid_or_signature_ = closure.signature();
+      closure_function_ = closure.function();
+      instance_cid_or_signature_ = closure_function_.signature();
       instance_type_arguments_ = closure.instantiator_type_arguments();
       parent_function_type_arguments_ = closure.function_type_arguments();
       delayed_function_type_arguments_ = closure.delayed_type_arguments();
@@ -2292,6 +2294,7 @@ class FieldInvalidator {
   AbstractType& type_;
   SubtypeTestCache& cache_;
   Array& entries_;
+  Function& closure_function_;
   TypeArguments& instantiator_type_arguments_;
   TypeArguments& function_type_arguments_;
   Object& instance_cid_or_signature_;
