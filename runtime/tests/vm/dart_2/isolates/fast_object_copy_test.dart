@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
+// VMOptions=--enable-isolate-groups --enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
 
 // The tests in this file are particularly for an implementation that tries to
 // allocate the entire graph in BFS order using a fast new space allocation

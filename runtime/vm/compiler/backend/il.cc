@@ -1156,7 +1156,7 @@ bool LoadStaticFieldInstr::IsFieldInitialized(Object* field_value) const {
 
   // Since new isolates will be spawned, the JITed code cannot depend on whether
   // global field was initialized when running with --enable-isolate-groups.
-  if (IsolateGroup::AreIsolateGroupsEnabled()) return false;
+  if (FLAG_enable_isolate_groups) return false;
 
   const Field& field = this->field();
   Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();

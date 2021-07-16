@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--delayed-filewatch-callback --enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--delayed-filewatch-callback --enable-isolate-groups
 // VMOptions=--delayed-filewatch-callback --no-enable-isolate-groups
 
 // Verifies that cancelling subscription from inside of the event handler

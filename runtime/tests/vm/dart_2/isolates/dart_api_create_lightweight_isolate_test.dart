@@ -4,7 +4,7 @@
 
 // SharedObjects=ffi_test_functions
 // VMOptions=
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
+// VMOptions=--enable-isolate-groups --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';
@@ -16,14 +16,11 @@ import 'package:ffi/ffi.dart';
 
 import '../../../../../tests/ffi/dylib_utils.dart';
 
-final bool isAOT = Platform.executable.contains('dart_precompiled_runtime');
 final bool isolateGroupsEnabled =
     Platform.executableArguments.contains('--enable-isolate-groups');
 final bool usesDwarfStackTraces = Platform.executableArguments
     .any((entry) => RegExp('--dwarf[-_]stack[-_]traces').hasMatch(entry));
 final bool hasSymbolicStackTraces = !usesDwarfStackTraces;
-final bool isolateGroupsEnabledInJIT = Platform.executableArguments
-    .contains('--experimental-enable-isolate-groups-jit');
 final sdkRoot = Platform.script.resolve('../../../../../');
 
 class Isolate extends Opaque {}
@@ -219,7 +216,7 @@ Future testFatalError() async {
   });
 }
 
-Future testAot() async {
+Future testJitOrAot() async {
   await testIsolateData();
   await testMultipleErrors();
   await testFatalError();
@@ -233,20 +230,9 @@ Future testNotSupported() async {
     exception = e;
   }
   Expect.contains(
-      'Lightweight isolates are only implemented in AOT mode and need to be '
-      'explicitly enabled by passing --enable-isolate-groups.',
+      'Lightweight isolates need to be explicitly enabled by passing '
+      '--enable-isolate-groups.',
       exception.toString());
-}
-
-Future testJit() async {
-  dynamic exception;
-  try {
-    FfiBindings.createLightweightIsolate('debug-name', Pointer.fromAddress(0));
-  } catch (e) {
-    exception = e;
-  }
-  Expect.contains(
-      'Lightweight isolates are not yet ready in JIT mode', exception);
 }
 
 Future main(args) async {
@@ -254,13 +240,5 @@ Future main(args) async {
     await testNotSupported();
     return;
   }
-  if (isAOT) {
-    await testAot();
-  } else {
-    if (isolateGroupsEnabledInJIT) {
-      await testJit();
-    } else {
-      await testNotSupported();
-    }
-  }
+  await testJitOrAot();
 }

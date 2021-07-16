@@ -78,14 +78,12 @@ final configurations = <TestRunner>[
     '--disable-dart-dev',
     '--no-sound-null-safety',
     '--enable-isolate-groups',
-    '--experimental-enable-isolate-groups-jit',
     'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
   ]),
   JitTestRunner('out/ReleaseX64', [
     '--disable-dart-dev',
     '--no-sound-null-safety',
     '--enable-isolate-groups',
-    '--experimental-enable-isolate-groups-jit',
     '--no-inline-alloc',
     '--use-slow-path',
     '--deoptimize-on-runtime-call-every=3',
@@ -99,7 +97,6 @@ final configurations = <TestRunner>[
       '-Dshards=$tsanShards',
       '--no-sound-null-safety',
       '--enable-isolate-groups',
-      '--experimental-enable-isolate-groups-jit',
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
   AotTestRunner('out/ReleaseX64', [

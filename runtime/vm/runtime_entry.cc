@@ -827,7 +827,7 @@ static void UpdateTypeTestCache(
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
       }
-      if (!IsolateGroup::AreIsolateGroupsEnabled()) {
+      if (!FLAG_enable_isolate_groups) {
         FATAL("Duplicate subtype test cache entry");
       }
       if (old_result.ptr() != result.ptr()) {
@@ -1190,7 +1190,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(IsolateGroup::AreIsolateGroupsEnabled() ||
+  ASSERT(FLAG_enable_isolate_groups ||
          target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=
@@ -2964,8 +2964,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   // With isolate groups enabled, it is possible that the target code
   // has been deactivated just now(as a result of re-optimizatin for example),
   // which will result in another run through FixCallersTarget.
-  ASSERT(!current_target_code.IsDisabled() ||
-         IsolateGroup::AreIsolateGroupsEnabled());
+  ASSERT(!current_target_code.IsDisabled() || FLAG_enable_isolate_groups);
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
