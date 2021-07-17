@@ -122,7 +122,8 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
     static const char* const names[] = {
 #define EMIT_FIELD_NAME(type, name) #name "_",
         OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-                                EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+                                EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
     };
     ObjectPtr* current = from();
@@ -336,13 +337,16 @@ void ObjectStore::InitKnownObjects() {
 #endif
 }
 
-void ObjectStore::LazyInitCoreTypes() {
+void ObjectStore::LazyInitCoreMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
   if (list_class_.load() == Type::null()) {
     ASSERT(non_nullable_list_rare_type_.load() == Type::null());
     ASSERT(non_nullable_map_rare_type_.load() == Type::null());
+    ASSERT(_object_equals_function_.load() == Function::null());
+    ASSERT(_object_hash_code_function_.load() == Function::null());
+    ASSERT(_object_to_string_function_.load() == Function::null());
 
     auto* const zone = thread->zone();
     const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
@@ -360,10 +364,24 @@ void ObjectStore::LazyInitCoreTypes() {
     ASSERT(!cls.IsNull());
     type ^= cls.RareType();
     non_nullable_map_rare_type_.store(type.ptr());
+
+    auto& function = Function::Handle(zone);
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectHashCode());
+    ASSERT(!function.IsNull());
+    _object_hash_code_function_.store(function.ptr());
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectEquals());
+    ASSERT(!function.IsNull());
+    _object_equals_function_.store(function.ptr());
+
+    function = core_lib.LookupFunctionAllowPrivate(Symbols::_objectToString());
+    ASSERT(!function.IsNull());
+    _object_to_string_function_.store(function.ptr());
   }
 }
 
-void ObjectStore::LazyInitFutureTypes() {
+void ObjectStore::LazyInitAsyncMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
@@ -397,6 +415,38 @@ void ObjectStore::LazyInitFutureTypes() {
 
     type ^= cls.RareType();
     non_nullable_future_rare_type_.store(type.ptr());
+  }
+}
+
+void ObjectStore::LazyInitIsolateMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (lookup_port_handler_.load() == Type::null()) {
+    ASSERT(lookup_open_ports_.load() == Type::null());
+    ASSERT(handle_message_function_.load() == Type::null());
+
+    auto* const zone = thread->zone();
+    const auto& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
+    auto& cls = Class::Handle(zone);
+    auto& function = Function::Handle(zone);
+
+    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_lookupHandler());
+    ASSERT(!function.IsNull());
+    lookup_port_handler_.store(function.ptr());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_lookupOpenPorts());
+    ASSERT(!function.IsNull());
+    lookup_open_ports_.store(function.ptr());
+
+    function = cls.LookupFunctionAllowPrivate(Symbols::_handleMessage());
+    ASSERT(!function.IsNull());
+    handle_message_function_.store(function.ptr());
   }
 }
 

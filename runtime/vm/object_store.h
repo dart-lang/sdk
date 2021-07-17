@@ -37,8 +37,21 @@ class ObjectPointerVisitor;
 // R_ - needs getter only
 // RW - needs getter and setter
 // CR - needs lazy Core init getter
-// FR - needs lazy Future init getter
-#define OBJECT_STORE_FIELD_LIST(R_, RW, CR, FR)                                \
+// FR - needs lazy Async init getter
+// IR - needs lazy Isolate init getter
+#define OBJECT_STORE_FIELD_LIST(R_, RW, CR, FR, IR)                            \
+  CR(Class, list_class)                    /* maybe be null, lazily built */   \
+  CR(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
+  CR(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
+  CR(Function, _object_equals_function)    /* maybe be null, lazily built */   \
+  CR(Function, _object_hash_code_function) /* maybe be null, lazily built */   \
+  CR(Function, _object_to_string_function) /* maybe be null, lazily built */   \
+  FR(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
+  FR(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  FR(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
+  IR(Function, lookup_port_handler)        /* maybe be null, lazily built */   \
+  IR(Function, lookup_open_ports)          /* maybe be null, lazily built */   \
+  IR(Function, handle_message_function)    /* maybe be null, lazily built */   \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
@@ -81,12 +94,6 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
-  CR(Class, list_class)                    /* maybe be null, lazily built */   \
-  CR(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
-  CR(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
-  FR(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
-  FR(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
-  FR(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_non_nullable_int)                            \
@@ -158,12 +165,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
-  RW(Function, _object_equals_function)                                        \
-  RW(Function, _object_hash_code_function)                                     \
-  RW(Function, _object_to_string_function)                                     \
-  RW(Function, lookup_port_handler)                                            \
-  RW(Function, lookup_open_ports)                                              \
-  RW(Function, handle_message_function)                                        \
   RW(Function, growable_list_factory)                                          \
   RW(Function, simple_instance_of_function)                                    \
   RW(Function, simple_instance_of_true_function)                               \
@@ -403,18 +404,22 @@ class ObjectStore {
   }                                                                            \
   static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_LAZY_INIT_CORE_GETTER(Type, name)                              \
-  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)
-#define DECLARE_LAZY_INIT_FUTURE_GETTER(Type, name)                            \
-  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreMembers)
+#define DECLARE_LAZY_INIT_ASYNC_GETTER(Type, name)                             \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitAsyncMembers)
+#define DECLARE_LAZY_INIT_ISOLATE_GETTER(Type, name)                           \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitIsolateMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER,
-                          DECLARE_LAZY_INIT_FUTURE_GETTER)
+                          DECLARE_LAZY_INIT_ASYNC_GETTER,
+                          DECLARE_LAZY_INIT_ISOLATE_GETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
 #undef DECLARE_LAZY_INIT_GETTER
 #undef DECLARE_LAZY_INIT_CORE_GETTER
-#undef DECLARE_LAZY_INIT_FUTURE_GETTER
+#undef DECLARE_LAZY_INIT_ASYNC_GETTER
+#undef DECLARE_LAZY_INIT_ISOLATE_GETTER
 
   LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
@@ -462,18 +467,20 @@ class ObjectStore {
 #endif
 
  private:
-  void LazyInitCoreTypes();
-  void LazyInitFutureTypes();
+  void LazyInitCoreMembers();
+  void LazyInitAsyncMembers();
+  void LazyInitIsolateMembers();
 
   // Finds a core library private method in Object.
   FunctionPtr PrivateObjectLookup(const String& name);
 
-  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&object_class_); }
+  ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&list_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
 #define DECLARE_LAZY_OBJECT_STORE_FIELD(type, name)                            \
   AcqRelAtomic<type##Ptr> name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD)
 #undef DECLARE_LAZY_OBJECT_STORE_FIELD

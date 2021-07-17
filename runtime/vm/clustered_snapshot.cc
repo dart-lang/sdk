@@ -5581,6 +5581,7 @@ static const char* const kObjectStoreFieldNames[] = {
     OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
 };
