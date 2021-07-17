@@ -21246,6 +21246,96 @@ library
 ''');
   }
 
+  test_macro_addClass() async {
+    newFile('/test.macro_dart', content: r'''
+class A {}
+class B {}
+''');
+    var library = await checkLibrary('''
+class A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      fromMacro class B @17
+        constructors
+          synthetic @-1
+''');
+    _assertMacroPath(
+      library.definingCompilationUnit,
+      convertPath('/test.macro_dart'),
+    );
+  }
+
+  test_macro_addToClass_addMethod() async {
+    newFile('/test.macro_dart', content: r'''
+class A {
+  void foo() {}
+  void bar(int a) {}
+}
+''');
+    var library = await checkLibrary('''
+class A {
+  void foo() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+        methods
+          foo @17
+            returnType: void
+          fromMacro bar @33
+            parameters
+              requiredPositional a @41
+                type: int
+            returnType: void
+''');
+  }
+
+  test_macro_addToClass_addMethod_offsets() async {
+    newFile('/test.macro_dart', content: r'''
+class A {
+  void foo() {}
+  void bar(int a) {}
+}
+''');
+    var library = await checkLibrary('''
+/// shift
+class A {
+  void foo() {}
+}
+''');
+    // The source code has an additional comment, and offsets of the
+    // elements that are declared in the source correspond to the state
+    // of the source code, not a (slightly) out of date macro-generated code.
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @16
+        documentationComment: /// shift
+        constructors
+          synthetic @-1
+        methods
+          foo @27
+            returnType: void
+          fromMacro bar @33
+            parameters
+              requiredPositional a @41
+                type: int
+            returnType: void
+''');
+  }
+
   test_main_class() async {
     var library = await checkLibrary('class main {}');
     checkElementText(library, r'''
@@ -33576,6 +33666,11 @@ library
             type: int
         returnType: void
 ''');
+  }
+
+  void _assertMacroPath(CompilationUnitElement unitElement, String expected) {
+    unitElement as CompilationUnitElementImpl;
+    expect(unitElement.macroPath, expected);
   }
 
   void _assertTypeStr(DartType type, String expected) {

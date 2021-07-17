@@ -173,12 +173,34 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   Map<K, V> _getMap() {
     LinkedHashMap<K, V>? backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
     if (backingMap == null) {
-      backingMap = JsLinkedHashMap<K, V>();
+      backingMap = LinkedHashMap<K, V>(
+          hashCode: _constantMapHashCode,
+          // In legacy mode (--no-sound-null-safety), `null` keys are
+          // permitted. In sound mode, `null` keys are permitted only if [K] is
+          // nullable.
+          isValidKey: JS_GET_FLAG('LEGACY') ? _typeTest<K?>() : _typeTest<K>());
       fillLiteralMap(_jsData, backingMap);
       JS('', r'#.$map = #', this, backingMap);
     }
     return backingMap;
   }
+
+  static int _constantMapHashCode(Object? key) {
+    // Types are tested here one-by-one so that each call to get:hashCode can be
+    // resolved differently.
+
+    // Some common primitives in a GeneralConstantMap.
+    if (key is num) return key.hashCode; // One method on JSNumber.
+
+    // Specially handled known types.
+    if (key is Symbol) return key.hashCode;
+    if (key is Type) return key.hashCode;
+
+    // Everything else, including less common primitives.
+    return identityHashCode(key);
+  }
+
+  static bool Function(Object?) _typeTest<T>() => (Object? o) => o is T;
 
   bool containsValue(Object? needle) {
     return _getMap().containsValue(needle);

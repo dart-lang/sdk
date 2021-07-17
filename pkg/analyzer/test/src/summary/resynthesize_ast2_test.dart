@@ -100,10 +100,17 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     _addNonDartLibraries({}, inputLibraries, source);
 
     var unitsInformativeBytes = <Uri, Uint8List>{};
+    var macroUnitsInformativeBytes = <Uri, Uint8List>{};
     for (var inputLibrary in inputLibraries) {
       for (var inputUnit in inputLibrary.units) {
         var informativeBytes = writeUnitInformative(inputUnit.unit);
         unitsInformativeBytes[inputUnit.uri] = informativeBytes;
+
+        var macroUnit = inputUnit.macro?.unit;
+        if (macroUnit != null) {
+          var informativeBytes = writeUnitInformative(macroUnit);
+          macroUnitsInformativeBytes[inputUnit.uri] = informativeBytes;
+        }
       }
     }
 
@@ -138,6 +145,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
         BundleReader(
           elementFactory: elementFactory,
           unitsInformativeBytes: unitsInformativeBytes,
+          macroUnitsInformativeBytes: macroUnitsInformativeBytes,
           resolutionBytes: linkResult.resolutionBytes,
         ),
       );
@@ -156,12 +164,31 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     List<LinkInputUnit> units,
     FeatureSet featureSet,
   ) {
+    LinkInputUnitMacro? definingUnitMacro;
+    {
+      var macroSource = sourceFactory.resolveUri(
+        definingSource,
+        definingSource.shortName.replaceAll('.dart', '.macro_dart'),
+      );
+      var macroPath = macroSource?.fullName;
+      if (macroPath != null) {
+        var text = _readSafely(macroPath);
+        if (text.isNotEmpty) {
+          definingUnitMacro = LinkInputUnitMacro(
+            path: macroPath,
+            unit: parseText(text, featureSet),
+          );
+        }
+      }
+    }
+
     units.add(
       LinkInputUnit(
         partDirectiveIndex: null,
         source: definingSource,
         isSynthetic: false,
         unit: definingUnit,
+        macro: definingUnitMacro,
       ),
     );
 
