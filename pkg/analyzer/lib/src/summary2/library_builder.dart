@@ -110,6 +110,12 @@ class LibraryBuilder {
         elementBuilder.buildLibraryElementChildren(linkingUnit.node);
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
+
+      ElementBuilder(
+        libraryBuilder: this,
+        unitReference: linkingUnit.reference,
+        unitElement: linkingUnit.element,
+      ).buildDeclarationElementsMacro(linkingUnit.macroNode);
     }
     if ('$uri' == 'dart:core') {
       localScope.declare('dynamic', reference.getChild('dynamic'));
@@ -171,6 +177,7 @@ class LibraryBuilder {
         linkingUnit.node.featureSet.isEnabled(Feature.non_nullable),
       );
       linkingUnit.node.accept(resolver);
+      linkingUnit.macroNode?.accept(resolver);
     }
   }
 
@@ -236,6 +243,7 @@ class LibraryBuilder {
     var linkingUnits = <LinkingUnit>[];
     for (var inputUnit in inputLibrary.units) {
       var unitNode = inputUnit.unit as ast.CompilationUnitImpl;
+      var unitMacroNode = inputUnit.macro?.unit as ast.CompilationUnitImpl?;
 
       var unitElement = CompilationUnitElementImpl();
       unitElement.isSynthetic = inputUnit.isSynthetic;
@@ -243,6 +251,7 @@ class LibraryBuilder {
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = inputUnit.source;
       unitElement.sourceContent = inputUnit.sourceContent;
+      unitElement.macroPath = inputUnit.macro?.path;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 
@@ -256,6 +265,7 @@ class LibraryBuilder {
           isDefiningUnit: isDefiningUnit,
           reference: unitReference,
           node: unitNode,
+          macroNode: unitMacroNode,
           element: unitElement,
         ),
       );
@@ -287,6 +297,7 @@ class LinkingUnit {
   final bool isDefiningUnit;
   final Reference reference;
   final ast.CompilationUnitImpl node;
+  final ast.CompilationUnitImpl? macroNode;
   final CompilationUnitElementImpl element;
 
   LinkingUnit({
@@ -294,6 +305,7 @@ class LinkingUnit {
     required this.isDefiningUnit,
     required this.reference,
     required this.node,
+    required this.macroNode,
     required this.element,
   });
 }

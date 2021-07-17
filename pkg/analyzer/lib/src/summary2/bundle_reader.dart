@@ -31,6 +31,7 @@ import 'package:pub_semver/pub_semver.dart';
 class BundleReader {
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, Uint8List> _macroUnitsInformativeBytes;
 
   final Map<String, LibraryReader> libraryMap = {};
 
@@ -38,8 +39,10 @@ class BundleReader {
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    Map<Uri, Uint8List> macroUnitsInformativeBytes = const {},
   })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeBytes = unitsInformativeBytes {
+        _unitsInformativeBytes = unitsInformativeBytes,
+        _macroUnitsInformativeBytes = macroUnitsInformativeBytes {
     _reader.offset = _reader.bytes.length - 4 * 4;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
@@ -70,6 +73,7 @@ class BundleReader {
         elementFactory: elementFactory,
         reader: _reader,
         unitsInformativeBytes: _unitsInformativeBytes,
+        macroUnitsInformativeBytes: _macroUnitsInformativeBytes,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
@@ -84,6 +88,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
   void Function()? _readMembers;
   void Function()? applyInformativeDataToMembers;
+  void Function()? applyInformativeDataToMacroMembers;
 
   ClassElementLinkedData({
     required Reference reference,
@@ -106,6 +111,9 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
       applyInformativeDataToMembers?.call();
       applyInformativeDataToMembers = null;
+
+      applyInformativeDataToMacroMembers?.call();
+      applyInformativeDataToMacroMembers = null;
     }
   }
 
@@ -416,6 +424,7 @@ class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, Uint8List> _macroUnitsInformativeBytes;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
@@ -430,6 +439,7 @@ class LibraryReader {
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
     required Map<Uri, Uint8List> unitsInformativeBytes,
+    required Map<Uri, Uint8List> macroUnitsInformativeBytes,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
     required Reference reference,
@@ -438,6 +448,7 @@ class LibraryReader {
   })  : _elementFactory = elementFactory,
         _reader = reader,
         _unitsInformativeBytes = unitsInformativeBytes,
+        _macroUnitsInformativeBytes = macroUnitsInformativeBytes,
         _baseResolutionOffset = baseResolutionOffset,
         _referenceReader = referenceReader,
         _reference = reference,
@@ -494,6 +505,10 @@ class LibraryReader {
     );
 
     InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
+        .applyTo(libraryElement);
+
+    InformativeDataApplier(_elementFactory, _macroUnitsInformativeBytes,
+            onlyIfFromMacro: true)
         .applyTo(libraryElement);
 
     return libraryElement;
@@ -1208,6 +1223,7 @@ class LibraryReader {
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
     unitElement.sourceContent = _reader.readOptionalStringUtf8();
+    unitElement.macroPath = _reader.readOptionalStringUtf8();
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
