@@ -367,7 +367,9 @@ class Profile : public ValueObject {
   explicit Profile(Isolate* isolate);
 
   // Build a filtered model using |filter|.
-  void Build(Thread* thread, SampleFilter* filter, SampleBuffer* sample_buffer);
+  void Build(Thread* thread,
+             SampleFilter* filter,
+             ProcessedSampleBufferBuilder* sample_block_buffer);
 
   // After building:
   int64_t min_time() const { return min_time_; }
@@ -383,6 +385,7 @@ class Profile : public ValueObject {
   ProfileCode* GetCodeFromPC(uword pc, int64_t timestamp);
 
   void PrintProfileJSON(JSONStream* stream, bool include_code_samples);
+  void PrintProfileJSON(JSONObject* obj, bool include_code_samples);
 
   ProfileFunction* FindFunction(const Function& function);
 
@@ -445,7 +448,7 @@ class ProfilerService : public AllStatic {
   static void PrintJSONImpl(Thread* thread,
                             JSONStream* stream,
                             SampleFilter* filter,
-                            SampleBuffer* sample_buffer,
+                            ProcessedSampleBufferBuilder* buffer,
                             bool include_code_samples);
 };
 

@@ -420,6 +420,7 @@ class DocumentationValidator {
 /// codes.
 @reflectiveTest
 class VerifyDiagnosticsTest {
+  @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
     Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     List<CodePath> codePaths = computeCodePaths();

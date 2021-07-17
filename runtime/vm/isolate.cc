@@ -2383,6 +2383,25 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
+#if !defined(PRODUCT)
+void Isolate::set_current_sample_block(SampleBlock* current) {
+  ASSERT(current_sample_block_lock_.IsOwnedByCurrentThread());
+  if (current != nullptr) {
+    current->set_is_allocation_block(false);
+    current->set_owner(this);
+  }
+  current_sample_block_ = current;
+}
+
+void Isolate::set_current_allocation_sample_block(SampleBlock* current) {
+  if (current != nullptr) {
+    current->set_is_allocation_block(true);
+    current->set_owner(this);
+  }
+  current_allocation_sample_block_ = current;
+}
+#endif  // !defined(PRODUCT)
+
 // static
 void Isolate::NotifyLowMemory() {
   Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);
@@ -2516,11 +2535,12 @@ void Isolate::Shutdown() {
 }
 
 void Isolate::LowLevelCleanup(Isolate* isolate) {
-#if !defined(DART_PECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (KernelIsolate::IsKernelIsolate(isolate)) {
     KernelIsolate::SetKernelIsolate(nullptr);
+  }
 #endif
-  } else if (ServiceIsolate::IsServiceIsolate(isolate)) {
+  if (ServiceIsolate::IsServiceIsolate(isolate)) {
     ServiceIsolate::SetServiceIsolate(nullptr);
   }
 
@@ -2537,6 +2557,26 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   Thread::ExitIsolate();
+
+#if !defined(PRODUCT)
+  // Cleanup profiler state.
+  SampleBlock* cpu_block = isolate->current_sample_block();
+  if (cpu_block != nullptr) {
+    cpu_block->release_block();
+  }
+  SampleBlock* allocation_block = isolate->current_allocation_sample_block();
+  if (allocation_block != nullptr) {
+    allocation_block->release_block();
+  }
+
+  // Process the previously assigned sample blocks if we're using the
+  // profiler's sample buffer. Some tests create their own SampleBlockBuffer
+  // and handle block processing themselves.
+  if ((cpu_block != nullptr || allocation_block != nullptr) &&
+      Profiler::sample_block_buffer() != nullptr) {
+    Profiler::sample_block_buffer()->ProcessCompletedBlocks();
+  }
+#endif  // !defined(PRODUCT)
 
   // Now it's safe to delete the isolate.
   delete isolate;

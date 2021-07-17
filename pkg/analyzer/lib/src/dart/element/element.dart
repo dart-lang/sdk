@@ -610,6 +610,42 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   bool get isDartCoreObject => !isMixin && supertype == null;
 
+  bool get isEnumLike {
+    // Must be a concrete class.
+    if (isAbstract || isMixin) {
+      return false;
+    }
+
+    // With only private non-factory constructors.
+    for (var constructor in constructors) {
+      if (constructor.isPublic || constructor.isFactory) {
+        return false;
+      }
+    }
+
+    // With 2+ static const fields with the type of this class.
+    var numberOfElements = 0;
+    for (var field in fields) {
+      if (field.isStatic && field.isConst && field.type == thisType) {
+        numberOfElements++;
+      }
+    }
+    if (numberOfElements < 2) {
+      return false;
+    }
+
+    // No subclasses in the library.
+    for (var unit in library.units) {
+      for (var class_ in unit.classes) {
+        if (class_.supertype?.element == this) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);

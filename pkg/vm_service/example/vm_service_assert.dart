@@ -137,6 +137,7 @@ String assertEventKind(String obj) {
   if (obj == "BreakpointRemoved") return obj;
   if (obj == "BreakpointResolved") return obj;
   if (obj == "BreakpointUpdated") return obj;
+  if (obj == "CpuSamples") return obj;
   if (obj == "Extension") return obj;
   if (obj == "GC") return obj;
   if (obj == "Inspect") return obj;

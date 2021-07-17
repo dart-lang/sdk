@@ -74,6 +74,8 @@ class RwLock;
 class SafepointRwLock;
 class SafepointHandler;
 class SampleBuffer;
+class SampleBlock;
+class SampleBlockBuffer;
 class SendPort;
 class SerializedObjectBuffer;
 class ServiceIdZone;
@@ -1084,6 +1086,27 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
 
+  // NOTE: this lock should only be acquired within the profiler signal handler.
+  Mutex* current_sample_block_lock() const {
+    return const_cast<Mutex*>(&current_sample_block_lock_);
+  }
+
+  // Returns the current SampleBlock used to track CPU profiling samples.
+  //
+  // NOTE: current_sample_block_lock() should be held when accessing this
+  // block.
+  SampleBlock* current_sample_block() const { return current_sample_block_; }
+  void set_current_sample_block(SampleBlock* current);
+
+  // Returns the current SampleBlock used to track Dart allocation samples.
+  //
+  // Allocations should only occur on the mutator thread for an isolate, so we
+  // don't need to worry about grabbing a lock while accessing this block.
+  SampleBlock* current_allocation_sample_block() const {
+    return current_allocation_sample_block_;
+  }
+  void set_current_allocation_sample_block(SampleBlock* current);
+
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
   static intptr_t single_step_offset() {
@@ -1528,6 +1551,21 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 // the top.
 #if !defined(PRODUCT)
   Debugger* debugger_ = nullptr;
+
+  // SampleBlock containing CPU profiling samples.
+  //
+  // Can be accessed by multiple threads, so current_sample_block_lock_ should
+  // be acquired before accessing.
+  SampleBlock* current_sample_block_ = nullptr;
+  Mutex current_sample_block_lock_;
+
+  // SampleBlock containing Dart allocation profiling samples.
+  //
+  // Allocations should only occur on the mutator thread for an isolate, so we
+  // shouldn't need to worry about grabbing a lock for the allocation sample
+  // block.
+  SampleBlock* current_allocation_sample_block_ = nullptr;
+
   int64_t last_resume_timestamp_;
 
   VMTagCounters vm_tag_counters_;
