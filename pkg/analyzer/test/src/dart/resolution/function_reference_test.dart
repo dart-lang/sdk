@@ -28,6 +28,19 @@ bar() {
     assertType(reference, 'dynamic');
   }
 
+  test_explicitReceiver_unknown_multipleProperties() async {
+    await assertErrorsInCode('''
+bar() {
+  a.b.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
   test_instanceGetter_explicitReceiver() async {
     // This test is here to assert that the resolver does not throw, but in the
     // future, an error should be reported here as well.
@@ -79,6 +92,21 @@ class B {
     var reference = findNode.functionReference('foo<int>;');
     assertFunctionReference(
         reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_explicitReceiver_otherExpression() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo<T>(T a) {}
+}
+
+void f(A? a, A b) {
+  (a ?? b).foo<int>;
+}
+''');
+
+    var reference = findNode.functionReference('(a ?? b).foo<int>;');
+    assertType(reference, 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_super() async {
@@ -213,6 +241,41 @@ bar(A a) {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/46635')
+  test_instanceMethod_explicitReceiver_variable_cascade() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo<T>(T a) {}
+}
+
+bar(A a) {
+  a..foo<int>;
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_inherited() async {
+    await assertNoErrorsInCode('''
+class A {
+  void foo<T>(T a) {}
+}
+
+class B extends A {
+  bar() {
+    foo<int>;
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
   test_localFunction() async {
     await assertNoErrorsInCode('''
 void bar() {
@@ -228,11 +291,29 @@ void bar() {
   }
 
   test_localVariable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void bar(void Function<T>(T a) foo) {
   foo<int>;
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 40, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.parameter('foo'), 'void Function(int)');
+  }
+
+  test_localVariable_typeVariable() async {
+    await assertErrorsInCode('''
+void bar<T extends void Function<U>(U)>(T foo) {
+  foo<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 51, 3),
+    ]);
 
     var reference = findNode.functionReference('foo<int>;');
     assertFunctionReference(
@@ -256,6 +337,40 @@ class A {
     var reference = findNode.functionReference('foo<int>;');
     assertFunctionReference(
         reference, findElement.method('foo'), 'void Function()');
+  }
+
+  test_otherExpression() async {
+    await assertErrorsInCode('''
+void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
+  (1 == 2 ? foo : bar)<int>;
+}
+''', [
+      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 65,
+          20),
+    ]);
+
+    var reference = findNode.functionReference('(1 == 2 ? foo : bar)<int>;');
+    assertType(reference, 'void Function(int)');
+  }
+
+  test_otherExpression_wrongNumberOfTypeArguments() async {
+    await assertErrorsInCode('''
+void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
+  (1 == 2 ? foo : bar)<int, String>;
+}
+''', [
+      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 65,
+          20),
+      error(
+          CompileTimeErrorCode
+              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          85,
+          13),
+    ]);
+
+    var reference =
+        findNode.functionReference('(1 == 2 ? foo : bar)<int, String>;');
+    assertType(reference, 'void Function(dynamic)');
   }
 
   test_staticMethod() async {
