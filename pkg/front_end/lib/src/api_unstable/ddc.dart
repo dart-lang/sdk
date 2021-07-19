@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
@@ -77,12 +75,13 @@ export 'compiler_state.dart'
 
 class DdcResult {
   final Component component;
-  final Component sdkSummary;
+  final Component? sdkSummary;
   final List<Component> additionalDills;
   final ClassHierarchy classHierarchy;
 
   DdcResult(this.component, this.sdkSummary, this.additionalDills,
       this.classHierarchy)
+      // ignore: unnecessary_null_comparison
       : assert(classHierarchy != null);
 
   Set<Library> computeLibrariesFromDill() {
@@ -94,7 +93,7 @@ class DdcResult {
       }
     }
     if (sdkSummary != null) {
-      for (Library lib in sdkSummary.libraries) {
+      for (Library lib in sdkSummary!.libraries) {
         librariesFromDill.add(lib);
       }
     }
@@ -104,7 +103,7 @@ class DdcResult {
 }
 
 Future<InitializedCompilerState> initializeCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     bool compileSdk,
     Uri sdkRoot,
     Uri sdkSummary,
@@ -112,10 +111,11 @@ Future<InitializedCompilerState> initializeCompiler(
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Target target,
-    {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    Map<String, String> environmentDefines,
-    NnbdMode nnbdMode}) async {
+    {FileSystem? fileSystem,
+    Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+    Map<String, String>? environmentDefines,
+    required NnbdMode nnbdMode}) async {
+  // ignore: unnecessary_null_comparison
   assert(nnbdMode != null, "No NnbdMode provided.");
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
@@ -169,11 +169,11 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     List<Uri> additionalDills,
     Map<Uri, List<int>> workerInputDigests,
     Target target,
-    {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    Map<String, String> environmentDefines,
+    {FileSystem? fileSystem,
+    required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    required Map<String, String> environmentDefines,
     bool trackNeededDillLibraries: false,
-    NnbdMode nnbdMode}) async {
+    required NnbdMode nnbdMode}) async {
   return modular.initializeIncrementalCompiler(
       oldState,
       tags,
@@ -188,15 +188,14 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       sdkRoot: sdkRoot,
       fileSystem: fileSystem ?? StandardFileSystem.instance,
       explicitExperimentalFlags: explicitExperimentalFlags,
-      environmentDefines:
-          environmentDefines ?? const <ExperimentalFlag, bool>{},
+      environmentDefines: environmentDefines,
       outlineOnly: false,
       omitPlatform: false,
       trackNeededDillLibraries: trackNeededDillLibraries,
       nnbdMode: nnbdMode);
 }
 
-Future<DdcResult> compile(InitializedCompilerState compilerState,
+Future<DdcResult?> compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -208,12 +207,12 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
   CompilerResult compilerResult =
       await generateKernel(processedOpts, includeHierarchyAndCoreTypes: true);
 
-  Component component = compilerResult?.component;
+  Component? component = compilerResult.component;
   if (component == null) return null;
 
   // These should be cached.
-  Component sdkSummary = await processedOpts.loadSdkSummary(null);
+  Component? sdkSummary = await processedOpts.loadSdkSummary(null);
   List<Component> summaries = await processedOpts.loadAdditionalDills(null);
   return new DdcResult(
-      component, sdkSummary, summaries, compilerResult.classHierarchy);
+      component, sdkSummary, summaries, compilerResult.classHierarchy!);
 }

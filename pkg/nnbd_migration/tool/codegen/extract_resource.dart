@@ -23,8 +23,8 @@ main(List<String> args) {
     fail('Unexpected extra arguments', showUsage: true);
   }
   bool list = argResults['list'] as bool;
-  String path = argResults['path'] as String;
-  String resource = argResults['resource'] as String;
+  String? path = argResults['path'] as String?;
+  String? resource = argResults['resource'] as String?;
   if (list && resource != null) {
     fail('Only one of --resource and --list may be provided');
   } else if (!list && resource == null) {
@@ -72,11 +72,11 @@ final argParser = ArgParser()
 
 Uint8List decodeVariableDeclaration(VariableDeclaration variable) {
   var initializer = variable.initializer as StringLiteral;
-  var stringValue = initializer.stringValue;
+  var stringValue = initializer.stringValue!;
   return base64.decode(stringValue.replaceAll('\n', '').trim());
 }
 
-void fail(String message, {bool showUsage = false}) {
+void fail(String? message, {bool showUsage = false}) {
   if (message != null) {
     stderr.writeln(message);
   }
@@ -94,7 +94,7 @@ embedded resource named `<resource>`, and prints it to standard out.
 
 /// Tries to guess the location of `resources.g.dart` using optional [pathHint]
 /// as a starting point.
-File locateResourcesFile(String pathHint) {
+File locateResourcesFile(String? pathHint) {
   pathHint ??= '.';
   final pathParts =
       'pkg/nnbd_migration/lib/src/front_end/resources/resources.g.dart'

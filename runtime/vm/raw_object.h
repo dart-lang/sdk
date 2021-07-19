@@ -10,8 +10,6 @@
 #endif
 
 #include "platform/assert.h"
-#include "platform/atomic.h"
-#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -260,102 +258,6 @@ class UntaggedObject {
   class ReservedBits
       : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
-  template <typename T>
-  class Tags {
-   public:
-    Tags() : tags_(0) {}
-
-    operator T() const { return tags_.load(std::memory_order_relaxed); }
-    T operator=(T tags) {
-      tags_.store(tags, std::memory_order_relaxed);
-      return tags;
-    }
-
-    T load(std::memory_order order) const { return tags_.load(order); }
-    void store(T value, std::memory_order order) { tags_.store(value, order); }
-
-    bool compare_exchange_weak(T old_tags,
-                               T new_tags,
-                               std::memory_order order) {
-      return tags_.compare_exchange_weak(old_tags, new_tags, order);
-    }
-
-    template <class TagBitField>
-    typename TagBitField::Type Read() const {
-      return TagBitField::decode(tags_.load(std::memory_order_relaxed));
-    }
-
-    template <class TagBitField>
-    NO_SANITIZE_THREAD typename TagBitField::Type ReadIgnoreRace() const {
-      return TagBitField::decode(*reinterpret_cast<const T*>(&tags_));
-    }
-
-    template <class TagBitField,
-              std::memory_order order = std::memory_order_relaxed>
-    void UpdateBool(bool value) {
-      if (value) {
-        tags_.fetch_or(TagBitField::encode(true), order);
-      } else {
-        tags_.fetch_and(~TagBitField::encode(true), order);
-      }
-    }
-
-    template <class TagBitField>
-    void Update(typename TagBitField::Type value) {
-      T old_tags = tags_.load(std::memory_order_relaxed);
-      T new_tags;
-      do {
-        new_tags = TagBitField::update(value, old_tags);
-      } while (!tags_.compare_exchange_weak(old_tags, new_tags,
-                                            std::memory_order_relaxed));
-    }
-
-    template <class TagBitField>
-    void UpdateUnsynchronized(typename TagBitField::Type value) {
-      tags_.store(
-          TagBitField::update(value, tags_.load(std::memory_order_relaxed)),
-          std::memory_order_relaxed);
-    }
-
-    template <class TagBitField>
-    typename TagBitField::Type UpdateConditional(
-        typename TagBitField::Type value_to_be_set,
-        typename TagBitField::Type conditional_old_value) {
-      T old_tags = tags_.load(std::memory_order_relaxed);
-      while (true) {
-        // This operation is only performed if the condition is met.
-        auto old_value = TagBitField::decode(old_tags);
-        if (old_value != conditional_old_value) {
-          return old_value;
-        }
-        T new_tags = TagBitField::update(value_to_be_set, old_tags);
-        if (tags_.compare_exchange_weak(old_tags, new_tags,
-                                        std::memory_order_relaxed)) {
-          return value_to_be_set;
-        }
-        // [old_tags] was updated to it's current value.
-      }
-    }
-
-    template <class TagBitField>
-    bool TryAcquire() {
-      T mask = TagBitField::encode(true);
-      T old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
-      return !TagBitField::decode(old_tags);
-    }
-
-    template <class TagBitField>
-    bool TryClear() {
-      T mask = ~TagBitField::encode(true);
-      T old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
-      return TagBitField::decode(old_tags);
-    }
-
-   private:
-    std::atomic<T> tags_;
-    COMPILE_ASSERT(sizeof(std::atomic<T>) == sizeof(T));
-  };
-
   // Assumes this is a heap object.
   bool IsNewObject() const {
     uword addr = reinterpret_cast<uword>(this);
@@ -509,27 +411,27 @@ class UntaggedObject {
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(UntaggedObject);
-    uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<ObjectPtr*>(from);
-    const auto last = reinterpret_cast<ObjectPtr*>(to);
+    uword to = obj_addr + instance_size - kCompressedWordSize;
+    const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+    const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-      for (ObjectPtr* current = first; current <= last; current++) {
+      intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->VisitPointer(current);
+          visitor->VisitCompressedPointers(heap_base(), current, current);
         }
       }
     } else {
-      visitor->VisitPointers(first, last);
+      visitor->VisitCompressedPointers(heap_base(), first, last);
     }
 #else
     // Call visitor function virtually
-    visitor->VisitPointers(first, last);
+    visitor->VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
@@ -547,27 +449,27 @@ class UntaggedObject {
     intptr_t instance_size = HeapSize();
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(UntaggedObject);
-    uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<ObjectPtr*>(from);
-    const auto last = reinterpret_cast<ObjectPtr*>(to);
+    uword to = obj_addr + instance_size - kCompressedWordSize;
+    const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+    const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
     const auto unboxed_fields_bitmap =
         visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
     if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-      for (ObjectPtr* current = first; current <= last; current++) {
+      intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
         if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->V::VisitPointers(current, current);
+          visitor->V::VisitCompressedPointers(heap_base(), current, current);
         }
       }
     } else {
-      visitor->V::VisitPointers(first, last);
+      visitor->V::VisitCompressedPointers(heap_base(), first, last);
     }
 #else
     // Call visitor function non-virtually
-    visitor->V::VisitPointers(first, last);
+    visitor->V::VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 
     return instance_size;
@@ -596,7 +498,7 @@ class UntaggedObject {
   }
 
  private:
-  Tags<uword> tags_;  // Various object tags (bits).
+  AtomicBitFieldContainer<uword> tags_;  // Various object tags (bits).
 
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
@@ -681,17 +583,20 @@ class UntaggedObject {
     }
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
-  void StoreArrayPointer(type const* addr, type value) {
+  // Note: StoreArrayPointer won't work if value_type is a compressed pointer.
+  template <typename type,
+            std::memory_order order = std::memory_order_relaxed,
+            typename value_type = type>
+  void StoreArrayPointer(type const* addr, value_type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+        ->store(type(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
   }
 
-  template <typename type>
-  void StoreArrayPointer(type const* addr, type value, Thread* thread) {
+  template <typename type, typename value_type = type>
+  void StoreArrayPointer(type const* addr, value_type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
@@ -735,11 +640,11 @@ class UntaggedObject {
 
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
-  template <std::memory_order order = std::memory_order_relaxed>
-  void StoreSmi(SmiPtr const* addr, SmiPtr value) {
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  void StoreSmi(type const* addr, type value) {
     // Can't use Contains, as array length is initialized through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
-    reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
   }
   template <std::memory_order order = std::memory_order_relaxed>
@@ -780,9 +685,9 @@ class UntaggedObject {
     }
   }
 
-  template <typename type>
+  template <typename type, typename value_type>
   DART_FORCE_INLINE void CheckArrayPointerStore(type const* addr,
-                                                ObjectPtr value,
+                                                value_type value,
                                                 Thread* thread) {
     uword source_tags = this->tags_;
     uword target_tags = value->untag()->tags_;
@@ -921,6 +826,22 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   type name##_;
 
+#define COMPRESSED_ARRAY_POINTER_FIELD(type, name)                             \
+ public:                                                                       \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadPointer<Compressed##type, order>(&name##_).Decompress(          \
+        heap_base());                                                          \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StoreArrayPointer<Compressed##type, order>(&name##_,                       \
+                                               Compressed##type(value));       \
+  }                                                                            \
+                                                                               \
+ protected:                                                                    \
+  Compressed##type name##_;
+
 #define VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)               \
  public:                                                                       \
   template <std::memory_order order = std::memory_order_relaxed>               \
@@ -970,7 +891,7 @@ inline intptr_t ObjectPtr::GetClassId() const {
   template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
     ASSERT(!value.IsHeapObject());                                             \
-    StoreSmi<order>(&name##_, value);                                          \
+    StoreSmi<type, order>(&name##_, value);                                    \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -993,6 +914,14 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   Compressed##type name##_;
 
+#if defined(DART_PRECOMPILER)
+#define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
+  COMPRESSED_POINTER_FIELD(ObjectPtr, Name)
+#else
+#define WSR_COMPRESSED_POINTER_FIELD(Type, Name)                               \
+  COMPRESSED_POINTER_FIELD(Type, Name)
+#endif
+
 class UntaggedClass : public UntaggedObject {
  public:
   enum ClassFinalizedState {
@@ -1014,6 +943,8 @@ class UntaggedClass : public UntaggedObject {
     // and class can be finalized.
     kTypeFinalized,
   };
+
+  classid_t id() const { return id_; }
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Class);
@@ -1325,8 +1256,7 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_FROM(name)
   // Class or patch class or mixin class where this function is defined.
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names)
-  COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
+  WSR_COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
   // Additional data specific to the function kind. See Function::set_data()
   // for details.
   COMPRESSED_POINTER_FIELD(ObjectPtr, data)
@@ -1349,52 +1279,21 @@ class UntaggedFunction : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
   // Currently active code. Accessed from generated code.
   COMPRESSED_POINTER_FIELD(CodePtr, code);
-  // Unoptimized code, keep it after optimization.
-  NOT_IN_PRECOMPILED(COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code));
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(code);
 #else
+  // Positional parameter names are not needed in the AOT runtime.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, positional_parameter_names);
+  // Unoptimized code, keep it after optimization.
+  COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code);
   VISIT_TO(unoptimized_code);
+
+  UnboxedParameterBitmap unboxed_parameters_info_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
 #endif
 
-  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
-  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
-  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  Tags<uint32_t> kind_tag_;  // See Function::KindTagBits.
-  uint32_t packed_fields_;
-
-  // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
-
-  static constexpr intptr_t kMaxOptimizableBits = 1;
-  static constexpr intptr_t kMaxTypeParametersBits = 7;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
-  static constexpr intptr_t kMaxFixedParametersBits = 10;
-  static constexpr intptr_t kMaxOptionalParametersBits = 10;
-
-  typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedOptimizable::kNextBit,
-                   kMaxTypeParametersBits>
-      PackedNumTypeParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumTypeParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunction::packed_fields_ bitfields don't fit.");
+  AtomicBitFieldContainer<uint32_t> kind_tag_;  // See Function::KindTagBits.
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1413,7 +1312,12 @@ class UntaggedFunction : public UntaggedObject {
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  friend class UntaggedFunctionType;  // To use same constants for packing.
+  AtomicBitFieldContainer<uint8_t> packed_fields_;
+
+  static constexpr intptr_t kMaxOptimizableBits = 1;
+
+  using PackedOptimizable =
+      BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -1423,12 +1327,7 @@ class UntaggedClosureData : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ContextScopePtr, context_scope)
   VISIT_FROM(context_scope)
   // Enclosing function of this local function.
-#if defined(DART_PRECOMPILER)
-  // Can be wrapped by a WSR in the precompiler.
-  COMPRESSED_POINTER_FIELD(ObjectPtr, parent_function)
-#else
-  COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
-#endif
+  WSR_COMPRESSED_POINTER_FIELD(FunctionPtr, parent_function)
   // Closure object for static implicit closures.
   COMPRESSED_POINTER_FIELD(ClosurePtr, closure)
   VISIT_TO(closure)
@@ -1697,6 +1596,8 @@ class UntaggedLibrary : public UntaggedObject {
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
+  Dart_FfiNativeResolver ffi_native_resolver_;
+
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
@@ -2212,8 +2113,8 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     TokenPosition begin_pos =
         TokenPosition::kNoSource;  // Token position of scope start.
     TokenPosition end_pos =
-        TokenPosition::kNoSource;   // Token position of scope end.
-    int16_t scope_id;               // Scope to which the variable belongs.
+        TokenPosition::kNoSource;  // Token position of scope end.
+    int16_t scope_id;              // Scope to which the variable belongs.
 
     VarInfoKind kind() const {
       return static_cast<VarInfoKind>(KindBits::decode(index_kind));
@@ -2364,6 +2265,11 @@ class UntaggedContextScope : public UntaggedObject {
   friend class SnapshotReader;
 };
 
+class UntaggedSentinel : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Sentinel);
+  VISIT_NOTHING();
+};
+
 class UntaggedSingleTargetCache : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
   POINTER_FIELD(CodePtr, target)
@@ -2431,7 +2337,8 @@ class UntaggedICData : public UntaggedCallSiteData {
     return NULL;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
-  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
+  // Number of arguments tested in IC, deopt reasons.
+  AtomicBitFieldContainer<uint32_t> state_bits_;
 };
 
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
@@ -2517,6 +2424,13 @@ class UntaggedInstance : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
   friend class Object;
   friend class SnapshotReader;
+
+ public:
+#if defined(DART_COMPRESSED_POINTERS)
+  static constexpr bool kContainsCompressedPointers = true;
+#else
+  static constexpr bool kContainsCompressedPointers = false;
+#endif
 };
 
 class UntaggedLibraryPrefix : public UntaggedInstance {
@@ -2599,9 +2513,10 @@ class UntaggedAbstractType : public UntaggedInstance {
 
  protected:
   static constexpr intptr_t kTypeStateBitSize = 2;
+  COMPILE_ASSERT(sizeof(std::atomic<word>) == sizeof(word));
 
   // Accessed from generated code.
-  uword type_test_stub_entry_point_;
+  std::atomic<uword> type_test_stub_entry_point_;
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
   VISIT_FROM(type_test_stub)
 
@@ -2636,49 +2551,43 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
+  COMPRESSED_POINTER_FIELD(ArrayPtr, named_parameter_names);
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  uint32_t packed_fields_;  // Number of parent type args and own parameters.
+  AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
+  AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
   uint8_t type_state_;
   uint8_t nullability_;
 
-  static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
-  static constexpr intptr_t kMaxImplicitParametersBits = 1;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits =
-      UntaggedFunction::kMaxHasNamedOptionalParametersBits;
-  static constexpr intptr_t kMaxFixedParametersBits =
-      UntaggedFunction::kMaxFixedParametersBits;
-  static constexpr intptr_t kMaxOptionalParametersBits =
-      UntaggedFunction::kMaxOptionalParametersBits;
-
   // The bit fields are public for use in kernel_to_il.cc.
  public:
-  typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
-      PackedNumParentTypeArguments;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedNumParentTypeArguments::kNextBit,
-                   kMaxImplicitParametersBits>
-      PackedNumImplicitParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumImplicitParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunctionType::packed_fields_ bitfields don't fit.");
+  // For packed_type_parameter_counts_.
+  using PackedNumParentTypeArguments =
+      BitField<decltype(packed_type_parameter_counts_), uint8_t, 0, 8>;
+  using PackedNumTypeParameters =
+      BitField<decltype(packed_type_parameter_counts_),
+               uint8_t,
+               PackedNumParentTypeArguments::kNextBit,
+               8>;
+
+  // For packed_parameter_counts_.
+  using PackedNumImplicitParameters =
+      BitField<decltype(packed_parameter_counts_), uint8_t, 0, 1>;
+  using PackedHasNamedOptionalParameters =
+      BitField<decltype(packed_parameter_counts_),
+               bool,
+               PackedNumImplicitParameters::kNextBit,
+               1>;
+  using PackedNumFixedParameters =
+      BitField<decltype(packed_parameter_counts_),
+               uint16_t,
+               PackedHasNamedOptionalParameters::kNextBit,
+               14>;
+  using PackedNumOptionalParameters =
+      BitField<decltype(packed_parameter_counts_),
+               uint16_t,
+               PackedNumFixedParameters::kNextBit,
+               14>;
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "
@@ -2734,13 +2643,13 @@ class UntaggedClosure : public UntaggedInstance {
 
   // The following fields are also declared in the Dart source of class
   // _Closure.
-  POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   VISIT_FROM(instantiator_type_arguments)
-  POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
-  POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
-  POINTER_FIELD(FunctionPtr, function)
-  POINTER_FIELD(ContextPtr, context)
-  POINTER_FIELD(SmiPtr, hash)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
+  COMPRESSED_POINTER_FIELD(FunctionPtr, function)
+  COMPRESSED_POINTER_FIELD(ContextPtr, context)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 
   // We have an extra word in the object due to alignment rounding, so use it in
@@ -2749,7 +2658,7 @@ class UntaggedClosure : public UntaggedInstance {
   // one entry point, as dynamic calls use dynamic closure call dispatchers.
   ONLY_IN_PRECOMPILED(uword entry_point_);
 
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Note that instantiator_type_arguments_, function_type_arguments_ and
   // delayed_type_arguments_ are used to instantiate the signature of function_
@@ -3031,11 +2940,11 @@ class UntaggedBool : public UntaggedInstance {
 class UntaggedArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Array);
 
-  ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_ARRAY_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  SMI_FIELD(SmiPtr, length)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
-  VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class LinkedHashMapSerializationCluster;
   friend class LinkedHashMapDeserializationCluster;
@@ -3066,28 +2975,33 @@ class UntaggedImmutableArray : public UntaggedArray {
 class UntaggedGrowableObjectArray : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  SMI_FIELD(SmiPtr, length)
-  POINTER_FIELD(ArrayPtr, data)
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, data)
   VISIT_TO(data)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
   friend class ReversePc;
 };
 
-class UntaggedLinkedHashMap : public UntaggedInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedLinkedHashBase : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashBase);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  POINTER_FIELD(TypedDataPtr, index)
-  POINTER_FIELD(SmiPtr, hash_mask)
-  POINTER_FIELD(ArrayPtr, data)
-  POINTER_FIELD(SmiPtr, used_data)
-  POINTER_FIELD(SmiPtr, deleted_keys)
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
+  COMPRESSED_POINTER_FIELD(SmiPtr, hash_mask)
+  COMPRESSED_POINTER_FIELD(ArrayPtr, data)
+  COMPRESSED_POINTER_FIELD(SmiPtr, used_data)
+  COMPRESSED_POINTER_FIELD(SmiPtr, deleted_keys)
   VISIT_TO(deleted_keys)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+};
+
+class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
 
   friend class SnapshotReader;
 };
@@ -3281,15 +3195,15 @@ class UntaggedRegExp : public UntaggedInstance {
 class UntaggedWeakProperty : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
 
-  POINTER_FIELD(ObjectPtr, key)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, key)
   VISIT_FROM(key)
-  POINTER_FIELD(ObjectPtr, value)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, value)
   VISIT_TO(value)
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Linked list is chaining all pending weak properties. Not visited by
   // pointer visitors.
-  WeakPropertyPtr next_;
+  CompressedWeakPropertyPtr next_;
 
   friend class GCMarker;
   template <bool>
@@ -3330,12 +3244,14 @@ class UntaggedUserTag : public UntaggedInstance {
 class UntaggedFutureOr : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
 
-  POINTER_FIELD(TypeArgumentsPtr, type_arguments)
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
   VISIT_TO(type_arguments)
 
   friend class SnapshotReader;
 };
+
+#undef WSR_COMPRESSED_POINTER_FIELD
 
 }  // namespace dart
 

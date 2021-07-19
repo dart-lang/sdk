@@ -1134,9 +1134,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
-    assert(node is NullCheck ||
-        node is MethodInvocation && isComparisonWithNull(node) ||
-        node is EqualsNull);
+    assert(node is NullCheck || node is EqualsNull);
     if (arg is NarrowNotNull) {
       nullTests[node] = arg;
       return arg;
@@ -1355,44 +1353,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
       }
       _variableValues = null;
       return;
-    } else if (node is MethodInvocation &&
-        node.receiver is VariableGet &&
-        node.name.text == '==') {
-      assert(node.arguments.positional.length == 1 &&
-          node.arguments.types.isEmpty &&
-          node.arguments.named.isEmpty);
-      final lhs = node.receiver as VariableGet;
-      final rhs = node.arguments.positional.single;
-      if (isNullLiteral(rhs)) {
-        // 'x == null', where x is a variable.
-        final expr = _visit(lhs);
-        _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-            Args<TypeExpr>([expr, _nullType]));
-        final narrowedNotNull = _makeNarrowNotNull(node, expr);
-        final int varIndex = _variablesInfo.varIndex[lhs.variable];
-        if (_variableCells[varIndex] == null) {
-          trueState[varIndex] = _nullType;
-          falseState[varIndex] = narrowedNotNull;
-        }
-        _variableValues = null;
-        return;
-      } else if ((rhs is IntLiteral &&
-              _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.intLegacyRawType)) ||
-          (rhs is StringLiteral &&
-              _isSubtype(lhs.variable.type,
-                  _environment.coreTypes.stringLegacyRawType)) ||
-          (rhs is ConstantExpression &&
-              !_hasOverriddenEquals(lhs.variable.type))) {
-        // 'x == c', where x is a variable and c is a constant.
-        _addUse(_visit(node));
-        final int varIndex = _variablesInfo.varIndex[lhs.variable];
-        if (_variableCells[varIndex] == null) {
-          trueState[varIndex] = _visit(rhs);
-        }
-        _variableValues = null;
-        return;
-      }
     } else if (node is EqualsCall && node.left is VariableGet) {
       final lhs = node.left as VariableGet;
       final rhs = node.right;
@@ -1621,55 +1581,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   }
 
   @override
-  TypeExpr visitMethodInvocation(MethodInvocation node) {
-    if (isComparisonWithNull(node)) {
-      final arg = _visit(getArgumentOfComparisonWithNull(node));
-      _makeNarrowNotNull(node, arg);
-      _makeCall(node, DirectSelector(_environment.coreTypes.objectEquals),
-          Args<TypeExpr>([arg, _nullType]));
-      return _boolType;
-    }
-    final receiverNode = node.receiver;
-    final receiver = _visit(receiverNode);
-    final args = _visitArguments(receiver, node.arguments);
-    final target = node.interfaceTarget;
-    if (receiverNode is ConstantExpression && node.name.text == '[]') {
-      Constant constant = receiverNode.constant;
-      if (constant is ListConstant) {
-        return _handleIndexingIntoListConstant(constant);
-      }
-    }
-    TypeExpr result;
-    if (target == null) {
-      if (node.name.text == '==') {
-        _makeCall(node, new DynamicSelector(CallKind.Method, node.name), args);
-        return new Type.nullable(_boolType);
-      }
-      if (node.name.text == 'call') {
-        final recvType = _staticDartType(node.receiver);
-        if ((recvType is FunctionType) ||
-            (recvType == _environment.functionLegacyRawType)) {
-          // Call to a Function.
-          return _staticType(node);
-        }
-      }
-      result = _makeCall(
-          node, new DynamicSelector(CallKind.Method, node.name), args);
-    } else {
-      assert(target is Procedure && !target.isGetter);
-      // TODO(alexmarkov): overloaded arithmetic operators
-      result = _makeCall(
-          node,
-          (node.receiver is ThisExpression)
-              ? new VirtualSelector(target)
-              : new InterfaceSelector(target),
-          args);
-    }
-    _updateReceiverAfterCall(receiverNode, receiver, node.name);
-    return result;
-  }
-
-  @override
   TypeExpr visitInstanceInvocation(InstanceInvocation node) {
     final receiverNode = node.receiver;
     final receiver = _visit(receiverNode);
@@ -1781,12 +1692,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   }
 
   @override
-  TypeExpr visitPropertyGet(PropertyGet node) {
-    return _handlePropertyGet(
-        node, node.receiver, node.interfaceTarget, node.name);
-  }
-
-  @override
   TypeExpr visitInstanceGet(InstanceGet node) {
     return _handlePropertyGet(
         node, node.receiver, node.interfaceTarget, node.name);
@@ -1806,29 +1711,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   @override
   TypeExpr visitDynamicGet(DynamicGet node) {
     return _handlePropertyGet(node, node.receiver, null, node.name);
-  }
-
-  @override
-  TypeExpr visitPropertySet(PropertySet node) {
-    var receiver = _visit(node.receiver);
-    var value = _visit(node.value);
-    var args = new Args<TypeExpr>([receiver, value]);
-    final target = node.interfaceTarget;
-    if (target == null) {
-      _makeCall(
-          node, new DynamicSelector(CallKind.PropertySet, node.name), args);
-    } else {
-      assert((target is Field) || ((target is Procedure) && target.isSetter));
-      _makeCall(
-          node,
-          (node.receiver is ThisExpression)
-              ? new VirtualSelector(target, callKind: CallKind.PropertySet)
-              : new InterfaceSelector(target, callKind: CallKind.PropertySet),
-          args);
-    }
-    _updateReceiverAfterCall(node.receiver, receiver, node.name,
-        isSetter: true);
-    return value;
   }
 
   @override
@@ -2592,17 +2474,20 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
   }
 
   @override
-  Type visitTearOffConstant(TearOffConstant constant) {
-    final Procedure procedure = constant.procedure;
+  Type visitStaticTearOffConstant(StaticTearOffConstant constant) {
+    final Member member = constant.procedure;
     summaryCollector._entryPointsListener
-        .addRawCall(new DirectSelector(procedure));
-    summaryCollector._entryPointsListener.recordTearOff(procedure);
+        .addRawCall(new DirectSelector(member));
+    if (member is Constructor) {
+      summaryCollector._entryPointsListener
+          .addAllocatedClass(member.enclosingClass);
+    }
+    summaryCollector._entryPointsListener.recordTearOff(member);
     return _getStaticType(constant);
   }
 
   @override
-  Type visitPartialInstantiationConstant(
-      PartialInstantiationConstant constant) {
+  Type visitInstantiationConstant(InstantiationConstant constant) {
     constant.tearOffConstant.accept(this);
     return _getStaticType(constant);
   }

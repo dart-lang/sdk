@@ -12,8 +12,38 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToRelativeImportBulkTest);
     defineReflectiveTests(ConvertToRelativeImportTest);
   });
+}
+
+@reflectiveTest
+class ConvertToRelativeImportBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_relative_imports;
+
+  Future<void> test_singleFile() async {
+    addSource('/home/test/lib/foo.dart', '''
+class C {}
+''');
+    addSource('/home/test/lib/bar.dart', '''
+class D {}
+''');
+    testFile = convertPath('/home/test/lib/src/test.dart');
+
+    await resolveTestCode('''
+import 'package:test/bar.dart';
+import 'package:test/foo.dart';
+C c;
+D d;
+''');
+    await assertHasFix('''
+import '../bar.dart';
+import '../foo.dart';
+C c;
+D d;
+''');
+  }
 }
 
 @reflectiveTest
@@ -31,12 +61,12 @@ class C {}
     testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import '../foo.dart';
-C c;
+C? c;
 ''');
   }
 
@@ -72,12 +102,12 @@ class C {}
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestCode('''
 import "package:test/foo.dart";
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import "foo.dart";
-C c;
+C? c;
 ''');
   }
 
@@ -88,12 +118,12 @@ class C {}
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import 'foo.dart';
-C c;
+C? c;
 ''');
   }
 
@@ -104,12 +134,12 @@ class C {}
     testFile = convertPath('/home/test/lib/test.dart');
     await resolveTestCode('''
 import 'package:test/baz/foo.dart';
-C c;
+C? c;
 ''');
 
     await assertHasFix('''
 import 'baz/foo.dart';
-C c;
+C? c;
 ''');
   }
 }

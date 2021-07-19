@@ -7,10 +7,22 @@ class A extends core::Object {
     ;
   constructor foo2(core::int x) → self::A
     ;
+  constructor •() → self::A
+    ;
+  static factory bar1() → self::A
+    ;
 }
-static method bar1() → () → self::A
+static method test1() → () → self::A
   ;
-static method bar2() → () → self::A
+static method test2() → () → self::A
+  ;
+static method test3() → () → self::A
+  ;
+static method test4() → (core::int) → self::A
+  ;
+static method test5() → () → self::A
+  ;
+static method test6() → (core::int) → self::A
   ;
 static method main() → dynamic
   ;

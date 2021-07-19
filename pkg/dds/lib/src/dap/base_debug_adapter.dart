@@ -4,13 +4,21 @@
 
 import 'dart:async';
 
-import 'logging.dart';
+import 'package:meta/meta.dart';
+
+import 'exceptions.dart';
 import 'protocol_common.dart';
 import 'protocol_generated.dart';
 import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
 typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
+typedef _RequestHandler<TArg, TResp> = Future<void> Function(
+    Request, TArg, void Function(TResp));
+typedef _VoidArgRequestHandler<TArg> = Future<void> Function(
+    Request, TArg, void Function(void));
+typedef _VoidNoArgRequestHandler<TArg> = Future<void> Function(
+    Request, TArg, void Function());
 
 /// A base class for debug adapters.
 ///
@@ -21,9 +29,8 @@ typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
 abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
-  final Logger? logger;
 
-  BaseDebugAdapter(this._channel, this.logger) {
+  BaseDebugAdapter(this._channel) {
     _channel.listen(_handleIncomingMessage);
   }
 
@@ -34,22 +41,50 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   /// Dart CLI, Dart tests, Flutter, Flutter tests).
   TLaunchArgs Function(Map<String, Object?>) get parseLaunchArgs;
 
-  FutureOr<void> attachRequest(
+  Future<void> attachRequest(
     Request request,
     TLaunchArgs args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   );
 
-  FutureOr<void> configurationDoneRequest(
+  Future<void> configurationDoneRequest(
     Request request,
     ConfigurationDoneArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
   );
 
-  FutureOr<void> disconnectRequest(
+  Future<void> continueRequest(
+    Request request,
+    ContinueArguments args,
+    void Function(ContinueResponseBody) sendResponse,
+  );
+
+  @mustCallSuper
+  Future<void> customRequest(
+    Request request,
+    RawRequestArguments? args,
+    void Function(Object?) sendResponse,
+  ) async {
+    final response = Response(
+      success: false,
+      requestSeq: request.seq,
+      seq: _sequence++,
+      command: request.command,
+      message: 'Unknown command: ${request.command}',
+    );
+    sendResponse(response);
+  }
+
+  Future<void> disconnectRequest(
     Request request,
     DisconnectArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
+  );
+
+  Future<void> evaluateRequest(
+    Request request,
+    EvaluateArguments args,
+    void Function(EvaluateResponseBody) sendResponse,
   );
 
   /// Calls [handler] for an incoming request, using [fromJson] to parse its
@@ -63,9 +98,9 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   /// require a body.
   ///
   /// If [handler] throws, its exception will be sent as an error response.
-  FutureOr<void> handle<TArg, TResp>(
+  Future<void> handle<TArg, TResp>(
     Request request,
-    FutureOr<void> Function(Request, TArg, void Function(TResp)) handler,
+    _RequestHandler<TArg, TResp> handler,
     TArg Function(Map<String, Object?>) fromJson,
   ) async {
     final args = request.arguments != null
@@ -102,21 +137,36 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
         requestSeq: request.seq,
         seq: _sequence++,
         command: request.command,
-        message: '$e',
+        message: e is DebugAdapterException ? e.message : '$e',
         body: '$s',
       );
       _channel.sendResponse(response);
     }
   }
 
-  FutureOr<void> initializeRequest(
+  Future<void> initializeRequest(
     Request request,
     InitializeRequestArguments args,
     void Function(Capabilities) sendResponse,
   );
 
-  FutureOr<void> launchRequest(
-      Request request, TLaunchArgs args, void Function(void) sendResponse);
+  Future<void> launchRequest(
+    Request request,
+    TLaunchArgs args,
+    void Function() sendResponse,
+  );
+
+  Future<void> nextRequest(
+    Request request,
+    NextArguments args,
+    void Function() sendResponse,
+  );
+
+  Future<void> scopesRequest(
+    Request request,
+    ScopesArguments args,
+    void Function(ScopesResponseBody) sendResponse,
+  );
 
   /// Sends an event, lookup up the event type based on the runtimeType of
   /// [body].
@@ -140,10 +190,51 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     _channel.sendRequest(request);
   }
 
-  FutureOr<void> terminateRequest(
+  Future<void> setBreakpointsRequest(
+      Request request,
+      SetBreakpointsArguments args,
+      void Function(SetBreakpointsResponseBody) sendResponse);
+
+  Future<void> setExceptionBreakpointsRequest(
+    Request request,
+    SetExceptionBreakpointsArguments args,
+    void Function(SetExceptionBreakpointsResponseBody) sendResponse,
+  );
+
+  Future<void> stackTraceRequest(
+    Request request,
+    StackTraceArguments args,
+    void Function(StackTraceResponseBody) sendResponse,
+  );
+
+  Future<void> stepInRequest(
+    Request request,
+    StepInArguments args,
+    void Function() sendResponse,
+  );
+
+  Future<void> stepOutRequest(
+    Request request,
+    StepOutArguments args,
+    void Function() sendResponse,
+  );
+
+  Future<void> terminateRequest(
     Request request,
     TerminateArguments? args,
-    void Function(void) sendResponse,
+    void Function() sendResponse,
+  );
+
+  Future<void> threadsRequest(
+    Request request,
+    void args,
+    void Function(ThreadsResponseBody) sendResponse,
+  );
+
+  Future<void> variablesRequest(
+    Request request,
+    VariablesArguments args,
+    void Function(VariablesResponseBody) sendResponse,
   );
 
   /// Wraps a fromJson handler for requests that allow null arguments.
@@ -169,41 +260,92 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     if (request.command == 'initialize') {
       handle(request, initializeRequest, InitializeRequestArguments.fromJson);
     } else if (request.command == 'launch') {
-      handle(request, launchRequest, parseLaunchArgs);
+      handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
     } else if (request.command == 'attach') {
-      handle(request, attachRequest, parseLaunchArgs);
+      handle(request, _withVoidResponse(attachRequest), parseLaunchArgs);
     } else if (request.command == 'terminate') {
       handle(
         request,
-        terminateRequest,
+        _withVoidResponse(terminateRequest),
         _allowNullArg(TerminateArguments.fromJson),
       );
     } else if (request.command == 'disconnect') {
       handle(
         request,
-        disconnectRequest,
+        _withVoidResponse(disconnectRequest),
         _allowNullArg(DisconnectArguments.fromJson),
       );
     } else if (request.command == 'configurationDone') {
       handle(
         request,
-        configurationDoneRequest,
+        _withVoidResponse(configurationDoneRequest),
         _allowNullArg(ConfigurationDoneArguments.fromJson),
       );
-    } else {
-      final response = Response(
-        success: false,
-        requestSeq: request.seq,
-        seq: _sequence++,
-        command: request.command,
-        message: 'Unknown command: ${request.command}',
+    } else if (request.command == 'setBreakpoints') {
+      handle(request, setBreakpointsRequest, SetBreakpointsArguments.fromJson);
+    } else if (request.command == 'setExceptionBreakpoints') {
+      handle(
+        request,
+        setExceptionBreakpointsRequest,
+        SetExceptionBreakpointsArguments.fromJson,
       );
-      _channel.sendResponse(response);
+    } else if (request.command == 'continue') {
+      handle(request, continueRequest, ContinueArguments.fromJson);
+    } else if (request.command == 'next') {
+      handle(request, _withVoidResponse(nextRequest), NextArguments.fromJson);
+    } else if (request.command == 'stepIn') {
+      handle(
+        request,
+        _withVoidResponse(stepInRequest),
+        StepInArguments.fromJson,
+      );
+    } else if (request.command == 'stepOut') {
+      handle(
+        request,
+        _withVoidResponse(stepOutRequest),
+        StepOutArguments.fromJson,
+      );
+    } else if (request.command == 'threads') {
+      handle(request, threadsRequest, _voidArgs);
+    } else if (request.command == 'stackTrace') {
+      handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+    } else if (request.command == 'scopes') {
+      handle(request, scopesRequest, ScopesArguments.fromJson);
+    } else if (request.command == 'variables') {
+      handle(request, variablesRequest, VariablesArguments.fromJson);
+    } else if (request.command == 'evaluate') {
+      handle(request, evaluateRequest, EvaluateArguments.fromJson);
+    } else {
+      handle(
+        request,
+        customRequest,
+        _allowNullArg(RawRequestArguments.fromJson),
+      );
     }
   }
 
   void _handleIncomingResponse(Response response) {
     // TODO(dantup): Implement this when the server sends requests to the client
     // (for example runInTerminalRequest).
+  }
+
+  /// Helpers for requests that have `void` arguments. The supplied args are
+  /// ignored.
+  void _voidArgs(Map<String, Object?>? args) {}
+
+  /// Helper that converts a handler with no response value to one that has
+  /// passes an unused arg so that `Function()` can be passed to a function
+  /// accepting `Function<T>(T x)` where `T` happens to be `void`.
+  ///
+  /// This allows handlers to simple call sendResponse() where they have no
+  /// return value but need to send a valid response.
+  _VoidArgRequestHandler<TArg> _withVoidResponse<TArg>(
+    _VoidNoArgRequestHandler<TArg> handler,
+  ) {
+    return (request, arg, sendResponse) => handler(
+          request,
+          arg,
+          () => sendResponse(null),
+        );
   }
 }

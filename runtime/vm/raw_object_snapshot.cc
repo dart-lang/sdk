@@ -7,6 +7,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/regexp.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
@@ -112,7 +113,7 @@ TypePtr Type::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type);
-  type.SetTypeTestingStub(code);
+  type.InitializeTypeTestingStubNonAtomic(code);
 
   if (is_canonical) {
     type ^= type.Canonicalize(Thread::Current(), nullptr);
@@ -193,7 +194,7 @@ TypeRefPtr TypeRef::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_ref);
-  type_ref.SetTypeTestingStub(code);
+  type_ref.InitializeTypeTestingStubNonAtomic(code);
 
   return type_ref.ptr();
 }
@@ -255,7 +256,7 @@ TypeParameterPtr TypeParameter::ReadFrom(SnapshotReader* reader,
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type_parameter);
-  type_parameter.SetTypeTestingStub(code);
+  type_parameter.InitializeTypeTestingStubNonAtomic(code);
 
   if (is_canonical) {
     type_parameter ^= type_parameter.Canonicalize(Thread::Current(), nullptr);
@@ -599,6 +600,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(ObjectPool);
 MESSAGE_SNAPSHOT_UNREACHABLE(PatchClass);
 MESSAGE_SNAPSHOT_UNREACHABLE(PcDescriptors);
 MESSAGE_SNAPSHOT_UNREACHABLE(Script);
+MESSAGE_SNAPSHOT_UNREACHABLE(Sentinel);
 MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(String);
 MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
@@ -1087,7 +1089,7 @@ void UntaggedImmutableArray::WriteTo(SnapshotWriter* writer,
                                      Snapshot::Kind kind,
                                      bool as_reference) {
   writer->ArrayWriteTo(object_id, kImmutableArrayCid,
-                       writer->GetObjectTags(this), length_, type_arguments_,
+                       writer->GetObjectTags(this), length(), type_arguments(),
                        data(), as_reference);
 }
 
@@ -1106,8 +1108,8 @@ GrowableObjectArrayPtr GrowableObjectArray::ReadFrom(SnapshotReader* reader,
 
   // Read type arguments of growable array object.
   *reader->TypeArgumentsHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
-  array.StorePointer(&array.untag()->type_arguments_,
-                     reader->TypeArgumentsHandle()->ptr());
+  array.StoreCompressedPointer(&array.untag()->type_arguments_,
+                               reader->TypeArgumentsHandle()->ptr());
 
   // Read length of growable array object.
   array.SetLength(reader->ReadSmiValue());
@@ -1133,13 +1135,13 @@ void UntaggedGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the type arguments field.
-  writer->WriteObjectImpl(type_arguments_, kAsInlinedObject);
+  writer->WriteObjectImpl(type_arguments(), kAsInlinedObject);
 
   // Write out the used length field.
-  writer->Write<ObjectPtr>(length_);
+  writer->Write<ObjectPtr>(length());
 
   // Write out the Array object.
-  writer->WriteObjectImpl(data_, kAsReference);
+  writer->WriteObjectImpl(data(), kAsReference);
 }
 
 LinkedHashMapPtr LinkedHashMap::ReadFrom(SnapshotReader* reader,
@@ -1204,36 +1206,35 @@ void UntaggedLinkedHashMap::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out the type arguments.
-  writer->WriteObjectImpl(type_arguments_, kAsInlinedObject);
+  writer->WriteObjectImpl(type_arguments(), kAsInlinedObject);
 
-  const intptr_t used_data = Smi::Value(used_data_);
-  ASSERT((used_data & 1) == 0);  // Keys + values, so must be even.
-  const intptr_t deleted_keys = Smi::Value(deleted_keys_);
+  const intptr_t num_used_data = Smi::Value(used_data());
+  ASSERT((num_used_data & 1) == 0);  // Keys + values, so must be even.
+  const intptr_t num_deleted_keys = Smi::Value(deleted_keys());
 
   // Write out the number of (not deleted) key/value pairs that will follow.
-  writer->Write<ObjectPtr>(Smi::New((used_data >> 1) - deleted_keys));
+  writer->Write<ObjectPtr>(Smi::New((num_used_data >> 1) - num_deleted_keys));
 
   // Write out the keys and values.
   const bool write_as_reference = this->IsCanonical() ? false : true;
-  ArrayPtr data_array = data_;
-  ObjectPtr* data_elements = data_array->untag()->data();
-  ASSERT(used_data <= Smi::Value(data_array->untag()->length_));
+  ArrayPtr data_array = data();
+  ASSERT(num_used_data <= Smi::Value(data_array->untag()->length()));
 #if defined(DEBUG)
   intptr_t deleted_keys_found = 0;
 #endif  // DEBUG
-  for (intptr_t i = 0; i < used_data; i += 2) {
-    ObjectPtr key = data_elements[i];
+  for (intptr_t i = 0; i < num_used_data; i += 2) {
+    ObjectPtr key = data_array->untag()->element(i);
     if (key == data_array) {
 #if defined(DEBUG)
       ++deleted_keys_found;
 #endif  // DEBUG
       continue;
     }
-    ObjectPtr value = data_elements[i + 1];
+    ObjectPtr value = data_array->untag()->element(i + 1);
     writer->WriteObjectImpl(key, write_as_reference);
     writer->WriteObjectImpl(value, write_as_reference);
   }
-  DEBUG_ASSERT(deleted_keys_found == deleted_keys);
+  DEBUG_ASSERT(deleted_keys_found == num_deleted_keys);
 }
 
 Float32x4Ptr Float32x4::ReadFrom(SnapshotReader* reader,
@@ -1748,9 +1749,9 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
                            Snapshot::Kind kind,
                            bool as_reference) {
   ASSERT(reader != NULL);
-
   // Allocate RegExp object.
-  RegExp& regex = RegExp::ZoneHandle(reader->zone(), RegExp::New());
+  RegExp& regex =
+      RegExp::ZoneHandle(reader->zone(), RegExp::New(reader->zone()));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
@@ -1766,14 +1767,6 @@ RegExpPtr RegExp::ReadFrom(SnapshotReader* reader,
   regex.StoreNonPointer(&regex.untag()->num_two_byte_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.untag()->type_flags_, reader->Read<int8_t>());
-
-  const Function& no_function = Function::Handle(reader->zone());
-  for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
-       cid++) {
-    regex.set_function(cid, /*sticky=*/false, no_function);
-    regex.set_function(cid, /*sticky=*/true, no_function);
-  }
-
   return regex.ptr();
 }
 
@@ -1812,8 +1805,9 @@ WeakPropertyPtr WeakProperty::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(weak_property, weak_property.ptr()->untag()->from(),
-                     weak_property.ptr()->untag()->to(), kAsReference);
+  READ_COMPRESSED_OBJECT_FIELDS(
+      weak_property, weak_property.ptr()->untag()->from(),
+      weak_property.ptr()->untag()->to(), kAsReference);
 
   return weak_property.ptr();
 }
@@ -1833,7 +1827,7 @@ void UntaggedWeakProperty::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitCompressedPointers(heap_base(), from(), to());
 }
 
 }  // namespace dart

@@ -27,7 +27,7 @@ class FieldTable {
         capacity_(0),
         free_head_(-1),
         table_(nullptr),
-        old_tables_(new MallocGrowableArray<InstancePtr*>()),
+        old_tables_(new MallocGrowableArray<ObjectPtr*>()),
         isolate_(isolate),
         is_ready_to_use_(isolate == nullptr) {}
 
@@ -39,7 +39,7 @@ class FieldTable {
   intptr_t NumFieldIds() const { return top_; }
   intptr_t Capacity() const { return capacity_; }
 
-  InstancePtr* table() { return table_; }
+  ObjectPtr* table() { return table_; }
 
   void FreeOldTables();
 
@@ -58,11 +58,11 @@ class FieldTable {
   // to an existing static field value.
   void Free(intptr_t index);
 
-  InstancePtr At(intptr_t index) const {
+  ObjectPtr At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
     return table_[index];
   }
-  void SetAt(intptr_t index, InstancePtr raw_instance);
+  void SetAt(intptr_t index, ObjectPtr raw_instance);
 
   FieldTable* Clone(Isolate* for_isolate);
 
@@ -86,10 +86,10 @@ class FieldTable {
   // element, last element contains -1.
   intptr_t free_head_;
 
-  InstancePtr* table_;
+  ObjectPtr* table_;
   // When table_ grows and have to reallocated, keep the old one here
   // so it will get freed when its are no longer in use.
-  MallocGrowableArray<InstancePtr*>* old_tables_;
+  MallocGrowableArray<ObjectPtr*>* old_tables_;
 
   // If non-NULL, it will specify the isolate this field table belongs to.
   // Growing the field table will keep the cached field table on the isolate's

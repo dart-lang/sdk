@@ -448,7 +448,7 @@ class _DoCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'while ()',
         '''
-main() {
+void f() {
   do {
   } while ()
 }
@@ -457,7 +457,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
   } while ();
 }
@@ -469,7 +469,7 @@ main() {
     await _prepareCompletion(
         'do',
         '''
-main() {
+void f() {
   do ////
 }
 ''',
@@ -477,7 +477,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
     ////
   } while ();
@@ -490,7 +490,7 @@ main() {
     await _prepareCompletion(
         'do',
         '''
-main() {
+void f() {
   do ////
   return;
 }
@@ -499,7 +499,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
     ////
   } while ();
@@ -513,7 +513,7 @@ main() {
     await _prepareCompletion(
         'do',
         '''
-main() {
+void f() {
   do;
   while
 }
@@ -522,7 +522,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
     ////
   } while ();
@@ -535,7 +535,7 @@ main() {
     await _prepareCompletion(
         'while',
         '''
-main() {
+void f() {
   do {
   } while
 }
@@ -544,7 +544,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
   } while ();
 }
@@ -556,7 +556,7 @@ main() {
     await _prepareCompletion(
         '}',
         '''
-main() {
+void f() {
   do {
   }
 }
@@ -565,7 +565,7 @@ main() {
     _assertHasChange(
         'Complete do-statement',
         '''
-main() {
+void f() {
   do {
   } while ();
 }
@@ -580,7 +580,7 @@ class _ExpressionCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         '= ',
         '''
-main() {
+void f() {
   var x = [1, 2, 3
 }
 ''',
@@ -588,7 +588,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   var x = [1, 2, 3];
   ////
 }
@@ -601,7 +601,7 @@ main() {
     await _prepareCompletion(
         '3',
         '''
-main() {
+void f() {
   var x = [
     1,
     2,
@@ -612,7 +612,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   var x = [
     1,
     2,
@@ -629,7 +629,7 @@ main() {
     await _prepareCompletion(
         '3: 3',
         '''
-main() {
+void f() {
   var x = {1: 1, 2: 2, 3: 3
 }
 ''',
@@ -637,7 +637,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   var x = {1: 1, 2: 2, 3: 3};
   ////
 }
@@ -650,7 +650,7 @@ main() {
     await _prepareCompletion(
         '3',
         '''
-main() {
+void f() {
   var x = {1: 1, 2: 2, 3
 }
 ''',
@@ -658,7 +658,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   var x = {1: 1, 2: 2, 3: };
   ////
 }
@@ -670,7 +670,7 @@ main() {
     await _prepareCompletion(
         'text',
         '''
-main() {
+void f() {
   if (done()) {
     return 'text
   }
@@ -680,7 +680,7 @@ main() {
     _assertHasChange(
         'Complete control flow block',
         '''
-main() {
+void f() {
   if (done()) {
     return 'text';
   }
@@ -694,7 +694,7 @@ main() {
     await _prepareCompletion(
         '= ',
         '''
-main() {
+void f() {
   var x = '
 }
 ''',
@@ -702,7 +702,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   var x = '';
   ////
 }
@@ -714,7 +714,7 @@ main() {
     await _prepareCompletion(
         'text',
         '''
-main() {
+void f() {
   print("text
 }
 ''',
@@ -722,7 +722,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   print("text");
   ////
 }
@@ -734,7 +734,7 @@ main() {
     await _prepareCompletion(
         'text',
         '''
-main() {
+void f() {
   print(r"text
 }
 ''',
@@ -742,7 +742,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   print(r"text");
   ////
 }
@@ -754,7 +754,7 @@ main() {
     await _prepareCompletion(
         'text',
         '''
-main() {
+void f() {
   print(\'\'\'text
 }
 ''',
@@ -762,7 +762,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   print(\'\'\'text\'\'\');
   ////
 }
@@ -774,7 +774,7 @@ main() {
     await _prepareCompletion(
         'text',
         r"""
-main() {
+void f() {
   print(r'''text
 }
 """,
@@ -782,7 +782,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         r"""
-main() {
+void f() {
   print(r'''text''');
   ////
 }
@@ -797,7 +797,7 @@ class _ForCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         '0;',
         '''
-main() {
+void f() {
   for (int i = 0;)      /**/  ////
 }
 ''',
@@ -805,7 +805,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (int i = 0; ; ) /**/ {
     ////
   }
@@ -818,7 +818,7 @@ main() {
     await _prepareCompletion(
         '0;',
         '''
-main() {
+void f() {
   for (int i = 0;) {
   }
 }
@@ -827,7 +827,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (int i = 0; ; ) {
   }
 }
@@ -840,7 +840,7 @@ main() {
     await _prepareCompletion(
         'r (',
         '''
-main() {
+void f() {
   for () {
   }
 }
@@ -849,7 +849,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for () {
   }
 }
@@ -861,7 +861,7 @@ main() {
     await _prepareCompletion(
         '}',
         '''
-main() {
+void f() {
   for () {
   }
 }
@@ -870,7 +870,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   for () {
   }
   ////
@@ -883,7 +883,7 @@ main() {
     await _prepareCompletion(
         '/**/',
         '''
-main() {
+void f() {
   for (;/**/)
 }
 ''',
@@ -891,7 +891,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (; /**/; ) {
     ////
   }
@@ -904,7 +904,7 @@ main() {
     await _prepareCompletion(
         ';)',
         '''
-main() {
+void f() {
   for (;;)
 }
 ''',
@@ -912,7 +912,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (;;) {
     ////
   }
@@ -925,7 +925,7 @@ main() {
     await _prepareCompletion(
         '/**/',
         '''
-main() {
+void f() {
   for (int i = 0; i < 10 /**/)
 }
 ''',
@@ -933,7 +933,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (int i = 0; i < 10 /**/; ) {
     ////
   }
@@ -946,7 +946,7 @@ main() {
     await _prepareCompletion(
         '/**/',
         '''
-main() {
+void f() {
   for (int i = 0; i < 10 /**/) {
   }
 }
@@ -955,7 +955,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (int i = 0; i < 10 /**/; ) {
   }
 }
@@ -967,7 +967,7 @@ main() {
     await _prepareCompletion(
         'for',
         '''
-main() {
+void f() {
   for
 }
 ''',
@@ -975,7 +975,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for () {
     ////
   }
@@ -988,7 +988,7 @@ main() {
     await _prepareCompletion(
         '= 0',
         '''
-main() {
+void f() {
   for (int i = 0) {
   }
 }
@@ -997,7 +997,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (int i = 0; ; ) {
   }
 }
@@ -1009,7 +1009,7 @@ main() {
     await _prepareCompletion(
         ';)',
         '''
-main() {
+void f() {
   for (;;)
   return;
 }
@@ -1018,7 +1018,7 @@ main() {
     _assertHasChange(
         'Complete for-statement',
         '''
-main() {
+void f() {
   for (;;) {
     ////
   }
@@ -1035,7 +1035,7 @@ class _ForEachCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'in xs)',
         '''
-main() {
+void f() {
   for (in xs)
 }
 ''',
@@ -1043,7 +1043,7 @@ main() {
     _assertHasChange(
         'Complete for-each-statement',
         '''
-main() {
+void f() {
   for ( in xs) {
     ////
   }
@@ -1060,7 +1060,7 @@ main() {
     await _prepareCompletion(
         'in)',
         '''
-main() {
+void f() {
   for (in)
 }
 ''',
@@ -1068,7 +1068,7 @@ main() {
     _assertHasChange(
         'Complete for-each-statement',
         '''
-main() {
+void f() {
   for ( in ) {
     ////
   }
@@ -1081,7 +1081,7 @@ main() {
     await _prepareCompletion(
         'in)',
         '''
-main() {
+void f() {
   for (var x in)
 }
 ''',
@@ -1089,7 +1089,7 @@ main() {
     _assertHasChange(
         'Complete for-each-statement',
         '''
-main() {
+void f() {
   for (var x in ) {
     ////
   }
@@ -1102,7 +1102,7 @@ main() {
     await _prepareCompletion(
         '])',
         '''
-main() {
+void f() {
   for (var x in [1,2])
   return;
 }
@@ -1111,7 +1111,7 @@ main() {
     _assertHasChange(
         'Complete for-each-statement',
         '''
-main() {
+void f() {
   for (var x in [1,2]) {
     ////
   }
@@ -1128,7 +1128,7 @@ class _IfCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'if (true) ', // Trigger completion after space.
         '''
-main() {
+void f() {
   if (true) ////
 }
 ''',
@@ -1136,7 +1136,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if (true) {
     ////
   }
@@ -1149,7 +1149,7 @@ main() {
     await _prepareCompletion(
         'if ()',
         '''
-main() {
+void f() {
   if ()
 }
 ''',
@@ -1157,7 +1157,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if () {
     ////
   }
@@ -1170,7 +1170,7 @@ main() {
     await _prepareCompletion(
         'if',
         '''
-main() {
+void f() {
   if ////
 }
 ''',
@@ -1178,7 +1178,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if () {
     ////
   }
@@ -1191,7 +1191,7 @@ main() {
     await _prepareCompletion(
         'if (true)',
         '''
-main() {
+void f() {
   if (true)
   return;
 }
@@ -1200,7 +1200,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if (true) {
     ////
   }
@@ -1214,7 +1214,7 @@ main() {
     await _prepareCompletion(
         'if (tr', // Trigger completion from within expression.
         '''
-main() {
+void f() {
   if (true)
 }
 ''',
@@ -1222,7 +1222,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if (true) {
     ////
   }
@@ -1235,7 +1235,7 @@ main() {
     await _prepareCompletion(
         'if (true',
         '''
-main() {
+void f() {
   if (true
 }
 ''',
@@ -1243,7 +1243,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if (true) {
     ////
   }
@@ -1256,7 +1256,7 @@ main() {
     await _prepareCompletion(
         'else',
         '''
-main() {
+void f() {
   if () {
   } else
 }
@@ -1265,7 +1265,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if () {
   } else {
     ////
@@ -1279,7 +1279,7 @@ main() {
     await _prepareCompletion(
         'if ()',
         '''
-main() {
+void f() {
   if ()
   else
 }
@@ -1289,7 +1289,7 @@ main() {
         // Note: if-statement completion should not trigger.
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   if ()
   else
 }
@@ -1301,7 +1301,7 @@ main() {
     await _prepareCompletion(
         'else',
         '''
-main() {
+void f() {
   if ()
   else
 }
@@ -1310,7 +1310,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if ()
   else {
     ////
@@ -1324,7 +1324,7 @@ main() {
     await _prepareCompletion(
         'if (',
         '''
-main() {
+void f() {
   if ()
 }
 ''',
@@ -1332,7 +1332,7 @@ main() {
     _assertHasChange(
         'Complete if-statement',
         '''
-main() {
+void f() {
   if () {
     ////
   }
@@ -1348,13 +1348,13 @@ class _SimpleCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'v = 1;',
         '''
-main() {
+void f() {
   int v = 1;
 }
 ''',
         atEnd: true);
     _assertHasChange('Insert a newline at the end of the current line', '''
-main() {
+void f() {
   int v = 1;
   ////
 }
@@ -1382,7 +1382,7 @@ class Thing extends Object {
     await _prepareCompletion(
         'ing(3',
         '''
-main() {
+void f() {
   var s = 'sample'.substring(3
 }
 ''',
@@ -1390,7 +1390,7 @@ main() {
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
+void f() {
   var s = 'sample'.substring(3);
   ////
 }
@@ -1400,12 +1400,12 @@ main() {
 
   Future<void> test_noCloseParenWithSemicolon() async {
     var before = '''
-main() {
+void f() {
   var s = 'sample'.substring(3;
 }
 ''';
     var after = '''
-main() {
+void f() {
   var s = 'sample'.substring(3);
   ////
 }
@@ -1423,7 +1423,7 @@ main() {
     await _prepareCompletion(
         '=> 3',
         '''
-main() {
+void f() {
   int f() => 3
 }
 ''',
@@ -1431,7 +1431,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   int f() => 3;
   ////
 }
@@ -1441,20 +1441,20 @@ main() {
 
   Future<void> test_semicolonFnBody() async {
     // It would be reasonable to add braces in this case. Unfortunately,
-    // the incomplete line parses as two statements ['int;', 'f();'], not one.
+    // the incomplete line parses as two statements ['int;', 'g();'], not one.
     await _prepareCompletion(
-        'f()',
+        'g()',
         '''
-main() {
-  int f()
+void f() {
+  int g()
 }
 ''',
         atEnd: true);
     _assertHasChange(
         'Insert a newline at the end of the current line',
         '''
-main() {
-  int f()
+void f() {
+  int g()
 }
 ''',
         (s) => _afterLast(s, '()'));
@@ -1475,7 +1475,7 @@ main() {
     await _prepareCompletion(
         'f()',
         '''
-main() {
+void f() {
   int f()
 }
 f() {}
@@ -1484,7 +1484,7 @@ f() {}
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   int f();
   ////
 }
@@ -1497,7 +1497,7 @@ f() {}
     await _prepareCompletion(
         '=>',
         '''
-main() {
+void f() {
   int f() =>
 }
 ''',
@@ -1505,7 +1505,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   int f() => ;
   ////
 }
@@ -1517,7 +1517,7 @@ main() {
     await _prepareCompletion(
         '=>',
         '''
-main() {
+void f() {
   int f() => ////
 }
 ''',
@@ -1525,7 +1525,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   int f() => ;
   ////
 }
@@ -1537,7 +1537,7 @@ main() {
     await _prepareCompletion(
         'v = 1',
         '''
-main() {
+void f() {
   int v = 1
 }
 ''',
@@ -1545,7 +1545,7 @@ main() {
     _assertHasChange(
         'Add a semicolon and newline',
         '''
-main() {
+void f() {
   int v = 1;
   ////
 }
@@ -1560,7 +1560,7 @@ class _SwitchCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'label',
         '''
-main(x) {
+void f(x) {
   switch (x) {
     case label
   }
@@ -1570,7 +1570,7 @@ main(x) {
     _assertHasChange(
         'Complete switch-statement',
         '''
-main(x) {
+void f(x) {
   switch (x) {
     case label: ////
   }
@@ -1583,7 +1583,7 @@ main(x) {
     await _prepareCompletion(
         'default',
         '''
-main(x) {
+void f(x) {
   switch (x) {
     default
   }
@@ -1593,7 +1593,7 @@ main(x) {
     _assertHasChange(
         'Complete switch-statement',
         '''
-main(x) {
+void f(x) {
   switch (x) {
     default: ////
   }
@@ -1606,7 +1606,7 @@ main(x) {
     await _prepareCompletion(
         'switch',
         '''
-main() {
+void f() {
   switch ()
 }
 ''',
@@ -1614,7 +1614,7 @@ main() {
     _assertHasChange(
         'Complete switch-statement',
         '''
-main() {
+void f() {
   switch () {
     ////
   }
@@ -1627,7 +1627,7 @@ main() {
     await _prepareCompletion(
         'switch',
         '''
-main() {
+void f() {
   switch////
 }
 ''',
@@ -1635,7 +1635,7 @@ main() {
     _assertHasChange(
         'Complete switch-statement',
         '''
-main() {
+void f() {
   switch () {
     ////
   }
@@ -1648,7 +1648,7 @@ main() {
     await _prepareCompletion(
         'switch',
         '''
-main() {
+void f() {
   switch ////
 }
 ''',
@@ -1656,7 +1656,7 @@ main() {
     _assertHasChange(
         'Complete switch-statement',
         '''
-main() {
+void f() {
   switch () {
     ////
   }
@@ -1672,7 +1672,7 @@ class _TryCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         '{} catch',
         '''
-main() {
+void f() {
   try {
   } catch(e){} catch ////
 }
@@ -1681,7 +1681,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } catch(e){} catch () {
     ////
@@ -1695,7 +1695,7 @@ main() {
     await _prepareCompletion(
         '} catch ',
         '''
-main() {
+void f() {
   try {
   } catch() {
   } catch(e){} catch ////
@@ -1705,7 +1705,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } catch() {
   } catch(e){} catch () {
@@ -1720,7 +1720,7 @@ main() {
     await _prepareCompletion(
         'finally',
         '''
-main() {
+void f() {
   try {
   } finally
 }
@@ -1729,7 +1729,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } finally {
     ////
@@ -1743,7 +1743,7 @@ main() {
     await _prepareCompletion(
         'try',
         '''
-main() {
+void f() {
   try////
 }
 ''',
@@ -1751,7 +1751,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
     ////
   }
@@ -1764,7 +1764,7 @@ main() {
     await _prepareCompletion(
         'try',
         '''
-main() {
+void f() {
   try ////
 }
 ''',
@@ -1772,7 +1772,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
     ////
   }
@@ -1785,7 +1785,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on catch
 }
@@ -1794,7 +1794,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on catch () {
     ////
@@ -1808,7 +1808,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on catch
   //
@@ -1818,7 +1818,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on catch () {
     ////
@@ -1833,7 +1833,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on
 }
@@ -1842,7 +1842,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on  {
     ////
@@ -1856,7 +1856,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on ////
 }
@@ -1865,7 +1865,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on  {
     ////
@@ -1879,7 +1879,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on  ////
 }
@@ -1888,7 +1888,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on  {
     ////
@@ -1902,7 +1902,7 @@ main() {
     await _prepareCompletion(
         'on',
         '''
-main() {
+void f() {
   try {
   } on Exception
 }
@@ -1911,7 +1911,7 @@ main() {
     _assertHasChange(
         'Complete try-statement',
         '''
-main() {
+void f() {
   try {
   } on Exception {
     ////
@@ -1935,7 +1935,7 @@ class _WhileCompletionTest extends StatementCompletionTest {
     await _prepareCompletion(
         'while',
         '''
-main() {
+void f() {
   while ////
 }
 ''',
@@ -1943,7 +1943,7 @@ main() {
     _assertHasChange(
         'Complete while-statement',
         '''
-main() {
+void f() {
   while () {
     ////
   }

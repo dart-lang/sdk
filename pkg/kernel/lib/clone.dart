@@ -507,7 +507,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     }
   }
 
-  visitTypeParameter(TypeParameter node) {
+  TypeParameter visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
     newNode.bound = visitType(node.bound);
     // ignore: unnecessary_null_comparison
@@ -734,6 +734,20 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   @override
   TreeNode visitFunctionTearOff(FunctionTearOff node) {
     return new FunctionTearOff(clone(node.receiver));
+  }
+
+  @override
+  TreeNode visitConstructorTearOff(ConstructorTearOff node) {
+    return new ConstructorTearOff.byReference(node.constructorReference);
+  }
+
+  @override
+  TreeNode visitTypedefTearOff(TypedefTearOff node) {
+    prepareTypeParameters(node.typeParameters);
+    return new TypedefTearOff(
+        node.typeParameters.map(visitTypeParameter).toList(),
+        clone(node.expression),
+        node.typeArguments.map(visitType).toList());
   }
 }
 

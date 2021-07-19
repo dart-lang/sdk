@@ -500,6 +500,7 @@ class AstTestFactory {
 
   static ExtensionDeclarationImpl extensionDeclaration(
           {required String name,
+          required bool isExtensionTypeDeclaration,
           TypeParameterList? typeParameters,
           required TypeAnnotation extendedType,
           List<ClassMember> members = const []}) =>
@@ -507,6 +508,9 @@ class AstTestFactory {
           comment: null,
           metadata: null,
           extensionKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENSION),
+          typeKeyword: isExtensionTypeDeclaration
+              ? TokenFactory.tokenFromString('type')
+              : null,
           name: identifier3(name),
           typeParameters: typeParameters,
           onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),

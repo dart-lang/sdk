@@ -215,8 +215,6 @@ class ExpressionLifter extends Transformer {
   @override
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
   @override
-  TreeNode visitPropertyGet(PropertyGet expr) => unary(expr);
-  @override
   TreeNode visitInstanceGet(InstanceGet expr) => unary(expr);
   @override
   TreeNode visitDynamicGet(DynamicGet expr) => unary(expr);
@@ -236,14 +234,6 @@ class ExpressionLifter extends Transformer {
   TreeNode visitAsExpression(AsExpression expr) => unary(expr);
   @override
   TreeNode visitThrow(Throw expr) => unary(expr);
-
-  @override
-  TreeNode visitPropertySet(PropertySet expr) {
-    return transformTreeNode(expr, () {
-      expr.value = transform(expr.value)..parent = expr;
-      expr.receiver = transform(expr.receiver)..parent = expr;
-    });
-  }
 
   @override
   TreeNode visitInstanceSet(InstanceSet expr) {
@@ -272,14 +262,6 @@ class ExpressionLifter extends Transformer {
     // Returns the arguments, which is assumed at the call sites because they do
     // not replace the arguments or set parent pointers.
     return args;
-  }
-
-  @override
-  TreeNode visitMethodInvocation(MethodInvocation expr) {
-    return transformTreeNode(expr, () {
-      visitArguments(expr.arguments);
-      expr.receiver = transform(expr.receiver)..parent = expr;
-    });
   }
 
   @override
@@ -406,10 +388,12 @@ class ExpressionLifter extends Transformer {
         nameIndex,
         _staticTypeContext.typeEnvironment.coreTypes
             .boolRawType(_staticTypeContext.nonNullable));
+    final objectEquals = continuationRewriter.helper.coreTypes.objectEquals;
     rightBody.addStatement(new ExpressionStatement(new VariableSet(
         result,
-        new MethodInvocation(expr.right, new Name('=='),
-            new Arguments(<Expression>[new BoolLiteral(true)])))));
+        new EqualsCall(expr.right, new BoolLiteral(true),
+            interfaceTarget: objectEquals,
+            functionType: objectEquals.getterType as FunctionType))));
     var then, otherwise;
     if (expr.operatorEnum == LogicalExpressionOperator.AND) {
       then = rightBody;
@@ -420,12 +404,13 @@ class ExpressionLifter extends Transformer {
     }
     statements.add(new IfStatement(new VariableGet(result), then, otherwise));
 
-    var test = new MethodInvocation(expr.left, new Name('=='),
-        new Arguments(<Expression>[new BoolLiteral(true)]));
+    final test = new EqualsCall(expr.left, new BoolLiteral(true),
+        interfaceTarget: objectEquals,
+        functionType: objectEquals.getterType as FunctionType);
     statements.add(new ExpressionStatement(new VariableSet(result, test)));
 
     seenAwait = false;
-    test.receiver = transform(test.receiver)..parent = test;
+    test.left = transform(test.left)..parent = test;
 
     ++nameIndex;
     seenAwait = seenAwait || rightAwait;

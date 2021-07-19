@@ -576,7 +576,8 @@ Fragment BaseFlowGraphBuilder::LoadStaticField(const Field& field,
 Fragment BaseFlowGraphBuilder::RedefinitionWithType(const AbstractType& type) {
   auto redefinition = new (Z) RedefinitionInstr(Pop());
   redefinition->set_constrained_type(
-      new (Z) CompileType(CompileType::FromAbstractType(type)));
+      new (Z) CompileType(CompileType::FromAbstractType(
+          type, CompileType::kCanBeNull, CompileType::kCannotBeSentinel)));
   Push(redefinition);
   return Fragment(redefinition);
 }
@@ -616,7 +617,6 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(classid_t class_id) {
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
       index, value, emit_store_barrier, /*index_unboxed=*/false,
-
       compiler::target::Instance::ElementSizeFor(class_id), class_id,
       kAlignedAccess, DeoptId::kNone, InstructionSource());
   return Fragment(store);
@@ -1147,14 +1147,6 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                InstructionSource(position), GetNextDeoptId());
   Push(call);
   return Fragment(call);
-}
-
-Fragment BaseFlowGraphBuilder::StringInterpolate(TokenPosition position) {
-  Value* array = Pop();
-  StringInterpolateInstr* interpolate = new (Z) StringInterpolateInstr(
-      array, InstructionSource(position), GetNextDeoptId());
-  Push(interpolate);
-  return Fragment(interpolate);
 }
 
 void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {

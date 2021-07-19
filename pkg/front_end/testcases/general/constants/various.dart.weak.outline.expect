@@ -445,7 +445,7 @@ Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:194:36 -> BoolCons
 Evaluated: EqualsCall @ org-dartlang-testcase:///various.dart:195:24 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:200:66 -> NullConstant(null)
 Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:203:39 -> NullConstant(null)
-Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> PartialInstantiationConstant(id1<int*>)
+Evaluated: AsExpression @ org-dartlang-testcase:///various.dart:205:39 -> InstantiationConstant(id1<int*>)
 Evaluated: Not @ org-dartlang-testcase:///various.dart:208:20 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:210:46 -> BoolConstant(true)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:211:38 -> BoolConstant(false)

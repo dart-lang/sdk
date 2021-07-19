@@ -507,17 +507,17 @@ class Parser {
   /// Returns the next token without advancing.
   Token _peek() => _tokenAt(_current);
 
-  /// Remove any duplicate types (for ex. if we map multiple types into dynamic)
-  /// we don't want to end up with `dynamic | dynamic`. Key on dartType to
+  /// Remove any duplicate types (for ex. if we map multiple types into Object?)
+  /// we don't want to end up with `Object? | Object?`. Key on dartType to
   /// ensure we different types that will map down to the same type.
   TypeBase _simplifyUnionTypes(List<TypeBase> types) {
     final uniqueTypes = Map.fromEntries(
       types.map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
     ).values.toList();
 
-    // If our list includes something that maps to dynamic as well as other
-    // types, we should just treat the whole thing as dynamic as we get no value
-    // typing Either4<bool, String, num, dynamic> but it becomes much more
+    // If our list includes something that maps to Object? as well as other
+    // types, we should just treat the whole thing as Object? as we get no value
+    // typing Either4<bool, String, num, Object?> but it becomes much more
     // difficult to use.
     if (uniqueTypes.any(isAnyType)) {
       return uniqueTypes.firstWhere(isAnyType);
@@ -954,8 +954,8 @@ class Type extends TypeBase {
       'number': 'num',
       'integer': 'int',
       'uinteger': 'int',
-      'any': 'dynamic',
-      'object': 'dynamic',
+      'any': 'Object?',
+      'object': 'Object?',
       // Simplify MarkedString from
       //     string | { language: string; value: string }
       // to just String
@@ -1001,7 +1001,7 @@ abstract class TypeBase {
   String get typeArgsString;
 
   /// A unique identifier for this type. Used for folding types together
-  /// (for example two types that resolve to "dynamic" in Dart).
+  /// (for example two types that resolve to "Object?" in Dart).
   String get uniqueTypeIdentifier => dartTypeWithTypeArgs;
 }
 

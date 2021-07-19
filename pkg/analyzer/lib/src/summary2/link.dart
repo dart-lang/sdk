@@ -24,7 +24,6 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/summary2/variance_builder.dart';
 
 var timerLinkingLinkingBundle = Stopwatch();
-var timerLinkingRemoveBundle = Stopwatch();
 
 /// Note that AST units and tokens of [inputLibraries] will be damaged.
 ///
@@ -81,13 +80,6 @@ class Linker {
     timerLinkingLinkingBundle.start();
     _writeLibraries();
     timerLinkingLinkingBundle.stop();
-
-    // TODO(scheglov) Remove to keep linking elements.
-    timerLinkingRemoveBundle.start();
-    elementFactory.removeBundle(
-      inputLibraries.map((e) => e.uriStr).toSet(),
-    );
-    timerLinkingRemoveBundle.stop();
   }
 
   void _buildEnumChildren() {
@@ -167,10 +159,6 @@ class Linker {
 
     for (var library in builders.values) {
       library.storeExportScope();
-    }
-
-    for (var library in builders.values) {
-      library.buildScope();
     }
   }
 
@@ -260,6 +248,7 @@ class LinkInputUnit {
   final int? partDirectiveIndex;
   final String? partUriStr;
   final Source source;
+  final String? sourceContent;
   final bool isSynthetic;
   final ast.CompilationUnit unit;
 
@@ -267,6 +256,7 @@ class LinkInputUnit {
     required this.partDirectiveIndex,
     this.partUriStr,
     required this.source,
+    this.sourceContent,
     required this.isSynthetic,
     required this.unit,
   });

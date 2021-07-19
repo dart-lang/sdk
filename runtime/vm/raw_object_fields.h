@@ -31,11 +31,11 @@ class OffsetsTable : public ZoneAllocated {
 
   struct OffsetsTableEntry {
     const intptr_t class_id;
-    const char* field_name;
-    intptr_t offset;
+    const char* const field_name;
+    const intptr_t offset;
   };
 
-  static OffsetsTableEntry offsets_table[];
+  static const OffsetsTableEntry offsets_table[];
 
  private:
   struct IntAndIntToStringMapTraits {

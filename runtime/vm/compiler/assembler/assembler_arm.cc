@@ -15,7 +15,7 @@
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
-    !defined(HOST_OS_IOS) && !defined(HOST_OS_MACOS)
+    !defined(DART_HOST_OS_IOS) && !defined(DART_HOST_OS_MACOS)
 #error ARM cross-compile only supported on Linux, Android, iOS, and Mac
 #endif
 
@@ -503,8 +503,8 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
   ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
-                     B23 | L | (static_cast<int32_t>(rn) << kLdExRnShift) |
-                     (static_cast<int32_t>(rt) << kLdExRtShift) | B11 | B10 |
+                     B23 | L | (static_cast<int32_t>(rn) << kLdrExRnShift) |
+                     (static_cast<int32_t>(rt) << kLdrExRtShift) | B11 | B10 |
                      B9 | B8 | B7 | B4 | B3 | B2 | B1 | B0;
   Emit(encoding);
 }
@@ -525,6 +525,46 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 void Assembler::dmb() {
   // Emit a `dmb ish` instruction.
   Emit(kDataMemoryBarrier);
+}
+
+static int32_t BitFieldExtractEncoding(bool sign_extend,
+                                       Register rd,
+                                       Register rn,
+                                       int32_t lsb,
+                                       int32_t width,
+                                       Condition cond) {
+  ASSERT(rn != kNoRegister && rn != PC);
+  ASSERT(rd != kNoRegister && rd != PC);
+  ASSERT(cond != kNoCondition);
+  ASSERT(Utils::IsUint(kBitFieldExtractLSBBits, lsb));
+  ASSERT(width >= 1);
+  ASSERT(lsb + width <= kBitsPerInt32);
+  const int32_t widthm1 = width - 1;
+  ASSERT(Utils::IsUint(kBitFieldExtractWidthBits, widthm1));
+  return (static_cast<int32_t>(cond) << kConditionShift) | B26 | B25 | B24 |
+         B23 | (sign_extend ? 0 : B22) | B21 |
+         (widthm1 << kBitFieldExtractWidthShift) |
+         (static_cast<int32_t>(rd) << kRdShift) |
+         (lsb << kBitFieldExtractLSBShift) | B6 | B4 |
+         (static_cast<int32_t>(rn) << kBitFieldExtractRnShift);
+}
+
+void Assembler::sbfx(Register rd,
+                     Register rn,
+                     int32_t lsb,
+                     int32_t width,
+                     Condition cond) {
+  const bool sign_extend = true;
+  Emit(BitFieldExtractEncoding(sign_extend, rd, rn, lsb, width, cond));
+}
+
+void Assembler::ubfx(Register rd,
+                     Register rn,
+                     int32_t lsb,
+                     int32_t width,
+                     Condition cond) {
+  const bool sign_extend = false;
+  Emit(BitFieldExtractEncoding(sign_extend, rd, rn, lsb, width, cond));
 }
 
 void Assembler::EnterFullSafepoint(Register addr, Register state) {
@@ -2296,19 +2336,20 @@ bool Address::CanHoldLoadOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
@@ -2329,20 +2370,21 @@ bool Address::CanHoldStoreOffset(OperandSize size,
     case kUnsignedTwoBytes:
     case kWordPair: {
       *offset_mask = 0xff;
-      return Utils::IsAbsoluteUint(8, offset);  // Addressing mode 3.
+      return Utils::MagnitudeIsUint(8, offset);  // Addressing mode 3.
     }
     case kByte:
     case kUnsignedByte:
     case kFourBytes:
     case kUnsignedFourBytes: {
       *offset_mask = 0xfff;
-      return Utils::IsAbsoluteUint(12, offset);  // Addressing mode 2.
+      return Utils::MagnitudeIsUint(12, offset);  // Addressing mode 2.
     }
     case kSWord:
     case kDWord: {
       *offset_mask = 0x3fc;  // Multiple of 4.
       // VFP addressing mode.
-      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
+      return (Utils::MagnitudeIsUint(10, offset) &&
+              Utils::IsAligned(offset, 4));
     }
     case kRegList: {
       *offset_mask = 0x0;
@@ -2473,9 +2515,26 @@ void Assembler::PopNativeCalleeSavedRegisters() {
   PopList(kAbiPreservedCpuRegs);
 }
 
-void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
-  if (rd != rm) {
-    mov(rd, Operand(rm), cond);
+void Assembler::ExtendValue(Register rd,
+                            Register rm,
+                            OperandSize sz,
+                            Condition cond) {
+  switch (sz) {
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      if (rd == rm) return;
+      return mov(rd, Operand(rm), cond);
+    case kUnsignedTwoBytes:
+      return ubfx(rd, rm, 0, kBitsPerInt16, cond);
+    case kTwoBytes:
+      return sbfx(rd, rm, 0, kBitsPerInt16, cond);
+    case kUnsignedByte:
+      return ubfx(rd, rm, 0, kBitsPerInt8, cond);
+    case kByte:
+      return sbfx(rd, rm, 0, kBitsPerInt8, cond);
+    default:
+      UNIMPLEMENTED();
+      break;
   }
 }
 

@@ -81,8 +81,8 @@ static method foo<T extends self::C?>(self::C? c, self::foo::T% t, self::foo::T?
                           ^" in nt as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method bar<T extends self::C>(self::C c, self::bar::T t) → dynamic {
-  self::functionContext(let final self::C #t9 = c in #t9 == null ?{() → core::int} null : #t9.{self::C::call});
-  self::nullableFunctionContext(let final self::C #t10 = c in #t10 == null ?{() → core::int} null : #t10.{self::C::call});
+  self::functionContext(let final self::C #t9 = c in #t9 == null ?{() → core::int} null : #t9.{self::C::call}{() → core::int});
+  self::nullableFunctionContext(let final self::C #t10 = c in #t10 == null ?{() → core::int} null : #t10.{self::C::call}{() → core::int});
   self::functionContext(let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:27:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Shouldn't result in a compile-time error.
                   ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);

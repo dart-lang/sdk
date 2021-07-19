@@ -4231,7 +4231,7 @@ DART_EXPORT int64_t PassStruct8BytesPackedIntx10(Struct8BytesPackedInt a0,
 // Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
-DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
+DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32x2(
     Struct9BytesPackedMixed a0,
     Struct9BytesPackedMixed a1,
     Struct9BytesPackedMixed a2,
@@ -4243,8 +4243,9 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
     Struct9BytesPackedMixed a8,
     Struct9BytesPackedMixed a9,
     double a10,
-    int32_t a11) {
-  std::cout << "PassStruct9BytesPackedMixedx10DoubleInt32"
+    int32_t a11,
+    int32_t a12) {
+  std::cout << "PassStruct9BytesPackedMixedx10DoubleInt32x2"
             << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
             << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
             << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
@@ -4255,7 +4256,7 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
             << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
             << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
             << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
-            << a11 << ")"
+            << a11 << ", " << a12 << ")"
             << "\n";
 
   double result = 0;
@@ -4282,6 +4283,7 @@ DART_EXPORT double PassStruct9BytesPackedMixedx10DoubleInt32(
   result += a9.a1;
   result += a10;
   result += a11;
+  result += a12;
 
   std::cout << "result = " << result << "\n";
 
@@ -4749,7 +4751,7 @@ DART_EXPORT Struct1ByteInt ReturnStruct1ByteInt(int8_t a0) {
             << "(" << static_cast<int>(a0) << ")"
             << "\n";
 
-  Struct1ByteInt result;
+  Struct1ByteInt result = {};
 
   result.a0 = a0;
 
@@ -4769,7 +4771,7 @@ ReturnStruct3BytesHomogeneousUint8(uint8_t a0, uint8_t a1, uint8_t a2) {
             << ", " << static_cast<int>(a2) << ")"
             << "\n";
 
-  Struct3BytesHomogeneousUint8 result;
+  Struct3BytesHomogeneousUint8 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4793,7 +4795,7 @@ ReturnStruct3BytesInt2ByteAligned(int16_t a0, int8_t a1) {
             << "(" << a0 << ", " << static_cast<int>(a1) << ")"
             << "\n";
 
-  Struct3BytesInt2ByteAligned result;
+  Struct3BytesInt2ByteAligned result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4813,7 +4815,7 @@ ReturnStruct4BytesHomogeneousInt16(int16_t a0, int16_t a1) {
             << "(" << a0 << ", " << a1 << ")"
             << "\n";
 
-  Struct4BytesHomogeneousInt16 result;
+  Struct4BytesHomogeneousInt16 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4842,7 +4844,7 @@ ReturnStruct7BytesHomogeneousUint8(uint8_t a0,
             << ", " << static_cast<int>(a6) << ")"
             << "\n";
 
-  Struct7BytesHomogeneousUint8 result;
+  Struct7BytesHomogeneousUint8 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4874,7 +4876,7 @@ ReturnStruct7BytesInt4ByteAligned(int32_t a0, int16_t a1, int8_t a2) {
             << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
             << "\n";
 
-  Struct7BytesInt4ByteAligned result;
+  Struct7BytesInt4ByteAligned result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4897,7 +4899,7 @@ DART_EXPORT Struct8BytesInt ReturnStruct8BytesInt(int16_t a0,
             << "(" << a0 << ", " << a1 << ", " << a2 << ")"
             << "\n";
 
-  Struct8BytesInt result;
+  Struct8BytesInt result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4918,7 +4920,7 @@ ReturnStruct8BytesHomogeneousFloat(float a0, float a1) {
             << "(" << a0 << ", " << a1 << ")"
             << "\n";
 
-  Struct8BytesHomogeneousFloat result;
+  Struct8BytesHomogeneousFloat result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4939,7 +4941,7 @@ DART_EXPORT Struct8BytesMixed ReturnStruct8BytesMixed(float a0,
             << "(" << a0 << ", " << a1 << ", " << a2 << ")"
             << "\n";
 
-  Struct8BytesMixed result;
+  Struct8BytesMixed result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -4974,7 +4976,7 @@ ReturnStruct9BytesHomogeneousUint8(uint8_t a0,
             << ", " << static_cast<int>(a8) << ")"
             << "\n";
 
-  Struct9BytesHomogeneousUint8 result;
+  Struct9BytesHomogeneousUint8 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5010,7 +5012,7 @@ ReturnStruct9BytesInt4Or8ByteAligned(int64_t a0, int8_t a1) {
             << "(" << a0 << ", " << static_cast<int>(a1) << ")"
             << "\n";
 
-  Struct9BytesInt4Or8ByteAligned result;
+  Struct9BytesInt4Or8ByteAligned result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5031,7 +5033,7 @@ ReturnStruct12BytesHomogeneousFloat(float a0, float a1, float a2) {
             << "(" << a0 << ", " << a1 << ", " << a2 << ")"
             << "\n";
 
-  Struct12BytesHomogeneousFloat result;
+  Struct12BytesHomogeneousFloat result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5052,7 +5054,7 @@ ReturnStruct16BytesHomogeneousFloat(float a0, float a1, float a2, float a3) {
             << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
             << "\n";
 
-  Struct16BytesHomogeneousFloat result;
+  Struct16BytesHomogeneousFloat result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5074,7 +5076,7 @@ DART_EXPORT Struct16BytesMixed ReturnStruct16BytesMixed(double a0, int64_t a1) {
             << "(" << a0 << ", " << a1 << ")"
             << "\n";
 
-  Struct16BytesMixed result;
+  Struct16BytesMixed result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5097,7 +5099,7 @@ DART_EXPORT Struct16BytesMixed2 ReturnStruct16BytesMixed2(float a0,
             << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
             << "\n";
 
-  Struct16BytesMixed2 result;
+  Struct16BytesMixed2 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5123,7 +5125,7 @@ DART_EXPORT Struct17BytesInt ReturnStruct17BytesInt(int64_t a0,
             << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
             << "\n";
 
-  Struct17BytesInt result;
+  Struct17BytesInt result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5174,7 +5176,7 @@ ReturnStruct19BytesHomogeneousUint8(uint8_t a0,
             << ", " << static_cast<int>(a18) << ")"
             << "\n";
 
-  Struct19BytesHomogeneousUint8 result;
+  Struct19BytesHomogeneousUint8 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5234,7 +5236,7 @@ ReturnStruct20BytesHomogeneousInt32(int32_t a0,
             << ")"
             << "\n";
 
-  Struct20BytesHomogeneousInt32 result;
+  Struct20BytesHomogeneousInt32 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5263,7 +5265,7 @@ ReturnStruct20BytesHomogeneousFloat(float a0,
             << ")"
             << "\n";
 
-  Struct20BytesHomogeneousFloat result;
+  Struct20BytesHomogeneousFloat result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5290,7 +5292,7 @@ ReturnStruct32BytesHomogeneousDouble(double a0,
             << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
             << "\n";
 
-  Struct32BytesHomogeneousDouble result;
+  Struct32BytesHomogeneousDouble result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5318,7 +5320,7 @@ ReturnStruct40BytesHomogeneousDouble(double a0,
             << ")"
             << "\n";
 
-  Struct40BytesHomogeneousDouble result;
+  Struct40BytesHomogeneousDouble result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5498,7 +5500,7 @@ ReturnStruct1024BytesHomogeneousUint64(uint64_t a0,
             << a127 << ")"
             << "\n";
 
-  Struct1024BytesHomogeneousUint64 result;
+  Struct1024BytesHomogeneousUint64 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5686,7 +5688,7 @@ DART_EXPORT Struct3BytesPackedInt ReturnStruct3BytesPackedInt(int8_t a0,
             << "(" << static_cast<int>(a0) << ", " << a1 << ")"
             << "\n";
 
-  Struct3BytesPackedInt result;
+  Struct3BytesPackedInt result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5711,7 +5713,7 @@ DART_EXPORT Struct8BytesPackedInt ReturnStruct8BytesPackedInt(uint8_t a0,
             << static_cast<int>(a4) << ")"
             << "\n";
 
-  Struct8BytesPackedInt result;
+  Struct8BytesPackedInt result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5738,7 +5740,7 @@ DART_EXPORT Struct9BytesPackedMixed ReturnStruct9BytesPackedMixed(uint8_t a0,
             << "(" << static_cast<int>(a0) << ", " << a1 << ")"
             << "\n";
 
-  Struct9BytesPackedMixed result;
+  Struct9BytesPackedMixed result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -5757,7 +5759,7 @@ DART_EXPORT Union4BytesMixed ReturnUnion4BytesMixed(uint32_t a0) {
             << "(" << a0 << ")"
             << "\n";
 
-  Union4BytesMixed result;
+  Union4BytesMixed result = {};
 
   result.a0 = a0;
 
@@ -5775,7 +5777,7 @@ DART_EXPORT Union8BytesNestedFloat ReturnUnion8BytesNestedFloat(double a0) {
             << "(" << a0 << ")"
             << "\n";
 
-  Union8BytesNestedFloat result;
+  Union8BytesNestedFloat result = {};
 
   result.a0 = a0;
 
@@ -5795,7 +5797,7 @@ ReturnUnion9BytesNestedInt(Struct8BytesInt a0) {
             << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "))"
             << "\n";
 
-  Union9BytesNestedInt result;
+  Union9BytesNestedInt result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -5825,7 +5827,7 @@ ReturnUnion16BytesNestedFloat(Struct8BytesHomogeneousFloat a0) {
             << "((" << a0.a0 << ", " << a0.a1 << "))"
             << "\n";
 
-  Union16BytesNestedFloat result;
+  Union16BytesNestedFloat result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6058,7 +6060,7 @@ DART_EXPORT StructAlignmentInt16 ReturnStructAlignmentInt16(int8_t a0,
             << static_cast<int>(a2) << ")"
             << "\n";
 
-  StructAlignmentInt16 result;
+  StructAlignmentInt16 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -6082,7 +6084,7 @@ DART_EXPORT StructAlignmentInt32 ReturnStructAlignmentInt32(int8_t a0,
             << static_cast<int>(a2) << ")"
             << "\n";
 
-  StructAlignmentInt32 result;
+  StructAlignmentInt32 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -6106,7 +6108,7 @@ DART_EXPORT StructAlignmentInt64 ReturnStructAlignmentInt64(int8_t a0,
             << static_cast<int>(a2) << ")"
             << "\n";
 
-  StructAlignmentInt64 result;
+  StructAlignmentInt64 result = {};
 
   result.a0 = a0;
   result.a1 = a1;
@@ -6130,7 +6132,7 @@ ReturnStruct8BytesNestedInt(Struct4BytesHomogeneousInt16 a0,
             << a1.a1 << "))"
             << "\n";
 
-  Struct8BytesNestedInt result;
+  Struct8BytesNestedInt result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6153,7 +6155,7 @@ ReturnStruct8BytesNestedFloat(Struct4BytesFloat a0, Struct4BytesFloat a1) {
             << "((" << a0.a0 << "), (" << a1.a0 << "))"
             << "\n";
 
-  Struct8BytesNestedFloat result;
+  Struct8BytesNestedFloat result = {};
 
   result.a0.a0 = a0.a0;
   result.a1.a0 = a1.a0;
@@ -6174,7 +6176,7 @@ ReturnStruct8BytesNestedFloat2(Struct4BytesFloat a0, float a1) {
             << "((" << a0.a0 << "), " << a1 << ")"
             << "\n";
 
-  Struct8BytesNestedFloat2 result;
+  Struct8BytesNestedFloat2 result = {};
 
   result.a0.a0 = a0.a0;
   result.a1 = a1;
@@ -6195,7 +6197,7 @@ ReturnStruct8BytesNestedMixed(Struct4BytesHomogeneousInt16 a0,
             << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << "))"
             << "\n";
 
-  Struct8BytesNestedMixed result;
+  Struct8BytesNestedMixed result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6220,7 +6222,7 @@ ReturnStruct16BytesNestedInt(Struct8BytesNestedInt a0,
             << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")))"
             << "\n";
 
-  Struct16BytesNestedInt result;
+  Struct16BytesNestedInt result = {};
 
   result.a0.a0.a0 = a0.a0.a0;
   result.a0.a0.a1 = a0.a0.a1;
@@ -6256,7 +6258,7 @@ ReturnStruct32BytesNestedInt(Struct16BytesNestedInt a0,
             << ", " << a1.a1.a1.a1 << "))))"
             << "\n";
 
-  Struct32BytesNestedInt result;
+  Struct32BytesNestedInt result = {};
 
   result.a0.a0.a0.a0 = a0.a0.a0.a0;
   result.a0.a0.a0.a1 = a0.a0.a0.a1;
@@ -6301,7 +6303,7 @@ ReturnStructNestedIntStructAlignmentInt16(StructAlignmentInt16 a0,
             << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
             << "\n";
 
-  StructNestedIntStructAlignmentInt16 result;
+  StructNestedIntStructAlignmentInt16 result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6331,7 +6333,7 @@ ReturnStructNestedIntStructAlignmentInt32(StructAlignmentInt32 a0,
             << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
             << "\n";
 
-  StructNestedIntStructAlignmentInt32 result;
+  StructNestedIntStructAlignmentInt32 result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6361,7 +6363,7 @@ ReturnStructNestedIntStructAlignmentInt64(StructAlignmentInt64 a0,
             << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
             << "\n";
 
-  StructNestedIntStructAlignmentInt64 result;
+  StructNestedIntStructAlignmentInt64 result = {};
 
   result.a0.a0 = a0.a0;
   result.a0.a1 = a0.a1;
@@ -6403,7 +6405,7 @@ ReturnStructNestedIrregularEvenBigger(uint64_t a0,
             << ", " << a2.a3 << "), " << a3 << ")"
             << "\n";
 
-  StructNestedIrregularEvenBigger result;
+  StructNestedIrregularEvenBigger result = {};
 
   result.a0 = a0;
   result.a1.a0.a0 = a1.a0.a0;
@@ -6478,16 +6480,16 @@ DART_EXPORT intptr_t TestPassStruct1ByteIntx10(
                  Struct1ByteInt a7,
                  Struct1ByteInt a8,
                  Struct1ByteInt a9)) {
-  Struct1ByteInt a0;
-  Struct1ByteInt a1;
-  Struct1ByteInt a2;
-  Struct1ByteInt a3;
-  Struct1ByteInt a4;
-  Struct1ByteInt a5;
-  Struct1ByteInt a6;
-  Struct1ByteInt a7;
-  Struct1ByteInt a8;
-  Struct1ByteInt a9;
+  Struct1ByteInt a0 = {};
+  Struct1ByteInt a1 = {};
+  Struct1ByteInt a2 = {};
+  Struct1ByteInt a3 = {};
+  Struct1ByteInt a4 = {};
+  Struct1ByteInt a5 = {};
+  Struct1ByteInt a6 = {};
+  Struct1ByteInt a7 = {};
+  Struct1ByteInt a8 = {};
+  Struct1ByteInt a9 = {};
 
   a0.a0 = -1;
   a1.a0 = 2;
@@ -6548,16 +6550,16 @@ DART_EXPORT intptr_t TestPassStruct3BytesHomogeneousUint8x10(
                  Struct3BytesHomogeneousUint8 a7,
                  Struct3BytesHomogeneousUint8 a8,
                  Struct3BytesHomogeneousUint8 a9)) {
-  Struct3BytesHomogeneousUint8 a0;
-  Struct3BytesHomogeneousUint8 a1;
-  Struct3BytesHomogeneousUint8 a2;
-  Struct3BytesHomogeneousUint8 a3;
-  Struct3BytesHomogeneousUint8 a4;
-  Struct3BytesHomogeneousUint8 a5;
-  Struct3BytesHomogeneousUint8 a6;
-  Struct3BytesHomogeneousUint8 a7;
-  Struct3BytesHomogeneousUint8 a8;
-  Struct3BytesHomogeneousUint8 a9;
+  Struct3BytesHomogeneousUint8 a0 = {};
+  Struct3BytesHomogeneousUint8 a1 = {};
+  Struct3BytesHomogeneousUint8 a2 = {};
+  Struct3BytesHomogeneousUint8 a3 = {};
+  Struct3BytesHomogeneousUint8 a4 = {};
+  Struct3BytesHomogeneousUint8 a5 = {};
+  Struct3BytesHomogeneousUint8 a6 = {};
+  Struct3BytesHomogeneousUint8 a7 = {};
+  Struct3BytesHomogeneousUint8 a8 = {};
+  Struct3BytesHomogeneousUint8 a9 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -6653,16 +6655,16 @@ DART_EXPORT intptr_t TestPassStruct3BytesInt2ByteAlignedx10(
                  Struct3BytesInt2ByteAligned a7,
                  Struct3BytesInt2ByteAligned a8,
                  Struct3BytesInt2ByteAligned a9)) {
-  Struct3BytesInt2ByteAligned a0;
-  Struct3BytesInt2ByteAligned a1;
-  Struct3BytesInt2ByteAligned a2;
-  Struct3BytesInt2ByteAligned a3;
-  Struct3BytesInt2ByteAligned a4;
-  Struct3BytesInt2ByteAligned a5;
-  Struct3BytesInt2ByteAligned a6;
-  Struct3BytesInt2ByteAligned a7;
-  Struct3BytesInt2ByteAligned a8;
-  Struct3BytesInt2ByteAligned a9;
+  Struct3BytesInt2ByteAligned a0 = {};
+  Struct3BytesInt2ByteAligned a1 = {};
+  Struct3BytesInt2ByteAligned a2 = {};
+  Struct3BytesInt2ByteAligned a3 = {};
+  Struct3BytesInt2ByteAligned a4 = {};
+  Struct3BytesInt2ByteAligned a5 = {};
+  Struct3BytesInt2ByteAligned a6 = {};
+  Struct3BytesInt2ByteAligned a7 = {};
+  Struct3BytesInt2ByteAligned a8 = {};
+  Struct3BytesInt2ByteAligned a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -6736,16 +6738,16 @@ DART_EXPORT intptr_t TestPassStruct4BytesHomogeneousInt16x10(
                  Struct4BytesHomogeneousInt16 a7,
                  Struct4BytesHomogeneousInt16 a8,
                  Struct4BytesHomogeneousInt16 a9)) {
-  Struct4BytesHomogeneousInt16 a0;
-  Struct4BytesHomogeneousInt16 a1;
-  Struct4BytesHomogeneousInt16 a2;
-  Struct4BytesHomogeneousInt16 a3;
-  Struct4BytesHomogeneousInt16 a4;
-  Struct4BytesHomogeneousInt16 a5;
-  Struct4BytesHomogeneousInt16 a6;
-  Struct4BytesHomogeneousInt16 a7;
-  Struct4BytesHomogeneousInt16 a8;
-  Struct4BytesHomogeneousInt16 a9;
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
+  Struct4BytesHomogeneousInt16 a2 = {};
+  Struct4BytesHomogeneousInt16 a3 = {};
+  Struct4BytesHomogeneousInt16 a4 = {};
+  Struct4BytesHomogeneousInt16 a5 = {};
+  Struct4BytesHomogeneousInt16 a6 = {};
+  Struct4BytesHomogeneousInt16 a7 = {};
+  Struct4BytesHomogeneousInt16 a8 = {};
+  Struct4BytesHomogeneousInt16 a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -6815,16 +6817,16 @@ DART_EXPORT intptr_t TestPassStruct7BytesHomogeneousUint8x10(
                  Struct7BytesHomogeneousUint8 a7,
                  Struct7BytesHomogeneousUint8 a8,
                  Struct7BytesHomogeneousUint8 a9)) {
-  Struct7BytesHomogeneousUint8 a0;
-  Struct7BytesHomogeneousUint8 a1;
-  Struct7BytesHomogeneousUint8 a2;
-  Struct7BytesHomogeneousUint8 a3;
-  Struct7BytesHomogeneousUint8 a4;
-  Struct7BytesHomogeneousUint8 a5;
-  Struct7BytesHomogeneousUint8 a6;
-  Struct7BytesHomogeneousUint8 a7;
-  Struct7BytesHomogeneousUint8 a8;
-  Struct7BytesHomogeneousUint8 a9;
+  Struct7BytesHomogeneousUint8 a0 = {};
+  Struct7BytesHomogeneousUint8 a1 = {};
+  Struct7BytesHomogeneousUint8 a2 = {};
+  Struct7BytesHomogeneousUint8 a3 = {};
+  Struct7BytesHomogeneousUint8 a4 = {};
+  Struct7BytesHomogeneousUint8 a5 = {};
+  Struct7BytesHomogeneousUint8 a6 = {};
+  Struct7BytesHomogeneousUint8 a7 = {};
+  Struct7BytesHomogeneousUint8 a8 = {};
+  Struct7BytesHomogeneousUint8 a9 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -6976,16 +6978,16 @@ DART_EXPORT intptr_t TestPassStruct7BytesInt4ByteAlignedx10(
                  Struct7BytesInt4ByteAligned a7,
                  Struct7BytesInt4ByteAligned a8,
                  Struct7BytesInt4ByteAligned a9)) {
-  Struct7BytesInt4ByteAligned a0;
-  Struct7BytesInt4ByteAligned a1;
-  Struct7BytesInt4ByteAligned a2;
-  Struct7BytesInt4ByteAligned a3;
-  Struct7BytesInt4ByteAligned a4;
-  Struct7BytesInt4ByteAligned a5;
-  Struct7BytesInt4ByteAligned a6;
-  Struct7BytesInt4ByteAligned a7;
-  Struct7BytesInt4ByteAligned a8;
-  Struct7BytesInt4ByteAligned a9;
+  Struct7BytesInt4ByteAligned a0 = {};
+  Struct7BytesInt4ByteAligned a1 = {};
+  Struct7BytesInt4ByteAligned a2 = {};
+  Struct7BytesInt4ByteAligned a3 = {};
+  Struct7BytesInt4ByteAligned a4 = {};
+  Struct7BytesInt4ByteAligned a5 = {};
+  Struct7BytesInt4ByteAligned a6 = {};
+  Struct7BytesInt4ByteAligned a7 = {};
+  Struct7BytesInt4ByteAligned a8 = {};
+  Struct7BytesInt4ByteAligned a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -7071,16 +7073,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesIntx10(
                  Struct8BytesInt a7,
                  Struct8BytesInt a8,
                  Struct8BytesInt a9)) {
-  Struct8BytesInt a0;
-  Struct8BytesInt a1;
-  Struct8BytesInt a2;
-  Struct8BytesInt a3;
-  Struct8BytesInt a4;
-  Struct8BytesInt a5;
-  Struct8BytesInt a6;
-  Struct8BytesInt a7;
-  Struct8BytesInt a8;
-  Struct8BytesInt a9;
+  Struct8BytesInt a0 = {};
+  Struct8BytesInt a1 = {};
+  Struct8BytesInt a2 = {};
+  Struct8BytesInt a3 = {};
+  Struct8BytesInt a4 = {};
+  Struct8BytesInt a5 = {};
+  Struct8BytesInt a6 = {};
+  Struct8BytesInt a7 = {};
+  Struct8BytesInt a8 = {};
+  Struct8BytesInt a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -7163,16 +7165,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesHomogeneousFloatx10(
                Struct8BytesHomogeneousFloat a7,
                Struct8BytesHomogeneousFloat a8,
                Struct8BytesHomogeneousFloat a9)) {
-  Struct8BytesHomogeneousFloat a0;
-  Struct8BytesHomogeneousFloat a1;
-  Struct8BytesHomogeneousFloat a2;
-  Struct8BytesHomogeneousFloat a3;
-  Struct8BytesHomogeneousFloat a4;
-  Struct8BytesHomogeneousFloat a5;
-  Struct8BytesHomogeneousFloat a6;
-  Struct8BytesHomogeneousFloat a7;
-  Struct8BytesHomogeneousFloat a8;
-  Struct8BytesHomogeneousFloat a9;
+  Struct8BytesHomogeneousFloat a0 = {};
+  Struct8BytesHomogeneousFloat a1 = {};
+  Struct8BytesHomogeneousFloat a2 = {};
+  Struct8BytesHomogeneousFloat a3 = {};
+  Struct8BytesHomogeneousFloat a4 = {};
+  Struct8BytesHomogeneousFloat a5 = {};
+  Struct8BytesHomogeneousFloat a6 = {};
+  Struct8BytesHomogeneousFloat a7 = {};
+  Struct8BytesHomogeneousFloat a8 = {};
+  Struct8BytesHomogeneousFloat a9 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -7242,16 +7244,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesMixedx10(
                Struct8BytesMixed a7,
                Struct8BytesMixed a8,
                Struct8BytesMixed a9)) {
-  Struct8BytesMixed a0;
-  Struct8BytesMixed a1;
-  Struct8BytesMixed a2;
-  Struct8BytesMixed a3;
-  Struct8BytesMixed a4;
-  Struct8BytesMixed a5;
-  Struct8BytesMixed a6;
-  Struct8BytesMixed a7;
-  Struct8BytesMixed a8;
-  Struct8BytesMixed a9;
+  Struct8BytesMixed a0 = {};
+  Struct8BytesMixed a1 = {};
+  Struct8BytesMixed a2 = {};
+  Struct8BytesMixed a3 = {};
+  Struct8BytesMixed a4 = {};
+  Struct8BytesMixed a5 = {};
+  Struct8BytesMixed a6 = {};
+  Struct8BytesMixed a7 = {};
+  Struct8BytesMixed a8 = {};
+  Struct8BytesMixed a9 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2;
@@ -7337,16 +7339,16 @@ DART_EXPORT intptr_t TestPassStruct9BytesHomogeneousUint8x10(
                  Struct9BytesHomogeneousUint8 a7,
                  Struct9BytesHomogeneousUint8 a8,
                  Struct9BytesHomogeneousUint8 a9)) {
-  Struct9BytesHomogeneousUint8 a0;
-  Struct9BytesHomogeneousUint8 a1;
-  Struct9BytesHomogeneousUint8 a2;
-  Struct9BytesHomogeneousUint8 a3;
-  Struct9BytesHomogeneousUint8 a4;
-  Struct9BytesHomogeneousUint8 a5;
-  Struct9BytesHomogeneousUint8 a6;
-  Struct9BytesHomogeneousUint8 a7;
-  Struct9BytesHomogeneousUint8 a8;
-  Struct9BytesHomogeneousUint8 a9;
+  Struct9BytesHomogeneousUint8 a0 = {};
+  Struct9BytesHomogeneousUint8 a1 = {};
+  Struct9BytesHomogeneousUint8 a2 = {};
+  Struct9BytesHomogeneousUint8 a3 = {};
+  Struct9BytesHomogeneousUint8 a4 = {};
+  Struct9BytesHomogeneousUint8 a5 = {};
+  Struct9BytesHomogeneousUint8 a6 = {};
+  Struct9BytesHomogeneousUint8 a7 = {};
+  Struct9BytesHomogeneousUint8 a8 = {};
+  Struct9BytesHomogeneousUint8 a9 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -7529,16 +7531,16 @@ DART_EXPORT intptr_t TestPassStruct9BytesInt4Or8ByteAlignedx10(
                  Struct9BytesInt4Or8ByteAligned a7,
                  Struct9BytesInt4Or8ByteAligned a8,
                  Struct9BytesInt4Or8ByteAligned a9)) {
-  Struct9BytesInt4Or8ByteAligned a0;
-  Struct9BytesInt4Or8ByteAligned a1;
-  Struct9BytesInt4Or8ByteAligned a2;
-  Struct9BytesInt4Or8ByteAligned a3;
-  Struct9BytesInt4Or8ByteAligned a4;
-  Struct9BytesInt4Or8ByteAligned a5;
-  Struct9BytesInt4Or8ByteAligned a6;
-  Struct9BytesInt4Or8ByteAligned a7;
-  Struct9BytesInt4Or8ByteAligned a8;
-  Struct9BytesInt4Or8ByteAligned a9;
+  Struct9BytesInt4Or8ByteAligned a0 = {};
+  Struct9BytesInt4Or8ByteAligned a1 = {};
+  Struct9BytesInt4Or8ByteAligned a2 = {};
+  Struct9BytesInt4Or8ByteAligned a3 = {};
+  Struct9BytesInt4Or8ByteAligned a4 = {};
+  Struct9BytesInt4Or8ByteAligned a5 = {};
+  Struct9BytesInt4Or8ByteAligned a6 = {};
+  Struct9BytesInt4Or8ByteAligned a7 = {};
+  Struct9BytesInt4Or8ByteAligned a8 = {};
+  Struct9BytesInt4Or8ByteAligned a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -7609,12 +7611,12 @@ DART_EXPORT intptr_t TestPassStruct12BytesHomogeneousFloatx6(
                Struct12BytesHomogeneousFloat a3,
                Struct12BytesHomogeneousFloat a4,
                Struct12BytesHomogeneousFloat a5)) {
-  Struct12BytesHomogeneousFloat a0;
-  Struct12BytesHomogeneousFloat a1;
-  Struct12BytesHomogeneousFloat a2;
-  Struct12BytesHomogeneousFloat a3;
-  Struct12BytesHomogeneousFloat a4;
-  Struct12BytesHomogeneousFloat a5;
+  Struct12BytesHomogeneousFloat a0 = {};
+  Struct12BytesHomogeneousFloat a1 = {};
+  Struct12BytesHomogeneousFloat a2 = {};
+  Struct12BytesHomogeneousFloat a3 = {};
+  Struct12BytesHomogeneousFloat a4 = {};
+  Struct12BytesHomogeneousFloat a5 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -7678,11 +7680,11 @@ DART_EXPORT intptr_t TestPassStruct16BytesHomogeneousFloatx5(
                Struct16BytesHomogeneousFloat a2,
                Struct16BytesHomogeneousFloat a3,
                Struct16BytesHomogeneousFloat a4)) {
-  Struct16BytesHomogeneousFloat a0;
-  Struct16BytesHomogeneousFloat a1;
-  Struct16BytesHomogeneousFloat a2;
-  Struct16BytesHomogeneousFloat a3;
-  Struct16BytesHomogeneousFloat a4;
+  Struct16BytesHomogeneousFloat a0 = {};
+  Struct16BytesHomogeneousFloat a1 = {};
+  Struct16BytesHomogeneousFloat a2 = {};
+  Struct16BytesHomogeneousFloat a3 = {};
+  Struct16BytesHomogeneousFloat a4 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -7754,16 +7756,16 @@ DART_EXPORT intptr_t TestPassStruct16BytesMixedx10(
                 Struct16BytesMixed a7,
                 Struct16BytesMixed a8,
                 Struct16BytesMixed a9)) {
-  Struct16BytesMixed a0;
-  Struct16BytesMixed a1;
-  Struct16BytesMixed a2;
-  Struct16BytesMixed a3;
-  Struct16BytesMixed a4;
-  Struct16BytesMixed a5;
-  Struct16BytesMixed a6;
-  Struct16BytesMixed a7;
-  Struct16BytesMixed a8;
-  Struct16BytesMixed a9;
+  Struct16BytesMixed a0 = {};
+  Struct16BytesMixed a1 = {};
+  Struct16BytesMixed a2 = {};
+  Struct16BytesMixed a3 = {};
+  Struct16BytesMixed a4 = {};
+  Struct16BytesMixed a5 = {};
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
+  Struct16BytesMixed a8 = {};
+  Struct16BytesMixed a9 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2;
@@ -7835,16 +7837,16 @@ DART_EXPORT intptr_t TestPassStruct16BytesMixed2x10(
                Struct16BytesMixed2 a7,
                Struct16BytesMixed2 a8,
                Struct16BytesMixed2 a9)) {
-  Struct16BytesMixed2 a0;
-  Struct16BytesMixed2 a1;
-  Struct16BytesMixed2 a2;
-  Struct16BytesMixed2 a3;
-  Struct16BytesMixed2 a4;
-  Struct16BytesMixed2 a5;
-  Struct16BytesMixed2 a6;
-  Struct16BytesMixed2 a7;
-  Struct16BytesMixed2 a8;
-  Struct16BytesMixed2 a9;
+  Struct16BytesMixed2 a0 = {};
+  Struct16BytesMixed2 a1 = {};
+  Struct16BytesMixed2 a2 = {};
+  Struct16BytesMixed2 a3 = {};
+  Struct16BytesMixed2 a4 = {};
+  Struct16BytesMixed2 a5 = {};
+  Struct16BytesMixed2 a6 = {};
+  Struct16BytesMixed2 a7 = {};
+  Struct16BytesMixed2 a8 = {};
+  Struct16BytesMixed2 a9 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -7940,16 +7942,16 @@ DART_EXPORT intptr_t TestPassStruct17BytesIntx10(
                  Struct17BytesInt a7,
                  Struct17BytesInt a8,
                  Struct17BytesInt a9)) {
-  Struct17BytesInt a0;
-  Struct17BytesInt a1;
-  Struct17BytesInt a2;
-  Struct17BytesInt a3;
-  Struct17BytesInt a4;
-  Struct17BytesInt a5;
-  Struct17BytesInt a6;
-  Struct17BytesInt a7;
-  Struct17BytesInt a8;
-  Struct17BytesInt a9;
+  Struct17BytesInt a0 = {};
+  Struct17BytesInt a1 = {};
+  Struct17BytesInt a2 = {};
+  Struct17BytesInt a3 = {};
+  Struct17BytesInt a4 = {};
+  Struct17BytesInt a5 = {};
+  Struct17BytesInt a6 = {};
+  Struct17BytesInt a7 = {};
+  Struct17BytesInt a8 = {};
+  Struct17BytesInt a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -8036,16 +8038,16 @@ DART_EXPORT intptr_t TestPassStruct19BytesHomogeneousUint8x10(
                  Struct19BytesHomogeneousUint8 a7,
                  Struct19BytesHomogeneousUint8 a8,
                  Struct19BytesHomogeneousUint8 a9)) {
-  Struct19BytesHomogeneousUint8 a0;
-  Struct19BytesHomogeneousUint8 a1;
-  Struct19BytesHomogeneousUint8 a2;
-  Struct19BytesHomogeneousUint8 a3;
-  Struct19BytesHomogeneousUint8 a4;
-  Struct19BytesHomogeneousUint8 a5;
-  Struct19BytesHomogeneousUint8 a6;
-  Struct19BytesHomogeneousUint8 a7;
-  Struct19BytesHomogeneousUint8 a8;
-  Struct19BytesHomogeneousUint8 a9;
+  Struct19BytesHomogeneousUint8 a0 = {};
+  Struct19BytesHomogeneousUint8 a1 = {};
+  Struct19BytesHomogeneousUint8 a2 = {};
+  Struct19BytesHomogeneousUint8 a3 = {};
+  Struct19BytesHomogeneousUint8 a4 = {};
+  Struct19BytesHomogeneousUint8 a5 = {};
+  Struct19BytesHomogeneousUint8 a6 = {};
+  Struct19BytesHomogeneousUint8 a7 = {};
+  Struct19BytesHomogeneousUint8 a8 = {};
+  Struct19BytesHomogeneousUint8 a9 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -8378,16 +8380,16 @@ DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousInt32x10(
                  Struct20BytesHomogeneousInt32 a7,
                  Struct20BytesHomogeneousInt32 a8,
                  Struct20BytesHomogeneousInt32 a9)) {
-  Struct20BytesHomogeneousInt32 a0;
-  Struct20BytesHomogeneousInt32 a1;
-  Struct20BytesHomogeneousInt32 a2;
-  Struct20BytesHomogeneousInt32 a3;
-  Struct20BytesHomogeneousInt32 a4;
-  Struct20BytesHomogeneousInt32 a5;
-  Struct20BytesHomogeneousInt32 a6;
-  Struct20BytesHomogeneousInt32 a7;
-  Struct20BytesHomogeneousInt32 a8;
-  Struct20BytesHomogeneousInt32 a9;
+  Struct20BytesHomogeneousInt32 a0 = {};
+  Struct20BytesHomogeneousInt32 a1 = {};
+  Struct20BytesHomogeneousInt32 a2 = {};
+  Struct20BytesHomogeneousInt32 a3 = {};
+  Struct20BytesHomogeneousInt32 a4 = {};
+  Struct20BytesHomogeneousInt32 a5 = {};
+  Struct20BytesHomogeneousInt32 a6 = {};
+  Struct20BytesHomogeneousInt32 a7 = {};
+  Struct20BytesHomogeneousInt32 a8 = {};
+  Struct20BytesHomogeneousInt32 a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -8485,7 +8487,7 @@ DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousInt32x10(
 DART_EXPORT intptr_t TestPassStruct20BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
     float (*f)(Struct20BytesHomogeneousFloat a0)) {
-  Struct20BytesHomogeneousFloat a0;
+  Struct20BytesHomogeneousFloat a0 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -8531,11 +8533,11 @@ DART_EXPORT intptr_t TestPassStruct32BytesHomogeneousDoublex5(
                 Struct32BytesHomogeneousDouble a2,
                 Struct32BytesHomogeneousDouble a3,
                 Struct32BytesHomogeneousDouble a4)) {
-  Struct32BytesHomogeneousDouble a0;
-  Struct32BytesHomogeneousDouble a1;
-  Struct32BytesHomogeneousDouble a2;
-  Struct32BytesHomogeneousDouble a3;
-  Struct32BytesHomogeneousDouble a4;
+  Struct32BytesHomogeneousDouble a0 = {};
+  Struct32BytesHomogeneousDouble a1 = {};
+  Struct32BytesHomogeneousDouble a2 = {};
+  Struct32BytesHomogeneousDouble a3 = {};
+  Struct32BytesHomogeneousDouble a4 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -8595,7 +8597,7 @@ DART_EXPORT intptr_t TestPassStruct32BytesHomogeneousDoublex5(
 DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDouble(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct40BytesHomogeneousDouble a0)) {
-  Struct40BytesHomogeneousDouble a0;
+  Struct40BytesHomogeneousDouble a0 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -8636,7 +8638,7 @@ DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDouble(
 DART_EXPORT intptr_t TestPassStruct1024BytesHomogeneousUint64(
     // NOLINTNEXTLINE(whitespace/parens)
     uint64_t (*f)(Struct1024BytesHomogeneousUint64 a0)) {
-  Struct1024BytesHomogeneousUint64 a0;
+  Struct1024BytesHomogeneousUint64 a0 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -8844,13 +8846,13 @@ DART_EXPORT intptr_t TestPassFloatStruct16BytesHomogeneousFloatFloatStruct1(
                Struct16BytesHomogeneousFloat a7,
                float a8)) {
   float a0;
-  Struct16BytesHomogeneousFloat a1;
+  Struct16BytesHomogeneousFloat a1 = {};
   float a2;
-  Struct16BytesHomogeneousFloat a3;
+  Struct16BytesHomogeneousFloat a3 = {};
   float a4;
-  Struct16BytesHomogeneousFloat a5;
+  Struct16BytesHomogeneousFloat a5 = {};
   float a6;
-  Struct16BytesHomogeneousFloat a7;
+  Struct16BytesHomogeneousFloat a7 = {};
   float a8;
 
   a0 = -1.0;
@@ -8921,13 +8923,13 @@ DART_EXPORT intptr_t TestPassFloatStruct32BytesHomogeneousDoubleFloatStruct(
                 Struct32BytesHomogeneousDouble a7,
                 float a8)) {
   float a0;
-  Struct32BytesHomogeneousDouble a1;
+  Struct32BytesHomogeneousDouble a1 = {};
   float a2;
-  Struct32BytesHomogeneousDouble a3;
+  Struct32BytesHomogeneousDouble a3 = {};
   float a4;
-  Struct32BytesHomogeneousDouble a5;
+  Struct32BytesHomogeneousDouble a5 = {};
   float a6;
-  Struct32BytesHomogeneousDouble a7;
+  Struct32BytesHomogeneousDouble a7 = {};
   float a8;
 
   a0 = -1.0;
@@ -9002,13 +9004,13 @@ DART_EXPORT intptr_t TestPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
                 Struct16BytesMixed a7,
                 int8_t a8)) {
   int8_t a0;
-  Struct16BytesMixed a1;
+  Struct16BytesMixed a1 = {};
   int8_t a2;
-  Struct16BytesMixed a3;
+  Struct16BytesMixed a3 = {};
   int8_t a4;
-  Struct16BytesMixed a5;
+  Struct16BytesMixed a5 = {};
   int8_t a6;
-  Struct16BytesMixed a7;
+  Struct16BytesMixed a7 = {};
   int8_t a8;
 
   a0 = -1;
@@ -9079,10 +9081,10 @@ DART_EXPORT intptr_t TestPassDoublex6Struct16BytesMixedx4Int32(
   double a3;
   double a4;
   double a5;
-  Struct16BytesMixed a6;
-  Struct16BytesMixed a7;
-  Struct16BytesMixed a8;
-  Struct16BytesMixed a9;
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
+  Struct16BytesMixed a8 = {};
+  Struct16BytesMixed a9 = {};
   int32_t a10;
 
   a0 = -1.0;
@@ -9150,10 +9152,10 @@ DART_EXPORT intptr_t TestPassInt32x4Struct16BytesMixedx4Double(
   int32_t a1;
   int32_t a2;
   int32_t a3;
-  Struct16BytesMixed a4;
-  Struct16BytesMixed a5;
-  Struct16BytesMixed a6;
-  Struct16BytesMixed a7;
+  Struct16BytesMixed a4 = {};
+  Struct16BytesMixed a5 = {};
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
   double a8;
 
   a0 = -1;
@@ -9208,9 +9210,9 @@ DART_EXPORT intptr_t TestPassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
     double (*f)(Struct40BytesHomogeneousDouble a0,
                 Struct4BytesHomogeneousInt16 a1,
                 Struct8BytesHomogeneousFloat a2)) {
-  Struct40BytesHomogeneousDouble a0;
-  Struct4BytesHomogeneousInt16 a1;
-  Struct8BytesHomogeneousFloat a2;
+  Struct40BytesHomogeneousDouble a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
+  Struct8BytesHomogeneousFloat a2 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -9313,28 +9315,28 @@ DART_EXPORT intptr_t TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
   double a15;
   int64_t a16;
   int8_t a17;
-  Struct1ByteInt a18;
+  Struct1ByteInt a18 = {};
   int64_t a19;
   int8_t a20;
-  Struct4BytesHomogeneousInt16 a21;
+  Struct4BytesHomogeneousInt16 a21 = {};
   int64_t a22;
   int8_t a23;
-  Struct8BytesInt a24;
+  Struct8BytesInt a24 = {};
   int64_t a25;
   int8_t a26;
-  Struct8BytesHomogeneousFloat a27;
+  Struct8BytesHomogeneousFloat a27 = {};
   int64_t a28;
   int8_t a29;
-  Struct8BytesMixed a30;
+  Struct8BytesMixed a30 = {};
   int64_t a31;
   int8_t a32;
-  StructAlignmentInt16 a33;
+  StructAlignmentInt16 a33 = {};
   int64_t a34;
   int8_t a35;
-  StructAlignmentInt32 a36;
+  StructAlignmentInt32 a36 = {};
   int64_t a37;
   int8_t a38;
-  StructAlignmentInt64 a39;
+  StructAlignmentInt64 a39 = {};
 
   a0 = -1;
   a1 = 2;
@@ -9446,7 +9448,7 @@ DART_EXPORT intptr_t TestPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
 DART_EXPORT intptr_t TestPassStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructAlignmentInt16 a0)) {
-  StructAlignmentInt16 a0;
+  StructAlignmentInt16 a0 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -9485,7 +9487,7 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt16(
 DART_EXPORT intptr_t TestPassStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructAlignmentInt32 a0)) {
-  StructAlignmentInt32 a0;
+  StructAlignmentInt32 a0 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -9524,7 +9526,7 @@ DART_EXPORT intptr_t TestPassStructAlignmentInt32(
 DART_EXPORT intptr_t TestPassStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructAlignmentInt64 a0)) {
-  StructAlignmentInt64 a0;
+  StructAlignmentInt64 a0 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -9573,16 +9575,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedIntx10(
                  Struct8BytesNestedInt a7,
                  Struct8BytesNestedInt a8,
                  Struct8BytesNestedInt a9)) {
-  Struct8BytesNestedInt a0;
-  Struct8BytesNestedInt a1;
-  Struct8BytesNestedInt a2;
-  Struct8BytesNestedInt a3;
-  Struct8BytesNestedInt a4;
-  Struct8BytesNestedInt a5;
-  Struct8BytesNestedInt a6;
-  Struct8BytesNestedInt a7;
-  Struct8BytesNestedInt a8;
-  Struct8BytesNestedInt a9;
+  Struct8BytesNestedInt a0 = {};
+  Struct8BytesNestedInt a1 = {};
+  Struct8BytesNestedInt a2 = {};
+  Struct8BytesNestedInt a3 = {};
+  Struct8BytesNestedInt a4 = {};
+  Struct8BytesNestedInt a5 = {};
+  Struct8BytesNestedInt a6 = {};
+  Struct8BytesNestedInt a7 = {};
+  Struct8BytesNestedInt a8 = {};
+  Struct8BytesNestedInt a9 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -9680,16 +9682,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedFloatx10(
                Struct8BytesNestedFloat a7,
                Struct8BytesNestedFloat a8,
                Struct8BytesNestedFloat a9)) {
-  Struct8BytesNestedFloat a0;
-  Struct8BytesNestedFloat a1;
-  Struct8BytesNestedFloat a2;
-  Struct8BytesNestedFloat a3;
-  Struct8BytesNestedFloat a4;
-  Struct8BytesNestedFloat a5;
-  Struct8BytesNestedFloat a6;
-  Struct8BytesNestedFloat a7;
-  Struct8BytesNestedFloat a8;
-  Struct8BytesNestedFloat a9;
+  Struct8BytesNestedFloat a0 = {};
+  Struct8BytesNestedFloat a1 = {};
+  Struct8BytesNestedFloat a2 = {};
+  Struct8BytesNestedFloat a3 = {};
+  Struct8BytesNestedFloat a4 = {};
+  Struct8BytesNestedFloat a5 = {};
+  Struct8BytesNestedFloat a6 = {};
+  Struct8BytesNestedFloat a7 = {};
+  Struct8BytesNestedFloat a8 = {};
+  Struct8BytesNestedFloat a9 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1.a0 = 2.0;
@@ -9763,16 +9765,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedFloat2x10(
                Struct8BytesNestedFloat2 a7,
                Struct8BytesNestedFloat2 a8,
                Struct8BytesNestedFloat2 a9)) {
-  Struct8BytesNestedFloat2 a0;
-  Struct8BytesNestedFloat2 a1;
-  Struct8BytesNestedFloat2 a2;
-  Struct8BytesNestedFloat2 a3;
-  Struct8BytesNestedFloat2 a4;
-  Struct8BytesNestedFloat2 a5;
-  Struct8BytesNestedFloat2 a6;
-  Struct8BytesNestedFloat2 a7;
-  Struct8BytesNestedFloat2 a8;
-  Struct8BytesNestedFloat2 a9;
+  Struct8BytesNestedFloat2 a0 = {};
+  Struct8BytesNestedFloat2 a1 = {};
+  Struct8BytesNestedFloat2 a2 = {};
+  Struct8BytesNestedFloat2 a3 = {};
+  Struct8BytesNestedFloat2 a4 = {};
+  Struct8BytesNestedFloat2 a5 = {};
+  Struct8BytesNestedFloat2 a6 = {};
+  Struct8BytesNestedFloat2 a7 = {};
+  Struct8BytesNestedFloat2 a8 = {};
+  Struct8BytesNestedFloat2 a9 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -9843,16 +9845,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedMixedx10(
                 Struct8BytesNestedMixed a7,
                 Struct8BytesNestedMixed a8,
                 Struct8BytesNestedMixed a9)) {
-  Struct8BytesNestedMixed a0;
-  Struct8BytesNestedMixed a1;
-  Struct8BytesNestedMixed a2;
-  Struct8BytesNestedMixed a3;
-  Struct8BytesNestedMixed a4;
-  Struct8BytesNestedMixed a5;
-  Struct8BytesNestedMixed a6;
-  Struct8BytesNestedMixed a7;
-  Struct8BytesNestedMixed a8;
-  Struct8BytesNestedMixed a9;
+  Struct8BytesNestedMixed a0 = {};
+  Struct8BytesNestedMixed a1 = {};
+  Struct8BytesNestedMixed a2 = {};
+  Struct8BytesNestedMixed a3 = {};
+  Struct8BytesNestedMixed a4 = {};
+  Struct8BytesNestedMixed a5 = {};
+  Struct8BytesNestedMixed a6 = {};
+  Struct8BytesNestedMixed a7 = {};
+  Struct8BytesNestedMixed a8 = {};
+  Struct8BytesNestedMixed a9 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -9927,8 +9929,8 @@ DART_EXPORT intptr_t TestPassStruct8BytesNestedMixedx10(
 DART_EXPORT intptr_t TestPassStruct16BytesNestedIntx2(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(Struct16BytesNestedInt a0, Struct16BytesNestedInt a1)) {
-  Struct16BytesNestedInt a0;
-  Struct16BytesNestedInt a1;
+  Struct16BytesNestedInt a0 = {};
+  Struct16BytesNestedInt a1 = {};
 
   a0.a0.a0.a0 = -1;
   a0.a0.a0.a1 = 2;
@@ -9985,8 +9987,8 @@ DART_EXPORT intptr_t TestPassStruct16BytesNestedIntx2(
 DART_EXPORT intptr_t TestPassStruct32BytesNestedIntx2(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(Struct32BytesNestedInt a0, Struct32BytesNestedInt a1)) {
-  Struct32BytesNestedInt a0;
-  Struct32BytesNestedInt a1;
+  Struct32BytesNestedInt a0 = {};
+  Struct32BytesNestedInt a1 = {};
 
   a0.a0.a0.a0.a0 = -1;
   a0.a0.a0.a0.a1 = 2;
@@ -10068,7 +10070,7 @@ DART_EXPORT intptr_t TestPassStruct32BytesNestedIntx2(
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructNestedIntStructAlignmentInt16 a0)) {
-  StructNestedIntStructAlignmentInt16 a0;
+  StructNestedIntStructAlignmentInt16 a0 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -10112,7 +10114,7 @@ DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt16(
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructNestedIntStructAlignmentInt32 a0)) {
-  StructNestedIntStructAlignmentInt32 a0;
+  StructNestedIntStructAlignmentInt32 a0 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -10156,7 +10158,7 @@ DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt32(
 DART_EXPORT intptr_t TestPassStructNestedIntStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
     int64_t (*f)(StructNestedIntStructAlignmentInt64 a0)) {
-  StructNestedIntStructAlignmentInt64 a0;
+  StructNestedIntStructAlignmentInt64 a0 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -10203,10 +10205,10 @@ DART_EXPORT intptr_t TestPassStructNestedIrregularEvenBiggerx4(
                 StructNestedIrregularEvenBigger a1,
                 StructNestedIrregularEvenBigger a2,
                 StructNestedIrregularEvenBigger a3)) {
-  StructNestedIrregularEvenBigger a0;
-  StructNestedIrregularEvenBigger a1;
-  StructNestedIrregularEvenBigger a2;
-  StructNestedIrregularEvenBigger a3;
+  StructNestedIrregularEvenBigger a0 = {};
+  StructNestedIrregularEvenBigger a1 = {};
+  StructNestedIrregularEvenBigger a2 = {};
+  StructNestedIrregularEvenBigger a3 = {};
 
   a0.a0 = 1;
   a0.a1.a0.a0 = 2;
@@ -10434,10 +10436,10 @@ DART_EXPORT intptr_t TestPassStruct8BytesInlineArrayIntx4(
                  Struct8BytesInlineArrayInt a1,
                  Struct8BytesInlineArrayInt a2,
                  Struct8BytesInlineArrayInt a3)) {
-  Struct8BytesInlineArrayInt a0;
-  Struct8BytesInlineArrayInt a1;
-  Struct8BytesInlineArrayInt a2;
-  Struct8BytesInlineArrayInt a3;
+  Struct8BytesInlineArrayInt a0 = {};
+  Struct8BytesInlineArrayInt a1 = {};
+  Struct8BytesInlineArrayInt a2 = {};
+  Struct8BytesInlineArrayInt a3 = {};
 
   a0.a0[0] = 1;
   a0.a0[1] = 2;
@@ -10529,10 +10531,10 @@ DART_EXPORT intptr_t TestPassStructInlineArrayIrregularx4(
                  StructInlineArrayIrregular a1,
                  StructInlineArrayIrregular a2,
                  StructInlineArrayIrregular a3)) {
-  StructInlineArrayIrregular a0;
-  StructInlineArrayIrregular a1;
-  StructInlineArrayIrregular a2;
-  StructInlineArrayIrregular a3;
+  StructInlineArrayIrregular a0 = {};
+  StructInlineArrayIrregular a1 = {};
+  StructInlineArrayIrregular a2 = {};
+  StructInlineArrayIrregular a3 = {};
 
   a0.a0[0].a0 = -1;
   a0.a0[0].a1 = 2;
@@ -10598,7 +10600,7 @@ DART_EXPORT intptr_t TestPassStructInlineArrayIrregularx4(
 DART_EXPORT intptr_t TestPassStructInlineArray100Bytes(
     // NOLINTNEXTLINE(whitespace/parens)
     int32_t (*f)(StructInlineArray100Bytes a0)) {
-  StructInlineArray100Bytes a0;
+  StructInlineArray100Bytes a0 = {};
 
   a0.a0[0] = 1;
   a0.a0[1] = 2;
@@ -10805,11 +10807,11 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesHomogeneousFloat2x5(
                StructStruct16BytesHomogeneousFloat2 a2,
                StructStruct16BytesHomogeneousFloat2 a3,
                StructStruct16BytesHomogeneousFloat2 a4)) {
-  StructStruct16BytesHomogeneousFloat2 a0;
-  StructStruct16BytesHomogeneousFloat2 a1;
-  StructStruct16BytesHomogeneousFloat2 a2;
-  StructStruct16BytesHomogeneousFloat2 a3;
-  StructStruct16BytesHomogeneousFloat2 a4;
+  StructStruct16BytesHomogeneousFloat2 a0 = {};
+  StructStruct16BytesHomogeneousFloat2 a1 = {};
+  StructStruct16BytesHomogeneousFloat2 a2 = {};
+  StructStruct16BytesHomogeneousFloat2 a3 = {};
+  StructStruct16BytesHomogeneousFloat2 a4 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -10876,11 +10878,11 @@ DART_EXPORT intptr_t TestPassStructStruct32BytesHomogeneousDouble2x5(
                 StructStruct32BytesHomogeneousDouble2 a2,
                 StructStruct32BytesHomogeneousDouble2 a3,
                 StructStruct32BytesHomogeneousDouble2 a4)) {
-  StructStruct32BytesHomogeneousDouble2 a0;
-  StructStruct32BytesHomogeneousDouble2 a1;
-  StructStruct32BytesHomogeneousDouble2 a2;
-  StructStruct32BytesHomogeneousDouble2 a3;
-  StructStruct32BytesHomogeneousDouble2 a4;
+  StructStruct32BytesHomogeneousDouble2 a0 = {};
+  StructStruct32BytesHomogeneousDouble2 a1 = {};
+  StructStruct32BytesHomogeneousDouble2 a2 = {};
+  StructStruct32BytesHomogeneousDouble2 a3 = {};
+  StructStruct32BytesHomogeneousDouble2 a4 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -10954,16 +10956,16 @@ DART_EXPORT intptr_t TestPassStructStruct16BytesMixed3x10(
                StructStruct16BytesMixed3 a7,
                StructStruct16BytesMixed3 a8,
                StructStruct16BytesMixed3 a9)) {
-  StructStruct16BytesMixed3 a0;
-  StructStruct16BytesMixed3 a1;
-  StructStruct16BytesMixed3 a2;
-  StructStruct16BytesMixed3 a3;
-  StructStruct16BytesMixed3 a4;
-  StructStruct16BytesMixed3 a5;
-  StructStruct16BytesMixed3 a6;
-  StructStruct16BytesMixed3 a7;
-  StructStruct16BytesMixed3 a8;
-  StructStruct16BytesMixed3 a9;
+  StructStruct16BytesMixed3 a0 = {};
+  StructStruct16BytesMixed3 a1 = {};
+  StructStruct16BytesMixed3 a2 = {};
+  StructStruct16BytesMixed3 a3 = {};
+  StructStruct16BytesMixed3 a4 = {};
+  StructStruct16BytesMixed3 a5 = {};
+  StructStruct16BytesMixed3 a6 = {};
+  StructStruct16BytesMixed3 a7 = {};
+  StructStruct16BytesMixed3 a8 = {};
+  StructStruct16BytesMixed3 a9 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -11087,11 +11089,11 @@ DART_EXPORT intptr_t TestPassUint8Struct32BytesInlineArrayMultiDimensionalI(
                   Struct8BytesInlineArrayMultiDimensionalInt a5,
                   uint8_t a6)) {
   uint8_t a0;
-  Struct32BytesInlineArrayMultiDimensionalInt a1;
+  Struct32BytesInlineArrayMultiDimensionalInt a1 = {};
   uint8_t a2;
-  Struct8BytesInlineArrayMultiDimensionalInt a3;
+  Struct8BytesInlineArrayMultiDimensionalInt a3 = {};
   uint8_t a4;
-  Struct8BytesInlineArrayMultiDimensionalInt a5;
+  Struct8BytesInlineArrayMultiDimensionalInt a5 = {};
   uint8_t a6;
 
   a0 = 1;
@@ -11233,7 +11235,7 @@ DART_EXPORT intptr_t TestPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
                   Struct4BytesInlineArrayMultiDimensionalInt a1,
                   uint8_t a2)) {
   uint8_t a0;
-  Struct4BytesInlineArrayMultiDimensionalInt a1;
+  Struct4BytesInlineArrayMultiDimensionalInt a1 = {};
   uint8_t a2;
 
   a0 = 1;
@@ -11289,16 +11291,16 @@ DART_EXPORT intptr_t TestPassStruct3BytesPackedIntx10(
                  Struct3BytesPackedInt a7,
                  Struct3BytesPackedInt a8,
                  Struct3BytesPackedInt a9)) {
-  Struct3BytesPackedInt a0;
-  Struct3BytesPackedInt a1;
-  Struct3BytesPackedInt a2;
-  Struct3BytesPackedInt a3;
-  Struct3BytesPackedInt a4;
-  Struct3BytesPackedInt a5;
-  Struct3BytesPackedInt a6;
-  Struct3BytesPackedInt a7;
-  Struct3BytesPackedInt a8;
-  Struct3BytesPackedInt a9;
+  Struct3BytesPackedInt a0 = {};
+  Struct3BytesPackedInt a1 = {};
+  Struct3BytesPackedInt a2 = {};
+  Struct3BytesPackedInt a3 = {};
+  Struct3BytesPackedInt a4 = {};
+  Struct3BytesPackedInt a5 = {};
+  Struct3BytesPackedInt a6 = {};
+  Struct3BytesPackedInt a7 = {};
+  Struct3BytesPackedInt a8 = {};
+  Struct3BytesPackedInt a9 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -11371,16 +11373,16 @@ DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
                  Struct8BytesPackedInt a7,
                  Struct8BytesPackedInt a8,
                  Struct8BytesPackedInt a9)) {
-  Struct8BytesPackedInt a0;
-  Struct8BytesPackedInt a1;
-  Struct8BytesPackedInt a2;
-  Struct8BytesPackedInt a3;
-  Struct8BytesPackedInt a4;
-  Struct8BytesPackedInt a5;
-  Struct8BytesPackedInt a6;
-  Struct8BytesPackedInt a7;
-  Struct8BytesPackedInt a8;
-  Struct8BytesPackedInt a9;
+  Struct8BytesPackedInt a0 = {};
+  Struct8BytesPackedInt a1 = {};
+  Struct8BytesPackedInt a2 = {};
+  Struct8BytesPackedInt a3 = {};
+  Struct8BytesPackedInt a4 = {};
+  Struct8BytesPackedInt a5 = {};
+  Struct8BytesPackedInt a6 = {};
+  Struct8BytesPackedInt a7 = {};
+  Struct8BytesPackedInt a8 = {};
+  Struct8BytesPackedInt a9 = {};
 
   a0.a0 = 1;
   a0.a1 = 2;
@@ -11492,7 +11494,7 @@ DART_EXPORT intptr_t TestPassStruct8BytesPackedIntx10(
 // Used for testing structs and unions by value.
 // Struct with mis-aligned member.
 // Tests backfilling of CPU and FPU registers.
-DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
+DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32x2(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct9BytesPackedMixed a0,
                 Struct9BytesPackedMixed a1,
@@ -11505,19 +11507,21 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
                 Struct9BytesPackedMixed a8,
                 Struct9BytesPackedMixed a9,
                 double a10,
-                int32_t a11)) {
-  Struct9BytesPackedMixed a0;
-  Struct9BytesPackedMixed a1;
-  Struct9BytesPackedMixed a2;
-  Struct9BytesPackedMixed a3;
-  Struct9BytesPackedMixed a4;
-  Struct9BytesPackedMixed a5;
-  Struct9BytesPackedMixed a6;
-  Struct9BytesPackedMixed a7;
-  Struct9BytesPackedMixed a8;
-  Struct9BytesPackedMixed a9;
+                int32_t a11,
+                int32_t a12)) {
+  Struct9BytesPackedMixed a0 = {};
+  Struct9BytesPackedMixed a1 = {};
+  Struct9BytesPackedMixed a2 = {};
+  Struct9BytesPackedMixed a3 = {};
+  Struct9BytesPackedMixed a4 = {};
+  Struct9BytesPackedMixed a5 = {};
+  Struct9BytesPackedMixed a6 = {};
+  Struct9BytesPackedMixed a7 = {};
+  Struct9BytesPackedMixed a8 = {};
+  Struct9BytesPackedMixed a9 = {};
   double a10;
   int32_t a11;
+  int32_t a12;
 
   a0.a0 = 1;
   a0.a1 = 2.0;
@@ -11541,8 +11545,9 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
   a9.a1 = 20.0;
   a10 = -21.0;
   a11 = 22;
+  a12 = -23;
 
-  std::cout << "Calling TestPassStruct9BytesPackedMixedx10DoubleInt32("
+  std::cout << "Calling TestPassStruct9BytesPackedMixedx10DoubleInt32x2("
             << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
             << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
             << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
@@ -11553,26 +11558,26 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
             << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
             << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
             << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
-            << a11 << ")"
+            << a11 << ", " << a12 << ")"
             << ")\n";
 
-  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  double result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   std::cout << "result = " << result << "\n";
 
-  CHECK_APPROX(211.0, result);
+  CHECK_APPROX(188.0, result);
 
   // Pass argument that will make the Dart callback throw.
   a0.a0 = 42;
 
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   CHECK_APPROX(0.0, result);
 
   // Pass argument that will make the Dart callback return null.
   a0.a0 = 84;
 
-  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+  result = f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
 
   CHECK_APPROX(0.0, result);
 
@@ -11584,7 +11589,7 @@ DART_EXPORT intptr_t TestPassStruct9BytesPackedMixedx10DoubleInt32(
 DART_EXPORT intptr_t TestPassStruct5BytesPackedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct5BytesPackedMixed a0)) {
-  Struct5BytesPackedMixed a0;
+  Struct5BytesPackedMixed a0 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2;
@@ -11621,7 +11626,7 @@ DART_EXPORT intptr_t TestPassStruct5BytesPackedMixed(
 DART_EXPORT intptr_t TestPassStructNestedAlignmentStruct5BytesPackedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(StructNestedAlignmentStruct5BytesPackedMixed a0)) {
-  StructNestedAlignmentStruct5BytesPackedMixed a0;
+  StructNestedAlignmentStruct5BytesPackedMixed a0 = {};
 
   a0.a0 = 1;
   a0.a1.a0 = 2.0;
@@ -11660,7 +11665,7 @@ DART_EXPORT intptr_t TestPassStructNestedAlignmentStruct5BytesPackedMixed(
 DART_EXPORT intptr_t TestPassStruct6BytesInlineArrayInt(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct6BytesInlineArrayInt a0)) {
-  Struct6BytesInlineArrayInt a0;
+  Struct6BytesInlineArrayInt a0 = {};
 
   a0.a0[0].a0 = -1;
   a0.a0[0].a1 = 2;
@@ -11701,7 +11706,7 @@ DART_EXPORT intptr_t TestPassStruct6BytesInlineArrayInt(
 DART_EXPORT intptr_t TestPassStruct15BytesInlineArrayMixed(
     // NOLINTNEXTLINE(whitespace/parens)
     double (*f)(Struct15BytesInlineArrayMixed a0)) {
-  Struct15BytesInlineArrayMixed a0;
+  Struct15BytesInlineArrayMixed a0 = {};
 
   a0.a0[0].a0 = -1.0;
   a0.a0[0].a1 = 2;
@@ -11754,16 +11759,16 @@ DART_EXPORT intptr_t TestPassUnion4BytesMixedx10(
                 Union4BytesMixed a7,
                 Union4BytesMixed a8,
                 Union4BytesMixed a9)) {
-  Union4BytesMixed a0;
-  Union4BytesMixed a1;
-  Union4BytesMixed a2;
-  Union4BytesMixed a3;
-  Union4BytesMixed a4;
-  Union4BytesMixed a5;
-  Union4BytesMixed a6;
-  Union4BytesMixed a7;
-  Union4BytesMixed a8;
-  Union4BytesMixed a9;
+  Union4BytesMixed a0 = {};
+  Union4BytesMixed a1 = {};
+  Union4BytesMixed a2 = {};
+  Union4BytesMixed a3 = {};
+  Union4BytesMixed a4 = {};
+  Union4BytesMixed a5 = {};
+  Union4BytesMixed a6 = {};
+  Union4BytesMixed a7 = {};
+  Union4BytesMixed a8 = {};
+  Union4BytesMixed a9 = {};
 
   a0.a0 = 1;
   a1.a0 = 2;
@@ -11822,16 +11827,16 @@ DART_EXPORT intptr_t TestPassUnion8BytesNestedFloatx10(
                 Union8BytesNestedFloat a7,
                 Union8BytesNestedFloat a8,
                 Union8BytesNestedFloat a9)) {
-  Union8BytesNestedFloat a0;
-  Union8BytesNestedFloat a1;
-  Union8BytesNestedFloat a2;
-  Union8BytesNestedFloat a3;
-  Union8BytesNestedFloat a4;
-  Union8BytesNestedFloat a5;
-  Union8BytesNestedFloat a6;
-  Union8BytesNestedFloat a7;
-  Union8BytesNestedFloat a8;
-  Union8BytesNestedFloat a9;
+  Union8BytesNestedFloat a0 = {};
+  Union8BytesNestedFloat a1 = {};
+  Union8BytesNestedFloat a2 = {};
+  Union8BytesNestedFloat a3 = {};
+  Union8BytesNestedFloat a4 = {};
+  Union8BytesNestedFloat a5 = {};
+  Union8BytesNestedFloat a6 = {};
+  Union8BytesNestedFloat a7 = {};
+  Union8BytesNestedFloat a8 = {};
+  Union8BytesNestedFloat a9 = {};
 
   a0.a0 = -1.0;
   a1.a0 = 2.0;
@@ -11894,16 +11899,16 @@ DART_EXPORT intptr_t TestPassUnion9BytesNestedIntx10(
                 Union9BytesNestedInt a7,
                 Union9BytesNestedInt a8,
                 Union9BytesNestedInt a9)) {
-  Union9BytesNestedInt a0;
-  Union9BytesNestedInt a1;
-  Union9BytesNestedInt a2;
-  Union9BytesNestedInt a3;
-  Union9BytesNestedInt a4;
-  Union9BytesNestedInt a5;
-  Union9BytesNestedInt a6;
-  Union9BytesNestedInt a7;
-  Union9BytesNestedInt a8;
-  Union9BytesNestedInt a9;
+  Union9BytesNestedInt a0 = {};
+  Union9BytesNestedInt a1 = {};
+  Union9BytesNestedInt a2 = {};
+  Union9BytesNestedInt a3 = {};
+  Union9BytesNestedInt a4 = {};
+  Union9BytesNestedInt a5 = {};
+  Union9BytesNestedInt a6 = {};
+  Union9BytesNestedInt a7 = {};
+  Union9BytesNestedInt a8 = {};
+  Union9BytesNestedInt a9 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -12047,16 +12052,16 @@ DART_EXPORT intptr_t TestPassUnion16BytesNestedInlineArrayFloatx10(
                 Union16BytesNestedInlineArrayFloat a7,
                 Union16BytesNestedInlineArrayFloat a8,
                 Union16BytesNestedInlineArrayFloat a9)) {
-  Union16BytesNestedInlineArrayFloat a0;
-  Union16BytesNestedInlineArrayFloat a1;
-  Union16BytesNestedInlineArrayFloat a2;
-  Union16BytesNestedInlineArrayFloat a3;
-  Union16BytesNestedInlineArrayFloat a4;
-  Union16BytesNestedInlineArrayFloat a5;
-  Union16BytesNestedInlineArrayFloat a6;
-  Union16BytesNestedInlineArrayFloat a7;
-  Union16BytesNestedInlineArrayFloat a8;
-  Union16BytesNestedInlineArrayFloat a9;
+  Union16BytesNestedInlineArrayFloat a0 = {};
+  Union16BytesNestedInlineArrayFloat a1 = {};
+  Union16BytesNestedInlineArrayFloat a2 = {};
+  Union16BytesNestedInlineArrayFloat a3 = {};
+  Union16BytesNestedInlineArrayFloat a4 = {};
+  Union16BytesNestedInlineArrayFloat a5 = {};
+  Union16BytesNestedInlineArrayFloat a6 = {};
+  Union16BytesNestedInlineArrayFloat a7 = {};
+  Union16BytesNestedInlineArrayFloat a8 = {};
+  Union16BytesNestedInlineArrayFloat a9 = {};
 
   a0.a0[0] = -1.0;
   a0.a0[1] = 2.0;
@@ -12166,16 +12171,16 @@ DART_EXPORT intptr_t TestPassUnion16BytesNestedFloatx10(
                 Union16BytesNestedFloat a7,
                 Union16BytesNestedFloat a8,
                 Union16BytesNestedFloat a9)) {
-  Union16BytesNestedFloat a0;
-  Union16BytesNestedFloat a1;
-  Union16BytesNestedFloat a2;
-  Union16BytesNestedFloat a3;
-  Union16BytesNestedFloat a4;
-  Union16BytesNestedFloat a5;
-  Union16BytesNestedFloat a6;
-  Union16BytesNestedFloat a7;
-  Union16BytesNestedFloat a8;
-  Union16BytesNestedFloat a9;
+  Union16BytesNestedFloat a0 = {};
+  Union16BytesNestedFloat a1 = {};
+  Union16BytesNestedFloat a2 = {};
+  Union16BytesNestedFloat a3 = {};
+  Union16BytesNestedFloat a4 = {};
+  Union16BytesNestedFloat a5 = {};
+  Union16BytesNestedFloat a6 = {};
+  Union16BytesNestedFloat a7 = {};
+  Union16BytesNestedFloat a8 = {};
+  Union16BytesNestedFloat a9 = {};
 
   a0.a0.a0 = -1.0;
   a0.a0.a1 = 2.0;
@@ -14647,7 +14652,7 @@ DART_EXPORT intptr_t TestReturnUnion8BytesNestedFloat(
 DART_EXPORT intptr_t TestReturnUnion9BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Union9BytesNestedInt (*f)(Struct8BytesInt a0)) {
-  Struct8BytesInt a0;
+  Struct8BytesInt a0 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -14702,7 +14707,7 @@ DART_EXPORT intptr_t TestReturnUnion9BytesNestedInt(
 DART_EXPORT intptr_t TestReturnUnion16BytesNestedFloat(
     // NOLINTNEXTLINE(whitespace/parens)
     Union16BytesNestedFloat (*f)(Struct8BytesHomogeneousFloat a0)) {
-  Struct8BytesHomogeneousFloat a0;
+  Struct8BytesHomogeneousFloat a0 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -14749,7 +14754,7 @@ DART_EXPORT intptr_t TestReturnUnion16BytesNestedFloat(
 DART_EXPORT intptr_t TestReturnStructArgumentStruct1ByteInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct1ByteInt (*f)(Struct1ByteInt a0)) {
-  Struct1ByteInt a0;
+  Struct1ByteInt a0 = {};
 
   a0.a0 = -1;
 
@@ -14805,7 +14810,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct1ByteInt(
   int32_t a5;
   int32_t a6;
   int32_t a7;
-  Struct1ByteInt a8;
+  Struct1ByteInt a8 = {};
 
   a0 = -1;
   a1 = 2;
@@ -14855,7 +14860,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct1ByteInt(
 DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesHomogeneousFloat(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesHomogeneousFloat (*f)(Struct8BytesHomogeneousFloat a0)) {
-  Struct8BytesHomogeneousFloat a0;
+  Struct8BytesHomogeneousFloat a0 = {};
 
   a0.a0 = -1.0;
   a0.a1 = 2.0;
@@ -14897,7 +14902,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesHomogeneousFloat(
 DART_EXPORT intptr_t TestReturnStructArgumentStruct20BytesHomogeneousInt32(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct20BytesHomogeneousInt32 (*f)(Struct20BytesHomogeneousInt32 a0)) {
-  Struct20BytesHomogeneousInt32 a0;
+  Struct20BytesHomogeneousInt32 a0 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -14970,7 +14975,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct20BytesHomogeneou(
   int32_t a5;
   int32_t a6;
   int32_t a7;
-  Struct20BytesHomogeneousInt32 a8;
+  Struct20BytesHomogeneousInt32 a8 = {};
 
   a0 = -1;
   a1 = 2;
@@ -15035,7 +15040,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentInt32x8Struct20BytesHomogeneou(
 DART_EXPORT intptr_t TestReturnStructArgumentStruct8BytesInlineArrayInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesInlineArrayInt (*f)(Struct8BytesInlineArrayInt a0)) {
-  Struct8BytesInlineArrayInt a0;
+  Struct8BytesInlineArrayInt a0 = {};
 
   a0.a0[0] = 1;
   a0.a0[1] = 2;
@@ -15099,7 +15104,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesHomogeneous(
     // NOLINTNEXTLINE(whitespace/parens)
     StructStruct16BytesHomogeneousFloat2 (*f)(
         StructStruct16BytesHomogeneousFloat2 a0)) {
-  StructStruct16BytesHomogeneousFloat2 a0;
+  StructStruct16BytesHomogeneousFloat2 a0 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -15155,7 +15160,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct32BytesHomogeneous(
     // NOLINTNEXTLINE(whitespace/parens)
     StructStruct32BytesHomogeneousDouble2 (*f)(
         StructStruct32BytesHomogeneousDouble2 a0)) {
-  StructStruct32BytesHomogeneousDouble2 a0;
+  StructStruct32BytesHomogeneousDouble2 a0 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -15210,7 +15215,7 @@ DART_EXPORT intptr_t TestReturnStructArgumentStructStruct32BytesHomogeneous(
 DART_EXPORT intptr_t TestReturnStructArgumentStructStruct16BytesMixed3(
     // NOLINTNEXTLINE(whitespace/parens)
     StructStruct16BytesMixed3 (*f)(StructStruct16BytesMixed3 a0)) {
-  StructStruct16BytesMixed3 a0;
+  StructStruct16BytesMixed3 a0 = {};
 
   a0.a0.a0 = -1.0;
   a0.a1[0].a0 = 2.0;
@@ -15432,8 +15437,8 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesNestedInt (*f)(Struct4BytesHomogeneousInt16 a0,
                                Struct4BytesHomogeneousInt16 a1)) {
-  Struct4BytesHomogeneousInt16 a0;
-  Struct4BytesHomogeneousInt16 a1;
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -15485,8 +15490,8 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedInt(
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesNestedFloat (*f)(Struct4BytesFloat a0, Struct4BytesFloat a1)) {
-  Struct4BytesFloat a0;
-  Struct4BytesFloat a1;
+  Struct4BytesFloat a0 = {};
+  Struct4BytesFloat a1 = {};
 
   a0.a0 = -1.0;
   a1.a0 = 2.0;
@@ -15529,7 +15534,7 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat(
 DART_EXPORT intptr_t TestReturnStruct8BytesNestedFloat2(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesNestedFloat2 (*f)(Struct4BytesFloat a0, float a1)) {
-  Struct4BytesFloat a0;
+  Struct4BytesFloat a0 = {};
   float a1;
 
   a0.a0 = -1.0;
@@ -15573,8 +15578,8 @@ DART_EXPORT intptr_t TestReturnStruct8BytesNestedMixed(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct8BytesNestedMixed (*f)(Struct4BytesHomogeneousInt16 a0,
                                  Struct4BytesFloat a1)) {
-  Struct4BytesHomogeneousInt16 a0;
-  Struct4BytesFloat a1;
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesFloat a1 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -15622,8 +15627,8 @@ DART_EXPORT intptr_t TestReturnStruct16BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct16BytesNestedInt (*f)(Struct8BytesNestedInt a0,
                                 Struct8BytesNestedInt a1)) {
-  Struct8BytesNestedInt a0;
-  Struct8BytesNestedInt a1;
+  Struct8BytesNestedInt a0 = {};
+  Struct8BytesNestedInt a1 = {};
 
   a0.a0.a0 = -1;
   a0.a0.a1 = 2;
@@ -15695,8 +15700,8 @@ DART_EXPORT intptr_t TestReturnStruct32BytesNestedInt(
     // NOLINTNEXTLINE(whitespace/parens)
     Struct32BytesNestedInt (*f)(Struct16BytesNestedInt a0,
                                 Struct16BytesNestedInt a1)) {
-  Struct16BytesNestedInt a0;
-  Struct16BytesNestedInt a1;
+  Struct16BytesNestedInt a0 = {};
+  Struct16BytesNestedInt a1 = {};
 
   a0.a0.a0.a0 = -1;
   a0.a0.a0.a1 = 2;
@@ -15809,8 +15814,8 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt16(
     // NOLINTNEXTLINE(whitespace/parens)
     StructNestedIntStructAlignmentInt16 (*f)(StructAlignmentInt16 a0,
                                              StructAlignmentInt16 a1)) {
-  StructAlignmentInt16 a0;
-  StructAlignmentInt16 a1;
+  StructAlignmentInt16 a0 = {};
+  StructAlignmentInt16 a1 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -15874,8 +15879,8 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt32(
     // NOLINTNEXTLINE(whitespace/parens)
     StructNestedIntStructAlignmentInt32 (*f)(StructAlignmentInt32 a0,
                                              StructAlignmentInt32 a1)) {
-  StructAlignmentInt32 a0;
-  StructAlignmentInt32 a1;
+  StructAlignmentInt32 a0 = {};
+  StructAlignmentInt32 a1 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -15939,8 +15944,8 @@ DART_EXPORT intptr_t TestReturnStructNestedIntStructAlignmentInt64(
     // NOLINTNEXTLINE(whitespace/parens)
     StructNestedIntStructAlignmentInt64 (*f)(StructAlignmentInt64 a0,
                                              StructAlignmentInt64 a1)) {
-  StructAlignmentInt64 a0;
-  StructAlignmentInt64 a1;
+  StructAlignmentInt64 a0 = {};
+  StructAlignmentInt64 a1 = {};
 
   a0.a0 = -1;
   a0.a1 = 2;
@@ -16007,8 +16012,8 @@ DART_EXPORT intptr_t TestReturnStructNestedIrregularEvenBigger(
                                          StructNestedIrregularBigger a2,
                                          double a3)) {
   uint64_t a0;
-  StructNestedIrregularBigger a1;
-  StructNestedIrregularBigger a2;
+  StructNestedIrregularBigger a1 = {};
+  StructNestedIrregularBigger a2 = {};
   double a3;
 
   a0 = 1;

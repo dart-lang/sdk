@@ -95,7 +95,18 @@ class Function {
   @patch
   static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]) {
-    positionalArguments ??= [];
+    // Whether positionalArguments needs to be copied to ensure
+    // dcall doesn't modify the original list of positional arguments
+    // (currently only true when named arguments are provided too).
+    var needsCopy = namedArguments != null && namedArguments.isNotEmpty;
+    if (positionalArguments == null) {
+      positionalArguments = [];
+    } else if (needsCopy ||
+        // dcall expects the positionalArguments as a JS array.
+        JS<bool>('!', '!Array.isArray(#)', positionalArguments)) {
+      positionalArguments = List.of(positionalArguments);
+    }
+
     // dcall expects the namedArguments as a JS map in the last slot.
     if (namedArguments != null && namedArguments.isNotEmpty) {
       var map = JS('', '{}');

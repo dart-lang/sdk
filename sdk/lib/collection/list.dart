@@ -35,7 +35,7 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
   ///
   /// Converts [list] to a string by converting each element to a string (by
   /// calling [Object.toString]), joining them with ", ", and wrapping the
-  /// result in "[" and "]".
+  /// result in `[` and `]`.
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [list] to a string again.

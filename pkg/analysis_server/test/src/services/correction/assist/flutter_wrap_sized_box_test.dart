@@ -55,7 +55,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   MyWidget.named();
 
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => Text('');
 }
 
 main() {
@@ -68,7 +68,7 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   MyWidget.named();
 
-  Widget build(BuildContext context) => null;
+  Widget build(BuildContext context) => Text('');
 }
 
 main() {

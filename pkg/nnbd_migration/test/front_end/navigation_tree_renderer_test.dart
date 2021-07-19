@@ -24,7 +24,7 @@ const isNavigationTreeFileNode = TypeMatcher<NavigationTreeFileNode>();
 
 @reflectiveTest
 class NavigationTreeRendererTest extends NnbdMigrationTestBase {
-  PathMapper pathMapper;
+  PathMapper? pathMapper;
 
   /// Render the navigation tree view for [files].
   Future<List<NavigationTreeNode>> renderNavigationTree(
@@ -66,15 +66,15 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
         isNavigationTreeDirectoryNode.named('lib').havingSubtree([
           isNavigationTreeDirectoryNode.named('src').havingSubtree([
             isNavigationTreeFileNode.havingHref(
-                '$projectPath/lib/src/b.dart', pathMapper)
+                '$projectPath/lib/src/b.dart', pathMapper!)
           ]),
           isNavigationTreeFileNode.havingHref(
-              '$projectPath/lib/a.dart', pathMapper)
+              '$projectPath/lib/a.dart', pathMapper!)
         ]));
 
     var toolNode = response[1] as NavigationTreeFileNode;
     expect(
-        toolNode.href, pathMapper.map(convertPath('$projectPath/tool.dart')));
+        toolNode.href, pathMapper!.map(convertPath('$projectPath/tool.dart')));
   }
 
   Future<void> test_containsMultipleLinks_multipleDepths() async {
@@ -131,11 +131,11 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
           isNavigationTreeFileNode
               .named('a.dart')
               .havingPath(convertPath('lib/a.dart'))
-              .havingHref('$projectPath/lib/a.dart', pathMapper),
+              .havingHref('$projectPath/lib/a.dart', pathMapper!),
           isNavigationTreeFileNode
               .named('b.dart')
               .havingPath(convertPath('lib/b.dart'))
-              .havingHref('$projectPath/lib/b.dart', pathMapper)
+              .havingHref('$projectPath/lib/b.dart', pathMapper!)
         ]));
   }
 
@@ -174,7 +174,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
             isNavigationTreeFileNode
                 .named('a.dart')
                 .havingPath(convertPath('lib/src/a.dart'))
-                .havingHref('$projectPath/lib/src/a.dart', pathMapper)
+                .havingHref('$projectPath/lib/src/a.dart', pathMapper!)
           ])
         ]));
   }
@@ -188,7 +188,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var aNode = response[0] as NavigationTreeFileNode;
     expect(aNode.name, 'a.dart');
     expect(aNode.path, 'a.dart');
-    expect(aNode.href, pathMapper.map(convertPath('$projectPath/a.dart')));
+    expect(aNode.href, pathMapper!.map(convertPath('$projectPath/a.dart')));
   }
 
   Future<void> test_migrationStatus_directory_allMigrated() async {
@@ -198,10 +198,10 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
 
     var libNode = response[0] as NavigationTreeDirectoryNode;
-    ((libNode.subtree[0] as NavigationTreeDirectoryNode).subtree[0]
+    ((libNode.subtree![0] as NavigationTreeDirectoryNode).subtree![0]
             as NavigationTreeFileNode)
         .migrationStatus = UnitMigrationStatus.alreadyMigrated;
-    (libNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+    (libNode.subtree![1] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.alreadyMigrated;
     expect(
         libNode,
@@ -243,10 +243,10 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
 
     var libNode = response[0] as NavigationTreeDirectoryNode;
-    ((libNode.subtree[0] as NavigationTreeDirectoryNode).subtree[0]
+    ((libNode.subtree![0] as NavigationTreeDirectoryNode).subtree![0]
             as NavigationTreeFileNode)
         .migrationStatus = UnitMigrationStatus.optingOut;
-    (libNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+    (libNode.subtree![1] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     expect(
         libNode,
@@ -269,8 +269,8 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
 
     var libNode = response[0] as NavigationTreeDirectoryNode;
-    var libSrcNode = libNode.subtree[0] as NavigationTreeDirectoryNode;
-    (libSrcNode.subtree[0] as NavigationTreeFileNode).migrationStatus =
+    var libSrcNode = libNode.subtree![0] as NavigationTreeDirectoryNode;
+    (libSrcNode.subtree![0] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
     expect(
         libNode,
@@ -293,10 +293,10 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     });
 
     var libNode = response[0] as NavigationTreeDirectoryNode;
-    var libSrcNode = libNode.subtree[0] as NavigationTreeDirectoryNode;
-    (libSrcNode.subtree[0] as NavigationTreeFileNode).migrationStatus =
+    var libSrcNode = libNode.subtree![0] as NavigationTreeDirectoryNode;
+    (libSrcNode.subtree![0] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.optingOut;
-    (libSrcNode.subtree[1] as NavigationTreeFileNode).migrationStatus =
+    (libSrcNode.subtree![1] as NavigationTreeFileNode).migrationStatus =
         UnitMigrationStatus.alreadyMigrated;
     expect(
         libNode,

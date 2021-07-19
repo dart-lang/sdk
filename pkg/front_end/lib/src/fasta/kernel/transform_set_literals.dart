@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.transform_set_literals;
 
 import 'package:kernel/ast.dart';
@@ -23,23 +21,24 @@ class SetLiteralTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Procedure setFactory;
   final Procedure addMethod;
-  FunctionType _addMethodFunctionType;
+  late final FunctionType _addMethodFunctionType;
   final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
   /// The transformation of the nodes is affected by the NNBD opt-in status of
   /// the library.
-  Library _currentLibrary;
+  Library? _currentLibrary;
 
   static Procedure _findSetFactory(CoreTypes coreTypes) {
-    Procedure factory = coreTypes.index.getMember('dart:core', 'Set', '');
-    RedirectingFactoryBody body = factory?.function?.body;
-    return body?.target;
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', '');
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
   }
 
   static Procedure _findAddMethod(CoreTypes coreTypes) {
-    return coreTypes.index.getMember('dart:core', 'Set', 'add');
+    return coreTypes.index.getProcedure('dart:core', 'Set', 'add');
   }
 
   SetLiteralTransformer(SourceLoader loader)
@@ -48,34 +47,35 @@ class SetLiteralTransformer extends Transformer {
         addMethod = _findAddMethod(loader.coreTypes),
         useNewMethodInvocationEncoding =
             loader.target.backendTarget.supportsNewMethodInvocationEncoding {
-    _addMethodFunctionType = addMethod.getterType;
+    _addMethodFunctionType = addMethod.getterType as FunctionType;
   }
 
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) return node;
 
     // Create the set: Set<E> setVar = new Set<E>();
-    DartType receiverType;
+    InterfaceType receiverType;
     VariableDeclaration setVar = new VariableDeclaration.forValue(
         new StaticInvocation(
             setFactory, new Arguments([], types: [node.typeArgument])),
         type: receiverType = new InterfaceType(coreTypes.setClass,
-            _currentLibrary.nonNullable, [node.typeArgument]));
+            _currentLibrary!.nonNullable, [node.typeArgument]));
 
     // Now create a list of all statements needed.
     List<Statement> statements = [setVar];
     for (int i = 0; i < node.expressions.length; i++) {
-      Expression entry = node.expressions[i].accept<TreeNode>(this);
+      Expression entry = transform(node.expressions[i]);
       Expression methodInvocation;
       if (useNewMethodInvocationEncoding) {
-        FunctionType functionType = Substitution.fromInterfaceType(receiverType)
+        DartType functionType = Substitution.fromInterfaceType(receiverType)
             .substituteType(_addMethodFunctionType);
-        if (!_currentLibrary.isNonNullableByDefault) {
+        if (!_currentLibrary!.isNonNullableByDefault) {
           functionType = legacyErasure(functionType);
         }
         methodInvocation = new InstanceInvocation(InstanceAccessKind.Instance,
             new VariableGet(setVar), new Name("add"), new Arguments([entry]),
-            functionType: functionType, interfaceTarget: addMethod)
+            functionType: functionType as FunctionType,
+            interfaceTarget: addMethod)
           ..fileOffset = entry.fileOffset
           ..isInvariant = true;
       } else {
@@ -98,7 +98,7 @@ class SetLiteralTransformer extends Transformer {
     assert(
         _currentLibrary == null,
         "Attempting to enter library '${library.fileUri}' "
-        "without having exited library '${_currentLibrary.fileUri}'.");
+        "without having exited library '${_currentLibrary!.fileUri}'.");
     _currentLibrary = library;
   }
 

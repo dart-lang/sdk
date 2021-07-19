@@ -1786,6 +1786,111 @@ Message _withArgumentsIncorrectTypeArgumentInferred(DartType _type,
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, bool isNonNullableByDefault)>
+    templateIncorrectTypeArgumentInstantiation = const Template<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
+        tipTemplate:
+            r"""Try changing type arguments so that they conform to the bounds.""",
+        withArguments: _withArgumentsIncorrectTypeArgumentInstantiation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, bool isNonNullableByDefault)>
+    codeIncorrectTypeArgumentInstantiation = const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, bool isNonNullableByDefault)>(
+        "IncorrectTypeArgumentInstantiation",
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInstantiation(
+    DartType _type,
+    DartType _type2,
+    String name,
+    DartType _type3,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentInstantiation,
+      message:
+          """Type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}'.""" +
+              labeler.originMessages,
+      tip: """Try changing type arguments so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, bool isNonNullableByDefault)>
+    templateIncorrectTypeArgumentInstantiationInferred = const Template<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3'.""",
+        tipTemplate:
+            r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
+        withArguments:
+            _withArgumentsIncorrectTypeArgumentInstantiationInferred);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, DartType _type2, String name,
+            DartType _type3, bool isNonNullableByDefault)>
+    codeIncorrectTypeArgumentInstantiationInferred = const Code<
+            Message Function(DartType _type, DartType _type2, String name,
+                DartType _type3, bool isNonNullableByDefault)>(
+        "IncorrectTypeArgumentInstantiationInferred",
+        analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIncorrectTypeArgumentInstantiationInferred(
+    DartType _type,
+    DartType _type2,
+    String name,
+    DartType _type3,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  List<Object> type3Parts = labeler.labelType(_type3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  String type3 = type3Parts.join();
+  return new Message(codeIncorrectTypeArgumentInstantiationInferred,
+      message:
+          """Inferred type argument '${type}' doesn't conform to the bound '${type2}' of the type variable '${name}' on '${type3}'.""" +
+              labeler.originMessages,
+      tip: """Try specifying type arguments explicitly so that they conform to the bounds.""",
+      arguments: {
+        'type': _type,
+        'type2': _type2,
+        'name': name,
+        'type3': _type3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, DartType _type2, String name,
             DartType _type3, String name2, bool isNonNullableByDefault)>
     templateIncorrectTypeArgumentQualified = const Template<
             Message Function(DartType _type, DartType _type2, String name,
@@ -1937,6 +2042,37 @@ Message _withArgumentsInitializingFormalTypeMismatch(
               labeler.originMessages,
       tip: """Try changing the type of parameter '${name}' to a subtype of '${type2}'.""",
       arguments: {'name': name, 'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateInstantiationNonGenericFunctionType = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""The static type of the explicit instantiation operand must be a generic function type but is '#type'.""",
+        tipTemplate:
+            r"""Try changing the operand or remove the type arguments.""",
+        withArguments: _withArgumentsInstantiationNonGenericFunctionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeInstantiationNonGenericFunctionType =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "InstantiationNonGenericFunctionType",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstantiationNonGenericFunctionType(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInstantiationNonGenericFunctionType,
+      message:
+          """The static type of the explicit instantiation operand must be a generic function type but is '${type}'.""" +
+              labeler.originMessages,
+      tip: """Try changing the operand or remove the type arguments.""",
+      arguments: {'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

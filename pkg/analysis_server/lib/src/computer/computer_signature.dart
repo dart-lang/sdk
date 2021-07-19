@@ -28,7 +28,6 @@ class DartUnitSignatureComputer {
 
   bool get offsetIsValid => _node != null;
 
-  // Return the closest argument list surrounding the [_node].
   /// Returns the computed signature information, maybe `null`.
   AnalysisGetSignatureResult? compute() {
     var argumentList = _findArgumentList();
@@ -80,6 +79,7 @@ class DartUnitSignatureComputer {
         defaultValue: param.defaultValueCode);
   }
 
+  /// Return the closest argument list surrounding the [_node].
   ArgumentList? _findArgumentList() {
     var node = _node;
     while (node != null && node is! ArgumentList) {

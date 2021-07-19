@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:typed_data' show Uint8List;
 
 import 'dart:io' show File;
@@ -45,6 +43,7 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     },
   );
   Token firstToken = scanner.tokenize();
+  // ignore: unnecessary_null_comparison
   if (firstToken == null) {
     throw "firstToken is null";
   }
@@ -57,7 +56,7 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     parser = new ClassMemberParser(listener);
   }
   parser.parseUnit(firstToken);
-  return listener.data.single;
+  return listener.data.single as DirectParserASTContentCompilationUnitEnd;
 }
 
 /// Best-effort visitor for DirectParserASTContent that visits top-level entries
@@ -177,8 +176,8 @@ class DirectParserASTContentVisitor {
     }
     if (node is DirectParserASTContentEnumEnd) {
       DirectParserASTContentEnumEnd declaration = node;
-      visitEnum(
-          declaration, declaration.enumKeyword, declaration.leftBrace.endGroup);
+      visitEnum(declaration, declaration.enumKeyword,
+          declaration.leftBrace.endGroup!);
       return;
     }
     if (node is DirectParserASTContentLibraryNameEnd) {
@@ -225,7 +224,7 @@ class DirectParserASTContentVisitor {
       DirectParserASTContentMetadataEnd decl = node;
       // TODO(jensj): endToken is not part of the metadata! It's the first token
       // of the next thing.
-      visitMetadata(decl, decl.beginToken, decl.endToken.previous);
+      visitMetadata(decl, decl.beginToken, decl.endToken.previous!);
       return;
     }
 
@@ -234,16 +233,16 @@ class DirectParserASTContentVisitor {
 
   void visitChildren(DirectParserASTContent node) {
     if (node.children == null) return;
-    final int numChildren = node.children.length;
+    final int numChildren = node.children!.length;
     for (int i = 0; i < numChildren; i++) {
-      DirectParserASTContent child = node.children[i];
+      DirectParserASTContent child = node.children![i];
       accept(child);
     }
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
-      Token endInclusive) {}
+      Token? endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
@@ -360,11 +359,11 @@ extension GeneralASTContentExtension on DirectParserASTContent {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentClassDeclarationEnd) {
+    if (children!.last is! DirectParserASTContentClassDeclarationEnd) {
       return false;
     }
 
@@ -373,18 +372,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentClassDeclarationEnd asClass() {
     if (!isClass()) throw "Not class";
-    return children.last;
+    return children!.last as DirectParserASTContentClassDeclarationEnd;
   }
 
   bool isImport() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentImportEnd) {
+    if (children!.last is! DirectParserASTContentImportEnd) {
       return false;
     }
 
@@ -393,18 +392,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentImportEnd asImport() {
     if (!isImport()) throw "Not import";
-    return children.last;
+    return children!.last as DirectParserASTContentImportEnd;
   }
 
   bool isExport() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentExportEnd) {
+    if (children!.last is! DirectParserASTContentExportEnd) {
       return false;
     }
 
@@ -413,18 +412,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentExportEnd asExport() {
     if (!isExport()) throw "Not export";
-    return children.last;
+    return children!.last as DirectParserASTContentExportEnd;
   }
 
   bool isEnum() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentEnumEnd) {
+    if (children!.last is! DirectParserASTContentEnumEnd) {
       return false;
     }
 
@@ -433,18 +432,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentEnumEnd asEnum() {
     if (!isEnum()) throw "Not enum";
-    return children.last;
+    return children!.last as DirectParserASTContentEnumEnd;
   }
 
   bool isTypedef() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentFunctionTypeAliasEnd) {
+    if (children!.last is! DirectParserASTContentFunctionTypeAliasEnd) {
       return false;
     }
 
@@ -453,7 +452,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentFunctionTypeAliasEnd asTypedef() {
     if (!isTypedef()) throw "Not typedef";
-    return children.last;
+    return children!.last as DirectParserASTContentFunctionTypeAliasEnd;
   }
 
   bool isScript() {
@@ -465,18 +464,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentScriptHandle asScript() {
     if (!isScript()) throw "Not script";
-    return this;
+    return this as DirectParserASTContentScriptHandle;
   }
 
   bool isExtension() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentExtensionDeclarationPreludeBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentExtensionDeclarationEnd) {
+    if (children!.last is! DirectParserASTContentExtensionDeclarationEnd) {
       return false;
     }
 
@@ -485,17 +484,17 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentExtensionDeclarationEnd asExtension() {
     if (!isExtension()) throw "Not extension";
-    return children.last;
+    return children!.last as DirectParserASTContentExtensionDeclarationEnd;
   }
 
   bool isInvalidTopLevelDeclaration() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first is! DirectParserASTContentTopLevelMemberBegin) {
+    if (children!.first is! DirectParserASTContentTopLevelMemberBegin) {
       return false;
     }
-    if (children.last
+    if (children!.last
         is! DirectParserASTContentInvalidTopLevelDeclarationHandle) {
       return false;
     }
@@ -507,11 +506,11 @@ extension GeneralASTContentExtension on DirectParserASTContent {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentRecoverableErrorHandle) {
+    if (children!.last is! DirectParserASTContentRecoverableErrorHandle) {
       return false;
     }
 
@@ -522,11 +521,11 @@ extension GeneralASTContentExtension on DirectParserASTContent {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentRecoverImportHandle) {
+    if (children!.last is! DirectParserASTContentRecoverImportHandle) {
       return false;
     }
 
@@ -537,11 +536,11 @@ extension GeneralASTContentExtension on DirectParserASTContent {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentMixinDeclarationEnd) {
+    if (children!.last is! DirectParserASTContentMixinDeclarationEnd) {
       return false;
     }
 
@@ -550,18 +549,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentMixinDeclarationEnd asMixinDeclaration() {
     if (!isMixinDeclaration()) throw "Not mixin declaration";
-    return children.last;
+    return children!.last as DirectParserASTContentMixinDeclarationEnd;
   }
 
   bool isNamedMixinDeclaration() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentNamedMixinApplicationEnd) {
+    if (children!.last is! DirectParserASTContentNamedMixinApplicationEnd) {
       return false;
     }
 
@@ -570,17 +569,17 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentNamedMixinApplicationEnd asNamedMixinDeclaration() {
     if (!isNamedMixinDeclaration()) throw "Not named mixin declaration";
-    return children.last;
+    return children!.last as DirectParserASTContentNamedMixinApplicationEnd;
   }
 
   bool isTopLevelMethod() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first is! DirectParserASTContentTopLevelMemberBegin) {
+    if (children!.first is! DirectParserASTContentTopLevelMemberBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentTopLevelMethodEnd) {
+    if (children!.last is! DirectParserASTContentTopLevelMethodEnd) {
       return false;
     }
 
@@ -589,17 +588,17 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentTopLevelMethodEnd asTopLevelMethod() {
     if (!isTopLevelMethod()) throw "Not top level method";
-    return children.last;
+    return children!.last as DirectParserASTContentTopLevelMethodEnd;
   }
 
   bool isTopLevelFields() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first is! DirectParserASTContentTopLevelMemberBegin) {
+    if (children!.first is! DirectParserASTContentTopLevelMemberBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentTopLevelFieldsEnd) {
+    if (children!.last is! DirectParserASTContentTopLevelFieldsEnd) {
       return false;
     }
 
@@ -608,18 +607,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentTopLevelFieldsEnd asTopLevelFields() {
     if (!isTopLevelFields()) throw "Not top level fields";
-    return children.last;
+    return children!.last as DirectParserASTContentTopLevelFieldsEnd;
   }
 
   bool isLibraryName() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentLibraryNameEnd) {
+    if (children!.last is! DirectParserASTContentLibraryNameEnd) {
       return false;
     }
 
@@ -628,18 +627,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentLibraryNameEnd asLibraryName() {
     if (!isLibraryName()) throw "Not library name";
-    return children.last;
+    return children!.last as DirectParserASTContentLibraryNameEnd;
   }
 
   bool isPart() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentPartEnd) {
+    if (children!.last is! DirectParserASTContentPartEnd) {
       return false;
     }
 
@@ -648,18 +647,18 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentPartEnd asPart() {
     if (!isPart()) throw "Not part";
-    return children.last;
+    return children!.last as DirectParserASTContentPartEnd;
   }
 
   bool isPartOf() {
     if (this is! DirectParserASTContentTopLevelDeclarationEnd) {
       return false;
     }
-    if (children.first
+    if (children!.first
         is! DirectParserASTContentUncategorizedTopLevelDeclarationBegin) {
       return false;
     }
-    if (children.last is! DirectParserASTContentPartOfEnd) {
+    if (children!.last is! DirectParserASTContentPartOfEnd) {
       return false;
     }
 
@@ -668,14 +667,14 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentPartOfEnd asPartOf() {
     if (!isPartOf()) throw "Not part of";
-    return children.last;
+    return children!.last as DirectParserASTContentPartOfEnd;
   }
 
   bool isMetadata() {
     if (this is! DirectParserASTContentMetadataStarEnd) {
       return false;
     }
-    if (children.first is! DirectParserASTContentMetadataStarBegin) {
+    if (children!.first is! DirectParserASTContentMetadataStarBegin) {
       return false;
     }
     return true;
@@ -683,7 +682,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentMetadataStarEnd asMetadata() {
     if (!isMetadata()) throw "Not metadata";
-    return this;
+    return this as DirectParserASTContentMetadataStarEnd;
   }
 
   bool isFunctionBody() {
@@ -693,7 +692,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 
   DirectParserASTContentBlockFunctionBodyEnd asFunctionBody() {
     if (!isFunctionBody()) throw "Not function body";
-    return this;
+    return this as DirectParserASTContentBlockFunctionBodyEnd;
   }
 
   List<E> recursivelyFind<E extends DirectParserASTContent>() {
@@ -709,7 +708,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
       return;
     }
     if (node.children == null) return;
-    for (DirectParserASTContent child in node.children) {
+    for (DirectParserASTContent child in node.children!) {
       _recursivelyFindInternal(child, result);
     }
   }
@@ -718,7 +717,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
     print("$indent${runtimeType} (${what}) "
         "(${deprecatedArguments})");
     if (children == null) return;
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       child.debugDumpNodeRecursively(indent: "  $indent");
     }
   }
@@ -727,7 +726,7 @@ extension GeneralASTContentExtension on DirectParserASTContent {
 extension MetadataStarExtension on DirectParserASTContentMetadataStarEnd {
   List<DirectParserASTContentMetadataEnd> getMetadataEntries() {
     List<DirectParserASTContentMetadataEnd> result = [];
-    for (DirectParserASTContent topLevel in children) {
+    for (DirectParserASTContent topLevel in children!) {
       if (topLevel is! DirectParserASTContentMetadataEnd) continue;
       result.add(topLevel);
     }
@@ -738,36 +737,36 @@ extension MetadataStarExtension on DirectParserASTContentMetadataStarEnd {
 extension CompilationUnitExtension on DirectParserASTContentCompilationUnitEnd {
   List<DirectParserASTContentTopLevelDeclarationEnd> getClasses() {
     List<DirectParserASTContentTopLevelDeclarationEnd> result = [];
-    for (DirectParserASTContent topLevel in children) {
+    for (DirectParserASTContent topLevel in children!) {
       if (!topLevel.isClass()) continue;
-      result.add(topLevel);
+      result.add(topLevel as DirectParserASTContentTopLevelDeclarationEnd);
     }
     return result;
   }
 
   List<DirectParserASTContentTopLevelDeclarationEnd> getMixinDeclarations() {
     List<DirectParserASTContentTopLevelDeclarationEnd> result = [];
-    for (DirectParserASTContent topLevel in children) {
+    for (DirectParserASTContent topLevel in children!) {
       if (!topLevel.isMixinDeclaration()) continue;
-      result.add(topLevel);
+      result.add(topLevel as DirectParserASTContentTopLevelDeclarationEnd);
     }
     return result;
   }
 
   List<DirectParserASTContentImportEnd> getImports() {
     List<DirectParserASTContentImportEnd> result = [];
-    for (DirectParserASTContent topLevel in children) {
+    for (DirectParserASTContent topLevel in children!) {
       if (!topLevel.isImport()) continue;
-      result.add(topLevel.children.last);
+      result.add(topLevel.children!.last as DirectParserASTContentImportEnd);
     }
     return result;
   }
 
   List<DirectParserASTContentExportEnd> getExports() {
     List<DirectParserASTContentExportEnd> result = [];
-    for (DirectParserASTContent topLevel in children) {
+    for (DirectParserASTContent topLevel in children!) {
       if (!topLevel.isExport()) continue;
-      result.add(topLevel.children.last);
+      result.add(topLevel.children!.last as DirectParserASTContentExportEnd);
     }
     return result;
   }
@@ -818,14 +817,14 @@ extension CompilationUnitExtension on DirectParserASTContentCompilationUnitEnd {
   // }
 
   DirectParserASTContentCompilationUnitBegin getBegin() {
-    return children.first;
+    return children!.first as DirectParserASTContentCompilationUnitBegin;
   }
 }
 
 extension TopLevelDeclarationExtension
     on DirectParserASTContentTopLevelDeclarationEnd {
   DirectParserASTContentIdentifierHandle getIdentifier() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentIdentifierHandle) return child;
     }
     throw "Not found.";
@@ -835,7 +834,7 @@ extension TopLevelDeclarationExtension
     if (!isClass()) {
       throw "Not a class";
     }
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassDeclarationEnd) {
         return child;
       }
@@ -847,7 +846,7 @@ extension TopLevelDeclarationExtension
 extension MixinDeclarationExtension
     on DirectParserASTContentMixinDeclarationEnd {
   DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
     }
     throw "Not found.";
@@ -857,21 +856,21 @@ extension MixinDeclarationExtension
 extension ClassDeclarationExtension
     on DirectParserASTContentClassDeclarationEnd {
   DirectParserASTContentClassOrMixinBodyEnd getClassOrMixinBody() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassOrMixinBodyEnd) return child;
     }
     throw "Not found.";
   }
 
   DirectParserASTContentClassExtendsHandle getClassExtends() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassExtendsHandle) return child;
     }
     throw "Not found.";
   }
 
   DirectParserASTContentClassOrMixinImplementsHandle getClassImplements() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassOrMixinImplementsHandle) {
         return child;
       }
@@ -879,8 +878,8 @@ extension ClassDeclarationExtension
     throw "Not found.";
   }
 
-  DirectParserASTContentClassWithClauseHandle getClassWithClause() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentClassWithClauseHandle? getClassWithClause() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentClassWithClauseHandle) {
         return child;
       }
@@ -893,7 +892,7 @@ extension ClassOrMixinBodyExtension
     on DirectParserASTContentClassOrMixinBodyEnd {
   List<DirectParserASTContentMemberEnd> getMembers() {
     List<DirectParserASTContentMemberEnd> members = [];
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentMemberEnd) {
         members.add(child);
       }
@@ -904,136 +903,140 @@ extension ClassOrMixinBodyExtension
 
 extension MemberExtension on DirectParserASTContentMemberEnd {
   bool isClassConstructor() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassConstructorEnd) return true;
     return false;
   }
 
   DirectParserASTContentClassConstructorEnd getClassConstructor() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassConstructorEnd) return child;
     throw "Not found";
   }
 
   bool isClassFactoryMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassFactoryMethodEnd) return true;
     return false;
   }
 
   DirectParserASTContentClassFactoryMethodEnd getClassFactoryMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassFactoryMethodEnd) return child;
     throw "Not found";
   }
 
   bool isClassFields() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassFieldsEnd) return true;
     return false;
   }
 
   DirectParserASTContentClassFieldsEnd getClassFields() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassFieldsEnd) return child;
     throw "Not found";
   }
 
   bool isMixinFields() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinFieldsEnd) return true;
     return false;
   }
 
   DirectParserASTContentMixinFieldsEnd getMixinFields() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinFieldsEnd) return child;
     throw "Not found";
   }
 
   bool isMixinMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinMethodEnd) return true;
     return false;
   }
 
   DirectParserASTContentMixinMethodEnd getMixinMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinMethodEnd) return child;
     throw "Not found";
   }
 
   bool isMixinFactoryMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinFactoryMethodEnd) return true;
     return false;
   }
 
   DirectParserASTContentMixinFactoryMethodEnd getMixinFactoryMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinFactoryMethodEnd) return child;
     throw "Not found";
   }
 
   bool isMixinConstructor() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinConstructorEnd) return true;
     return false;
   }
 
   DirectParserASTContentMixinConstructorEnd getMixinConstructor() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentMixinConstructorEnd) return child;
     throw "Not found";
   }
 
   bool isClassMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassMethodEnd) return true;
     return false;
   }
 
   DirectParserASTContentClassMethodEnd getClassMethod() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentClassMethodEnd) return child;
     throw "Not found";
   }
 
   bool isClassRecoverableError() {
-    DirectParserASTContent child = children[1];
+    DirectParserASTContent child = children![1];
     if (child is DirectParserASTContentRecoverableErrorHandle) return true;
     return false;
   }
 }
 
 extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
-  List<DirectParserASTContentIdentifierHandle> getFieldIdentifiers() {
+  List<DirectParserASTContentIdentifierHandle?> getFieldIdentifiers() {
     // For now blindly assume that the last count identifiers are the names
     // of the fields.
     int countLeft = count;
-    List<DirectParserASTContentIdentifierHandle> identifiers =
-        new List<DirectParserASTContentIdentifierHandle>.filled(count, null);
-    for (int i = children.length - 1; i >= 0; i--) {
-      DirectParserASTContent child = children[i];
+    List<DirectParserASTContentIdentifierHandle>? identifiers;
+    for (int i = children!.length - 1; i >= 0; i--) {
+      DirectParserASTContent child = children![i];
       if (child is DirectParserASTContentIdentifierHandle) {
         countLeft--;
-        identifiers[countLeft] = child;
+        if (identifiers == null) {
+          identifiers = new List<DirectParserASTContentIdentifierHandle>.filled(
+              count, child);
+        } else {
+          identifiers[countLeft] = child;
+        }
         if (countLeft == 0) break;
       }
     }
     if (countLeft != 0) throw "Didn't find the expected number of identifiers";
-    return identifiers;
+    return identifiers ?? [];
   }
 
-  DirectParserASTContentTypeHandle getFirstType() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentTypeHandle? getFirstType() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentTypeHandle) return child;
     }
     return null;
   }
 
-  DirectParserASTContentFieldInitializerEnd getFieldInitializer() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentFieldInitializerEnd? getFieldInitializer() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentFieldInitializerEnd) return child;
     }
     return null;
@@ -1041,8 +1044,8 @@ extension ClassFieldsExtension on DirectParserASTContentClassFieldsEnd {
 }
 
 extension ClassMethodExtension on DirectParserASTContentClassMethodEnd {
-  DirectParserASTContentBlockFunctionBodyEnd getBlockFunctionBody() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentBlockFunctionBodyEnd? getBlockFunctionBody() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentBlockFunctionBodyEnd) {
         return child;
       }
@@ -1054,7 +1057,7 @@ extension ClassMethodExtension on DirectParserASTContentClassMethodEnd {
 extension ClassConstructorExtension
     on DirectParserASTContentClassConstructorEnd {
   DirectParserASTContentFormalParametersEnd getFormalParameters() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentFormalParametersEnd) {
         return child;
       }
@@ -1062,8 +1065,8 @@ extension ClassConstructorExtension
     throw "Not found";
   }
 
-  DirectParserASTContentInitializersEnd getInitializers() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentInitializersEnd? getInitializers() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentInitializersEnd) {
         return child;
       }
@@ -1071,8 +1074,8 @@ extension ClassConstructorExtension
     return null;
   }
 
-  DirectParserASTContentBlockFunctionBodyEnd getBlockFunctionBody() {
-    for (DirectParserASTContent child in children) {
+  DirectParserASTContentBlockFunctionBodyEnd? getBlockFunctionBody() {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentBlockFunctionBodyEnd) {
         return child;
       }
@@ -1085,7 +1088,7 @@ extension FormalParametersExtension
     on DirectParserASTContentFormalParametersEnd {
   List<DirectParserASTContentFormalParameterEnd> getFormalParameters() {
     List<DirectParserASTContentFormalParameterEnd> result = [];
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentFormalParameterEnd) {
         result.add(child);
       }
@@ -1093,9 +1096,9 @@ extension FormalParametersExtension
     return result;
   }
 
-  DirectParserASTContentOptionalFormalParametersEnd
+  DirectParserASTContentOptionalFormalParametersEnd?
       getOptionalFormalParameters() {
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentOptionalFormalParametersEnd) {
         return child;
       }
@@ -1106,7 +1109,7 @@ extension FormalParametersExtension
 
 extension FormalParameterExtension on DirectParserASTContentFormalParameterEnd {
   DirectParserASTContentFormalParameterBegin getBegin() {
-    return children.first;
+    return children!.first as DirectParserASTContentFormalParameterBegin;
   }
 }
 
@@ -1114,7 +1117,7 @@ extension OptionalFormalParametersExtension
     on DirectParserASTContentOptionalFormalParametersEnd {
   List<DirectParserASTContentFormalParameterEnd> getFormalParameters() {
     List<DirectParserASTContentFormalParameterEnd> result = [];
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentFormalParameterEnd) {
         result.add(child);
       }
@@ -1126,7 +1129,7 @@ extension OptionalFormalParametersExtension
 extension InitializersExtension on DirectParserASTContentInitializersEnd {
   List<DirectParserASTContentInitializerEnd> getInitializers() {
     List<DirectParserASTContentInitializerEnd> result = [];
-    for (DirectParserASTContent child in children) {
+    for (DirectParserASTContent child in children!) {
       if (child is DirectParserASTContentInitializerEnd) {
         result.add(child);
       }
@@ -1135,13 +1138,13 @@ extension InitializersExtension on DirectParserASTContentInitializersEnd {
   }
 
   DirectParserASTContentInitializersBegin getBegin() {
-    return children.first;
+    return children!.first as DirectParserASTContentInitializersBegin;
   }
 }
 
 extension InitializerExtension on DirectParserASTContentInitializerEnd {
   DirectParserASTContentInitializerBegin getBegin() {
-    return children.first;
+    return children!.first as DirectParserASTContentInitializerBegin;
   }
 }
 
@@ -1188,7 +1191,7 @@ class DirectParserASTListener extends AbstractDirectParserASTListener {
       case DirectParserASTType.END:
         // End should gobble up everything until the corresponding begin (which
         // should be the latest begin).
-        int beginIndex;
+        int? beginIndex;
         for (int i = data.length - 1; i >= 0; i--) {
           if (data[i].type == DirectParserASTType.BEGIN) {
             beginIndex = i;
@@ -1261,7 +1264,7 @@ class DirectParserASTListener extends AbstractDirectParserASTListener {
   }
 
   @override
-  void reportVarianceModifierNotEnabled(Token variance) {
+  void reportVarianceModifierNotEnabled(Token? variance) {
     throw new UnimplementedError();
   }
 

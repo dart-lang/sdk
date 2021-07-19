@@ -10,6 +10,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 class ElementWalker {
   /// The element whose child elements are being walked.
   final Element element;
+  String? libraryFilePath;
+  String? unitFilePath;
 
   List<PropertyAccessorElement>? _accessors;
   int _accessorIndex = 0;
@@ -48,10 +50,11 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a compilation
   /// unit element.
-  ElementWalker.forCompilationUnit(CompilationUnitElement element)
+  ElementWalker.forCompilationUnit(CompilationUnitElementImpl element,
+      {this.libraryFilePath, this.unitFilePath})
       : element = element,
         _accessors = element.accessors.where(_isNotSynthetic).toList(),
-        _classes = element.types,
+        _classes = element.classes,
         _enums = element.enums,
         _extensions = element.extensions,
         _functions = element.functions,
@@ -104,6 +107,16 @@ class ElementWalker {
             (element.aliasedElement as GenericFunctionTypeElement).parameters,
         _typeParameters = element.typeParameters;
 
+  String? get _unitSourceContent {
+    Element? element = this.element;
+    while (element != null) {
+      if (element is CompilationUnitElementImpl) {
+        return element.sourceContent;
+      }
+      element = element.enclosingElement;
+    }
+  }
+
   void consumeLocalElements() {
     _functionIndex = _functions!.length;
   }
@@ -114,12 +127,43 @@ class ElementWalker {
 
   /// Returns the next non-synthetic child of [element] which is an accessor;
   /// throws an [IndexError] if there are no more.
-  PropertyAccessorElementImpl getAccessor() =>
-      _accessors![_accessorIndex++] as PropertyAccessorElementImpl;
+  PropertyAccessorElementImpl getAccessor() {
+    // TODO(scheglov) Remove after fixing.
+    // https://github.com/dart-lang/sdk/issues/46392
+    var accessors = _accessors;
+    if (accessors != null && _accessorIndex >= accessors.length) {
+      throw StateError(
+        '[_accessorIndex: $_accessorIndex]'
+        '[_accessors.length: ${accessors.length}]'
+        '[accessors: $accessors]'
+        '[element.source: ${element.source?.fullName}]'
+        '[libraryFilePath: $libraryFilePath]'
+        '[unitFilePath: $unitFilePath]'
+        '[unitSourceContent: $_unitSourceContent]',
+      );
+    }
+    return _accessors![_accessorIndex++] as PropertyAccessorElementImpl;
+  }
 
   /// Returns the next non-synthetic child of [element] which is a class; throws
   /// an [IndexError] if there are no more.
-  ClassElementImpl getClass() => _classes![_classIndex++] as ClassElementImpl;
+  ClassElementImpl getClass() {
+    // TODO(scheglov) Remove after fixing.
+    // https://github.com/dart-lang/sdk/issues/46392
+    var classes = _classes;
+    if (classes != null && _classIndex >= classes.length) {
+      throw StateError(
+        '[_classIndex: $_classIndex]'
+        '[classes.length: ${classes.length}]'
+        '[classes: $classes]'
+        '[element.source: ${element.source?.fullName}]'
+        '[libraryFilePath: $libraryFilePath]'
+        '[unitFilePath: $unitFilePath]'
+        '[unitSourceContent: $_unitSourceContent]',
+      );
+    }
+    return _classes![_classIndex++] as ClassElementImpl;
+  }
 
   /// Returns the next non-synthetic child of [element] which is a constructor;
   /// throws an [IndexError] if there are no more.
@@ -160,8 +204,23 @@ class ElementWalker {
   /// Returns the next non-synthetic child of [element] which is a top level
   /// variable, field, or local variable; throws an [IndexError] if there are no
   /// more.
-  VariableElementImpl getVariable() =>
-      _variables![_variableIndex++] as VariableElementImpl;
+  VariableElementImpl getVariable() {
+    // TODO(scheglov) Remove after fixing.
+    // https://github.com/dart-lang/sdk/issues/46392
+    var variables = _variables;
+    if (variables != null && _variableIndex >= variables.length) {
+      throw StateError(
+        '[_variableIndex: $_variableIndex]'
+        '[_variables.length: ${variables.length}]'
+        '[variables: $variables]'
+        '[element.source: ${element.source?.fullName}]'
+        '[libraryFilePath: $libraryFilePath]'
+        '[unitFilePath: $unitFilePath]'
+        '[unitSourceContent: $_unitSourceContent]',
+      );
+    }
+    return _variables![_variableIndex++] as VariableElementImpl;
+  }
 
   /// Verifies that all non-synthetic children of [element] have been obtained
   /// from their corresponding "get" method calls; if not, throws a

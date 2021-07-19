@@ -6,7 +6,7 @@
 #include "vm/instructions.h"
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 
 namespace dart {
 
@@ -138,4 +138,4 @@ void SignalHandler::Remove() {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)

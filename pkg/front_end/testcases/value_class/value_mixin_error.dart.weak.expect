@@ -12,7 +12,7 @@ class A extends core::Object {
   operator /*isLegacy*/ ==(core::Object other) → core::bool
     return other is self::A;
   get /*isLegacy*/ hashCode() → core::int
-    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode});
+    return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_mixin_error.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
     return "A()";
   method /*isLegacy*/ copyWith() → dynamic

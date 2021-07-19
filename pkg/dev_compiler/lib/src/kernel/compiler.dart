@@ -27,7 +27,8 @@ import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show ModuleItem, js;
-import '../js_ast/source_map_printer.dart' show NodeEnd, NodeSpan, HoverComment;
+import '../js_ast/source_map_printer.dart'
+    show NodeEnd, NodeSpan, HoverComment, continueSourceMap;
 import 'constants.dart';
 import 'js_interop.dart';
 import 'js_typerep.dart';
@@ -45,6 +46,27 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ExpressionVisitor<js_ast.Expression>,
         DartTypeVisitor<js_ast.Expression> {
   final SharedCompilerOptions _options;
+
+  /// Maps each `Class` node compiled in the module to the `Identifier`s used to
+  /// name the class in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final classIdentifiers = <Class, js_ast.Identifier>{};
+
+  /// Maps each class `Member` node compiled in the module to the name used for
+  /// the member in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final memberNames = <Member, String>{};
+
+  /// Maps each `VariableDeclaration` node compiled in the module to the name
+  /// used for the variable in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final variableIdentifiers = <VariableDeclaration, js_ast.Identifier>{};
 
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
@@ -656,8 +678,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // is called multiple times, that symbol is cached.  If the former,
       // assign directly to [virtualField].  If the latter, copy the old
       // variable to [virtualField].
-      var symbol = emitClassPrivateNameSymbol(c.enclosingLibrary,
-          getLocalClassName(c), field.name.text, virtualField);
+      var symbol = _emitClassPrivateNameSymbol(
+          c.enclosingLibrary, getLocalClassName(c), field, virtualField);
       if (symbol != virtualField) {
         addSymbol(virtualField, getSymbolValue(symbol));
         if (!containerizeSymbols) {
@@ -781,12 +803,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,
       js_ast.Expression heritage, List<js_ast.Method> methods) {
     if (c.typeParameters.isNotEmpty) {
-      return js_ast.ClassExpression(
-              className as js_ast.Identifier, heritage, methods)
+      var classIdentifier = className as js_ast.Identifier;
+      if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
+      return js_ast.ClassExpression(classIdentifier, heritage, methods)
           .toStatement();
     }
-    var classExpr = js_ast.ClassExpression(
-        _emitTemporaryId(getLocalClassName(c)), heritage, methods);
+
+    var classIdentifier = _emitTemporaryId(getLocalClassName(c));
+    if (_options.emitDebugSymbols) classIdentifiers[c] = classIdentifier;
+    var classExpr = js_ast.ClassExpression(classIdentifier, heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
   }
 
@@ -2226,7 +2251,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement _emitLazyFields(
       js_ast.Expression objExpr,
       Iterable<Field> fields,
-      js_ast.Expression Function(Field f) emitFieldName) {
+      js_ast.LiteralString Function(Field f) emitFieldName) {
     var accessors = <js_ast.Method>[];
     var savedUri = _currentUri;
 
@@ -2234,6 +2259,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _currentUri = field.fileUri;
       _staticTypeContext.enterMember(field);
       var access = emitFieldName(field);
+      memberNames[field] = access.valueWithoutQuotes;
       accessors.add(js_ast.Method(access, _emitStaticFieldInitializer(field),
           isGetter: true)
         ..sourceInformation = _hoverComment(
@@ -2342,6 +2368,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Class memberClass}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
+      // TODO(nshahan) Record the name for this member in memberNames.
       return _emitStaticMemberName(name, member);
     }
 
@@ -2358,6 +2385,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         for (var i = 1; i < parts.length; i++) {
           result = js_ast.PropertyAccess(result, propertyName(parts[i]));
         }
+        // TODO(nshahan) Record the name for this member in memberNames.
         return result;
       }
     }
@@ -2368,15 +2396,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var memberLibrary = member?.name?.library ??
           memberClass?.enclosingLibrary ??
           _currentLibrary;
+      // Wrap the name as a symbol here so it matches what you would find at
+      // runtime when you get all properties and symbols from an instance.
+      memberNames[member] = 'Symbol($name)';
       return getSymbol(emitPrivateNameSymbol(memberLibrary, name));
     }
 
     useExtension ??= _isSymbolizedMember(memberClass, name);
     name = js_ast.memberNameForDartMember(name, _isExternal(member));
     if (useExtension) {
+      // TODO(nshahan) Record the name for this member in memberNames.
       return getSymbol(getExtensionSymbolInternal(name));
     }
-    return propertyName(name);
+    var memberName = propertyName(name);
+    memberNames[member] = memberName.valueWithoutQuotes;
+    return memberName;
   }
 
   /// Don't symbolize native members that just forward to the underlying
@@ -2430,7 +2464,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             _hierarchy.getDispatchTarget(c, Name(name), setter: true));
   }
 
-  js_ast.Expression _emitStaticMemberName(String name, [NamedNode member]) {
+  js_ast.LiteralString _emitStaticMemberName(String name, [NamedNode member]) {
     if (member != null) {
       var jsName = _emitJSInteropStaticMemberName(member);
       if (jsName != null) return jsName;
@@ -2481,7 +2515,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return f;
   }
 
-  js_ast.Expression _emitJSInteropStaticMemberName(NamedNode n) {
+  js_ast.LiteralString _emitJSInteropStaticMemberName(NamedNode n) {
     if (!usesJSInterop(n)) return null;
     var name = _annotationName(n, isPublicJSAnnotation);
     if (name != null) {
@@ -2516,7 +2550,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// NOTE: usually you should use [_emitTopLevelName] instead of this. This
   /// function does not handle JS interop.
-  js_ast.Expression _emitTopLevelMemberName(NamedNode n, {String suffix = ''}) {
+  js_ast.LiteralString _emitTopLevelMemberName(NamedNode n,
+      {String suffix = ''}) {
     var name = _jsExportName(n) ?? getTopLevelName(n);
     return propertyName(name + suffix);
   }
@@ -4475,9 +4510,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var name = v.name;
     if (name == null || name.startsWith('#')) {
       name = name == null ? 't${_tempVariables.length}' : name.substring(1);
+      // TODO(nshahan) Record the Identifier for this variable in
+      // variableIdentifiers.
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name));
     }
-    return _emitIdentifier(name);
+    var identifier = _emitIdentifier(name);
+    variableIdentifiers[v] = identifier;
+    return identifier;
   }
 
   /// Emits the declaration of a variable.
@@ -5729,7 +5768,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Logical negation, `!e`, is a boolean conversion context since it is
     // defined as `e ? false : true`.
-    return js.call('!#', _visitTest(operand));
+    return js
+        .call('!#', _visitTest(operand))
+        .withSourceInformation(continueSourceMap) as js_ast.Expression;
   }
 
   @override
@@ -5749,12 +5790,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitConditionalExpression(ConditionalExpression node) {
-    return js.call('# ? # : #', [
-      _visitTest(node.condition),
-      _visitExpression(node.then),
-      _visitExpression(node.otherwise)
-    ])
-      ..sourceInformation = _nodeStart(node.condition);
+    var condition = _visitTest(node.condition);
+    var then = _visitExpression(node.then);
+    var otherwise = _visitExpression(node.otherwise);
+    return js.call('# ? # : #', [condition, then, otherwise])
+      ..sourceInformation =
+          condition.sourceInformation ?? _nodeStart(node.condition);
   }
 
   @override
@@ -5804,6 +5845,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitFileUriExpression(FileUriExpression node) {
     // Only occurs inside unevaluated constants.
     throw UnsupportedError('File URI expression');
+  }
+
+  @override
+  js_ast.Expression visitConstructorTearOff(ConstructorTearOff node) {
+    throw UnsupportedError('Constructor tear off');
+  }
+
+  @override
+  js_ast.Expression visitTypedefTearOff(TypedefTearOff node) {
+    throw UnsupportedError('Typedef instantiation');
   }
 
   @override
@@ -6188,7 +6239,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitConstant(Constant node) {
-    if (node is TearOffConstant) {
+    if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
       var isSdk = node.procedure.enclosingLibrary.importUri.scheme == 'dart';
       if (_isInForeignJS) {
@@ -6341,8 +6392,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // was overridden.
       var symbol = cls.isEnum
           ? _emitMemberName(member.name.text, member: member)
-          : getSymbol(emitClassPrivateNameSymbol(
-              cls.enclosingLibrary, getLocalClassName(cls), member.name.text));
+          : getSymbol(_emitClassPrivateNameSymbol(
+              cls.enclosingLibrary, getLocalClassName(cls), member));
       return js_ast.Property(symbol, constant);
     }
 
@@ -6359,8 +6410,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.ObjectInitializer(properties, multiline: true));
   }
 
+  /// Emits a private name JS Symbol for [member] unique to a Dart class
+  /// [className].
+  ///
+  /// This is now required for fields of constant objects that may be overridden
+  /// within the same library.
+  js_ast.TemporaryId _emitClassPrivateNameSymbol(
+      Library library, String className, Member member,
+      [js_ast.TemporaryId id]) {
+    var name = '$className.${member.name.text}';
+    // Names used in the symbols for the public fields
+    // memberNames[member] = 'Symbol($name)';
+    return emitPrivateNameSymbol(library, name, id);
+  }
+
   @override
-  js_ast.Expression visitTearOffConstant(TearOffConstant node) {
+  js_ast.Expression visitStaticTearOffConstant(StaticTearOffConstant node) {
     _declareBeforeUse(node.procedure.enclosingClass);
     return _emitStaticGet(node.procedure);
   }
@@ -6370,8 +6435,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitTypeLiteral(node.type);
 
   @override
-  js_ast.Expression visitPartialInstantiationConstant(
-          PartialInstantiationConstant node) =>
+  js_ast.Expression visitInstantiationConstant(InstantiationConstant node) =>
       canonicalizeConstObject(runtimeCall('gbind(#, #)', [
         visitConstant(node.tearOffConstant),
         node.types.map(_emitType).toList()

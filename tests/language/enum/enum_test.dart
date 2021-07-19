@@ -88,6 +88,11 @@ main() {
     expectIs(value, (e) => e is JSFunctionPrototype);
   }
   Expect.equals(JSFunctionPrototype.length, JSFunctionPrototype.values[0]);
+
+  // Enums implement Enum.
+  Expect.type<Enum>(Enum1._);
+  Enum enumValue = Enum1._;
+  Expect.equals(0, enumValue.index);
 }
 
 test1(Enum1 e) {

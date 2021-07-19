@@ -74,6 +74,17 @@ class MaybeQualifiedId extends Expression {
   void visitChildren(NodeVisitor visitor) => _expr.visitChildren(visitor);
 }
 
+/// Provides a mechanism to listen for naming choices when `Identifier` nodes
+/// are compiled into an actual name in the JavaScript.
+class NameListener {
+  /// A mapping of all name selections that were made.
+  final identifierNames = <Identifier, String>{};
+
+  /// Signals that [name] was selected to represent [identifier].
+  void nameSelected(Identifier identifier, String name) =>
+      identifierNames[identifier] = name;
+}
+
 /// This class has two purposes:
 ///
 /// * rename JS identifiers to avoid keywords.
@@ -88,13 +99,20 @@ class MaybeQualifiedId extends Expression {
 class TemporaryNamer extends LocalNamer {
   _FunctionScope scope;
 
-  TemporaryNamer(Node node) : scope = _RenameVisitor.build(node).rootScope;
+  /// Listener to be notified when a name is selected (rename or not) for an
+  /// `Identifier`.
+  ///
+  /// Can be `null` when there is no listener attached.
+  final NameListener _nameListener;
+
+  TemporaryNamer(Node node, [this._nameListener])
+      : scope = _RenameVisitor.build(node).rootScope;
 
   @override
   String getName(Identifier node) {
-    var rename = scope.renames[identifierKey(node)];
-    if (rename != null) return rename;
-    return node.name;
+    var name = scope.renames[identifierKey(node)] ?? node.name;
+    _nameListener?.nameSelected(node, name);
+    return name;
   }
 
   @override

@@ -146,11 +146,16 @@ class ArgumentError extends Error {
   /// Existing code may be using `message` to hold the invalid value.
   /// If the `message` is not a [String], it is assumed to be a value instead
   /// of a message.
+  ///
+  /// If [name] is provided, it should be the name of the parameter
+  /// which was invalid.
+  ///
+  /// Consider using [ArgumentError.value] instead to retain and document the
+  /// invalid value as well.
   @pragma("vm:entry-point")
-  ArgumentError([this.message])
+  ArgumentError([this.message, @Since("2.14") this.name])
       : invalidValue = null,
-        _hasValue = false,
-        name = null;
+        _hasValue = false;
 
   /// Creates error containing the invalid [value].
   ///

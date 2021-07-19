@@ -614,7 +614,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ShowMessageRequestParams(type: type, message: message, actions: actions),
     );
 
-    return MessageActionItem.fromJson(response.result);
+    return MessageActionItem.fromJson(response.result as Map<String, Object?>);
   }
 
   @override

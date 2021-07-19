@@ -331,7 +331,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(ESI);
   __ popl(EBX);
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1131,7 +1131,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(EAX, EAX);
   __ pushl(EAX);
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1270,31 +1270,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movzxb(result, compiler::FieldAddress(str, OneByteString::data_offset()));
   __ SmiTag(result);
   __ Bind(&done);
-}
-
-LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_out(0, Location::RegisterLocation(EAX));
-  return summary;
-}
-
-void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
-  __ pushl(array);
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
-                               locs(), ICData::Handle(), ICData::kStatic);
-  ASSERT(locs()->out(0).reg() == EAX);
 }
 
 LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
@@ -3914,28 +3889,6 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   __ Bind(&done);
 }
 
-LocationSummary* BoxUint8Instr::MakeLocationSummary(Zone* zone,
-                                                    bool opt) const {
-  ASSERT(from_representation() == kUnboxedUint8);
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void BoxUint8Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(value != out);
-
-  __ MoveRegister(out, value);
-  __ andl(out, compiler::Immediate(0xff));
-  __ SmiTag(out);
-}
-
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -6477,19 +6430,29 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
 
   return summary;
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_reg = locs()->temp_slot(0)->reg();
+  Register index_reg = locs()->in(0).reg();
+  Register target_reg = locs()->temp(0).reg();
+  Register offset = locs()->temp(1).reg();
+
+  ASSERT(RequiredInputRepresentation(0) == kTagged);
+  __ LoadObject(offset, offsets_);
+  __ movl(offset, compiler::Assembler::ElementAddressForRegIndex(
+                      /*is_external=*/false, kTypedDataInt32ArrayCid,
+                      /*index_scale=*/4,
+                      /*index_unboxed=*/false, offset, index_reg));
 
   // Load code object from frame.
   __ movl(target_reg,
@@ -6501,13 +6464,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                           target_reg, Code::saved_instructions_offset()));
   __ addl(target_reg,
           compiler::Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-
-  // Add the offset.
-  Register offset_reg = locs()->in(0).reg();
-  if (offset()->definition()->representation() == kTagged) {
-    __ SmiUntag(offset_reg);
-  }
-  __ addl(target_reg, offset_reg);
+  __ addl(target_reg, offset);
 
   // Jump to the absolute address.
   __ jmp(target_reg);

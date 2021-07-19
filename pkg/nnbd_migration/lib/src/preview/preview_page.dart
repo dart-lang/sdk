@@ -12,7 +12,7 @@ abstract class PreviewPage extends Page {
 
   /// Initialize a newly created page within the given [site]. The [id] is the
   /// portion of the path to the page that follows the initial slash ('/').
-  PreviewPage(this.site, String id) : super(id);
+  PreviewPage(this.site, String? id) : super(id);
 
   /// Whether pages of this type require authorization.
   bool get requiresAuth;

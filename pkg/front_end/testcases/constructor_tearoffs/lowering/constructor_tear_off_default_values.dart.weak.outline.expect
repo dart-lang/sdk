@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  final field core::int field;
+  constructor •([core::int field]) → self::Class1
+    ;
+  static method _#new#tearOff([core::int field]) → self::Class1
+    return new self::Class1::•(field);
+}
+static final field core::bool inSoundMode;
+static method main() → dynamic
+  ;
+static method testDefaultValues() → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+  ;

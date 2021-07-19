@@ -46,17 +46,17 @@ class EditDetail {
 /// instrumentation output.
 class MigrationInfo {
   /// The information about the compilation units that are are migrated.
-  final Set<UnitInfo> units;
+  final Set<UnitInfo>? units;
 
   /// A map from file paths to the unit infos created for those files. The units
   /// in this map is a strict superset of the [units] that were migrated.
-  final Map<String, UnitInfo> unitMap;
+  final Map<String?, UnitInfo> unitMap;
 
   /// The resource provider's path context.
   final path.Context pathContext;
 
   /// The filesystem root used to create relative paths for each unit.
-  final String includedRoot;
+  final String? includedRoot;
 
   MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
 
@@ -79,8 +79,8 @@ class MigrationInfo {
   String get robotoMonoFont => PreviewSite.robotoMonoFontPath;
 
   /// Returns the absolute path of [path], as relative to [includedRoot].
-  String absolutePathFromRoot(String path) =>
-      pathContext.join(includedRoot, path);
+  String absolutePathFromRoot(String? path) =>
+      pathContext.join(includedRoot!, path);
 
   /// Returns the relative path of [path] from [includedRoot].
   String relativePathFromRoot(String path) =>
@@ -88,11 +88,11 @@ class MigrationInfo {
 
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
-  String computeName(UnitInfo unit) => relativePathFromRoot(unit.path);
+  String computeName(UnitInfo unit) => relativePathFromRoot(unit.path!);
 
   List<UnitLink> unitLinks() {
     var links = <UnitLink>[];
-    for (var unit in units) {
+    for (var unit in units!) {
       var count = unit.fixRegions.length;
       links.add(UnitLink(
           unit.path,
@@ -112,7 +112,7 @@ abstract class NavigationRegion {
   final int offset;
 
   /// The line number of the region.
-  final int line;
+  final int? line;
 
   /// The length of the region.
   final int length;
@@ -129,7 +129,7 @@ class NavigationSource extends NavigationRegion {
   final NavigationTarget target;
 
   /// Initialize a newly created link.
-  NavigationSource(int offset, int line, int length, this.target)
+  NavigationSource(int offset, int? line, int length, this.target)
       : super(offset, line, length);
 }
 
@@ -139,7 +139,7 @@ class NavigationTarget extends NavigationRegion {
   final String filePath;
 
   /// Initialize a newly created anchor.
-  NavigationTarget(this.filePath, int offset, int line, int length)
+  NavigationTarget(this.filePath, int offset, int? line, int length)
       : super(offset, line, length);
 
   @override
@@ -176,13 +176,13 @@ class RegionInfo {
   ///
   /// `null` if this region doesn't represent a fix (e.g. it's just whitespace
   /// change to preserve formatting).
-  final String explanation;
+  final String? explanation;
 
   /// The kind of fix that was applied.
   ///
   /// `null` if this region doesn't represent a fix (e.g. it's just whitespace
   /// change to preserve formatting).
-  final NullabilityFixKind kind;
+  final NullabilityFixKind? kind;
 
   /// Indicates whether this region should be counted in the edit summary.
   final bool isCounted;
@@ -219,18 +219,17 @@ class TraceEntryInfo {
   final String description;
 
   /// Name of the enclosing function, or `null` if not known.
-  String function;
+  String? function;
 
   /// Source code location associated with the entry, or `null` if no source
   /// code location is known.
-  final NavigationTarget target;
+  final NavigationTarget? target;
 
   /// The hint actions available on this trace entry, or `[]` if none.
   final List<HintAction> hintActions;
 
   TraceEntryInfo(this.description, this.function, this.target,
-      {this.hintActions = const []})
-      : assert(hintActions != null);
+      {this.hintActions = const []});
 }
 
 /// Information about a nullability trace.
@@ -247,13 +246,13 @@ class TraceInfo {
 /// The migration information associated with a single compilation unit.
 class UnitInfo {
   /// The absolute and normalized path of the unit.
-  final String path;
+  final String? path;
 
   /// Hash of the original contents of the unit.
-  List<int> _diskContentHash;
+  List<int>? _diskContentHash;
 
   /// The preview content of unit.
-  String content;
+  String? content;
 
   /// The information about the regions that have an explanation associated with
   /// them. The offsets in these regions are offsets into the post-edit content.
@@ -261,7 +260,7 @@ class UnitInfo {
 
   /// The navigation sources that are located in this file. The offsets in these
   /// sources are offsets into the pre-edit content.
-  List<NavigationSource> sources;
+  List<NavigationSource>? sources;
 
   /// The navigation targets that are located in this file. The offsets in these
   /// targets are offsets into the pre-edit content.
@@ -277,9 +276,9 @@ class UnitInfo {
 
   /// Whether this compilation unit was explicitly opted out of null safety at
   /// the start of this migration.
-  /*late*/ bool wasExplicitlyOptedOut;
+  late bool wasExplicitlyOptedOut;
 
-  /*late*/ bool migrationStatusCanBeChanged;
+  late bool migrationStatusCanBeChanged;
 
   /// Indicates the migration status of this unit.
   ///
@@ -294,14 +293,14 @@ class UnitInfo {
   /// * During a follow-up migration, in which a package has been migrated to
   ///   null safety, but some files have been opted out, the user can toggle a
   ///   file's migration status between "migrating" and "keeping opted out."
-  UnitMigrationStatus migrationStatus;
+  UnitMigrationStatus? migrationStatus;
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);
 
   /// Set the original/disk content of this file to later use [hadDiskContent].
   /// This does not have a getter because it is backed by a private hash.
-  set diskContent(String originalContent) {
+  set diskContent(String? originalContent) {
     _diskContentHash = md5.convert((originalContent ?? '').codeUnits).bytes;
   }
 
@@ -323,7 +322,7 @@ class UnitInfo {
       OffsetMapper.rebase(diskChangesOffsetMapper, migrationOffsetMapper);
 
   /// Check if this unit's file had expected disk contents [checkContent].
-  bool hadDiskContent(String checkContent) {
+  bool hadDiskContent(String? checkContent) {
     assert(_diskContentHash != null);
     return const ListEquality().equals(
         _diskContentHash, md5.convert((checkContent ?? '').codeUnits).bytes);
@@ -340,7 +339,7 @@ class UnitInfo {
       throw StateError('cannot apply replacement, offset has been deleted.');
     }
     try {
-      content = content.replaceRange(migratedOffset,
+      content = content!.replaceRange(migratedOffset,
           migratedOffset + deleteLength, sourceEdit.replacement);
       regions.clear();
       regions.addAll(regionsCopy

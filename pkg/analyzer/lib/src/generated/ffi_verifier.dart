@@ -137,9 +137,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (inCompound) {
+    if (!typeSystem.isNonNullableByDefault && inCompound) {
       _errorReporter.reportErrorForNode(
-          FfiCode.FIELD_INITIALIZER_IN_STRUCT, node);
+        FfiCode.FIELD_INITIALIZER_IN_STRUCT,
+        node,
+      );
     }
     super.visitConstructorFieldInitializer(node);
   }
@@ -177,6 +179,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.constructorName.staticElement;
+    var class_ = constructor?.enclosingElement;
+    if (class_.isStructSubclass || class_.isUnionSubclass) {
+      _errorReporter.reportErrorForNode(
+        FfiCode.CREATION_OF_STRUCT_OR_UNION,
+        node.constructorName,
+      );
+    }
+
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
@@ -612,8 +628,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (node.isStatic) {
       return;
     }
+
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
+
+    if (typeSystem.isNonNullableByDefault) {
+      if (node.externalKeyword == null) {
+        _errorReporter.reportErrorForNode(
+          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+          fields.variables[0].name,
+        );
+      }
+    }
+
     var fieldType = fields.type;
     if (fieldType == null) {
       _errorReporter.reportErrorForNode(
@@ -653,10 +680,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             fieldType, [fieldType.toSource()]);
       }
     }
-    for (VariableDeclaration field in fields.variables) {
-      if (field.initializer != null) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, field.name);
+
+    if (!typeSystem.isNonNullableByDefault) {
+      for (VariableDeclaration field in fields.variables) {
+        if (field.initializer != null) {
+          _errorReporter.reportErrorForNode(
+            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
+            field.name,
+          );
+        }
       }
     }
   }
@@ -718,10 +750,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (arg is NamedExpression) {
           if (arg.element?.name == _isLeafParamName) {
             if (_maybeGetBoolConstValue(arg.expression) == null) {
-              final AstNode errorNode = node;
               _errorReporter.reportErrorForNode(
                   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
-                  errorNode,
+                  arg.expression,
                   [_isLeafParamName]);
             }
           }
@@ -1041,6 +1072,34 @@ extension on Element? {
         element.isFfiClass;
   }
 
+  /// Return `true` if this represents the class `Struct`.
+  bool get isStruct {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Struct' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isStructSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isStruct;
+  }
+
+  /// Return `true` if this represents the class `Union`.
+  bool get isUnion {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Union' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isUnionSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isUnion;
+  }
+
   /// If this is a class element from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     var element = this;
@@ -1092,6 +1151,18 @@ extension on ClassElement {
 extension on ExtensionElement {
   bool get isFfiExtension {
     return library.name == FfiVerifier._dartFfiLibraryName;
+  }
+}
+
+extension on DartType? {
+  bool get isStruct {
+    final self = this;
+    return self is InterfaceType && self.element.isStruct;
+  }
+
+  bool get isUnion {
+    final self = this;
+    return self is InterfaceType && self.element.isUnion;
   }
 }
 

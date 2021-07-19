@@ -196,6 +196,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment IndirectGoto(intptr_t target_count);
   Fragment StoreLateField(const Field& field,
                           LocalVariable* instance,
                           LocalVariable* setter_value);
@@ -221,6 +222,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
   Fragment StringInterpolateSingle(TokenPosition position);
+  Fragment StringInterpolate(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError(const Function& target);
   Fragment ThrowLateInitializationError(TokenPosition position,

@@ -35,7 +35,7 @@ class ObjectGraph : public ThreadStackResource {
     // Returns false if there is no parent.
     bool MoveToParent();
     // Offset into parent for the pointer to current object. -1 if no parent.
-    intptr_t OffsetFromParentInWords() const;
+    intptr_t OffsetFromParent() const;
 
    private:
     StackIterator(const Stack* stack, intptr_t index)

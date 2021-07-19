@@ -6,7 +6,7 @@
 #include "vm/instructions.h"
 #include "vm/signal_handler.h"
 #include "vm/simulator.h"
-#if defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_LINUX)
 
 namespace dart {
 
@@ -117,4 +117,4 @@ void SignalHandler::Remove() {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_LINUX)
+#endif  // defined(DART_HOST_OS_LINUX)

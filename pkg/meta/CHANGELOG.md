@@ -1,3 +1,22 @@
+## 1.7.0
+
+* Restore `TargetKindExtension` and `get displayString`.
+  We published `analyzer 1.7.2` that is compatible with `TargetKindExtension`.
+
+## 2.0.0 - removed
+
+* Restore `TargetKindExtension` and `get displayString`.
+
+## 1.6.0
+
+* Remove `TargetKindExtension`. Adding it was a breaking change, because there
+  are clients, e.g. `analyze 1.7.0`, that also declare an extension on
+  `TargetKind`, and also declare `get displayString`. This causes a conflict.
+
+## 1.5.0
+
+* Add `TargetKindExtension.displayString`.
+
 ## 1.4.0
 
 * Introduce `TargetKind.topLevelVariable` that indicates that an annotation

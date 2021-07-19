@@ -222,6 +222,201 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
+  test_binaryExpression_andEager_const_const() async {
+    await _assertConst(r'''
+const a = false;
+const b = false;
+var x = a & b;
+''', () => _xInitializer());
+  }
+
+  test_binaryExpression_andEager_const_notConst() async {
+    await _assertNotConst(r'''
+const a = false;
+final b = false;
+var x = a & b;
+''', () => _xInitializer(), () => [findNode.simple('b;')]);
+  }
+
+  test_binaryExpression_andEager_notConst_const() async {
+    await _assertNotConst(r'''
+final a = false;
+const b = false;
+var x = a & b;
+''', () => _xInitializer(), () => [findNode.simple('a &')]);
+  }
+
+  test_binaryExpression_andEager_notConst_notConst() async {
+    await _assertNotConst(
+      r'''
+final a = false;
+final b = false;
+var x = a & b;
+''',
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a &'),
+        findNode.simple('b;'),
+      ],
+    );
+  }
+
+  test_binaryExpression_andLazy_const_const() async {
+    await _assertConst(r'''
+const a = false;
+const b = false;
+var x = a && b;
+''', () => _xInitializer());
+  }
+
+  test_binaryExpression_andLazy_const_notConst() async {
+    await _assertNotConst(r'''
+const a = false;
+final b = false;
+var x = a && b;
+''', () => _xInitializer(), () => [findNode.simple('b;')]);
+  }
+
+  test_binaryExpression_andLazy_notConst_const() async {
+    await _assertNotConst(r'''
+final a = false;
+const b = false;
+var x = a && b;
+''', () => _xInitializer(), () => [findNode.simple('a &')]);
+  }
+
+  test_binaryExpression_andLazy_notConst_notConst() async {
+    await _assertNotConst(
+      r'''
+final a = false;
+final b = false;
+var x = a && b;
+''',
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a &'),
+        findNode.simple('b;'),
+      ],
+    );
+  }
+
+  test_binaryExpression_ifNull_const_const() async {
+    await _assertConst(r'''
+const a = 0;
+const b = 1;
+var x = a ?? b;
+''', () => _xInitializer());
+  }
+
+  test_binaryExpression_ifNull_const_notConst() async {
+    await _assertNotConst(r'''
+const a = 0;
+final b = 1;
+var x = a ?? b;
+''', () => _xInitializer(), () => [findNode.simple('b;')]);
+  }
+
+  test_binaryExpression_ifNull_notConst_const() async {
+    await _assertNotConst(r'''
+final a = 0;
+const b = 1;
+var x = a ?? b;
+''', () => _xInitializer(), () => [findNode.simple('a ??')]);
+  }
+
+  test_binaryExpression_ifNull_notConst_notConst() async {
+    await _assertNotConst(
+      r'''
+final a = 0;
+final b = 1;
+var x = a ?? b;
+''',
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a ??'),
+        findNode.simple('b;'),
+      ],
+    );
+  }
+
+  test_binaryExpression_orEager_const_const() async {
+    await _assertConst(r'''
+const a = false;
+const b = false;
+var x = a | b;
+''', () => _xInitializer());
+  }
+
+  test_binaryExpression_orEager_const_notConst() async {
+    await _assertNotConst(r'''
+const a = false;
+final b = false;
+var x = a | b;
+''', () => _xInitializer(), () => [findNode.simple('b;')]);
+  }
+
+  test_binaryExpression_orEager_notConst_const() async {
+    await _assertNotConst(r'''
+final a = false;
+const b = false;
+var x = a | b;
+''', () => _xInitializer(), () => [findNode.simple('a |')]);
+  }
+
+  test_binaryExpression_orEager_notConst_notConst() async {
+    await _assertNotConst(
+      r'''
+final a = false;
+final b = false;
+var x = a | b;
+''',
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a |'),
+        findNode.simple('b;'),
+      ],
+    );
+  }
+
+  test_binaryExpression_orLazy_const_const() async {
+    await _assertConst(r'''
+const a = false;
+const b = false;
+var x = a || b;
+''', () => _xInitializer());
+  }
+
+  test_binaryExpression_orLazy_const_notConst() async {
+    await _assertNotConst(r'''
+const a = false;
+final b = false;
+var x = a || b;
+''', () => _xInitializer(), () => [findNode.simple('b;')]);
+  }
+
+  test_binaryExpression_orLazy_notConst_const() async {
+    await _assertNotConst(r'''
+final a = false;
+const b = false;
+var x = a || b;
+''', () => _xInitializer(), () => [findNode.simple('a |')]);
+  }
+
+  test_binaryExpression_orLazy_notConst_notConst() async {
+    await _assertNotConst(
+      r'''
+final a = false;
+final b = false;
+var x = a || b;
+''',
+      () => _xInitializer(),
+      () => [
+        findNode.simple('a |'),
+        findNode.simple('b;'),
+      ],
+    );
+  }
+
   test_conditional() async {
     await _assertConst(r'''
 const a = 0;

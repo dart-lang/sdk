@@ -174,10 +174,8 @@ class DeprecatedMemberUseVerifier {
     } else if (node is MethodInvocation &&
         displayName == FunctionElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
-      if (invokeType is InterfaceType) {
-        var invokeClass = invokeType.element;
-        displayName = "${invokeClass.name}.${element.displayName}";
-      }
+      var invokeClass = invokeType.element;
+      displayName = "${invokeClass.name}.${element.displayName}";
     }
     var library = element is LibraryElement ? element : element.library;
     var message = _deprecatedMessage(element);

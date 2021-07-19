@@ -227,6 +227,7 @@ class ObjectPointerVisitor;
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
   V(SecondArg, "y")                                                            \
+  V(Sentinel, "Sentinel")                                                      \
   V(Set, "set")                                                                \
   V(SetterPrefix, "set:")                                                      \
   V(SingleTargetCache, "SingleTargetCache")                                    \

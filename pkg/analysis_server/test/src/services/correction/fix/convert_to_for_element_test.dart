@@ -11,8 +11,38 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToForElementBulkTest);
     defineReflectiveTests(ConvertToForElementTest);
   });
+}
+
+@reflectiveTest
+class ConvertToForElementBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+f(Iterable<int> i) {
+  var k = 3;
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
+}
+
+f2(Iterable<int> i) {
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0);
+}
+''');
+    await assertHasFix('''
+f(Iterable<int> i) {
+  var k = 3;
+  return { for (var e in i) e * 2 : k };
+}
+
+f2(Iterable<int> i) {
+  return { for (var k in i) k * 2 : 0 };
+}
+''');
+  }
 }
 
 @reflectiveTest

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -33,6 +32,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -81,7 +81,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 144;
+  static const int DATA_VERSION = 161;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -238,6 +238,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// TODO(scheglov) We probably should tie it into the session.
   LibraryContext? _libraryContext;
+
+  /// Whether `dart:core` has been transitively discovered.
+  bool _hasDartCoreDiscovered = false;
 
   /// This function is invoked when the current session is about to be discarded.
   /// The argument represents the path of the resource causing the session
@@ -579,26 +582,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// This method does not use analysis priorities, and must not be used in
   /// interactive analysis, such as Analysis Server or its plugins.
-  @Deprecated('Use getErrors2() instead')
-  Future<ErrorsResult> getErrors(String path) async {
-    _throwIfNotAbsolutePath(path);
-
-    var result = await getErrors2(path);
-
-    if (result is NotPathOfUriResult) {
-      return NotValidErrorsResultImpl(ResultState.NOT_FILE_OF_URI);
-    }
-
-    return result as ErrorsResult;
-  }
-
-  /// Return a [Future] that completes with the [ErrorsResult] for the Dart
-  /// file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// This method does not use analysis priorities, and must not be used in
-  /// interactive analysis, such as Analysis Server or its plugins.
   Future<SomeErrorsResult> getErrors2(String path) async {
     if (!_isAbsolutePath(path)) {
       return Future.value(
@@ -643,15 +626,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the [FileResult] for the Dart file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
-  @Deprecated('Use getFileSync2() instead')
-  FileResult getFileSync(String path) {
-    _throwIfNotAbsolutePath(path);
-    return getFileSync2(path) as FileResult;
-  }
-
-  /// Return the [FileResult] for the Dart file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
   SomeFileResult getFileSync2(String path) {
     if (!_isAbsolutePath(path)) {
       return InvalidPathResult();
@@ -679,41 +653,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
-  }
-
-  /// Return a [Future] that completes with the [LibraryElement] for the given
-  /// [uri], which is either resynthesized from the provided external summary
-  /// store, or built for a file to which the given [uri] is resolved.
-  ///
-  /// Throw [ArgumentError] if the [uri] does not correspond to a file.
-  ///
-  /// Throw [ArgumentError] if the [uri] corresponds to a part.
-  @Deprecated('Use getLibraryByUri2() instead')
-  Future<LibraryElement> getLibraryByUri(String uri) async {
-    var uriObj = Uri.parse(uri);
-    var fileOr = _fsState.getFileForUri(uriObj);
-    return fileOr.map(
-      (file) async {
-        if (file == null) {
-          throw ArgumentError('$uri cannot be resolved to a file.');
-        }
-
-        if (file.isPart) {
-          throw ArgumentError('$uri is not a library.');
-        }
-
-        var unitResult = await getUnitElement2(file.path);
-        if (unitResult is! UnitElementResult) {
-          throw ArgumentError('$uri has no valid result.');
-        }
-
-        return unitResult.element.library;
-      },
-      (externalLibrary) async {
-        var libraryContext = _createLibraryContext(null);
-        return libraryContext.getLibraryElement(externalLibrary.uri);
-      },
-    );
   }
 
   /// Return a [Future] that completes with [LibraryElementResult] for the given
@@ -803,29 +742,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
-  ///
-  /// Throw [ArgumentError] if the given [uri] is not the defining compilation
-  /// unit for a library (that is, is a part of a library).
-  @Deprecated('Use getParsedLibraryByUri2() instead')
-  ParsedLibraryResult getParsedLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) {
-        if (file == null) {
-          throw ArgumentError('URI cannot be resolved: $uri');
-        }
-        if (file.isPart) {
-          throw ArgumentError('Is a part: $uri');
-        }
-        return getParsedLibrary(file.path);
-      },
-      (externalLibrary) {
-        return ParsedLibraryResultImpl.external(currentSession, uri);
-      },
-    );
-  }
-
-  /// Return a [ParsedLibraryResult] for the library with the given [uri].
   SomeParsedLibraryResult getParsedLibraryByUri2(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
     return fileOr.map(
@@ -842,40 +758,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return UriOfExternalLibraryResult();
       },
     );
-  }
-
-  /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
-  /// Dart library file with the given [path].  If the file is not a Dart file
-  /// or cannot be analyzed, the [Future] completes with `null`.
-  ///
-  /// Throw [ArgumentError] if the given [path] is not the defining compilation
-  /// unit for a library (that is, is a part of a library).
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
-  ///
-  /// Invocation of this method causes the analysis state to transition to
-  /// "analyzing" (if it is not in that state already), the driver will produce
-  /// the resolution result for it, which is consistent with the current file
-  /// state (including new states of the files previously reported using
-  /// [changeFile]), prior to the next time the analysis state transitions
-  /// to "idle".
-  @Deprecated('Use getResolvedLibrary2() instead')
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) async {
-    _throwIfNotAbsolutePath(path);
-
-    var result = await getResolvedLibrary2(path);
-
-    if (result is NotPathOfUriResult) {
-      return Future.value(); // bug?
-    }
-
-    if (result is NotLibraryButPartResult) {
-      throw ArgumentError('Is a part: $path');
-    }
-
-    return result as ResolvedLibraryResult;
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -923,37 +805,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
-  /// Dart library file with the given [uri].
-  ///
-  /// Throw [ArgumentError] if the given [uri] is not the defining compilation
-  /// unit for a library (that is, is a part of a library).
-  ///
-  /// Invocation of this method causes the analysis state to transition to
-  /// "analyzing" (if it is not in that state already), the driver will produce
-  /// the resolution result for it, which is consistent with the current file
-  /// state (including new states of the files previously reported using
-  /// [changeFile]), prior to the next time the analysis state transitions
-  /// to "idle".
-  @Deprecated('Use getResolvedLibraryByUri2() instead')
-  Future<ResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
-    var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) {
-        if (file == null) {
-          throw ArgumentError('URI cannot be resolved: $uri');
-        }
-        if (file.isPart) {
-          throw ArgumentError('Is a part: $uri');
-        }
-        return getResolvedLibrary(file.path);
-      },
-      (externalLibrary) async {
-        return ResolvedLibraryResultImpl.external(currentSession, uri);
-      },
-    );
-  }
-
-  /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
   /// Dart library file with the given [uri].  If the file cannot be analyzed,
   /// the [Future] completes with an [InvalidResult].
   ///
@@ -990,35 +841,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(file.transitiveSignature);
     signature.addString(file.contentHash);
     return signature;
-  }
-
-  /// Return a [Future] that completes with a [ResolvedUnitResult] for the Dart
-  /// file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
-  ///
-  /// If the driver has the cached analysis result for the file, it is returned.
-  /// If [sendCachedToStream] is `true`, then the result is also reported into
-  /// the [results] stream, just as if it were freshly computed.
-  ///
-  /// Otherwise causes the analysis state to transition to "analyzing" (if it is
-  /// not in that state already), the driver will produce the analysis result for
-  /// it, which is consistent with the current file state (including new states
-  /// of the files previously reported using [changeFile]), prior to the next
-  /// time the analysis state transitions to "idle".
-  @Deprecated('Use getResult2() instead')
-  Future<ResolvedUnitResult> getResult(String path,
-      {bool sendCachedToStream = false}) async {
-    _throwIfNotAbsolutePath(path);
-
-    var result = await getResult2(path, sendCachedToStream: sendCachedToStream);
-    if (result is NotPathOfUriResult) {
-      return NotValidResolvedUnitResultImpl(ResultState.NOT_FILE_OF_URI);
-    }
-
-    return result as ResolvedUnitResult;
   }
 
   /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
@@ -1072,37 +894,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
-  /// Return a [Future] that completes with the [SourceKind] for the Dart
-  /// file with the given [path]. If the file is not a Dart file or cannot
-  /// be analyzed, the [Future] completes with `null`.
-  ///
-  /// The [path] must be absolute and normalized.
-  @Deprecated('Use getFileSync2() instead')
-  Future<SourceKind?> getSourceKind(String path) async {
-    _throwIfNotAbsolutePath(path);
-    if (file_paths.isDart(resourceProvider.pathContext, path)) {
-      FileState file = _fileTracker.getFile(path);
-      return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
-    }
-    return null;
-  }
-
-  /// Return a [Future] that completes with the [UnitElementResult] for the
-  /// file with the given [path].
-  @Deprecated('Use getUnitElement2() instead')
-  Future<UnitElementResult> getUnitElement(String path) async {
-    _throwIfNotAbsolutePath(path);
-    var result = await getUnitElement2(path);
-
-    if (result is NotPathOfUriResult) {
-      return Future.value(
-        NotValidUnitElementResultImpl(ResultState.NOT_FILE_OF_URI),
-      );
-    }
-
-    return result as UnitElementResult;
-  }
-
   /// Return a [Future] that completes with the [SomeUnitElementResult]
   /// for the file with the given [path].
   Future<SomeUnitElementResult> getUnitElement2(String path) {
@@ -1121,27 +912,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var completer = Completer<UnitElementResult>();
     _unitElementRequestedFiles
         .putIfAbsent(path, () => <Completer<UnitElementResult>>[])
-        .add(completer);
-    _scheduler.notify(this);
-    return completer.future;
-  }
-
-  /// Return a [Future] that completes with the signature for the
-  /// [UnitElementResult] for the file with the given [path], or with `null` if
-  /// the file cannot be analyzed.
-  ///
-  /// The signature is based the APIs of the files of the library (including
-  /// the file itself) of the requested file and the transitive closure of files
-  /// imported and exported by the library.
-  @Deprecated('This method is not used and will be removed')
-  Future<String> getUnitElementSignature(String path) {
-    _throwIfNotAbsolutePath(path);
-    if (!_fsState.hasUri(path)) {
-      return Future.value();
-    }
-    var completer = Completer<String>();
-    _unitElementSignatureFiles
-        .putIfAbsent(path, () => <Completer<String>>[])
         .add(completer);
     _scheduler.notify(this);
     return completer.future;
@@ -1174,39 +944,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The parsing is performed in the method itself, and the result is not
   /// produced through the [results] stream (just because it is not a fully
   /// resolved unit).
-  @Deprecated('Use parseFile2() instead')
-  Future<ParsedUnitResult> parseFile(String path) async {
-    return parseFileSync(path);
-  }
-
-  /// Return a [Future] that completes with a [ParsedUnitResult] for the file
-  /// with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
-  ///
-  /// The parsing is performed in the method itself, and the result is not
-  /// produced through the [results] stream (just because it is not a fully
-  /// resolved unit).
   Future<SomeParsedUnitResult> parseFile2(String path) async {
     return parseFileSync2(path);
-  }
-
-  /// Return a [ParsedUnitResult] for the file with the given [path].
-  ///
-  /// The [path] must be absolute and normalized.
-  ///
-  /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
-  ///
-  /// The parsing is performed in the method itself, and the result is not
-  /// produced through the [results] stream (just because it is not a fully
-  /// resolved unit).
-  @Deprecated('Use parseFileSync2() instead')
-  ParsedUnitResult parseFileSync(String path) {
-    _throwIfNotAbsolutePath(path);
-
-    return parseFileSync2(path) as ParsedUnitResult;
   }
 
   /// Return a [ParsedUnitResult] for the file with the given [path].
@@ -1234,6 +973,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<void> performWork() async {
     if (_fileTracker.verifyChangedFilesIfNeeded()) {
       return;
+    }
+
+    if (!_hasDartCoreDiscovered) {
+      _hasDartCoreDiscovered = true;
+      _discoverDartCore();
     }
 
     // Analyze a requested file.
@@ -1849,6 +1593,29 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(this);
   }
 
+  /// When we look at a part that has a `part of name;` directive, we
+  /// usually don't know the library (in contrast to `part of uri;`).
+  /// So, we have no choice than to resolve this part as its own library.
+  /// TODO(scheglov) Maybe just return an error result instead?
+  ///
+  /// But parts of `dart:xyz` libraries are special. The reason is that
+  /// `dart:core` is always implicitly imported. So, when we start building
+  /// the library cycle of such "part as a library", we discover `dart:core`,
+  /// and see that it contains our part. So, we don't add it as a library on
+  /// its own. But have already committed that it is a library. This causes
+  /// an exception in `LinkedElementFactory`.
+  ///
+  /// The current workaround for this is to discover `dart:core` before any
+  /// analysis.
+  void _discoverDartCore() {
+    _fsState.getFileForUri(Uri.parse('dart:core')).map(
+      (file) {
+        file?.transitiveFiles;
+      },
+      (externalLibrary) {},
+    );
+  }
+
   void _fillSalt() {
     _fillSaltForUnlinked();
     _fillSaltForElements();
@@ -1991,6 +1758,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     } catch (_) {
       // We might get an exception while parsing to access parts.
       // Ignore, continue with the exception that we are reporting now.
+    }
+
+    if (exception is CaughtExceptionWithFiles) {
+      for (var nested in exception.fileContentMap.entries) {
+        fileContentMap['nested-${nested.key}'] = nested.value;
+      }
     }
 
     _exceptionController.add(

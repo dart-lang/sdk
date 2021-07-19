@@ -43,9 +43,9 @@ class DeepCaller1 extends core::Object {
     return self::field1;
 }
 class D extends core::Object {
-[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  field core::Object* field2 = [@vm.inferred-type.metadata=!] self::getValue();
+[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  field core::Object* field2;
   synthetic constructor •() → self::D*
-    : super core::Object::•()
+    : self::D::field2 = [@vm.inferred-type.metadata=!] self::getValue(), super core::Object::•()
     ;
 }
 class DeepCaller2 extends core::Object {
@@ -64,7 +64,7 @@ class DeepCaller2 extends core::Object {
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
 static field core::Object* field1 = [@vm.inferred-type.metadata=!] self::getValue();
 static method getDynamic() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown();
+  return self::unknown();
 static method getValue() → core::Object* {
   self::A* aa = self::getDynamic() as{TypeError,ForDynamic} self::A*;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}(){() →* core::Object*};

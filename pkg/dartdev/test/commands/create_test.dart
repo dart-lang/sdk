@@ -141,7 +141,7 @@ void defineCreateTests() {
 
   // Create tests for each template.
   for (String templateId in CreateCommand.legalTemplateIds) {
-    test('$templateId', () {
+    test(templateId, () {
       p = project();
       const projectName = 'template_project';
       ProcessResult result = p.runSync([

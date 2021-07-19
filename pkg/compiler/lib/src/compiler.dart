@@ -481,7 +481,7 @@ abstract class Compiler {
         serializationTask.serializeClosedWorld(closedWorld);
         return;
       }
-      if (stopAfterClosedWorld) return;
+      if (stopAfterClosedWorld || options.stopAfterProgramSplit) return;
       GlobalTypeInferenceResults globalInferenceResults =
           performGlobalTypeInference(closedWorld);
       if (options.writeDataUri != null) {

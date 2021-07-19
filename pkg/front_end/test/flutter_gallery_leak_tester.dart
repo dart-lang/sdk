@@ -155,16 +155,22 @@ main(List<String> args) async {
 
   List<helper.Interest> interests = <helper.Interest>[];
   interests.add(new helper.Interest(
-      Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
+    Uri.parse("package:kernel/ast.dart"),
+    "Library",
+    ["fileUri"],
+  ));
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-          interests,
-          [
-            new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
-                ["fileUri", "_libraryIdString"]),
-          ],
-          true,
-          false);
+    interests: interests,
+    prettyPrints: [
+      new helper.Interest(
+        Uri.parse("package:kernel/ast.dart"),
+        "Library",
+        ["fileUri", "libraryIdForTesting"],
+      ),
+    ],
+    throwOnPossibleLeak: true,
+  );
 
   print("About to run with "
       "quicker = $quicker; "
@@ -197,7 +203,7 @@ main(List<String> args) async {
   }
 
   await heapHelper.start(processArgs,
-      stdinReceiver: (s) {
+      stdoutReceiver: (s) {
         if (s.startsWith("+")) {
           files.add(s.substring(1));
         } else if (s.startsWith("-")) {

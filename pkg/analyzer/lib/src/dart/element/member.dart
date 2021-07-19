@@ -522,6 +522,9 @@ abstract class Member implements Element {
   bool get hasUseResult => _declaration.hasUseResult;
 
   @override
+  bool get hasVisibleForOverriding => _declaration.hasVisibleForOverriding;
+
+  @override
   bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override
@@ -564,6 +567,9 @@ abstract class Member implements Element {
   int get nameOffset => _declaration.nameOffset;
 
   @override
+  Element get nonSynthetic => _declaration.nonSynthetic;
+
+  @override
   AnalysisSession? get session => _declaration.session;
 
   @override
@@ -576,10 +582,14 @@ abstract class Member implements Element {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
-  String getDisplayString({required bool withNullability}) {
+  String getDisplayString({
+    required bool withNullability,
+    bool multiline = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: false,
       withNullability: withNullability,
+      multiline: multiline,
     );
     appendTo(builder);
     return builder.toString();

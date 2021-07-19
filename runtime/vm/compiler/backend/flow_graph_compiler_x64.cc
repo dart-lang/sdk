@@ -491,7 +491,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   ASSERT(assembler_->constant_pool_allowed());
   __ Comment("Edge counter");
   __ LoadObject(RAX, edge_counters_array_);
-  __ IncrementSmiField(
+  __ IncrementCompressedSmiField(
       compiler::FieldAddress(RAX, Array::element_offset(edge_id)), 1);
 }
 

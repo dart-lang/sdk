@@ -64,7 +64,7 @@ Future<void> sendUsageEvent(
   specifiedExperiments = specifiedExperiments?.toList() ?? [];
 
   // Sort the flag lists to slightly reduce the explosion of possibilities.
-  commandFlags..sort();
+  commandFlags.sort();
   specifiedExperiments.sort();
 
   // Insert a seperator before and after the flags list to make it easier to filter

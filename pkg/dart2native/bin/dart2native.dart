@@ -103,7 +103,7 @@ Sets the verbosity level used for filtering messages during compilation.
   final String sourceFile = parsedArgs.rest[0];
   if (!FileSystemEntity.isFileSync(sourceFile)) {
     stderr.writeln(
-        '"${sourceFile}" is not a file. See \'--help\' for more information.');
+        '"$sourceFile" is not a file. See \'--help\' for more information.');
     await stderr.flush();
     exit(1);
   }

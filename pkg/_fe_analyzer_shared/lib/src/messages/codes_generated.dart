@@ -12,6 +12,15 @@
 part of _fe_analyzer_shared.messages.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractClassConstructorTearOff =
+    messageAbstractClassConstructorTearOff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractClassConstructorTearOff = const MessageCode(
+    "AbstractClassConstructorTearOff",
+    message: r"""Constructors on abstract classes can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateAbstractClassInstantiation =
     const Template<Message Function(String name)>(
@@ -5173,6 +5182,64 @@ Message _withArgumentsInputFileNotFound(Uri uri_) {
   String? uri = relativizeUri(uri_);
   return new Message(codeInputFileNotFound,
       message: """Input file not found: ${uri}.""", arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateInstantiationTooFewArguments =
+    const Template<Message Function(int count, int count2)>(
+        messageTemplate:
+            r"""Too few type arguments: #count required, #count2 given.""",
+        tipTemplate: r"""Try adding the missing type arguments.""",
+        withArguments: _withArgumentsInstantiationTooFewArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeInstantiationTooFewArguments =
+    const Code<Message Function(int count, int count2)>(
+  "InstantiationTooFewArguments",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstantiationTooFewArguments(int count, int count2) {
+  // ignore: unnecessary_null_comparison
+  if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeInstantiationTooFewArguments,
+      message:
+          """Too few type arguments: ${count} required, ${count2} given.""",
+      tip: """Try adding the missing type arguments.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(int count, int count2)>
+    templateInstantiationTooManyArguments =
+    const Template<Message Function(int count, int count2)>(
+        messageTemplate:
+            r"""Too many type arguments: #count allowed, but #count2 found.""",
+        tipTemplate: r"""Try removing the extra type arguments.""",
+        withArguments: _withArgumentsInstantiationTooManyArguments);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeInstantiationTooManyArguments =
+    const Code<Message Function(int count, int count2)>(
+  "InstantiationTooManyArguments",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInstantiationTooManyArguments(int count, int count2) {
+  // ignore: unnecessary_null_comparison
+  if (count == null) throw 'No count provided';
+  // ignore: unnecessary_null_comparison
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeInstantiationTooManyArguments,
+      message:
+          """Too many type arguments: ${count} allowed, but ${count2} found.""",
+      tip: """Try removing the extra type arguments.""",
+      arguments: {'count': count, 'count2': count2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

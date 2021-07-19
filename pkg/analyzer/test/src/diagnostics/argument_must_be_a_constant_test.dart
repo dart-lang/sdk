@@ -27,7 +27,7 @@ doThings() {
   f(8);
 }
 ''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 211, 27),
+      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 231, 6),
     ]);
   }
 
@@ -43,7 +43,7 @@ doThings() {
   f(8);
 }
 ''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 213, 27),
+      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 233, 6),
     ]);
   }
 
@@ -58,7 +58,7 @@ doThings(bool isLeaf) {
   f(8);
 }
 ''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 201, 27),
+      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 221, 6),
     ]);
   }
 
@@ -72,7 +72,7 @@ doThings(bool isLeaf) {
   l.lookupFunction<Int8UnOp, IntUnOp>("timesFour", isLeaf:isLeaf);
 }
 ''', [
-      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 174, 63),
+      error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 230, 6),
     ]);
   }
 }

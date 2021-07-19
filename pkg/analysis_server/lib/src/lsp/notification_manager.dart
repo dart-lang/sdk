@@ -35,6 +35,8 @@ class LspNotificationManager extends AbstractNotificationManager {
               (path) => server.getLineInfo(path)!,
               error,
               supportedTags: server.clientCapabilities?.diagnosticTags,
+              clientSupportsCodeDescription:
+                  server.clientCapabilities?.diagnosticCodeDescription ?? false,
             ))
         .toList();
 

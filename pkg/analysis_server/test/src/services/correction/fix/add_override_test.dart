@@ -11,8 +11,42 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddOverrideBulkTest);
     defineReflectiveTests(AddOverrideTest);
   });
+}
+
+@reflectiveTest
+class AddOverrideBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.annotate_overrides;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  void a() {}
+  void aa() {}
+}
+
+class B extends A {
+  void a() {}
+  void aa() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  void a() {}
+  void aa() {}
+}
+
+class B extends A {
+  @override
+  void a() {}
+  @override
+  void aa() {}
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -46,19 +80,19 @@ class Sub extends Test {
   Future<void> test_getter() async {
     await resolveTestCode('''
 class Test {
-  int get t => null;
+  int get t => 0;
 }
 class Sub extends Test {
-  int get t => null;
+  int get t => 0;
 }
 ''');
     await assertHasFix('''
 class Test {
-  int get t => null;
+  int get t => 0;
 }
 class Sub extends Test {
   @override
-  int get t => null;
+  int get t => 0;
 }
 ''');
   }

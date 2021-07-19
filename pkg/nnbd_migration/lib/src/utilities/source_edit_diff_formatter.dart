@@ -55,7 +55,7 @@ abstract class DiffStyleImpl extends DiffStyle {
         }
         prevOffset = offset;
       }
-      for (var edit in edits[offset]) {
+      for (var edit in edits[offset]!) {
         if (edit.length > 0) {
           var offset = prevOffset + edit.length;
           var text = origText.substring(prevOffset, offset);
@@ -89,7 +89,7 @@ abstract class DiffStyleImpl extends DiffStyle {
 
   String inserted(String text);
 
-  String lineHeader(int lineNum, String separator) {
+  String lineHeader(int? lineNum, String separator) {
     const String emptyLineHeader = '         ';
     if (lineNum == null) {
       return emptyLineHeader + separator;

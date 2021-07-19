@@ -27,25 +27,34 @@ void main() {
 class ExtractMethodRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractMethodTitle = 'Extract Method';
 
-  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress requests
-  /// and notifications for convenience in testing.
+  /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
+  /// requests and notifications for convenience in testing.
+  ///
+  /// Analyzing statuses are not included.
   Stream<String> get progressUpdates {
     final controller = StreamController<String>();
 
     requestsFromServer
         .where((r) => r.method == Method.window_workDoneProgress_create)
         .listen((request) async {
-      controller.add('CREATE');
+      final params = WorkDoneProgressCreateParams.fromJson(
+          request.params as Map<String, Object?>);
+      if (params.token != analyzingProgressToken) {
+        controller.add('CREATE');
+      }
     }, onDone: controller.close);
     notificationsFromServer
         .where((n) => n.method == Method.progress)
         .listen((notification) {
-      final params = ProgressParams.fromJson(notification.params);
-      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-        controller.add('BEGIN');
-      } else if (WorkDoneProgressEnd.canParse(
-          params.value, nullLspJsonReporter)) {
-        controller.add('END');
+      final params =
+          ProgressParams.fromJson(notification.params as Map<String, Object?>);
+      if (params.token != analyzingProgressToken) {
+        if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
+          controller.add('BEGIN');
+        } else if (WorkDoneProgressEnd.canParse(
+            params.value, nullLspJsonReporter)) {
+          controller.add('END');
+        }
       }
     });
 
@@ -111,7 +120,8 @@ void newMethod() {
     late WorkspaceEdit edit;
     requestsFromServer.listen((request) async {
       if (request.method == Method.workspace_applyEdit) {
-        final params = ApplyWorkspaceEditParams.fromJson(request.params);
+        final params = ApplyWorkspaceEditParams.fromJson(
+            request.params as Map<String, Object?>);
         edit = params.edit;
         respondTo(request, ApplyWorkspaceEditResponse(applied: true));
       }
@@ -323,35 +333,16 @@ void newMethod() {
         windowCapabilities:
             withWorkDoneProgressSupport(emptyWindowClientCapabilities));
 
-    // Capture progress-related messages in a list in the order they arrive.
-    final progressRequests = <String>[];
-    requestsFromServer
-        .where((r) => r.method == Method.window_workDoneProgress_create)
-        .listen((request) async {
-      progressRequests.add('CREATE');
-    });
-    notificationsFromServer
-        .where((n) => n.method == Method.progress)
-        .listen((notification) {
-      final params = ProgressParams.fromJson(notification.params);
-      if (WorkDoneProgressBegin.canParse(params.value, nullLspJsonReporter)) {
-        progressRequests.add('BEGIN');
-      } else if (WorkDoneProgressEnd.canParse(
-          params.value, nullLspJsonReporter)) {
-        progressRequests.add('END');
-      }
-    });
-
     final codeActions = await getCodeActions(mainFileUri.toString(),
         range: rangeFromMarkers(content));
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle)!;
 
+    // Ensure the progress messages come through and in the correct order.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
     await verifyCodeActionEdits(
         codeAction, withoutMarkers(content), expectedContent);
-
-    // Ensure the progress messages came through and in the correct order.
-    expect(progressRequests, equals(['CREATE', 'BEGIN', 'END']));
   }
 }
 

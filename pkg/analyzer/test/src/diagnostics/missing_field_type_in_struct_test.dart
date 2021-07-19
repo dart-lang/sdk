@@ -19,12 +19,12 @@ class MissingFieldTypeInStructTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  var str;
+  external var str;
 
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 ''', [
-      error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 50, 3),
+      error(FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, 59, 3),
     ]);
   }
 
@@ -32,7 +32,7 @@ class C extends Struct {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  Pointer p;
+  external Pointer p;
 }
 ''');
   }

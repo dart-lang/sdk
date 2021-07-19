@@ -34,7 +34,7 @@ class B extends self::A {
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
   B(): super().foo() {}
-       ^".foo() {}
+       ^"{dynamic}.foo() {}
 }
 static method bad() → dynamic {
   new self::B::•();

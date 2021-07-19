@@ -28,7 +28,7 @@ namespace dart {
 namespace bin {
 
 // These strings must match the enum SnapshotKind in main_options.h.
-static const char* kSnapshotKindNames[] = {
+static const char* const kSnapshotKindNames[] = {
     "none",
     "kernel",
     "app-jit",
@@ -36,7 +36,7 @@ static const char* kSnapshotKindNames[] = {
 };
 
 // These strings must match the enum VerbosityLevel in main_options.h.
-static const char* kVerbosityLevelNames[] = {
+static const char* const kVerbosityLevelNames[] = {
     "error", "warning", "info", "all", nullptr,
 };
 
@@ -225,13 +225,13 @@ void Options::PrintUsage() {
 "--root-certs-cache=<path>\n"
 "  The path to a cache directory containing the trusted root certificates to\n"
 "  use for secure socket connections.\n"
-#if defined(HOST_OS_LINUX) || \
-    defined(HOST_OS_ANDROID) || \
-    defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_LINUX) || \
+    defined(DART_HOST_OS_ANDROID) || \
+    defined(DART_HOST_OS_FUCHSIA)
 "--namespace=<path>\n"
 "  The path to a directory that dart:io calls will treat as the root of the\n"
 "  filesystem.\n"
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");

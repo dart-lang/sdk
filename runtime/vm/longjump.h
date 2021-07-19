@@ -30,6 +30,7 @@ class LongJumpScope : public StackResource {
 
   jmp_buf* Set();
   DART_NORETURN void Jump(int value, const Error& error);
+  DART_NORETURN void Jump(int value);
 
  private:
   jmp_buf environment_;

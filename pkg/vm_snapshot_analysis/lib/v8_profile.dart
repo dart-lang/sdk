@@ -7,10 +7,9 @@
 library vm_snapshot_analysis.v8_profile;
 
 import 'package:collection/collection.dart';
-
-import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
 
 /// This class represents snapshot graph.
 ///
@@ -248,7 +247,7 @@ class Node {
 
   /// Returns the target of an outgoing edge with the given name (if any).
   Node? operator [](String edgeName) =>
-      this.edges.firstWhereOrNull((e) => e.name == edgeName)?.target;
+      edges.firstWhereOrNull((e) => e.name == edgeName)?.target;
 
   @override
   bool operator ==(Object other) {
@@ -256,7 +255,7 @@ class Node {
   }
 
   @override
-  int get hashCode => this.index.hashCode;
+  int get hashCode => index.hashCode;
 
   /// Offset into [Snapshot._nodes] list at which this node begins.
   int get _offset => index * snapshot.meta.nodeFieldCount;

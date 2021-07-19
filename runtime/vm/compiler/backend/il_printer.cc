@@ -787,7 +787,7 @@ void DoubleTestOpInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   value()->PrintTo(f);
 }
 
-static const char* simd_op_kind_string[] = {
+static const char* const simd_op_kind_string[] = {
 #define CASE(Arity, Mask, Name, ...) #Name,
     SIMD_OP_LIST(CASE, CASE)
 #undef CASE
@@ -936,6 +936,8 @@ const char* RepresentationToCString(Representation rep) {
       return "float";
     case kUnboxedUint8:
       return "uint8";
+    case kUnboxedUint16:
+      return "uint16";
     case kUnboxedInt32:
       return "int32";
     case kUnboxedUint32:

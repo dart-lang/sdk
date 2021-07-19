@@ -73,8 +73,6 @@ static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = NULL;
 
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size);
-
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
   if (Dart_IsCompilationError(result)) {                                       \
@@ -925,32 +923,6 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
 
-static void WriteFile(const char* filename,
-                      const uint8_t* buffer,
-                      const intptr_t size) {
-  File* file = File::Open(NULL, filename, File::kWriteTruncate);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  if (!file->WriteFully(buffer, size)) {
-    ErrorExit(kErrorExitCode, "Unable to write file %s\n", filename);
-  }
-  file->Release();
-}
-
-static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
-  File* file = File::Open(NULL, filename, File::kRead);
-  if (file == NULL) {
-    ErrorExit(kErrorExitCode, "Unable to open file %s\n", filename);
-  }
-  *size = file->Length();
-  *buffer = reinterpret_cast<uint8_t*>(malloc(*size));
-  if (!file->ReadFully(*buffer, *size)) {
-    ErrorExit(kErrorExitCode, "Unable to read file %s\n", filename);
-  }
-  file->Release();
-}
-
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
@@ -1017,23 +989,6 @@ void RunMainIsolate(const char* script_name,
                 script_name);
     }
 
-    if (Options::load_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_compilation_trace_filename(), &buffer, &size);
-      result = Dart_LoadCompilationTrace(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-    if (Options::load_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      ReadFile(Options::load_type_feedback_filename(), &buffer, &size);
-      result = Dart_LoadTypeFeedback(buffer, size);
-      free(buffer);
-      CHECK_RESULT(result);
-    }
-
     // Create a closure for the main entry point which is in the exported
     // namespace of the root library or invoke a getter of the same name
     // in the exported namespace and return the resulting closure.
@@ -1068,21 +1023,6 @@ void RunMainIsolate(const char* script_name,
       }
     }
     CHECK_RESULT(result);
-
-    if (Options::save_compilation_trace_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveCompilationTrace(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_compilation_trace_filename(), buffer, size);
-    }
-    if (Options::save_type_feedback_filename() != NULL) {
-      uint8_t* buffer = NULL;
-      intptr_t size = 0;
-      result = Dart_SaveTypeFeedback(&buffer, &size);
-      CHECK_RESULT(result);
-      WriteFile(Options::save_type_feedback_filename(), buffer, size);
-    }
   }
 
   WriteDepsFile(isolate);

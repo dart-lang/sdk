@@ -1306,6 +1306,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitMethodDefinition(MethodDefinition node) {
+    propertyNameOut(node);
     VarCollector vars = new VarCollector();
     vars.visitMethodDefinition(node);
     startNode(node.function);
@@ -1315,7 +1316,6 @@ class Printer implements NodeVisitor {
 
   int methodOut(MethodDefinition node, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.
-    propertyNameOut(node);
     Fun fun = node.function;
     localNamer.enterScope(vars);
     out("(");

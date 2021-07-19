@@ -52,15 +52,39 @@ class ExampleTypedLiteral {
   external get b;
 }
 
-class ExampleTearoff {
+class DartClass {
   int x = 3;
-  foo() => x;
+  int getX() => x;
+
+  static staticFunction() => 'static';
+  static const staticConstList = [1];
 }
+
+class GenericDartClass<T> {
+  final T myT;
+  GenericDartClass(this.myT);
+
+  T getT() => myT;
+}
+
+T getTopLevelGenerics<T>(T t) => t;
 
 String _getBarWithSideEffect() {
   var x = 5;
   expect(x, equals(5));
   return 'bar';
+}
+
+@JS()
+class CallMethodTest {
+  external CallMethodTest();
+
+  external zero();
+  external one(a);
+  external two(a, b);
+  external three(a, b, c);
+  external four(a, b, c, d);
+  external five(a, b, c, d, e);
 }
 
 main() {
@@ -113,6 +137,27 @@ main() {
 
     Foo.prototype.callFn = function(fn) {
       return fn();
+    }
+
+    function CallMethodTest() {}
+
+    CallMethodTest.prototype.zero = function() {
+      return 'zero';
+    }
+    CallMethodTest.prototype.one = function(a) {
+      return 'one';
+    }
+    CallMethodTest.prototype.two = function(a, b) {
+      return 'two';
+    }
+    CallMethodTest.prototype.three = function(a, b, c) {
+      return 'three';
+    }
+    CallMethodTest.prototype.four = function(a, b, c, d) {
+      return 'four';
+    }
+    CallMethodTest.prototype.five = function(a, b, c, d, e) {
+      return 'five';
     }
     """);
 
@@ -317,6 +362,8 @@ main() {
         return 'Inline';
       }));
       expect(js_util.callMethod(f, 'bar', []), equals('Inline'));
+      js_util.setProperty(f, 'bar', allowInterop(DartClass.staticFunction));
+      expect(js_util.callMethod(f, 'bar', []), equals('static'));
 
       // Set property to a JS function.
       js_util.setProperty(f, 'bar', allowInterop(jsFunction));
@@ -348,9 +395,19 @@ main() {
       String expected = dartFunction();
       expect(f.a, equals(expected));
 
-      // Using a tearoff as the property value
-      js_util.setProperty(f, 'tearoff', allowInterop(ExampleTearoff().foo));
+      // Using a tearoff as the property value.
+      js_util.setProperty(f, 'tearoff', allowInterop(DartClass().getX));
       expect(js_util.callMethod(f, 'tearoff', []), equals(3));
+
+      // Set property to instance method calls.
+      js_util.setProperty(f, 'a', DartClass().getX());
+      expect(f.a, equals(3));
+      js_util.setProperty(f, 'a', GenericDartClass<int>(5).getT());
+      expect(f.a, equals(5));
+
+      // Set property using a generics wrapper on value.
+      js_util.setProperty(f, 'a', getTopLevelGenerics<int>(10));
+      expect(f.a, equals(10));
     });
   });
 
@@ -386,22 +443,92 @@ main() {
       expect(js_util.callMethod(f, 'sumFn', [2, 3]), equals(5));
       expect(js_util.callMethod(f, 'getA', [f]), equals(42));
       expect(js_util.callMethod(f, 'callFn', [allowInterop(jsFunction)]),
-          equals("JS Function"));
+          equals('JS Function'));
       expect(js_util.callMethod(f, 'callFn', [allowInterop(dartFunction)]),
-          equals("Dart Function"));
+          equals('Dart Function'));
       expect(
           js_util.callMethod(f, 'callFn', [
             allowInterop(() {
-              return "inline";
+              return 'inline';
             })
           ]),
-          equals("inline"));
+          equals('inline'));
+      expect(
+          js_util.callMethod(
+              f, 'callFn', [allowInterop(DartClass.staticFunction)]),
+          equals('static'));
 
       // Using a variable for the method name.
       String methodName = 'bar';
       expect(js_util.callMethod(f, methodName, []), equals(42));
       String bar = _getBarWithSideEffect();
       expect(js_util.callMethod(f, bar, []), equals(42));
+    });
+
+    test('callMethod with List edge cases', () {
+      var o = CallMethodTest();
+
+      expect(js_util.callMethod(o, 'zero', List()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List<int>()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List.empty()), equals('zero'));
+      expect(js_util.callMethod(o, 'zero', List<int>.empty()), equals('zero'));
+
+      expect(
+          js_util.callMethod(o, 'two', List<int>.filled(2, 0)), equals('two'));
+      expect(js_util.callMethod(o, 'three', List<int>.generate(3, (i) => i)),
+          equals('three'));
+
+      Iterable<String> iterableStrings = <String>['foo', 'bar'];
+      expect(js_util.callMethod(o, 'two', List.of(iterableStrings)),
+          equals('two'));
+
+      const l1 = [1, 2];
+      const l2 = [3, 4];
+      expect(js_util.callMethod(o, 'four', List.from(l1)..addAll(l2)),
+          equals('four'));
+      expect(js_util.callMethod(o, 'four', l1 + l2), equals('four'));
+      expect(js_util.callMethod(o, 'four', List.unmodifiable([1, 2, 3, 4])),
+          equals('four'));
+
+      var setElements = {1, 2};
+      expect(js_util.callMethod(o, 'two', setElements.toList()), equals('two'));
+
+      var spreadList = [1, 2, 3];
+      expect(js_util.callMethod(o, 'four', [1, ...spreadList]), equals('four'));
+    });
+
+    test('edge cases for lowering to _callMethodUncheckedN', () {
+      var o = CallMethodTest();
+
+      expect(js_util.callMethod(o, 'zero', []), equals('zero'));
+      expect(js_util.callMethod(o, 'one', [1]), equals('one'));
+      expect(js_util.callMethod(o, 'four', [1, 2, 3, 4]), equals('four'));
+      expect(js_util.callMethod(o, 'five', [1, 2, 3, 4, 5]), equals('five'));
+
+      // List with a type declaration, short circuits element checking
+      expect(js_util.callMethod(o, 'two', <int>[1, 2]), equals('two'));
+
+      // List as a variable instead of a List Literal or constant
+      var list = [1, 2];
+      expect(js_util.callMethod(o, 'two', list), equals('two'));
+
+      // Mixed types of elements to check in the given list.
+      var x = 4;
+      var str = 'cat';
+      var b = false;
+      var evens = [2, 4, 6];
+      expect(js_util.callMethod(o, 'four', [x, str, b, evens]), equals('four'));
+      var obj = Object();
+      expect(js_util.callMethod(o, 'one', [obj]), equals('one'));
+      var nullElement = null;
+      expect(js_util.callMethod(o, 'one', [nullElement]), equals('one'));
+
+      // const lists.
+      expect(js_util.callMethod(o, 'one', const [3]), equals('one'));
+      const constList = [10, 20, 30];
+      expect(js_util.callMethod(o, 'three', constList), equals('three'));
+      expect(js_util.callMethod(o, 'one', DartClass.staticConstList),
+          equals('one'));
     });
   });
 

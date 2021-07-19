@@ -104,7 +104,7 @@ class A {
   /// my doc
   A.named() {}
 }
-main() {
+void f() {
   new A.named();
 }
 ''');
@@ -134,7 +134,7 @@ library my.library;
 class A {
   const A(int i);
 }
-main() {
+void f() {
   const a = A(0);
 }
 ''');
@@ -159,7 +159,7 @@ main() {
     addTestFile('''
 library my.library;
 class A {}
-main() {
+void f() {
   var a = A();
 }
 ''');
@@ -185,7 +185,7 @@ main() {
 library my.library;
 class A {
 }
-main() {
+void f() {
   new A();
 }
 ''');
@@ -210,7 +210,7 @@ main() {
     addTestFile('''
 library my.library;
 class A<T> {}
-main() {
+void f() {
   new A<String>();
 }
 ''');
@@ -254,10 +254,10 @@ main() {
  * doc aaa
  * doc bbb
  */
-main() {
+void f() {
 }
 ''');
-    var hover = await prepareHover('main() {');
+    var hover = await prepareHover('f() {');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
@@ -330,10 +330,10 @@ class C extends B implements I {
     addTestFile('''
 /// doc aaa
 /// doc bbb
-main() {
+void f() {
 }
 ''');
-    var hover = await prepareHover('main() {');
+    var hover = await prepareHover('f() {');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
@@ -360,6 +360,22 @@ extension E on A {}
     expect(hover.dartdoc, 'Comment');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
+  }
+
+  Future<void> test_function_multilineElementDescription() async {
+    // Functions with at least 3 params will have element descriptions formatted
+    // across multiple lines.
+    addTestFile('''
+List<String> fff(int a, [String b = 'b', String c = 'c']) {
+}
+''');
+    var hover = await prepareHover('fff(int a');
+    expect(hover.elementDescription, '''
+List<String> fff(
+  int a, [
+  String b = 'b',
+  String c = 'c',
+])''');
   }
 
   Future<void> test_function_topLevel_declaration() async {
@@ -394,7 +410,7 @@ class A {
   /// doc bbb
   String fff;
 }
-main(A a) {
+void f(A a) {
   print(a.fff);
 }
 ''');
@@ -413,7 +429,7 @@ main(A a) {
 
   Future<void> test_integerLiteral() async {
     addTestFile('''
-main() {
+void f() {
   foo(123);
 }
 foo(Object myParameter) {}
@@ -438,7 +454,7 @@ foo(Object myParameter) {}
 
   Future<void> test_integerLiteral_promoted() async {
     addTestFile('''
-main() {
+void f() {
   foo(123);
 }
 foo(double myParameter) {}
@@ -508,7 +524,7 @@ class A {
   Future<void> test_localVariable_reference_withPropagatedType() async {
     addTestFile('''
 library my.library;
-main() {
+void f() {
   var vvv = 123;
   print(vvv);
 }
@@ -558,7 +574,7 @@ class A {
   List<String> mmm(int a, String b) {
   }
 }
-main(A a) {
+void f(A a) {
   a.mmm(42, 'foo');
 }
 ''');
@@ -585,7 +601,7 @@ class A {
   @deprecated
   static void test() {}
 }
-main() {
+void f() {
   A.test();
 }
 ''');
@@ -659,7 +675,7 @@ class C with A implements B {}
   Future<void> test_noHoverInfo() async {
     addTestFile('''
 library my.library;
-main() {
+void f() {
   // nothing
 }
 ''');
@@ -672,7 +688,7 @@ main() {
     addTestFile('''
 int? f(double? a) => null;
 
-main() {
+void f() {
   f(null);
 }
 ''');
@@ -688,7 +704,7 @@ class A {
   final int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(fff: 42);
 }
 ''');
@@ -741,7 +757,7 @@ class A {
   final int fff;
   A({this.fff});
 }
-main() {
+void f() {
   new A(fff: 42);
 }
 ''');
@@ -763,7 +779,7 @@ class A {
   /// setting
   set foo(int x) {}
 }
-main(A a) {
+void f(A a) {
   a.foo = 123;
 }
 ''');
@@ -781,7 +797,7 @@ class A {
   int get foo => 42;
   set foo(int x) {}
 }
-main(A a) {
+void f(A a) {
   a.foo = 123;
 }
 ''');
@@ -805,7 +821,7 @@ class B extends A {
   int get foo => 42;
   set foo(int x) {}
 }
-main(B b) {
+void f(B b) {
   b.foo = 123;
 }
 ''');
@@ -827,7 +843,7 @@ class B extends A {
   int get foo => 42;
   set foo(int x) {}
 }
-main(B b) {
+void f(B b) {
   b.foo = 123;
 }
 ''');
@@ -848,7 +864,7 @@ class A {
 class B extends A {
   set foo(int x) {}
 }
-main(B b) {
+void f(B b) {
   b.foo = 123;
 }
 ''');

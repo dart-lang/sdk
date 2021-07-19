@@ -48,16 +48,13 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo foo = new foo::Foo::•(name: "foo", $creationLocationd_0dea112b090073317d4: #C9);
+  static field foo::Foo foo = new foo::Foo::•(name: "foo", $creationLocationd_0dea112b090073317d4: #C6);
 }
 constants  {
   #C1 = null
   #C2 = "org-dartlang-test:///main.dart"
   #C3 = 2.0
   #C4 = 15.0
-  #C5 = 19.0
-  #C6 = "name"
-  #C7 = wid::_Location {file:#C1, line:#C3, column:#C5, name:#C6, parameterLocations:#C1}
-  #C8 = <wid::_Location*>[#C7]
-  #C9 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C1, parameterLocations:#C8}
+  #C5 = "Foo"
+  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
 }

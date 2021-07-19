@@ -97,6 +97,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.ENUM: SemanticTokenTypes.enum_,
   HighlightRegionType.ENUM_CONSTANT: SemanticTokenTypes.enumMember,
   HighlightRegionType.FUNCTION_TYPE_ALIAS: SemanticTokenTypes.type,
+  HighlightRegionType.IDENTIFIER_DEFAULT: CustomSemanticTokenTypes.source,
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: SemanticTokenTypes.variable,
   HighlightRegionType.INSTANCE_FIELD_REFERENCE: SemanticTokenTypes.variable,
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: SemanticTokenTypes.property,
@@ -137,7 +138,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TYPE_NAME_DYNAMIC: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,
   HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE:
-      SemanticTokenTypes.variable,
+      CustomSemanticTokenTypes.source,
   HighlightRegionType.VALID_STRING_ESCAPE: SemanticTokenTypes.string,
 };
 

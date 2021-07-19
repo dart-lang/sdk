@@ -64,6 +64,12 @@ class CallSpecializer : public FlowGraphVisitor {
                     FlowGraph::UseKind use_kind) {
     flow_graph_->InsertBefore(next, instr, env, use_kind);
   }
+  void InsertSpeculativeBefore(Instruction* next,
+                               Instruction* instr,
+                               Environment* env,
+                               FlowGraph::UseKind use_kind) {
+    flow_graph_->InsertSpeculativeBefore(next, instr, env, use_kind);
+  }
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
 

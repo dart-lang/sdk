@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype, TypedefType;
@@ -18,15 +16,15 @@ import 'type_variable_builder.dart';
 abstract class TypeBuilder {
   const TypeBuilder();
 
-  TypeDeclarationBuilder get declaration => null;
+  TypeDeclarationBuilder? get declaration => null;
 
   /// Returns the Uri for the file in which this type annotation occurred, or
   /// `null` if the type was synthesized.
-  Uri get fileUri;
+  Uri? get fileUri;
 
   /// Returns the character offset with [fileUri] at which this type annotation
   /// occurred, or `null` if the type was synthesized.
-  int get charOffset;
+  int? get charOffset;
 
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
@@ -37,7 +35,7 @@ abstract class TypeBuilder {
   void bind(TypeDeclarationBuilder builder) {}
 
   /// May return null, for example, for mixin applications.
-  Object get name;
+  Object? get name;
 
   NullabilityBuilder get nullabilityBuilder;
 
@@ -70,11 +68,18 @@ abstract class TypeBuilder {
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
   DartType build(LibraryBuilder library,
-      [TypedefType origin, bool notInstanceContext]);
+      {TypedefType? origin, bool? nonInstanceContext});
 
-  Supertype buildSupertype(LibraryBuilder library, int charOffset, Uri fileUri);
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      {TypedefType? origin, bool? nonInstanceContext}) {
+    return build(library,
+        origin: origin, nonInstanceContext: nonInstanceContext);
+  }
 
-  Supertype buildMixedInType(
+  Supertype? buildSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri);
+
+  Supertype? buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri);
 
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);

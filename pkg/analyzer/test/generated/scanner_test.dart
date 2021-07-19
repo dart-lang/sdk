@@ -174,8 +174,7 @@ class LineInfoTest {
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
-      var location =
-          info.getLocation(expectedLocation._offset) as CharacterLocation;
+      var location = info.getLocation(expectedLocation._offset);
       expect(location.lineNumber, expectedLocation._lineNumber,
           reason: 'Line number in location $i');
       expect(location.columnNumber, expectedLocation._columnNumber,

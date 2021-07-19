@@ -72,7 +72,7 @@ static final field core::List<dynamic> s1 = core::_GrowableList::•<dynamic>(0)
 static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1 == null ?{core::int?} null : #t1.{core::List::length}{core::int};
 static final field core::List<core::int> s3 = core::_List::filled<core::int>(2, let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:17:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
 final s3 = new List<int>.filled(2, null);
-                                   ^" in let Null #t3 = null in #t3.==(null) ?{core::int} #t3 as{TypeError,ForNonNullableByDefault} core::int : #t3{core::int});
+                                   ^" in let Null #t3 = null in #t3 == null ?{core::int} #t3 as{TypeError,ForNonNullableByDefault} core::int : #t3{core::int});
 static final field dynamic s4 = (() → Null {
   core::int e = 0;
   switch(e) {
@@ -130,7 +130,7 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: MethodInvocation @ org-dartlang-testcase:///issue41102.dart:17:36 -> BoolConstant(true)
+Evaluated: EqualsNull @ org-dartlang-testcase:///issue41102.dart:17:36 -> BoolConstant(true)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:17:36 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:17:36 -> NullConstant(null)
 Evaluated: VariableGet @ org-dartlang-testcase:///issue41102.dart:37:15 -> IntConstant(0)

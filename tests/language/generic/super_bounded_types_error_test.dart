@@ -3135,20 +3135,10 @@ void testTypeAliasAsTypeArgument() {
 // [analyzer] unspecified
 //                         ^
 // [cfe] Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-    var fsource = toF(source);
-//  ^
-// [analyzer] unspecified
-//      ^
-// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-//                ^
-// [analyzer] unspecified
-// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-    F<AinvCyclicCoBound<FinvCyclicCoBound<Function(Never)>, Function(Never)>>
-//  ^
-// [analyzer] unspecified
-        target = fsource;
-//      ^
-// [cfe] Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
+// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+
+    // We do not use `source` in further tests, because the type of `source`
+    // is an error, and we do not generally test error-on-error situations.
   }
 }
 
@@ -3156,32 +3146,13 @@ void testNested() {
   void f(B<AinvCyclicCoBound> source) {
 //       ^
 // [analyzer] unspecified
-//         ^
-// [analyzer] unspecified
 //                            ^
 // [cfe] Type argument 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' doesn't conform to the bound 'B<X>' of the type variable 'X' on 'B'.
-//                            ^
 // [cfe] Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-    var fsource = toF(source);
-//  ^
-// [analyzer] unspecified
-//      ^
-// [cfe] Inferred type argument 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' doesn't conform to the bound 'B<X>' of the type variable 'X' on 'B'.
-//      ^
-// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-//                ^
-// [analyzer] unspecified
-// [cfe] Inferred type argument 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' doesn't conform to the bound 'B<X>' of the type variable 'X' on 'B'.
-//                ^
-// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
-    F<B<AinvCyclicCoBound<FinvCyclicCoBound<Function(Never)>, Function(Never)>>>
-//  ^
-// [analyzer] unspecified
-        target = fsource;
-//      ^
-// [cfe] Type argument 'AinvCyclicCoBound<dynamic Function(Never) Function(dynamic Function(Never)), dynamic Function(Never)>' doesn't conform to the bound 'B<X>' of the type variable 'X' on 'B'.
-//      ^
-// [cfe] Type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(X)' of the type variable 'X' on 'FinvCyclicCoBound'.
+// [cfe] Inferred type argument 'dynamic Function(Never)' doesn't conform to the bound 'dynamic Function(Y)' of the type variable 'Y' on 'AinvCyclicCoBound'.
+
+    // We do not use `source` in further tests, because the type of `source`
+    // is an error, and we do not generally test error-on-error situations.
   }
 }
 

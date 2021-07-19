@@ -102,7 +102,7 @@ class AbstractContextTest with ResourceProviderMixin {
     MockSdk(resourceProvider: resourceProvider);
 
     newFolder('/home/test');
-    newFile('/home/test/.packages', content: '''
+    newDotPackagesFile('/home/test', content: '''
 test:${toUri('/home/test/lib')}
 ''');
 

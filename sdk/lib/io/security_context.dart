@@ -69,8 +69,8 @@ abstract class SecurityContext {
   /// of bytes.
   void usePrivateKeyBytes(List<int> keyBytes, {String? password});
 
-  /// Sets the set of trusted X509 certificates used by [SecureSocket]
-  /// client connections, when connecting to a secure server.
+  /// Add a certificate to the set of trusted X509 certificates
+  /// used by [SecureSocket] client connections.
   ///
   /// [file] is the path to a PEM or PKCS12 file containing X509 certificates,
   /// usually root certificates from certificate authorities. For PKCS12 files,
@@ -90,8 +90,8 @@ abstract class SecurityContext {
   /// ```
   void setTrustedCertificates(String file, {String? password});
 
-  /// Sets the set of trusted X509 certificates used by [SecureSocket]
-  /// client connections, when connecting to a secure server.
+  /// Add a certificate to the set of trusted X509 certificates
+  /// used by [SecureSocket] client connections.
   ///
   /// Like [setTrustedCertificates] but takes the contents of the file.
   void setTrustedCertificatesBytes(List<int> certBytes, {String? password});

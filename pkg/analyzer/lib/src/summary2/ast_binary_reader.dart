@@ -18,6 +18,7 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
+import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 import 'package:collection/collection.dart';
 
@@ -80,7 +81,7 @@ class AstBinaryReader {
         return _readFieldFormalParameter();
       case Tag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpression:
+      case Tag.FunctionExpressionStub:
         return _readFunctionExpression();
       case Tag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
@@ -173,37 +174,20 @@ class AstBinaryReader {
     }
   }
 
-  IntegerLiteral _createIntegerLiteral(int value) {
-    // TODO(scheglov) Write token?
+  IntegerLiteral _createIntegerLiteral(String lexeme, int value) {
     var node = astFactory.integerLiteral(
-      TokenFactory.tokenFromTypeAndString(TokenType.INT, '$value'),
+      TokenFactory.tokenFromTypeAndString(TokenType.INT, lexeme),
       value,
     );
     _readExpressionResolution(node);
     return node;
   }
 
-  FunctionBody _functionBodyForFlags(int flags) {
-    if (AstBinaryFlags.isNative(flags)) {
-      return AstTestFactory.nativeFunctionBody('');
-    } else if (AstBinaryFlags.isAbstract(flags)) {
-      return AstTestFactory.emptyFunctionBody();
-    } else {
-      return astFactory.blockFunctionBody(
-        AstBinaryFlags.isAsync(flags) ? Tokens.async_() : null,
-        AstBinaryFlags.isGenerator(flags) ? Tokens.star() : null,
-        astFactory.block(
-          Tokens.openCurlyBracket(),
-          const <Statement>[],
-          Tokens.closeCurlyBracket(),
-        ),
-      );
-    }
-  }
-
   AdjacentStrings _readAdjacentStrings() {
     var components = _readNodeList<StringLiteral>();
-    return astFactory.adjacentStrings(components);
+    var node = astFactory.adjacentStrings(components);
+    _readExpressionResolution(node);
+    return node;
   }
 
   Annotation _readAnnotation() {
@@ -287,6 +271,7 @@ class AstBinaryReader {
       rightOperand,
     );
     node.staticElement = _reader.readElement() as MethodElement?;
+    node.staticInvokeType = _reader.readOptionalFunctionType();
     _readExpressionResolution(node);
     return node;
   }
@@ -352,12 +337,11 @@ class AstBinaryReader {
     return node;
   }
 
-  SimpleIdentifier _readDeclarationName() {
+  SimpleIdentifierImpl _readDeclarationName() {
     var name = _reader.readStringReference();
-    var node = astFactory.simpleIdentifier(
+    return astFactory.simpleIdentifier(
       StringToken(TokenType.STRING, name, -1),
     );
-    return node;
   }
 
   DeclaredIdentifier _readDeclaredIdentifier() {
@@ -413,6 +397,7 @@ class AstBinaryReader {
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredElement = element;
     }
+    node.identifier?.staticElement = element;
     element.type = nonDefaultElement.type;
 
     return node;
@@ -554,16 +539,7 @@ class AstBinaryReader {
   }
 
   FunctionExpression _readFunctionExpression() {
-    var flags = _readByte();
-    var typeParameters = _readOptionalNode() as TypeParameterList?;
-    var formalParameters = _readOptionalNode() as FormalParameterList?;
-    var body = _functionBodyForFlags(flags);
-
-    return astFactory.functionExpression(
-      typeParameters,
-      formalParameters,
-      body,
-    );
+    return emptyFunctionExpression();
   }
 
   FunctionExpressionInvocation _readFunctionExpressionInvocation() {
@@ -697,13 +673,15 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _readIntegerLiteralNegative() {
+    var lexeme = _readStringReference();
     var value = (_readUInt32() << 32) | _readUInt32();
-    return _createIntegerLiteral(-value);
+    return _createIntegerLiteral(lexeme, -value);
   }
 
   IntegerLiteral _readIntegerLiteralNegative1() {
+    var lexeme = _readStringReference();
     var value = _readByte();
-    return _createIntegerLiteral(-value);
+    return _createIntegerLiteral(lexeme, -value);
   }
 
   IntegerLiteral _readIntegerLiteralNull() {
@@ -717,13 +695,15 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _readIntegerLiteralPositive() {
+    var lexeme = _readStringReference();
     var value = (_readUInt32() << 32) | _readUInt32();
-    return _createIntegerLiteral(value);
+    return _createIntegerLiteral(lexeme, value);
   }
 
   IntegerLiteral _readIntegerLiteralPositive1() {
+    var lexeme = _readStringReference();
     var value = _readByte();
-    return _createIntegerLiteral(value);
+    return _createIntegerLiteral(lexeme, value);
   }
 
   InterpolationExpression _readInterpolationExpression() {
@@ -740,9 +720,10 @@ class AstBinaryReader {
   }
 
   InterpolationString _readInterpolationString() {
+    var lexeme = _readStringReference();
     var value = _readStringReference();
     return astFactory.interpolationString(
-      TokenFactory.tokenFromString(value),
+      TokenFactory.tokenFromString(lexeme),
       value,
     );
   }
@@ -855,9 +836,11 @@ class AstBinaryReader {
   }
 
   NullLiteral _readNullLiteral() {
-    return astFactory.nullLiteral(
+    var node = astFactory.nullLiteral(
       Tokens.null_(),
     );
+    _readExpressionResolution(node);
+    return node;
   }
 
   AstNode? _readOptionalNode() {
@@ -1030,6 +1013,7 @@ class AstBinaryReader {
     element.parameterKind = node.kind;
     element.type = actualType;
     node.declaredElement = element;
+    identifier?.staticElement = element;
 
     return node;
   }
@@ -1048,10 +1032,12 @@ class AstBinaryReader {
     var lexeme = _readStringReference();
     var value = _readStringReference();
 
-    return astFactory.simpleStringLiteral(
+    var node = astFactory.simpleStringLiteral(
       TokenFactory.tokenFromString(lexeme),
       value,
     );
+    _readExpressionResolution(node);
+    return node;
   }
 
   SpreadElement _readSpreadElement() {
@@ -1067,7 +1053,9 @@ class AstBinaryReader {
 
   StringInterpolation _readStringInterpolation() {
     var elements = _readNodeList<InterpolationElement>();
-    return astFactory.stringInterpolation(elements);
+    var node = astFactory.stringInterpolation(elements);
+    _readExpressionResolution(node);
+    return node;
   }
 
   String _readStringReference() {
@@ -1079,7 +1067,7 @@ class AstBinaryReader {
     var argumentList = readNode() as ArgumentList;
     var node = astFactory.superConstructorInvocation(
       Tokens.super_(),
-      Tokens.period(),
+      constructorName != null ? Tokens.period() : null,
       constructorName,
       argumentList,
     );

@@ -4,6 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import argparse
 import os
 import os.path
 import shutil
@@ -12,24 +13,8 @@ import subprocess
 
 import bot_utils
 
-utils = bot_utils.GetUtils()
 
-BUILD_OS = utils.GuessOS()
-BUILD_ARCHITECTURE = utils.GuessArchitecture()
-BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
-CHANNEL = bot_utils.GetChannelFromName(BUILDER_NAME)
-
-
-def BuildArchitectures():
-    if BUILD_OS == 'linux':
-        return ['ia32', 'x64', 'arm', 'arm64']
-    elif BUILD_OS == 'macos':
-        return ['x64']
-    else:
-        return ['ia32', 'x64']
-
-
-def BuildRootPath(path, arch=BUILD_ARCHITECTURE, build_mode='release'):
+def BuildRootPath(path, arch='x64', build_mode='release'):
     return os.path.join(bot_utils.DART_DIR,
                         utils.GetBuildRoot(BUILD_OS, build_mode, arch), path)
 
@@ -83,14 +68,12 @@ def DartArchiveUploadSDKs(system, arch, sdk_zip):
         DartArchiveFile(sdk_zip, path, checksum_files=True)
 
 
-def DartArchiveUnstrippedBinaries():
+def DartArchiveUnstrippedBinaries(arch):
     namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
     revision = utils.GetArchiveVersion()
-    binary = namer.unstripped_filename(BUILD_OS)
-    for arch in BuildArchitectures():
-        binary = BuildRootPath(binary, arch=arch)
-        gs_path = namer.unstripped_filepath(revision, BUILD_OS, arch)
-        DartArchiveFile(binary, gs_path)
+    binary = BuildRootPath(namer.unstripped_filename(BUILD_OS), arch=arch)
+    gs_path = namer.unstripped_filepath(revision, BUILD_OS, arch)
+    DartArchiveFile(binary, gs_path)
 
 
 def CreateUploadAPIDocs():
@@ -227,14 +210,31 @@ def Run(command, env=None):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'api_docs':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--arch',
+                        default='x64',
+                        help="comma separated list of architectures")
+    parser.add_argument('command', choices=['api_docs'], nargs='?')
+    args = parser.parse_args()
+    archs = args.arch.split(',')
+    command = args.command
+
+    utils = bot_utils.GetUtils()
+
+    BUILD_OS = utils.GuessOS()
+    BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
+    CHANNEL = bot_utils.GetChannelFromName(BUILDER_NAME)
+
+    if command == 'api_docs':
         if BUILD_OS == 'linux':
             CreateUploadAPIDocs()
     elif CHANNEL != bot_utils.Channel.TRY:
-        for arch in BuildArchitectures():
-            sdk_path = BuildRootPath('dart-sdk', arch=arch)
+        for arch in archs:
             print('Create and upload sdk zip for ' + arch)
+            sdk_path = BuildRootPath('dart-sdk', arch=arch)
             CreateAndUploadSDKZip(arch, sdk_path)
-        DartArchiveUnstrippedBinaries()
+            DartArchiveUnstrippedBinaries(arch)
         if BUILD_OS == 'linux':
             CreateUploadVersionFile()
+    else:
+        print('Skipping upload on tryjobs for archs: %s' % archs)

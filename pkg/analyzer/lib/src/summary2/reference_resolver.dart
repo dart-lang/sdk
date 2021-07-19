@@ -48,8 +48,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LibraryElementImpl libraryElement,
     this.unitReference,
     this.isNNBD,
-    this.scope,
-  ) : _typeSystem = libraryElement.typeSystem;
+  )   : _typeSystem = libraryElement.typeSystem,
+        scope = libraryElement.scope;
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}

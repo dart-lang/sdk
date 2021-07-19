@@ -106,9 +106,6 @@ class Symbol implements core.Symbol {
    */
   const Symbol.unvalidated(this._name);
 
-  // This is called by dart2js.
-  Symbol.validated(String name) : this._name = validatePublicSymbol(name);
-
   bool operator ==(Object other) => other is Symbol && _name == other._name;
 
   external int get hashCode;

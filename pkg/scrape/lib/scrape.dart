@@ -25,7 +25,7 @@ class Scrape {
   final List<ScrapeVisitor Function()> _visitorFactories = [];
 
   /// What percent of files should be processed.
-  int _percent;
+  int? _percent;
 
   /// Process package test files.
   bool _includeTests = true;
@@ -82,9 +82,9 @@ class Scrape {
   /// that many times.
   void addHistogram(String name,
       {SortOrder order = SortOrder.descending,
-      bool showBar,
-      bool showAll,
-      int minCount}) {
+      bool? showBar,
+      bool? showAll,
+      int? minCount}) {
     _histograms.putIfAbsent(
         name,
         () => Histogram(
@@ -96,7 +96,7 @@ class Scrape {
 
   /// Add an occurrence of [item] to [histogram].
   void record(String histogram, Object item) {
-    _histograms[histogram].add(item);
+    _histograms[histogram]!.add(item);
   }
 
   /// Run the scrape using the given set of command line arguments.
@@ -247,10 +247,10 @@ class Scrape {
         if (entry.path.endsWith('.pbenum.dart')) continue;
       }
 
-      if (_percent != null && random.nextInt(100) >= _percent) continue;
+      if (_percent != null && random.nextInt(100) >= _percent!) continue;
 
       var relative = p.relative(entry.path, from: path);
-      _parseFile(entry as File, relative);
+      _parseFile(entry, relative);
     }
   }
 

@@ -949,36 +949,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     ASSERT(registers != NULL);
     const intptr_t kFpuRegisterSpillFactor =
         kFpuRegisterSize / compiler::target::kWordSize;
-    intptr_t saved_registers_size = 0;
     const bool using_shared_stub = locs->call_on_shared_slow_path();
-    if (using_shared_stub) {
-      saved_registers_size =
-          Utils::CountOneBitsWord(kDartAvailableCpuRegs) +
-          (registers->FpuRegisterCount() > 0
-               ? kFpuRegisterSpillFactor * kNumberOfFpuRegisters
-               : 0) +
-          1 /*saved PC*/;
-    } else {
-      saved_registers_size =
-          registers->CpuRegisterCount() +
-          (registers->FpuRegisterCount() * kFpuRegisterSpillFactor);
-    }
 
-    BitmapBuilder* bitmap = locs->stack_bitmap();
+    BitmapBuilder bitmap(locs->stack_bitmap());
 
-    // An instruction may have two safepoints in deferred code. The
-    // call to RecordSafepoint has the side-effect of appending the live
-    // registers to the bitmap. This is why the second call to RecordSafepoint
-    // with the same instruction (and same location summary) sees a bitmap that
-    // is larger that StackSize(). It will never be larger than StackSize() +
-    // unboxed_arg_bits_count + live_registers_size.
-    // The first safepoint will grow the bitmap to be the size of
-    // spill_area_size but the second safepoint will truncate the bitmap and
-    // append the bits for arguments and live registers to it again.
-    const intptr_t bitmap_previous_length = bitmap->Length();
-    bitmap->SetLength(spill_area_size);
-
-    intptr_t unboxed_arg_bits_count = 0;
+    // Expand the bitmap to cover the whole area reserved for spill slots.
+    // (register allocator takes care of marking slots containing live tagged
+    // values but it does not do the same for other slots so length might be
+    // below spill_area_size at this point).
+    RELEASE_ASSERT(bitmap.Length() <= spill_area_size);
+    bitmap.SetLength(spill_area_size);
 
     auto instr = current_instruction();
     const intptr_t args_count = instr->ArgumentCount();
@@ -989,18 +969,16 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
           instr->ArgumentValueAt(i)->instruction()->AsPushArgument();
       switch (push_arg->representation()) {
         case kUnboxedInt64:
-          bitmap->SetRange(
-              bitmap->Length(),
-              bitmap->Length() + compiler::target::kIntSpillFactor - 1, false);
-          unboxed_arg_bits_count += compiler::target::kIntSpillFactor;
+          bitmap.SetRange(
+              bitmap.Length(),
+              bitmap.Length() + compiler::target::kIntSpillFactor - 1, false);
           pushed_unboxed = true;
           break;
         case kUnboxedDouble:
-          bitmap->SetRange(
-              bitmap->Length(),
-              bitmap->Length() + compiler::target::kDoubleSpillFactor - 1,
+          bitmap.SetRange(
+              bitmap.Length(),
+              bitmap.Length() + compiler::target::kDoubleSpillFactor - 1,
               false);
-          unboxed_arg_bits_count += compiler::target::kDoubleSpillFactor;
           pushed_unboxed = true;
           break;
         case kTagged:
@@ -1012,17 +990,13 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
             // postfix.
             continue;
           }
-          bitmap->Set(bitmap->Length(), true);
-          unboxed_arg_bits_count++;
+          bitmap.Set(bitmap.Length(), true);
           break;
         default:
           UNREACHABLE();
           break;
       }
     }
-    ASSERT(bitmap_previous_length <=
-           (spill_area_size + unboxed_arg_bits_count + saved_registers_size));
-
     ASSERT(slow_path_argument_count == 0 || !using_shared_stub);
 
     // Mark the bits in the stack map in the same order we push registers in
@@ -1043,7 +1017,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {
             for (intptr_t j = 0; j < kFpuRegisterSpillFactor; ++j) {
-              bitmap->Set(bitmap->Length(), false);
+              bitmap.Set(bitmap.Length(), false);
             }
           }
         }
@@ -1054,7 +1028,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
-          bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
+          bitmap.Set(bitmap.Length(), locs->live_registers()->IsTagged(reg));
         }
       }
     }
@@ -1063,29 +1037,28 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       // To simplify the code in the shared stub, we create an untagged hole
       // in the stack frame where the shared stub can leave the return address
       // before saving registers.
-      bitmap->Set(bitmap->Length(), false);
+      bitmap.Set(bitmap.Length(), false);
       if (registers->FpuRegisterCount() > 0) {
-        bitmap->SetRange(bitmap->Length(),
-                         bitmap->Length() +
-                             kNumberOfFpuRegisters * kFpuRegisterSpillFactor -
-                             1,
-                         false);
+        bitmap.SetRange(bitmap.Length(),
+                        bitmap.Length() +
+                            kNumberOfFpuRegisters * kFpuRegisterSpillFactor - 1,
+                        false);
       }
       for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         if ((kReservedCpuRegisters & (1 << i)) != 0) continue;
         const Register reg = static_cast<Register>(i);
-        bitmap->Set(bitmap->Length(),
-                    locs->live_registers()->ContainsRegister(reg) &&
-                        locs->live_registers()->IsTagged(reg));
+        bitmap.Set(bitmap.Length(),
+                   locs->live_registers()->ContainsRegister(reg) &&
+                       locs->live_registers()->IsTagged(reg));
       }
     }
 
     // Arguments pushed after live registers in the slow path are tagged.
     for (intptr_t i = 0; i < slow_path_argument_count; ++i) {
-      bitmap->Set(bitmap->Length(), true);
+      bitmap.Set(bitmap.Length(), true);
     }
 
-    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), bitmap,
+    compressed_stackmaps_builder_->AddEntry(assembler()->CodeSize(), &bitmap,
                                             spill_area_size);
   }
 }
@@ -3142,16 +3115,15 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32) ||
-         (rep == kUnboxedUint8));
+  ASSERT((rep == kTagged) || (rep == kUntagged) ||
+         RepresentationUtils::IsUnboxedInteger(rep));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
   const auto& function = flow_graph_.parsed_function().function();
-  // Currently, we only allow unboxed uint8 and uint32 on the stack in
-  // unoptimized code  when building a dynamic closure call dispatcher, where
-  // any unboxed values on the stack are consumed before possible
-  // FrameStateIsSafeToCall() checks.
+  // Currently, we only allow unboxed integers on the stack in unoptimized code
+  // when building a dynamic closure call dispatcher, where any unboxed values
+  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
   // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  ASSERT((rep != kUnboxedUint32 && rep != kUnboxedUint8) ||
+  ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
          function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }

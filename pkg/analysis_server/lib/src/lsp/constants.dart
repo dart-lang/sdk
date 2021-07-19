@@ -58,11 +58,13 @@ abstract class Commands {
   static const serverSupportedCommands = [
     sortMembers,
     organizeImports,
+    fixAll,
     sendWorkspaceEdit,
     performRefactor,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
+  static const fixAll = 'edit.fixAll';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
   static const performRefactor = 'refactor.perform';
 }
@@ -125,12 +127,23 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
+  /// A modifier applied to the void keyword to users to color it differently
+  /// (for example as a type).
+  static const void_ = SemanticTokenModifiers('void');
+
   /// All custom semantic token modifiers, used to populate the LSP Legend.
   ///
   /// The legend must include all used modifiers. Modifiers used in the
   /// HighlightRegion mappings will be automatically included, but should still
   /// be listed here in case they are removed from mappings in the future.
-  static const values = [control, label, constructor, escape, interpolation];
+  static const values = [
+    control,
+    label,
+    constructor,
+    escape,
+    interpolation,
+    void_,
+  ];
 }
 
 abstract class CustomSemanticTokenTypes {
@@ -160,11 +173,16 @@ abstract class DartCodeActionKind {
     CodeActionKind.Source,
     // We have to explicitly list this for the client to enable built-in command.
     CodeActionKind.SourceOrganizeImports,
+    FixAll,
     SortMembers,
     CodeActionKind.QuickFix,
     CodeActionKind.Refactor,
   ];
   static const SortMembers = CodeActionKind('source.sortMembers');
+  // TODO(dantup): Once this PR is merged into LSP and released, regenerated the
+  //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
+  //   https://github.com/microsoft/language-server-protocol/pull/1308
+  static const FixAll = CodeActionKind('source.fixAll');
 }
 
 abstract class ServerErrorCodes {

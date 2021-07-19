@@ -365,10 +365,14 @@ class BinaryBuilder {
         return _readSetConstant();
       case ConstantTag.InstanceConstant:
         return _readInstanceConstant();
-      case ConstantTag.PartialInstantiationConstant:
-        return _readPartialInstantiationConstant();
-      case ConstantTag.TearOffConstant:
-        return _readTearOffConstant();
+      case ConstantTag.InstantiationConstant:
+        return _readInstantiationConstant();
+      case ConstantTag.TypedefTearOffConstant:
+        return _readTypedefTearOffConstant();
+      case ConstantTag.StaticTearOffConstant:
+        return _readStaticTearOffConstant();
+      case ConstantTag.ConstructorTearOffConstant:
+        return _readConstructorTearOffConstant();
       case ConstantTag.TypeLiteralConstant:
         return _readTypeLiteralConstant();
       case ConstantTag.UnevaluatedConstant:
@@ -441,16 +445,29 @@ class BinaryBuilder {
     return new InstanceConstant(classReference, typeArguments, fieldValues);
   }
 
-  Constant _readPartialInstantiationConstant() {
-    final TearOffConstant tearOffConstant =
-        readConstantReference() as TearOffConstant;
+  Constant _readInstantiationConstant() {
+    final StaticTearOffConstant tearOffConstant =
+        readConstantReference() as StaticTearOffConstant;
     final List<DartType> types = readDartTypeList();
-    return new PartialInstantiationConstant(tearOffConstant, types);
+    return new InstantiationConstant(tearOffConstant, types);
   }
 
-  Constant _readTearOffConstant() {
+  Constant _readTypedefTearOffConstant() {
+    final List<TypeParameter> parameters = readAndPushTypeParameterList();
+    final StaticTearOffConstant tearOffConstant =
+        readConstantReference() as StaticTearOffConstant;
+    final List<DartType> types = readDartTypeList();
+    return new TypedefTearOffConstant(parameters, tearOffConstant, types);
+  }
+
+  Constant _readStaticTearOffConstant() {
     final Reference reference = readNonNullCanonicalNameReference().reference;
-    return new TearOffConstant.byReference(reference);
+    return new StaticTearOffConstant.byReference(reference);
+  }
+
+  Constant _readConstructorTearOffConstant() {
+    final Reference reference = readNonNullCanonicalNameReference().reference;
+    return new ConstructorTearOffConstant.byReference(reference);
   }
 
   Constant _readTypeLiteralConstant() {
@@ -1966,6 +1983,10 @@ class BinaryBuilder {
         return _readStaticTearOff();
       case Tag.StaticSet:
         return _readStaticSet();
+      case Tag.ConstructorTearOff:
+        return _readConstructorTearOff();
+      case Tag.TypedefTearOff:
+        return _readTypedefTearOff();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
       case Tag.InstanceInvocation:
@@ -2193,6 +2214,21 @@ class BinaryBuilder {
     int offset = readOffset();
     return new StaticGet.byReference(readNonNullMemberReference())
       ..fileOffset = offset;
+  }
+
+  Expression _readConstructorTearOff() {
+    int offset = readOffset();
+    Reference constructorReference = readNonNullMemberReference();
+    return new ConstructorTearOff.byReference(constructorReference)
+      ..fileOffset = offset;
+  }
+
+  Expression _readTypedefTearOff() {
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    Expression expression = readExpression();
+    List<DartType> typeArguments = readDartTypeList();
+    typeParameterStack.length -= typeParameters.length;
+    return new TypedefTearOff(typeParameters, expression, typeArguments);
   }
 
   Expression _readStaticTearOff() {

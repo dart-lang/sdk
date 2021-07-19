@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.46.0';
+const String vmServiceVersion = '3.48.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1150,6 +1150,7 @@ abstract class VmServiceInterface {
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
   /// BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
+  /// Profiler | UserTagChanged
   /// GC | GC
   /// Extension | Extension
   /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1689,6 +1690,9 @@ class VmService implements VmServiceInterface {
 
   // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
+
+  // UserTagChanged
+  Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
 
   // GC
   Stream<Event> get onGCEvent => _getEventController('GC').stream;
@@ -2384,6 +2388,7 @@ class EventStreams {
   static const String kVM = 'VM';
   static const String kIsolate = 'Isolate';
   static const String kDebug = 'Debug';
+  static const String kProfiler = 'Profiler';
   static const String kGC = 'GC';
   static const String kExtension = 'Extension';
   static const String kTimeline = 'Timeline';
@@ -2496,6 +2501,9 @@ class EventKind {
   /// Notification that a Service has been removed from the Service Protocol
   /// from another client.
   static const String kServiceUnregistered = 'ServiceUnregistered';
+
+  /// Notification that the UserTag for an isolate has been changed.
+  static const String kUserTagChanged = 'UserTagChanged';
 }
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
@@ -2899,7 +2907,7 @@ class Breakpoint extends Obj {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Breakpoint && id == other.id;
+  bool operator ==(Object other) => other is Breakpoint && id == other.id;
 
   String toString() => '[Breakpoint ' //
       'id: ${id}, breakpointNumber: ${breakpointNumber}, enabled: ${enabled}, ' //
@@ -2955,7 +2963,7 @@ class ClassRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is ClassRef && id == other.id;
+  bool operator ==(Object other) => other is ClassRef && id == other.id;
 
   String toString() =>
       '[ClassRef id: ${id}, name: ${name}, library: ${library}]';
@@ -3098,7 +3106,7 @@ class Class extends Obj implements ClassRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Class && id == other.id;
+  bool operator ==(Object other) => other is Class && id == other.id;
 
   String toString() => '[Class]';
 }
@@ -3235,7 +3243,7 @@ class CodeRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is CodeRef && id == other.id;
+  bool operator ==(Object other) => other is CodeRef && id == other.id;
 
   String toString() => '[CodeRef id: ${id}, name: ${name}, kind: ${kind}]';
 }
@@ -3280,7 +3288,7 @@ class Code extends ObjRef implements CodeRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Code && id == other.id;
+  bool operator ==(Object other) => other is Code && id == other.id;
 
   String toString() => '[Code id: ${id}, name: ${name}, kind: ${kind}]';
 }
@@ -3318,7 +3326,7 @@ class ContextRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is ContextRef && id == other.id;
+  bool operator ==(Object other) => other is ContextRef && id == other.id;
 
   String toString() => '[ContextRef id: ${id}, length: ${length}]';
 }
@@ -3375,7 +3383,7 @@ class Context extends Obj implements ContextRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Context && id == other.id;
+  bool operator ==(Object other) => other is Context && id == other.id;
 
   String toString() =>
       '[Context id: ${id}, length: ${length}, variables: ${variables}]';
@@ -3631,7 +3639,7 @@ class ErrorRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is ErrorRef && id == other.id;
+  bool operator ==(Object other) => other is ErrorRef && id == other.id;
 
   String toString() =>
       '[ErrorRef id: ${id}, kind: ${kind}, message: ${message}]';
@@ -3696,7 +3704,7 @@ class Error extends Obj implements ErrorRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Error && id == other.id;
+  bool operator ==(Object other) => other is Error && id == other.id;
 
   String toString() => '[Error id: ${id}, kind: ${kind}, message: ${message}]';
 }
@@ -3885,6 +3893,14 @@ class Event extends Response {
   @optional
   bool? last;
 
+  /// The current UserTag label.
+  @optional
+  String? updatedTag;
+
+  /// The previous UserTag label.
+  @optional
+  String? previousTag;
+
   /// Binary data associated with the event.
   ///
   /// This is provided for the event kinds:
@@ -3917,6 +3933,8 @@ class Event extends Response {
     this.flag,
     this.newValue,
     this.last,
+    this.updatedTag,
+    this.previousTag,
     this.data,
   });
 
@@ -3959,6 +3977,8 @@ class Event extends Response {
     flag = json['flag'];
     newValue = json['newValue'];
     last = json['last'];
+    updatedTag = json['updatedTag'];
+    previousTag = json['previousTag'];
     data = json['data'];
   }
 
@@ -3998,6 +4018,8 @@ class Event extends Response {
     _setIfNotNull(json, 'flag', flag);
     _setIfNotNull(json, 'newValue', newValue);
     _setIfNotNull(json, 'last', last);
+    _setIfNotNull(json, 'updatedTag', updatedTag);
+    _setIfNotNull(json, 'previousTag', previousTag);
     _setIfNotNull(json, 'data', data);
     return json;
   }
@@ -4082,7 +4104,7 @@ class FieldRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is FieldRef && id == other.id;
+  bool operator ==(Object other) => other is FieldRef && id == other.id;
 
   String toString() => '[FieldRef ' //
       'id: ${id}, name: ${name}, owner: ${owner}, declaredType: ${declaredType}, ' //
@@ -4177,7 +4199,7 @@ class Field extends Obj implements FieldRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Field && id == other.id;
+  bool operator ==(Object other) => other is Field && id == other.id;
 
   String toString() => '[Field ' //
       'id: ${id}, name: ${name}, owner: ${owner}, declaredType: ${declaredType}, ' //
@@ -4396,7 +4418,7 @@ class FuncRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is FuncRef && id == other.id;
+  bool operator ==(Object other) => other is FuncRef && id == other.id;
 
   String toString() => '[FuncRef ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
@@ -4473,7 +4495,7 @@ class Func extends Obj implements FuncRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Func && id == other.id;
+  bool operator ==(Object other) => other is Func && id == other.id;
 
   String toString() => '[Func ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
@@ -4686,7 +4708,7 @@ class InstanceRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is InstanceRef && id == other.id;
+  bool operator ==(Object other) => other is InstanceRef && id == other.id;
 
   String toString() => '[InstanceRef ' //
       'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
@@ -5120,7 +5142,7 @@ class Instance extends Obj implements InstanceRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Instance && id == other.id;
+  bool operator ==(Object other) => other is Instance && id == other.id;
 
   String toString() => '[Instance ' //
       'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
@@ -5177,7 +5199,7 @@ class IsolateRef extends Response {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is IsolateRef && id == other.id;
+  bool operator ==(Object other) => other is IsolateRef && id == other.id;
 
   String toString() => '[IsolateRef ' //
       'id: ${id}, number: ${number}, name: ${name}, isSystemIsolate: ${isSystemIsolate}]';
@@ -5329,7 +5351,7 @@ class Isolate extends Response implements IsolateRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Isolate && id == other.id;
+  bool operator ==(Object other) => other is Isolate && id == other.id;
 
   String toString() => '[Isolate]';
 }
@@ -5419,7 +5441,7 @@ class IsolateGroupRef extends Response {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is IsolateGroupRef && id == other.id;
+  bool operator ==(Object other) => other is IsolateGroupRef && id == other.id;
 
   String toString() => '[IsolateGroupRef ' //
       'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}]';
@@ -5483,7 +5505,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is IsolateGroup && id == other.id;
+  bool operator ==(Object other) => other is IsolateGroup && id == other.id;
 
   String toString() => '[IsolateGroup ' //
       'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}, ' //
@@ -5651,7 +5673,7 @@ class LibraryRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is LibraryRef && id == other.id;
+  bool operator ==(Object other) => other is LibraryRef && id == other.id;
 
   String toString() => '[LibraryRef id: ${id}, name: ${name}, uri: ${uri}]';
 }
@@ -5743,7 +5765,7 @@ class Library extends Obj implements LibraryRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Library && id == other.id;
+  bool operator ==(Object other) => other is Library && id == other.id;
 
   String toString() => '[Library]';
 }
@@ -5765,11 +5787,21 @@ class LibraryDependency {
   /// The library being imported or exported.
   LibraryRef? target;
 
+  /// The list of symbols made visible from this dependency.
+  @optional
+  List<String>? shows;
+
+  /// The list of symbols hidden from this dependency.
+  @optional
+  List<String>? hides;
+
   LibraryDependency({
     required this.isImport,
     required this.isDeferred,
     required this.prefix,
     required this.target,
+    this.shows,
+    this.hides,
   });
 
   LibraryDependency._fromJson(Map<String, dynamic> json) {
@@ -5778,6 +5810,8 @@ class LibraryDependency {
     prefix = json['prefix'] ?? '';
     target = createServiceObject(json['target'], const ['LibraryRef'])
         as LibraryRef?;
+    shows = json['shows'] == null ? null : List<String>.from(json['shows']);
+    hides = json['hides'] == null ? null : List<String>.from(json['hides']);
   }
 
   Map<String, dynamic> toJson() {
@@ -5788,6 +5822,8 @@ class LibraryDependency {
       'prefix': prefix,
       'target': target?.toJson(),
     });
+    _setIfNotNull(json, 'shows', shows?.map((f) => f).toList());
+    _setIfNotNull(json, 'hides', hides?.map((f) => f).toList());
     return json;
   }
 
@@ -6111,7 +6147,7 @@ class NullValRef extends InstanceRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is NullValRef && id == other.id;
+  bool operator ==(Object other) => other is NullValRef && id == other.id;
 
   String toString() => '[NullValRef ' //
       'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
@@ -6163,7 +6199,7 @@ class NullVal extends Instance implements NullValRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is NullVal && id == other.id;
+  bool operator ==(Object other) => other is NullVal && id == other.id;
 
   String toString() => '[NullVal ' //
       'id: ${id}, kind: ${kind}, identityHashCode: ${identityHashCode}, ' //
@@ -6211,7 +6247,7 @@ class ObjRef extends Response {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is ObjRef && id == other.id;
+  bool operator ==(Object other) => other is ObjRef && id == other.id;
 
   String toString() => '[ObjRef id: ${id}]';
 }
@@ -6287,7 +6323,7 @@ class Obj extends Response implements ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Obj && id == other.id;
+  bool operator ==(Object other) => other is Obj && id == other.id;
 
   String toString() => '[Obj id: ${id}]';
 }
@@ -6778,7 +6814,7 @@ class ScriptRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is ScriptRef && id == other.id;
+  bool operator ==(Object other) => other is ScriptRef && id == other.id;
 
   String toString() => '[ScriptRef id: ${id}, uri: ${uri}]';
 }
@@ -6913,7 +6949,7 @@ class Script extends Obj implements ScriptRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is Script && id == other.id;
+  bool operator ==(Object other) => other is Script && id == other.id;
 
   String toString() => '[Script id: ${id}, uri: ${uri}, library: ${library}]';
 }
@@ -7460,7 +7496,7 @@ class TypeArgumentsRef extends ObjRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is TypeArgumentsRef && id == other.id;
+  bool operator ==(Object other) => other is TypeArgumentsRef && id == other.id;
 
   String toString() => '[TypeArgumentsRef id: ${id}, name: ${name}]';
 }
@@ -7511,7 +7547,7 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
 
   int get hashCode => id.hashCode;
 
-  operator ==(other) => other is TypeArguments && id == other.id;
+  bool operator ==(Object other) => other is TypeArguments && id == other.id;
 
   String toString() =>
       '[TypeArguments id: ${id}, name: ${name}, types: ${types}]';

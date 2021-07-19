@@ -82,10 +82,11 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = _findMemberElement(subElement);
+      var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
           convertElement(subElement, withNullability: _isNonNullableByDefault),
-          memberElement: subMemberElement != null
-              ? convertElement(subMemberElement,
+          memberElement: subMemberElementDeclared != null
+              ? convertElement(subMemberElementDeclared,
                   withNullability: _isNonNullableByDefault)
               : null,
           superclass: itemId);
@@ -126,12 +127,13 @@ class TypeHierarchyComputer {
         displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
       }
       var memberElement = _findMemberElement(classElement);
+      var memberElementDeclared = memberElement?.nonSynthetic;
       item = TypeHierarchyItem(
           convertElement(classElement,
               withNullability: _isNonNullableByDefault),
           displayName: displayName,
-          memberElement: memberElement != null
-              ? convertElement(memberElement,
+          memberElement: memberElementDeclared != null
+              ? convertElement(memberElementDeclared,
                   withNullability: _isNonNullableByDefault)
               : null);
       _elementItemMap[classElement] = item;

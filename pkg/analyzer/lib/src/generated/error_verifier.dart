@@ -310,6 +310,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superClass.name == 'Struct';
   }
 
+  /// The language team is thinking about adding abstract fields, or external
+  /// fields. But for now we will ignore such fields in `Struct` subtypes.
+  bool get _isEnclosingClassFfiUnion {
+    var superClass = _enclosingClass?.supertype?.element;
+    return superClass != null &&
+        superClass.library.name == 'dart.ffi' &&
+        superClass.name == 'Union';
+  }
+
   bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
@@ -754,6 +763,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    _typeArgumentsVerifier.checkFunctionReference(node);
   }
 
   @override
@@ -1500,24 +1514,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
-    if (expression is SimpleIdentifier &&
-        expression.parent is AssignmentExpression) {
+    if (expression.parent is AssignmentExpression) {
       return;
     }
 
     // prepare element
-    Element? element;
-    AstNode highlightedNode = expression;
-    if (expression is Identifier) {
-      element = expression.staticElement;
-      if (expression is PrefixedIdentifier) {
-        var prefixedIdentifier = expression as PrefixedIdentifier;
-        highlightedNode = prefixedIdentifier.identifier;
-      }
-    } else if (expression is PropertyAccess) {
-      var propertyAccess = expression as PropertyAccess;
-      element = propertyAccess.propertyName.staticElement;
-      highlightedNode = propertyAccess.propertyName;
+    var highlightedNode = expression;
+    var element = expression.staticElement;
+    if (expression is PrefixedIdentifier) {
+      var prefixedIdentifier = expression as PrefixedIdentifier;
+      highlightedNode = prefixedIdentifier.identifier;
     }
     // check if element is assignable
     if (element is VariableElement) {
@@ -3426,6 +3432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (fields.isFinal) return;
 
     if (_isEnclosingClassFfiStruct) return;
+    if (_isEnclosingClassFfiUnion) return;
 
     for (var field in fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;
@@ -4027,7 +4034,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var element = parameter.declaredElement!;
             errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-              parameter,
+              parameter.name,
               [element.displayName, element.bound],
             );
             break;

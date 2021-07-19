@@ -4,8 +4,16 @@
 
 class A {
   A.foo() {}
+  A() {}
+  factory A.bar() => new A();
 }
 
-bar() => A.foo;
+testFoo() => A.foo; // Ok.
+testNew() => A.new; // Ok.
+testBar() => A.bar; // Ok.
+
+testFooExtraArgs() => A<int>.foo; // Error.
+testNewExtraArgs() => A<int>.new; // Error.
+testBarExtraArgs() => A<int>.bar; // Error.
 
 main() {}

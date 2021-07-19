@@ -976,9 +976,10 @@ struct InferredTypeMetadata {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable());
+          IsNullable(), CompileType::kCannotBeSentinel);
     } else {
-      return CompileType::CreateNullable(IsNullable(), cid);
+      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
+                         nullptr);
     }
   }
 };
@@ -1537,6 +1538,7 @@ class TypeTranslator {
   Zone* zone_;
   AbstractType& result_;
   bool finalize_;
+  bool refers_to_derived_type_param_;
   const bool apply_canonical_type_erasure_;
   const bool in_constant_context_;
 

@@ -22,7 +22,7 @@ class ConvertIntoIsNotEmptyTest extends AssistProcessorTest {
   Future<void> test_noBang() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-main(String str) {
+void f(String str) {
   ~str.isEmpty;
 }
 ''');
@@ -34,7 +34,7 @@ main(String str) {
 class A {
   bool get isEmpty => false;
 }
-main(A a) {
+void f(A a) {
   !a.isEmpty;
 }
 ''');
@@ -43,7 +43,7 @@ main(A a) {
 
   Future<void> test_notInPrefixExpression() async {
     await resolveTestCode('''
-main(String str) {
+void f(String str) {
   str.isEmpty;
 }
 ''');
@@ -52,7 +52,7 @@ main(String str) {
 
   Future<void> test_notIsEmpty() async {
     await resolveTestCode('''
-main(int p) {
+void f(int p) {
   !p.isEven;
 }
 ''');
@@ -61,12 +61,12 @@ main(int p) {
 
   Future<void> test_on_isEmpty() async {
     await resolveTestCode('''
-main(String str) {
+void f(String str) {
   !str.isEmpty;
 }
 ''');
     await assertHasAssistAt('isEmpty', '''
-main(String str) {
+void f(String str) {
   str.isNotEmpty;
 }
 ''');
@@ -74,12 +74,12 @@ main(String str) {
 
   Future<void> test_on_str() async {
     await resolveTestCode('''
-main(String str) {
+void f(String str) {
   !str.isEmpty;
 }
 ''');
     await assertHasAssistAt('str.', '''
-main(String str) {
+void f(String str) {
   str.isNotEmpty;
 }
 ''');
@@ -87,12 +87,12 @@ main(String str) {
 
   Future<void> test_propertyAccess() async {
     await resolveTestCode('''
-main(String str) {
+void f(String str) {
   !'text'.isEmpty;
 }
 ''');
     await assertHasAssistAt('isEmpty', '''
-main(String str) {
+void f(String str) {
   'text'.isNotEmpty;
 }
 ''');

@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.verifier;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -22,6 +21,7 @@ import '../compiler_context.dart' show CompilerContext;
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        Message,
         messageVerificationErrorOriginContext,
         noLength,
         templateInternalProblemVerificationError;
@@ -34,22 +34,24 @@ import 'redirecting_factory_body.dart'
         getRedirectingFactoryBody,
         isRedirectingFactory;
 
-List<LocatedMessage> verifyComponent(Component component,
-    {bool isOutline, bool afterConst, bool skipPlatform: false}) {
+List<LocatedMessage> verifyComponent(Component component, Target target,
+    {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
   FastaVerifyingVisitor verifier =
-      new FastaVerifyingVisitor(isOutline, afterConst, skipPlatform);
+      new FastaVerifyingVisitor(target, isOutline, afterConst, skipPlatform);
   component.accept(verifier);
   return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor {
+  final Target target;
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  Uri fileUri;
+  Uri? fileUri;
   final List<TreeNode> treeNodeStack = <TreeNode>[];
   final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline, bool afterConst, this.skipPlatform)
+  FastaVerifyingVisitor(
+      this.target, bool? isOutline, bool? afterConst, this.skipPlatform)
       : super(isOutline: isOutline, afterConst: afterConst);
 
   /// Invoked by all visit methods if the visited node is a [TreeNode].
@@ -70,7 +72,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     treeNodeStack.removeLast();
   }
 
-  TreeNode getLastSeenTreeNode({bool withLocation = false}) {
+  TreeNode? getLastSeenTreeNode({bool withLocation = false}) {
     assert(treeNodeStack.isNotEmpty);
     for (int i = treeNodeStack.length - 1; i >= 0; --i) {
       TreeNode node = treeNodeStack[i];
@@ -80,15 +82,16 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     return null;
   }
 
-  TreeNode getSameLibraryLastSeenTreeNode({bool withLocation = false}) {
+  TreeNode? getSameLibraryLastSeenTreeNode({bool withLocation = false}) {
     if (treeNodeStack.isEmpty) return null;
-    if (currentLibrary == null || currentLibrary.fileUri == null) return null;
+    // ignore: unnecessary_null_comparison
+    if (currentLibrary == null || currentLibrary!.fileUri == null) return null;
 
     for (int i = treeNodeStack.length - 1; i >= 0; --i) {
       TreeNode node = treeNodeStack[i];
       if (withLocation && !_hasLocation(node)) continue;
       if (node.location?.file != null &&
-          node.location.file == currentLibrary.fileUri) {
+          node.location!.file == currentLibrary!.fileUri) {
         return node;
       }
     }
@@ -97,39 +100,43 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   static bool _hasLocation(TreeNode node) {
     return node.location != null &&
-        node.location.file != null &&
+        // ignore: unnecessary_null_comparison
+        node.location!.file != null &&
+        // ignore: unnecessary_null_comparison
         node.fileOffset != null &&
         node.fileOffset != -1;
   }
 
-  static bool _isInSameLibrary(Library library, TreeNode node) {
+  static bool _isInSameLibrary(Library? library, TreeNode node) {
     if (library == null) return false;
+    // ignore: unnecessary_null_comparison
     if (library.fileUri == null) return false;
     if (node.location == null) return false;
-    if (node.location.file == null) return false;
+    // ignore: unnecessary_null_comparison
+    if (node.location!.file == null) return false;
 
-    return library.fileUri == node.location.file;
+    return library.fileUri == node.location!.file;
   }
 
-  TreeNode get localContext {
-    TreeNode result = getSameLibraryLastSeenTreeNode(withLocation: true);
+  TreeNode? get localContext {
+    TreeNode? result = getSameLibraryLastSeenTreeNode(withLocation: true);
     if (result == null &&
         currentClassOrExtensionOrMember != null &&
-        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember)) {
+        _isInSameLibrary(currentLibrary, currentClassOrExtensionOrMember!)) {
       result = currentClassOrExtensionOrMember;
     }
     return result;
   }
 
-  TreeNode get remoteContext {
-    TreeNode result = getLastSeenTreeNode(withLocation: true);
+  TreeNode? get remoteContext {
+    TreeNode? result = getLastSeenTreeNode(withLocation: true);
     if (result != null && _isInSameLibrary(currentLibrary, result)) {
       result = null;
     }
     return result;
   }
 
-  Uri checkLocation(TreeNode node, String name, Uri fileUri) {
+  Uri checkLocation(TreeNode node, String? name, Uri fileUri) {
     if (name == null || name.contains("#")) {
       // TODO(ahe): Investigate if these checks can be enabled:
       // if (node.fileUri != null && node is! Library) {
@@ -142,6 +149,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
       // }
       return fileUri;
     } else {
+      // ignore: unnecessary_null_comparison
       if (fileUri == null) {
         problem(node, "'$name' has no fileUri", context: node);
         return fileUri;
@@ -154,7 +162,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   void checkSuperInvocation(TreeNode node) {
-    Member containingMember = getContainingMember(node);
+    Member? containingMember = getContainingMember(node);
     if (containingMember == null) {
       problem(node, 'Super call outside of any member');
     } else {
@@ -165,7 +173,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     }
   }
 
-  Member getContainingMember(TreeNode node) {
+  Member? getContainingMember(TreeNode? node) {
     while (node != null) {
       if (node is Member) return node;
       node = node.parent;
@@ -174,24 +182,27 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
-  problem(TreeNode node, String details, {TreeNode context, TreeNode origin}) {
+  problem(TreeNode? node, String details,
+      {TreeNode? context, TreeNode? origin}) {
     node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
-    Uri file = node?.location?.file ?? fileUri;
-    Uri uri = file == null ? null : file;
-    LocatedMessage message = templateInternalProblemVerificationError
-        .withArguments(details)
-        .withLocation(uri, offset, noLength);
-    List<LocatedMessage> contextMessages;
+    Uri? file = node?.location?.file ?? fileUri;
+    Uri? uri = file == null ? null : file;
+    Message message =
+        templateInternalProblemVerificationError.withArguments(details);
+    LocatedMessage locatedMessage = uri != null
+        ? message.withLocation(uri, offset, noLength)
+        : message.withoutLocation();
+    List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
         messageVerificationErrorOriginContext.withLocation(
-            origin.location.file, origin.fileOffset, noLength)
+            origin.location!.file, origin.fileOffset, noLength)
       ];
     }
     CompilerContext.current
-        .report(message, Severity.error, context: contextMessages);
-    errors.add(message);
+        .report(locatedMessage, Severity.error, context: contextMessages);
+    errors.add(locatedMessage);
   }
 
   @override
@@ -199,7 +210,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     super.visitAsExpression(node);
     if (node.fileOffset == -1) {
-      TreeNode parent = node.parent;
+      TreeNode? parent = node.parent;
       while (parent != null) {
         if (parent.fileOffset != -1) break;
         parent = parent.parent;
@@ -312,8 +323,8 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
 
   @override
   void defaultDartType(DartType node) {
-    final TreeNode localContext = this.localContext;
-    final TreeNode remoteContext = this.remoteContext;
+    final TreeNode? localContext = this.localContext;
+    final TreeNode? remoteContext = this.remoteContext;
 
     if (node is UnknownType) {
       problem(localContext, "Unexpected appearance of the unknown type.",
@@ -418,11 +429,44 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   void visitStaticInvocation(StaticInvocation node) {
     enterTreeNode(node);
     super.visitStaticInvocation(node);
-    RedirectingFactoryBody body = getRedirectingFactoryBody(node.target);
+    RedirectingFactoryBody? body = getRedirectingFactoryBody(node.target);
     if (body != null) {
       problem(node, "Attempt to invoke redirecting factory.");
     }
     exitTreeNode(node);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a MethodInvocation.");
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPropertyGet(PropertyGet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertyGet.");
+    }
+    super.visitPropertyGet(node);
+  }
+
+  @override
+  void visitPropertySet(PropertySet node) {
+    if (target.supportsNewMethodInvocationEncoding) {
+      problem(
+          node,
+          "New method invocation encoding is supported, "
+          "but found a PropertySet.");
+    }
+    super.visitPropertySet(node);
   }
 
   @override

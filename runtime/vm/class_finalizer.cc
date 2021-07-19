@@ -732,15 +732,19 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
     return type.ptr();
   }
 
-  if (type.IsTypeRef()) {
-    // The referenced type will be finalized later by the code that set the
-    // is_being_finalized mark bit.
-    return type.ptr();
-  }
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
-  if (type.IsTypeParameter() && type.IsBeingFinalized()) {
-    // The base and index have already been adjusted, but the bound referring
-    // back to the type parameter is still being finalized.
+  if (type.IsTypeRef()) {
+    if (type.IsBeingFinalized()) {
+      // The referenced type will be finalized later by the code that set the
+      // is_being_finalized mark bit.
+      return type.ptr();
+    }
+    AbstractType& ref_type =
+        AbstractType::Handle(zone, TypeRef::Cast(type).type());
+    ref_type = FinalizeType(ref_type, finalization, pending_types);
+    TypeRef::Cast(type).set_type(ref_type);
     return type.ptr();
   }
 
@@ -750,9 +754,6 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
 
   // Mark the type as being finalized in order to detect self reference.
   type.SetIsBeingFinalized();
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
 
   if (FLAG_trace_type_finalization) {
     THR_Print("Finalizing type '%s'\n",
@@ -780,21 +781,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       type_parameter.set_parameterized_class_id(kClassCid);
     }
 
+    type_parameter.SetIsFinalized();
     AbstractType& upper_bound = AbstractType::Handle(zone);
     upper_bound = type_parameter.bound();
-    if (upper_bound.IsBeingFinalized()) {
-      if (upper_bound.IsTypeRef()) {
-        // Nothing to do.
-      } else {
-        upper_bound = TypeRef::New(upper_bound);
-        type_parameter.set_bound(upper_bound);
-        upper_bound = FinalizeType(upper_bound, kFinalize);
-      }
-    } else {
+    if (!upper_bound.IsBeingFinalized()) {
       upper_bound = FinalizeType(upper_bound, kFinalize);
       type_parameter.set_bound(upper_bound);
     }
-    type_parameter.SetIsFinalized();
 
     if (FLAG_trace_type_finalization) {
       THR_Print("Done finalizing type parameter at index %" Pd "\n",
@@ -965,7 +958,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
       // Remove this finalization code?
       signature = function.signature();
       signature ^= FinalizeType(signature);
-      function.set_signature(signature);
+      function.SetSignature(signature);
     }
   }
   // Finalize function signatures and check for conflicts in super classes and
@@ -976,7 +969,7 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
     function ^= array.At(i);
     signature = function.signature();
     signature ^= FinalizeType(signature);
-    function.set_signature(signature);
+    function.SetSignature(signature);
     if (function.IsSetterFunction() || function.IsImplicitSetterFunction()) {
       continue;
     }
@@ -1460,7 +1453,7 @@ void ClassFinalizer::SortClasses() {
   }
   ASSERT(next_new_cid == num_cids);
   RemapClassIds(old_to_new_cid.get());
-  RehashTypes();         // Types use cid's as part of their hashes.
+  RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
 
   // Ensure any newly spawned isolate will apply this permutation map right
@@ -1653,7 +1646,8 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
-    ASSERT(!present);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || type.IsRecursive());
   }
   object_store->set_canonical_types(types_table.Release());
 
@@ -1673,7 +1667,8 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < function_types.Length(); i++) {
     function_type ^= function_types.At(i);
     bool present = function_types_table.Insert(function_type);
-    ASSERT(!present);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || function_type.IsRecursive());
   }
   object_store->set_canonical_function_types(function_types_table.Release());
 
@@ -1693,7 +1688,8 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeparams.Length(); i++) {
     typeparam ^= typeparams.At(i);
     bool present = typeparams_table.Insert(typeparam);
-    ASSERT(!present);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || typeparam.IsRecursive());
   }
   object_store->set_canonical_type_parameters(typeparams_table.Release());
 
@@ -1717,7 +1713,8 @@ void ClassFinalizer::RehashTypes() {
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);
-    ASSERT(!present);
+    // Two recursive types with different topology (and hashes) may be equal.
+    ASSERT(!present || typearg.IsRecursive());
   }
   object_store->set_canonical_type_arguments(typeargs_table.Release());
 }

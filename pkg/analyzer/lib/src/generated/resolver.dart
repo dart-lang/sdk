@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -55,7 +56,6 @@ import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -67,6 +67,10 @@ import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
+
+/// A function which returns [NonPromotionReason]s that various types are not
+/// promoted.
+typedef WhyNotPromotedGetter = Map<DartType, NonPromotionReason> Function();
 
 /// Maintains and manages contextual type information used for
 /// inferring types.
@@ -206,22 +210,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   final TypeSystemImpl typeSystem;
 
-  /// The class declaration representing the class containing the current node,
-  /// or `null` if the current node is not contained in a class.
-  ClassDeclaration? _enclosingClassDeclaration;
-
-  /// The function type alias representing the function type containing the
-  /// current node, or `null` if the current node is not contained in a function
-  /// type alias.
-  FunctionTypeAlias? _enclosingFunctionTypeAlias;
-
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
   ExecutableElement? _enclosingFunction;
-
-  /// The mixin declaration representing the class containing the current node,
-  /// or `null` if the current node is not contained in a mixin.
-  MixinDeclaration? _enclosingMixinDeclaration;
 
   /// The helper for tracking if the current location has access to `this`.
   final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
@@ -259,6 +250,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// generic function types.
   /// TODO(scheglov) Stop cloning altogether.
   bool shouldCloneAnnotations = true;
+
+  late final FunctionReferenceResolver _functionReferenceResolver;
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
@@ -378,6 +371,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
+    _functionReferenceResolver =
+        FunctionReferenceResolver(this, _isNonNullableByDefault);
   }
 
   /// Return the element representing the function containing the current node,
@@ -423,7 +418,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   ///
   /// See [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
   void checkForArgumentTypesNotAssignableInList(ArgumentList argumentList,
-      List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList) {
+      List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       checkForArgumentTypeNotAssignableForArgument(arguments[i],
@@ -631,7 +626,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     ClassElement? enclosingClassElement,
     ExecutableElement? enclosingExecutableElement,
   }) {
-    _enclosingClassDeclaration = null;
     enclosingClass = enclosingClassElement;
     _thisType = enclosingClass?.thisType;
     _enclosingFunction = enclosingExecutableElement;
@@ -878,12 +872,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    AstNode parent = node.parent;
-    if (identical(parent, _enclosingClassDeclaration) ||
-        identical(parent, _enclosingFunctionTypeAlias) ||
-        identical(parent, _enclosingMixinDeclaration)) {
-      return;
-    }
     AnnotationResolver(this).resolve(node, whyNotPromotedList);
     var arguments = node.arguments;
     if (arguments != null) {
@@ -894,7 +882,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitArgumentList(ArgumentList node,
       {bool isIdentical = false,
-      List<Map<DartType, NonPromotionReason> Function()>? whyNotPromotedList}) {
+      List<WhyNotPromotedGetter>? whyNotPromotedList}) {
     whyNotPromotedList ??= [];
     var callerType = InferenceContext.getContext(node);
     NodeList<Expression> arguments = node.arguments;
@@ -1082,25 +1070,32 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     //
-    // Resolve the metadata in the library scope.
-    //
-    node.metadata.accept(this);
-    _enclosingClassDeclaration = node;
-    //
     // Continue the class resolution.
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement;
-      _thisType = enclosingClass?.thisType;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
       _thisType = outerType?.thisType;
       enclosingClass = outerType;
-      _enclosingClassDeclaration = null;
     }
+  }
+
+  @override
+  void visitClassDeclarationInScope(ClassDeclaration node) {
+    enclosingClass = node.declaredElement;
+    _thisType = enclosingClass?.thisType;
+    super.visitClassDeclarationInScope(node);
+  }
+
+  @override
+  void visitClassTypeAlias(ClassTypeAlias node) {
+    super.visitClassTypeAlias(node);
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitClassTypeAlias.
   }
 
   @override
@@ -1246,10 +1241,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     flowAnalysis!.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
-    var constructor = node.declaredElement as ConstructorElementImpl;
-    constructor.constantInitializers =
-        _createCloner().cloneNodeList(node.initializers);
-
     _enclosingFunction = outerFunction;
   }
 
@@ -1314,12 +1305,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement!;
 
-    // Clone the ASTs for default formal parameters, so that we can use them
-    // during constant evaluation.
-    if (element is ConstVariableElement &&
-        !_hasSerializedConstantInitializer(element)) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNullableNode(node.defaultValue);
+    if (element is DefaultParameterElementImpl && node.isOfLocalFunction) {
+      element.constantInitializer = node.defaultValue;
     }
   }
 
@@ -1361,11 +1348,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     //
-    // Resolve the metadata in the library scope
-    // and associate the annotations with the element.
-    //
-    node.metadata.accept(this);
-    //
     // Continue the enum resolution.
     //
     var outerType = enclosingClass;
@@ -1378,7 +1360,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     } finally {
       _thisType = outerType?.thisType;
       enclosingClass = outerType;
-      _enclosingClassDeclaration = null;
     }
   }
 
@@ -1410,13 +1391,18 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     try {
-      _thisType = node.declaredElement!.extendedType;
       super.visitExtensionDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
       _thisType = null;
     }
+  }
+
+  @override
+  void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
+    _thisType = node.declaredElement!.extendedType;
+    super.visitExtensionDeclarationInScope(node);
   }
 
   @override
@@ -1499,6 +1485,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
     _enclosingFunction = outerFunction;
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitFunctionDeclaration
   }
 
   @override
@@ -1543,22 +1532,38 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _functionReferenceResolver.resolve(node as FunctionReferenceImpl);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    // Resolve the metadata in the library scope.
-    node.metadata.accept(this);
-    var outerAlias = _enclosingFunctionTypeAlias;
-    _enclosingFunctionTypeAlias = node;
-    try {
-      super.visitFunctionTypeAlias(node);
-    } finally {
-      _enclosingFunctionTypeAlias = outerAlias;
-    }
+    super.visitFunctionTypeAlias(node);
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitFunctionTypeAlias.
   }
 
   @override
   void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
     super.visitFunctionTypeAliasInScope(node);
     safelyVisitComment(node.documentationComment);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    super.visitFunctionTypedFormalParameter(node);
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitFunctionTypedFormalParameter.
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    super.visitGenericTypeAlias(node);
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitGenericTypeAlias.
   }
 
   @override
@@ -1733,6 +1738,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
     _enclosingFunction = outerFunction;
+    node.accept(elementResolver);
+    // Note: no need to call the typeAnalyzer since it does not override
+    // visitMethodDeclaration.
   }
 
   @override
@@ -1774,25 +1782,24 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     //
-    // Resolve the metadata in the library scope.
-    //
-    node.metadata.accept(this);
-    _enclosingMixinDeclaration = node;
-    //
     // Continue the class resolution.
     //
     var outerType = enclosingClass;
     try {
-      enclosingClass = node.declaredElement;
-      _thisType = enclosingClass?.thisType;
       super.visitMixinDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
       _thisType = outerType?.thisType;
       enclosingClass = outerType;
-      _enclosingMixinDeclaration = null;
     }
+  }
+
+  @override
+  void visitMixinDeclarationInScope(MixinDeclaration node) {
+    enclosingClass = node.declaredElement;
+    _thisType = enclosingClass?.thisType;
+    super.visitMixinDeclarationInScope(node);
   }
 
   @override
@@ -2160,12 +2167,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     _yieldStatementResolver.resolve(node);
   }
 
-  /// Return a newly created cloner that can be used to clone constant
-  /// expressions.
-  ConstantAstCloner _createCloner() {
-    return ConstantAstCloner();
-  }
-
   /// Creates a union of `T | Future<T>`, unless `T` is already a
   /// future-union, in which case it simply returns `T`.
   DartType _createFutureOr(DartType type) {
@@ -2173,19 +2174,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       return type;
     }
     return typeProvider.futureOrType(type);
-  }
-
-  /// Return `true` if the given [parameter] element of the AST being resolved
-  /// is resynthesized and is an API-level, not local, so has its initializer
-  /// serialized.
-  bool _hasSerializedConstantInitializer(ParameterElement parameter) {
-    var executable = parameter.enclosingElement;
-    if (executable is MethodElement ||
-        executable is FunctionElement &&
-            executable.enclosingElement is CompilationUnitElement) {
-      return true;
-    }
-    return false;
   }
 
   void _inferArgumentTypesForInstanceCreate(
@@ -2263,7 +2251,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// as for method invocations.
   void _resolveRewrittenFunctionExpressionInvocation(
     FunctionExpressionInvocation node,
-    List<Map<DartType, NonPromotionReason> Function()> whyNotPromotedList,
+    List<WhyNotPromotedGetter> whyNotPromotedList,
   ) {
     var function = node.function;
 
@@ -2590,6 +2578,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ClassElement element = node.declaredElement!;
       enclosingClass = node.declaredElement;
+      node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
         nameScope,
@@ -2616,12 +2605,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   void visitClassMembersInScope(ClassDeclaration node) {
     node.documentationComment?.accept(this);
-    node.metadata.accept(this);
     node.members.accept(this);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       ClassElement element = node.declaredElement!;
@@ -2629,10 +2618,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         TypeParameterScope(nameScope, element.typeParameters),
         element,
       );
-      super.visitClassTypeAlias(node);
+      visitClassTypeAliasInScope(node);
     } finally {
       nameScope = outerScope;
     }
+  }
+
+  void visitClassTypeAliasInScope(ClassTypeAlias node) {
+    // Note: we don't visit metadata because it's not inside the class type
+    // alias's type parameter scope.  It was already visited in
+    // [visitClassTypeAlias].
+    node.documentationComment?.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.superclass.accept(this);
+    node.withClause.accept(this);
+    node.implementsClause?.accept(this);
   }
 
   @override
@@ -2708,6 +2709,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ClassElement element = node.declaredElement!;
       enclosingClass = node.declaredElement;
+      node.metadata.accept(this);
 
       nameScope = ClassScope(nameScope, element);
       visitEnumMembersInScope(node);
@@ -2719,7 +2721,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   void visitEnumMembersInScope(EnumDeclaration node) {
     node.documentationComment?.accept(this);
-    node.metadata.accept(this);
     node.constants.accept(this);
   }
 
@@ -2736,6 +2737,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ExtensionElement element = node.declaredElement!;
       enclosingExtension = element;
+      node.metadata.accept(this);
 
       nameScope = TypeParameterScope(
         nameScope,
@@ -2759,7 +2761,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   void visitExtensionMembersInScope(ExtensionDeclaration node) {
     node.documentationComment?.accept(this);
-    node.metadata.accept(this);
     node.members.accept(this);
   }
 
@@ -2850,6 +2851,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement!;
@@ -2864,7 +2866,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitFunctionDeclarationInScope(FunctionDeclaration node) {
-    super.visitFunctionDeclaration(node);
+    // Note: we don't visit metadata because it's not inside the function's type
+    // parameter scope.  It was already visited in [visitFunctionDeclaration].
+    node.documentationComment?.accept(this);
+    node.returnType?.accept(this);
+    node.name.accept(this);
+    node.functionExpression.accept(this);
   }
 
   @override
@@ -2890,6 +2897,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement!;
@@ -2901,11 +2909,19 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
-    super.visitFunctionTypeAlias(node);
+    // Note: we don't visit metadata because it's not inside the function type
+    // alias's type parameter scope.  It was already visited in
+    // [visitFunctionTypeAlias].
+    node.documentationComment?.accept(this);
+    node.returnType?.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
   }
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       ParameterElement element = node.declaredElement!;
@@ -2913,10 +2929,22 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
-      super.visitFunctionTypedFormalParameter(node);
+      visitFunctionTypedFormalParameterInScope(node);
     } finally {
       nameScope = outerScope;
     }
+  }
+
+  void visitFunctionTypedFormalParameterInScope(
+      FunctionTypedFormalParameter node) {
+    // Note: we don't visit metadata because it's not inside the function typed
+    // formal parameter's type parameter scope.  It was already visited in
+    // [visitFunctionTypedFormalParameter].
+    node.documentationComment?.accept(this);
+    node.returnType?.accept(this);
+    node.identifier.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters.accept(this);
   }
 
   @override
@@ -2942,11 +2970,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
-      super.visitGenericTypeAlias(node);
+      visitGenericTypeAliasInScope(node);
 
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
@@ -2959,6 +2988,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {}
+
+  void visitGenericTypeAliasInScope(GenericTypeAlias node) {
+    // Note: we don't visit metadata because it's not inside the generic type
+    // alias's type parameter scope.  It was already visited in
+    // [visitGenericTypeAlias].
+    node.documentationComment?.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.type.accept(this);
+  }
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -2979,6 +3018,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
       ExecutableElement element = node.declaredElement!;
@@ -2993,7 +3033,14 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitMethodDeclarationInScope(MethodDeclaration node) {
-    super.visitMethodDeclaration(node);
+    // Note: we don't visit metadata because it's not inside the method's type
+    // parameter scope.  It was already visited in [visitMethodDeclaration].
+    node.documentationComment?.accept(this);
+    node.returnType?.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+    node.body.accept(this);
   }
 
   @override
@@ -3003,6 +3050,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ClassElement element = node.declaredElement!;
       enclosingClass = element;
+      node.metadata.accept(this);
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       visitMixinDeclarationInScope(node);
@@ -3024,7 +3072,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   void visitMixinMembersInScope(MixinDeclaration node) {
     node.documentationComment?.accept(this);
-    node.metadata.accept(this);
     node.members.accept(this);
   }
 
@@ -3432,7 +3479,7 @@ class _WhyNotPromotedVisitor
         filePath: property.source.fullName,
         message:
             "'$propertyName' refers to a property so it couldn't be promoted",
-        offset: property.nameOffset,
+        offset: property.nonSynthetic.nameOffset,
         length: property.nameLength,
         url: reason.documentationLink);
   }

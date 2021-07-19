@@ -70,13 +70,13 @@ class BaseClass {}
 
   Future<void> test_class_fromImport() async {
     await resolveTestCode('''
-main() {
+void f() {
   Stirng s = 'abc';
   print(s);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   String s = 'abc';
   print(s);
 }
@@ -86,14 +86,14 @@ main() {
   Future<void> test_class_fromThisLibrary() async {
     await resolveTestCode('''
 class MyClass {}
-main() {
+void f() {
   MyCalss v = null;
   print(v);
 }
 ''');
     await assertHasFix('''
 class MyClass {}
-main() {
+void f() {
   MyClass v = null;
   print(v);
 }
@@ -116,14 +116,14 @@ class BaseClass {}
   Future<void> test_class_prefixed() async {
     await resolveTestCode('''
 import 'dart:async' as c;
-main() {
+void f() {
   c.Fture v = null;
   print(v);
 }
 ''');
     await assertHasFix('''
 import 'dart:async' as c;
-main() {
+void f() {
   c.Future v = null;
   print(v);
 }
@@ -145,12 +145,12 @@ class BaseClass {}
 
   Future<void> test_function_fromImport() async {
     await resolveTestCode('''
-main() {
+void f() {
   pritn(0);
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   print(0);
 }
 ''');
@@ -159,13 +159,13 @@ main() {
   Future<void> test_function_prefixed_fromImport() async {
     await resolveTestCode('''
 import 'dart:core' as c;
-main() {
+void f() {
   c.prnt(42);
 }
 ''');
     await assertHasFix('''
 import 'dart:core' as c;
-main() {
+void f() {
   c.print(42);
 }
 ''');
@@ -174,8 +174,8 @@ main() {
   Future<void> test_function_prefixed_ignoreLocal() async {
     await resolveTestCode('''
 import 'dart:async' as c;
-main() {
-  c.main();
+void f() {
+  c.f();
 }
 ''');
     await assertNoFix();
@@ -184,13 +184,13 @@ main() {
   Future<void> test_function_thisLibrary() async {
     await resolveTestCode('''
 myFunction() {}
-main() {
+void f() {
   myFuntcion();
 }
 ''');
     await assertHasFix('''
 myFunction() {}
-main() {
+void f() {
   myFunction();
 }
 ''');
@@ -199,18 +199,18 @@ main() {
   Future<void> test_getter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   print(x.myField);
 }
@@ -239,17 +239,17 @@ void f() {
   Future<void> test_getter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myFild);
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.myField);
 }
 ''');
@@ -260,7 +260,7 @@ main(A a) {
 class A {
   static int MY_NAME = 1;
 }
-main() {
+void f() {
   A.MY_NAM;
 }
 ''');
@@ -268,7 +268,7 @@ main() {
 class A {
   static int MY_NAME = 1;
 }
-main() {
+void f() {
   A.MY_NAME;
 }
 ''');
@@ -296,16 +296,16 @@ void f() {
   Future<void> test_getter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
-  main() {
+  int myField = 0;
+  void f() {
     print(myFild);
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
-  main() {
+  int myField = 0;
+  void f() {
     print(myField);
   }
 }
@@ -383,7 +383,7 @@ class A {
 
   Future<void> test_method_ignoreOperators() async {
     await resolveTestCode('''
-main(Object object) {
+void f(Object object) {
   object.then();
 }
 ''');
@@ -414,7 +414,7 @@ void f() {
 class A {
   myMethod() {}
 }
-main() {
+void f() {
   A a = new A();
   a.myMehtod();
 }
@@ -423,7 +423,7 @@ main() {
 class A {
   myMethod() {}
 }
-main() {
+void f() {
   A a = new A();
   a.myMethod();
 }
@@ -455,7 +455,7 @@ class A {
   myMethod() {}
 }
 class B extends A {
-  main() {
+  void f() {
     myMehtod();
   }
 }
@@ -465,7 +465,7 @@ class A {
   myMethod() {}
 }
 class B extends A {
-  main() {
+  void f() {
     myMethod();
   }
 }
@@ -476,7 +476,7 @@ class B extends A {
     await resolveTestCode('''
 class A {
   myMethod() {}
-  main() {
+  void f() {
     myMehtod();
   }
 }
@@ -484,7 +484,7 @@ class A {
     await assertHasFix('''
 class A {
   myMethod() {}
-  main() {
+  void f() {
     myMethod();
   }
 }
@@ -494,18 +494,18 @@ class A {
   Future<void> test_setter_hint() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.myField = 42;
 }
@@ -534,17 +534,17 @@ void f() {
   Future<void> test_setter_qualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myFild = 42;
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
+  int myField = 0;
 }
-main(A a) {
+void f(A a) {
   a.myField = 42;
 }
 ''');
@@ -572,16 +572,16 @@ void f() {
   Future<void> test_setter_unqualified() async {
     await resolveTestCode('''
 class A {
-  int myField;
-  main() {
+  int myField = 0;
+  void f() {
     myFild = 42;
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  int myField;
-  main() {
+  int myField = 0;
+  void f() {
     myField = 42;
   }
 }

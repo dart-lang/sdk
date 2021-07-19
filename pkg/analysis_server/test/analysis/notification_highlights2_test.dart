@@ -27,11 +27,11 @@ class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
 class AAA {
   const AAA(a, b, c);
 }
-@AAA(1, 2, 3) main() {}
+@AAA(1, 2, 3) void f() {}
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA(', '@AAA('.length);
-    assertHasRegion(HighlightRegionType.ANNOTATION, ') main', ')'.length);
+    assertHasRegion(HighlightRegionType.ANNOTATION, ') void f', ')'.length);
   }
 
   Future<void> test_ANNOTATION_hasTypeArguments_hasArguments() async {
@@ -52,7 +52,7 @@ class AAA<T> {
   Future<void> test_ANNOTATION_noArguments() async {
     addTestFile('''
 const AAA = 42;
-@AAA main() {}
+@AAA void f() {}
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA');
@@ -62,7 +62,7 @@ const AAA = 42;
     addTestFile('''
 abstract class A {};
 abstract class B = Object with A;
-main() {
+void f() {
   var abstract = 42;
 }''');
     await prepareHighlights();
@@ -74,7 +74,7 @@ main() {
   Future<void> test_BUILT_IN_as() async {
     addTestFile('''
 import 'dart:math' as math;
-main() {
+void f() {
   p as int;
   var as = 42;
 }''');
@@ -88,7 +88,7 @@ main() {
     addTestFile('''
 fa() async {}
 fb() async* {}
-main() {
+void f() {
   bool async = false;
 }
 ''');
@@ -100,7 +100,7 @@ main() {
 
   Future<void> test_BUILT_IN_await() async {
     addTestFile('''
-main() async {
+void f() async {
   await 42;
   await for (var item in []) {
     print(item);
@@ -151,7 +151,7 @@ f(a) async {
   Future<void> test_BUILT_IN_deferred() async {
     addTestFile('''
 import 'dart:math' deferred as math;
-main() {
+void f() {
   var deferred = 42;
 }''');
     await prepareHighlights();
@@ -162,7 +162,7 @@ main() {
   Future<void> test_BUILT_IN_export() async {
     addTestFile('''
 export "dart:math";
-main() {
+void f() {
   var export = 42;
 }''');
     await prepareHighlights();
@@ -176,13 +176,13 @@ class A {
   external A();
   external aaa();
 }
-external main() {
+external f() {
   var external = 42;
 }''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'external A()');
     assertHasRegion(HighlightRegionType.BUILT_IN, 'external aaa()');
-    assertHasRegion(HighlightRegionType.BUILT_IN, 'external main()');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'external f()');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'external = 42');
   }
 
@@ -192,7 +192,7 @@ class A {
   A.named();
   factory A() => A.named();
 }
-main() {
+void f() {
   var factory = 42;
 }''');
     await prepareHighlights();
@@ -218,7 +218,7 @@ get aaa => 1;
 class A {
   get bbb => 2;
 }
-main() {
+void f() {
   var get = 42;
 }''');
     await prepareHighlights();
@@ -230,7 +230,7 @@ main() {
   Future<void> test_BUILT_IN_hide() async {
     addTestFile('''
 import 'foo.dart' hide Foo;
-main() {
+void f() {
   var hide = 42;
 }''');
     await prepareHighlights();
@@ -242,7 +242,7 @@ main() {
     addTestFile('''
 class A {}
 class B implements A {}
-main() {
+void f() {
   var implements = 42;
 }''');
     await prepareHighlights();
@@ -253,7 +253,7 @@ main() {
   Future<void> test_BUILT_IN_import() async {
     addTestFile('''
 import "foo.dart";
-main() {
+void f() {
   var import = 42;
 }''');
     await prepareHighlights();
@@ -264,7 +264,7 @@ main() {
   Future<void> test_BUILT_IN_library() async {
     addTestFile('''
 library lib;
-main() {
+void f() {
   var library = 42;
 }''');
     await prepareHighlights();
@@ -278,7 +278,7 @@ class A native "A_native" {}
 class B {
   bbb() native "bbb_native";
 }
-main() {
+void f() {
   var native = 42;
 }''');
     await prepareHighlights();
@@ -298,7 +298,7 @@ class N {}
 
   Future<void> test_BUILT_IN_on_inTry() async {
     addTestFile('''
-main() {
+void f() {
   try {
   } on int catch (e) {
   }
@@ -314,7 +314,7 @@ main() {
 class A {
   operator +(x) => null;
 }
-main() {
+void f() {
   var operator = 42;
 }''');
     await prepareHighlights();
@@ -325,7 +325,7 @@ main() {
   Future<void> test_BUILT_IN_part() async {
     addTestFile('''
 part "my_part.dart";
-main() {
+void f() {
   var part = 42;
 }''');
     newFile('/project/bin/my_part.dart', content: 'part of lib;');
@@ -337,7 +337,7 @@ main() {
   Future<void> test_BUILT_IN_partOf() async {
     addTestFile('''
 part of lib;
-main() {
+void f() {
   var part = 1;
   var of = 2;
 }''');
@@ -354,7 +354,7 @@ set aaa(x) {}
 class A
   set bbb(x) {}
 }
-main() {
+void f() {
   var set = 42;
 }''');
     await prepareHighlights();
@@ -366,7 +366,7 @@ main() {
   Future<void> test_BUILT_IN_show() async {
     addTestFile('''
 import 'foo.dart' show Foo;
-main() {
+void f() {
   var show = 42;
 }''');
     await prepareHighlights();
@@ -380,7 +380,7 @@ class A {
   static aaa;
   static bbb() {}
 }
-main() {
+void f() {
   var static = 42;
 }''');
     await prepareHighlights();
@@ -393,7 +393,7 @@ main() {
     addTestFile('''
 fa() sync {}
 fb() sync* {}
-main() {
+void f() {
   bool sync = false;
 }
 ''');
@@ -408,7 +408,7 @@ main() {
 typedef A();
 typedef B = void Function();
 typedef C = List<int>;
-main() {
+void f() {
   var typedef = 42;
 }''');
     await prepareHighlights();
@@ -420,7 +420,7 @@ main() {
 
   Future<void> test_BUILT_IN_yield() async {
     addTestFile('''
-main() async* {
+void f() async* {
   yield 42;
 }
 ''');
@@ -430,7 +430,7 @@ main() async* {
 
   Future<void> test_BUILT_IN_yieldStar() async {
     addTestFile('''
-main() async* {
+void f() async* {
   yield* [];
 }
 ''');
@@ -469,7 +469,7 @@ void f() {}
 /**
  * documentation comment
  */
-void main() {
+void f() {
   // end-of-line comment
   my_function(1);
 }
@@ -490,7 +490,7 @@ class AAA<T> {
   AAA() {}
   AAA.name(p) {}
 }
-main() {
+void f() {
   new AAA<int>();
   new AAA<int>.name(42);
 }
@@ -510,7 +510,7 @@ class AAA<T> {
   AAA() {}
   AAA.name(p) {}
 }
-main() {
+void f() {
   AAA<int>();
   AAA<int>.name(42);
 }
@@ -538,6 +538,33 @@ part 'part.dart';
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
   }
 
+  Future<void> test_DIRECTIVE_configuration() async {
+    addTestFile('''
+import 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';
+export 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';
+''');
+    await prepareHighlights();
+
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, '''
+import 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';''');
+
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, '''
+export 'dart:math'
+  if (dart.library.io) 'dart:io'
+  if (dart.library.html) 'dart:html';''');
+
+    assertHasStringRegion(HighlightRegionType.BUILT_IN, 'if');
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:math'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:io'");
+    assertHasStringRegion(HighlightRegionType.LITERAL_STRING, "'dart:html'");
+  }
+
   Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
 part of lib;
@@ -550,7 +577,7 @@ part of lib;
   Future<void> test_DYNAMIC_LOCAL_VARIABLE() async {
     addTestFile('''
 f() {}
-main(p) {
+void f(p) {
   var v = f();
   v;
 }
@@ -563,7 +590,7 @@ main(p) {
 
   Future<void> test_DYNAMIC_PARAMETER() async {
     addTestFile('''
-main(p) {
+void f(p) {
   print(p);
 }
 ''');
@@ -599,7 +626,7 @@ MyEnum value;
   Future<void> test_ENUM_CONSTANT() async {
     addTestFile('''
 enum MyEnum {AAA, BBB}
-main() {
+void f() {
   print(MyEnum.AAA);
   print(MyEnum.BBB);
 }
@@ -631,7 +658,7 @@ class A {
   get bbb => null;
   static get ccc => null;
 }
-main(A a) {
+void f(A a) {
   aaa;
   a.bbb;
   A.ccc;
@@ -651,7 +678,7 @@ main(A a) {
 
   Future<void> test_IDENTIFIER_DEFAULT() async {
     addTestFile('''
-main() {
+void f() {
   aaa = 42;
   bbb(84);
   CCC ccc;
@@ -666,7 +693,7 @@ main() {
   Future<void> test_IMPORT_PREFIX() async {
     addTestFile('''
 import 'dart:math' as ma;
-main() {
+void f() {
   ma.max(1, 2);
 }
 ''');
@@ -682,7 +709,7 @@ class A {
   int bbb = 2;
   A([this.bbb = 3]);
 }
-main(A a) {
+void f(A a) {
   a.aaa = 4;
   a.bbb = 5;
 }
@@ -709,7 +736,7 @@ class A {
 
   Future<void> test_KEYWORD() async {
     addTestFile('''
-main() {
+void f() {
   assert(true);
   for (;;) break;
   switch (0) {
@@ -897,16 +924,16 @@ void f({required int x}) {}
 
   Future<void> test_KEYWORD_void() async {
     addTestFile('''
-void main() {
+void f() {
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'void main()');
+    assertHasRegion(HighlightRegionType.KEYWORD, 'void f()');
   }
 
   Future<void> test_LABEL() async {
     addTestFile('''
-main() {
+void f() {
 myLabel:
   while (true) {
     break myLabel;
@@ -975,7 +1002,7 @@ part of my.lib.name;
 
   Future<void> test_LOCAL_FUNCTION() async {
     addTestFile('''
-main() {
+void f() {
   fff() {}
   fff();
   fff;
@@ -989,7 +1016,7 @@ main() {
 
   Future<void> test_LOCAL_VARIABLE() async {
     addTestFile('''
-main() {
+void f() {
   int vvv = 0;
   vvv;
   vvv = 1;
@@ -1007,7 +1034,7 @@ class A {
   aaa() {}
   static bbb() {}
 }
-main(A a) {
+void f(A a) {
   a.aaa();
   a.aaa;
   A.bbb();
@@ -1026,7 +1053,7 @@ main(A a) {
 
   Future<void> test_METHOD_bestType() async {
     addTestFile('''
-main(p) {
+void f(p) {
   if (p is List) {
     p.add(null);
   }
@@ -1038,7 +1065,7 @@ main(p) {
 
   Future<void> test_PARAMETER() async {
     addTestFile('''
-main(int p) {
+void f(int p) {
   p;
   p = 42;
 }
@@ -1055,7 +1082,7 @@ class C {
   final int aaa;
   C({this.aaa, int bbb});
 }
-main() {
+void f() {
   new C(aaa: 1, bbb: 2);
 }
 ''');
@@ -1073,7 +1100,7 @@ class A {
   set bbb(x) {}
   static set ccc(x) {}
 }
-main(A a) {
+void f(A a) {
   aaa = 1;
   a.bbb = 2;
   A.ccc = 3;
@@ -1095,7 +1122,7 @@ class A {
   static get bbb => null;
   static set ccc(x) {}
 }
-main() {
+void f() {
   A.aaa = 2;
   A.bbb;
   A.ccc = 3;
@@ -1111,7 +1138,7 @@ main() {
   Future<void> test_TOP_LEVEL_FUNCTION() async {
     addTestFile('''
 fff(p) {}
-main() {
+void f() {
   fff(42);
 }
 ''');
@@ -1127,7 +1154,7 @@ main() {
 const V1 = 1;
 var V2 = 2;
 @V1 // annotation
-main() {
+void f() {
   print(V1);
   V2 = 3;
 }
@@ -1165,13 +1192,13 @@ void f(A a) {}
 
   Future<void> test_TYPE_NAME_DYNAMIC() async {
     addTestFile('''
-dynamic main() {
+dynamic f() {
   dynamic = 42;
 }
 ''');
     await prepareHighlights();
-    assertHasRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic main()');
-    assertNoRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'dynamic main()');
+    assertHasRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic f()');
+    assertNoRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'dynamic f()');
     assertNoRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic = 42');
   }
 
@@ -1192,7 +1219,7 @@ class A<T> {
   Future<void>
       test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_dynamicVarTarget() async {
     addTestFile('''
-main(p) {
+void f(p) {
   p.aaa;
   p.aaa++;
   p.aaa += 0;
@@ -1217,7 +1244,7 @@ main(p) {
       test_UNRESOLVED_INSTANCE_MEMBER_REFERENCE_nonDynamicTarget() async {
     addTestFile('''
 import 'dart:math' as math;
-main(String str) {
+void f(String str) {
   new Object().aaa();
   math.bbb();
   str.ccc();

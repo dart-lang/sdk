@@ -71,7 +71,7 @@ it might look something like this:
 
 ```dart
 void printMembers(CompilationUnitElement unitElement) {
-  for (ClassElement classElement in unitElement.types) {
+  for (ClassElement classElement in unitElement.classes) {
     print(classElement.name);
     for (ConstructorElement constructorElement in classElement.constructors) {
       if (!constructorElement.isSynthetic) {

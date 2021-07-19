@@ -707,6 +707,7 @@ lsp.Diagnostic pluginToDiagnostic(
   server.LineInfo Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
+  required bool clientSupportsCodeDescription,
 }) {
   List<lsp.DiagnosticRelatedInformation>? relatedInformation;
   final contextMessages = error.contextMessages;
@@ -724,6 +725,7 @@ lsp.Diagnostic pluginToDiagnostic(
   }
 
   var lineInfo = getLineInfo(error.location.file);
+  var documentationUrl = error.url;
   return lsp.Diagnostic(
     range: toRange(lineInfo, error.location.offset, error.location.length),
     severity: pluginToDiagnosticSeverity(error.severity),
@@ -732,6 +734,11 @@ lsp.Diagnostic pluginToDiagnostic(
     message: message,
     tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
+    // Only include codeDescription if the client explicitly supports it
+    // (a minor optimization to avoid unnecessary payload/(de)serialisation).
+    codeDescription: clientSupportsCodeDescription && documentationUrl != null
+        ? CodeDescription(href: documentationUrl)
+        : null,
   );
 }
 
@@ -1006,10 +1013,15 @@ lsp.Diagnostic toDiagnostic(
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
-}) =>
-    pluginToDiagnostic((_) => result.lineInfo,
-        server.newAnalysisError_fromEngine(result, error),
-        supportedTags: supportedTags);
+  required bool clientSupportsCodeDescription,
+}) {
+  return pluginToDiagnostic(
+    (_) => result.lineInfo,
+    server.newAnalysisError_fromEngine(result, error),
+    supportedTags: supportedTags,
+    clientSupportsCodeDescription: clientSupportsCodeDescription,
+  );
+}
 
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) {
   final location = element.location;
@@ -1154,8 +1166,8 @@ lsp.Position toPosition(server.CharacterLocation location) {
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
-  final start = lineInfo.getLocation(offset) as server.CharacterLocation;
-  final end = lineInfo.getLocation(offset + length) as server.CharacterLocation;
+  final start = lineInfo.getLocation(offset);
+  final end = lineInfo.getLocation(offset + length);
 
   return lsp.Range(
     start: toPosition(start),

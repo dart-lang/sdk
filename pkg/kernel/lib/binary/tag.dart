@@ -76,6 +76,8 @@ class Tag {
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
+  static const int ConstructorTearOff = 60;
+  static const int TypedefTearOff = 83;
 
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
@@ -122,6 +124,7 @@ class Tag {
   static const int AsyncForInStatement = 80;
   static const int AssertBlock = 81;
   // 82 is occupied by [BlockExpression] (expression).
+  // 83 is occupied by [TypedefTearOff] (expression).
 
   // Types
   static const int TypedefType = 87;
@@ -174,7 +177,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 65;
+  static const int BinaryFormatVersion = 67;
 }
 
 abstract class ConstantTag {
@@ -188,11 +191,13 @@ abstract class ConstantTag {
   static const int ListConstant = 7;
   static const int SetConstant = 13;
   static const int InstanceConstant = 8;
-  static const int PartialInstantiationConstant = 9;
-  static const int TearOffConstant = 10;
+  static const int InstantiationConstant = 9;
+  static const int StaticTearOffConstant = 10;
   static const int TypeLiteralConstant = 11;
   static const int UnevaluatedConstant = 12;
   // 13 is occupied by [SetConstant]
+  static const int TypedefTearOffConstant = 14;
+  static const int ConstructorTearOffConstant = 15;
 }
 
 const int sdkHashLength = 10; // Bytes, a Git "short hash".

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 
 /// Elements have references to AST nodes, for example initializers of constant
 /// variables. These nodes are attached to the whole compilation unit, and
@@ -56,6 +57,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       element.typeInference = null;
     }
     _detachConstVariable(element);
+    super.visitPropertyInducingElement(element);
   }
 
   void _detachConstVariable(Element element) {
@@ -63,6 +65,10 @@ class _Visitor extends GeneralizingElementVisitor<void> {
       var initializer = element.constantInitializer;
       if (initializer is ExpressionImpl) {
         _detachNode(initializer);
+
+        initializer = replaceNotSerializableNodes(initializer);
+        element.constantInitializer = initializer;
+
         ConstantContextForExpressionImpl(initializer);
       }
     }

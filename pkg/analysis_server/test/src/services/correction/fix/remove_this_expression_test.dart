@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveThisExpressionBulkTest);
     defineReflectiveTests(RemoveThisExpressionTest);
   });
+}
+
+@reflectiveTest
+class RemoveThisExpressionBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_this;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  int x;
+  A(int x) : this.x = x;
+  void foo() {
+    this.foo();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int x;
+  A(int x) : x = x;
+  void foo() {
+    foo();
+  }
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -58,7 +86,7 @@ class A {
   Future<void> test_propertyAccess_oneCharacterOperator() async {
     await resolveTestCode('''
 class A {
-  int x;
+  int x = 0;
   void foo() {
     this.x = 2;
   }
@@ -66,7 +94,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  int x;
+  int x = 0;
   void foo() {
     x = 2;
   }

@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/file_system/file_system.dart';
 
 /// Information about the workspace in which change builders operate.
 abstract class ChangeWorkspace {
+  /// Return the resource provider used to access the file system.
+  ResourceProvider get resourceProvider;
+
   /// Return `true` if the file with the given [path] is in a context root.
   bool? containsFile(String path);
 

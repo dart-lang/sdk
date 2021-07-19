@@ -23,7 +23,7 @@ import 'package:path/path.dart' as path;
 import 'src/package.dart';
 
 void main(List<String> args) async {
-  ArgResults parsedArgs = parseArguments(args);
+  ArgResults parsedArgs = parseArguments(args)!;
 
   Sdk sdk = Sdk(parsedArgs['sdk'] as String);
 
@@ -42,13 +42,13 @@ void main(List<String> args) async {
   var packageNames = parsedArgs['git_packages'] as Iterable<String>;
   await Future.wait(packageNames.map((n) async => packages.add(
       await GitPackage.gitPackageFactory(
-          n, playground, parsedArgs['update'] as bool))));
+          n, playground, parsedArgs['update'] as bool?))));
 
-  String categoryOfInterest =
+  String? categoryOfInterest =
       parsedArgs.rest.isEmpty ? null : parsedArgs.rest.single;
 
   var listener = _Listener(categoryOfInterest,
-      printExceptionNodeOnly: parsedArgs['exception_node_only'] as bool);
+      printExceptionNodeOnly: parsedArgs['exception_node_only'] as bool?);
   assert(listener.numExceptions == 0);
   var overallStartTime = DateTime.now();
   for (var package in packages) {
@@ -56,7 +56,8 @@ void main(List<String> args) async {
     var startTime = DateTime.now();
     listener.currentPackage = package.name;
     var contextCollection = AnalysisContextCollectionImpl(
-        includedPaths: package.migrationPaths, sdkPath: sdk.sdkPath);
+        includedPaths: package.migrationPaths as List<String>,
+        sdkPath: sdk.sdkPath);
 
     var files = <String>{};
     var previousExceptionCount = listener.numExceptions;
@@ -136,9 +137,9 @@ void main(List<String> args) async {
   }
 }
 
-ArgResults parseArguments(List<String> args) {
+ArgResults? parseArguments(List<String> args) {
   ArgParser argParser = ArgParser();
-  ArgResults parsedArgs;
+  ArgResults? parsedArgs;
 
   argParser.addFlag('clean',
       abbr: 'c',
@@ -224,15 +225,15 @@ void warnOnNoAssertions() {
 
 class ExceptionCategory {
   final String topOfStack;
-  final List<MapEntry<String, int>> exceptionCountPerPackage;
+  final List<MapEntry<String?, int>> exceptionCountPerPackage;
 
-  ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
+  ExceptionCategory(this.topOfStack, Map<String?, int> exceptions)
       : exceptionCountPerPackage = exceptions.entries.toList()
           ..sort((e1, e2) => e2.value.compareTo(e1.value));
 
   int get count => exceptionCountPerPackage.length;
 
-  List<String> get packageNames =>
+  List<String?> get packageNames =>
       [for (var entry in exceptionCountPerPackage) entry.key];
 
   Iterable<String> get packageNamesAndCounts =>
@@ -245,14 +246,14 @@ class _Listener implements NullabilityMigrationListener {
   /// Set this to `true` to cause just the exception nodes to be printed when
   /// `_Listener.categoryOfInterest` is non-null.  Set this to `false` to cause
   /// the full stack trace to be printed.
-  final bool printExceptionNodeOnly;
+  final bool? printExceptionNodeOnly;
 
   /// Set this to a non-null value to cause any exception to be printed in full
   /// if its category contains the string.
-  final String categoryOfInterest;
+  final String? categoryOfInterest;
 
   /// Exception mapped to a map of packages & exception counts.
-  final groupedExceptions = <String, Map<String, int>>{};
+  final groupedExceptions = <String, Map<String?, int>>{};
 
   int numExceptions = 0;
 
@@ -274,7 +275,7 @@ class _Listener implements NullabilityMigrationListener {
 
   int numOtherEdits = 0;
 
-  String currentPackage;
+  String? currentPackage;
 
   _Listener(this.categoryOfInterest, {this.printExceptionNodeOnly = false});
 
@@ -324,7 +325,7 @@ class _Listener implements NullabilityMigrationListener {
 
   @override
   void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+      Source? source, AstNode? node, Object exception, StackTrace stackTrace) {
     var category = _classifyStackTrace(stackTrace.toString().split('\n'));
     String detail = '''
 In file $source
@@ -332,14 +333,14 @@ While processing $node
 Exception $exception
 $stackTrace
 ''';
-    if (categoryOfInterest != null && category.contains(categoryOfInterest)) {
-      if (printExceptionNodeOnly) {
+    if (categoryOfInterest != null && category.contains(categoryOfInterest!)) {
+      if (printExceptionNodeOnly!) {
         print('$node');
       } else {
         print(detail);
       }
     }
-    (groupedExceptions[category] ??= <String, int>{})
+    (groupedExceptions[category] ??= <String?, int>{})
         .update(currentPackage, (value) => ++value, ifAbsent: () => 1);
     ++numExceptions;
   }

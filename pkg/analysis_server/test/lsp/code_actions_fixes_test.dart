@@ -156,6 +156,87 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
   }
 
+  Future<void> test_ignoreDiagnosticForFile() async {
+    const content = '''
+// Header comment
+// Header comment
+// Header comment
+
+// This comment is attached to the below import
+import 'dart:async';
+[[import]] 'dart:convert';
+
+Future foo;''';
+
+    const expectedContent = '''
+// Header comment
+// Header comment
+// Header comment
+
+// ignore_for_file: unused_import
+
+// This comment is attached to the below import
+import 'dart:async';
+import 'dart:convert';
+
+Future foo;''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Find the ignore action.
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.ignore.file'),
+        "Ignore 'unused_import' for this file")!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_ignoreDiagnosticForLine() async {
+    const content = '''
+import 'dart:async';
+[[import]] 'dart:convert';
+
+Future foo;''';
+
+    const expectedContent = '''
+import 'dart:async';
+// ignore: unused_import
+import 'dart:convert';
+
+Future foo;''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    // Find the ignore action.
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final fixAction = findEditAction(
+        codeActions,
+        CodeActionKind('quickfix.ignore.line'),
+        "Ignore 'unused_import' for this line")!;
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, fixAction.edit!.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
   Future<void> test_noDuplicates_sameFix() async {
     const content = '''
     var a = [Test, Test, Te[[]]st];

@@ -549,14 +549,6 @@ class Method extends Member {
   }
 
   void generateVmServiceMethod(TypeWriter writer, {includeOptional = false}) {
-    // TODO(danrubel) move this to the Consumer's javadoc
-//    String javadoc = docs == null ? '' : docs;
-//    if (returnType.isMultipleReturns) {
-//      javadoc += '\n\nThe return value can be one of '
-//          '${joinLast(returnType.types.map((t) => '[${t}]'), ', ', ' or ')}.';
-//      javadoc = javadoc.trim();
-//    }
-
     // Update method docs
     var javadoc = StringBuffer(docs == null ? '' : docs!);
     bool firstParamDoc = true;
@@ -594,18 +586,23 @@ class Method extends Member {
       writer.addLine('final JsonObject params = new JsonObject();');
       for (MethodArg arg in args) {
         if (!includeOptional && arg.optional) continue;
-        var name = arg.name;
-        String op = arg.optional ? 'if (${name} != null) ' : '';
+        var argName = arg.name;
+        String op = arg.optional ? 'if (${argName} != null) ' : '';
         if (arg.isEnumType) {
-          writer.addLine('${op}params.addProperty("$name", $name.name());');
+          writer
+              .addLine('${op}params.addProperty("$argName", $argName.name());');
         } else if (arg.type.name == 'Map') {
           writer.addLine(
-              '${op}params.add("$name", convertMapToJsonObject($name));');
+              '${op}params.add("$argName", convertMapToJsonObject($argName));');
         } else if (arg.type.arrayDepth > 0) {
           writer.addLine(
-              '${op}params.add("$name", convertIterableToJsonArray($name));');
+              '${op}params.add("$argName", convertIterableToJsonArray($argName));');
+        } else if (name.startsWith('evaluate') && argName == 'expression') {
+          // Special case the eval expression parameters.
+          writer.addLine(
+              '${op}params.addProperty("$argName", removeNewLines($argName));');
         } else {
-          writer.addLine('${op}params.addProperty("$name", $name);');
+          writer.addLine('${op}params.addProperty("$argName", $argName);');
         }
       }
       writer.addLine('request("$name", params, consumer);');
@@ -626,7 +623,7 @@ class MethodArg extends Member {
 
   MethodArg(this.parent, this.type, this.name);
 
-  get asJavaMethodArg {
+  JavaMethodArg get asJavaMethodArg {
     if (optional && type.ref == 'int') {
       return JavaMethodArg(name, 'Integer');
     }
@@ -768,7 +765,7 @@ class Type extends Member {
 
   bool get isSimple => simpleTypes.contains(name);
 
-  get jsonTypeName {
+  String? get jsonTypeName {
     if (name == 'ClassObj') return 'Class';
     if (name == 'ErrorObj') return 'Error';
     return name;

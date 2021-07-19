@@ -1,13 +1,8 @@
-include: package:pedantic/analysis_options.1.8.0.yaml
-
-analyzer:
-  errors:
-    # Increase the severity of several hints.
-    prefer_single_quotes: warning
-    unused_import: warning
+include: package:lints/recommended.yaml
 
 linter:
   rules:
-    - directives_ordering
-    - prefer_relative_imports
-    - prefer_single_quotes
+    # Enable additional rules.
+    depend_on_referenced_packages: true
+    directives_ordering: true
+    sort_pub_dependencies: true

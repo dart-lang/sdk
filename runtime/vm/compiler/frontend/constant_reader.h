@@ -47,7 +47,7 @@ class ConstantReader {
   TranslationHelper& translation_helper_;
   ActiveClass* active_class_;
   const Script& script_;
-  Instance& result_;
+  Object& result_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantReader);
 };

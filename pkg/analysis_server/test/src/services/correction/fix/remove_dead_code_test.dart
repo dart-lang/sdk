@@ -23,7 +23,7 @@ class RemoveDeadCodeTest extends FixProcessorTest {
 
   Future<void> test_catch_afterCatchAll_catch() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
   } catch (e) {
     print('a');
@@ -33,7 +33,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   try {
   } catch (e) {
     print('a');
@@ -44,7 +44,7 @@ main() {
 
   Future<void> test_catch_afterCatchAll_on() async {
     await resolveTestCode('''
-main() {
+void f() {
   try {
   } on Object {
     print('a');
@@ -54,7 +54,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   try {
   } on Object {
     print('a');
@@ -67,7 +67,7 @@ main() {
     await resolveTestCode('''
 class A {}
 class B extends A {}
-main() {
+void f() {
   try {
   } on A {
     print('a');
@@ -79,7 +79,7 @@ main() {
     await assertHasFix('''
 class A {}
 class B extends A {}
-main() {
+void f() {
   try {
   } on A {
     print('a');
@@ -90,14 +90,14 @@ main() {
 
   Future<void> test_condition() async {
     await resolveTestCode('''
-main(int p) {
+void f(int p) {
   if (true || p > 5) {
     print(1);
   }
 }
 ''');
     await assertHasFix('''
-main(int p) {
+void f(int p) {
   if (true) {
     print(1);
   }
@@ -107,14 +107,14 @@ main(int p) {
 
   Future<void> test_statements_one() async {
     await resolveTestCode('''
-int main() {
+int f() {
   print(0);
   return 42;
   print(1);
 }
 ''');
     await assertHasFix('''
-int main() {
+int f() {
   print(0);
   return 42;
 }
@@ -123,7 +123,7 @@ int main() {
 
   Future<void> test_statements_two() async {
     await resolveTestCode('''
-int main() {
+int f() {
   print(0);
   return 42;
   print(1);
@@ -131,7 +131,7 @@ int main() {
 }
 ''');
     await assertHasFix('''
-int main() {
+int f() {
   print(0);
   return 42;
 }

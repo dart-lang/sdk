@@ -1454,7 +1454,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that we have THR, we can set CSP.
   __ SetupCSPFromThread(THR);
 
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
   __ str(R18,
          compiler::Address(
              THR, compiler::target::Thread::saved_shadow_call_stack_offset()));
@@ -1575,31 +1575,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
-LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
-}
-
-void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
-  __ Push(array);
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
-                               locs(), ICData::Handle(), ICData::kStatic);
-  ASSERT(locs()->out(0).reg() == R0);
-}
-
 LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 5;
@@ -1685,9 +1660,19 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     decoder_reg = decoder_location.reg();
   }
   const auto scan_flags_field_offset = scan_flags_field_.offset_in_bytes();
-  __ LoadFieldFromOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
-  __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg));
-  __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
+  if (scan_flags_field_.is_compressed() && !IsScanFlagsUnboxed()) {
+    __ LoadCompressedSmiFieldFromOffset(flags_temp_reg, decoder_reg,
+                                        scan_flags_field_offset);
+    __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg),
+           compiler::kObjectBytes);
+    __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset,
+                          compiler::kObjectBytes);
+  } else {
+    __ LoadFieldFromOffset(flags_temp_reg, decoder_reg,
+                           scan_flags_field_offset);
+    __ orr(flags_temp_reg, flags_temp_reg, compiler::Operand(flags_reg));
+    __ StoreFieldToOffset(flags_temp_reg, decoder_reg, scan_flags_field_offset);
+  }
 }
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary(Zone* zone,
@@ -1831,11 +1816,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
              (class_id() == kTypeArgumentsCid));
-      if (class_id() == kTypeArgumentsCid) {
-        __ LoadCompressed(result, element_address);
-      } else {
-        __ ldr(result, element_address);
-      }
+      __ LoadCompressed(result, element_address);
       break;
   }
 }
@@ -1977,7 +1958,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                           Smi::Cast(index.constant()).Value());
     }
     const Register value = locs()->in(2).reg();
-    __ StoreIntoArray(array, temp, value, CanValueBeSmi());
+    __ StoreCompressedIntoArray(array, temp, value, CanValueBeSmi());
     return;
   }
 
@@ -1994,10 +1975,10 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!ShouldEmitStoreBarrier());  // Specially treated above.
       if (locs()->in(2).IsConstant()) {
         const Object& constant = locs()->in(2).constant();
-        __ StoreIntoObjectNoBarrier(array, element_address, constant);
+        __ StoreCompressedIntoObjectNoBarrier(array, element_address, constant);
       } else {
         const Register value = locs()->in(2).reg();
-        __ StoreIntoObjectNoBarrier(array, element_address, value);
+        __ StoreCompressedIntoObjectNoBarrier(array, element_address, value);
       }
       break;
     case kTypedDataInt8ArrayCid:
@@ -2365,13 +2346,13 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
                              intptr_t offset,
                              Register temp) {
   compiler::Label done;
-  __ LoadFieldFromOffset(box_reg, instance_reg, offset);
+  __ LoadCompressedFieldFromOffset(box_reg, instance_reg, offset);
   __ CompareObject(box_reg, Object::null_object());
   __ b(&done, NE);
   BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
   __ MoveRegister(temp, box_reg);
-  __ StoreIntoObjectOffset(instance_reg, offset, temp,
-                           compiler::Assembler::kValueIsNotSmi);
+  __ StoreCompressedIntoObjectOffset(instance_reg, offset, temp,
+                                     compiler::Assembler::kValueIsNotSmi);
   __ Bind(&done);
 }
 
@@ -2481,10 +2462,10 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ MoveRegister(temp2, temp);
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes, temp2,
-                               compiler::Assembler::kValueIsNotSmi);
+      __ StoreCompressedIntoObjectOffset(instance_reg, offset_in_bytes, temp2,
+                                         compiler::Assembler::kValueIsNotSmi);
     } else {
-      __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes);
+      __ LoadCompressedFieldFromOffset(temp, instance_reg, offset_in_bytes);
     }
     switch (cid) {
       case kDoubleCid:
@@ -2698,17 +2679,18 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
 
   // Store the type argument field.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
-                             Array::type_arguments_offset()),
+                             Array::type_arguments_offset(),
+                             compiler::kObjectBytes),
       AllocateArrayABI::kTypeArgumentsReg);
 
   // Set the length field.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateArrayABI::kResultReg,
       compiler::FieldAddress(AllocateArrayABI::kResultReg,
-                             Array::length_offset()),
+                             Array::length_offset(), compiler::kObjectBytes),
       AllocateArrayABI::kLengthReg);
 
   // TODO(zra): Use stp once added.
@@ -2723,19 +2705,27 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     __ LoadObject(R6, Object::null_object());
     __ AddImmediate(R8, AllocateArrayABI::kResultReg,
                     sizeof(UntaggedArray) - kHeapObjectTag);
-    if (array_size < (kInlineArraySize * kWordSize)) {
+    if (array_size < (kInlineArraySize * kCompressedWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ str(R6, compiler::Address(R8, current_offset));
-        current_offset += kWordSize;
+        __ StoreCompressedIntoObjectNoBarrier(
+            AllocateArrayABI::kResultReg,
+            compiler::Address(R8, current_offset, compiler::Address::Offset,
+                              compiler::kObjectBytes),
+            R6);
+        current_offset += kCompressedWordSize;
       }
     } else {
       compiler::Label end_loop, init_loop;
       __ Bind(&init_loop);
       __ CompareRegisters(R8, R3);
       __ b(&end_loop, CS);
-      __ str(R6, compiler::Address(R8));
-      __ AddImmediate(R8, kWordSize);
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateArrayABI::kResultReg,
+          compiler::Address(R8, 0, compiler::Address::Offset,
+                            compiler::kObjectBytes),
+          R6);
+      __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
     }
@@ -2886,7 +2876,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     const Register temp = locs()->temp(0).reg();
 
-    __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
+    __ LoadCompressedFieldFromOffset(temp, instance_reg, OffsetInBytes());
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -2948,7 +2938,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_double);
       BoxAllocationSlowPath::Allocate(compiler, this, compiler->double_class(),
                                       result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
+      __ LoadCompressedFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadDFieldFromOffset(VTMP, temp, Double::value_offset());
       __ StoreDFieldToOffset(VTMP, result_reg, Double::value_offset());
       __ b(&done);
@@ -2958,7 +2948,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float32x4);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float32x4_class(), result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
+      __ LoadCompressedFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadQFieldFromOffset(VTMP, temp, Float32x4::value_offset());
       __ StoreQFieldToOffset(VTMP, result_reg, Float32x4::value_offset());
       __ b(&done);
@@ -2968,7 +2958,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(&load_float64x2);
       BoxAllocationSlowPath::Allocate(
           compiler, this, compiler->float64x2_class(), result_reg, temp);
-      __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
+      __ LoadCompressedFieldFromOffset(temp, instance_reg, OffsetInBytes());
       __ LoadQFieldFromOffset(VTMP, temp, Float64x2::value_offset());
       __ StoreQFieldToOffset(VTMP, result_reg, Float64x2::value_offset());
       __ b(&done);
@@ -3919,27 +3909,6 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   __ BranchIfSmi(value, &done);
   __ LoadFieldFromOffset(result, value, Mint::value_offset());
   __ Bind(&done);
-}
-
-LocationSummary* BoxUint8Instr::MakeLocationSummary(Zone* zone,
-                                                    bool opt) const {
-  ASSERT(from_representation() == kUnboxedUint8);
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  return summary;
-}
-
-void BoxUint8Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register value = locs()->in(0).reg();
-  const Register out = locs()->out(0).reg();
-  ASSERT(value != out);
-
-  ASSERT(compiler::target::kSmiBits >= 8);
-  __ ubfiz(out, value, kSmiTagSize, 8);
 }
 
 LocationSummary* BoxInteger32Instr::MakeLocationSummary(Zone* zone,
@@ -6420,19 +6389,30 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 2;
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
+  summary->set_temp(1, Location::RequiresRegister());
 
   return summary;
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register index_reg = locs()->in(0).reg();
+  Register target_address_reg = locs()->temp(0).reg();
+  Register offset_reg = locs()->temp(1).reg();
+
+  ASSERT(RequiredInputRepresentation(0) == kTagged);
+  __ LoadObject(offset_reg, offsets_);
+  const auto element_address = __ ElementAddressForRegIndex(
+      /*is_external=*/false, kTypedDataInt32ArrayCid,
+      /*index_scale=*/4,
+      /*index_unboxed=*/false, offset_reg, index_reg, TMP);
+  __ ldr(offset_reg, element_address, compiler::kFourBytes);
 
   // Load code entry point.
   const intptr_t entry_offset = __ CodeSize();
@@ -6443,13 +6423,7 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ AddImmediate(target_address_reg, -entry_offset);
   }
 
-  // Add the offset.
-  Register offset_reg = locs()->in(0).reg();
-  compiler::Operand offset_opr =
-      (offset()->definition()->representation() == kTagged)
-          ? compiler::Operand(offset_reg, ASR, kSmiTagSize)
-          : compiler::Operand(offset_reg);
-  __ add(target_address_reg, target_address_reg, offset_opr);
+  __ add(target_address_reg, target_address_reg, compiler::Operand(offset_reg));
 
   // Jump to the absolute address.
   __ br(target_address_reg);

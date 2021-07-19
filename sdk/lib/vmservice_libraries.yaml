@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Note: if you edit this file, you must also edit libraries.json in this
+# Note: if you edit this file, you must also generate libraries.json in this
 # directory:
 #
 #     python3 ./tools/yaml2json.py sdk/lib/vmservice_libraries.yaml sdk/lib/vmservice_libraries.json

@@ -11,8 +11,8 @@ void main() {
     test('handles basic types', () {
       expect(_simple('string').dartType, equals('String'));
       expect(_simple('boolean').dartType, equals('bool'));
-      expect(_simple('any').dartType, equals('dynamic'));
-      expect(_simple('object').dartType, equals('dynamic'));
+      expect(_simple('any').dartType, equals('Object?'));
+      expect(_simple('object').dartType, equals('Object?'));
       expect(_simple('int').dartType, equals('int'));
       expect(_simple('num').dartType, equals('num'));
     });

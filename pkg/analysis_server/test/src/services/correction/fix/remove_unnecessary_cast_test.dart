@@ -23,7 +23,7 @@ class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
 
   Future<void> test_assignment_all() async {
     await resolveTestCode('''
-main(Object p, Object q) {
+void f(Object p, Object q) {
   if (p is String) {
     String v = ((p as String));
     print(v);
@@ -35,7 +35,7 @@ main(Object p, Object q) {
 }
 ''');
     await assertHasFixAllFix(HintCode.UNNECESSARY_CAST, '''
-main(Object p, Object q) {
+void f(Object p, Object q) {
   if (p is String) {
     String v = p;
     print(v);
@@ -56,7 +56,7 @@ class RemoveUnnecessaryCastTest extends FixProcessorTest {
 
   Future<void> test_assignment() async {
     await resolveTestCode('''
-main(Object p) {
+void f(Object p) {
   if (p is String) {
     String v = ((p as String));
     print(v);
@@ -64,7 +64,7 @@ main(Object p) {
 }
 ''');
     await assertHasFix('''
-main(Object p) {
+void f(Object p) {
   if (p is String) {
     String v = p;
     print(v);

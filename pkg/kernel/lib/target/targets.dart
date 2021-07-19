@@ -18,6 +18,7 @@ class TargetFlags {
   final bool forceLateLoweringSentinelForTesting;
   final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
+  final int forceConstructorTearOffLoweringForTesting;
   final bool enableNullSafety;
 
   const TargetFlags(
@@ -26,6 +27,8 @@ class TargetFlags {
       this.forceLateLoweringSentinelForTesting = false,
       this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
+      this.forceConstructorTearOffLoweringForTesting =
+          ConstructorTearOffLowering.none,
       this.enableNullSafety = false});
 
   bool operator ==(other) {
@@ -250,11 +253,11 @@ abstract class Target {
       List<Library> libraries,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier});
+      ChangedStructureNotifier? changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -267,7 +270,7 @@ abstract class Target {
       Procedure procedure,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -343,6 +346,29 @@ abstract class Target {
         hasInitializer: hasInitializer, isFinal: isFinal, isStatic: isStatic);
     return enabledLateLowerings & mask != 0;
   }
+
+  /// Bit mask of [ConstructorTearOffLowering] values for the constructor tear
+  /// off lowerings that should be performed by the CFE.
+  ///
+  /// For the selected lowerings, constructor tear offs are encoded using
+  /// synthesized top level functions.
+  int get enabledConstructorTearOffLowerings;
+
+  /// Returns `true` if lowering of constructor tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isConstructorTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.constructors) !=
+      0;
+
+  /// Returns `true` if lowering of typedef tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isTypedefTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.typedefs) !=
+      0;
 
   /// Returns `true` if the CFE should lower a late local variable given it
   /// [hasInitializer], [isFinal], and its type [isPotentiallyNullable].
@@ -455,6 +481,10 @@ class NoneTarget extends Target {
   bool get supportsNewMethodInvocationEncoding => true;
 
   @override
+  int get enabledConstructorTearOffLowerings =>
+      flags.forceConstructorTearOffLoweringForTesting;
+
+  @override
   String get name => 'none';
 
   @override
@@ -466,7 +496,7 @@ class NoneTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
@@ -602,4 +632,16 @@ class LateLowering {
       }
     }
   }
+}
+
+class ConstructorTearOffLowering {
+  /// Create top level functions to use as tear offs of constructors.
+  static const int constructors = 1 << 0;
+
+  /// Create top level functions to use as tear offs of non trivial redirecting
+  /// factory constructors and typedefs.
+  static const int typedefs = 1 << 1;
+
+  static const int none = 0;
+  static const int all = (1 << 2) - 1;
 }

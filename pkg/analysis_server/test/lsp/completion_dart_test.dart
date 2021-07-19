@@ -72,7 +72,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
   Future<void> test_comment() async {
     final content = '''
     // foo ^
-    main() {}
+    void f() {}
     ''';
 
     await initialize();
@@ -118,7 +118,7 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     );
 
     final content = '''
-main() {
+void f() {
   pri^
 }
     ''';
@@ -154,7 +154,8 @@ main() {
 
     // By default, there should be no commit characters.
     var reg = registration(Method.textDocument_completion);
-    var options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
+    var options = CompletionRegistrationOptions.fromJson(
+        reg.registerOptions as Map<String, Object?>);
     expect(options.allCommitCharacters, isNull);
 
     // When we change config, we should get a re-registration (unregister then
@@ -162,7 +163,8 @@ main() {
     await monitorDynamicReregistration(
         registrations, () => updateConfig({'previewCommitCharacters': true}));
     reg = registration(Method.textDocument_completion);
-    options = CompletionRegistrationOptions.fromJson(reg.registerOptions);
+    options = CompletionRegistrationOptions.fromJson(
+        reg.registerOptions as Map<String, Object?>);
     expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
@@ -172,7 +174,7 @@ main() {
         class Aaaaa {
           Aaaaa(int a);
         }
-        void main(int aaa) {
+        void f(int aaa) {
           var a = new [[Aaa^]]
         }
         ''',
@@ -213,7 +215,7 @@ main() {
         class Aaaaa {
           Aaaaa(int a);
         }
-        void main(int aaa) {
+        void f(int aaa) {
           var a = new [[Aaa^]]()
         }
         ''',
@@ -238,7 +240,7 @@ main() {
         class Aaaaa {
           Aaaaa.foo(int a);
         }
-        void main() {
+        void f() {
           var a = new Aaaaa.[[foo^]]()
         }
         ''',
@@ -249,23 +251,37 @@ main() {
   Future<void> test_completeFunctionCalls_existingArgList_statement() =>
       checkCompleteFunctionCallInsertText(
         '''
-        void main(int a) {
-          [[mai^]]()
+        void f(int a) {
+          [[f^]]()
         }
         ''',
-        'main(…)',
-        insertText: 'main',
+        'f(…)',
+        insertText: 'f',
       );
 
   Future<void> test_completeFunctionCalls_existingArgList_suggestionSets() =>
       checkCompleteFunctionCallInsertText(
         '''
-        void main(int a) {
+        void f(int a) {
           [[pri^]]()
         }
         ''',
         'print(…)',
         insertText: 'print',
+      );
+
+  Future<void> test_completeFunctionCalls_existingPartialArgList() =>
+      checkCompleteFunctionCallInsertText(
+        '''
+        class Aaaaa {
+          Aaaaa(int a);
+        }
+        void f(int aaa) {
+          var a = new [[Aaa^]](
+        }
+        ''',
+        'Aaaaa(…)',
+        insertText: 'Aaaaa',
       );
 
   Future<void> test_completeFunctionCalls_expression() =>
@@ -333,7 +349,7 @@ class _MyWidgetState extends State<MyWidget> {
         class Aaaaa {
           Aaaaa.foo(int a);
         }
-        void main() {
+        void f() {
           var a = new Aaaaa.[[foo^]]
         }
         ''',
@@ -346,7 +362,7 @@ class _MyWidgetState extends State<MyWidget> {
     final content = '''
     void myFunction({int a}) {}
 
-    main() {
+    void f() {
       [[myFu^]]
     }
     ''';
@@ -399,19 +415,19 @@ class _MyWidgetState extends State<MyWidget> {
   Future<void> test_completeFunctionCalls_statement() =>
       checkCompleteFunctionCallInsertText(
         '''
-        void main(int a) {
-          [[mai^]]
+        void f(int a) {
+          [[f^]]
         }
         ''',
-        'main(…)',
+        'f(…)',
         insertTextFormat: InsertTextFormat.Snippet,
-        insertText: r'main(${0:a})',
+        insertText: r'f(${0:a})',
       );
 
   Future<void> test_completeFunctionCalls_suggestionSets() =>
       checkCompleteFunctionCallInsertText(
         '''
-        void main(int a) {
+        void f(int a) {
           [[pri^]]
         }
         ''',
@@ -471,7 +487,7 @@ class _MyWidgetState extends State<MyWidget> {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -612,7 +628,7 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_fromPlugin_dartFile() async {
     final content = '''
-    void main() {
+    void f() {
       var x = '';
       print(^);
     }
@@ -688,7 +704,7 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_fromPlugin_tooSlow() async {
     final content = '''
-    void main() {
+    void f() {
       var x = '';
       print(^);
     }
@@ -738,7 +754,7 @@ class _MyWidgetState extends State<MyWidget> {
       String set getterAndSetter(String value) {}
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.^
     }
@@ -764,7 +780,7 @@ class _MyWidgetState extends State<MyWidget> {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^def
     }
@@ -821,7 +837,7 @@ class _MyWidgetState extends State<MyWidget> {
 
   Future<void> test_insertTextMode_singleLine() async {
     final content = '''
-    main() {
+    void foo() {
       ^
     }
     ''';
@@ -831,7 +847,7 @@ class _MyWidgetState extends State<MyWidget> {
             emptyTextDocumentClientCapabilities));
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
-    final item = res.singleWhere((c) => c.label.startsWith('main'));
+    final item = res.singleWhere((c) => c.label.startsWith('foo'));
 
     // Single line completions should never set insertTextMode.asIs to
     // avoid bloating payload size where it wouldn't matter.
@@ -857,7 +873,7 @@ class _MyWidgetState extends State<MyWidget> {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -880,7 +896,7 @@ class _MyWidgetState extends State<MyWidget> {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -905,7 +921,7 @@ class _MyWidgetState extends State<MyWidget> {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -936,19 +952,19 @@ class _MyWidgetState extends State<MyWidget> {
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $code
-main() { }
+void f() { }
 ''';
       final expectedReplaced = '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedReplace
-main() { }
+void f() { }
 ''';
       final expectedInserted = '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedInsert
-main() { }
+void f() { }
 ''';
 
       await verifyCompletions(
@@ -1022,7 +1038,7 @@ main() { }
     // other symbol.
     // https://github.com/Dart-Code/Dart-Code/issues/2672#issuecomment-666085575
     final content = '''
-    void main() {
+    void f() {
       myFunction(
         ^
         aaaa: '',
@@ -1042,7 +1058,7 @@ main() { }
     final content = '''
     class A { const A({int one}); }
     @A(^)
-    main() { }
+    void f() { }
     ''';
 
     await initialize();
@@ -1064,7 +1080,7 @@ main() { }
     final content = '''
     class A { const A({int one}); }
     @A(^)
-    main() { }
+    void f() { }
     ''';
 
     await initialize(
@@ -1092,8 +1108,8 @@ main() { }
   Future<void>
       test_namedArgTrailing_snippetStringSelection_insideString() async {
     final content = '''
-    main({int one, int two}) {
-      main(
+    void f({int one, int two}) {
+      f(
         ^
         two: 2,
       );
@@ -1134,7 +1150,7 @@ main() { }
     final content = '''
     class MyClass {}
 
-    main() {
+    void f() {
       MyClass a = new MyCla^
     }
     ''';
@@ -1154,7 +1170,7 @@ main() { }
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -1181,7 +1197,7 @@ main() { }
     class UniqueNamedClassForLspTwo {}
     class UniqueNamedClassForLspThree {}
 
-    main() {
+    void f() {
       // Should match only Two and Three
       UniqueNamedClassForLspT^
     }
@@ -1201,7 +1217,7 @@ main() { }
     class UniqueNamedClassForLspTwo {}
     class UniqueNamedClassForLspThree {}
 
-    main() {
+    void f() {
       // Should match only Two and Three
       UniqueNamedClassForLspT^hree
     }
@@ -1221,7 +1237,7 @@ main() { }
     class UniqueNamedClassForLspTwo {}
     class UniqueNamedClassForLspThree {}
 
-    main() {
+    void f() {
       // Should match all three
       ^UniqueNamedClassForLspT
     }
@@ -1245,7 +1261,7 @@ main() { }
     );
 
     final content = '''
-main() {
+void f() {
   InOtherF^
 }
     ''';
@@ -1302,7 +1318,7 @@ main() {
     expect(newContent, equals('''
 import '../other_file.dart';
 
-main() {
+void f() {
   InOtherFile
 }
     '''));
@@ -1335,7 +1351,7 @@ main() {
 import 'reexport1.dart';
 import 'reexport2.dart';
 
-main() {
+void f() {
   MyExported^
 }
     ''';
@@ -1379,7 +1395,7 @@ main() {
     final content = '''
 import 'reexport1.dart';
 
-main() {
+void f() {
   MyExported^
 }
     ''';
@@ -1413,7 +1429,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   MyDuplicated^
 }
     ''';
@@ -1448,7 +1464,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   var a = MyExported^
 }
     ''';
@@ -1497,7 +1513,7 @@ main() {
     expect(newContent, equals('''
 import '../source_file.dart';
 
-main() {
+void f() {
   var a = MyExportedEnum.One
 }
     '''));
@@ -1526,7 +1542,7 @@ main() {
     final content = '''
 import 'reexport1.dart';
 
-main() {
+void f() {
   var a = MyExported^
 }
     ''';
@@ -1570,7 +1586,7 @@ main() {
     final content = '''
 import 'reexport1.dart';
 
-main() {
+void f() {
   MyExported^
 }
     ''';
@@ -1612,7 +1628,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   MyExported^
 }
     ''';
@@ -1647,7 +1663,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   InOtherF^il
 }
     ''';
@@ -1715,7 +1731,7 @@ main() {
     expect(newContentReplaceMode, equals('''
 import '../other_file.dart';
 
-main() {
+void f() {
   InOtherFile
 }
     '''));
@@ -1723,7 +1739,7 @@ main() {
     expect(newContentInsertMode, equals('''
 import '../other_file.dart';
 
-main() {
+void f() {
   InOtherFileil
 }
     '''));
@@ -1746,7 +1762,7 @@ main() {
     // File that we're invoking completion in.
     final content = '''
 part of 'parent.dart';
-main() {
+void f() {
   InOtherF^
 }
     ''';
@@ -1780,7 +1796,7 @@ main() {
     );
     expect(newContent, equals('''
 part of 'parent.dart';
-main() {
+void f() {
   InOtherFile
 }
     '''));
@@ -1833,7 +1849,7 @@ part 'main.dart';'''));
     );
 
     final content = '''
-main() {
+void f() {
   var a = MyExported^
 }
     ''';
@@ -1887,7 +1903,7 @@ main() {
     expect(newContent, equals('''
 import '../source_file.dart';
 
-main() {
+void f() {
   var a = MyExportedClass.myStaticDateTimeField
 }
     '''));
@@ -1940,7 +1956,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   var a = InOtherF^
 }
     ''';
@@ -1981,7 +1997,7 @@ main() {
     expect(newContent, equals('''
 import '../other_file.dart';
 
-main() {
+void f() {
   var a = InOtherFile.fromJson
 }
     '''));
@@ -1994,7 +2010,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   InOtherF^
 }
     ''';
@@ -2025,7 +2041,7 @@ main() {
     );
 
     final content = '''
-main() {
+void f() {
   InOtherF^
 }
     ''';
@@ -2048,7 +2064,7 @@ main() {
       String abcdefghij;
     }
 
-    main() {
+    void f() {
       MyClass a;
       a.abc^
     }
@@ -2094,7 +2110,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     final content = '''
     void myFunction(String a, int b, {required String c, String d = ''}) {}
 
-    main() {
+    void f() {
       [[myFu^]]
     }
     ''';
@@ -2128,7 +2144,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
           "void myFunction(String a, int b, {required String c, String d = ''}) {}",
     );
     final content = '''
-    main() {
+    void f() {
       [[myFu^]]
     }
     ''';
@@ -2166,7 +2182,7 @@ class CompletionTestWithNullSafetyTest extends AbstractLspAnalysisServerTest {
     final content = '''
     String? foo(int? a, [int b = 1]) {}
 
-    main() {
+    void f() {
       fo^
     }
     ''';

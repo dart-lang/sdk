@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.null_type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
@@ -21,8 +19,8 @@ class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   String get debugName => "NullTypeBuilder";
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     return type;
   }
 

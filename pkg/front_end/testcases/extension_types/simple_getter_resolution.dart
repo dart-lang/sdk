@@ -10,11 +10,22 @@ extension E on A {
   double get bar => 3.14;
 }
 
-test(A a, E e) {
+extension type ET on A {
+  String get baz => "baz";
+}
+
+test(A a, E e, ET et) {
   a.foo; // Ok.
   a.bar; // Ok.
+  a.baz; // Error.
+
   e.foo; // Error.
   e.bar; // Ok.
+  e.baz; // Error.
+
+  et.foo; // Error.
+  et.bar; // Error.
+  et.baz; // Ok.
 }
 
 main() {}

@@ -200,11 +200,11 @@ bool Slot::IsImmutableLengthSlot() const {
   case Slot::Kind::k##Class##_##Field:
       UNBOXED_NATIVE_SLOTS_LIST(UNBOXED_NATIVE_SLOT_CASE)
 #undef UNBOXED_NATIVE_SLOT_CASE
-    case Slot::Kind::kLinkedHashMap_index:
-    case Slot::Kind::kLinkedHashMap_data:
-    case Slot::Kind::kLinkedHashMap_hash_mask:
-    case Slot::Kind::kLinkedHashMap_used_data:
-    case Slot::Kind::kLinkedHashMap_deleted_keys:
+    case Slot::Kind::kLinkedHashBase_index:
+    case Slot::Kind::kLinkedHashBase_data:
+    case Slot::Kind::kLinkedHashBase_hash_mask:
+    case Slot::Kind::kLinkedHashBase_used_data:
+    case Slot::Kind::kLinkedHashBase_deleted_keys:
     case Slot::Kind::kArgumentsDescriptor_type_args_len:
     case Slot::Kind::kArgumentsDescriptor_positional_count:
     case Slot::Kind::kArgumentsDescriptor_count:
@@ -226,7 +226,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kDartField:
     case Slot::Kind::kFunction_data:
     case Slot::Kind::kFunction_signature:
-    case Slot::Kind::kFunctionType_parameter_names:
+    case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
@@ -299,7 +299,8 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
       Slot(Kind::kCapturedVariable,
            IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
                IsNullableBit::encode(true) |
-               IsCompressedBit::encode(Context::ContainsCompressedPointers()),
+               IsCompressedBit::encode(Context::ContainsCompressedPointers()) |
+               IsSentinelVisibleBit::encode(variable.is_late()),
            kDynamicCid,
            compiler::target::Context::variable_offset(variable.index().value()),
            &variable.name(), &variable.type(), kTagged));
@@ -382,16 +383,18 @@ const Slot& Slot::Get(const Field& field,
   }
 
   Class& owner = Class::Handle(zone, field.Owner());
-  const Slot& slot = SlotCache::Instance(thread).Canonicalize(
-      Slot(Kind::kDartField,
-           IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
-                                  field.is_const()) |
-               IsNullableBit::encode(is_nullable) |
-               IsGuardedBit::encode(used_guarded_state) |
-               IsCompressedBit::encode(
-                   compiler::target::Class::HasCompressedPointers(owner)),
-           nullable_cid, compiler::target::Field::OffsetOf(field), &field,
-           &type, rep));
+  const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
+      Kind::kDartField,
+      IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
+                             field.is_const()) |
+          IsNullableBit::encode(is_nullable) |
+          IsGuardedBit::encode(used_guarded_state) |
+          IsCompressedBit::encode(
+              compiler::target::Class::HasCompressedPointers(owner)) |
+          IsSentinelVisibleBit::encode(field.is_late() && field.is_final() &&
+                                       !field.has_initializer()),
+      nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type,
+      rep));
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background
@@ -452,7 +455,7 @@ CompileType Slot::ComputeCompileType() const {
       break;
   }
 
-  return CompileType(is_nullable(), nullable_cid(),
+  return CompileType(is_nullable(), is_sentinel_visible(), nullable_cid(),
                      nullable_cid() == kDynamicCid ? static_type_ : nullptr);
 }
 

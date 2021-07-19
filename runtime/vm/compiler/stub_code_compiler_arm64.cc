@@ -417,14 +417,16 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
   __ LoadFieldFromOffset(R10, R10,
                          compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R10, __ ElementAddressForRegIndex(
-                  /*external=*/false,
-                  /*array_cid=*/kArrayCid,
-                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                  /*index_unboxed=*/false,
-                  /*array=*/R10,
-                  /*index=*/R9,
-                  /*temp=*/TMP));
+  __ LoadCompressed(
+      R10,
+      __ ElementAddressForRegIndex(
+          /*external=*/false,
+          /*array_cid=*/kArrayCid,
+          /*index_scale, smi-tagged=*/compiler::target::kCompressedWordSize * 2,
+          /*index_unboxed=*/false,
+          /*array=*/R10,
+          /*index=*/R9,
+          /*temp=*/TMP));
   __ LoadFieldFromOffset(R10, R10,
                          compiler::target::Code::entry_point_offset());
 
@@ -523,13 +525,13 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
 
   // Populate closure object.
   __ Pop(AllocateClosureABI::kScratchReg);  // Pop type arguments.
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateClosureABI::kResultReg,
       FieldAddress(AllocateClosureABI::kResultReg,
                    target::Closure::instantiator_type_arguments_offset()),
       AllocateClosureABI::kScratchReg);
   __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
+  __ StoreCompressedIntoObjectNoBarrier(
       AllocateClosureABI::kResultReg,
       FieldAddress(AllocateClosureABI::kResultReg,
                    target::Closure::delayed_type_arguments_offset()),
@@ -852,7 +854,8 @@ static void PushArrayOfArguments(Assembler* assembler) {
   // R0: newly allocated array.
   // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
-  __ add(R1, FP, Operand(R2, LSL, 2));
+  __ SmiUntag(R2);
+  __ add(R1, FP, Operand(R2, LSL, target::kWordSizeLog2));
   __ AddImmediate(R1,
                   target::frame_layout.param_end_from_fp * target::kWordSize);
   __ AddImmediate(R3, R0, target::Array::data_offset() - kHeapObjectTag);
@@ -865,9 +868,10 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ b(&loop_exit, LE);
   __ ldr(R7, Address(R1));
   __ AddImmediate(R1, -target::kWordSize);
-  __ AddImmediate(R3, target::kWordSize);
-  __ AddImmediate(R2, R2, -target::ToRawSmi(1));
-  __ StoreIntoObject(R0, Address(R3, -target::kWordSize), R7);
+  __ AddImmediate(R3, target::kCompressedWordSize);
+  __ AddImmediate(R2, R2, -1);
+  __ StoreCompressedIntoObject(R0, Address(R3, -target::kCompressedWordSize),
+                               R7);
   __ b(&loop);
   __ Bind(&loop_exit);
 }
@@ -1070,8 +1074,9 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
          FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
 
   // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
-  __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
+  __ LoadCompressedSmiFieldFromOffset(
+      R2, R4, target::ArgumentsDescriptor::size_offset());
+  __ add(TMP, FP, Operand(R2, LSL, target::kWordSizeLog2 - 1));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
   __ Push(ZR);  // Result slot.
@@ -1080,11 +1085,12 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   __ Push(R4);  // Arguments descriptor.
 
   // Adjust arguments count.
-  __ LoadFieldFromOffset(R3, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+  __ LoadCompressedSmiFieldFromOffset(
+      R3, R4, target::ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, 1, kObjectBytes);  // Include the type arguments.
+  __ cmp(R3, Operand(0), kObjectBytes);
+  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+  __ csinc(R2, R2, TMP, EQ, kObjectBytes);
 
   // R2: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
@@ -1130,7 +1136,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
     // RoundedAllocationSize(
-    //     (array_length * kwordSize) + target::Array::header_size()).
+    //     (array_length * kCompressedWordSize) + target::Array::header_size()).
     // Check that length is a Smi.
     __ BranchIfNotSmi(AllocateArrayABI::kLengthReg, &slow_case);
 
@@ -1153,8 +1159,12 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
         target::Array::header_size() +
         target::ObjectAlignment::kObjectAlignment - 1;
     __ LoadImmediate(R3, fixed_size_plus_alignment_padding);
-    __ add(R3, R3, Operand(AllocateArrayABI::kLengthReg, LSL, 2),
-           kObjectBytes);  // R2 is Smi.
+// AllocateArrayABI::kLengthReg is Smi.
+#if defined(DART_COMPRESSED_POINTERS)
+    __ add(R3, R3, Operand(AllocateArrayABI::kLengthReg, LSL, 1), kObjectBytes);
+#else
+    __ add(R3, R3, Operand(AllocateArrayABI::kLengthReg, LSL, 2), kObjectBytes);
+#endif
     ASSERT(kSmiTagShift == 1);
     __ andi(R3, R3,
             Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
@@ -1189,14 +1199,14 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // R7: new object end address.
 
     // Store the type argument field.
-    __ StoreIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
-                                      target::Array::type_arguments_offset(),
-                                      AllocateArrayABI::kTypeArgumentsReg);
+    __ StoreCompressedIntoObjectOffsetNoBarrier(
+        AllocateArrayABI::kResultReg, target::Array::type_arguments_offset(),
+        AllocateArrayABI::kTypeArgumentsReg);
 
     // Set the length field.
-    __ StoreIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
-                                      target::Array::length_offset(),
-                                      AllocateArrayABI::kLengthReg);
+    __ StoreCompressedIntoObjectOffsetNoBarrier(AllocateArrayABI::kResultReg,
+                                                target::Array::length_offset(),
+                                                AllocateArrayABI::kLengthReg);
 
     // Calculate the size tag.
     // AllocateArrayABI::kResultReg: new object start as a tagged pointer.
@@ -1233,8 +1243,8 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
     // TODO(cshapiro): StoreIntoObjectNoBarrier
     __ CompareRegisters(R3, R7);
     __ b(&done, CS);
-    __ str(NULL_REG, Address(R3));  // Store if unsigned lower.
-    __ AddImmediate(R3, target::kWordSize);
+    __ str(NULL_REG, Address(R3), kObjectBytes);  // Store if unsigned lower.
+    __ AddImmediate(R3, target::kCompressedWordSize);
     __ b(&loop);  // Loop until R3 == R7.
     __ Bind(&done);
 
@@ -1333,7 +1343,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(TMP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(TMP);
 
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
   __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
@@ -1368,7 +1378,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -24);
 #else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
@@ -1384,13 +1394,14 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R4, R1, VMHandles::kOffsetOfRawPtrInHandle);
 
   // Load number of arguments into R5 and adjust count for type arguments.
-  __ LoadFieldFromOffset(R5, R4, target::ArgumentsDescriptor::count_offset());
-  __ LoadFieldFromOffset(R3, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R5, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R5, R5, TMP, EQ);  // R5 <- (R3 == 0) ? R5 : TMP + 1 (R5 : R5 + 2).
+  __ LoadCompressedSmiFieldFromOffset(
+      R5, R4, target::ArgumentsDescriptor::count_offset());
+  __ LoadCompressedSmiFieldFromOffset(
+      R3, R4, target::ArgumentsDescriptor::type_args_len_offset());
   __ SmiUntag(R5);
+  // Include the type arguments.
+  __ cmp(R3, Operand(0), kObjectBytes);
+  __ csinc(R5, R5, R5, EQ);  // R5 <- (R3 == 0) ? R5 : R5 + 1
 
   // Compute address of 'arguments array' data area into R2.
   __ LoadFromOffset(R2, R2, VMHandles::kOffsetOfRawPtrInHandle);
@@ -1403,10 +1414,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ b(&done_push_arguments, EQ);  // check if there are arguments.
   __ LoadImmediate(R1, 0);
   __ Bind(&push_arguments);
-  __ ldr(R3, Address(R2));
+  __ LoadCompressed(R3, Address(R2));
   __ Push(R3);
   __ add(R1, R1, Operand(1));
-  __ add(R2, R2, Operand(target::kWordSize));
+  __ add(R2, R2, Operand(target::kCompressedWordSize));
   __ cmp(R1, Operand(R5));
   __ b(&push_arguments, LT);
   __ Bind(&done_push_arguments);
@@ -1907,8 +1918,10 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ Bind(&init_loop);
       __ CompareRegisters(kFieldReg, kNewTopReg);
       __ b(&done, UNSIGNED_GREATER_EQUAL);
-      __ str(NULL_REG,
-             Address(kFieldReg, target::kWordSize, Address::PostIndex));
+      __ str(
+          NULL_REG,
+          Address(kFieldReg, target::kCompressedWordSize, Address::PostIndex),
+          kObjectBytes);
       __ b(&init_loop);
 
       __ Bind(&done);
@@ -1932,7 +1945,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           kFourBytes);
 
       // Set the type arguments in the new object.
-      __ StoreIntoObjectNoBarrier(
+      __ StoreCompressedIntoObjectNoBarrier(
           AllocateObjectABI::kResultReg,
           Address(AllocateObjectABI::kResultReg, kTypeOffestReg, UXTX,
                   Address::Scaled),
@@ -2088,13 +2101,14 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ EnterStubFrame();
 
   // Load the receiver.
-  __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::size_offset());
-  __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
+  __ LoadCompressedSmiFieldFromOffset(
+      R2, R4, target::ArgumentsDescriptor::size_offset());
+  __ add(TMP, FP, Operand(R2, LSL, target::kWordSizeLog2 - 1));
   __ LoadFromOffset(R6, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
 
   // Load the function.
-  __ LoadFieldFromOffset(TMP, R6, target::Closure::function_offset());
+  __ LoadCompressedFieldFromOffset(TMP, R6, target::Closure::function_offset());
 
   __ Push(ZR);   // Result slot.
   __ Push(R6);   // Receiver.
@@ -2102,11 +2116,12 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub(
   __ Push(R4);   // Arguments descriptor.
 
   // Adjust arguments count.
-  __ LoadFieldFromOffset(R3, R4,
-                         target::ArgumentsDescriptor::type_args_len_offset());
-  __ AddImmediate(TMP, R2, 1);  // Include the type arguments.
-  __ cmp(R3, Operand(0));
-  __ csinc(R2, R2, TMP, EQ);  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+  __ LoadCompressedSmiFieldFromOffset(
+      R3, R4, target::ArgumentsDescriptor::type_args_len_offset());
+  __ AddImmediate(TMP, R2, 1, kObjectBytes);  // Include the type arguments.
+  __ cmp(R3, Operand(0), kObjectBytes);
+  // R2 <- (R3 == 0) ? R2 : TMP + 1 (R2 : R2 + 2).
+  __ csinc(R2, R2, TMP, EQ, kObjectBytes);
 
   // R2: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
@@ -2215,11 +2230,11 @@ static void EmitFastSmiOp(Assembler* assembler,
   // Check that first entry is for Smi/Smi.
   Label error, ok;
   const intptr_t imm_smi_cid = target::ToRawSmi(kSmiCid);
-  __ ldr(R1, Address(R6, 0));
-  __ CompareImmediate(R1, imm_smi_cid);
+  __ LoadCompressedSmiFromOffset(R1, R6, 0);
+  __ CompareImmediate(R1, imm_smi_cid, kObjectBytes);
   __ b(&error, NE);
-  __ ldr(R1, Address(R6, target::kWordSize));
-  __ CompareImmediate(R1, imm_smi_cid);
+  __ LoadCompressedSmiFromOffset(R1, R6, target::kCompressedWordSize);
+  __ CompareImmediate(R1, imm_smi_cid, kObjectBytes);
   __ b(&ok, EQ);
   __ Bind(&error);
   __ Stop("Incorrect IC data");
@@ -2227,11 +2242,11 @@ static void EmitFastSmiOp(Assembler* assembler,
 #endif
   if (FLAG_optimization_counter_threshold >= 0) {
     const intptr_t count_offset =
-        target::ICData::CountIndexFor(num_args) * target::kWordSize;
+        target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
     // Update counter, ignore overflow.
-    __ LoadFromOffset(R1, R6, count_offset);
-    __ adds(R1, R1, Operand(target::ToRawSmi(1)));
-    __ StoreToOffset(R1, R6, count_offset);
+    __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
+    __ adds(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+    __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
   }
 
   __ ret();
@@ -2337,8 +2352,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ LoadFieldFromOffset(R4, R5,
                            target::CallSiteData::arguments_descriptor_offset());
     if (num_args == 2) {
-      __ LoadFieldFromOffset(R7, R4,
-                             target::ArgumentsDescriptor::count_offset());
+      __ LoadCompressedSmiFieldFromOffset(
+          R7, R4, target::ArgumentsDescriptor::count_offset());
       __ SmiUntag(R7);  // Untag so we can use the LSL 3 addressing mode.
       __ sub(R7, R7, Operand(2));
       // R1 <- [SP + (R1 << 3)]
@@ -2350,7 +2365,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
                            target::CallSiteData::arguments_descriptor_offset());
     // Get the receiver's class ID (first read number of arguments from
     // arguments descriptor array and then access the receiver from the stack).
-    __ LoadFieldFromOffset(R7, R4, target::ArgumentsDescriptor::count_offset());
+    __ LoadCompressedSmiFieldFromOffset(
+        R7, R4, target::ArgumentsDescriptor::count_offset());
     __ SmiUntag(R7);  // Untag so we can use the LSL 3 addressing mode.
     __ sub(R7, R7, Operand(1));
     // R0 <- [SP + (R7 << 3)]
@@ -2378,12 +2394,12 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
     Label update;
 
-    __ LoadFromOffset(R2, R6, 0);
-    __ CompareRegisters(R0, R2);  // Class id match?
+    __ LoadCompressedSmiFromOffset(R2, R6, 0);
+    __ CompareObjectRegisters(R0, R2);  // Class id match?
     if (num_args == 2) {
       __ b(&update, NE);  // Continue.
-      __ LoadFromOffset(R2, R6, target::kWordSize);
-      __ CompareRegisters(R1, R2);  // Class id match?
+      __ LoadCompressedSmiFromOffset(R2, R6, target::kCompressedWordSize);
+      __ CompareObjectRegisters(R1, R2);  // Class id match?
     }
     __ b(&found, EQ);  // Break.
 
@@ -2391,7 +2407,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
 
     const intptr_t entry_size = target::ICData::TestEntryLengthFor(
                                     num_args, exactness == kCheckExactness) *
-                                target::kWordSize;
+                                target::kCompressedWordSize;
     __ AddImmediate(R6, entry_size);  // Next entry.
 
     __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid));  // Done?
@@ -2406,7 +2422,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("IC miss");
 
   // Compute address of arguments.
-  __ LoadFieldFromOffset(R7, R4, target::ArgumentsDescriptor::count_offset());
+  __ LoadCompressedSmiFieldFromOffset(
+      R7, R4, target::ArgumentsDescriptor::count_offset());
   __ SmiUntag(R7);  // Untag so we can use the LSL 3 addressing mode.
   __ sub(R7, R7, Operand(1));
   // R7: argument_count - 1 (untagged).
@@ -2458,16 +2475,16 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   __ Comment("Update caller's counter");
   // R6: pointer to an IC data check group.
   const intptr_t target_offset =
-      target::ICData::TargetIndexFor(num_args) * target::kWordSize;
+      target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
-      target::ICData::CountIndexFor(num_args) * target::kWordSize;
-  __ LoadFromOffset(R0, R6, target_offset);
+      target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
+  __ LoadCompressedFromOffset(R0, R6, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Update counter, ignore overflow.
-    __ LoadFromOffset(R1, R6, count_offset);
-    __ adds(R1, R1, Operand(target::ToRawSmi(1)));
-    __ StoreToOffset(R1, R6, count_offset);
+    __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
+    __ adds(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+    __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
   }
 
   __ Comment("Call target");
@@ -2638,15 +2655,15 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
   __ AddImmediate(R6, target::Array::data_offset() - kHeapObjectTag);
   // R6: points directly to the first ic data array element.
   const intptr_t target_offset =
-      target::ICData::TargetIndexFor(0) * target::kWordSize;
+      target::ICData::TargetIndexFor(0) * target::kCompressedWordSize;
   const intptr_t count_offset =
-      target::ICData::CountIndexFor(0) * target::kWordSize;
+      target::ICData::CountIndexFor(0) * target::kCompressedWordSize;
 
   if (FLAG_optimization_counter_threshold >= 0) {
     // Increment count for this call, ignore overflow.
-    __ LoadFromOffset(R1, R6, count_offset);
-    __ adds(R1, R1, Operand(target::ToRawSmi(1)));
-    __ StoreToOffset(R1, R6, count_offset);
+    __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
+    __ adds(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+    __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
   }
 
   // Load arguments descriptor into R4.
@@ -2654,7 +2671,7 @@ void StubCodeCompiler::GenerateZeroArgsUnoptimizedStaticCallStub(
                          target::CallSiteData::arguments_descriptor_offset());
 
   // Get function and call it, if possible.
-  __ LoadFromOffset(R0, R6, target_offset);
+  __ LoadCompressedFromOffset(R0, R6, target_offset);
   __ LoadCompressedFieldFromOffset(CODE_REG, R0,
                                    target::Function::code_offset());
   __ add(R2, R0, Operand(R8));
@@ -2843,24 +2860,32 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Closure handling.
   {
-    __ ldr(STCInternalRegs::kInstanceCidOrSignatureReg,
-           FieldAddress(TypeTestABI::kInstanceReg,
-                        target::Closure::function_offset()));
-    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
-                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
-                                   target::Function::signature_offset()));
+    __ Comment("Closure");
+    __ LoadCompressed(
+        STCInternalRegs::kInstanceCidOrSignatureReg,
+        FieldAddress(TypeTestABI::kInstanceReg,
+                     target::Closure::function_offset(), kObjectBytes));
+    __ LoadCompressed(
+        STCInternalRegs::kInstanceCidOrSignatureReg,
+        FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
+                     target::Function::signature_offset(), kObjectBytes));
     if (n >= 3) {
-      __ ldr(
+      __ LoadCompressed(
           STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
+                       target::Closure::instantiator_type_arguments_offset(),
+                       kObjectBytes));
       if (n >= 7) {
-        __ ldr(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
-               FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::function_type_arguments_offset()));
-        __ ldr(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
-               FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::delayed_type_arguments_offset()));
+        __ LoadCompressed(
+            STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::function_type_arguments_offset(),
+                         kObjectBytes));
+        __ LoadCompressed(
+            STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::delayed_type_arguments_offset(),
+                         kObjectBytes));
       }
     }
     __ b(&loop);
@@ -2868,6 +2893,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Non-Closure handling.
   {
+    __ Comment("Non-Closure");
     __ Bind(&not_closure);
     if (n >= 3) {
       Label has_no_type_arguments;
@@ -2881,10 +2907,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ CompareImmediate(kScratchReg, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
       __ add(kScratchReg, TypeTestABI::kInstanceReg,
-             Operand(kScratchReg, LSL, 3));
-      __ ldr(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-             FieldAddress(kScratchReg, 0));
+             Operand(kScratchReg, LSL, kCompressedWordSizeLog2));
+      __ LoadCompressed(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+                        FieldAddress(kScratchReg, 0, kObjectBytes));
       __ Bind(&has_no_type_arguments);
+      __ Comment("No type arguments");
 
       if (n >= 7) {
         __ mov(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
@@ -2900,43 +2927,54 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop header
   __ Bind(&loop);
-  __ ldr(kScratchReg,
-         Address(kCacheArrayReg,
-                 target::kWordSize *
-                     target::SubtypeTestCache::kInstanceCidOrSignature));
-  __ cmp(kScratchReg, Operand(kNullReg));
+  __ Comment("Loop");
+  __ LoadCompressed(
+      kScratchReg,
+      Address(kCacheArrayReg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kInstanceCidOrSignature,
+              Address::Offset, kObjectBytes));
+  __ CompareObjectRegisters(kScratchReg, kNullReg);
   __ b(&done, EQ);
-  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrSignatureReg));
+  __ CompareObjectRegisters(kScratchReg,
+                            STCInternalRegs::kInstanceCidOrSignatureReg);
   if (n == 1) {
     __ b(&found, EQ);
   } else {
     __ b(&next_iteration, NE);
-    __ ldr(kScratchReg,
-           Address(
-               kCacheArrayReg,
-               target::kWordSize * target::SubtypeTestCache::kDestinationType));
+    __ LoadCompressed(kScratchReg,
+                      Address(kCacheArrayReg,
+                              target::kCompressedWordSize *
+                                  target::SubtypeTestCache::kDestinationType,
+                              Address::Offset, kObjectBytes));
     __ cmp(kScratchReg, Operand(TypeTestABI::kDstTypeReg));
     __ b(&next_iteration, NE);
-    __ ldr(kScratchReg,
-           Address(kCacheArrayReg,
-                   target::kWordSize *
-                       target::SubtypeTestCache::kInstanceTypeArguments));
+    __ LoadCompressed(
+        kScratchReg,
+        Address(kCacheArrayReg,
+                target::kCompressedWordSize *
+                    target::SubtypeTestCache::kInstanceTypeArguments,
+                Address::Offset, kObjectBytes));
     __ cmp(kScratchReg,
            Operand(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg));
     if (n == 3) {
       __ b(&found, EQ);
     } else {
       __ b(&next_iteration, NE);
-      __ ldr(kScratchReg,
-             Address(kCacheArrayReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kInstantiatorTypeArguments));
+      __ LoadCompressed(
+          kScratchReg,
+          Address(kCacheArrayReg,
+                  target::kCompressedWordSize *
+                      target::SubtypeTestCache::kInstantiatorTypeArguments,
+                  Address::Offset, kObjectBytes));
       __ cmp(kScratchReg, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
       __ b(&next_iteration, NE);
-      __ ldr(kScratchReg,
-             Address(kCacheArrayReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kFunctionTypeArguments));
+      __ LoadCompressed(
+          kScratchReg,
+          Address(kCacheArrayReg,
+                  target::kCompressedWordSize *
+                      target::SubtypeTestCache::kFunctionTypeArguments,
+                  Address::Offset, kObjectBytes));
       __ cmp(kScratchReg, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
       if (n == 5) {
         __ b(&found, EQ);
@@ -2944,21 +2982,23 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         ASSERT(n == 7);
         __ b(&next_iteration, NE);
 
-        __ ldr(kScratchReg,
-               Address(kCacheArrayReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::
-                               kInstanceParentFunctionTypeArguments));
+        __ LoadCompressed(kScratchReg,
+                          Address(kCacheArrayReg,
+                                  target::kCompressedWordSize *
+                                      target::SubtypeTestCache::
+                                          kInstanceParentFunctionTypeArguments,
+                                  Address::Offset, kObjectBytes));
         __ cmp(
             kScratchReg,
             Operand(STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg));
         __ b(&next_iteration, NE);
 
-        __ ldr(kScratchReg,
-               Address(kCacheArrayReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::
-                               kInstanceDelayedFunctionTypeArguments));
+        __ LoadCompressed(kScratchReg,
+                          Address(kCacheArrayReg,
+                                  target::kCompressedWordSize *
+                                      target::SubtypeTestCache::
+                                          kInstanceDelayedFunctionTypeArguments,
+                                  Address::Offset, kObjectBytes));
         __ cmp(
             kScratchReg,
             Operand(STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg));
@@ -2967,16 +3007,21 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     }
   }
   __ Bind(&next_iteration);
+  __ Comment("Next iteration");
   __ AddImmediate(
       kCacheArrayReg,
-      target::kWordSize * target::SubtypeTestCache::kTestEntryLength);
+      target::kCompressedWordSize * target::SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
 
   __ Bind(&found);
-  __ ldr(TypeTestABI::kSubtypeTestCacheResultReg,
-         Address(kCacheArrayReg,
-                 target::kWordSize * target::SubtypeTestCache::kTestResult));
+  __ Comment("Found");
+  __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
+                    Address(kCacheArrayReg,
+                            target::kCompressedWordSize *
+                                target::SubtypeTestCache::kTestResult,
+                            Address::Offset, kObjectBytes));
   __ Bind(&done);
+  __ Comment("Done");
   __ ret();
 }
 
@@ -3023,7 +3068,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(FP, R2);                 // Frame_pointer.
   __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
   __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
@@ -3252,10 +3297,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
 
   const intptr_t base = target::Array::data_offset();
   // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
-  __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ ldr(R6, FieldAddress(TMP, base));
+  __ add(TMP, R2, Operand(R3, LSL, kCompressedWordSizeLog2));
+  __ LoadCompressedSmiFieldFromOffset(R6, TMP, base);
   Label probe_failed;
-  __ CompareRegisters(R6, R8);
+  __ CompareObjectRegisters(R6, R8);
   __ b(&probe_failed, NE);
 
   Label load_target;
@@ -3264,14 +3309,15 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address = FieldAddress(TMP, base + target::kWordSize);
+  const auto target_address =
+      FieldAddress(TMP, base + target::kCompressedWordSize, kObjectBytes);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ ldr(R1, target_address);
     __ ldr(
         ARGS_DESC_REG,
         FieldAddress(R5, target::CallSiteData::arguments_descriptor_offset()));
   } else {
-    __ ldr(R0, target_address);
+    __ LoadCompressed(R0, target_address);
     __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
     __ ldr(
         ARGS_DESC_REG,
@@ -3284,7 +3330,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
   ASSERT(kIllegalCid == 0);
-  __ tst(R6, Operand(R6));
+  __ tst(R6, Operand(R6), kObjectBytes);
   Label miss;
   __ b(&miss, EQ);  // branch if miss.
 
@@ -3315,28 +3361,35 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   // R1: receiver cid as Smi
 
   __ Bind(&loop);
-  __ ldr(R2, Address(R8, 0));
-  __ cmp(R1, Operand(R2));
+  __ LoadCompressedSmi(R2, Address(R8, 0));
+  __ cmp(R1, Operand(R2), kObjectBytes);
   __ b(&found, EQ);
-  __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid));
+  __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid), kObjectBytes);
   __ b(&miss, EQ);
 
   const intptr_t entry_length =
       target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
+      target::kCompressedWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
   __ Bind(&found);
   const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kWordSize;
+      target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
+#if defined(DART_COMPRESSED_POINTERS)
+  __ LoadCompressed(CODE_REG,
+                    Address(R8, code_offset, Address::Offset, kObjectBytes));
+  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ br(R1);
+#else
   const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kWordSize;
+      target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
   __ ldr(R1, Address(R8, entry_offset));
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ ldr(CODE_REG, Address(R8, code_offset));
   }
   __ br(R1);
+#endif
 
   __ Bind(&miss);
   __ LoadIsolate(R2);
@@ -3478,22 +3531,25 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
 
   // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
   // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquire(R5, R0,
-                 TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-                     target::kWordSize);
-  __ CompareImmediate(R5, Smi::RawValue(TypeArguments::kNoInstantiator));
+  __ LoadAcquireCompressed(
+      R5, R0,
+      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
+          target::kCompressedWordSize);
+  __ CompareImmediate(R5, Smi::RawValue(TypeArguments::kNoInstantiator),
+                      kObjectBytes);
   __ b(&call_runtime, EQ);
 
   __ CompareRegisters(R5, InstantiationABI::kInstantiatorTypeArgumentsReg);
   __ b(&next, NE);
-  __ LoadFromOffset(
+  __ LoadCompressedFromOffset(
       R4, R0,
-      TypeArguments::Instantiation::kFunctionTypeArgsIndex * target::kWordSize);
+      TypeArguments::Instantiation::kFunctionTypeArgsIndex *
+          target::kCompressedWordSize);
   __ CompareRegisters(R4, InstantiationABI::kFunctionTypeArgumentsReg);
   __ b(&found, EQ);
   __ Bind(&next);
-  __ AddImmediate(
-      R0, TypeArguments::Instantiation::kSizeInWords * target::kWordSize);
+  __ AddImmediate(R0, TypeArguments::Instantiation::kSizeInWords *
+                          target::kCompressedWordSize);
   __ b(&loop);
 
   // Instantiate non-null type arguments.
@@ -3510,9 +3566,10 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
   __ Ret();
 
   __ Bind(&found);
-  __ LoadFromOffset(InstantiationABI::kResultTypeArgumentsReg, R0,
-                    TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-                        target::kWordSize);
+  __ LoadCompressedFromOffset(
+      InstantiationABI::kResultTypeArgumentsReg, R0,
+      TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
+          target::kCompressedWordSize);
   __ Ret();
 }
 

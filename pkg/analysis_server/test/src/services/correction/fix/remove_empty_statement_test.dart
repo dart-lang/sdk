@@ -11,8 +11,41 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveEmptyStatementBulkTest);
     defineReflectiveTests(RemoveEmptyStatementTest);
   });
+}
+
+@reflectiveTest
+class RemoveEmptyStatementBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.empty_statements;
+
+  Future<void> test_singleFile() async {
+    // Note that ReplaceWithEmptyBrackets is not supported.
+    //   for example: `if (true) ;` ...
+    await resolveTestCode('''
+void f() {
+  while(true) {
+    ;
+  }
+}
+
+void f2() {
+  while(true) { ; }
+}
+''');
+    await assertHasFix('''
+void f() {
+  while(true) {
+  }
+}
+
+void f2() {
+  while(true) { }
+}
+''');
+  }
 }
 
 @reflectiveTest

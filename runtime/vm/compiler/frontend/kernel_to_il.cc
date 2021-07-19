@@ -446,6 +446,11 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
   }
 }
 
+Fragment FlowGraphBuilder::IndirectGoto(intptr_t target_count) {
+  Value* index = Pop();
+  return Fragment(new (Z) IndirectGotoInstr(target_count, index));
+}
+
 Fragment FlowGraphBuilder::ThrowLateInitializationError(
     TokenPosition position,
     const char* throw_method_name,
@@ -612,19 +617,18 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
 }
 
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  const Class& cls =
-      Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
-  ASSERT(!cls.IsNull());
-  const Function& function = Function::ZoneHandle(
-      Z, Resolver::ResolveStatic(
-             cls, Library::PrivateCoreLibName(Symbols::InterpolateSingle()),
-             kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
+  Fragment instructions;
+  instructions += StaticCall(
+      position, CompilerState::Current().StringBaseInterpolateSingle(),
+      /* argument_count = */ 1, ICData::kStatic);
+  return instructions;
+}
+
+Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
   Fragment instructions;
   instructions +=
-      StaticCall(position, function, /* argument_count = */ 1, ICData::kStatic);
+      StaticCall(position, CompilerState::Current().StringBaseInterpolate(),
+                 /* argument_count = */ 1, ICData::kStatic);
   return instructions;
 }
 
@@ -856,8 +860,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kGrowableArrayLength:
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kTypedListLength:
-    case MethodRecognizer::kTypedListViewLength:
+    case MethodRecognizer::kTypedListBaseLength:
     case MethodRecognizer::kByteDataViewLength:
     case MethodRecognizer::kByteDataViewOffsetInBytes:
     case MethodRecognizer::kTypedDataViewOffsetInBytes:
@@ -868,16 +871,16 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
-    case MethodRecognizer::kLinkedHashMap_getIndex:
-    case MethodRecognizer::kLinkedHashMap_setIndex:
-    case MethodRecognizer::kLinkedHashMap_getData:
-    case MethodRecognizer::kLinkedHashMap_setData:
-    case MethodRecognizer::kLinkedHashMap_getHashMask:
-    case MethodRecognizer::kLinkedHashMap_setHashMask:
-    case MethodRecognizer::kLinkedHashMap_getUsedData:
-    case MethodRecognizer::kLinkedHashMap_setUsedData:
-    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
-    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+    case MethodRecognizer::kLinkedHashBase_getIndex:
+    case MethodRecognizer::kLinkedHashBase_setIndex:
+    case MethodRecognizer::kLinkedHashBase_getData:
+    case MethodRecognizer::kLinkedHashBase_setData:
+    case MethodRecognizer::kLinkedHashBase_getHashMask:
+    case MethodRecognizer::kLinkedHashBase_setHashMask:
+    case MethodRecognizer::kLinkedHashBase_getUsedData:
+    case MethodRecognizer::kLinkedHashBase_setUsedData:
+    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
+    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
     case MethodRecognizer::kWeakProperty_getKey:
     case MethodRecognizer::kWeakProperty_setKey:
     case MethodRecognizer::kWeakProperty_getValue:
@@ -1054,8 +1057,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kTypedListLength:
-    case MethodRecognizer::kTypedListViewLength:
+    case MethodRecognizer::kTypedListBaseLength:
     case MethodRecognizer::kByteDataViewLength:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1163,68 +1165,68 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashMap_getIndex:
+    case MethodRecognizer::kLinkedHashBase_getIndex:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashMap_index());
+      body += LoadNativeField(Slot::LinkedHashBase_index());
       break;
-    case MethodRecognizer::kLinkedHashMap_setIndex:
+    case MethodRecognizer::kLinkedHashBase_setIndex:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashMap_index());
+      body += StoreNativeField(Slot::LinkedHashBase_index());
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashMap_getData:
+    case MethodRecognizer::kLinkedHashBase_getData:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashMap_data());
+      body += LoadNativeField(Slot::LinkedHashBase_data());
       break;
-    case MethodRecognizer::kLinkedHashMap_setData:
+    case MethodRecognizer::kLinkedHashBase_setData:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashMap_data());
+      body += StoreNativeField(Slot::LinkedHashBase_data());
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashMap_getHashMask:
+    case MethodRecognizer::kLinkedHashBase_getHashMask:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashMap_hash_mask());
+      body += LoadNativeField(Slot::LinkedHashBase_hash_mask());
       break;
-    case MethodRecognizer::kLinkedHashMap_setHashMask:
+    case MethodRecognizer::kLinkedHashBase_setHashMask:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashMap_hash_mask(),
+      body += StoreNativeField(Slot::LinkedHashBase_hash_mask(),
                                StoreInstanceFieldInstr::Kind::kOther,
                                kNoStoreBarrier);
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashMap_getUsedData:
+    case MethodRecognizer::kLinkedHashBase_getUsedData:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashMap_used_data());
+      body += LoadNativeField(Slot::LinkedHashBase_used_data());
       break;
-    case MethodRecognizer::kLinkedHashMap_setUsedData:
+    case MethodRecognizer::kLinkedHashBase_setUsedData:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashMap_used_data(),
+      body += StoreNativeField(Slot::LinkedHashBase_used_data(),
                                StoreInstanceFieldInstr::Kind::kOther,
                                kNoStoreBarrier);
       body += NullConstant();
       break;
-    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
+    case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += LoadNativeField(Slot::LinkedHashMap_deleted_keys());
+      body += LoadNativeField(Slot::LinkedHashBase_deleted_keys());
       break;
-    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+    case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
-      body += StoreNativeField(Slot::LinkedHashMap_deleted_keys(),
+      body += StoreNativeField(Slot::LinkedHashBase_deleted_keys(),
                                StoreInstanceFieldInstr::Kind::kOther,
                                kNoStoreBarrier);
       body += NullConstant();
@@ -1817,6 +1819,9 @@ void FlowGraphBuilder::BuildTypeArgumentTypeChecks(TypeChecksToBuild mode,
       type_param = dart_function.TypeParameterAt(i);
     }
     ASSERT(type_param.IsFinalized());
+    if (bound.IsTypeRef()) {
+      bound = TypeRef::Cast(bound).type();
+    }
     check_bounds +=
         AssertSubtype(TokenPosition::kNoSource, type_param, bound, name);
   }
@@ -2092,7 +2097,7 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* num_opt_params = nullptr;
   LocalVariable* num_max_params = nullptr;
   LocalVariable* has_named_params = nullptr;
-  LocalVariable* parameter_names = nullptr;
+  LocalVariable* named_parameter_names = nullptr;
   LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
   LocalVariable* num_type_parameters = nullptr;
@@ -2131,30 +2136,23 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   if (!IG->use_strict_null_safety_checks()) return not_set;
 
   Fragment check_required;
-  // First, we convert the index to be in terms of the number of optional
-  // parameters, not total parameters (to calculate the flag index and shift).
+  // We calculate the index to dereference in the parameter names array.
   check_required += LoadLocal(info.vars->current_param_index);
-  check_required += LoadLocal(info.num_fixed_params);
-  check_required += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
-  LocalVariable* opt_index = MakeTemporary("opt_index");  // Read-only.
-
-  // Next, we calculate the index to dereference in the parameter names array.
-  check_required += LoadLocal(opt_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElementLog2);
   check_required += SmiBinaryOp(Token::kSHR);
-  check_required += LoadLocal(info.num_max_params);
+  check_required += LoadLocal(info.num_opt_params);
   check_required += SmiBinaryOp(Token::kADD);
   LocalVariable* flags_index = MakeTemporary("flags_index");  // Read-only.
 
-  // Two read-only stack values (opt_index, flag_index) that must be dropped
+  // One read-only stack value (flag_index) that must be dropped
   // after we rejoin at after_check.
   JoinEntryInstr* after_check = BuildJoinEntry();
 
   // Now we check to see if the flags index is within the bounds of the
   // parameters names array. If not, it cannot be required.
   check_required += LoadLocal(flags_index);
-  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(info.named_parameter_names);
   check_required += LoadNativeField(Slot::Array_length());
   check_required += SmiRelationalOp(Token::kLT);
   TargetEntryInstr* valid_index;
@@ -2169,10 +2167,11 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   // the flag slots are non-null, so after loading we can immediate check
   // the required flag bit for the given named parameter.
   check_required.current = valid_index;
-  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(info.named_parameter_names);
   check_required += LoadLocal(flags_index);
-  check_required += LoadIndexed(kArrayCid);
-  check_required += LoadLocal(opt_index);
+  check_required += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
+  check_required += LoadLocal(info.vars->current_param_index);
   check_required +=
       IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
   check_required += SmiBinaryOp(Token::kBIT_AND);
@@ -2200,7 +2199,6 @@ Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
   // After rejoining, drop the introduced temporaries.
   check_required.current = after_check;
   check_required += DropTemporary(&flags_index);
-  check_required += DropTemporary(&opt_index);
   return check_required;
 }
 
@@ -2322,8 +2320,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     // for named parameters. If this changes, we'll need to check each flag
     // entry appropriately for any set required bits.
     Fragment has_any;
-    has_any += LoadLocal(info.num_max_params);
-    has_any += LoadLocal(info.parameter_names);
+    has_any += LoadLocal(info.num_opt_params);
+    has_any += LoadLocal(info.named_parameter_names);
     has_any += LoadNativeField(Slot::Array_length());
     TargetEntryInstr* no_required;
     TargetEntryInstr* has_required;
@@ -2350,14 +2348,14 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
   check_names += IntConstant(0);
   check_names += StoreLocal(info.vars->current_num_processed);
   check_names += Drop();
-  check_names += LoadLocal(info.num_fixed_params);
+  check_names += IntConstant(0);
   check_names += StoreLocal(info.vars->current_param_index);
   check_names += Drop();
   check_names += Goto(loop);
 
   Fragment loop_check(loop);
   loop_check += LoadLocal(info.vars->current_param_index);
-  loop_check += LoadLocal(info.num_max_params);
+  loop_check += LoadLocal(info.num_opt_params);
   loop_check += SmiRelationalOp(Token::kLT);
   TargetEntryInstr* no_more;
   TargetEntryInstr* more;
@@ -2367,9 +2365,10 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
 
   Fragment loop_body(more);
   // First load the name we need to check against.
-  loop_body += LoadLocal(info.parameter_names);
+  loop_body += LoadLocal(info.named_parameter_names);
   loop_body += LoadLocal(info.vars->current_param_index);
-  loop_body += LoadIndexed(kArrayCid);
+  loop_body += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   LocalVariable* param_name = MakeTemporary("param_name");  // Read only.
 
   // One additional local value on the stack within the loop body (param_name)
@@ -2391,6 +2390,8 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
     // arguments. (No need to check the required bit for provided parameters.)
     Fragment matched(match);
     matched += LoadLocal(info.vars->current_param_index);
+    matched += LoadLocal(info.num_fixed_params);
+    matched += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
     matched += StoreLocal(info.vars->named_argument_parameter_indices.At(i));
     matched += Drop();
     matched += LoadLocal(info.vars->current_num_processed);
@@ -2453,9 +2454,10 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     TargetEntryInstr* not_null;
     check_type_args_length += BranchIfNull(&null, &not_null);
     check_type_args_length.current = not_null;  // Continue in non-error case.
-    check_type_args_length += LoadLocal(info.type_parameters);
-    check_type_args_length += LoadNativeField(Slot::TypeParameters_names());
-    check_type_args_length += LoadNativeField(Slot::Array_length());
+    check_type_args_length += LoadLocal(info.signature);
+    check_type_args_length += BuildExtractUnboxedSlotBitFieldIntoSmi<
+        UntaggedFunctionType::PackedNumTypeParameters>(
+        Slot::FunctionType_packed_type_parameter_counts());
     check_type_args_length += IntConstant(info.descriptor.TypeArgsLen());
     TargetEntryInstr* equal;
     TargetEntryInstr* not_equal;
@@ -2592,7 +2594,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_test_flag += LoadLocal(info.vars->current_param_index);
   loop_test_flag += IntConstant(TypeParameters::kFlagsPerSmiShift);
   loop_test_flag += SmiBinaryOp(Token::kSHR);
-  loop_test_flag += LoadIndexed(kArrayCid);
+  loop_test_flag += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   loop_test_flag += LoadLocal(info.vars->current_param_index);
   loop_test_flag += IntConstant(TypeParameters::kFlagsPerSmiMask);
   loop_test_flag += SmiBinaryOp(Token::kBIT_AND);
@@ -2604,7 +2607,7 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   TargetEntryInstr* is_covariant;
   loop_test_flag += BranchIfEqual(&is_noncovariant, &is_covariant);
 
-  Fragment(is_covariant) + Goto(next);  // Continue if covariant.
+  Fragment(is_covariant) + Goto(next);      // Continue if covariant.
   Fragment(is_noncovariant) + Goto(check);  // Check type if non-covariant.
 
   Fragment loop_prep_type_param(check);
@@ -2653,7 +2656,8 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
   loop_call_check += LoadLocal(info.type_parameters);
   loop_call_check += LoadNativeField(Slot::TypeParameters_names());
   loop_call_check += LoadLocal(info.vars->current_param_index);
-  loop_call_check += LoadIndexed(kArrayCid);
+  loop_call_check += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   // Assert that the passed-in type argument is consistent with the bound of
   // the corresponding type parameter.
   loop_call_check += AssertSubtype(TokenPosition::kNoSource);
@@ -2682,7 +2686,8 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeCheck(
   // Load destination type.
   instructions += LoadLocal(info.parameter_types);
   instructions += LoadLocal(param_index);
-  instructions += LoadIndexed(kArrayCid);
+  instructions += LoadIndexed(
+      kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   // Load instantiator type arguments.
   instructions += LoadLocal(info.instantiator_type_args);
   // Load the full set of function type arguments.
@@ -2739,13 +2744,13 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedNumFixedParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
   info.num_fixed_params = MakeTemporary("num_fixed_params");
 
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedNumOptionalParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
   info.num_opt_params = MakeTemporary("num_opt_params");
 
   body += LoadLocal(info.num_fixed_params);
@@ -2756,15 +2761,15 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += LoadLocal(info.signature);
   body += BuildExtractUnboxedSlotBitFieldIntoSmi<
       FunctionType::PackedHasNamedOptionalParameters>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_parameter_counts());
 
   body += IntConstant(0);
   body += StrictCompare(Token::kNE_STRICT);
   info.has_named_params = MakeTemporary("has_named_params");
 
   body += LoadLocal(info.signature);
-  body += LoadNativeField(Slot::FunctionType_parameter_names());
-  info.parameter_names = MakeTemporary("parameter_names");
+  body += LoadNativeField(Slot::FunctionType_named_parameter_names());
+  info.named_parameter_names = MakeTemporary("named_parameter_names");
 
   body += LoadLocal(info.signature);
   body += LoadNativeField(Slot::FunctionType_parameter_types());
@@ -2804,13 +2809,14 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   generic += LoadLocal(info.signature);
   generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
       UntaggedFunctionType::PackedNumParentTypeArguments>(
-      Slot::FunctionType_packed_fields());
+      Slot::FunctionType_packed_type_parameter_counts());
   info.num_parent_type_args = MakeTemporary("num_parent_type_args");
 
   // Hoist number of type parameters.
-  generic += LoadLocal(info.type_parameters);
-  generic += LoadNativeField(Slot::TypeParameters_names());
-  generic += LoadNativeField(Slot::Array_length());
+  generic += LoadLocal(info.signature);
+  generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      UntaggedFunctionType::PackedNumTypeParameters>(
+      Slot::FunctionType_packed_type_parameter_counts());
   info.num_type_parameters = MakeTemporary("num_type_parameters");
 
   // Hoist type parameter flags.
@@ -2867,7 +2873,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += DropTemporary(&info.instantiator_type_args);
   body += DropTemporary(&info.type_parameters);
   body += DropTemporary(&info.parameter_types);
-  body += DropTemporary(&info.parameter_names);
+  body += DropTemporary(&info.named_parameter_names);
   body += DropTemporary(&info.has_named_params);
   body += DropTemporary(&info.num_max_params);
   body += DropTemporary(&info.num_opt_params);
@@ -4508,6 +4514,10 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
   if (!type.IsNonNullable()) {
     return false;
+  }
+  if (type.IsTypeRef()) {
+    return NeedsNullAssertion(
+        AbstractType::Handle(Z, TypeRef::Cast(type).type()));
   }
   if (type.IsTypeParameter()) {
     return NeedsNullAssertion(

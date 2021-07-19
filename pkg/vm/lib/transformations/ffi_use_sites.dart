@@ -268,7 +268,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
-                node.location.file);
+                node.location?.file);
             return node;
           }
           node.arguments.positional.add(NullLiteral()..parent = node);
@@ -281,7 +281,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     funcType.returnType, currentLibrary.isNonNullableByDefault),
                 node.fileOffset,
                 1,
-                node.location.file);
+                node.location?.file);
             return node;
           }
 
@@ -293,7 +293,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               !(exceptionalReturn is ConstantExpression &&
                   exceptionalReturn.constant is PrimitiveConstant)) {
             diagnosticReporter.report(messageFfiExpectedConstant,
-                node.fileOffset, 1, node.location.file);
+                node.fileOffset, 1, node.location?.file);
             return node;
           }
 
@@ -302,7 +302,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               (exceptionalReturn is ConstantExpression &&
                   exceptionalReturn.constant is NullConstant)) {
             diagnosticReporter.report(messageFfiExceptionalReturnNull,
-                node.fileOffset, 1, node.location.file);
+                node.fileOffset, 1, node.location?.file);
             return node;
           }
 
@@ -316,7 +316,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                     funcType.returnType, currentLibrary.isNonNullableByDefault),
                 exceptionalReturn.fileOffset,
                 1,
-                exceptionalReturn.location.file);
+                exceptionalReturn.location?.file);
             return node;
           }
         }
@@ -675,44 +675,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    final Member target = node.interfaceTarget;
-    try {
-      if (target == elementAtMethod) {
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
-
-        _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
-
-        Expression inlineSizeOf = _inlineSizeOf(nativeType);
-        if (inlineSizeOf != null) {
-          // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
-          return InstanceInvocation(
-              InstanceAccessKind.Instance,
-              node.receiver,
-              offsetByMethod.name,
-              Arguments(
-                  [multiply(node.arguments.positional.single, inlineSizeOf)]),
-              interfaceTarget: offsetByMethod,
-              functionType:
-                  Substitution.fromInterfaceType(pointerType as InterfaceType)
-                          .substituteType(offsetByMethod.getterType)
-                      as FunctionType);
-        }
-      }
-    } on _FfiStaticTypeError {
-      // It's OK to swallow the exception because the diagnostics issued will
-      // cause compilation to fail. By continuing, we can report more
-      // diagnostics before compilation ends.
-    }
-
-    return node;
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     super.visitInstanceInvocation(node);
 
@@ -771,7 +733,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             nativeType, currentLibrary.isNonNullableByDefault),
         node.fileOffset,
         1,
-        node.location.file);
+        node.location?.file);
     throw _FfiStaticTypeError();
   }
 
@@ -788,7 +750,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               nativeType, currentLibrary.isNonNullableByDefault),
           node.fileOffset,
           1,
-          node.location.file);
+          node.location?.file);
       throw _FfiStaticTypeError();
     }
   }
@@ -808,14 +770,15 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   void _ensureIsStaticFunction(Expression node) {
     if ((node is StaticGet && node.target is Procedure) ||
-        (node is ConstantExpression && node.constant is TearOffConstant)) {
+        (node is ConstantExpression &&
+            node.constant is StaticTearOffConstant)) {
       return;
     }
     diagnosticReporter.report(
         templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
         node.fileOffset,
         1,
-        node.location.file);
+        node.location?.file);
     throw _FfiStaticTypeError();
   }
 
@@ -866,7 +829,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               .withArguments(extended.name),
           klass.fileOffset,
           1,
-          klass.location.file);
+          klass.location?.file);
       throw _FfiStaticTypeError();
     }
   }
@@ -902,7 +865,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           templateFfiExpectedConstantArg.withArguments('isLeaf'),
           node.fileOffset,
           1,
-          node.location.file);
+          node.location?.file);
       // Throw so we don't get another error about not replacing
       // `lookupFunction`, which will shadow the above error.
       throw _FfiStaticTypeError();
@@ -924,14 +887,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       if (returnType is InterfaceType) {
         if (returnType.classNode == handleClass) {
           diagnosticReporter.report(messageFfiLeafCallMustNotReturnHandle,
-              node.fileOffset, 1, node.location.file);
+              node.fileOffset, 1, node.location?.file);
         }
       }
       // Check if any of the argument types are Handle.
       for (InterfaceType param in functionType.positionalParameters) {
         if (param.classNode == handleClass) {
           diagnosticReporter.report(messageFfiLeafCallMustNotTakeHandle,
-              node.fileOffset, 1, node.location.file);
+              node.fileOffset, 1, node.location?.file);
         }
       }
     }

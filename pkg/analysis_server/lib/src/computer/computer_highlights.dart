@@ -100,6 +100,9 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_class(node)) {
       return;
     }
+    if (_addIdentifierRegion_extension(node)) {
+      return;
+    }
     if (_addIdentifierRegion_constructor(node)) {
       return;
     }
@@ -223,6 +226,29 @@ class DartUnitHighlightsComputer {
     return false;
   }
 
+  bool _addIdentifierRegion_extension(SimpleIdentifier node) {
+    var element = node.writeOrReadElement;
+    if (element is! ExtensionElement) {
+      return false;
+    }
+
+    // TODO(dantup): Right now there is no highlight type for extension, so
+    // bail out and do the default thing (which will be to return
+    // IDENTIFIER_DEFAULT). Adding EXTENSION requires coordination with
+    // IntelliJ + bumping protocol version.
+    if (!_computeSemanticTokens) {
+      return false;
+    }
+
+    return _addRegion_node(
+      node,
+      // TODO(dantup): Change this to EXTENSION and add to LSP mapping when
+      // we have it, but for now use CLASS (which is probably what we'll map it
+      // to for LSP semantic tokens anyway).
+      HighlightRegionType.CLASS,
+    );
+  }
+
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is FieldFormalParameterElement) {
@@ -336,7 +362,11 @@ class DartUnitHighlightsComputer {
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
     var name = node.name;
     if (name == 'void') {
-      return _addRegion_node(node, HighlightRegionType.KEYWORD);
+      return _addRegion_node(
+        node,
+        HighlightRegionType.KEYWORD,
+        semanticTokenModifiers: {CustomSemanticTokenModifiers.void_},
+      );
     }
     return false;
   }
@@ -670,6 +700,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    _addRegions_configurations(node.configurations);
     super.visitExportDirective(node);
   }
 
@@ -817,6 +848,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(
         node.deferredKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.asKeyword, HighlightRegionType.BUILT_IN);
+    _addRegions_configurations(node.configurations);
     super.visitImportDirective(node);
   }
 
@@ -1102,6 +1134,14 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion(offset, end - offset, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     super.visitYieldStatement(node);
+  }
+
+  void _addRegions_configurations(List<Configuration> configurations) {
+    for (final configuration in configurations) {
+      computer._addRegion_token(
+          configuration.ifKeyword, HighlightRegionType.BUILT_IN,
+          semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+    }
   }
 
   void _addRegions_functionBody(FunctionBody node) {

@@ -265,14 +265,16 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token endToken) {
     indent--;
     seen(extensionKeyword);
+    seen(typeKeyword);
     seen(onKeyword);
     seen(endToken);
     doPrint('endExtensionDeclaration('
         '$extensionKeyword, '
+        '$typeKeyword, '
         '$onKeyword, '
         '$endToken)');
   }

@@ -71,15 +71,17 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
 }
 
 SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
-    : isolate_group_(isolate_group),
-      handlers_{
-          {isolate_group, SafepointLevel::kGC},
-          {isolate_group, SafepointLevel::kGCAndDeopt},
-      } {}
+    : isolate_group_(isolate_group) {
+  handlers_[SafepointLevel::kGC] =
+      new LevelHandler(isolate_group, SafepointLevel::kGC);
+  handlers_[SafepointLevel::kGCAndDeopt] =
+      new LevelHandler(isolate_group, SafepointLevel::kGCAndDeopt);
+}
 
 SafepointHandler::~SafepointHandler() {
   for (intptr_t level = 0; level < SafepointLevel::kNumLevels; ++level) {
-    ASSERT(handlers_[level].owner_ == nullptr);
+    ASSERT(handlers_[level]->owner_ == nullptr);
+    delete handlers_[level];
   }
 }
 
@@ -92,8 +94,8 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
     MonitorLocker tl(threads_lock());
 
     // Allow recursive deopt safepoint operation.
-    if (handlers_[level].owner_ == T) {
-      handlers_[level].operation_count_++;
+    if (handlers_[level]->owner_ == T) {
+      handlers_[level]->operation_count_++;
       // If we own this safepoint level already we have to own the lower levels
       // as well.
       AssertWeOwnLowerLevelSafepoints(T, level);
@@ -112,17 +114,17 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
 
     // Wait until other safepoint operations are done & mark us as owning
     // the safepoint - so no other thread can.
-    while (handlers_[level].SafepointInProgress()) {
+    while (handlers_[level]->SafepointInProgress()) {
       tl.Wait();
     }
-    handlers_[level].SetSafepointInProgress(T);
+    handlers_[level]->SetSafepointInProgress(T);
 
     // Ensure a thread is at a safepoint or notify it to get to one.
-    handlers_[level].NotifyThreadsToGetToSafepointLevel(T);
+    handlers_[level]->NotifyThreadsToGetToSafepointLevel(T);
   }
 
   // Now wait for all threads that are not already at a safepoint to check-in.
-  handlers_[level].WaitUntilThreadsReachedSafepointLevel();
+  handlers_[level]->WaitUntilThreadsReachedSafepointLevel();
 
   AcquireLowerLevelSafepoints(T, level);
 }
@@ -130,7 +132,7 @@ void SafepointHandler::SafepointThreads(Thread* T, SafepointLevel level) {
 void SafepointHandler::AssertWeOwnLowerLevelSafepoints(Thread* T,
                                                        SafepointLevel level) {
   for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
-    RELEASE_ASSERT(handlers_[lower_level].owner_ == T);
+    RELEASE_ASSERT(handlers_[lower_level]->owner_ == T);
   }
 }
 
@@ -138,7 +140,7 @@ void SafepointHandler::AssertWeDoNotOwnLowerLevelSafepoints(
     Thread* T,
     SafepointLevel level) {
   for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
-    RELEASE_ASSERT(handlers_[lower_level].owner_ != T);
+    RELEASE_ASSERT(handlers_[lower_level]->owner_ != T);
   }
 }
 
@@ -166,19 +168,19 @@ void SafepointHandler::ResumeThreads(Thread* T, SafepointLevel level) {
   {
     MonitorLocker sl(threads_lock());
 
-    ASSERT(handlers_[level].SafepointInProgress());
-    ASSERT(handlers_[level].owner_ == T);
+    ASSERT(handlers_[level]->SafepointInProgress());
+    ASSERT(handlers_[level]->owner_ == T);
     AssertWeOwnLowerLevelSafepoints(T, level);
 
     // We allow recursive safepoints.
-    if (handlers_[level].operation_count_ > 1) {
-      handlers_[level].operation_count_--;
+    if (handlers_[level]->operation_count_ > 1) {
+      handlers_[level]->operation_count_--;
       return;
     }
 
     ReleaseLowerLevelSafepoints(T, level);
-    handlers_[level].NotifyThreadsToContinue(T);
-    handlers_[level].ResetSafepointInProgress(T);
+    handlers_[level]->NotifyThreadsToContinue(T);
+    handlers_[level]->ResetSafepointInProgress(T);
     sl.NotifyAll();
   }
   ExitSafepointUsingLock(T);
@@ -207,20 +209,20 @@ void SafepointHandler::LevelHandler::WaitUntilThreadsReachedSafepointLevel() {
 void SafepointHandler::AcquireLowerLevelSafepoints(Thread* T,
                                                    SafepointLevel level) {
   MonitorLocker tl(threads_lock());
-  ASSERT(handlers_[level].owner_ == T);
+  ASSERT(handlers_[level]->owner_ == T);
   for (intptr_t lower_level = level - 1; lower_level >= 0; --lower_level) {
-    while (handlers_[lower_level].SafepointInProgress()) {
+    while (handlers_[lower_level]->SafepointInProgress()) {
       tl.Wait();
     }
-    handlers_[lower_level].SetSafepointInProgress(T);
-    ASSERT(handlers_[lower_level].owner_ == T);
+    handlers_[lower_level]->SetSafepointInProgress(T);
+    ASSERT(handlers_[lower_level]->owner_ == T);
   }
 }
 
 void SafepointHandler::ReleaseLowerLevelSafepoints(Thread* T,
                                                    SafepointLevel level) {
   for (intptr_t lower_level = 0; lower_level < level; ++lower_level) {
-    handlers_[lower_level].ResetSafepointInProgress(T);
+    handlers_[lower_level]->ResetSafepointInProgress(T);
   }
 }
 
@@ -272,7 +274,7 @@ void SafepointHandler::EnterSafepointLocked(Thread* T, MonitorLocker* tl) {
   for (intptr_t level = T->current_safepoint_level(); level >= 0; --level) {
     if (T->IsSafepointLevelRequestedLocked(
             static_cast<SafepointLevel>(level))) {
-      handlers_[level].NotifyWeAreParked(T);
+      handlers_[level]->NotifyWeAreParked(T);
     }
   }
 }

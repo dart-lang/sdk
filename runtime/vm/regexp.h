@@ -1517,6 +1517,13 @@ class RegExpEngine : public AllStatic {
   static void DotPrint(const char* label, RegExpNode* node, bool ignore_case);
 };
 
+void CreateSpecializedFunction(Thread* thread,
+                               Zone* zone,
+                               const RegExp& regexp,
+                               intptr_t specialization_cid,
+                               bool sticky,
+                               const Object& owner);
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_REGEXP_H_

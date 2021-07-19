@@ -64,8 +64,8 @@ const FpuRegister FpuTMP = XMM7;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfXmmRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfXmmRegisters];
 
 // Register aliases.
 const Register TMP = kNoRegister;   // No scratch register used by assembler.
@@ -345,7 +345,7 @@ class CallingConventions {
       kAlignedToWordSize;
 
   // How fields in compounds are aligned.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #else
   static constexpr AlignmentStrategy kFieldAlignment =

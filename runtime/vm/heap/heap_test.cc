@@ -521,24 +521,23 @@ class HeapTestHelper {
   }
 };
 
-class MergeIsolatesHeapsHandler : public MessageHandler {
+class SendAndExitMessagesHandler : public MessageHandler {
  public:
-  explicit MergeIsolatesHeapsHandler(Isolate* owner)
+  explicit SendAndExitMessagesHandler(Isolate* owner)
       : msg_(Utils::CreateCStringUniquePtr(nullptr)), owner_(owner) {}
 
   const char* name() const { return "merge-isolates-heaps-handler"; }
 
-  ~MergeIsolatesHeapsHandler() { PortMap::ClosePorts(this); }
+  ~SendAndExitMessagesHandler() { PortMap::ClosePorts(this); }
 
   MessageStatus HandleMessage(std::unique_ptr<Message> message) {
     // Parse the message.
     Object& response_obj = Object::Handle();
     if (message->IsRaw()) {
       response_obj = message->raw_obj();
-    } else if (message->IsBequest()) {
-      Bequest* bequest = message->bequest();
-      PersistentHandle* handle = bequest->handle();
-      // Object in the receiving isolate's heap.
+    } else if (message->IsPersistentHandle()) {
+      PersistentHandle* handle = message->persistent_handle();
+      // Object is in the receiving isolate's heap.
       EXPECT(isolate()->group()->heap()->Contains(
           UntaggedObject::ToAddr(handle->ptr())));
       response_obj = handle->ptr();
@@ -582,7 +581,7 @@ VM_UNIT_TEST_CASE(CleanupBequestNeverReceived) {
   Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
   EXPECT_EQ(parent, Dart_CurrentIsolate());
   {
-    MergeIsolatesHeapsHandler handler(Isolate::Current());
+    SendAndExitMessagesHandler handler(Isolate::Current());
     Dart_Port port_id = PortMap::CreatePort(&handler);
     EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
     Dart_ExitIsolate();
@@ -616,7 +615,7 @@ VM_UNIT_TEST_CASE(ReceivesSendAndExitMessage) {
   const char* TEST_MESSAGE = "hello, world";
   Dart_Isolate parent = TestCase::CreateTestIsolate("parent");
   EXPECT_EQ(parent, Dart_CurrentIsolate());
-  MergeIsolatesHeapsHandler handler(Isolate::Current());
+  SendAndExitMessagesHandler handler(Isolate::Current());
   Dart_Port port_id = PortMap::CreatePort(&handler);
   EXPECT_EQ(PortMap::GetIsolate(port_id), Isolate::Current());
   Dart_ExitIsolate();

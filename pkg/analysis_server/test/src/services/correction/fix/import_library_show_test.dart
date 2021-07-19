@@ -140,7 +140,7 @@ class B {}
     await resolveTestCode(r'''
 import 'lib.dart' show A;
 main() {
-  A a;
+  A? a;
   B b;
   print('$a $b');
 }
@@ -148,7 +148,7 @@ main() {
     await assertHasFix(r'''
 import 'lib.dart' show A, B;
 main() {
-  A a;
+  A? a;
   B b;
   print('$a $b');
 }
@@ -159,16 +159,16 @@ main() {
     await resolveTestCode(r'''
 import 'dart:collection' show HashMap;
 main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('$s $f');
 }
 ''');
     await assertHasFix(r'''
 import 'dart:collection' show HashMap, LinkedHashMap;
 main() {
-  HashMap s = null;
-  LinkedHashMap f = null;
+  HashMap? s = null;
+  LinkedHashMap? f = null;
   print('$s $f');
 }
 ''');

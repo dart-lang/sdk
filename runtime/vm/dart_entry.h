@@ -66,9 +66,13 @@ class ArgumentsDescriptor : public ValueObject {
     return Array::element_offset(kFirstNamedEntryIndex);
   }
 
-  static intptr_t name_offset() { return kNameOffset * kWordSize; }
-  static intptr_t position_offset() { return kPositionOffset * kWordSize; }
-  static intptr_t named_entry_size() { return kNamedEntrySize * kWordSize; }
+  static intptr_t name_offset() { return kNameOffset * kCompressedWordSize; }
+  static intptr_t position_offset() {
+    return kPositionOffset * kCompressedWordSize;
+  }
+  static intptr_t named_entry_size() {
+    return kNamedEntrySize * kCompressedWordSize;
+  }
 
   // Constructs an argument descriptor where all arguments are boxed and
   // therefore number of parameters equals parameter size.
@@ -303,6 +307,10 @@ class DartLibraryCalls : public AllStatic {
   // _startMicrotaskLoop from dart:async.
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr EnsureScheduleImmediate();
+
+  // Runs the `_rehashObjects()` function.
+  static ObjectPtr RehashObjects(Thread* thread,
+                                 const Object& array_or_growable_array);
 };
 
 }  // namespace dart

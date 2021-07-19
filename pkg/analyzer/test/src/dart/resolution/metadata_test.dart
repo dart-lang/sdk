@@ -27,6 +27,59 @@ class MetadataResolutionTest extends PubPackageResolutionTest {
     return findElement.importFind('package:test/a.dart');
   }
 
+  test_location_partDirective() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+part of 'test.dart';
+''');
+
+    await assertNoErrorsInCode(r'''
+@foo
+part 'a.dart';
+const foo = 42;
+''');
+
+    var annotation = findNode.annotation('@foo');
+    assertElement2(
+      annotation,
+      declaration: findElement.topGet('foo'),
+    );
+
+    var annotationElement = annotation.elementAnnotation!;
+    _assertElementAnnotationValueText(annotationElement, r'''
+int 42
+''');
+  }
+
+  test_location_partOfDirective() async {
+    var libPath = newFile('$testPackageLibPath/lib.dart', content: r'''
+part 'part.dart';
+''').path;
+
+    var partPath = newFile('$testPackageLibPath/part.dart', content: r'''
+@foo
+part of 'lib.dart';
+const foo = 42;
+void f() {}
+''').path;
+
+    // Resolve the library, so that the part knows its library.
+    await resolveFile2(libPath);
+
+    await resolveFile2(partPath);
+    assertNoErrorsInResult();
+
+    var annotation = findNode.annotation('@foo');
+    assertElement2(
+      annotation,
+      declaration: findElement.topGet('foo'),
+    );
+
+    var annotationElement = annotation.elementAnnotation!;
+    _assertElementAnnotationValueText(annotationElement, r'''
+int 42
+''');
+  }
+
   test_onFieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -50,6 +103,8 @@ Annotation
             IntegerLiteral
               literal: 0
               staticType: int
+          leftParenthesis: (
+          rightParenthesis: )
         constructorName: ConstructorName
           staticElement: self::@class::A::@constructor::•
           type: TypeName
@@ -59,6 +114,9 @@ Annotation
               token: A
             type: A
         staticType: A
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@class::A
@@ -344,6 +402,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: self::@class::A::@constructor::named
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -382,6 +443,7 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -420,6 +482,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@class::A
@@ -456,6 +521,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -506,6 +574,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -537,6 +608,7 @@ void f() {}
 
     _assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
+  atSign: @
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -572,6 +644,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: dynamic}
@@ -611,6 +686,7 @@ void f() {}
     var annotation = findNode.annotation('@A');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -649,6 +725,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -670,6 +749,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, '''
 A<int>
@@ -701,6 +782,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -716,6 +800,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -748,6 +834,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: dynamic}
@@ -790,6 +879,218 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_classTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+class C<T> = D with E;
+
+class D {}
+class E {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_functionTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+typedef T F<T>();
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_functionTypedFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+f(@B(42) g()) {}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_genericTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+@B(42)
+typedef F = void Function();
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::B::@constructor::•
+    substitution: {T: int}
+  name: SimpleIdentifier
+    staticElement: self::@class::B
+    staticType: null
+    token: B
+''');
+    _assertAnnotationValueText(annotation, r'''
+B<int>
+  (super): A<int>
+    f: int 42
+''');
+  }
+
+  test_value_genericMixinApplication_inference_unnamedConstructor_methodDeclaration() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+mixin M {}
+
+class B<T> = A<T> with M;
+
+class C {
+  @B(42)
+  m() {}
+}
+''');
+
+    var annotation = findNode.annotation('@B');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      IntegerLiteral
+        literal: 42
+        staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
@@ -828,6 +1129,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::B::@constructor::•
     substitution: {T: int}
@@ -843,6 +1147,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 B<int>
@@ -958,6 +1264,7 @@ void f() {}
     var annotation = findNode.annotation('@prefix.B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: package:test/a.dart::@class::A::@getter::foo
     staticType: null
@@ -1005,6 +1312,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
@@ -1063,6 +1373,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
@@ -1115,6 +1428,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: package:test/a.dart::@class::A::@constructor::named
@@ -1144,6 +1460,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1181,6 +1499,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: package:test/a.dart::@class::A::@constructor::•
     substitution: {T: int}
@@ -1204,6 +1525,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1232,6 +1555,7 @@ void f() {}
     var annotation = findNode.annotation('@B');
     _assertResolvedNodeText(annotation, r'''
 Annotation
+  atSign: @
   element: self::@class::A::@getter::foo
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -1276,6 +1600,9 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -1297,6 +1624,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1342,6 +1671,9 @@ Annotation
       DoubleLiteral
         literal: 1.2
         staticType: double
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int, U: double}
@@ -1357,6 +1689,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int, double>
@@ -1398,6 +1732,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -1451,6 +1788,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1492,6 +1832,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   constructorName: SimpleIdentifier
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
@@ -1513,6 +1856,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1547,6 +1892,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1562,6 +1910,8 @@ Annotation
           staticType: null
           token: int
         type: int
+    leftBracket: <
+    rightBracket: >
 ''');
     _assertAnnotationValueText(annotation, r'''
 A<int>
@@ -1596,6 +1946,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
     substitution: {T: int}
@@ -1649,6 +2002,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
     substitution: {T: int}
@@ -1690,6 +2046,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: self::@class::A::@constructor::named
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
@@ -1736,6 +2095,9 @@ Annotation
       IntegerLiteral
         literal: 42
         staticType: int
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier
     staticElement: self::@typeAlias::B

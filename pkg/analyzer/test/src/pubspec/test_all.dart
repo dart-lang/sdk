@@ -4,10 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'pubspec_validator_test.dart' as pubspec_validator;
+import 'diagnostics/test_all.dart' as diagnostics_tests;
 
 main() {
   defineReflectiveSuite(() {
-    pubspec_validator.main();
+    diagnostics_tests.main();
   }, name: 'pubspec');
 }

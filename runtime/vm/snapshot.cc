@@ -362,7 +362,7 @@ void SnapshotReader::RunDelayedTypePostprocessing() {
   for (intptr_t i = 0; i < types_to_postprocess_.Length(); ++i) {
     type ^= types_to_postprocess_.At(i);
     code = TypeTestingStubGenerator::DefaultCodeForType(type);
-    type.SetTypeTestingStub(code);
+    type.InitializeTypeTestingStubNonAtomic(code);
   }
 }
 
@@ -375,17 +375,7 @@ void SnapshotReader::EnqueueRehashingOfMap(const LinkedHashMap& map) {
 
 ObjectPtr SnapshotReader::RunDelayedRehashingOfMaps() {
   if (!objects_to_rehash_.IsNull()) {
-    const Library& collections_lib =
-        Library::Handle(zone_, Library::CollectionLibrary());
-    const Function& rehashing_function = Function::Handle(
-        zone_,
-        collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
-    ASSERT(!rehashing_function.IsNull());
-
-    const Array& arguments = Array::Handle(zone_, Array::New(1));
-    arguments.SetAt(0, objects_to_rehash_);
-
-    return DartEntry::InvokeFunction(rehashing_function, arguments);
+    return DartLibraryCalls::RehashObjects(thread(), objects_to_rehash_);
   }
   return Object::null();
 }
@@ -627,7 +617,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
     *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew,
-                                /*compressed*/ false);
+                                Instance::ContainsCompressedPointers());
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
@@ -654,7 +644,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
             result_cid);
 
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
+      if (unboxed_fields.Get(offset / kCompressedWordSize)) {
         uword* p = reinterpret_cast<uword*>(result->raw_value() -
                                             kHeapObjectTag + offset);
         // Reads 32 bits of the unboxed value at a time
@@ -671,7 +661,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
           // across the call to ReadObjectImpl.
           cls_ = isolate_group()->class_table()->At(result_cid);
           array_ = cls_.OffsetToFieldMap();
-          field_ ^= array_.At(offset >> kWordSizeLog2);
+          field_ ^= array_.At(offset >> kCompressedWordSizeLog2);
           ASSERT(!field_.IsNull());
           ASSERT(field_.HostOffset() == offset);
           obj_ = pobj_.ptr();
@@ -680,7 +670,7 @@ ObjectPtr SnapshotReader::ReadInstance(intptr_t object_id,
         // TODO(fschneider): Verify the guarded cid and length for other kinds
         // of snapshot (kFull, kScript) with asserts.
       }
-      offset += kWordSize;
+      offset += kCompressedWordSize;
     }
     if (UntaggedObject::IsCanonical(tags)) {
       *result = result->Canonicalize(thread());
@@ -1375,7 +1365,7 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
                                   intptr_t tags,
                                   SmiPtr length,
                                   TypeArgumentsPtr type_arguments,
-                                  ObjectPtr data[],
+                                  CompressedObjectPtr data[],
                                   bool as_reference) {
   if (as_reference) {
     // Write out the serialization header value for this object.
@@ -1405,8 +1395,9 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 
     // Write out the individual object ids.
     bool write_as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
+    uword heap_base = type_arguments.heap_base();
     for (intptr_t i = 0; i < len; i++) {
-      WriteObjectImpl(data[i], write_as_reference);
+      WriteObjectImpl(data[i].Decompress(heap_base), write_as_reference);
     }
   }
 }
@@ -1493,7 +1484,7 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
     WriteObjectImpl(cls, kAsInlinedObject);
   } else {
     intptr_t next_field_offset = Class::host_next_field_offset_in_words(cls)
-                                 << kWordSizeLog2;
+                                 << kCompressedWordSizeLog2;
     ASSERT(next_field_offset > 0);
 
     // Write out the serialization header value for this object.
@@ -1518,18 +1509,20 @@ void SnapshotWriter::WriteInstance(ObjectPtr raw,
     bool write_as_reference = UntaggedObject::IsCanonical(tags) ? false : true;
 
     intptr_t offset = Instance::NextFieldOffset();
+    uword heap_base = raw->heap_base();
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
+      if (unboxed_fields.Get(offset / kCompressedWordSize)) {
         // Writes 32 bits of the unboxed value at a time
-        const uword value = *reinterpret_cast<uword*>(
+        const uword value = *reinterpret_cast<compressed_uword*>(
             reinterpret_cast<uword>(raw->untag()) + offset);
         WriteWordWith32BitWrites(value);
       } else {
-        ObjectPtr raw_obj = *reinterpret_cast<ObjectPtr*>(
-            reinterpret_cast<uword>(raw->untag()) + offset);
+        ObjectPtr raw_obj = reinterpret_cast<CompressedObjectPtr*>(
+                                reinterpret_cast<uword>(raw->untag()) + offset)
+                                ->Decompress(heap_base);
         WriteObjectImpl(raw_obj, write_as_reference);
       }
-      offset += kWordSize;
+      offset += kCompressedWordSize;
     }
   }
   return;

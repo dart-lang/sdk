@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
-import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -16,17 +13,19 @@ import '../builder/type_variable_builder.dart';
 
 import '../scope.dart';
 
+import '../util/helpers.dart';
+
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 
 class DillExtensionBuilder extends ExtensionBuilderImpl {
   final Extension extension;
-  List<TypeVariableBuilder> _typeParameters;
-  TypeBuilder _onType;
+  List<TypeVariableBuilder>? _typeParameters;
+  TypeBuilder? _onType;
 
   DillExtensionBuilder(this.extension, LibraryBuilder parent)
       : super(
-            null,
+            /* metadata = */ null,
             0,
             extension.name,
             parent,
@@ -36,11 +35,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
                 setters: <String, MemberBuilder>{},
                 parent: parent.scope,
                 debugName: "extension ${extension.name}",
-                isModifiable: false),
-            null,
-            null) {
+                isModifiable: false)) {
     Map<Name, ExtensionMemberDescriptor> _methods = {};
-    Map<Name, Member> _tearOffs = {};
+    Map<Name, Procedure> _tearOffs = {};
     for (ExtensionMemberDescriptor descriptor in extension.members) {
       Name name = descriptor.name;
       switch (descriptor.kind) {
@@ -56,7 +53,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
           }
           break;
         case ExtensionMemberKind.TearOff:
-          _tearOffs[name] = descriptor.member.asMember;
+          _tearOffs[name] = descriptor.member.asProcedure;
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.member.asProcedure;
@@ -87,12 +84,12 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       scopeBuilder.addMember(
           name.text,
           new DillExtensionInstanceMethodBuilder(
-              procedure, descriptor, this, _tearOffs[name]));
+              procedure, descriptor, this, _tearOffs[name]!));
     });
   }
 
   @override
-  List<TypeVariableBuilder> get typeParameters {
+  List<TypeVariableBuilder>? get typeParameters {
     if (_typeParameters == null && extension.typeParameters.isNotEmpty) {
       _typeParameters =
           computeTypeVariableBuilders(library, extension.typeParameters);
@@ -102,10 +99,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
 
   @override
   TypeBuilder get onType {
-    if (_onType == null) {
-      _onType = library.loader.computeTypeBuilder(extension.onType);
-    }
-    return _onType;
+    return _onType ??= library.loader.computeTypeBuilder(extension.onType);
   }
 
   @override

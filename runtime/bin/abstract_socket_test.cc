@@ -8,7 +8,7 @@
 // closes the connection and UNIX socket.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,4 +101,4 @@ int main() {
   return -1;
 }
 
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)

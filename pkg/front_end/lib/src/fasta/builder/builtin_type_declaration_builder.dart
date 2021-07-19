@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.builtin_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
@@ -18,13 +16,17 @@ abstract class BuiltinTypeDeclarationBuilder
     extends TypeDeclarationBuilderImpl {
   final DartType type;
 
+  @override
+  final Uri fileUri;
+
   BuiltinTypeDeclarationBuilder(
       String name, this.type, LibraryBuilder compilationUnit, int charOffset)
-      : super(null, 0, name, compilationUnit, charOffset);
+      : fileUri = compilationUnit.fileUri,
+        super(null, 0, name, compilationUnit, charOffset);
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 

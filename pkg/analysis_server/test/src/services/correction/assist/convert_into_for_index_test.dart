@@ -21,7 +21,7 @@ class ConvertIntoForIndexTest extends AssistProcessorTest {
 
   Future<void> test_bodyNotBlock() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) print(item);
 }
 ''');
@@ -30,7 +30,7 @@ main(List<String> items) {
 
   Future<void> test_doesNotDeclareVariable() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   String item;
   for (item in items) {
     print(item);
@@ -42,7 +42,7 @@ main(List<String> items) {
 
   Future<void> test_iterableIsNotVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   for (String item in ['a', 'b', 'c']) {
     print(item);
   }
@@ -53,7 +53,7 @@ main() {
 
   Future<void> test_iterableNotList() async {
     await resolveTestCode('''
-main(Iterable<String> items) {
+void f(Iterable<String> items) {
   for (String item in items) {
     print(item);
   }
@@ -64,14 +64,14 @@ main(Iterable<String> items) {
 
   Future<void> test_onDeclaredIdentifier_name() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     print(item);
   }
 }
 ''');
     await assertHasAssistAt('item in', '''
-main(List<String> items) {
+void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
     print(item);
@@ -82,14 +82,14 @@ main(List<String> items) {
 
   Future<void> test_onDeclaredIdentifier_type() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     print(item);
   }
 }
 ''');
     await assertHasAssistAt('tring item', '''
-main(List<String> items) {
+void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
     print(item);
@@ -100,14 +100,14 @@ main(List<String> items) {
 
   Future<void> test_onFor() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     print(item);
   }
 }
 ''');
     await assertHasAssistAt('for (String', '''
-main(List<String> items) {
+void f(List<String> items) {
   for (int i = 0; i < items.length; i++) {
     String item = items[i];
     print(item);
@@ -118,14 +118,14 @@ main(List<String> items) {
 
   Future<void> test_usesI() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     int i = 0;
   }
 }
 ''');
     await assertHasAssistAt('for (String', '''
-main(List<String> items) {
+void f(List<String> items) {
   for (int j = 0; j < items.length; j++) {
     String item = items[j];
     int i = 0;
@@ -136,7 +136,7 @@ main(List<String> items) {
 
   Future<void> test_usesIJ() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     print(item);
     int i = 0, j = 1;
@@ -144,7 +144,7 @@ main(List<String> items) {
 }
 ''');
     await assertHasAssistAt('for (String', '''
-main(List<String> items) {
+void f(List<String> items) {
   for (int k = 0; k < items.length; k++) {
     String item = items[k];
     print(item);
@@ -156,7 +156,7 @@ main(List<String> items) {
 
   Future<void> test_usesIJK() async {
     await resolveTestCode('''
-main(List<String> items) {
+void f(List<String> items) {
   for (String item in items) {
     print(item);
     int i, j, k;

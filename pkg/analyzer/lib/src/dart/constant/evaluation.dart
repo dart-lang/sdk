@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
@@ -58,16 +59,18 @@ class ConstantEvaluationEngine {
   /// The set of variables declared on the command line using '-D'.
   final DeclaredVariables _declaredVariables;
 
-  /// Whether the `triple_shift` experiment is enabled.
-  final bool _isTripleShiftExperimentEnabled;
+  /// Whether the `non-nullable` feature is enabled.
+  final bool _isNonNullableByDefault;
 
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
   /// [declaredVariables] is the set of variables declared on the command
   /// line using '-D'.
-  ConstantEvaluationEngine(
-      DeclaredVariables declaredVariables, this._isTripleShiftExperimentEnabled)
-      : _declaredVariables = declaredVariables;
+  ConstantEvaluationEngine({
+    required DeclaredVariables declaredVariables,
+    required bool isNonNullableByDefault,
+  })  : _declaredVariables = declaredVariables,
+        _isNonNullableByDefault = isNonNullableByDefault;
 
   /// Check that the arguments to a call to fromEnvironment() are correct. The
   /// [arguments] are the AST nodes of the arguments. The [argumentValues] are
@@ -98,8 +101,7 @@ class ConstantEvaluationEngine {
         if (!(secondArgument.name.label.name == _DEFAULT_VALUE_PARAM)) {
           return false;
         }
-        ParameterizedType defaultValueType =
-            namedArgumentValues[_DEFAULT_VALUE_PARAM]!.type;
+        var defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM]!.type;
         if (!(defaultValueType == expectedDefaultValueType ||
             defaultValueType == library.typeProvider.nullType)) {
           return false;
@@ -134,11 +136,10 @@ class ConstantEvaluationEngine {
     if (name == null) {
       return false;
     }
-    // TODO(srawlins): If the argument is '>>>' but triple-shift is not enabled,
-    // report a different error indicating that the triple-shift experiment
-    // should be enabled, or a minimum SDK version set, when one is declared.
-    return isValidPublicSymbol(name) ||
-        (_isTripleShiftExperimentEnabled && name == '>>>');
+    if (_isNonNullableByDefault) {
+      return true;
+    }
+    return isValidPublicSymbol(name);
   }
 
   /// Compute the constant value associated with the given [constant].
@@ -209,8 +210,7 @@ class ConstantEvaluationEngine {
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
       var element = constant.element;
-      if (element is PropertyAccessorElement &&
-          element.variable is VariableElement) {
+      if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         VariableElementImpl variableElement =
@@ -335,8 +335,7 @@ class ConstantEvaluationEngine {
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
       var element = constant.element;
-      if (element is PropertyAccessorElement &&
-          element.variable is VariableElement) {
+      if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
         callback(element.variable.declaration);
@@ -985,12 +984,21 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     var leftResult = node.leftOperand.accept(this);
     // evaluate lazy operators
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      if (leftResult?.toBoolValue() == false) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyAnd(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.BAR_BAR) {
+      if (leftResult?.toBoolValue() == true) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyOr(
           node, leftResult, () => node.rightOperand.accept(this));
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (leftResult?.isNull != true) {
+        _reportNotPotentialConstants(node.rightOperand);
+      }
       return _dartObjectComputer.lazyQuestionQuestion(
           node, leftResult, () => node.rightOperand.accept(this));
     }
@@ -1589,10 +1597,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       var function = element as ExecutableElement;
       if (function.isStatic) {
-        var functionType = node.staticType as ParameterizedType;
         return DartObjectImpl(
           typeSystem,
-          functionType,
+          node.typeOrThrow,
           FunctionState(function),
         );
       }

@@ -1039,8 +1039,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base
-    with WithNullSafetyMixin {
+class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base {
   test_getInheritedMap_topMerge_method() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.6

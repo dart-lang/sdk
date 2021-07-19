@@ -253,24 +253,39 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         writeNonNullCanonicalNameReference(fieldRef.canonicalName!);
         writeConstantReference(value);
       });
-    } else if (constant is PartialInstantiationConstant) {
-      writeByte(ConstantTag.PartialInstantiationConstant);
+    } else if (constant is InstantiationConstant) {
+      writeByte(ConstantTag.InstantiationConstant);
       writeConstantReference(constant.tearOffConstant);
       final int length = constant.types.length;
       writeUInt30(length);
       for (int i = 0; i < length; ++i) {
         writeDartType(constant.types[i]);
       }
-    } else if (constant is TearOffConstant) {
-      writeByte(ConstantTag.TearOffConstant);
+    } else if (constant is StaticTearOffConstant) {
+      writeByte(ConstantTag.StaticTearOffConstant);
       writeNonNullCanonicalNameReference(
           constant.procedure.reference.canonicalName!);
+    } else if (constant is ConstructorTearOffConstant) {
+      writeByte(ConstantTag.ConstructorTearOffConstant);
+      writeNonNullCanonicalNameReference(
+          constant.constructor.reference.canonicalName!);
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
     } else if (constant is UnevaluatedConstant) {
       writeByte(ConstantTag.UnevaluatedConstant);
       writeNode(constant.expression);
+    } else if (constant is TypedefTearOffConstant) {
+      writeByte(ConstantTag.TypedefTearOffConstant);
+      enterScope(typeParameters: constant.parameters);
+      writeNodeList(constant.parameters);
+      writeConstantReference(constant.tearOffConstant);
+      final int length = constant.types.length;
+      writeUInt30(length);
+      for (int i = 0; i < length; ++i) {
+        writeDartType(constant.types[i]);
+      }
+      leaveScope(typeParameters: constant.parameters);
     } else {
       throw new ArgumentError('Unsupported constant $constant');
     }
@@ -1591,6 +1606,21 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    writeByte(Tag.ConstructorTearOff);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.constructorReference);
+  }
+
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    writeByte(Tag.TypedefTearOff);
+    writeNodeList(node.typeParameters);
+    writeNode(node.expression);
+    writeNodeList(node.typeArguments);
+  }
+
+  @override
   void visitStaticTearOff(StaticTearOff node) {
     writeByte(Tag.StaticTearOff);
     writeOffset(node.fileOffset);
@@ -2682,26 +2712,42 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+  void visitInstantiationConstant(InstantiationConstant node) {
+    throw new UnsupportedError('serialization of InstantiationConstants ');
+  }
+
+  @override
+  void visitInstantiationConstantReference(InstantiationConstant node) {
     throw new UnsupportedError(
-        'serialization of PartialInstantiationConstants ');
+        'serialization of InstantiationConstant references');
   }
 
   @override
-  void visitPartialInstantiationConstantReference(
-      PartialInstantiationConstant node) {
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    throw new UnsupportedError('serialization of TypedefTearOffConstants ');
+  }
+
+  @override
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
+    throw new UnsupportedError('serialization of StaticTearOffConstants ');
+  }
+
+  @override
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    throw new UnsupportedError('serialization of ConstructorTearOffConstants ');
+  }
+
+  @override
+  void visitStaticTearOffConstantReference(StaticTearOffConstant node) {
     throw new UnsupportedError(
-        'serialization of PartialInstantiationConstant references');
+        'serialization of StaticTearOffConstant references');
   }
 
   @override
-  void visitTearOffConstant(TearOffConstant node) {
-    throw new UnsupportedError('serialization of TearOffConstants ');
-  }
-
-  @override
-  void visitTearOffConstantReference(TearOffConstant node) {
-    throw new UnsupportedError('serialization of TearOffConstant references');
+  void visitConstructorTearOffConstantReference(
+      ConstructorTearOffConstant node) {
+    throw new UnsupportedError(
+        'serialization of ConstructorTearOffConstant references');
   }
 
   @override

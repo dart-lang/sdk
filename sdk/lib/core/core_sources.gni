@@ -13,6 +13,7 @@ core_sdk_sources = [
   "date_time.dart",
   "double.dart",
   "duration.dart",
+  "enum.dart",
   "errors.dart",
   "exceptions.dart",
   "expando.dart",

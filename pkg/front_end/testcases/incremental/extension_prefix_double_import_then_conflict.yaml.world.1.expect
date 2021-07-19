@@ -1,0 +1,42 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  extension OnObject on dart.core::Object* {
+    get onObject = lib1::OnObject|get#onObject;
+  }
+  static method OnObject|get#onObject(lowered final dart.core::Object* #this) → dart.core::String*
+    return "object #1";
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  extension AlsoOnObject on dart.core::Object* {
+    get onObject = lib2::AlsoOnObject|get#onObject;
+  }
+  static method AlsoOnObject|get#onObject(lowered final dart.core::Object* #this) → dart.core::String*
+    return "object #2";
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.
+//  - 'Object' is from 'dart:core'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//   o.onObject;
+//     ^^^^^^^^
+// org-dartlang-test:///lib1.dart:2:14: Context: This is one of the extension members.
+//   String get onObject => "object #1";
+//              ^^^^^^^^
+// org-dartlang-test:///lib2.dart:2:14: Context: This is one of the extension members.
+//   String get onObject => "object #2";
+//              ^^^^^^^^
+//
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart" as p;
+
+  static method main() → dynamic {
+    dart.core::Object* o = 1;
+    invalid-expression "org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.\n - 'Object' is from 'dart:core'.\nTry using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.\n  o.onObject;\n    ^^^^^^^^";
+  }
+}

@@ -9,6 +9,7 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -55,6 +56,8 @@ Component transformComponent(
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
+
+  MoveFieldInitializers().transformComponent(component);
 
   final typeFlowAnalysis = new TypeFlowAnalysis(
       target,
@@ -119,6 +122,77 @@ Component transformComponent(
   Statistics.print("TFA statistics");
 
   return component;
+}
+
+// Move instance field initializers with possible side-effects
+// into constructors. This makes fields self-contained and
+// simplifies tree-shaking of fields.
+class MoveFieldInitializers {
+  void transformComponent(Component component) {
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        transformClass(cls);
+      }
+    }
+  }
+
+  void transformClass(Class cls) {
+    if (cls.fields.isEmpty) return;
+
+    // Collect instance fields with non-trivial initializers.
+    // Those will be moved into constructors.
+    final List<Field> fields = [
+      for (Field f in cls.fields)
+        if (!f.isStatic &&
+            !f.isLate &&
+            f.initializer != null &&
+            mayHaveSideEffects(f.initializer))
+          f
+    ];
+    if (fields.isEmpty) return;
+
+    // Collect non-redirecting constructors.
+    final List<Constructor> constructors = [
+      for (Constructor c in cls.constructors)
+        if (!_isRedirectingConstructor(c)) c
+    ];
+
+    assert(constructors.isNotEmpty);
+
+    // Move field initializers to constructors.
+    // Clone AST for all constructors except the first.
+    bool isFirst = true;
+    for (Constructor c in constructors) {
+      // Avoid duplicate FieldInitializers in the constructor initializer list.
+      final Set<Field> initializedFields = {
+        for (Initializer init in c.initializers)
+          if (init is FieldInitializer) init.field
+      };
+      final List<Initializer> newInitializers = [];
+      for (Field f in fields) {
+        Expression initExpr = f.initializer;
+        if (!isFirst) {
+          initExpr = CloneVisitorNotMembers().clone(initExpr);
+        }
+        final Initializer newInit = initializedFields.contains(f)
+            ? LocalInitializer(VariableDeclaration(null, initializer: initExpr))
+            : FieldInitializer(f, initExpr);
+        newInit.parent = c;
+        newInitializers.add(newInit);
+      }
+      newInitializers.addAll(c.initializers);
+      c.initializers = newInitializers;
+      isFirst = false;
+    }
+
+    // Cleanup field initializers.
+    for (Field f in fields) {
+      f.initializer = null;
+    }
+  }
+
+  bool _isRedirectingConstructor(Constructor c) =>
+      c.initializers.last is RedirectingInitializer;
 }
 
 // Pass which removes all annotations except @ExternalName and @pragma
@@ -306,11 +380,9 @@ class AnnotateKernel extends RecursiveVisitor {
     }
 
     final bool markSkipCheck = !callSite.useCheckedEntry &&
-        (node is MethodInvocation ||
-            node is InstanceInvocation ||
+        (node is InstanceInvocation ||
             node is DynamicInvocation ||
             node is EqualsCall ||
-            node is PropertySet ||
             node is InstanceSet ||
             node is DynamicSet);
 
@@ -355,16 +427,12 @@ class AnnotateKernel extends RecursiveVisitor {
     // Tell the table selector assigner about the callsite.
     final Selector selector = callSite.selector;
     if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
-      if (node is PropertyGet ||
-          node is InstanceGet ||
-          node is InstanceTearOff) {
+      if (node is InstanceGet || node is InstanceTearOff) {
         _tableSelectorAssigner.registerGetterCall(
             selector.member, callSite.isNullableReceiver);
       } else {
-        assert(node is MethodInvocation ||
-            node is InstanceInvocation ||
+        assert(node is InstanceInvocation ||
             node is EqualsCall ||
-            node is PropertySet ||
             node is InstanceSet);
         _tableSelectorAssigner.registerMethodOrSetterCall(
             selector.member, callSite.isNullableReceiver);
@@ -485,12 +553,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   visitInstanceInvocation(InstanceInvocation node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitInstanceInvocation(node);
@@ -521,12 +583,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   visitInstanceGet(InstanceGet node) {
     _annotateCallSite(node, node.interfaceTarget);
     super.visitInstanceGet(node);
@@ -548,12 +604,6 @@ class AnnotateKernel extends RecursiveVisitor {
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    _annotateCallSite(node, node.interfaceTarget);
-    super.visitPropertySet(node);
   }
 
   @override
@@ -755,9 +805,8 @@ class TreeShaker {
 
       if (func != null) {
         _pass1.transformTypeParameterList(func.typeParameters, func);
-        _pass1.transformVariableDeclarationList(
-            func.positionalParameters, func);
-        _pass1.transformVariableDeclarationList(func.namedParameters, func);
+        addUsedParameters(func.positionalParameters);
+        addUsedParameters(func.namedParameters);
         func.returnType.accept(typeVisitor);
       }
 
@@ -776,6 +825,15 @@ class TreeShaker {
         // shaken)
         addUsedExtension(extension);
       }
+    }
+  }
+
+  void addUsedParameters(List<VariableDeclaration> params) {
+    for (var param in params) {
+      // Do not visit initializer (default value) of a parameter as it is
+      // going to be removed during pass 2.
+      _pass1.transformExpressionList(param.annotations, param);
+      param.type.accept(typeVisitor);
     }
   }
 
@@ -1105,30 +1163,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitMethodInvocation(
-      MethodInvocation node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall(
-          _flattenArguments(node.arguments, receiver: node.receiver));
-    }
-    if (isComparisonWithNull(node)) {
-      final nullTest = _getNullTest(node);
-      if (nullTest.isAlwaysNull || nullTest.isAlwaysNotNull) {
-        return _evaluateArguments(
-            _flattenArguments(node.arguments, receiver: node.receiver),
-            BoolLiteral(nullTest.isAlwaysNull));
-      }
-    }
-    node.interfaceTarget =
-        fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-    if (node.interfaceTarget != null) {
-      shaker.addUsedMember(node.interfaceTarget);
-    }
-    return node;
-  }
-
-  @override
   TreeNode visitInstanceInvocation(
       InstanceInvocation node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
@@ -1201,21 +1235,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitPropertyGet(PropertyGet node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget);
-      }
-      return node;
-    }
-  }
-
-  @override
   TreeNode visitInstanceGet(InstanceGet node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
@@ -1259,21 +1278,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
     } else {
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitPropertySet(PropertySet node, TreeNode removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver, node.value]);
-    } else {
-      node.interfaceTarget = fieldMorpher
-          .adjustInstanceCallTarget(node.interfaceTarget, isSetter: true);
-      if (node.interfaceTarget != null) {
-        shaker.addUsedMember(node.interfaceTarget);
-      }
       return node;
     }
   }
@@ -1642,6 +1646,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
           // have a body even if it can never be called.
           _makeUnreachableBody(node.function);
         }
+        _removeDefaultValuesOfParameters(node.function);
         node.function.asyncMarker = AsyncMarker.Sync;
         switch (node.stubKind) {
           case ProcedureStubKind.Regular:
@@ -1664,6 +1669,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
         Statistics.fieldInitializersDropped++;
       } else if (node is Constructor) {
         _makeUnreachableBody(node.function);
+        _removeDefaultValuesOfParameters(node.function);
         node.initializers = const <Initializer>[];
         Statistics.constructorBodiesDropped++;
       } else {
@@ -1704,6 +1710,15 @@ class _TreeShakerPass2 extends RemovingTransformer {
       function.body = new ExpressionStatement(new Throw(new StringLiteral(
           "Attempt to execute method removed by Dart AOT compiler (TFA)")))
         ..parent = function;
+    }
+  }
+
+  void _removeDefaultValuesOfParameters(FunctionNode function) {
+    for (var p in function.positionalParameters) {
+      p.initializer = null;
+    }
+    for (var p in function.namedParameters) {
+      p.initializer = null;
     }
   }
 
@@ -1779,12 +1794,12 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   }
 
   @override
-  visitTearOffConstant(TearOffConstant constant) {
+  visitStaticTearOffConstant(StaticTearOffConstant constant) {
     shaker.addUsedMember(constant.procedure);
   }
 
   @override
-  visitPartialInstantiationConstant(PartialInstantiationConstant constant) {
+  visitInstantiationConstant(InstantiationConstant constant) {
     analyzeConstant(constant.tearOffConstant);
   }
 

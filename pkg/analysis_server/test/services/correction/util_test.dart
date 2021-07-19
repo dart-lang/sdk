@@ -23,8 +23,9 @@ class UtilTest extends AbstractSingleUnitTest {
   Future<void> assert_invertCondition(String expr, String expected) async {
     await resolveTestCode('''
 main() {
-  int v1, v2, v3, v4, v5;
-  bool b1, b2, b3, b4, b5;
+  int? v1, v2, v3, v4, v5;
+  bool b1 = true, b2 = true, b3 = true;
+  bool? b4, b5;
   if ($expr) {
     0;
   } else {
@@ -281,8 +282,8 @@ import 'package:ddd/ddd.dart';
   }
 
   Future<void> test_invertCondition_binary_compare_boolean() async {
-    await assert_invertCondition('b1 == null', 'b1 != null');
-    await assert_invertCondition('b1 != null', 'b1 == null');
+    await assert_invertCondition('b4 == null', 'b4 != null');
+    await assert_invertCondition('b4 != null', 'b4 == null');
   }
 
   Future<void> test_invertCondition_binary_logical() async {

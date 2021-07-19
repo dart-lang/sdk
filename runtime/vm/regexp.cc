@@ -5515,12 +5515,12 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   return result;
 }
 
-static void CreateSpecializedFunction(Thread* thread,
-                                      Zone* zone,
-                                      const RegExp& regexp,
-                                      intptr_t specialization_cid,
-                                      bool sticky,
-                                      const Object& owner) {
+void CreateSpecializedFunction(Thread* thread,
+                               Zone* zone,
+                               const RegExp& regexp,
+                               intptr_t specialization_cid,
+                               bool sticky,
+                               const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
   const FunctionType& signature =
@@ -5537,24 +5537,23 @@ static void CreateSpecializedFunction(Thread* thread,
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   // TODO(regis): Better, share a common signature.
-  fn.set_num_fixed_parameters(kParamCount);
+  signature.set_num_fixed_parameters(kParamCount);
   signature.set_parameter_types(
       Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  fn.CreateNameArray();
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
-                               Symbols::This());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Symbols::This());
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
-                               Symbols::string_param());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                        Symbols::string_param());
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                               Symbols::start_index_param());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Symbols::start_index_param());
   signature.set_result_type(Type::Handle(zone, Type::ArrayType()));
-  signature.FinalizeNameArrays(fn);
 
   // Cache the result.
   regexp.set_function(specialization_cid, sticky, fn);
@@ -5569,7 +5568,7 @@ RegExpPtr RegExpEngine::CreateRegExp(Thread* thread,
                                      const String& pattern,
                                      RegExpFlags flags) {
   Zone* zone = thread->zone();
-  const RegExp& regexp = RegExp::Handle(RegExp::New());
+  const RegExp& regexp = RegExp::Handle(RegExp::New(zone));
 
   regexp.set_pattern(pattern);
   regexp.set_flags(flags);

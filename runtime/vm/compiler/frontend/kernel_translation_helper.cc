@@ -735,26 +735,25 @@ void TranslationHelper::SetupFieldAccessorFunction(
   intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
-  function.SetNumOptionalParameters(0, false);
-  function.set_num_fixed_parameters(parameter_count);
+  signature.SetNumOptionalParameters(0, false);
+  signature.set_num_fixed_parameters(parameter_count);
   if (parameter_count > 0) {
     signature.set_parameter_types(
         Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   }
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  function.CreateNameArray();
 
   intptr_t pos = 0;
   if (is_method) {
     signature.SetParameterTypeAt(pos, GetDeclarationType(klass));
-    signature.SetParameterNameAt(pos, Symbols::This());
+    function.SetParameterNameAt(pos, Symbols::This());
     pos++;
   }
   if (is_setter) {
     signature.SetParameterTypeAt(pos, field_type);
-    signature.SetParameterNameAt(pos, Symbols::Value());
+    function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
-  signature.FinalizeNameArrays(function);
 }
 
 void TranslationHelper::ReportError(const char* format, ...) {
@@ -1951,13 +1950,13 @@ UnboxingInfoMetadata* UnboxingInfoMetadataHelper::GetUnboxingInfoMetadata(
   const auto info = new (helper_->zone_) UnboxingInfoMetadata();
   info->SetArgsCount(num_args);
   for (intptr_t i = 0; i < num_args; i++) {
-    const auto arg_info = helper_->ReadByte();
+    const intptr_t arg_info = helper_->ReadByte();
     assert(arg_info >= UnboxingInfoMetadata::kBoxed &&
            arg_info < UnboxingInfoMetadata::kUnboxingCandidate);
     info->unboxed_args_info[i] =
         static_cast<UnboxingInfoMetadata::UnboxingInfoTag>(arg_info);
   }
-  const auto return_info = helper_->ReadByte();
+  const intptr_t return_info = helper_->ReadByte();
   assert(return_info >= UnboxingInfoMetadata::kBoxed &&
          return_info < UnboxingInfoMetadata::kUnboxingCandidate);
   info->return_info =
@@ -2320,12 +2319,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadUInt();        // read kernel position.
       SkipExpression();  // read expression.
       return;
-    case kPropertyGet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
-      return;
     case kInstanceGet:
       ReadByte();                          // read kind.
       ReadPosition();                      // read position.
@@ -2351,13 +2344,6 @@ void KernelReaderHelper::SkipExpression() {
     case kFunctionTearOff:
       ReadPosition();    // read position.
       SkipExpression();  // read receiver.
-      return;
-    case kPropertySet:
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipExpression();              // read value.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kInstanceSet:
       ReadByte();                          // read kind.
@@ -2393,14 +2379,6 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read target_reference.
       SkipExpression();              // read expression.
-      return;
-    case kMethodInvocation:
-      ReadFlags();                   // read flags.
-      ReadPosition();                // read position.
-      SkipExpression();              // read receiver.
-      SkipName();                    // read name.
-      SkipArguments();               // read arguments.
-      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kInstanceInvocation:
       ReadByte();                          // read kind.
@@ -3038,6 +3016,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),
       finalize_(finalize),
+      refers_to_derived_type_param_(false),
       apply_canonical_type_erasure_(apply_canonical_type_erasure),
       in_constant_context_(in_constant_context) {}
 
@@ -3094,6 +3073,10 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kTypeParameterType:
       BuildTypeParameterType();
+      if (result_.IsTypeParameter() &&
+          TypeParameter::Cast(result_).bound() == AbstractType::null()) {
+        refers_to_derived_type_param_ = true;
+      }
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3198,16 +3181,14 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   signature.set_parameter_types(Array::Handle(
       Z, Array::New(kImplicitClosureParam + all_count, Heap::kOld)));
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  signature.CreateNameArrayIncludingFlags();
 
   intptr_t pos = 0;
   signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-  signature.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
     signature.SetParameterTypeAt(pos, result_);
-    signature.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
   }
 
   if (!simple) {
@@ -3225,7 +3206,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       }
     }
   }
-  signature.TruncateUnusedParameterFlags();
+  signature.FinalizeNameArray();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
@@ -3426,17 +3407,12 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       TypeParameters::Handle(Z, TypeParameters::New(type_parameter_count));
   const Type& null_bound = Type::Handle(Z);
 
-  intptr_t offset = 0;
   if (!parameterized_class.IsNull()) {
     ASSERT(parameterized_class.type_parameters() == TypeParameters::null());
     parameterized_class.set_type_parameters(type_parameters);
   } else {
     ASSERT(parameterized_signature.type_parameters() == TypeParameters::null());
-    parameterized_signature.set_type_parameters(type_parameters);
-    offset = parameterized_signature.NumParentTypeArguments();
-    if (!function.IsNull()) {
-      function.SetNumTypeParameters(type_parameter_count);
-    }
+    parameterized_signature.SetTypeParameters(type_parameters);
   }
 
   const Library& lib = Library::Handle(Z, active_class->klass->library());
@@ -3477,8 +3453,14 @@ void TypeTranslator::LoadAndSetupBounds(
     TypeParameterHelper helper(helper_);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
 
+    bool saved_refers_to_derived_type_param = refers_to_derived_type_param_;
+    refers_to_derived_type_param_ = false;
     AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
     ASSERT(!bound.IsNull());
+    if (refers_to_derived_type_param_) {
+      bound = TypeRef::New(bound);
+    }
+    refers_to_derived_type_param_ = saved_refers_to_derived_type_param;
     type_parameters.SetBoundAt(i, bound);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kDefaultType);
     AbstractType& default_arg = BuildTypeWithoutFinalization();
@@ -3505,6 +3487,7 @@ void TypeTranslator::LoadAndSetupBounds(
             derived.index() >= offset &&
             derived.index() < offset + type_parameter_count))) {
         bound = type_parameters.BoundAt(derived.index() - offset);
+        ASSERT(!bound.IsNull());
         derived.set_bound(bound);
       }
     }
@@ -3669,12 +3652,12 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t named_parameter_count =
       total_parameter_count - positional_parameter_count;
 
-  function.set_num_fixed_parameters(extra_parameters +
-                                    required_parameter_count);
+  signature.set_num_fixed_parameters(extra_parameters +
+                                     required_parameter_count);
   if (named_parameter_count > 0) {
-    function.SetNumOptionalParameters(named_parameter_count, false);
+    signature.SetNumOptionalParameters(named_parameter_count, false);
   } else {
-    function.SetNumOptionalParameters(
+    signature.SetNumOptionalParameters(
         positional_parameter_count - required_parameter_count, true);
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
@@ -3683,19 +3666,20 @@ void TypeTranslator::SetupFunctionParameters(
   if (parameter_count > 0) {
     signature.set_parameter_types(
         Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-    signature.CreateNameArrayIncludingFlags(Heap::kOld);
+    function.CreateNameArray();
+    signature.CreateNameArrayIncludingFlags();
     if (is_method) {
       ASSERT(!klass.IsNull());
       signature.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
-      signature.SetParameterNameAt(pos, Symbols::This());
+      function.SetParameterNameAt(pos, Symbols::This());
       pos++;
     } else if (is_closure) {
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      signature.SetParameterNameAt(pos, Symbols::ClosureParameter());
+      function.SetParameterNameAt(pos, Symbols::ClosureParameter());
       pos++;
     } else if (is_factory) {
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      signature.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
+      function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
       pos++;
     }
   } else {
@@ -3716,8 +3700,7 @@ void TypeTranslator::SetupFunctionParameters(
     }
 
     signature.SetParameterTypeAt(pos, type);
-    signature.SetParameterNameAt(pos,
-                                 H.DartIdentifier(lib, helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   intptr_t named_parameter_count_check =
@@ -3740,7 +3723,7 @@ void TypeTranslator::SetupFunctionParameters(
       signature.SetIsRequiredAt(pos);
     }
   }
-  signature.FinalizeNameArrays(function);
+  signature.FinalizeNameArray();
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 

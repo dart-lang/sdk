@@ -17,7 +17,7 @@ void computeSimplyBounded(Linker linker) {
   var nodes = <SimplyBoundedNode>[];
   for (var libraryBuilder in linker.builders.values) {
     for (var unit in libraryBuilder.element.units) {
-      for (var element in unit.typeAliases) {
+      for (var element in unit.classes) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
@@ -25,7 +25,7 @@ void computeSimplyBounded(Linker linker) {
         var node = walker.getNode(element);
         nodes.add(node);
       }
-      for (var element in unit.types) {
+      for (var element in unit.typeAliases) {
         var node = walker.getNode(element);
         nodes.add(node);
       }

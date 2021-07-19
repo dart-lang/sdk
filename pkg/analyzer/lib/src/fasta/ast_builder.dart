@@ -143,6 +143,9 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
+  /// `true` if extension types are enabled;
+  final bool enableExtensionTypes;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
@@ -160,6 +163,7 @@ class AstBuilder extends StackListener {
         enableVariance = _featureSet.isEnabled(Feature.variance),
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
+        enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -246,6 +250,7 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
+      typeKeyword: null,
       name: name,
       typeParameters: typeParameters,
       onKeyword: Tokens.on_(),
@@ -1186,12 +1191,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token token) {
+    if (typeKeyword != null && !enableExtensionTypes) {
+      var feature = ExperimentalFeatures.extension_types;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          typeKeyword,
+          typeKeyword);
+    }
     var type = pop() as TypeAnnotation;
     extensionDeclaration!
       ..extendedType = type
-      ..onKeyword = onKeyword;
+      ..onKeyword = onKeyword
+      ..typeKeyword = typeKeyword;
     extensionDeclaration = null;
   }
 
@@ -3019,9 +3035,7 @@ class AstBuilder extends StackListener {
 
       List<Expression> expressions = <Expression>[];
       for (var elem in elements) {
-        if (elem is Expression) {
-          expressions.add(elem);
-        }
+        expressions.add(elem);
       }
 
       push(ast.listLiteral(

@@ -141,7 +141,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
     perfArgs.inputPath = inputArg;
   }
 
-  for (String pair in args[MAP_OPTION]) {
+  for (var pair in args[MAP_OPTION]) {
     if (pair is String) {
       var index = pair.indexOf(',');
       if (index != -1 && !pair.contains(',', index + 1)) {

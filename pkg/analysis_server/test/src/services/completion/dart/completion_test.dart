@@ -10,18 +10,43 @@ import '../../../../completion_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentListCompletionTest);
+    defineReflectiveTests(AsExpressionCompletionTest);
+    defineReflectiveTests(AssertStatementCompletionTest);
     defineReflectiveTests(ConstructorCompletionTest);
+    defineReflectiveTests(DeclaredIdentifierCompletionTest);
+    defineReflectiveTests(ExpressionFunctionBodyCompletionTest);
     defineReflectiveTests(ExtensionCompletionTest);
-    defineReflectiveTests(PropertyAccessorCompletionTest);
+    defineReflectiveTests(FormalParameterCompletionTest);
+    defineReflectiveTests(GenericFunctionTypeCompletionTest);
+    defineReflectiveTests(GenericTypeAliasCompletionTest);
+    defineReflectiveTests(PropertyAccessCompletionTest);
     defineReflectiveTests(RedirectedConstructorCompletionTest);
     defineReflectiveTests(RedirectingConstructorInvocationCompletionTest);
+    defineReflectiveTests(ReturnStatementTest);
     defineReflectiveTests(SuperConstructorInvocationCompletionTest);
+    defineReflectiveTests(VariableDeclarationListCompletionTest);
   });
 }
 
 @reflectiveTest
 class ArgumentListCompletionTest extends CompletionTestCase {
-  Future<void> test_functionWithVoidReturnType() async {
+  Future<void> test_functionWithVoidReturnType_optionalNamed() async {
+    addTestFile('''
+void f(C c) {
+  c.m(handler: ^);
+}
+
+void g() {}
+
+class C {
+  void m({void Function()? handler}) {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_functionWithVoidReturnType_requiredPositional() async {
     addTestFile('''
 void f(C c) {
   c.m(^);
@@ -35,6 +60,49 @@ class C {
 ''');
     await getSuggestions();
     assertHasCompletion('g');
+  }
+
+  Future<void> test_privateStaticField() async {
+    addTestFile('''
+extension on int {
+  static int _x = 0;
+
+  void g(String s) {
+    s.substring(^);
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('_x');
+  }
+}
+
+@reflectiveTest
+class AsExpressionCompletionTest extends CompletionTestCase {
+  Future<void> test_type_dynamic() async {
+    addTestFile('''
+void f(Object o) {
+  var x = o as ^;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('dynamic');
+  }
+}
+
+@reflectiveTest
+class AssertStatementCompletionTest extends CompletionTestCase {
+  @failingTest
+  Future<void> test_message() async {
+    addTestFile('''
+void f() {
+  assert(true, ^);
+}
+
+const c = <int>[];
+''');
+    await getSuggestions();
+    assertHasCompletion('c');
   }
 }
 
@@ -52,6 +120,72 @@ abstract class C {
 ''');
     await getSuggestions();
     assertHasNoCompletion('C.c');
+  }
+}
+
+@reflectiveTest
+class DeclaredIdentifierCompletionTest extends CompletionTestCase {
+  Future<void> test_afterFinal_withIdentifier() async {
+    addTestFile('''
+class C {
+  void m(List<C> cs) {
+    for (final ^ x in cs) {}
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('C');
+  }
+
+  Future<void> test_afterFinal_withoutIdentifier() async {
+    addTestFile('''
+class C {
+  void m(List<C> cs) {
+    for (final ^) {}
+  }
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('C');
+  }
+}
+
+@reflectiveTest
+class ExpressionFunctionBodyCompletionTest extends CompletionTestCase {
+  Future<void> test_voidReturn_localFunction() async {
+    addTestFile('''
+class C {
+  void m() {
+    void f() => ^;
+  }
+}
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidReturn_method() async {
+    addTestFile('''
+class C {
+  void m() => ^;
+}
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidReturn_topLevelFunction() async {
+    addTestFile('''
+void f() => ^;
+
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
   }
 }
 
@@ -192,7 +326,165 @@ extension E on String {
 }
 
 @reflectiveTest
-class PropertyAccessorCompletionTest extends CompletionTestCase {
+class FormalParameterCompletionTest extends CompletionTestCase {
+  Future<void> test_named_last() async {
+    addTestFile('''
+void f({int? a, ^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_last_afterCovariant() async {
+    addTestFile('''
+void f({covariant ^}) {}
+''');
+    await getSuggestions();
+    assertHasNoCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_last_afterRequired() async {
+    addTestFile('''
+void f({required ^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_named_only() async {
+    addTestFile('''
+void f({^}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_optionalPositional_last() async {
+    addTestFile('''
+void f([int a, ^]) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_optionalPositional_only() async {
+    addTestFile('''
+void f([^]) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_requiredPositional_only() async {
+    addTestFile('''
+void f(^) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('covariant');
+    assertHasCompletion('dynamic');
+    assertHasNoCompletion('required');
+    assertHasCompletion('void');
+  }
+}
+
+@reflectiveTest
+class GenericFunctionTypeCompletionTest extends CompletionTestCase {
+  Future<void> test_returnType_beforeType() async {
+    addTestFile('''
+void f({^vo Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_beforeType_afterRequired() async {
+    addTestFile('''
+void f({required ^vo Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_inType() async {
+    addTestFile('''
+void f({v^o Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_inType_afterRequired() async {
+    addTestFile('''
+void f({required v^o Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_partialFunctionType() async {
+    addTestFile('''
+void f({^ Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+
+  Future<void> test_returnType_partialFunctionType_afterRequired() async {
+    addTestFile('''
+void f({required ^ Function() p}) {}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+}
+
+@reflectiveTest
+class GenericTypeAliasCompletionTest extends CompletionTestCase {
+  Future<void> test_returnType_void() async {
+    addTestFile('''
+typedef F = ^
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessCompletionTest extends CompletionTestCase {
+  Future<void> test_nullSafe_extension() async {
+    addTestFile('''
+void f(C c) {
+  c.a?.^;
+}
+class C {
+  C? get a => null;
+}
+extension on C {
+  int get b => 0;
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('b');
+  }
+
   Future<void> test_setter_deprecated() async {
     addTestFile('''
 void f(C c) {
@@ -374,6 +666,48 @@ class C {
 }
 
 @reflectiveTest
+class ReturnStatementTest extends CompletionTestCase {
+  Future<void> test_voidFromVoid_localFunction() async {
+    addTestFile('''
+class C {
+  void m() {
+    void f() {
+      return ^
+    }
+  }
+  void g() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidFromVoid_method() async {
+    addTestFile('''
+class C {
+  void f() {
+    return ^
+  }
+  void g() {}
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+
+  Future<void> test_voidFromVoid_topLevelFunction() async {
+    addTestFile('''
+void f() {
+  return ^
+}
+void g() {}
+''');
+    await getSuggestions();
+    assertHasCompletion('g');
+  }
+}
+
+@reflectiveTest
 class SuperConstructorInvocationCompletionTest extends CompletionTestCase {
   Future<void> test_namedConstructor_notVisible() async {
     newFile('/project/bin/a.dart', content: '''
@@ -429,5 +763,18 @@ class B extends A {
 ''');
     await getSuggestions();
     assertHasNoCompletion('');
+  }
+}
+
+@reflectiveTest
+class VariableDeclarationListCompletionTest extends CompletionTestCase {
+  Future<void> test_type_voidAfterFinal() async {
+    addTestFile('''
+class C {
+  final ^
+}
+''');
+    await getSuggestions();
+    assertHasCompletion('void');
   }
 }

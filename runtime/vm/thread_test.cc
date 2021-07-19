@@ -1012,8 +1012,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
 template <typename LockType, typename LockerType>
 static void RunLockerWithLongJumpTest() {
   const intptr_t kNumIterations = 5;
-  intptr_t execution_count = 0;
-  intptr_t thrown_count = 0;
+  volatile intptr_t execution_count = 0;
+  volatile intptr_t thrown_count = 0;
   LockType lock;
   for (intptr_t i = 0; i < kNumIterations; ++i) {
     LongJumpScope jump;

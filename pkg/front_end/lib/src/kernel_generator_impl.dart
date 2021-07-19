@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Defines the front-end API for converting source code to Dart Kernel objects.
 library front_end.kernel_generator_impl;
 
@@ -70,7 +68,7 @@ Future<CompilerResult> generateKernelInternal(
   options.reportNullSafetyCompilationModeInfo();
   FileSystem fs = options.fileSystem;
 
-  Loader sourceLoader;
+  Loader? sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
@@ -79,7 +77,7 @@ Future<CompilerResult> generateKernelInternal(
 
     List<Component> loadedComponents = <Component>[];
 
-    Component sdkSummary = await options.loadSdkSummary(null);
+    Component? sdkSummary = await options.loadSdkSummary(null);
     // By using the nameRoot of the the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
@@ -100,11 +98,12 @@ Future<CompilerResult> generateKernelInternal(
     sourceLoader = kernelTarget.loader;
     kernelTarget.setEntryPoints(options.inputs);
     Component summaryComponent =
-        await kernelTarget.buildOutlines(nameRoot: nameRoot);
-    List<int> summary = null;
+        (await kernelTarget.buildOutlines(nameRoot: nameRoot))!;
+    List<int>? summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (LocatedMessage error in verifyComponent(summaryComponent)) {
+        for (LocatedMessage error
+            in verifyComponent(summaryComponent, options.target)) {
           options.report(error, Severity.error);
         }
       }
@@ -159,7 +158,7 @@ Future<CompilerResult> generateKernelInternal(
       options.ticker.logMs("Generated outline");
     }
 
-    Component component;
+    Component? component;
     if (buildComponent) {
       component = await kernelTarget.buildComponent(verify: options.verify);
       if (options.debugDump) {
@@ -186,12 +185,12 @@ Future<CompilerResult> generateKernelInternal(
 /// Result object of [generateKernel].
 class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
-  final List<int> summary;
+  final List<int>? summary;
 
   /// The generated component, if it was requested.
-  final Component component;
+  final Component? component;
 
-  final Component sdkComponent;
+  final Component? sdkComponent;
 
   final List<Component> loadedComponents;
 
@@ -201,21 +200,21 @@ class InternalCompilerResult implements CompilerResult {
   /// using the compiler itself.
   final List<Uri> deps;
 
-  final ClassHierarchy classHierarchy;
+  final ClassHierarchy? classHierarchy;
 
-  final CoreTypes coreTypes;
+  final CoreTypes? coreTypes;
 
   /// The [KernelTarget] used to generated the component.
   ///
   /// This is only provided for use in testing.
-  final KernelTarget kernelTargetForTesting;
+  final KernelTarget? kernelTargetForTesting;
 
   InternalCompilerResult(
       {this.summary,
       this.component,
       this.sdkComponent,
-      this.loadedComponents,
-      this.deps,
+      required this.loadedComponents,
+      required this.deps,
       this.classHierarchy,
       this.coreTypes,
       this.kernelTargetForTesting});

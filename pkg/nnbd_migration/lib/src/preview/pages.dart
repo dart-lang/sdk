@@ -9,7 +9,7 @@ import 'dart:io';
 abstract class Page {
   final StringBuffer buf = StringBuffer();
 
-  final String id;
+  final String? id;
 
   Page(this.id);
 
@@ -99,7 +99,7 @@ abstract class Site {
     HttpRequest request, {
     int code = HttpStatus.ok,
   }) async {
-    if (request.headers.contentType.subType == 'json') {
+    if (request.headers.contentType!.subType == 'json') {
       return respondJson(request, {'success': true}, code);
     }
 

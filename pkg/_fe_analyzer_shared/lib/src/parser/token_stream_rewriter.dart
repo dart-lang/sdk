@@ -22,11 +22,15 @@ abstract class TokenStreamRewriter {
   /// open parenthesis. If [insertIdentifier] is true, then a synthetic
   /// identifier is included between the open and close parenthesis.
   Token insertParens(Token token, bool includeIdentifier) {
-    // Assert that the token is not eof, though allow an eof-token if the offset
+    // Throw if the token is eof, though allow an eof-token if the offset
     // is negative. The last part is because [syntheticPreviousToken] sometimes
     // creates eof tokens that aren't the real eof-token that has a negative
     // offset (which wouldn't be valid for the real eof).
-    assert(!token.isEof || token.offset < 0);
+    if (!(!token.isEof || token.offset < 0)) {
+      // Inserting here could cause a infinite loop. We prefer to crash.
+      throw 'Internal Error: Rewriting at eof.';
+    }
+
     Token next = token.next!;
     int offset = next.charOffset;
     BeginToken leftParen =
@@ -49,11 +53,15 @@ abstract class TokenStreamRewriter {
 
   /// Insert [newToken] after [token] and return [newToken].
   Token insertToken(Token token, Token newToken) {
-    // Assert that the token is not eof, though allow an eof-token if the offset
+    // Throw if the token is eof, though allow an eof-token if the offset
     // is negative. The last part is because [syntheticPreviousToken] sometimes
     // creates eof tokens that aren't the real eof-token that has a negative
     // offset (which wouldn't be valid for the real eof).
-    assert(!token.isEof || token.offset < 0);
+    if (!(!token.isEof || token.offset < 0)) {
+      // Inserting here could cause a infinite loop. We prefer to crash.
+      throw 'Internal Error: Rewriting at eof.';
+    }
+
     _setNext(newToken, token.next!);
 
     // A no-op rewriter could skip this step.
@@ -65,11 +73,15 @@ abstract class TokenStreamRewriter {
   /// Move [endGroup] (a synthetic `)`, `]`, or `}` token) and associated
   /// error token after [token] in the token stream and return [endGroup].
   Token moveSynthetic(Token token, Token endGroup) {
-    // Assert that the token is not eof, though allow an eof-token if the offset
+    // Throw if the token is eof, though allow an eof-token if the offset
     // is negative. The last part is because [syntheticPreviousToken] sometimes
     // creates eof tokens that aren't the real eof-token that has a negative
     // offset (which wouldn't be valid for the real eof).
-    assert(!token.isEof || token.offset < 0);
+    if (!(!token.isEof || token.offset < 0)) {
+      // Inserting here could cause a infinite loop. We prefer to crash.
+      throw 'Internal Error: Rewriting at eof.';
+    }
+
     // ignore:unnecessary_null_comparison
     assert(endGroup.beforeSynthetic != null);
     if (token == endGroup) return endGroup;

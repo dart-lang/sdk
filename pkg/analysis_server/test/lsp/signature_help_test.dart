@@ -465,6 +465,86 @@ void f() {
         ));
   }
 
+  Future<void> test_typeParams_class() async {
+    final content = '''
+    /// My Foo.
+    class Foo<T1, T2 extends String> {}
+
+    class Bar extends Foo<^> {}
+    ''';
+
+    const expectedLabel = 'class Foo<T1, T2 extends String>';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
+  Future<void> test_typeParams_function() async {
+    final content = '''
+    /// My Foo.
+    void foo<T1, T2 extends String>() {
+      foo<^>();
+    }
+    ''';
+
+    const expectedLabel = 'void foo<T1, T2 extends String>()';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
+  Future<void> test_typeParams_method() async {
+    final content = '''
+    class Foo {
+      /// My Foo.
+      void foo<T1, T2 extends String>() {
+        foo<^>();
+      }
+    }
+    ''';
+
+    const expectedLabel = 'void foo<T1, T2 extends String>()';
+    const expectedDoc = 'My Foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'T1'),
+        ParameterInformation(label: 'T2 extends String'),
+      ],
+    );
+  }
+
   Future<void> test_unopenFile() async {
     final content = '''
     /// Does foo.

@@ -201,7 +201,7 @@ class ProgramBuilder {
       if (superclass != null) {
         c.setSuperclass(_classes[superclass]);
         assert(
-            c.superclass != null,
+            c.onlyForConstructor || c.superclass != null,
             failedAt(
                 cls,
                 "No Class for has been created for superclass "
@@ -557,10 +557,21 @@ class ProgramBuilder {
     bool onlyForRti = _nativeData.isJsInteropClass(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
+
+    // Recognize the specialized base classes for closures.
     bool isClosureBaseClass = cls == _commonElements.closureClass;
+    int sharedClosureApplyMetadata;
+    if (cls == _commonElements.closureClass) {
+      // The root base class has metadata for single-argument closures.
+      sharedClosureApplyMetadata = 1;
+    } else if (cls == _commonElements.closureClass0Args) {
+      sharedClosureApplyMetadata = 0;
+    } else if (cls == _commonElements.closureClass2Args) {
+      sharedClosureApplyMetadata = 2;
+    }
 
     List<Method> methods = [];
-    List<StubMethod> callStubs = <StubMethod>[];
+    List<StubMethod> callStubs = [];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
         _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
@@ -652,6 +663,16 @@ class ProgramBuilder {
         ? const []
         : _buildFields(cls: cls, isHolderInterceptedClass: isInterceptedClass);
 
+    List<StubMethod> gettersSetters = onlyForConstructorOrRti
+        ? const []
+        : [
+            for (Field field in instanceFields)
+              if (field.needsGetter) classStubGenerator.generateGetter(field),
+            for (Field field in instanceFields)
+              if (field.needsUncheckedSetter)
+                classStubGenerator.generateSetter(field),
+          ];
+
     TypeTestProperties typeTests = runtimeTypeGenerator.generateIsTests(
         cls, _generatedCode,
         storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
@@ -702,9 +723,10 @@ class ProgramBuilder {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
+      assert(sharedClosureApplyMetadata == null);
 
       result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
-          checkedSetters, isChecks, typeTests.functionTypeIndex,
+          checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
@@ -719,6 +741,7 @@ class ProgramBuilder {
           callStubs,
           noSuchMethodStubs,
           checkedSetters,
+          gettersSetters,
           isChecks,
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
@@ -727,6 +750,7 @@ class ProgramBuilder {
           onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
+          sharedClosureApplyMetadata: sharedClosureApplyMetadata,
           isMixinApplicationWithMembers: isMixinApplicationWithMembers);
     }
     _classes[cls] = result;
@@ -800,8 +824,10 @@ class ProgramBuilder {
     if (code == null) return null;
 
     bool canTearOff = false;
+    bool tearOffNeedsDirectAccess = false;
     js.Name tearOffName;
     bool isClosureCallMethod = false;
+    bool inheritsApplyMetadata = false;
     bool isNotApplyTarget =
         !element.isFunction || element.isGetter || element.isSetter;
 
@@ -817,11 +843,24 @@ class ProgramBuilder {
       if (element.enclosingClass.isClosure) {
         canTearOff = false;
         isClosureCallMethod = true;
+        ClassEntity superclass =
+            _elementEnvironment.getSuperClass(element.enclosingClass);
+        if (superclass == _commonElements.closureClass &&
+                element.parameterStructure == ParameterStructure.oneArgument ||
+            superclass == _commonElements.closureClass0Args &&
+                element.parameterStructure ==
+                    ParameterStructure.zeroArguments ||
+            superclass == _commonElements.closureClass2Args &&
+                element.parameterStructure == ParameterStructure.twoArguments) {
+          inheritsApplyMetadata = true;
+        }
       } else {
         // Careful with operators.
-        canTearOff = _codegenWorld.hasInvokedGetter(element) ||
-            _codegenWorld.methodsNeedsSuperGetter(element);
+        bool needsSuperGetter = _codegenWorld.methodsNeedsSuperGetter(element);
+        canTearOff =
+            _codegenWorld.hasInvokedGetter(element) || needsSuperGetter;
         tearOffName = _namer.getterForElement(element);
+        tearOffNeedsDirectAccess = needsSuperGetter;
       }
     }
 
@@ -865,7 +904,9 @@ class ProgramBuilder {
         _generateParameterStubs(element, canTearOff, canBeApplied), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
+        tearOffNeedsDirectAccess: tearOffNeedsDirectAccess,
         isClosureCallMethod: isClosureCallMethod,
+        inheritsApplyMetadata: inheritsApplyMetadata,
         isIntercepted: isIntercepted,
         aliasName: aliasName,
         canBeApplied: canBeApplied,

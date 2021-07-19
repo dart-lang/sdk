@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// [ChangeWorkspace] based on sessions.
@@ -10,6 +11,9 @@ class DartChangeWorkspace implements ChangeWorkspace {
   final List<AnalysisSession> sessions;
 
   DartChangeWorkspace(this.sessions);
+
+  @override
+  ResourceProvider get resourceProvider => sessions.first.resourceProvider;
 
   @override
   bool containsFile(String path) {

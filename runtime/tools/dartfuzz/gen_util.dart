@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/session.dart';
@@ -13,7 +11,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 /// Wrapper class for some static utilities.
 class GenUtil {
   // Picks a top directory (command line, environment, or current).
-  static String getTop(String top) {
+  static String getTop(String? top) {
     if (top == null || top == '') {
       top = Platform.environment['DART_TOP'];
     }
@@ -24,7 +22,7 @@ class GenUtil {
   }
 
   // Create an analyzer session.
-  static AnalysisSession createAnalysisSession([String dart_top]) {
+  static AnalysisSession createAnalysisSession([String? dart_top]) {
     // Set paths. Note that for this particular use case, packageRoot can be
     // any directory. Here, we set it to the top of the SDK development, and
     // derive the required sdkPath from there.

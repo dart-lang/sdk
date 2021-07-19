@@ -219,7 +219,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       scavenger_->IterateRoots(this);
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -233,7 +232,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       } while (HasWork());
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -249,7 +247,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       } while (HasWork());
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -259,6 +256,10 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     if (scavenger_->abort_) return false;
     return (scan_ != tail_) || (scan_ != nullptr && !scan_->IsResolved()) ||
            !promoted_list_.IsEmpty();
+  }
+
+  bool WaitForWork(RelaxedAtomic<uintptr_t>* num_busy) {
+    return promoted_list_.WaitForWork(num_busy);
   }
 
   void Finalize() {
@@ -471,7 +472,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       OS::PrintErr("Aborting scavenge\n");
     }
     scavenger_->abort_ = true;
-    thread_->long_jump_base()->Jump(1, Object::out_of_memory_error());
+    // N.B. We must not set the sticky error, which may be a data race if
+    // that root slot was processed by a different worker.
+    thread_->long_jump_base()->Jump(1);
   }
 
   inline void ProcessToSpace();
@@ -562,23 +565,7 @@ class ParallelScavengerTask : public ThreadPool::Task {
     do {
       do {
         visitor_->ProcessSurvivors();
-
-        // I can't find more work right now. If no other task is busy,
-        // then there will never be more work (NB: 1 is *before* decrement).
-        if (num_busy_->fetch_sub(1u) == 1) break;
-
-        // Wait for some work to appear.
-        // TODO(iposva): Replace busy-waiting with a solution using Monitor,
-        // and redraw the boundaries between stack/visitor/task as needed.
-        while (!visitor_->HasWork() && num_busy_->load() > 0) {
-        }
-
-        // If no tasks are busy, there will never be more work.
-        if (num_busy_->load() == 0) break;
-
-        // I saw some work; get busy and compete for it.
-        num_busy_->fetch_add(1u);
-      } while (true);
+      } while (visitor_->WaitForWork(num_busy_));
       // Wait for all scavengers to stop.
       barrier_->Sync();
 #if defined(DEBUG)
@@ -838,9 +825,15 @@ class CollectStoreBufferVisitor : public ObjectPointerVisitor {
   void VisitPointers(ObjectPtr* from, ObjectPtr* to) {
     for (ObjectPtr* ptr = from; ptr <= to; ptr++) {
       ObjectPtr raw_obj = *ptr;
-      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
       RELEASE_ASSERT(raw_obj->untag()->IsRemembered());
       RELEASE_ASSERT(raw_obj->IsOldObject());
+
+      RELEASE_ASSERT(!raw_obj->untag()->IsCardRemembered());
+      if (raw_obj.GetClassId() == kArrayCid) {
+        const uword length =
+            Smi::Value(static_cast<UntaggedArray*>(raw_obj.untag())->length());
+        RELEASE_ASSERT(!Array::UseCardMarkingForAllocation(length));
+      }
       in_store_buffer_->Add(raw_obj);
     }
   }
@@ -1285,11 +1278,12 @@ void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
   delayed_weak_properties_ = WeakProperty::null();
   while (cur_weak != WeakProperty::null()) {
-    WeakPropertyPtr next_weak = cur_weak->untag()->next_;
+    WeakPropertyPtr next_weak =
+        cur_weak->untag()->next_.Decompress(cur_weak->heap_base());
     // Promoted weak properties are not enqueued. So we can guarantee that
     // we do not need to think about store barriers here.
     ASSERT(cur_weak->IsNewObject());
-    ObjectPtr raw_key = cur_weak->untag()->key_;
+    ObjectPtr raw_key = cur_weak->untag()->key();
     ASSERT(raw_key->IsHeapObject());
     // Key still points into from space even if the object has been
     // promoted to old space by now. The key will be updated accordingly
@@ -1346,7 +1340,8 @@ void ScavengerVisitorBase<parallel>::EnqueueWeakProperty(
   uword header = *reinterpret_cast<uword*>(raw_addr);
   ASSERT(!IsForwarding(header));
 #endif  // defined(DEBUG)
-  ASSERT(raw_weak->untag()->next_ == WeakProperty::null());
+  ASSERT(raw_weak->untag()->next_ ==
+         CompressedWeakPropertyPtr(WeakProperty::null()));
   raw_weak->untag()->next_ = delayed_weak_properties_;
   delayed_weak_properties_ = raw_weak;
 }
@@ -1357,7 +1352,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
   if (UNLIKELY(class_id == kWeakPropertyCid)) {
     WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
     // The fate of the weak property is determined by its key.
-    ObjectPtr raw_key = raw_weak->untag()->key_;
+    ObjectPtr raw_key = raw_weak->untag()->key();
     if (raw_key->IsHeapObject() && raw_key->IsNewObject()) {
       uword raw_addr = UntaggedObject::ToAddr(raw_key);
       uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -1434,12 +1429,13 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
   delayed_weak_properties_ = WeakProperty::null();
   while (cur_weak != WeakProperty::null()) {
-    WeakPropertyPtr next_weak = cur_weak->untag()->next_;
+    WeakPropertyPtr next_weak =
+        cur_weak->untag()->next_.Decompress(cur_weak->heap_base());
     // Reset the next pointer in the weak property.
     cur_weak->untag()->next_ = WeakProperty::null();
 
 #if defined(DEBUG)
-    ObjectPtr raw_key = cur_weak->untag()->key_;
+    ObjectPtr raw_key = cur_weak->untag()->key();
     uword raw_addr = UntaggedObject::ToAddr(raw_key);
     uword header = *reinterpret_cast<uword*>(raw_addr);
     ASSERT(!IsForwarding(header));

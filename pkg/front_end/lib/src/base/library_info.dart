@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// A bit flag used by [LibraryInfo] indicating that a library is used by
 /// dart2js.
 ///
@@ -19,7 +17,7 @@ const int VM_PLATFORM = 2;
 /// Parse a category string in the SDK's "libraries.dart".
 ///
 /// This declaration duplicates the declaration in the SDK's "libraries.dart".
-Category parseCategory(String name) {
+Category? parseCategory(String name) {
   switch (name) {
     case 'Client':
       return Category.client;
@@ -59,11 +57,11 @@ class LibraryInfo {
 
   /// Path to the dart2js library's *.dart file relative to the SDK's "lib"
   /// directory, or null if dart2js uses the common library path defined above.
-  final String dart2jsPath;
+  final String? dart2jsPath;
 
   /// Path to the dart2js library's patch file relative to the SDK's "lib"
   /// directory, or null if no dart2js patch file associated with this library.
-  final String dart2jsPatchPath;
+  final String? dart2jsPatchPath;
 
   /// True if this library is documented and should be shown to the user.
   final bool documented;
@@ -98,7 +96,11 @@ class LibraryInfo {
   List<Category> get categories {
     // `''.split(',')` returns [''], not [], so we handle that case separately.
     if (_categories.isEmpty) return const <Category>[];
-    return _categories.split(',').map(parseCategory).toList();
+    return _categories
+        .split(',')
+        .map(parseCategory)
+        .whereType<Category>()
+        .toList();
   }
 
   /// The original "categories" String that was passed to the constructor.
@@ -123,25 +125,25 @@ class Maturity {
       1,
       "Experimental",
       "This library is experimental and will likely change or be removed\n"
-      "in future versions.");
+          "in future versions.");
   static const Maturity UNSTABLE = const Maturity(
       2,
       "Unstable",
       "This library is in still changing and have not yet endured\n"
-      "sufficient real-world testing.\n"
-      "Backwards-compatibility is NOT guaranteed.");
+          "sufficient real-world testing.\n"
+          "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity WEB_STABLE = const Maturity(
       3,
       "Web Stable",
       "This library is tracking the DOM evolution as defined by WC3.\n"
-      "Backwards-compatibility is NOT guaranteed.");
+          "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity STABLE = const Maturity(
       4,
       "Stable",
       "The library is stable. API backwards-compatibility is guaranteed.\n"
-      "However implementation details might change.");
+          "However implementation details might change.");
 
   static const Maturity LOCKED = const Maturity(5, "Locked",
       "This library will not change except when serious bugs are encountered.");

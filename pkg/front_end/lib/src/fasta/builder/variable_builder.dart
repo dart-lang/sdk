@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart' show VariableDeclaration;
 import '../builder/builder.dart';
 
 abstract class VariableBuilder implements Builder {
-  VariableDeclaration get variable;
+  VariableDeclaration? get variable;
 
   bool get isAssignable;
 }

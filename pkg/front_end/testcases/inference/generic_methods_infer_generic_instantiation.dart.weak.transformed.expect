@@ -2,6 +2,12 @@ library test;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:26:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
@@ -10,6 +16,24 @@ library test;
 //       /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
 //                                                                         ^
 //
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:31:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:32:70: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
+//                                                                      ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:45:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //   takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
@@ -17,6 +41,36 @@ library test;
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'double Function(int, double)'.
 //   takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
 //                                                                        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:48:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:49:65: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
+//                                                                 ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:73:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:75:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:82:25: Error: Inferred type argument 'Object' doesn't conform to the bound 'num' of the type variable 'T' on 'T Function<T extends num>(T, T)'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       . /*@target=C.m*/ m);
+//                         ^
 //
 // pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:29: Error: The argument type 'num Function(num, num)' can't be assigned to the parameter type 'int Function(double, int)'.
 //           . /*@target=C.m*/ m);
@@ -127,32 +181,32 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:16:16 -> PartialInstantiationConstant(max<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:17:16 -> PartialInstantiationConstant(max<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:18:16 -> PartialInstantiationConstant(max<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:19:16 -> PartialInstantiationConstant(max<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:20:16 -> PartialInstantiationConstant(max<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:21:16 -> PartialInstantiationConstant(max<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:22:16 -> PartialInstantiationConstant(max<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:23:16 -> PartialInstantiationConstant(max<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:24:16 -> PartialInstantiationConstant(max<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:26:70 -> PartialInstantiationConstant(max<Object*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:28:73 -> PartialInstantiationConstant(max<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:30:73 -> PartialInstantiationConstant(max<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:31:70 -> PartialInstantiationConstant(max<Object*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:32:70 -> PartialInstantiationConstant(max<Object*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:35:11 -> PartialInstantiationConstant(min<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:36:11 -> PartialInstantiationConstant(min<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:37:11 -> PartialInstantiationConstant(min<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:38:11 -> PartialInstantiationConstant(min<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:39:11 -> PartialInstantiationConstant(min<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:40:11 -> PartialInstantiationConstant(min<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:41:11 -> PartialInstantiationConstant(min<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:42:11 -> PartialInstantiationConstant(min<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:43:11 -> PartialInstantiationConstant(min<double*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:45:65 -> PartialInstantiationConstant(min<Object*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:46:72 -> PartialInstantiationConstant(min<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:47:72 -> PartialInstantiationConstant(min<num*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:48:65 -> PartialInstantiationConstant(min<Object*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:49:65 -> PartialInstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:16:16 -> InstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:17:16 -> InstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:18:16 -> InstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:19:16 -> InstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:20:16 -> InstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:21:16 -> InstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:22:16 -> InstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:23:16 -> InstantiationConstant(max<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:24:16 -> InstantiationConstant(max<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:26:70 -> InstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:28:73 -> InstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:30:73 -> InstantiationConstant(max<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:31:70 -> InstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:32:70 -> InstantiationConstant(max<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:35:11 -> InstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:36:11 -> InstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:37:11 -> InstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:38:11 -> InstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:39:11 -> InstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:40:11 -> InstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:41:11 -> InstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:42:11 -> InstantiationConstant(min<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:43:11 -> InstantiationConstant(min<double*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:45:65 -> InstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:46:72 -> InstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:47:72 -> InstantiationConstant(min<num*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:48:65 -> InstantiationConstant(min<Object*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///generic_methods_infer_generic_instantiation.dart:49:65 -> InstantiationConstant(min<Object*>)
 Extra constant evaluation: evaluated: 133, effectively constant: 28

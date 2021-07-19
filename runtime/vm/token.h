@@ -364,8 +364,8 @@ class Token {
   }
 
  private:
-  static const char* name_[];
-  static const char* tok_str_[];
+  static const char* const name_[];
+  static const char* const tok_str_[];
   static const uint8_t precedence_[];
   static const Attribute attributes_[];
 };

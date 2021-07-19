@@ -220,16 +220,12 @@ intptr_t FreeList::LengthLocked(int index) const {
 }
 
 void FreeList::PrintSmall() const {
-  int small_sizes = 0;
-  int small_objects = 0;
   intptr_t small_bytes = 0;
   for (int i = 0; i < kNumLists; ++i) {
     if (free_lists_[i] == NULL) {
       continue;
     }
-    small_sizes += 1;
     intptr_t list_length = LengthLocked(i);
-    small_objects += list_length;
     intptr_t list_bytes = list_length * i * kObjectAlignment;
     small_bytes += list_bytes;
     OS::PrintErr(
@@ -265,20 +261,16 @@ class IntptrPair {
 };
 
 void FreeList::PrintLarge() const {
-  int large_sizes = 0;
-  int large_objects = 0;
   intptr_t large_bytes = 0;
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> > map;
   FreeListElement* node;
   for (node = free_lists_[kNumLists]; node != NULL; node = node->next()) {
     IntptrPair* pair = map.Lookup(node->HeapSize());
     if (pair == NULL) {
-      large_sizes += 1;
       map.Insert(IntptrPair(node->HeapSize(), 1));
     } else {
       pair->set_second(pair->second() + 1);
     }
-    large_objects += 1;
   }
 
   MallocDirectChainedHashMap<NumbersKeyValueTrait<IntptrPair> >::Iterator it =

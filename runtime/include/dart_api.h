@@ -3041,6 +3041,13 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
  */
 typedef const uint8_t* (*Dart_NativeEntrySymbol)(Dart_NativeFunction nf);
 
+/**
+ * FFI Native C function pointer resolver callback.
+ *
+ * See Dart_SetFfiNativeResolver.
+ */
+typedef void* (*Dart_FfiNativeResolver)(const char* name);
+
 /*
  * ===========
  * Environment
@@ -3102,6 +3109,22 @@ Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
  */
 DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
                                              Dart_NativeEntrySymbol* resolver);
+
+/**
+ * Sets the callback used to resolve FFI native functions for a library.
+ * The resolved functions are expected to be a C function pointer of the
+ * correct signature (as specified in the `@FfiNative<NFT>()` function
+ * annotation in Dart code).
+ *
+ * NOTE: This is an experimental feature and might change in the future.
+ *
+ * \param library A library.
+ * \param resolver A native function resolver.
+ *
+ * \return A valid handle if the native resolver was set successfully.
+ */
+DART_EXPORT Dart_Handle
+Dart_SetFfiNativeResolver(Dart_Handle library, Dart_FfiNativeResolver resolver);
 
 /*
  * =====================
@@ -3666,58 +3689,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  *         otherwise.
  */
 DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port, char** error);
-
-/*
- * ====================
- * Compilation Feedback
- * ====================
- */
-
-/**
- * Record all functions which have been compiled in the current isolate.
- *
- * \param buffer Returns a pointer to a buffer containing the trace.
- *   This buffer is scope allocated and is only valid  until the next call to
- *   Dart_ExitScope.
- * \param size Returns the size of the buffer.
- * \return Returns an valid handle upon success.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_SaveCompilationTrace(uint8_t** buffer, intptr_t* buffer_length);
-
-/**
- * Compile all functions from data from Dart_SaveCompilationTrace. Unlike JIT
- * feedback, this data is fuzzy: loading does not need to happen in the exact
- * program that was saved, the saver and loader do not need to agree on checked
- * mode versus production mode or debug/release/product.
- *
- * \return Returns an error handle if a compilation error was encountered.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length);
-
-/**
- * Record runtime feedback for the current isolate, including type feedback
- * and usage counters.
- *
- * \param buffer Returns a pointer to a buffer containing the trace.
- *   This buffer is scope allocated and is only valid  until the next call to
- *   Dart_ExitScope.
- * \param size Returns the size of the buffer.
- * \return Returns an valid handle upon success.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_SaveTypeFeedback(uint8_t** buffer, intptr_t* buffer_length);
-
-/**
- * Compile functions using data from Dart_SaveTypeFeedback. The data must from a
- * VM with the same version and compiler flags.
- *
- * \return Returns an error handle if a compilation error was encountered or a
- *   version mismatch is detected.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_LoadTypeFeedback(uint8_t* buffer, intptr_t buffer_length);
 
 /*
  * ==============

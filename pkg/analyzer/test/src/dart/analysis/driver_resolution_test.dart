@@ -3798,72 +3798,42 @@ main() {
 
   test_isExpression() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is num;
+void f(var a) {
+  a is num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is num');
+    expect(isExpression.notOperator, isNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_isExpression_not() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  var v = 42;
-  v is! num;
+void f(var a) {
+  a is! num;
 }
 ''');
 
-    List<Statement> statements = _getMainStatements(result);
+    var isExpression = findNode.isExpression('a is! num');
+    expect(isExpression.notOperator, isNotNull);
+    expect(isExpression.staticType, typeProvider.boolType);
 
-    // var v = 42;
-    VariableElement vElement;
-    {
-      var statement = statements[0] as VariableDeclarationStatement;
-      vElement = statement.variables.variables[0].name.staticElement
-          as VariableElement;
-    }
+    var target = isExpression.expression as SimpleIdentifier;
+    expect(target.staticElement, findElement.parameter('a'));
+    expect(target.staticType, dynamicType);
 
-    // v is! num;
-    {
-      var statement = statements[1] as ExpressionStatement;
-      var isExpression = statement.expression as IsExpression;
-      expect(isExpression.notOperator, isNotNull);
-      expect(isExpression.staticType, typeProvider.boolType);
-
-      var target = isExpression.expression as SimpleIdentifier;
-      expect(target.staticElement, vElement);
-      expect(target.staticType, typeProvider.intType);
-
-      var numName = isExpression.type as TypeName;
-      expect(numName.name.staticElement, typeProvider.numType.element);
-      expect(numName.name.staticType, isNull);
-    }
+    var numName = isExpression.type as TypeName;
+    expect(numName.name.staticElement, typeProvider.numType.element);
+    expect(numName.name.staticType, isNull);
   }
 
   test_label_while() async {
@@ -6268,7 +6238,7 @@ main() {
 
     var myLibrary = myImport.importedLibrary!;
     var myUnit = myLibrary.definingCompilationUnit;
-    var myClass = myUnit.types.single;
+    var myClass = myUnit.classes.single;
     var myTypeAlias = myUnit.typeAliases.single;
     var myTopVariable = myUnit.topLevelVariables[0];
     var myTopFunction = myUnit.functions.single;
@@ -7377,7 +7347,7 @@ class C<T> {
     var cNode = unit.declarations[0] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
     TypeParameterElement tElement = cElement.typeParameters[0];
-    expect(cElement, same(unitElement.types[0]));
+    expect(cElement, same(unitElement.classes[0]));
 
     {
       FieldElement aElement = cElement.getField('a')!;
@@ -7612,9 +7582,6 @@ void main() {
     _assertArgumentToParameter(arguments[2], fElement.parameters[2]);
   }
 
-  @FailingTest(
-    reason: 'No nameOffset for formal parameters',
-  )
   test_top_functionTypeAlias() async {
     String content = r'''
 typedef int F<T>(bool a, T b);
@@ -7661,11 +7628,11 @@ class C<T extends A, U extends List<A>, V> {}
 
     var aNode = unit.declarations[0] as ClassDeclaration;
     ClassElement aElement = aNode.declaredElement!;
-    expect(aElement, same(unitElement.types[0]));
+    expect(aElement, same(unitElement.classes[0]));
 
     var cNode = unit.declarations[1] as ClassDeclaration;
     ClassElement cElement = cNode.declaredElement!;
-    expect(cElement, same(unitElement.types[1]));
+    expect(cElement, same(unitElement.classes[1]));
 
     {
       TypeParameter tNode = cNode.typeParameters!.typeParameters[0];

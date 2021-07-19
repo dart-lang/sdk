@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.get_dependencies;
 
 import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
@@ -25,11 +23,11 @@ import 'kernel/kernel_target.dart' show KernelTarget;
 import 'uri_translator.dart' show UriTranslator;
 
 Future<List<Uri>> getDependencies(Uri script,
-    {Uri sdk,
-    Uri packages,
-    Uri platform,
+    {Uri? sdk,
+    Uri? packages,
+    Uri? platform,
     bool verbose: false,
-    Target target}) async {
+    Target? target}) async {
   CompilerOptions options = new CompilerOptions()
     ..target = target
     ..verbose = verbose

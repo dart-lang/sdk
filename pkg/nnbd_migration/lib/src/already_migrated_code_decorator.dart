@@ -52,7 +52,7 @@ class AlreadyMigratedCodeDecorator {
     }
     if (type is FunctionType) {
       for (var element in type.typeFormals) {
-        DecoratedTypeParameterBounds.current.put(
+        DecoratedTypeParameterBounds.current!.put(
             element,
             decorate(
                 element.bound ??

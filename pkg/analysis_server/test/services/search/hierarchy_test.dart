@@ -77,7 +77,7 @@ class B extends A {
   Future<void> test_getHierarchyMembers_fields() async {
     await _indexTestUnit('''
 class A {
-  int foo;
+  int? foo;
 }
 class B extends A {
   get foo => null;
@@ -86,7 +86,7 @@ class C extends B {
   set foo(x) {}
 }
 class D {
-  int foo;
+  int? foo;
 }
 ''');
     var classA = findElement.class_('A');
@@ -115,7 +115,7 @@ class D {
   Future<void> test_getHierarchyMembers_fields_static() async {
     await _indexTestUnit('''
 class A {
-  static int foo;
+  static int? foo;
 }
 class B extends A {
   static get foo => null;

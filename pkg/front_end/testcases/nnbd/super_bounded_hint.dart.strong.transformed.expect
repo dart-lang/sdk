@@ -571,9 +571,9 @@ static method foo5b({required (self::A<Never>) → self::A<dynamic> x = #C1}) �
 static method foo6a() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
   {
-    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator}{core::Iterator<(self::A<Never>) → self::A<dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current}{(self::A<Never>) → self::A<dynamic>};
       {}
     }
   }
@@ -587,9 +587,9 @@ static method foo6a() → dynamic {
 static method foo6b() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
   {
-    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<(self::A<Never>) → self::A<dynamic>> :sync-for-iterator = core::_GrowableList::•<(self::A<Never>) → self::A<dynamic>>(0).{core::Iterable::iterator}{core::Iterator<(self::A<Never>) → self::A<dynamic>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      (self::A<Never>) → self::A<dynamic> x = :sync-for-iterator.{core::Iterator::current}{(self::A<Never>) → self::A<dynamic>};
       {}
     }
   }
@@ -610,9 +610,9 @@ static method bar5({required self::B<core::num> x = #C1}) → dynamic {}
 static method bar6() → dynamic {
   self::B<core::num> x;
   {
-    core::Iterator<self::B<core::num>> :sync-for-iterator = core::_GrowableList::•<self::B<core::num>>(0).{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      self::B<core::num> x = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<self::B<core::num>> :sync-for-iterator = core::_GrowableList::•<self::B<core::num>>(0).{core::Iterable::iterator}{core::Iterator<self::B<core::num>>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::B<core::num> x = :sync-for-iterator.{core::Iterator::current}{self::B<core::num>};
       {}
     }
   }

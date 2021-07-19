@@ -390,8 +390,8 @@ abstract class ObjectMirror implements Mirror {
    * Let *o* be the object reflected by this mirror, let *f* be the simple name
    * of the member denoted by [memberName], let *a1, ..., an* be the elements
    * of [positionalArguments], let *k1, ..., km* be the identifiers denoted by
-   * the elements of [namedArguments.keys], and let *v1, ..., vm* be the
-   * elements of [namedArguments.values]. Then this method will perform the
+   * the elements of [namedArguments].keys, and let *v1, ..., vm* be the
+   * elements of [namedArguments].values. Then this method will perform the
    * method invocation *o.f(a1, ..., an, k1: v1, ..., km: vm)* in a scope that
    * has access to the private members of *o* (if *o* is a class or library) or
    * the private members of the class of *o* (otherwise).
@@ -581,8 +581,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * Let *f* be the closure reflected by this mirror,
    * let *a1, ..., an* be the elements of [positionalArguments],
    * let *k1, ..., km* be the identifiers denoted by the elements of
-   * [namedArguments.keys],
-   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * [namedArguments].keys,
+   * and let *v1, ..., vm* be the elements of [namedArguments].values.
    *
    * Then this method will perform the method invocation
    * *f(a1, ..., an, k1: v1, ..., km: vm)*.
@@ -850,8 +850,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * Let *c* be the class reflected by this mirror,
    * let *a1, ..., an* be the elements of [positionalArguments],
    * let *k1, ..., km* be the identifiers denoted by the elements of
-   * [namedArguments.keys],
-   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * [namedArguments].keys,
+   * and let *v1, ..., vm* be the elements of [namedArguments].values.
    *
    * If [constructorName] was created from the empty string, then this method
    * will execute the instance creation expression

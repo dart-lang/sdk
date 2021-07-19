@@ -1050,7 +1050,7 @@ class CallSiteInliner : public ValueObject {
         } else if (PolymorphicInstanceCallInstr* instr =
                        call_data->call->AsPolymorphicInstanceCall()) {
           entry_kind = instr->entry_kind();
-        } else if (ClosureCallInstr* instr = call_data->call->AsClosureCall()) {
+        } else if (call_data->call->IsClosureCall()) {
           // Closure functions only have one entry point.
         }
         kernel::FlowGraphBuilder builder(
@@ -2655,13 +2655,8 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           source, new (Z) Value(stored_value), new (Z) Value(dst_type),
           new (Z) Value(type_args), new (Z) Value(function_type_args),
           Symbols::Value(), call->deopt_id());
-      cursor = flow_graph->AppendTo(cursor, assert_value, call->env(),
-                                    FlowGraph::kValue);
-      // The environment is that of the InstanceCall([]=, ..., <env>).
-      // A lazy-deopt of the inserted AssertAssignable must continue in
-      // unoptimzed code.
-      // => We will re-try this []= call in unoptimized code.
-      assert_value->env()->MarkAsLazyDeoptToBeforeDeoptId();
+      cursor = flow_graph->AppendSpeculativeTo(cursor, assert_value,
+                                               call->env(), FlowGraph::kValue);
     }
   }
 
@@ -3669,7 +3664,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     FlowGraphInliner::ExactnessInfo* exactness) {
   COMPILER_TIMINGS_TIMER_SCOPE(flow_graph->thread(), InlineRecognizedMethod);
 
-  if (receiver_cid == kNeverCid) {
+  if (receiver_cid == kSentinelCid) {
     // Receiver was defined in dead code and was replaced by the sentinel.
     // Original receiver cid is lost, so don't try to inline recognized
     // methods.

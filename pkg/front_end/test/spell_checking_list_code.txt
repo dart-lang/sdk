@@ -1148,6 +1148,7 @@ stacktraces
 stale
 stand
 starter
+stated
 statics
 stderr
 stdin
@@ -1156,6 +1157,7 @@ stdlib
 stdout
 sticky
 stmt
+stopgap
 stopped
 storage
 str

@@ -9,5 +9,8 @@
 library same_package_twice_test;
 
 import 'package:foo/foo.dart' as foo;
+//     ^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.URI_DOES_NOT_EXIST
+// [cfe] unspecified
 
 main() {}

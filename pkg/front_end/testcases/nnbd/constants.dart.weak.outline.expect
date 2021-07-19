@@ -64,7 +64,7 @@ static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:10:27 -> TypeLiteralConstant(Object*)
-Evaluated: Instantiation @ org-dartlang-testcase:///constants.dart:11:52 -> PartialInstantiationConstant(id<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///constants.dart:11:52 -> InstantiationConstant(id<int*>)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants.dart:12:24 -> InstanceConstant(const Class<int*>{Class.field: 0})
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:13:29 -> TypeLiteralConstant(dynamic Function(dynamic)*)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants.dart:14:36 -> TypeLiteralConstant(T* Function<T>(T*)*)
@@ -86,8 +86,8 @@ Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:35:5 -> Bo
 Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:37:5 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///constants.dart:39:5 -> BoolConstant(true)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:16:27 -> TypeLiteralConstant(Object*)
-Evaluated: StaticTearOff @ org-dartlang-testcase:///constants_lib.dart:17:12 -> TearOffConstant(identical)
-Evaluated: Instantiation @ org-dartlang-testcase:///constants_lib.dart:18:48 -> PartialInstantiationConstant(id<int*>)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constants_lib.dart:17:12 -> StaticTearOffConstant(identical)
+Evaluated: Instantiation @ org-dartlang-testcase:///constants_lib.dart:18:48 -> InstantiationConstant(id<int*>)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constants_lib.dart:19:24 -> InstanceConstant(const Class<int*>{Class.field: 0})
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:20:29 -> TypeLiteralConstant(dynamic Function(dynamic)*)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///constants_lib.dart:21:36 -> TypeLiteralConstant(T* Function<T>(T*)*)

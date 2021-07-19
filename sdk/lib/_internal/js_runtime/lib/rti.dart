@@ -334,7 +334,7 @@ class Rti {
   }
 
   static Rti allocate() {
-    return new Rti();
+    return Rti();
   }
 
   Object? _canonicalRecipe;
@@ -556,14 +556,14 @@ Object? _substituteArray(
     Object? universe, Object? rtiArray, Object? typeArguments, int depth) {
   bool changed = false;
   int length = _Utils.arrayLength(rtiArray);
-  Object? result = JS('', '[]');
+  Object? result = _Utils.newArrayOrEmpty(length);
   for (int i = 0; i < length; i++) {
     Rti rti = _Utils.asRti(_Utils.arrayAt(rtiArray, i));
     Rti substitutedRti = _substitute(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
-    _Utils.arrayPush(result, substitutedRti);
+    _Utils.arraySetAt(result, i, substitutedRti);
   }
   return changed ? result : rtiArray;
 }
@@ -573,7 +573,7 @@ Object? _substituteNamed(
   bool changed = false;
   int length = _Utils.arrayLength(namedArray);
   assert(_Utils.isMultipleOf(length, 3));
-  Object? result = JS('', '[]');
+  Object? result = _Utils.newArrayOrEmpty(length);
   for (int i = 0; i < length; i += 3) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     bool isRequired = _Utils.asBool(_Utils.arrayAt(namedArray, i + 1));
@@ -582,9 +582,8 @@ Object? _substituteNamed(
     if (_Utils.isNotIdentical(substitutedRti, rti)) {
       changed = true;
     }
-    _Utils.arrayPush(result, name);
-    _Utils.arrayPush(result, isRequired);
-    _Utils.arrayPush(result, substitutedRti);
+    JS('', '#.splice(#, #, #, #, #)', result, i, 3, name, isRequired,
+        substitutedRti);
   }
   return changed ? result : namedArray;
 }
@@ -1419,7 +1418,7 @@ String _rtiToString(Rti rti, List<String>? genericContext) {
     String name = Rti._getInterfaceName(rti);
     name = _unminifyOrTag(name);
     var arguments = Rti._getInterfaceTypeArguments(rti);
-    if (arguments.length != 0) {
+    if (arguments.length > 0) {
       name += '<' + _rtiArrayToString(arguments, genericContext) + '>';
     }
     return name;
@@ -1633,9 +1632,9 @@ class _Universe {
     } else if (_Utils.isNum(probe)) {
       int length = _Utils.asInt(probe);
       Rti erased = _lookupErasedRti(universe);
-      Object? arguments = JS('', '[]');
+      Object? arguments = _Utils.newArrayOrEmpty(length);
       for (int i = 0; i < length; i++) {
-        _Utils.arrayPush(arguments, erased);
+        _Utils.arraySetAt(arguments, i, erased);
       }
       Rti interface = _lookupInterfaceRti(universe, cls, arguments);
       JS('', '#.# = #', metadata, cls, interface);
@@ -1657,8 +1656,8 @@ class _Universe {
   static void addTypeParameterVariances(Object? universe, Object? variances) =>
       _Utils.objectAssign(typeParameterVariances(universe), variances);
 
-  static JSArray sharedEmptyArray(Object? universe) =>
-      JS('JSArray', '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
+  static JSArray sharedEmptyArray(Object? universe) => JS('JSUnmodifiableArray',
+      '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
 
   /// Evaluates [recipe] in the global environment.
   static Rti eval(Object? universe, String recipe, bool normalize) {
@@ -1986,7 +1985,7 @@ class _Universe {
     assert(_Utils.isString(name));
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
-    if (length != 0) {
+    if (length > 0) {
       s = _recipeJoin4(s, Recipe.startTypeArgumentsString,
           _canonicalRecipeJoin(arguments), Recipe.endTypeArgumentsString);
     }
@@ -2143,7 +2142,7 @@ class _Universe {
     if (normalize) {
       int length = _Utils.arrayLength(bounds);
       int count = 0;
-      Object? typeArguments = JS('', 'new Array(#)', length);
+      Object? typeArguments = _Utils.newArrayOrEmpty(length);
       for (int i = 0; i < length; i++) {
         Rti bound = _Utils.asRti(_Utils.arrayAt(bounds, i));
         if (Rti._getKind(bound) == Rti.kindNever) {
@@ -2974,86 +2973,94 @@ bool _isInterfaceSubtype(
   String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
 
-  // Interface Compositionality:
-  if (sName == tName) {
-    var sArgs = Rti._getInterfaceTypeArguments(s);
-    var tArgs = Rti._getInterfaceTypeArguments(t);
-    int length = _Utils.arrayLength(sArgs);
-    assert(length == _Utils.arrayLength(tArgs));
+  while (sName != tName) {
+    // The Super-Interface rule says that if [s] has superinterfaces C0,...,Cn,
+    // then we need to check if for some i, Ci <: [t]. However, this requires us
+    // to iterate over the superinterfaces. Instead, we can perform case
+    // analysis on [t]. By this point, [t] can only be Never, a type variable,
+    // or an interface type. (Bindings do not participate in subtype checks and
+    // all other cases have been eliminated.) If [t] is not an interface, then
+    // [s] </: [t]. Therefore, the only remaining case is that [t] is an
+    // interface, so rather than iterating over the Ci, we can instead look up
+    // [t] in our ruleset.
+    // TODO(fishythefish): Handle variance correctly.
 
-    var sVariances;
-    bool? hasVariances;
-    if (JS_GET_FLAG("VARIANCE")) {
-      sVariances = _Universe.findTypeParameterVariances(universe, sName);
-      hasVariances = sVariances != null;
-      assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+    var rule = _Universe._findRule(universe, sName);
+    if (rule == null) return false;
+    if (_Utils.isString(rule)) {
+      sName = _Utils.asString(rule);
+      continue;
     }
 
+    var recipes = TypeRule.lookupSupertype(rule, tName);
+    if (recipes == null) return false;
+    int length = _Utils.arrayLength(recipes);
+    Object? supertypeArgs = _Utils.newArrayOrEmpty(length);
     for (int i = 0; i < length; i++) {
-      Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
-      Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
-      if (JS_GET_FLAG("VARIANCE")) {
-        int sVariance = hasVariances != null
-            ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
-            : Variance.legacyCovariant;
-        switch (sVariance) {
-          case Variance.legacyCovariant:
-          case Variance.covariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
-              return false;
-            }
-            break;
-          case Variance.contravariant:
-            if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
-              return false;
-            }
-            break;
-          case Variance.invariant:
-            if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
-                !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
-              return false;
-            }
-            break;
-          default:
-            throw StateError(
-                "Unknown variance given for subtype check: $sVariance");
-        }
-      } else {
-        if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
-          return false;
-        }
-      }
+      String recipe = _Utils.asString(_Utils.arrayAt(recipes, i));
+      Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
+      _Utils.arraySetAt(supertypeArgs, i, supertypeArg);
     }
-    return true;
+    var tArgs = Rti._getInterfaceTypeArguments(t);
+    return _areArgumentsSubtypes(
+        universe, supertypeArgs, null, sEnv, tArgs, tEnv);
   }
 
-  // The Super-Interface rule says that if [s] has superinterfaces C0,...,Cn,
-  // then we need to check if for some i, Ci <: [t]. However, this requires us
-  // to iterate over the superinterfaces. Instead, we can perform case
-  // analysis on [t]. By this point, [t] can only be Never, a type variable,
-  // or an interface type. (Bindings do not participate in subtype checks and
-  // all other cases have been eliminated.) If [t] is not an interface, then
-  // [s] </: [t]. Therefore, the only remaining case is that [t] is an
-  // interface, so rather than iterating over the Ci, we can instead look up
-  // [t] in our ruleset.
-  // TODO(fishythefish): Handle variance correctly.
-
-  // We don't list Object explicitly as a supertype of each interface, so check
-  // this trivial case first.
-  if (isObjectType(t)) return true;
-  var rule = _Universe.findRule(universe, sName);
-  if (rule == null) return false;
-  var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
-  if (supertypeArgs == null) return false;
-  int length = _Utils.arrayLength(supertypeArgs);
+  // Interface Compositionality:
+  assert(sName == tName);
+  var sArgs = Rti._getInterfaceTypeArguments(s);
   var tArgs = Rti._getInterfaceTypeArguments(t);
+  var sVariances;
+  if (JS_GET_FLAG("VARIANCE")) {
+    sVariances = _Universe.findTypeParameterVariances(universe, sName);
+  }
+  return _areArgumentsSubtypes(universe, sArgs, sVariances, sEnv, tArgs, tEnv);
+}
+
+bool _areArgumentsSubtypes(Object? universe, Object? sArgs, Object? sVariances,
+    Object? sEnv, Object? tArgs, Object? tEnv) {
+  int length = _Utils.arrayLength(sArgs);
   assert(length == _Utils.arrayLength(tArgs));
+  bool hasVariances = sVariances != null;
+  if (JS_GET_FLAG("VARIANCE")) {
+    assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+  } else {
+    assert(!hasVariances);
+  }
+
   for (int i = 0; i < length; i++) {
-    String recipe = _Utils.asString(_Utils.arrayAt(supertypeArgs, i));
-    Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
+    Rti sArg = _Utils.asRti(_Utils.arrayAt(sArgs, i));
     Rti tArg = _Utils.asRti(_Utils.arrayAt(tArgs, i));
-    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) {
-      return false;
+    if (JS_GET_FLAG("VARIANCE")) {
+      int sVariance = hasVariances
+          ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
+          : Variance.legacyCovariant;
+      switch (sVariance) {
+        case Variance.legacyCovariant:
+        case Variance.covariant:
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
+            return false;
+          }
+          break;
+        case Variance.contravariant:
+          if (!_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
+            return false;
+          }
+          break;
+        case Variance.invariant:
+          if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv) ||
+              !_isSubtype(universe, tArg, tEnv, sArg, sEnv)) {
+            return false;
+          }
+          break;
+        default:
+          throw StateError(
+              "Unknown variance given for subtype check: $sVariance");
+      }
+    } else {
+      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) {
+        return false;
+      }
     }
   }
   return true;
@@ -3131,6 +3138,10 @@ class _Utils {
     }
   }
 
+  static Object? newArrayOrEmpty(int length) => length > 0
+      ? JS('', 'new Array(#)', length)
+      : _Universe.sharedEmptyArray(_theUniverse());
+
   static bool isArray(Object? o) => JS('bool', 'Array.isArray(#)', o);
 
   static int arrayLength(Object? array) => JS('int', '#.length', array);
@@ -3149,10 +3160,6 @@ class _Utils {
 
   static JSArray arrayConcat(Object? a1, Object? a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
-
-  static void arrayPush(Object? array, Object? value) {
-    JS('', '#.push(#)', array, value);
-  }
 
   static String substring(String s, int start, int end) =>
       JS('String', '#.substring(#, #)', s, start, end);

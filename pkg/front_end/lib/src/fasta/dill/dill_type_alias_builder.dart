@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.dill_typedef_builder;
 
-import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart' show DartType, InvalidType, NullType, Typedef;
 import 'package:kernel/core_types.dart';
 
@@ -18,16 +15,18 @@ import '../builder/type_variable_builder.dart';
 
 import '../problems.dart' show unimplemented;
 
+import '../util/helpers.dart';
+
 import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   final Typedef typedef;
 
-  List<TypeVariableBuilder> _typeVariables;
-  TypeBuilder _type;
+  List<TypeVariableBuilder>? _typeVariables;
+  TypeBuilder? _type;
 
-  DartType thisType;
+  DartType? thisType;
 
   DillTypeAliasBuilder(this.typedef, DillLibraryBuilder parent)
       : super(null, typedef.name, parent, typedef.fileOffset);
@@ -36,7 +35,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     return unimplemented("metadata", -1, null);
   }
 
-  List<TypeVariableBuilder> get typeVariables {
+  List<TypeVariableBuilder>? get typeVariables {
     if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
       _typeVariables =
           computeTypeVariableBuilders(library, typedef.typeParameters);
@@ -54,41 +53,39 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
-  TypeBuilder get type {
+  TypeBuilder? get type {
     if (_type == null && typedef.type is! InvalidType) {
-      _type = library.loader.computeTypeBuilder(typedef.type);
+      _type = library.loader.computeTypeBuilder(typedef.type!);
     }
+    // TODO(johnniwinther): Support TypeBuilder for InvalidType.
     return _type;
   }
 
   @override
   DartType buildThisType() {
-    return thisType ??= typedef.type;
+    return thisType ??= typedef.type!;
   }
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
-      List<DartType> result = new List<DartType>.filled(
-          typedef.typeParameters.length, null,
-          growable: true);
-      for (int i = 0; i < result.length; ++i) {
-        result[i] = typedef.typeParameters[i].defaultType;
-      }
+      List<DartType> result =
+          new List<DartType>.generate(typedef.typeParameters.length, (int i) {
+        return typedef.typeParameters[i].defaultType;
+      }, growable: true);
       return result;
     }
 
     // [arguments] != null
     List<DartType> result =
-        new List<DartType>.filled(arguments.length, null, growable: true);
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = arguments[i].build(library);
-    }
+        new List<DartType>.generate(arguments.length, (int i) {
+      return arguments[i].build(library);
+    }, growable: true);
     return result;
   }
 

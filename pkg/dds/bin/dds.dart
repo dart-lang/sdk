@@ -53,6 +53,7 @@ Future<void> main(List<String> args) async {
       remoteVmServiceUri,
       serviceUri: serviceUri,
       enableAuthCodes: !disableServiceAuthCodes,
+      ipv6: address.type == InternetAddressType.IPv6,
       devToolsConfiguration: startDevTools && devToolsBuildDirectory != null
           ? DevToolsConfiguration(
               enable: startDevTools,

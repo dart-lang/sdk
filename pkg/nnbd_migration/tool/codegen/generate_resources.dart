@@ -12,7 +12,6 @@ import 'dart:math' as math;
 
 import 'package:args/args.dart';
 import 'package:crypto/crypto.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 void main(List<String> args) async {
@@ -41,13 +40,13 @@ Run with '--verify' to validate that the web resource have been regenerated.
   }
 
   bool verify = argResults['verify'] as bool;
-  bool dev = argResults['dev'] as bool;
+  bool? dev = argResults['dev'] as bool?;
 
   if (verify) {
     verifyResourcesGDartGenerated();
   } else {
     await compileWebFrontEnd(
-        devMode: dev, dart2jsPath: dart2jsPath(argResults));
+        devMode: dev!, dart2jsPath: dart2jsPath(argResults)!);
 
     print('');
 
@@ -56,9 +55,9 @@ Run with '--verify' to validate that the web resource have been regenerated.
 }
 
 /// Returns the dart2jsPath, either from [argResults] or the Platform.
-String dart2jsPath(ArgResults argResults) {
+String? dart2jsPath(ArgResults argResults) {
   if (argResults.wasParsed('dart2js_path')) {
-    return argResults['dart2js_path'] as String;
+    return argResults['dart2js_path'] as String?;
   } else {
     var sdkBinDir = path.dirname(Platform.resolvedExecutable);
     var dart2jsBinary = Platform.isWindows ? 'dart2js.bat' : 'dart2js';
@@ -103,7 +102,7 @@ String base64Encode(List<int> bytes) {
 }
 
 Future<void> compileWebFrontEnd(
-    {@required bool devMode, @required String dart2jsPath}) async {
+    {required bool devMode, required String dart2jsPath}) async {
   // dart2js -m -o output source
   var process = await Process.start(dart2jsPath, [
     devMode ? '-O1' : '-m',
@@ -196,7 +195,7 @@ String _decode(String data) {
     var delimiter = "'''";
 
     buf.writeln();
-    buf.writeln('String _$name;');
+    buf.writeln('String? _$name;');
     if (name == path.basename(javascriptOutput.path).replaceAll('.', '_')) {
       // Write out the crc for the dart code.
       var sourceCode = StringBuffer();
@@ -240,7 +239,7 @@ void verifyResourcesGDartGenerated({
   print('Verifying that ${path.basename(resourcesFile.path)} is up-to-date...');
 
   // Find the hashes for the last generated version of resources.g.dart.
-  var resourceHashes = <String, String>{};
+  var resourceHashes = <String?, String?>{};
   // highlight_css md5 is 'fb012626bafd286510d32da815dae448'
   var hashPattern = RegExp(r"// (\S+) md5 is '(\S+)'");
   for (var match in hashPattern.allMatches(resourcesFile.readAsStringSync())) {

@@ -376,6 +376,7 @@ class Precompiler : public ValueObject {
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
   FunctionSet functions_called_dynamically_;
+  FunctionSet functions_with_entry_point_pragmas_;
   FunctionSet seen_functions_;
   FunctionSet possibly_retained_functions_;
   FieldSet fields_to_retain_;

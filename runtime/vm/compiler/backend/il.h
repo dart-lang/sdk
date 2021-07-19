@@ -478,7 +478,6 @@ struct InstrAttrs {
   M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
-  M(StringInterpolate, _)                                                      \
   M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, kNoGC)                                                \
   M(TruncDivMod, kNoGC)                                                        \
@@ -499,7 +498,7 @@ struct InstrAttrs {
   M(UnboxUint32, kNoGC)                                                        \
   M(BoxInt32, _)                                                               \
   M(UnboxInt32, kNoGC)                                                         \
-  M(BoxUint8, kNoGC)                                                           \
+  M(BoxSmallInt, kNoGC)                                                        \
   M(IntConverter, kNoGC)                                                       \
   M(BitCast, kNoGC)                                                            \
   M(Deoptimize, kNoGC)                                                         \
@@ -1264,9 +1263,6 @@ class TemplateInstruction
 class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) {}
-
-  MoveOperands(const MoveOperands& other)
-      : dest_(other.dest_), src_(other.src_) {}
 
   MoveOperands& operator=(const MoveOperands& other) {
     dest_ = other.dest_;
@@ -3183,28 +3179,39 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
 // IndirectGotoInstr represents a dynamically computed jump. Only
 // IndirectEntryInstr targets are valid targets of an indirect goto. The
-// concrete target to jump to is given as a parameter to the indirect goto.
+// concrete target index to jump to is given as a parameter to the indirect
+// goto.
 //
 // In order to preserve split-edge form, an indirect goto does not itself point
 // to its targets. Instead, for each possible target, the successors_ field
 // will contain an ordinary goto instruction that jumps to the target.
 // TODO(zerny): Implement direct support instead of embedding gotos.
 //
-// Byte offsets of all possible targets are stored in the offsets_ array. The
-// desired offset is looked up while the generated code is executing, and passed
-// to IndirectGoto as an input.
+// The input to the [IndirectGotoInstr] is the target index to jump to.
+// All targets of the [IndirectGotoInstr] are added via [AddSuccessor] and get
+// increasing indices.
+//
+// The FlowGraphCompiler will - as a post-processing step - invoke
+// [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
+// TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
+// offests are relative to start of the instruction payload).
+//
+//  => See `FlowGraphCompiler::CompileGraph()`
+//  => See `IndirectGotoInstr::ComputeOffsetTable`
 class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  IndirectGotoInstr(const TypedData* offsets, Value* offset_from_start)
-      : offsets_(*offsets) {
-    SetInputAt(0, offset_from_start);
+  IndirectGotoInstr(intptr_t target_count, Value* target_index)
+      : offsets_(TypedData::ZoneHandle(TypedData::New(kTypedDataInt32ArrayCid,
+                                                      target_count,
+                                                      Heap::kOld))) {
+    SetInputAt(0, target_index);
   }
 
   DECLARE_INSTRUCTION(IndirectGoto)
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kNoRepresentation;
+    return kTagged;
   }
 
   void AddSuccessor(TargetEntryInstr* successor) {
@@ -5561,7 +5568,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0, Throws> {
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
-  bool IsFieldInitialized(Instance* field_value = nullptr) const;
+  bool IsFieldInitialized(Object* field_value = nullptr) const;
 
   bool calls_initializer() const { return calls_initializer_; }
   void set_calls_initializer(bool value) { calls_initializer_ = value; }
@@ -5712,7 +5719,6 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
-
  private:
   const bool index_unboxed_;
   const intptr_t index_scale_;
@@ -5841,41 +5847,6 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const intptr_t cid_;
 
   DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
-};
-
-class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
- public:
-  StringInterpolateInstr(Value* value,
-                         const InstructionSource& source,
-                         intptr_t deopt_id)
-      : TemplateDefinition(source, deopt_id),
-        token_pos_(source.token_pos),
-        function_(Function::ZoneHandle()) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual CompileType ComputeType() const;
-  // Issues a static call to Dart code which calls toString on objects.
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
-  const Function& CallFunction() const;
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION(StringInterpolate)
-
- private:
-  const TokenPosition token_pos_;
-  Function& function_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
 };
 
 // Scanning instruction to compute the result size and decoding parameters
@@ -6021,7 +5992,6 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   void PrintOperandsTo(BaseTextBuffer* f) const;
 
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
-
 
  private:
   compiler::Assembler::CanBeSmi CanValueBeSmi() const {
@@ -7052,18 +7022,22 @@ class BoxIntegerInstr : public BoxInstr {
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
 };
 
-class BoxUint8Instr : public BoxIntegerInstr {
+class BoxSmallIntInstr : public BoxIntegerInstr {
  public:
-  explicit BoxUint8Instr(Value* value)
-      : BoxIntegerInstr(kUnboxedUint8, value) {}
+  explicit BoxSmallIntInstr(Representation rep, Value* value)
+      : BoxIntegerInstr(rep, value) {
+    ASSERT(RepresentationUtils::ValueSize(rep) * kBitsPerByte <=
+           compiler::target::kSmiBits);
+  }
 
   virtual bool ValueFitsSmi() const { return true; }
 
-  DECLARE_INSTRUCTION(BoxUint8)
+  DECLARE_INSTRUCTION(BoxSmallInt)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BoxUint8Instr);
+  DISALLOW_COPY_AND_ASSIGN(BoxSmallIntInstr);
 };
+
 class BoxInteger32Instr : public BoxIntegerInstr {
  public:
   BoxInteger32Instr(Representation representation, Value* value)

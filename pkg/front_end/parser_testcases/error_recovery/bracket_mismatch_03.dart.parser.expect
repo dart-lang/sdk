@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 void foo() {
-{foo();;);}
+{foo();*synthetic*;);}
 }
 
 void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]

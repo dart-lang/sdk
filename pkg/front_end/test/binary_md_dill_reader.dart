@@ -236,33 +236,109 @@ class BinaryMdDillReader {
     return result;
   }
 
+  static const int $COMMA = 44;
+  static const int $LT = 60;
+  static const int $GT = 62;
+
   /// Extract the generics used in an input type, e.g. turns
   ///
-  /// * "Pair<A, B>" into ["A", "B"]
-  /// * "List<Expression>" into ["Expression"]
+  /// * "Pair<A, B>" into ["A", "B"].
+  /// * "List<Expression>" into ["Expression"].
+  /// * "Foo<Bar<Baz>>" into ["Bar<Baz>"].
+  /// * "Foo<A, B<C, D>, E>" into ["A", "B<C, D>", "E"].
   ///
   /// Note that the input string *has* to use generics, i.e. have '<' and '>'
   /// in it.
-  /// Also note that nested generics isn't really supported
-  /// (e.g. Foo<Bar<Baz>>).
-  List<String> _getGenerics(String s) {
+  ///
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Pair<A, B>"), ["A", "B"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Expression>"), ["Expression"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("List<Pair<FileOffset, Expression>>"),
+  ///   ["Pair<FileOffset, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("RList<Pair<UInt32, UInt32>>"),
+  ///   ["Pair<UInt32, UInt32>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, Expression>>"),
+  ///   ["Pair<FieldReference, Expression>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<ConstantReference, ConstantReference>>"),
+  ///   ["Pair<ConstantReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics(
+  ///     "List<Pair<FieldReference, ConstantReference>>"),
+  ///   ["Pair<FieldReference, ConstantReference>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Option<List<DartType>>"),
+  ///   ["List<DartType>"]
+  /// )
+  /// DartDocTest(
+  ///   BinaryMdDillReader._getGenerics("Foo<Bar<Baz>>"), ["Bar<Baz>"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D>, E>"),
+  ///            ["A", "B<C, D>", "E"]
+  /// )
+  /// DartDocTest(
+  ///      BinaryMdDillReader._getGenerics("Foo<A, B<C, D<E<F<G>>>>, H>"),
+  ///            ["A", "B<C, D<E<F<G>>>>", "H"]
+  /// )
+  ///
+  /// Expected failing run (expects to fail with unbalanced < >).
+  /// TODO: Support this more elegantly.
+  /// DartDocTest(() {
+  ///      try {
+  ///        BinaryMdDillReader._getGenerics("Foo<A, B<C, D, E>");
+  ///        return false;
+  ///      } catch(e) {
+  ///        return true;
+  ///      }
+  ///    }(),
+  ///    true
+  /// )
+  ///
+  static List<String> _getGenerics(String s) {
     s = s.substring(s.indexOf("<") + 1, s.lastIndexOf(">"));
-    if (s.contains("<")) {
-      if (s == "Pair<FileOffset, Expression>") {
-        return ["Pair<FileOffset, Expression>"];
-      } else if (s == "Pair<UInt32, UInt32>") {
-        return ["Pair<UInt32, UInt32>"];
-      } else if (s == "Pair<FieldReference, Expression>") {
-        return ["Pair<FieldReference, Expression>"];
-      } else if (s == "Pair<ConstantReference, ConstantReference>") {
-        return ["Pair<ConstantReference, ConstantReference>"];
-      } else if (s == "Pair<FieldReference, ConstantReference>") {
-        return ["Pair<FieldReference, ConstantReference>"];
+    // Check that any '<' and '>' are balanced and split entries on comma for
+    // the outermost parameters.
+    int ltCount = 0;
+    int gtCount = 0;
+    int depth = 0;
+    int lastPos = 0;
+
+    List<int> codeUnits = s.codeUnits;
+    List<String> result = [];
+    for (int i = 0; i < codeUnits.length; i++) {
+      int codeUnit = codeUnits[i];
+      if (codeUnit == $LT) {
+        ltCount++;
+        depth++;
+      } else if (codeUnit == $GT) {
+        gtCount++;
+        depth--;
+      } else if (codeUnit == $COMMA && depth == 0) {
+        result.add(s.substring(lastPos, i).trim());
+        lastPos = i + 1;
       }
-      throw "Doesn't supported nested generics (input: $s).";
     }
 
-    return s.split(",").map((untrimmed) => untrimmed.trim()).toList();
+    if (ltCount != gtCount) {
+      throw "Unbalanced '<' and '>': $s";
+    }
+    assert(depth == 0);
+    result.add(s.substring(lastPos, codeUnits.length).trim());
+    return result;
   }
 
   /// Parses a line of binary.md content for a "current class" into the

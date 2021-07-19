@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveArgumentBulkTest);
     defineReflectiveTests(RemoveArgumentTest);
   });
+}
+
+@reflectiveTest
+class RemoveArgumentBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_redundant_argument_values;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f({bool valWithDefault = true, bool val}) {}
+void f2({bool valWithDefault = true, bool val}) {}
+
+void main() {
+  f(valWithDefault: true);
+  f2(valWithDefault: true, val: false);
+}
+''');
+    await assertHasFix('''
+void f({bool valWithDefault = true, bool val}) {}
+void f2({bool valWithDefault = true, bool val}) {}
+
+void main() {
+  f();
+  f2(val: false);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -25,14 +53,14 @@ class RemoveArgumentTest extends FixProcessorLintTest {
 
   Future<void> test_named_param() async {
     await resolveTestCode('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(valWithDefault: true);
 }
 ''');
     await assertHasFix('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f();
@@ -42,14 +70,14 @@ void main() {
 
   Future<void> test_named_param_2() async {
     await resolveTestCode('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(valWithDefault: true, val: false);
 }
 ''');
     await assertHasFix('''
-void f({bool valWithDefault = true, bool val}) {}
+void f({bool valWithDefault = true, bool? val}) {}
 
 void main() {
   f(val: false);

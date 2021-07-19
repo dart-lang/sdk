@@ -356,7 +356,7 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name) {
 #define RECOGNIZE_FACTORY(symbol, class_name, constructor_name, cid, fp)       \
   {Symbols::k##symbol##Id, cid, fp, #symbol ", " #cid},  // NOLINT
 
-static struct {
+static const struct {
   const intptr_t symbol_id;
   const intptr_t cid;
   const uint32_t finger_print;

@@ -81,7 +81,7 @@ namespace dart {
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x00fc4650)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x0df019c5)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xea1eac09)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xea1eafca)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
@@ -148,16 +148,16 @@ namespace dart {
   V(_Int32x4, _withFlagY, Int32x4WithFlagY, 0xa8cf9ba6)                        \
   V(_Int32x4, _withFlagZ, Int32x4WithFlagZ, 0xa8058854)                        \
   V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0xb333f958)                        \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x882671dc)               \
-  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0xa2be9418)               \
-  V(_HashVMBase, get:_data, LinkedHashMap_getData, 0x780e14ad)                 \
-  V(_HashVMBase, set:_data, LinkedHashMap_setData, 0xb6a5c369)                 \
-  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 0x470893ed)         \
-  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 0xb3c887a9)         \
-  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 0x4f0ec79c)         \
-  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 0xbbcebb58)         \
-  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x510dc4a0)   \
-  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0xbdcdb85c)   \
+  V(_HashVMBase, get:_index, LinkedHashBase_getIndex, 0x882671dc)              \
+  V(_HashVMBase, set:_index, LinkedHashBase_setIndex, 0xa2be9418)              \
+  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x780e14ad)                \
+  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0xb6a5c369)                \
+  V(_HashVMBase, get:_usedData, LinkedHashBase_getUsedData, 0x470893ed)        \
+  V(_HashVMBase, set:_usedData, LinkedHashBase_setUsedData, 0xb3c887a9)        \
+  V(_HashVMBase, get:_hashMask, LinkedHashBase_getHashMask, 0x4f0ec79c)        \
+  V(_HashVMBase, set:_hashMask, LinkedHashBase_setHashMask, 0xbbcebb58)        \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashBase_getDeletedKeys, 0x510dc4a0)  \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashBase_setDeletedKeys, 0xbdcdb85c)  \
   V(_WeakProperty, get:key, WeakProperty_getKey, 0xde00e462)                   \
   V(_WeakProperty, set:key, WeakProperty_setKey, 0x963a095f)                   \
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
@@ -200,8 +200,8 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
-  V(Future, wait, FutureWait, 0xf0ce45c3)                                      \
-  V(_RootZone, runUnary, RootZoneRunUnary, 0xa22248b6)                         \
+  V(Future, wait, FutureWait, 0x495c83cd)                                      \
+  V(_RootZone, runUnary, RootZoneRunUnary, 0xb607f8bf)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0x438115a8)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf61b5ab2)                                \
 
@@ -318,8 +318,7 @@ namespace dart {
   V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x17a2cbc0)                     \
   V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0xea0577df)                  \
   V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x8af8aa58)                 \
-  V(_TypedList, get:length, TypedListLength, 0x5850f06b)                       \
-  V(_TypedListView, get:length, TypedListViewLength, 0x5850f06b)               \
+  V(_TypedListBase, get:length, TypedListBaseLength, 0x5850f06b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5850f06b)                 \
   V(_Float32x4, get:x, Float32x4ShuffleX, 0x3a398530)                          \
   V(_Float32x4, get:y, Float32x4ShuffleY, 0x27cae053)                          \
@@ -378,7 +377,6 @@ namespace dart {
   GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                             \
 
 #define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
-  V(_UserTag, makeCurrent, UserTag_makeCurrent, 0x5bd9b88e)                    \
   V(::, _getDefaultTag, UserTag_defaultTag, 0x6c19c8a5)                        \
   V(::, _getCurrentTag, Profiler_getCurrentTag, 0x70ead08e)                    \
   V(::, _isDartStreamEnabled, Timeline_isDartStreamEnabled, 0xc97aafb3)        \
@@ -439,13 +437,13 @@ namespace dart {
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0xd693eee6)                             \
   V(_ListFilledFactory, _List, .filled, kArrayCid, 0x7f29060d)                 \
-  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0xa1e6b785)             \
+  V(_ListGenerateFactory, _List, .generate, kArrayCid, 0x95feb438)             \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0xc1b55e71)                                                                \
   V(_GrowableListFilledFactory, _GrowableList, .filled,                        \
     kGrowableObjectArrayCid, 0x37d0dc65)                                       \
   V(_GrowableListGenerateFactory, _GrowableList, .generate,                    \
-    kGrowableObjectArrayCid, 0xc0c5682d)                                       \
+    kGrowableObjectArrayCid, 0x52f61890)                                       \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0xa32d060b)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x660dd888)        \

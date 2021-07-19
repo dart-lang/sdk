@@ -71,7 +71,7 @@ class VMTag : public AllStatic {
     const char* name;
     uword id;
   };
-  static TagEntry entries_[];
+  static const TagEntry entries_[];
 };
 
 class VMTagScope : ThreadStackResource {

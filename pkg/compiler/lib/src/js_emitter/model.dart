@@ -228,6 +228,7 @@ class Class {
   final List<Field> fields;
   final List<StubMethod> isChecks;
   final List<StubMethod> checkedSetters;
+  final List<StubMethod> gettersSetters;
 
   /// Stub methods for this class that are call stubs for getters.
   final List<StubMethod> callStubs;
@@ -240,7 +241,14 @@ class Class {
   final bool onlyForConstructor;
   final bool isDirectlyInstantiated;
   final bool isNative;
-  final bool isClosureBaseClass; // Common base class for closures.
+
+  /// `true` if this is the one class that is the root of all 'Closure' classes.
+  final bool isClosureBaseClass;
+
+  /// If non-null, this class is used as a base class for closures with a fixed
+  /// small number of arguments in order to inherit `Function.apply`
+  /// metadata. The value is the fixed number of arguments.
+  final int sharedClosureApplyMetadata;
 
   final bool isMixinApplicationWithMembers;
 
@@ -269,6 +277,7 @@ class Class {
       this.callStubs,
       this.noSuchMethodStubs,
       this.checkedSetters,
+      this.gettersSetters,
       this.isChecks,
       this.functionTypeIndex,
       {this.hasRtiField,
@@ -277,6 +286,7 @@ class Class {
       this.isDirectlyInstantiated,
       this.isNative,
       this.isClosureBaseClass,
+      this.sharedClosureApplyMetadata,
       this.isMixinApplicationWithMembers}) {
     assert(onlyForRti != null);
     assert(onlyForConstructor != null);
@@ -313,6 +323,7 @@ class MixinApplication extends Class {
       List<Field> instanceFields,
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
+      List<StubMethod> gettersSetters,
       List<StubMethod> isChecks,
       js.Expression functionTypeIndex,
       {bool hasRtiField,
@@ -328,6 +339,7 @@ class MixinApplication extends Class {
             callStubs,
             const <StubMethod>[],
             checkedSetters,
+            gettersSetters,
             isChecks,
             functionTypeIndex,
             hasRtiField: hasRtiField,
@@ -475,10 +487,20 @@ class InstanceMethod extends DartMethod {
   /// and [aliasName].
   final js.Name aliasName;
 
+  /// `true` if the tear-off needs to access methods directly rather than rely
+  /// on JavaScript prototype lookup. This happens when a tear-off getter is
+  /// called via `super.method` and there is a shadowing definition of `method`
+  /// in some sublcass.
+  // TODO(sra): Consider instead having an alias per stub, creating tear-off
+  // trampolines that target the stubs.
+  final bool tearOffNeedsDirectAccess;
+
   /// True if this is the implicit `call` instance method of an anonymous
   /// closure. This predicate is false for explicit `call` methods and for
   /// functions that can be torn off.
   final bool isClosureCallMethod;
+
+  final bool inheritsApplyMetadata;
 
   /// True if the interceptor calling convention is used for this method.
   final bool isIntercepted;
@@ -486,19 +508,25 @@ class InstanceMethod extends DartMethod {
   /// Name called via the general 'catch all' path of Function.apply.
   ///final js.Name applyName;
 
-  InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
-      List<ParameterStubMethod> parameterStubs, js.Name callName,
-      {bool needsTearOff,
-      js.Name tearOffName,
-      this.aliasName,
-      bool canBeApplied,
-      int requiredParameterCount,
-      /* List | Map */ optionalParameterDefaultValues,
-      this.isClosureCallMethod,
-      this.isIntercepted,
-      js.Expression functionType,
-      int applyIndex})
-      : super(element, name, code, parameterStubs, callName,
+  InstanceMethod(
+    FunctionEntity element,
+    js.Name name,
+    js.Expression code,
+    List<ParameterStubMethod> parameterStubs,
+    js.Name callName, {
+    bool needsTearOff,
+    js.Name tearOffName,
+    this.aliasName,
+    this.tearOffNeedsDirectAccess,
+    bool canBeApplied,
+    int requiredParameterCount,
+    /* List | Map */ optionalParameterDefaultValues,
+    this.isClosureCallMethod,
+    this.inheritsApplyMetadata,
+    this.isIntercepted,
+    js.Expression functionType,
+    int applyIndex,
+  }) : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,

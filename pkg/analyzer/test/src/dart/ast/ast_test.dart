@@ -29,6 +29,31 @@ class CompilationUnitImplTest extends ParserTestCase {
     testUnit = parseCompilationUnit(source) as CompilationUnitImpl;
   }
 
+  test_languageVersionComment_afterScriptTag() {
+    parse('''
+#!/bin/false
+// @dart=2.9
+void main() {}
+''');
+    var token = testUnit.languageVersionToken!;
+    expect(token.major, 2);
+    expect(token.minor, 9);
+    expect(token.offset, 13);
+  }
+
+  test_languageVersionComment_afterScriptTag_andComment() {
+    parse('''
+#!/bin/false
+// A normal comment.
+// @dart=2.9
+void main() {}
+''');
+    var token = testUnit.languageVersionToken!;
+    expect(token.major, 2);
+    expect(token.minor, 9);
+    expect(token.offset, 34);
+  }
+
   test_languageVersionComment_firstComment() {
     parse('''
 // @dart=2.6

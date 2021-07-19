@@ -10,7 +10,7 @@
 #include <vm/cpu.h>
 #include <vm/virtual_memory.h>
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
 #include <sys/mman.h>
 #endif
 
@@ -25,7 +25,7 @@ namespace elf {
 class Mappable {
  public:
   static Mappable* FromPath(const char* path);
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
   static Mappable* FromFD(int fd);
 #endif
   static Mappable* FromMemory(const uint8_t* memory, size_t size);
@@ -151,7 +151,7 @@ Mappable* Mappable::FromPath(const char* path) {
   return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead));
 }
 
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
 Mappable* Mappable::FromFD(int fd) {
   return new FileMappable(File::OpenFD(fd));
 }
@@ -424,7 +424,7 @@ bool LoadedElf::LoadSegments() {
       ERROR("Unsupported segment flag set.");
     }
 
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
     // mmap is less flexible on Fuchsia than on Linux and Darwin, in (at least)
     // two important ways:
     //
@@ -546,7 +546,7 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 
 using namespace dart::bin::elf;  // NOLINT
 
-#if defined(HOST_OS_FUCHSIA) || defined(HOST_OS_LINUX)
+#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
                                             uint64_t file_offset,
                                             const char** error,
@@ -569,7 +569,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
 }
 #endif
 
-#if !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_FUCHSIA)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
                                          uint64_t file_offset,
                                          const char** error,

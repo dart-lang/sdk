@@ -786,7 +786,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   MutatorThreadPool* thread_pool() { return thread_pool_.get(); }
 
   void RegisterClass(const Class& cls);
-  void RegisterStaticField(const Field& field, const Instance& initial_value);
+  void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
   static bool AreIsolateGroupsEnabled() {
@@ -956,6 +956,11 @@ class Bequest {
   ~Bequest();
 
   PersistentHandle* handle() { return handle_; }
+  PersistentHandle* TakeHandle() {
+    auto handle = handle_;
+    handle_ = nullptr;
+    return handle;
+  }
   Dart_Port beneficiary() { return beneficiary_; }
 
  private:

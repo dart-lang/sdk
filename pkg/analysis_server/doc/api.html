@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.32.5
+  1.32.7
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -236,6 +236,13 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.7</h4>
+<ul>
+  <li><tt>HoverInformation.elementDescription</tt> may now include linebreaks to
+  improve formatting of functions and methods with many parameters. This is not
+  an API change but may be useful as a signal for clients that previously did their
+  own formatting.</li>
+</ul>
 <h4>1.32.6</h4>
 <ul>
   <li>Added <tt>FoldingKind.PARAMETERS</tt> for folding regions for parameters
@@ -2114,8 +2121,6 @@ a:focus, a:hover {
   
   
   
-  
-  
 <h3>Requests</h3><dl><dt class="request"><a name="request_edit.format">edit.format</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.format"
@@ -3018,8 +3023,6 @@ a:focus, a:hover {
     This section contains descriptions of the data types referenced
     in the API’s of the various domains.
   </p>
-  
-  
   
   
   
@@ -5362,12 +5365,6 @@ a:focus, a:hover {
         <p>
           An "edit.sortMembers" request specified a Dart file that has
           scan or parse errors.
-        </p>
-      </dd><dt class="value">UNKNOWN_FIX</dt><dd>
-        
-        <p>
-          A dartfix request was received containing the name of a fix
-          which does not match the name of any known fixes.
         </p>
       </dd><dt class="value">UNKNOWN_REQUEST</dt><dd>
         

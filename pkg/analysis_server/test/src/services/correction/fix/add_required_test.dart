@@ -12,9 +12,35 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddRequiredBulkTest);
     defineReflectiveTests(AddRequiredTest);
     defineReflectiveTests(AddRequiredWithNullSafetyTest);
   });
+}
+
+@reflectiveTest
+class AddRequiredBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.always_require_non_null_named_parameters;
+
+  @override
+  // Note that this lint does not fire w/ NNBD.
+  String? get testPackageLanguageVersion => '2.9';
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void function({String p1, int p2}) {
+  assert(p1 != null);
+  assert(p2 != null);
+}
+''');
+    await assertHasFix('''
+void function({@required String p1, @required int p2}) {
+  assert(p1 != null);
+  assert(p2 != null);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -24,6 +50,9 @@ class AddRequiredTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.always_require_non_null_named_parameters;
+
+  @override
+  String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_withAssert() async {
     await resolveTestCode('''

@@ -278,12 +278,13 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token endToken) {
     DirectParserASTContentExtensionDeclarationEnd data =
         new DirectParserASTContentExtensionDeclarationEnd(
             DirectParserASTType.END,
             extensionKeyword: extensionKeyword,
+            typeKeyword: typeKeyword,
             onKeyword: onKeyword,
             endToken: endToken);
     seen(data);
@@ -2982,17 +2983,20 @@ class DirectParserASTContentExtensionDeclarationBegin
 class DirectParserASTContentExtensionDeclarationEnd
     extends DirectParserASTContent {
   final Token extensionKeyword;
+  final Token? typeKeyword;
   final Token onKeyword;
   final Token endToken;
 
   DirectParserASTContentExtensionDeclarationEnd(DirectParserASTType type,
       {required this.extensionKeyword,
+      this.typeKeyword,
       required this.onKeyword,
       required this.endToken})
       : super("ExtensionDeclaration", type);
 
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
+        "typeKeyword": typeKeyword,
         "onKeyword": onKeyword,
         "endToken": endToken,
       };

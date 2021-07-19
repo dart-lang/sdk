@@ -23,6 +23,7 @@ import 'for_statement_test.dart' as for_in;
 import 'function_declaration_test.dart' as function_declaration;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
@@ -59,6 +60,7 @@ import 'top_level_variable_test.dart' as top_level_variable;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
+import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
 import 'yield_statement_test.dart' as yield_statement;
 
@@ -82,6 +84,7 @@ main() {
     for_in.main();
     function_declaration.main();
     function_expression_invocation.main();
+    function_reference.main();
     function_type_alias.main();
     generic_function_type.main();
     generic_type_alias.main();
@@ -115,8 +118,9 @@ main() {
     top_level_variable.main();
     top_type_inference.main();
     try_statement.main();
-    type_name.main();
     type_inference.main();
+    type_literal.main();
+    type_name.main();
     yield_statement.main();
   }, name: 'resolution');
 }

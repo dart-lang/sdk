@@ -7,7 +7,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../abstract_context.dart';
 import 'fix_processor.dart';
 
 void main() {
@@ -22,6 +21,9 @@ class AddLatePreNnbdTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 
+  @override
+  String? get testPackageLanguageVersion => '2.9';
+
   Future<void> test_withFinal() async {
     await resolveTestCode('''
 class C {
@@ -33,7 +35,7 @@ class C {
 }
 
 @reflectiveTest
-class AddLateTest extends FixProcessorTest with WithNullSafetyMixin {
+class AddLateTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_LATE;
 

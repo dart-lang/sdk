@@ -462,12 +462,14 @@ class Chrome extends Browser {
           }
         };
         var args = [
-          "--user-data-dir=${userDir.path}",
-          url,
+          "--bwsi",
+          "--disable-component-update",
           "--disable-extensions",
           "--disable-popup-blocking",
-          "--bwsi",
           "--no-first-run",
+          "--use-mock-keychain",
+          "--user-data-dir=${userDir.path}",
+          url,
         ];
 
         // TODO(rnystrom): Uncomment this to open the dev tools tab when Chrome

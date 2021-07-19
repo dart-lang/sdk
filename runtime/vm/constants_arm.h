@@ -99,7 +99,7 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 
 // Aliases.
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   FP = R7,
   NOTFP = R11,
 #else
@@ -291,10 +291,10 @@ const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
-extern const char* cpu_reg_names[kNumberOfCpuRegisters];
-extern const char* fpu_reg_names[kNumberOfFpuRegisters];
-extern const char* fpu_s_reg_names[kNumberOfSRegisters];
-extern const char* fpu_d_reg_names[kNumberOfDRegisters];
+extern const char* const cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* const fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* const fpu_s_reg_names[kNumberOfSRegisters];
+extern const char* const fpu_d_reg_names[kNumberOfDRegisters];
 
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
@@ -505,7 +505,7 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const RegList kAbiPreservedCpuRegs =
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R8) | (1 << R10) | (1 << R11);
 const int kAbiPreservedCpuRegCount = 6;
@@ -532,7 +532,7 @@ const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 const int kDartVolatileCpuRegCount = 6;
 #else
 const int kDartVolatileCpuRegCount = 5;
@@ -572,7 +572,7 @@ class CallingConventions {
       kAlignedToWordSizeBut8AlignedTo8;
 
   // How fields in compounds are aligned.
-#if defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS_IOS)
   static constexpr AlignmentStrategy kFieldAlignment =
       kAlignedToValueSizeBut8AlignedTo4;
 #else
@@ -738,7 +738,20 @@ enum InstructionFields {
   kMulRnShift = 12,
   kMulRnBits = 4,
 
-  // Div instruction register field encodings.
+  // ldrex/strex register field encodings.
+  kLdrExRnShift = 16,
+  kLdrExRtShift = 12,
+  kStrExRnShift = 16,
+  kStrExRdShift = 12,
+  kStrExRtShift = 0,
+
+  // Media operation field encodings.
+  kMediaOp1Shift = 20,
+  kMediaOp1Bits = 5,
+  kMediaOp2Shift = 5,
+  kMediaOp2Bits = 3,
+
+  // udiv/sdiv instruction register field encodings.
   kDivRdShift = 16,
   kDivRdBits = 4,
   kDivRmShift = 8,
@@ -746,12 +759,13 @@ enum InstructionFields {
   kDivRnShift = 0,
   kDivRnBits = 4,
 
-  // ldrex/strex register field encodings.
-  kLdExRnShift = 16,
-  kLdExRtShift = 12,
-  kStrExRnShift = 16,
-  kStrExRdShift = 12,
-  kStrExRtShift = 0,
+  // sbfx/ubfx instruction register and immediate field encodings.
+  kBitFieldExtractWidthShift = 16,
+  kBitFieldExtractWidthBits = 5,
+  kBitFieldExtractLSBShift = 7,
+  kBitFieldExtractLSBBits = 5,
+  kBitFieldExtractRnShift = 0,
+  kBitFieldExtractRnBits = 4,
 
   // MRC instruction offset field encoding.
   kCRmShift = 0,
@@ -853,6 +867,7 @@ class Instr {
     return static_cast<Condition>(Bits(kConditionShift, kConditionBits));
   }
   inline int TypeField() const { return Bits(kTypeShift, kTypeBits); }
+  inline int SubtypeField() const { return Bit(4); }
 
   inline Register RnField() const {
     return static_cast<Register>(Bits(kRnShift, kRnBits));
@@ -936,6 +951,16 @@ class Instr {
     return bit_cast<double, uint64_t>(imm64);
   }
 
+  // Shared fields used in media instructions.
+  inline int MediaOp1Field() const {
+    return static_cast<Register>(Bits(kMediaOp1Shift, kMediaOp1Bits));
+  }
+  inline int MediaOp2Field() const {
+    return static_cast<Register>(Bits(kMediaOp2Shift, kMediaOp2Bits));
+  }
+
+  // Fields used in division instructions.
+  inline bool IsDivUnsigned() const { return Bit(21) == 0b1; }
   inline Register DivRdField() const {
     return static_cast<Register>(Bits(kDivRdShift, kDivRdBits));
   }
@@ -944,6 +969,19 @@ class Instr {
   }
   inline Register DivRnField() const {
     return static_cast<Register>(Bits(kDivRnShift, kDivRnBits));
+  }
+
+  // Fields used in bit field extract instructions.
+  inline bool IsBitFieldExtractSignExtended() const { return Bit(22) == 0; }
+  inline uint8_t BitFieldExtractWidthField() const {
+    return Bits(kBitFieldExtractWidthShift, kBitFieldExtractWidthBits);
+  }
+  inline uint8_t BitFieldExtractLSBField() const {
+    return Bits(kBitFieldExtractLSBShift, kBitFieldExtractLSBBits);
+  }
+  inline Register BitFieldExtractRnField() const {
+    return static_cast<Register>(
+        Bits(kBitFieldExtractRnShift, kBitFieldExtractRnBits));
   }
 
   // Test for data processing instructions of type 0 or 1.
@@ -1012,20 +1050,6 @@ class Instr {
     return static_cast<QRegister>(bits >> 1);
   }
 
-  inline bool IsDivision() const {
-    ASSERT(ConditionField() != kSpecialCondition);
-    ASSERT(TypeField() == 3);
-    return ((Bit(4) == 1) && (Bits(5, 3) == 0) && (Bit(20) == 1) &&
-            (Bits(22, 3) == 4));
-  }
-
-  inline bool IsRbit() const {
-    ASSERT(ConditionField() != kSpecialCondition);
-    ASSERT(TypeField() == 3);
-    return ((Bits(4, 4) == 3) && (Bits(8, 4) == 15) && (Bits(16, 4) == 15) &&
-            (Bits(20, 8) == 111));
-  }
-
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -1066,6 +1090,37 @@ class Instr {
   inline bool IsSIMDLoadStore() const {
     ASSERT(ConditionField() == kSpecialCondition);
     return (Bits(24, 4) == 4) && (Bit(20) == 0);
+  }
+
+  // Tests for media instructions of type 3.
+  inline bool IsMedia() const {
+    ASSERT_EQUAL(TypeField(), 3);
+    return SubtypeField() == 1;
+  }
+
+  inline bool IsDivision() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(IsMedia());
+    // B21 determines whether the division is signed or unsigned.
+    return (((MediaOp1Field() & 0b11101) == 0b10001) &&
+            (MediaOp2Field() == 0b000));
+  }
+
+  inline bool IsRbit() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(IsMedia());
+    // B19-B16 and B11-B8 are always set for rbit.
+    return ((MediaOp1Field() == 0b01111) && (MediaOp2Field() == 0b001) &&
+            (Bits(8, 4) == 0b1111) && (Bits(16, 4) == 0b1111));
+  }
+
+  inline bool IsBitFieldExtract() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(IsMedia());
+    // B22 determines whether extracted value is sign extended or not, and
+    // op bits B20 and B7 are part of the width and LSB fields, respectively.
+    return ((MediaOp1Field() & 0b11010) == 0b11010) &&
+           ((MediaOp2Field() & 0b011) == 0b10);
   }
 
   // Special accessors that test for existence of a value.
@@ -1111,6 +1166,10 @@ constexpr bool operator==(Register r, LinkRegister) {
 
 constexpr bool operator!=(Register r, LinkRegister lr) {
   return !(r == lr);
+}
+
+inline Register ConcreteRegister(LinkRegister) {
+  return LR;
 }
 
 #undef LR

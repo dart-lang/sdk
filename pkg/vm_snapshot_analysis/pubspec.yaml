@@ -12,9 +12,9 @@ executables:
 
 dependencies:
   args: ^2.0.0
-  path: ^1.8.0
   collection: ^1.15.0
+  path: ^1.8.0
 
 dev_dependencies:
-  pedantic: ^1.11.0
+  lints: any
   test: ^1.16.8

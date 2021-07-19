@@ -36,7 +36,7 @@ class ScopedSetTest {
 
   test_doScoped_actionThrows() {
     final set = ScopedSet<int>();
-    bool threw;
+    bool? threw;
     try {
       set.doScoped(action: () {
         set.add(0);

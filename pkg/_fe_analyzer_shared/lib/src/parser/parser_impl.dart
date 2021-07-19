@@ -2311,6 +2311,15 @@ class Parser {
     Token token = extensionKeyword;
     listener.beginExtensionDeclarationPrelude(extensionKeyword);
     Token? name = token.next!;
+    Token? typeKeyword = null;
+    if (name.isIdentifier &&
+        name.lexeme == 'type' &&
+        name.next!.isIdentifier &&
+        !optional('on', name.next!)) {
+      typeKeyword = name;
+      token = token.next!;
+      name = token.next!;
+    }
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
       if (name.type.isBuiltIn) {
@@ -2365,7 +2374,8 @@ class Parser {
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
-    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
+    listener.endExtensionDeclaration(
+        extensionKeyword, typeKeyword, onKeyword, token);
     return token;
   }
 
@@ -3445,7 +3455,7 @@ class Parser {
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseClassMember(Token token, String className) {
+  Token parseClassMember(Token token, String? className) {
     return parseClassOrMixinOrExtensionMemberImpl(
             syntheticPreviousToken(token), DeclarationKind.Class, className)
         .next!;

@@ -346,7 +346,7 @@ class _ServiceTesterRunner {
       completer!.complete(vmIsolates.first);
       completer = null;
     }
-    return await (completer!.future as FutureOr<IsolateRef>);
+    return (await completer!.future) as IsolateRef;
   }
 }
 

@@ -98,4 +98,34 @@ const Class& CompilerState::ComparableClass() {
   return *comparable_class_;
 }
 
+const Function& CompilerState::StringBaseInterpolateSingle() {
+  if (interpolate_single_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const Class& cls =
+        Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+    ASSERT(!cls.IsNull());
+    interpolate_single_ = &Function::ZoneHandle(
+        zone, cls.LookupFunctionAllowPrivate(Symbols::InterpolateSingle()));
+    ASSERT(!interpolate_single_->IsNull());
+  }
+  return *interpolate_single_;
+}
+
+const Function& CompilerState::StringBaseInterpolate() {
+  if (interpolate_ == nullptr) {
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+
+    const Class& cls =
+        Class::Handle(Library::LookupCoreClass(Symbols::StringBase()));
+    ASSERT(!cls.IsNull());
+    interpolate_ = &Function::ZoneHandle(
+        zone, cls.LookupFunctionAllowPrivate(Symbols::Interpolate()));
+    ASSERT(!interpolate_->IsNull());
+  }
+  return *interpolate_;
+}
+
 }  // namespace dart

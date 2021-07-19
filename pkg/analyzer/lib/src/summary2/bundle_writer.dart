@@ -99,7 +99,7 @@ class BundleWriter {
     _classMembersLengths = <int>[];
 
     _sink.writeUInt30(_resolutionSink.offset);
-    _sink._writeStringReference(libraryElement.name!);
+    _sink._writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
     _writeLanguageVersion(libraryElement.languageVersion);
     _resolutionSink._writeAnnotationList(libraryElement.metadata);
@@ -132,9 +132,9 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeOptionalInterfaceType(element.supertype);
-      _resolutionSink._writeInterfaceTypeList(element.mixins);
-      _resolutionSink._writeInterfaceTypeList(element.interfaces);
+      _resolutionSink.writeType(element.supertype);
+      _resolutionSink._writeTypeList(element.mixins);
+      _resolutionSink._writeTypeList(element.interfaces);
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -303,16 +303,16 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink._writeInterfaceTypeList(element.superclassConstraints);
-      _resolutionSink._writeInterfaceTypeList(element.interfaces);
+      _resolutionSink._writeTypeList(element.superclassConstraints);
+      _resolutionSink._writeTypeList(element.interfaces);
 
-      _writeList(
-        element.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
         _writeFieldElement,
+      );
+      _writeList(
+        element.accessors.where((e) => !e.isSynthetic).toList(),
+        _writePropertyAccessorElement,
       );
       _writeList(element.constructors, _writeConstructorElement);
       _writeList(element.methods, _writeMethodElement);
@@ -434,13 +434,15 @@ class BundleWriter {
   }
 
   void _writeUnitElement(CompilationUnitElement unitElement) {
+    unitElement as CompilationUnitElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference('${unitElement.source.uri}');
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
+    _sink.writeOptionalStringUtf8(unitElement.sourceContent);
     _resolutionSink._writeAnnotationList(unitElement.metadata);
-    _writeList(unitElement.types, _writeClassElement);
+    _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
     _writeList(unitElement.functions, _writeFunctionElement);
@@ -525,25 +527,6 @@ class ResolutionSink extends _SummaryDataWriter {
     } else {
       writeByte(Tag.RawElement);
       _writeElement(element);
-    }
-  }
-
-  void writeInterfaceType(InterfaceType type) {
-    _writeElement(type.element);
-    var typeArguments = type.typeArguments;
-    writeUInt30(typeArguments.length);
-    for (var i = 0; i < typeArguments.length; ++i) {
-      writeType(typeArguments[i]);
-    }
-    _writeNullabilitySuffix(type.nullabilitySuffix);
-  }
-
-  void writeOptionalInterfaceType(InterfaceType? type) {
-    if (type != null) {
-      writeByte(1);
-      writeInterfaceType(type);
-    } else {
-      writeByte(0);
     }
   }
 
@@ -692,13 +675,6 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeFormalParameters(type.parameters, withAnnotations: false);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
-  }
-
-  void _writeInterfaceTypeList(List<InterfaceType> types) {
-    writeUInt30(types.length);
-    for (var type in types) {
-      writeInterfaceType(type);
-    }
   }
 
   void _writeNode(AstNode node) {

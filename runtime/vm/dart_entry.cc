@@ -329,7 +329,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(Thread* thread,
                                         const Array& arguments_descriptor) {
   auto const zone = thread->zone();
   const ArgumentsDescriptor args_desc(arguments_descriptor);
-  ASSERT(receiver.ptr() == arguments.At(args_desc.FirstArgIndex()));
+  ASSERT(
+      CompressedInstancePtr(receiver.ptr()).Decompress(thread->heap_base()) ==
+      arguments.At(args_desc.FirstArgIndex()));
   // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
 
@@ -843,6 +845,26 @@ ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
       zone, DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());
   return result.ptr();
+}
+
+ObjectPtr DartLibraryCalls::RehashObjects(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  ASSERT(array_or_growable_array.IsArray() ||
+         array_or_growable_array.IsGrowableObjectArray());
+
+  auto zone = thread->zone();
+  const Library& collections_lib =
+      Library::Handle(zone, Library::CollectionLibrary());
+  const Function& rehashing_function = Function::Handle(
+      zone,
+      collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
+  ASSERT(!rehashing_function.IsNull());
+
+  const Array& arguments = Array::Handle(zone, Array::New(1));
+  arguments.SetAt(0, array_or_growable_array);
+
+  return DartEntry::InvokeFunction(rehashing_function, arguments);
 }
 
 }  // namespace dart

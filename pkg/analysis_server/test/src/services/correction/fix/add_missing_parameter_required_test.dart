@@ -62,13 +62,13 @@ main() {
 
   Future<void> test_function_hasNamed() async {
     await resolveTestCode('''
-test({int a}) {}
+test({int a = 0}) {}
 main() {
   test(1);
 }
 ''');
     await assertHasFix('''
-test(int i, {int a}) {}
+test(int i, {int a = 0}) {}
 main() {
   test(1);
 }

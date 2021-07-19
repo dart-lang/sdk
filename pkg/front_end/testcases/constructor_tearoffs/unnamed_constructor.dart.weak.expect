@@ -1,0 +1,142 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:6:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   A.new();
+//     ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:7:38: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   factory A.redirectingFactory() = A.new;
+//                                      ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:8:43: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   factory A.redirectingFactoryChild() = B.new;
+//                                           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:9:26: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   A.redirecting() : this.new();
+//                          ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:16:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   const C.new(this.x);
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:19:9: Error: Expected 'extends' instead of this.
+// class D extend C {
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:20:20: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
+//   D(int x) : super.new(x * 2);
+//                    ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:7:36: Error: Redirection constructor target not found: 'A.new'
+//   factory A.redirectingFactory() = A.new;
+//                                    ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:20:14: Error: Superclass has no constructor named 'Object.new'.
+//   D(int x) : super.new(x * 2);
+//              ^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:25:11: Error: Method not found: 'C.new'.
+//   const C.new(1);
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:26:9: Error: Method not found: 'C.new'.
+//   new C.new(1);
+//         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:28:14: Error: Getter not found: 'new'.
+//   var f1 = A.new;
+//              ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: Getter not found: 'new'.
+//   var f3 = C.new;
+//              ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:37:23: Error: Getter not found: 'new'.
+//   A Function() g1 = A.new;
+//                       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: Getter not found: 'new'.
+//   C Function(int x) g3 = C.new;
+//                            ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:12:7: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+// class B extends A {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::A::redirectingFactory, self::A::redirectingFactoryChild]/*isLegacy*/;
+  constructor new() → self::A
+    : super core::Object::•()
+    ;
+  constructor redirecting() → self::A
+    : this self::A::new()
+    ;
+  static factory redirectingFactory() → self::A
+    let dynamic #redirecting_factory = "A.new" in invalid-expression;
+  static factory redirectingFactoryChild() → self::A
+    let dynamic #redirecting_factory = self::B::• in invalid-expression;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : invalid-initializer
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor new(core::int x) → self::C
+    : self::C::x = x, super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  constructor •(core::int x) → self::D
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:20:14: Error: Superclass has no constructor named 'Object.new'.
+  D(int x) : super.new(x * 2);
+             ^^^^^"
+    ;
+}
+static method test() → dynamic {
+  new self::D::•(1);
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:25:11: Error: Method not found: 'C.new'.
+  const C.new(1);
+          ^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:26:9: Error: Method not found: 'C.new'.
+  new C.new(1);
+        ^^^";
+  dynamic f1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:28:14: Error: Getter not found: 'new'.
+  var f1 = A.new;
+             ^^^";
+  () → self::B f2 = self::B::•;
+  dynamic f3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: Getter not found: 'new'.
+  var f3 = C.new;
+             ^^^";
+  (core::int) → self::D f4 = self::D::•;
+  f1{dynamic}.call();
+  f2(){() → self::B};
+  f3{dynamic}.call(1);
+  f4(1){(core::int) → self::D};
+  () → self::A g1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:37:23: Error: Getter not found: 'new'.
+  A Function() g1 = A.new;
+                      ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
+  () → self::B g2 = self::B::•;
+  (core::int) → self::C g3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: Getter not found: 'new'.
+  C Function(int x) g3 = C.new;
+                           ^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} (core::int) → self::C;
+  (core::int) → self::D g4 = self::D::•;
+  g1(){() → self::A};
+  g2(){() → self::B};
+  g3(1){(core::int) → self::C};
+  g4(1){(core::int) → self::D};
+}
+static method main() → dynamic {}

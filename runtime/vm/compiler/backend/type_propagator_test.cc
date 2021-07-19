@@ -191,7 +191,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_Refinement) {
   {
     SafepointWriteRwLocker locker(thread,
                                   thread->isolate_group()->program_lock());
-    thread->isolate_group()->RegisterStaticField(field, Instance::Handle());
+    thread->isolate_group()->RegisterStaticField(field, Object::Handle());
   }
 
   FlowGraphBuilderHelper H;
@@ -481,7 +481,8 @@ class C<NoBound,
     field ^= fields.At(i);
     type = field.type();
 
-    auto compile_type = CompileType::FromAbstractType(type);
+    auto compile_type = CompileType::FromAbstractType(
+        type, CompileType::kCanBeNull, CompileType::kCannotBeSentinel);
     if (compile_type.CanBeSmi() != expected_can_be_smi(field)) {
       dart::Expect(__FILE__, __LINE__)
           .Fail("expected that CanBeSmi() returns %s for compile type %s\n",

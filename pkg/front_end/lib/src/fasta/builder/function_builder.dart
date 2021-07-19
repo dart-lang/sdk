@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.procedure_builder;
 
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
@@ -52,17 +50,17 @@ import 'type_variable_builder.dart';
 
 /// Common base class for constructor and procedure builders.
 abstract class FunctionBuilder implements MemberBuilder {
-  List<MetadataBuilder> get metadata;
+  List<MetadataBuilder>? get metadata;
 
-  TypeBuilder get returnType;
+  TypeBuilder? get returnType;
 
-  List<TypeVariableBuilder> get typeVariables;
+  List<TypeVariableBuilder>? get typeVariables;
 
-  List<FormalParameterBuilder> get formals;
+  List<FormalParameterBuilder>? get formals;
 
   AsyncMarker get asyncModifier;
 
-  ProcedureKind get kind;
+  ProcedureKind? get kind;
 
   bool get isAbstract;
 
@@ -89,17 +87,17 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent);
 
-  FormalParameterBuilder getFormal(Identifier identifier);
+  FormalParameterBuilder? getFormal(Identifier identifier);
 
-  String get nativeMethodName;
+  String? get nativeMethodName;
 
   FunctionNode get function;
 
-  FunctionBuilder get actualOrigin;
+  FunctionBuilder? get actualOrigin;
 
-  Statement get body;
+  Statement? get body;
 
-  void set body(Statement newBody);
+  void set body(Statement? newBody);
 
   void setRedirectingFactoryBody(Member target, List<DartType> typeArguments);
 
@@ -112,21 +110,21 @@ abstract class FunctionBuilder implements MemberBuilder {
   /// this parameter on extension instance members.
   VariableDeclaration getFormalParameter(int index);
 
-  /// If this is an extension instance method, the tear off closure parameter
-  /// corresponding to the [index]th parameter on the instance method is
-  /// returned.
+  /// If this is an extension instance method or constructor with lowering
+  /// enabled, the tear off parameter corresponding to the [index]th parameter
+  /// on the instance method or constructor is returned.
   ///
   /// This is used to update the default value for the closure parameter when
   /// it has been computed for the original parameter.
-  VariableDeclaration getExtensionTearOffParameter(int index);
+  VariableDeclaration? getTearOffParameter(int index);
 
   /// Returns the parameter for 'this' synthetically added to extension
   /// instance members.
-  VariableDeclaration get extensionThis;
+  VariableDeclaration? get extensionThis;
 
   /// Returns a list of synthetic type parameters added to extension instance
   /// members.
-  List<TypeParameter> get extensionTypeParameters;
+  List<TypeParameter>? get extensionTypeParameters;
 
   void becomeNative(Loader loader);
 
@@ -139,31 +137,31 @@ abstract class FunctionBuilder implements MemberBuilder {
 abstract class FunctionBuilderImpl extends MemberBuilderImpl
     implements FunctionBuilder {
   @override
-  final List<MetadataBuilder> metadata;
+  final List<MetadataBuilder>? metadata;
 
   @override
   final int modifiers;
 
   @override
-  final TypeBuilder returnType;
+  final TypeBuilder? returnType;
 
   @override
   final String name;
 
   @override
-  final List<TypeVariableBuilder> typeVariables;
+  final List<TypeVariableBuilder>? typeVariables;
 
   @override
-  final List<FormalParameterBuilder> formals;
+  final List<FormalParameterBuilder>? formals;
 
   /// If this procedure is an extension instance member, [_extensionThis] holds
   /// the synthetically added `this` parameter.
-  VariableDeclaration _extensionThis;
+  VariableDeclaration? _extensionThis;
 
   /// If this procedure is an extension instance member,
   /// [_extensionTypeParameters] holds the type parameters copied from the
   /// extension declaration.
-  List<TypeParameter> _extensionTypeParameters;
+  List<TypeParameter>? _extensionTypeParameters;
 
   FunctionBuilderImpl(
       this.metadata,
@@ -177,8 +175,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       this.nativeMethodName)
       : super(compilationUnit, charOffset) {
     if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        formals[i].parent = this;
+      for (int i = 0; i < formals!.length; i++) {
+        formals![i].parent = this;
       }
     }
   }
@@ -220,7 +218,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (FormalParameterBuilder formal in formals) {
+    for (FormalParameterBuilder formal in formals!) {
       if (!isConstructor || !formal.isInitializingFormal) {
         local[formal.name] = formal;
       }
@@ -251,7 +249,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
 
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (FormalParameterBuilder formal in formals) {
+    for (FormalParameterBuilder formal in formals!) {
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return new Scope(
@@ -265,7 +263,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
-    for (TypeVariableBuilder variable in typeVariables) {
+    for (TypeVariableBuilder variable in typeVariables!) {
       local[variable.name] = variable;
     }
     return new Scope(
@@ -276,9 +274,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  FormalParameterBuilder getFormal(Identifier identifier) {
+  FormalParameterBuilder? getFormal(Identifier identifier) {
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
+      for (FormalParameterBuilder formal in formals!) {
         if (formal.name == identifier.name &&
             formal.charOffset == identifier.charOffset) {
           return formal;
@@ -291,12 +289,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   }
 
   @override
-  final String nativeMethodName;
+  final String? nativeMethodName;
 
-  Statement bodyInternal;
+  Statement? bodyInternal;
 
   @override
-  void set body(Statement newBody) {
+  void set body(Statement? newBody) {
 //    if (newBody != null) {
 //      if (isAbstract) {
 //        // TODO(danrubel): Is this check needed?
@@ -309,7 +307,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     // but which needs to have a forwarding stub body in order to ensure that
     // covariance checks occur.  We don't want to replace the forwarding stub
     // body with null.
-    TreeNode parent = function.parent;
+    TreeNode? parent = function.parent;
     if (!(newBody == null &&
         parent is Procedure &&
         parent.isForwardingSemiStub)) {
@@ -327,12 +325,12 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     function.body = bodyInternal;
     bodyInternal?.parent = function;
     if (isPatch) {
-      actualOrigin.setRedirectingFactoryBody(target, typeArguments);
+      actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
   @override
-  Statement get body => bodyInternal ??= new EmptyStatement();
+  Statement? get body => bodyInternal ??= new EmptyStatement();
 
   @override
   bool get isNative => nativeMethodName != null;
@@ -341,10 +339,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     function.asyncMarker = asyncModifier;
     function.body = body;
     body?.parent = function;
-    IncludesTypeParametersNonCovariantly needsCheckVisitor;
+    IncludesTypeParametersNonCovariantly? needsCheckVisitor;
     if (!isConstructor && !isFactory && parent is ClassBuilder) {
-      ClassBuilder enclosingClassBuilder = parent;
-      Class enclosingClass = enclosingClassBuilder.cls;
+      Class enclosingClass = classBuilder!.cls;
       if (enclosingClass.typeParameters.isNotEmpty) {
         needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
             enclosingClass.typeParameters,
@@ -354,7 +351,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       }
     }
     if (typeVariables != null) {
-      for (TypeVariableBuilder t in typeVariables) {
+      for (TypeVariableBuilder t in typeVariables!) {
         TypeParameter parameter = t.parameter;
         function.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {
@@ -366,9 +363,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       setParents(function.typeParameters, function);
     }
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        VariableDeclaration parameter = formal.build(
-            library, 0, !isConstructor && !isDeclarationInstanceMember);
+      for (FormalParameterBuilder formal in formals!) {
+        VariableDeclaration parameter = formal.build(library, 0,
+            nonInstanceContext: !isConstructor && !isDeclarationInstanceMember);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
             parameter.isGenericCovariantImpl = true;
@@ -399,7 +396,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
     }
     if (!isExtensionInstanceMember &&
         isSetter &&
-        (formals?.length != 1 || formals[0].isOptional)) {
+        (formals?.length != 1 || formals![0].isOptional)) {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
@@ -412,31 +409,31 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       function.requiredParameterCount = 1;
     }
     if (returnType != null) {
-      function.returnType = returnType.build(
-          library, null, !isConstructor && !isDeclarationInstanceMember);
+      function.returnType = returnType!.build(library,
+          nonInstanceContext: !isConstructor && !isDeclarationInstanceMember);
     }
     if (!isConstructor && !isDeclarationInstanceMember) {
-      List<TypeParameter> typeParameters;
+      List<TypeParameter>? typeParameters;
       if (parent is ClassBuilder) {
-        ClassBuilder enclosingClassBuilder = parent;
+        ClassBuilder enclosingClassBuilder = parent as ClassBuilder;
         typeParameters = enclosingClassBuilder.cls.typeParameters;
       } else if (parent is ExtensionBuilder) {
-        ExtensionBuilder enclosingExtensionBuilder = parent;
+        ExtensionBuilder enclosingExtensionBuilder = parent as ExtensionBuilder;
         typeParameters = enclosingExtensionBuilder.extension.typeParameters;
       }
 
       if (typeParameters != null && typeParameters.isNotEmpty) {
-        Map<TypeParameter, DartType> substitution;
+        Map<TypeParameter, DartType>? substitution;
         DartType removeTypeVariables(DartType type) {
           if (substitution == null) {
             substitution = <TypeParameter, DartType>{};
-            for (TypeParameter parameter in typeParameters) {
-              substitution[parameter] = const DynamicType();
+            for (TypeParameter parameter in typeParameters!) {
+              substitution![parameter] = const DynamicType();
             }
           }
           library.addProblem(
               messageNonInstanceTypeVariableUse, charOffset, noLength, fileUri);
-          return substitute(type, substitution);
+          return substitute(type, substitution!);
         }
 
         Set<TypeParameter> set = typeParameters.toSet();
@@ -456,14 +453,13 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
       }
     }
     if (isExtensionInstanceMember) {
-      ExtensionBuilder extensionBuilder = parent;
+      ExtensionBuilder extensionBuilder = parent as ExtensionBuilder;
       _extensionThis = function.positionalParameters.first;
       if (extensionBuilder.typeParameters != null) {
-        int count = extensionBuilder.typeParameters.length;
-        _extensionTypeParameters = new List<TypeParameter>.filled(count, null);
-        for (int index = 0; index < count; index++) {
-          _extensionTypeParameters[index] = function.typeParameters[index];
-        }
+        int count = extensionBuilder.typeParameters!.length;
+        _extensionTypeParameters = new List<TypeParameter>.generate(
+            count, (int index) => function.typeParameters[index],
+            growable: false);
       }
     }
   }
@@ -471,24 +467,24 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   VariableDeclaration getFormalParameter(int index) {
     if (isExtensionInstanceMember) {
-      return formals[index + 1].variable;
+      return formals![index + 1].variable!;
     } else {
-      return formals[index].variable;
+      return formals![index].variable!;
     }
   }
 
   @override
-  VariableDeclaration getExtensionTearOffParameter(int index) => null;
+  VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  VariableDeclaration get extensionThis {
+  VariableDeclaration? get extensionThis {
     assert(_extensionThis != null || !isExtensionInstanceMember,
         "ProcedureBuilder.extensionThis has not been set.");
     return _extensionThis;
   }
 
   @override
-  List<TypeParameter> get extensionTypeParameters {
+  List<TypeParameter>? get extensionTypeParameters {
     // Use [_extensionThis] as marker for whether extension type parameters have
     // been computed.
     assert(_extensionThis != null || !isExtensionInstanceMember,
@@ -499,16 +495,20 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool _hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     if (!_hasBuiltOutlineExpressions) {
-      DeclarationBuilder classOrExtensionBuilder =
-          isClassMember || isExtensionMember ? parent : null;
+      DeclarationBuilder? classOrExtensionBuilder =
+          isClassMember || isExtensionMember
+              ? parent as DeclarationBuilder
+              : null;
       MetadataBuilder.buildAnnotations(
           member, metadata, library, classOrExtensionBuilder, this, fileUri);
       if (typeVariables != null) {
-        for (int i = 0; i < typeVariables.length; i++) {
-          typeVariables[i].buildOutlineExpressions(
+        for (int i = 0; i < typeVariables!.length; i++) {
+          typeVariables![i].buildOutlineExpressions(
               library,
               classOrExtensionBuilder,
               this,
@@ -522,7 +522,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         // into the outline. For all other formals we need to call
         // buildOutlineExpressions to clear initializerToken to prevent
         // consuming too much memory.
-        for (FormalParameterBuilder formal in formals) {
+        for (FormalParameterBuilder formal in formals!) {
           formal.buildOutlineExpressions(library, delayedActionPerformers);
         }
       }
@@ -536,14 +536,16 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   void becomeNative(Loader loader) {
     MemberBuilder constructor = loader.getNativeAnnotation();
     Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
+        new Arguments(<Expression>[new StringLiteral(nativeMethodName!)]);
     Expression annotation;
     if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(constructor.member, arguments)
+      annotation = new ConstructorInvocation(
+          constructor.member as Constructor, arguments)
         ..isConst = true;
     } else {
-      annotation = new StaticInvocation(constructor.member, arguments)
-        ..isConst = true;
+      annotation =
+          new StaticInvocation(constructor.member as Procedure, arguments)
+            ..isConst = true;
     }
     member.addAnnotation(annotation);
   }
@@ -552,7 +554,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   bool checkPatch(FunctionBuilder patch) {
     if (!isExternal) {
       patch.library.addProblem(
-          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
+          messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri!,
           context: [
             messagePatchDeclarationOrigin.withLocation(
                 fileUri, charOffset, noLength)
@@ -565,7 +567,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   @override
   void reportPatchMismatch(Builder patch) {
     library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-        noLength, patch.fileUri, context: [
+        noLength, patch.fileUri!, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-05-24T09:58:37.618570",
+  "generated": "2021-07-02T15:48:57.033703",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -154,7 +154,7 @@
       "name": "charcode",
       "rootUri": "../third_party/pkg/charcode",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "cli_util",
@@ -470,7 +470,7 @@
       "name": "nnbd_migration",
       "rootUri": "../pkg/nnbd_migration",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.12"
     },
     {
       "name": "oauth2",
@@ -569,7 +569,7 @@
       "name": "scrape",
       "rootUri": "../pkg/scrape",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.13"
     },
     {
       "name": "sdk_library_metadata",

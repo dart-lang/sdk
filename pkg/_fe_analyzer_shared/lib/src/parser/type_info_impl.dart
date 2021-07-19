@@ -1265,7 +1265,9 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     }
     Token? endGroup = start.endGroup;
     if (endGroup != null) {
-      while (token.next != endGroup && !token.isEof) {
+      while (token.next != endGroup &&
+          !token.isEof &&
+          token.charOffset <= endGroup.charOffset) {
         token = token.next!;
       }
     } else {

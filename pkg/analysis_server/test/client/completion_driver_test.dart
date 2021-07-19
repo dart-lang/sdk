@@ -145,7 +145,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     driver.createProject(packageRoots: packageRoots);
 
     newPubspecYamlFile(projectPath, '');
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 project:${toUri('$projectPath/lib')}
 ''');
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
@@ -225,7 +225,7 @@ class A {
   void a2() { }
 }
 
-void main() {
+void f() {
   var a = A();
   a.^
 }
@@ -264,7 +264,7 @@ export 'a.dart';
 
     await addTestFile('''
 import 'a.dart';
-void main() {
+void f() {
   ^
 }
 ''');
@@ -292,7 +292,7 @@ export 'a.dart';
 
     await addTestFile('''
 import 'a.dart';
-void main() {
+void f() {
   ^
 }
 ''');
@@ -320,7 +320,7 @@ export 'a.dart';
 
     await addTestFile('''
 import 'a.dart';
-void main() {
+void f() {
   ^
 }
 ''');
@@ -346,7 +346,7 @@ export 'a.dart';
     await addTestFile('''
 import 'a.dart';
 import 'b.dart';
-void main() {
+void f() {
   ^
 }
 ''');
@@ -370,7 +370,7 @@ var v = 0;
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -413,7 +413,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void m() {
   ^
 }
 ''');
@@ -429,7 +429,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -448,7 +448,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -464,7 +464,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -482,7 +482,7 @@ int get g => 0;
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -504,7 +504,7 @@ export 'a.dart';
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -524,7 +524,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -540,7 +540,7 @@ class A {
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -555,7 +555,7 @@ set s(int s) {}
 ''');
 
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -584,7 +584,7 @@ class O { }
     await addTestFile('''
 import 'a.dart';
 
-void main(List<String> args) {
+void f(List<String> args) {
   var a = A.b(o: ^)
 }
 ''');
@@ -610,7 +610,7 @@ class A { }
     await addTestFile('''
 import 'a.dart';
 
-void main(List<String> args) {
+void f(List<String> args) {
   var a = ^
 }
 ''');
@@ -651,7 +651,7 @@ class C extends Object with ^
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');
@@ -669,7 +669,7 @@ void main() {
 
   Future<void> test_sdk_lib_suggestions() async {
     await addTestFile('''
-void main() {
+void f() {
   ^
 }
 ''');

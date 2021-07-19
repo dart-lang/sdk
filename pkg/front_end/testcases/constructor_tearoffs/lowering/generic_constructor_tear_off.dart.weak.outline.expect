@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class1<self::Class1::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#new#tearOff::T%>
+    return new self::Class1::•<self::Class1::_#new#tearOff::T%>();
+}
+class Class2<T extends core::num> extends core::Object {
+  synthetic constructor •() → self::Class2<self::Class2::T>
+    ;
+  static method _#new#tearOff<T extends core::num>() → self::Class2<self::Class2::_#new#tearOff::T>
+    return new self::Class2::•<self::Class2::_#new#tearOff::T>();
+}
+class Class3<T extends self::Class3::S% = dynamic, S extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class3<self::Class3::T%, self::Class3::S%>
+    ;
+  static method _#new#tearOff<T extends self::Class3::_#new#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>
+    return new self::Class3::•<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>();
+}
+class Class4<T extends self::Class4<self::Class4::T> = self::Class4<dynamic>> extends core::Object {
+  synthetic constructor •() → self::Class4<self::Class4::T>
+    ;
+  static method _#new#tearOff<T extends self::Class4<self::Class4::_#new#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#new#tearOff::T>
+    return new self::Class4::•<self::Class4::_#new#tearOff::T>();
+}
+class Class4int extends self::Class4<self::Class4int> {
+  synthetic constructor •() → self::Class4int
+    ;
+  static method _#new#tearOff() → self::Class4int
+    return new self::Class4int::•();
+}
+static final field core::bool inSoundMode;
+static method main() → dynamic
+  ;
+static method testGeneric() → dynamic
+  ;
+static method testBounded() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+  ;

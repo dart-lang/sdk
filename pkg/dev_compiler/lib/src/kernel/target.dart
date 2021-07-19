@@ -53,6 +53,9 @@ class DevCompilerTarget extends Target {
   bool get supportsNewMethodInvocationEncoding => true;
 
   @override
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+
+  @override
   String get name => 'dartdevc';
 
   @override
@@ -159,7 +162,7 @@ class DevCompilerTarget extends Target {
       {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
-    var jsUtilOptimizer = JsUtilOptimizer(coreTypes);
+    var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       jsUtilOptimizer.visitLibrary(library);

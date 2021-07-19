@@ -18,7 +18,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Organize Imports';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
+  Future<ErrorOr<void>> handle(List<Object?>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
@@ -31,7 +31,7 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
     // Get the version of the doc before we calculate edits so we can send it back
     // to the client so that they can discard this edit if the document has been
     // modified since.
-    final path = arguments.single;
+    final path = arguments.single as String;
     final docIdentifier = server.getVersionedDocumentIdentifier(path);
 
     final result = await requireResolvedUnit(path);
@@ -56,6 +56,10 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
 
       final organizer = ImportOrganizer(code, unit, result.errors);
       final edits = organizer.organize();
+
+      if (edits.isEmpty) {
+        return success(null);
+      }
 
       return sendSourceEditsToClient(docIdentifier, unit, edits);
     });

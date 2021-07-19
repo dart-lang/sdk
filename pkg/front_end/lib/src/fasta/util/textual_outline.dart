@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:typed_data' show Uint8List;
 
 import 'dart:io' show File;
@@ -29,9 +27,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import '../messages.dart' show Message;
 
 abstract class _Chunk implements Comparable<_Chunk> {
-  int originalPosition;
+  late int originalPosition;
 
-  List<_MetadataChunk> metadata;
+  List<_MetadataChunk>? metadata;
 
   void _printNormalHeaderWithMetadata(
       StringBuffer sb, bool extraLine, String indent) {
@@ -47,7 +45,7 @@ abstract class _Chunk implements Comparable<_Chunk> {
 
   void printMetadata(StringBuffer sb, String indent) {
     if (metadata != null) {
-      for (_MetadataChunk m in metadata) {
+      for (_MetadataChunk m in metadata!) {
         m.printMetadataOn(sb, indent);
       }
     }
@@ -79,7 +77,7 @@ abstract class _Chunk implements Comparable<_Chunk> {
     int endOfLast = fromToken.end;
     Token token = fromToken;
     Token afterEnd = toToken;
-    if (includeToToken) afterEnd = toToken.next;
+    if (includeToToken) afterEnd = toToken.next!;
     bool nextTokenIsEndGroup = false;
     while (token != afterEnd) {
       if (token.offset > endOfLast && !nextTokenIsEndGroup) {
@@ -91,10 +89,10 @@ abstract class _Chunk implements Comparable<_Chunk> {
       if (skipContentOnEndGroupUntilToToken &&
           token.endGroup != null &&
           token.endGroup == toToken) {
-        token = token.endGroup;
+        token = token.endGroup!;
         nextTokenIsEndGroup = true;
       } else {
-        token = token.next;
+        token = token.next!;
         nextTokenIsEndGroup = false;
       }
     }
@@ -164,8 +162,8 @@ abstract class _SortableChunk extends _TokenChunk {
     int steps = 0;
     while (thisToken.lexeme == otherToken.lexeme) {
       if (steps++ > 10) break;
-      thisToken = thisToken.next;
-      otherToken = otherToken.next;
+      thisToken = thisToken.next!;
+      otherToken = otherToken.next!;
     }
     if (thisToken.lexeme == otherToken.lexeme) return super.compareTo(o);
     return thisToken.lexeme.compareTo(otherToken.lexeme);
@@ -202,9 +200,9 @@ class _ImportExportChunk extends _Chunk {
 }
 
 abstract class _SingleImportExportChunk extends _SortableChunk {
-  final Token firstShowOrHide;
-  final List<_NamespaceCombinator> combinators;
-  String sortedShowAndHide;
+  final Token? firstShowOrHide;
+  final List<_NamespaceCombinator>? combinators;
+  String? sortedShowAndHide;
 
   _SingleImportExportChunk(
       Token startToken, Token endToken, this.firstShowOrHide, this.combinators)
@@ -214,9 +212,9 @@ abstract class _SingleImportExportChunk extends _SortableChunk {
   void internalMergeAndSort(StringBuffer sb) {
     assert(sb.isEmpty);
     if (firstShowOrHide == null) return;
-    for (int i = 0; i < combinators.length; i++) {
+    for (int i = 0; i < combinators!.length; i++) {
       sb.write(" ");
-      _NamespaceCombinator combinator = combinators[i];
+      _NamespaceCombinator combinator = combinators![i];
       sb.write(combinator.isShow ? "show " : "hide ");
       List<String> sorted = combinator.names.toList()..sort();
       for (int j = 0; j < sorted.length; j++) {
@@ -233,20 +231,20 @@ abstract class _SingleImportExportChunk extends _SortableChunk {
     if (sortedShowAndHide == null) {
       return super._printOnWithoutHeaderAndMetadata(sb);
     }
-    printTokenRange(startToken, firstShowOrHide, sb, includeToToken: false);
+    printTokenRange(startToken, firstShowOrHide!, sb, includeToToken: false);
     sb.write(sortedShowAndHide);
   }
 }
 
 class _ImportChunk extends _SingleImportExportChunk {
-  _ImportChunk(Token startToken, Token endToken, Token firstShowOrHide,
-      List<_NamespaceCombinator> combinators)
+  _ImportChunk(Token startToken, Token endToken, Token? firstShowOrHide,
+      List<_NamespaceCombinator>? combinators)
       : super(startToken, endToken, firstShowOrHide, combinators);
 }
 
 class _ExportChunk extends _SingleImportExportChunk {
-  _ExportChunk(Token startToken, Token endToken, Token firstShowOrHide,
-      List<_NamespaceCombinator> combinators)
+  _ExportChunk(Token startToken, Token endToken, Token? firstShowOrHide,
+      List<_NamespaceCombinator>? combinators)
       : super(startToken, endToken, firstShowOrHide, combinators);
 }
 
@@ -278,8 +276,8 @@ class _PartOfChunk extends _TokenChunk {
 
 abstract class _ClassChunk extends _SortableChunk {
   List<_Chunk> content = <_Chunk>[];
-  Token headerEnd;
-  Token footerStart;
+  Token? headerEnd;
+  Token? footerStart;
 
   _ClassChunk(Token startToken, Token endToken) : super(startToken, endToken);
 
@@ -288,7 +286,7 @@ abstract class _ClassChunk extends _SortableChunk {
     _printNormalHeaderWithMetadata(sb, extraLine, indent);
 
     // Header.
-    printTokenRange(startToken, headerEnd, sb);
+    printTokenRange(startToken, headerEnd!, sb);
 
     // Content.
     for (int i = 0; i < content.length; i++) {
@@ -303,7 +301,7 @@ abstract class _ClassChunk extends _SortableChunk {
       }
       sb.write(indent);
 
-      printTokenRange(footerStart, endToken, sb);
+      printTokenRange(footerStart!, endToken, sb);
     }
   }
 
@@ -407,8 +405,8 @@ class _UnknownChunk extends _TokenChunk {
 }
 
 class _UnknownTokenBuilder {
-  Token start;
-  Token interimEnd;
+  Token? start;
+  Token? interimEnd;
 }
 
 class BoxedInt {
@@ -424,7 +422,7 @@ class BoxedInt {
 //              "show A show B" could just be "show A, B".
 //              "show A, B, C hide A show A" would be empty.
 
-String textualOutline(
+String? textualOutline(
   List<int> rawBytes,
   ScannerConfiguration configuration, {
   bool throwOnUnexpected: false,
@@ -448,6 +446,7 @@ String textualOutline(
           ..originalPosition = originalPosition.value++);
   });
   Token firstToken = scanner.tokenize();
+  // ignore: unnecessary_null_comparison
   if (firstToken == null) {
     if (throwOnUnexpected) throw "firstToken is null";
     return null;
@@ -460,7 +459,7 @@ String textualOutline(
     return null;
   }
 
-  Token nextToken = firstToken;
+  Token? nextToken = firstToken;
   _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
   while (nextToken != null) {
     if (nextToken is ErrorToken) {
@@ -489,11 +488,9 @@ String textualOutline(
 }
 
 List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
-  List<_Chunk> result =
-      new List<_Chunk>.filled(chunks.length, null, growable: true);
-  List<_MetadataChunk> metadataChunks;
-  List<_SingleImportExportChunk> importExportChunks;
-  int outSize = 0;
+  List<_Chunk> result = [];
+  List<_MetadataChunk>? metadataChunks;
+  List<_SingleImportExportChunk>? importExportChunks;
   StringBuffer sb = new StringBuffer();
   for (_Chunk chunk in chunks) {
     if (chunk is _MetadataChunk) {
@@ -514,16 +511,16 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
               importExportChunks, importExportChunks.first.originalPosition);
           importExportChunk.internalMergeAndSort(sb);
           sb.clear();
-          result[outSize++] = importExportChunk;
+          result.add(importExportChunk);
           importExportChunks = null;
         }
-        result[outSize++] = chunk;
+        result.add(chunk);
       }
     }
   }
   if (metadataChunks != null) {
     for (_MetadataChunk metadata in metadataChunks) {
-      result[outSize++] = metadata;
+      result.add(metadata);
     }
   }
   if (importExportChunks != null) {
@@ -531,10 +528,9 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
         importExportChunks, importExportChunks.first.originalPosition);
     importExportChunk.internalMergeAndSort(sb);
     sb.clear();
-    result[outSize++] = importExportChunk;
+    result.add(importExportChunk);
     importExportChunks = null;
   }
-  result.length = outSize;
 
   result.sort();
   return result;
@@ -542,14 +538,14 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
 
 /// Parses a chunk of tokens and returns the next - unparsed - token or null
 /// on error.
-Token _textualizeTokens(
+Token? _textualizeTokens(
     TextualOutlineListener listener,
     Token token,
     _UnknownTokenBuilder currentUnknown,
     List<_Chunk> parsedChunks,
     BoxedInt originalPosition,
     bool addMarkerForUnknownForTest) {
-  _ClassChunk classChunk = listener.classStartToChunk[token];
+  _ClassChunk? classChunk = listener.classStartToChunk[token];
   if (classChunk != null) {
     outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
         addMarkerForUnknownForTest);
@@ -558,7 +554,7 @@ Token _textualizeTokens(
         listener, classChunk, originalPosition, addMarkerForUnknownForTest);
   }
 
-  _SingleImportExportChunk singleImportExport =
+  _SingleImportExportChunk? singleImportExport =
       listener.importExportsStartToChunk[token];
   if (singleImportExport != null) {
     outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
@@ -568,7 +564,7 @@ Token _textualizeTokens(
     return singleImportExport.endToken.next;
   }
 
-  _TokenChunk knownUnsortableChunk =
+  _TokenChunk? knownUnsortableChunk =
       listener.unsortableElementStartToChunk[token];
   if (knownUnsortableChunk != null) {
     outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
@@ -578,7 +574,7 @@ Token _textualizeTokens(
     return knownUnsortableChunk.endToken.next;
   }
 
-  _TokenChunk elementChunk = listener.elementStartToChunk[token];
+  _TokenChunk? elementChunk = listener.elementStartToChunk[token];
   if (elementChunk != null) {
     outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
         addMarkerForUnknownForTest);
@@ -586,7 +582,7 @@ Token _textualizeTokens(
     return elementChunk.endToken.next;
   }
 
-  _MetadataChunk metadataChunk = listener.metadataStartToChunk[token];
+  _MetadataChunk? metadataChunk = listener.metadataStartToChunk[token];
   if (metadataChunk != null) {
     outputUnknownChunk(currentUnknown, parsedChunks, originalPosition,
         addMarkerForUnknownForTest);
@@ -610,10 +606,10 @@ Token _textualizeTokens(
 
 Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
     BoxedInt originalPosition, bool addMarkerForUnknownForTest) {
-  Token token = classChunk.startToken;
+  Token? token = classChunk.startToken;
   // Class header.
   while (token != classChunk.endToken) {
-    if (token.endGroup == classChunk.endToken) {
+    if (token!.endGroup == classChunk.endToken) {
       break;
     }
     token = token.next;
@@ -627,11 +623,11 @@ Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
     // class C { }
     // either way, output the end token right away to avoid a weird line break.
   } else {
-    token = token.next;
+    token = token!.next;
     // "Normal" class with (possibly) content.
     _UnknownTokenBuilder currentUnknown = new _UnknownTokenBuilder();
     while (token != classChunk.endToken) {
-      token = _textualizeTokens(listener, token, currentUnknown,
+      token = _textualizeTokens(listener, token!, currentUnknown,
           classChunk.content, originalPosition, addMarkerForUnknownForTest);
     }
     outputUnknownChunk(currentUnknown, classChunk.content, originalPosition,
@@ -639,7 +635,7 @@ Token _textualizeClass(TextualOutlineListener listener, _ClassChunk classChunk,
     classChunk.footerStart = classChunk.endToken;
   }
 
-  return classChunk.endToken.next;
+  return classChunk.endToken.next!;
 }
 
 /// Outputs an unknown chunk if one has been started.
@@ -652,7 +648,7 @@ void outputUnknownChunk(
     bool addMarkerForUnknownForTest) {
   if (_currentUnknown.start == null) return;
   parsedChunks.add(new _UnknownChunk(addMarkerForUnknownForTest,
-      _currentUnknown.start, _currentUnknown.interimEnd)
+      _currentUnknown.start!, _currentUnknown.interimEnd!)
     ..originalPosition = originalPosition.value++);
   _currentUnknown.start = null;
   _currentUnknown.interimEnd = null;
@@ -663,14 +659,14 @@ main(List<String> args) {
   Uint8List data = f.readAsBytesSync();
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
   String outline = textualOutline(data, scannerConfiguration,
-      throwOnUnexpected: true, performModelling: true);
+      throwOnUnexpected: true, performModelling: true)!;
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
   } else if (args.length > 1 && args[1] == "--benchmark") {
     Stopwatch stopwatch = new Stopwatch()..start();
     int numRuns = 100;
     for (int i = 0; i < numRuns; i++) {
-      String outline2 = textualOutline(data, scannerConfiguration,
+      String? outline2 = textualOutline(data, scannerConfiguration,
           throwOnUnexpected: true, performModelling: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
@@ -680,7 +676,7 @@ main(List<String> args) {
     stopwatch = new Stopwatch()..start();
     numRuns = 2500;
     for (int i = 0; i < numRuns; i++) {
-      String outline2 = textualOutline(data, scannerConfiguration,
+      String? outline2 = textualOutline(data, scannerConfiguration,
           throwOnUnexpected: true, performModelling: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
@@ -701,14 +697,14 @@ class TextualOutlineListener extends Listener {
   final Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     elementStartToChunk[beginToken] =
         new _ClassMethodChunk(beginToken, endToken);
   }
 
   @override
-  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
+  void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
     elementStartToChunk[beginToken] =
         new _TopLevelMethodChunk(beginToken, endToken);
   }
@@ -727,12 +723,12 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endClassFields(
-      Token abstractToken,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -742,11 +738,11 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endTopLevelFields(
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token lateToken,
-      Token varFinalOrConst,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
       int count,
       Token beginToken,
       Token endToken) {
@@ -755,14 +751,14 @@ class TextualOutlineListener extends Listener {
   }
 
   void endFunctionTypeAlias(
-      Token typedefKeyword, Token equals, Token endToken) {
+      Token typedefKeyword, Token? equals, Token endToken) {
     elementStartToChunk[typedefKeyword] =
         new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }
 
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     elementStartToChunk[enumKeyword] =
-        new _EnumChunk(enumKeyword, leftBrace.endGroup);
+        new _EnumChunk(enumKeyword, leftBrace.endGroup!);
   }
 
   @override
@@ -785,10 +781,10 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
+  void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
     // Metadata's endToken is the one *after* the actual end of the metadata.
     metadataStartToChunk[beginToken] =
-        new _MetadataChunk(beginToken, endToken.previous);
+        new _MetadataChunk(beginToken, endToken.previous!);
   }
 
   @override
@@ -804,22 +800,22 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token endToken) {
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token endToken) {
     classStartToChunk[extensionKeyword] =
         new _ExtensionDeclarationChunk(extensionKeyword, endToken);
   }
 
   @override
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
-      Token equals, Token implementsKeyword, Token endToken) {
+      Token equals, Token? implementsKeyword, Token endToken) {
     classStartToChunk[beginToken] =
         new _NamedMixinApplicationChunk(beginToken, endToken);
   }
 
-  Token firstShowOrHide;
-  List<_NamespaceCombinator> _combinators;
-  List<String> _combinatorNames;
+  Token? firstShowOrHide;
+  List<_NamespaceCombinator>? _combinators;
+  List<String>? _combinatorNames;
 
   @override
   beginExport(Token export) {
@@ -845,25 +841,26 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endHide(Token hide) {
-    _combinators.add(new _NamespaceCombinator.hide(_combinatorNames));
+    _combinators!.add(new _NamespaceCombinator.hide(_combinatorNames!));
     _combinatorNames = null;
   }
 
   @override
   void endShow(Token show) {
-    _combinators.add(new _NamespaceCombinator.show(_combinatorNames));
+    _combinators!.add(new _NamespaceCombinator.show(_combinatorNames!));
     _combinatorNames = null;
   }
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (_combinatorNames != null && context == IdentifierContext.combinator) {
-      _combinatorNames.add(token.lexeme);
+      _combinatorNames!.add(token.lexeme);
     }
   }
 
   @override
-  void endImport(Token importKeyword, Token semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
+    // ignore: unnecessary_null_comparison
     if (importKeyword != null && semicolon != null) {
       importExportsStartToChunk[importKeyword] = new _ImportChunk(
           importKeyword, semicolon, firstShowOrHide, _combinators);

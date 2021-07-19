@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.source_loader;
 
 import 'dart:convert' show utf8;
@@ -135,14 +133,14 @@ class SourceLoader extends Loader {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
-  ClassHierarchyBuilder builderHierarchy;
+  ClassHierarchyBuilder? _builderHierarchy;
 
-  ReferenceFromIndex referenceFromIndex;
+  ReferenceFromIndex? referenceFromIndex;
 
   /// Used when building directly to kernel.
-  ClassHierarchy _hierarchy;
-  CoreTypes _coreTypes;
-  TypeEnvironment _typeEnvironment;
+  ClassHierarchy? _hierarchy;
+  CoreTypes? _coreTypes;
+  TypeEnvironment? _typeEnvironment;
 
   /// For builders created with a reference, this maps from that reference to
   /// that builder. This is used for looking up source builders when finalizing
@@ -152,27 +150,33 @@ class SourceLoader extends Loader {
   /// Used when checking whether a return type of an async function is valid.
   ///
   /// The said return type is valid if it's a subtype of [futureOfBottom].
-  DartType futureOfBottom;
+  DartType? _futureOfBottom;
+
+  DartType get futureOfBottom => _futureOfBottom!;
 
   /// Used when checking whether a return type of a sync* function is valid.
   ///
   /// The said return type is valid if it's a subtype of [iterableOfBottom].
-  DartType iterableOfBottom;
+  DartType? _iterableOfBottom;
+
+  DartType get iterableOfBottom => _iterableOfBottom!;
 
   /// Used when checking whether a return type of an async* function is valid.
   ///
   /// The said return type is valid if it's a subtype of [streamOfBottom].
-  DartType streamOfBottom;
+  DartType? _streamOfBottom;
 
-  TypeInferenceEngineImpl typeInferenceEngine;
+  DartType get streamOfBottom => _streamOfBottom!;
 
-  Instrumentation instrumentation;
+  TypeInferenceEngineImpl? _typeInferenceEngine;
 
-  CollectionTransformer collectionTransformer;
+  Instrumentation? instrumentation;
 
-  SetLiteralTransformer setLiteralTransformer;
+  CollectionTransformer? collectionTransformer;
 
-  final SourceLoaderDataForTesting dataForTesting;
+  SetLiteralTransformer? setLiteralTransformer;
+
+  final SourceLoaderDataForTesting? dataForTesting;
 
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : dataForTesting =
@@ -183,12 +187,12 @@ class SourceLoader extends Loader {
 
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
-    return _coreTypes;
+    return _coreTypes!;
   }
 
-  ClassHierarchy get hierarchy => _hierarchy;
+  ClassHierarchy get hierarchy => _hierarchy!;
 
-  void set hierarchy(ClassHierarchy value) {
+  void set hierarchy(ClassHierarchy? value) {
     if (_hierarchy != value) {
       _hierarchy = value;
       _typeEnvironment = null;
@@ -198,6 +202,10 @@ class SourceLoader extends Loader {
   TypeEnvironment get typeEnvironment {
     return _typeEnvironment ??= new TypeEnvironment(coreTypes, hierarchy);
   }
+
+  TypeInferenceEngineImpl get typeInferenceEngine => _typeInferenceEngine!;
+
+  ClassHierarchyBuilder get builderHierarchy => _builderHierarchy!;
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -209,7 +217,7 @@ class SourceLoader extends Loader {
     Uri fileUri = library.fileUri;
 
     // Lookup the file URI in the cache.
-    List<int> bytes = sourceBytes[fileUri];
+    List<int>? bytes = sourceBytes[fileUri];
 
     if (bytes == null) {
       // Error recovery.
@@ -312,12 +320,12 @@ class SourceLoader extends Loader {
         library.addProblem(error.assertionMessage, offsetForToken(token),
             lengthForToken(token), fileUri);
       }
-      token = token.next;
+      token = token.next!;
     }
     return token;
   }
 
-  List<int> synthesizeSourceForMissingFile(Uri uri, Message message) {
+  List<int> synthesizeSourceForMissingFile(Uri uri, Message? message) {
     switch ("$uri") {
       case "dart:core":
         return utf8.encode(defaultDartCoreSource);
@@ -339,22 +347,22 @@ class SourceLoader extends Loader {
     }
   }
 
-  Set<LibraryBuilder> _strongOptOutLibraries;
+  Set<LibraryBuilder>? _strongOptOutLibraries;
 
   void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
     _strongOptOutLibraries ??= {};
-    _strongOptOutLibraries.add(libraryBuilder);
+    _strongOptOutLibraries!.add(libraryBuilder);
     hasInvalidNnbdModeLibrary = true;
   }
 
   bool hasInvalidNnbdModeLibrary = false;
 
-  Map<LibraryBuilder, Message> _nnbdMismatchLibraries;
+  Map<LibraryBuilder, Message>? _nnbdMismatchLibraries;
 
   void registerNnbdMismatchLibrary(
       LibraryBuilder libraryBuilder, Message message) {
     _nnbdMismatchLibraries ??= {};
-    _nnbdMismatchLibraries[libraryBuilder] = message;
+    _nnbdMismatchLibraries![libraryBuilder] = message;
     hasInvalidNnbdModeLibrary = true;
   }
 
@@ -378,26 +386,26 @@ class SourceLoader extends Loader {
       // config we include each library uri in the message. For non-package
       // libraries with no corresponding package config we generate a message
       // per library.
-      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries,
+      giveCombinedErrorForNonStrongLibraries(_strongOptOutLibraries!,
           emitNonPackageErrors: true);
       _strongOptOutLibraries = null;
     }
     if (_nnbdMismatchLibraries != null) {
       for (MapEntry<LibraryBuilder, Message> entry
-          in _nnbdMismatchLibraries.entries) {
+          in _nnbdMismatchLibraries!.entries) {
         addProblem(entry.value, -1, noLength, entry.key.fileUri);
       }
       _nnbdMismatchLibraries = null;
     }
   }
 
-  FormattedMessage giveCombinedErrorForNonStrongLibraries(
+  FormattedMessage? giveCombinedErrorForNonStrongLibraries(
       Set<LibraryBuilder> libraries,
-      {bool emitNonPackageErrors}) {
-    Map<String, List<LibraryBuilder>> libraryByPackage = {};
+      {required bool emitNonPackageErrors}) {
+    Map<String?, List<LibraryBuilder>> libraryByPackage = {};
     Map<Package, Version> enableNonNullableVersionByPackage = {};
     for (LibraryBuilder libraryBuilder in libraries) {
-      final Package package =
+      final Package? package =
           target.uriTranslator.getPackage(libraryBuilder.importUri);
 
       if (package != null &&
@@ -409,7 +417,7 @@ class SourceLoader extends Loader {
                     ExperimentalFlag.nonNullable,
                     new Uri(scheme: 'package', path: package.name));
         Version version = new Version(
-            package.languageVersion.major, package.languageVersion.minor);
+            package.languageVersion!.major, package.languageVersion!.minor);
         if (version < enableNonNullableVersion) {
           (libraryByPackage[package.name] ??= []).add(libraryBuilder);
           continue;
@@ -428,7 +436,7 @@ class SourceLoader extends Loader {
     if (libraryByPackage.isNotEmpty) {
       List<Uri> involvedFiles = [];
       List<String> dependencies = [];
-      libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+      libraryByPackage.forEach((String? name, List<LibraryBuilder> libraries) {
         if (name != null) {
           dependencies.add('package:$name');
           for (LibraryBuilder libraryBuilder in libraries) {
@@ -464,6 +472,7 @@ class SourceLoader extends Loader {
 
   Future<Null> buildOutline(SourceLibraryBuilder library) async {
     Token tokens = await tokenize(library);
+    // ignore: unnecessary_null_comparison
     if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
     new ClassMemberParser(listener).parseUnit(tokens);
@@ -475,6 +484,7 @@ class SourceLoader extends Loader {
       // second time, and the first time was in [buildOutline] above. So this
       // time we suppress lexical errors.
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
+      // ignore: unnecessary_null_comparison
       if (tokens == null) return;
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
@@ -484,7 +494,9 @@ class SourceLoader extends Loader {
           // Part was included in multiple libraries. Skip it here.
           continue;
         }
-        Token tokens = await tokenize(part, suppressLexicalErrors: true);
+        Token tokens = await tokenize(part as SourceLibraryBuilder,
+            suppressLexicalErrors: true);
+        // ignore: unnecessary_null_comparison
         if (tokens != null) {
           listener.uri = part.fileUri;
           parser.parseUnit(tokens);
@@ -496,16 +508,16 @@ class SourceLoader extends Loader {
   // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
       SourceLibraryBuilder libraryBuilder,
-      String enclosingClass,
+      String? enclosingClass,
       bool isClassInstanceMember,
       FunctionNode parameters) async {
     Token token = await tokenize(libraryBuilder, suppressLexicalErrors: false);
-    if (token == null) return null;
     DietListener dietListener = createDietListener(libraryBuilder);
 
     Builder parent = libraryBuilder;
     if (enclosingClass != null) {
-      Builder cls = dietListener.memberScope.lookup(enclosingClass, -1, null);
+      Builder? cls = dietListener.memberScope
+          .lookup(enclosingClass, -1, libraryBuilder.fileUri);
       if (cls is ClassBuilder) {
         parent = cls;
         dietListener
@@ -540,13 +552,13 @@ class SourceLoader extends Loader {
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
-        isDeclarationInstanceMember: isClassInstanceMember);
+        isDeclarationInstanceMember: isClassInstanceMember) as BodyBuilder;
 
     return listener.parseSingleExpression(
         new Parser(listener), token, parameters);
   }
 
-  KernelTarget get target => super.target;
+  KernelTarget get target => super.target as KernelTarget;
 
   DietListener createDietListener(SourceLibraryBuilder library) {
     return new DietListener(library, hierarchy, coreTypes, typeInferenceEngine);
@@ -560,7 +572,7 @@ class SourceLoader extends Loader {
         if (library.isPart) {
           parts.add(uri);
         } else {
-          libraries.add(library);
+          libraries.add(library as SourceLibraryBuilder);
         }
       }
     });
@@ -572,7 +584,7 @@ class SourceLoader extends Loader {
       if (usedParts.contains(uri)) {
         builders.remove(uri);
       } else {
-        SourceLibraryBuilder part = builders[uri];
+        SourceLibraryBuilder part = builders[uri] as SourceLibraryBuilder;
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         part.validatePart(null, null);
       }
@@ -592,7 +604,7 @@ class SourceLoader extends Loader {
     Set<LibraryBuilder> exportees = new Set<LibraryBuilder>();
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
+        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.buildInitialScopes();
       }
       if (library.exporters.isNotEmpty) {
@@ -605,7 +617,7 @@ class SourceLoader extends Loader {
     Set<SourceLibraryBuilder> both = new Set<SourceLibraryBuilder>();
     for (LibraryBuilder exported in exportees) {
       if (exporters.contains(exported)) {
-        both.add(exported);
+        both.add(exported as SourceLibraryBuilder);
       }
       for (Export export in exported.exporters) {
         exported.exportScope.forEach(export.addToExportScope);
@@ -626,7 +638,7 @@ class SourceLoader extends Loader {
     } while (wasChanged);
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
+        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         sourceLibrary.addImportsToScope();
       }
     }
@@ -651,7 +663,7 @@ class SourceLoader extends Loader {
         members.add(iterator.current);
       }
       List<String> exports = <String>[];
-      library.exportScope.forEach((String name, Builder member) {
+      library.exportScope.forEach((String name, Builder? member) {
         while (member != null) {
           if (!members.contains(member)) {
             exports.add(name);
@@ -669,7 +681,7 @@ class SourceLoader extends Loader {
     int typeCount = 0;
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
+        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         typeCount += sourceLibrary.resolveTypes();
       }
     }
@@ -803,15 +815,16 @@ class SourceLoader extends Loader {
 
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
-      denyListedClasses.add(coreLibrary
-          .lookupLocalMember(denylistedCoreClasses[i], required: true));
+      denyListedClasses.add(coreLibrary.lookupLocalMember(
+          denylistedCoreClasses[i],
+          required: true) as ClassBuilder);
     }
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
-        Builder member = typedDataLibrary
+        Builder? member = typedDataLibrary!
             .lookupLocalMember(denylistedTypedDataClasses[i], required: false);
-        if (member != null) denyListedClasses.add(member);
+        if (member != null) denyListedClasses.add(member as ClassBuilder);
       }
     }
 
@@ -824,13 +837,13 @@ class SourceLoader extends Loader {
       workList = <SourceClassBuilder>[];
       for (int i = 0; i < previousWorkList.length; i++) {
         SourceClassBuilder cls = previousWorkList[i];
-        Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap =
+        Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap =
             cls.computeDirectSupertypes(objectClass);
-        List<TypeDeclarationBuilder> directSupertypes =
+        List<TypeDeclarationBuilder?> directSupertypes =
             directSupertypeMap.keys.toList();
         bool allSupertypesProcessed = true;
         for (int i = 0; i < directSupertypes.length; i++) {
-          Builder supertype = directSupertypes[i];
+          Builder? supertype = directSupertypes[i];
           if (supertype is SourceClassBuilder &&
               supertype.library.loader == this &&
               !topologicallySortedClasses.contains(supertype)) {
@@ -885,7 +898,7 @@ class SourceLoader extends Loader {
               templateIllegalMixinDueToConstructorsCause
                   .withArguments(builder.fullNameForErrors)
                   .withLocation(
-                      constructor.fileUri, constructor.charOffset, noLength)
+                      constructor.fileUri!, constructor.charOffset, noLength)
             ]);
       }
     }
@@ -893,23 +906,23 @@ class SourceLoader extends Loader {
 
   void checkClassSupertypes(
       SourceClassBuilder cls,
-      Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap,
+      Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap,
       Set<ClassBuilder> denyListedClasses) {
     // Check that the direct supertypes aren't deny-listed or enums.
-    List<TypeDeclarationBuilder> directSupertypes =
+    List<TypeDeclarationBuilder?> directSupertypes =
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
-      TypeDeclarationBuilder supertype = directSupertypes[i];
+      TypeDeclarationBuilder? supertype = directSupertypes[i];
       if (supertype is EnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
           denyListedClasses.contains(supertype)) {
-        TypeAliasBuilder aliasBuilder = directSupertypeMap[supertype];
+        TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(
               templateExtendingRestricted
-                  .withArguments(supertype.fullNameForErrors),
+                  .withArguments(supertype!.fullNameForErrors),
               cls.charOffset,
               noLength,
               context: [
@@ -919,7 +932,7 @@ class SourceLoader extends Loader {
         } else {
           cls.addProblem(
               templateExtendingRestricted
-                  .withArguments(supertype.fullNameForErrors),
+                  .withArguments(supertype!.fullNameForErrors),
               cls.charOffset,
               noLength);
         }
@@ -927,11 +940,11 @@ class SourceLoader extends Loader {
     }
 
     // Check that the mixed-in type can be used as a mixin.
-    final TypeBuilder mixedInTypeBuilder = cls.mixedInTypeBuilder;
+    final TypeBuilder? mixedInTypeBuilder = cls.mixedInTypeBuilder;
     if (mixedInTypeBuilder != null) {
       bool isClassBuilder = false;
       if (mixedInTypeBuilder is NamedTypeBuilder) {
-        TypeDeclarationBuilder builder = mixedInTypeBuilder.declaration;
+        TypeDeclarationBuilder? builder = mixedInTypeBuilder.declaration;
         if (builder is TypeAliasBuilder) {
           TypeAliasBuilder aliasBuilder = builder;
           NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
@@ -941,7 +954,7 @@ class SourceLoader extends Loader {
               usedAsClassFileUri: namedBuilder.fileUri);
           if (builder is! ClassBuilder) {
             cls.addProblem(
-                templateIllegalMixin.withArguments(builder.fullNameForErrors),
+                templateIllegalMixin.withArguments(builder!.fullNameForErrors),
                 cls.charOffset,
                 noLength,
                 context: [
@@ -989,13 +1002,13 @@ class SourceLoader extends Loader {
   void buildComponent() {
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
+        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
         Library target = sourceLibrary.build(coreLibrary);
         if (!library.isPatch) {
           if (sourceLibrary.referencesFrom != null) {
             referenceFromIndex ??= new ReferenceFromIndex();
-            referenceFromIndex.addIndexedLibrary(
-                target, sourceLibrary.referencesFromIndexed);
+            referenceFromIndex!.addIndexedLibrary(
+                target, sourceLibrary.referencesFromIndexed!);
           }
           libraries.add(target);
         }
@@ -1029,14 +1042,14 @@ class SourceLoader extends Loader {
   }
 
   void computeHierarchy() {
-    List<AmbiguousTypesRecord> ambiguousTypesRecords = [];
+    List<AmbiguousTypesRecord>? ambiguousTypesRecords = [];
     HandleAmbiguousSupertypes onAmbiguousSupertypes =
         (Class cls, Supertype a, Supertype b) {
       if (ambiguousTypesRecords != null) {
         ambiguousTypesRecords.add(new AmbiguousTypesRecord(cls, a, b));
       }
     };
-    if (hierarchy == null) {
+    if (_hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(), coreTypes,
           onAmbiguousSupertypes: onAmbiguousSupertypes);
     } else {
@@ -1072,11 +1085,11 @@ class SourceLoader extends Loader {
     // to check if the return types of functions with async, sync*, and async*
     // bodies are correct.  It's valid to use the non-nullable types on the
     // left-hand side in both opt-in and opt-out code.
-    futureOfBottom = new InterfaceType(coreTypes.futureClass,
+    _futureOfBottom = new InterfaceType(coreTypes.futureClass,
         Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
-    iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
+    _iterableOfBottom = new InterfaceType(coreTypes.iterableClass,
         Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
-    streamOfBottom = new InterfaceType(coreTypes.streamClass,
+    _streamOfBottom = new InterfaceType(coreTypes.streamClass,
         Nullability.nonNullable, <DartType>[const NeverType.nonNullable()]);
 
     ticker.logMs("Computed core types");
@@ -1110,7 +1123,7 @@ class SourceLoader extends Loader {
     }
     ticker.logMs("Checked ${overrideChecks.length} overrides");
 
-    typeInferenceEngine?.finishTopLevelInitializingFormals();
+    typeInferenceEngine.finishTopLevelInitializingFormals();
     ticker.logMs("Finished initializing formals");
   }
 
@@ -1160,7 +1173,7 @@ class SourceLoader extends Loader {
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        Class mixedInClass = builder.cls.mixedInClass;
+        Class? mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy, coreTypes);
         }
@@ -1174,7 +1187,7 @@ class SourceLoader extends Loader {
         <DelayedActionPerformer>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        library.buildOutlineExpressions();
+        (library as SourceLibraryBuilder).buildOutlineExpressions();
         Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
@@ -1210,14 +1223,14 @@ class SourceLoader extends Loader {
 
   void buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    builderHierarchy = ClassHierarchyBuilder.build(
+    _builderHierarchy = ClassHierarchyBuilder.build(
         objectClass, sourceClasses, this, coreTypes);
-    typeInferenceEngine?.hierarchyBuilder = builderHierarchy;
+    typeInferenceEngine.hierarchyBuilder = builderHierarchy;
     ticker.logMs("Built class hierarchy");
   }
 
   void createTypeInferenceEngine() {
-    typeInferenceEngine = new TypeInferenceEngineImpl(instrumentation);
+    _typeInferenceEngine = new TypeInferenceEngineImpl(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
@@ -1231,7 +1244,7 @@ class SourceLoader extends Loader {
     List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        List<FieldBuilder> implicitlyTypedFields =
+        List<FieldBuilder>? implicitlyTypedFields =
             library.takeImplicitlyTypedFields();
         if (implicitlyTypedFields != null) {
           allImplicitlyTypedFields.addAll(implicitlyTypedFields);
@@ -1259,15 +1272,15 @@ class SourceLoader extends Loader {
       bool transformCollections, Library clientLibrary) {
     if (transformCollections) {
       collectionTransformer ??= new CollectionTransformer(this);
-      collectionTransformer.enterLibrary(clientLibrary);
-      node.accept(collectionTransformer);
-      collectionTransformer.exitLibrary();
+      collectionTransformer!.enterLibrary(clientLibrary);
+      node.accept(collectionTransformer!);
+      collectionTransformer!.exitLibrary();
     }
     if (transformSetLiterals) {
       setLiteralTransformer ??= new SetLiteralTransformer(this);
-      setLiteralTransformer.enterLibrary(clientLibrary);
-      node.accept(setLiteralTransformer);
-      setLiteralTransformer.exitLibrary();
+      setLiteralTransformer!.enterLibrary(clientLibrary);
+      node.accept(setLiteralTransformer!);
+      setLiteralTransformer!.exitLibrary();
     }
   }
 
@@ -1323,12 +1336,12 @@ class SourceLoader extends Loader {
   }
 
   void checkMainMethods() {
-    DartType listOfString;
+    DartType? listOfString;
 
     for (LibraryBuilder libraryBuilder in builders.values) {
       if (libraryBuilder.loader == this &&
           libraryBuilder.isNonNullableByDefault) {
-        Builder mainBuilder =
+        Builder? mainBuilder =
             libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
         mainBuilder ??=
             libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
@@ -1347,7 +1360,7 @@ class SourceLoader extends Loader {
                   noLength,
                   libraryBuilder.fileUri,
                   context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri,
+                    messageExportedMain.withLocation(mainBuilder.fileUri!,
                         mainBuilder.charOffset, mainBuilder.name.length)
                   ]);
             } else {
@@ -1358,7 +1371,7 @@ class SourceLoader extends Loader {
                   mainBuilder.fileUri);
             }
           } else {
-            Procedure procedure = mainBuilder.member;
+            Procedure procedure = mainBuilder.member as Procedure;
             if (procedure.function.requiredParameterCount > 2) {
               if (mainBuilder.parent != libraryBuilder) {
                 libraryBuilder.addProblem(
@@ -1367,7 +1380,7 @@ class SourceLoader extends Loader {
                     noLength,
                     libraryBuilder.fileUri,
                     context: [
-                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                      messageExportedMain.withLocation(mainBuilder.fileUri!,
                           mainBuilder.charOffset, mainBuilder.name.length)
                     ]);
               } else {
@@ -1386,7 +1399,7 @@ class SourceLoader extends Loader {
                     noLength,
                     libraryBuilder.fileUri,
                     context: [
-                      messageExportedMain.withLocation(mainBuilder.fileUri,
+                      messageExportedMain.withLocation(mainBuilder.fileUri!,
                           mainBuilder.charOffset, mainBuilder.name.length)
                     ]);
               } else {
@@ -1417,7 +1430,7 @@ class SourceLoader extends Loader {
                       noLength,
                       libraryBuilder.fileUri,
                       context: [
-                        messageExportedMain.withLocation(mainBuilder.fileUri,
+                        messageExportedMain.withLocation(mainBuilder.fileUri!,
                             mainBuilder.charOffset, mainBuilder.name.length)
                       ]);
                 } else {
@@ -1439,7 +1452,7 @@ class SourceLoader extends Loader {
                 libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
                 context: [
                   messageExportedMain.withLocation(
-                      mainBuilder.fileUri, mainBuilder.charOffset, noLength)
+                      mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
                 ]);
           } else {
             libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
@@ -1452,13 +1465,13 @@ class SourceLoader extends Loader {
 
   void releaseAncillaryResources() {
     hierarchy = null;
-    builderHierarchy = null;
-    typeInferenceEngine = null;
-    builders?.clear();
-    libraries?.clear();
+    _builderHierarchy = null;
+    _typeInferenceEngine = null;
+    builders.clear();
+    libraries.clear();
     first = null;
-    sourceBytes?.clear();
-    target?.releaseAncillaryResources();
+    sourceBytes.clear();
+    target.releaseAncillaryResources();
     _coreTypes = null;
     instrumentation = null;
     collectionTransformer = null;
@@ -1468,11 +1481,11 @@ class SourceLoader extends Loader {
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
-    LibraryBuilder library = builders[kernelLibrary.importUri];
+    LibraryBuilder? library = builders[kernelLibrary.importUri];
     if (library == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
-    return library.lookupLocalMember(cls.name, required: true);
+    return library.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
 
   @override
@@ -1578,14 +1591,18 @@ class Object {
   bool operator==(dynamic) {}
 }
 
+abstract class Enum {
+}
+
 class String {}
 
 class Symbol {}
 
 class Set<E> {
-  factory Set() = Set<E>._fake;
-  external factory Set._fake();
-  external factory Set.of();
+  factory Set() = Set<E>._;
+  external factory Set._();
+  factory Set.of(o) = Set<E>._of;
+  external factory Set._of(o);
   bool add(E element) {}
   void addAll(Iterable<E> iterable) {}
 }

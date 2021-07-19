@@ -27,6 +27,7 @@ const Set<String> _nonSubtypableDartAsyncClassNames = {
 const Set<String> _nonSubtypableDartCoreClassNames = {
   'bool',
   'double',
+  'Enum',
   'int',
   'Null',
   'num',
@@ -102,8 +103,12 @@ class TypeProviderImpl extends TypeProviderBase {
   /// If `false`, then legacy types are returned.
   final bool isNonNullableByDefault;
 
+  bool _hasEnumElement = false;
+  bool _hasEnumType = false;
+
   ClassElement? _boolElement;
   ClassElement? _doubleElement;
+  ClassElement? _enumElement;
   ClassElement? _futureElement;
   ClassElement? _futureOrElement;
   ClassElement? _intElement;
@@ -122,6 +127,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType? _deprecatedType;
   InterfaceType? _doubleType;
   InterfaceType? _doubleTypeQuestion;
+  InterfaceType? _enumType;
   InterfaceType? _functionType;
   InterfaceType? _futureDynamicType;
   InterfaceType? _futureNullType;
@@ -151,7 +157,7 @@ class TypeProviderImpl extends TypeProviderBase {
     required LibraryElement coreLibrary,
     required LibraryElement asyncLibrary,
     required bool isNonNullableByDefault,
-  })   : _coreLibrary = coreLibrary,
+  })  : _coreLibrary = coreLibrary,
         _asyncLibrary = asyncLibrary,
         isNonNullableByDefault = isNonNullableByDefault;
 
@@ -218,6 +224,31 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   DartType get dynamicType => DynamicTypeImpl.instance;
+
+  @override
+  ClassElement? get enumElement {
+    if (!_hasEnumElement) {
+      _hasEnumElement = true;
+      _enumElement = _coreLibrary.getType('Enum');
+    }
+    return _enumElement;
+  }
+
+  @override
+  InterfaceType? get enumType {
+    if (!_hasEnumType) {
+      _hasEnumType = true;
+      var element = enumElement;
+      if (element != null) {
+        _enumType = InterfaceTypeImpl(
+          element: element,
+          typeArguments: const [],
+          nullabilitySuffix: _nullabilitySuffix,
+        );
+      }
+    }
+    return _enumType;
+  }
 
   @override
   InterfaceType get functionType {

@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 void foo() {
-foo(() {bar();;);});
+foo(() {bar();*synthetic*;);});
 }
 
 

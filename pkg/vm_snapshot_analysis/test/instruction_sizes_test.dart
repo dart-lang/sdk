@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:collection/collection.dart';
-
+import 'package:test/test.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
 import 'package:vm_snapshot_analysis/program_info.dart';
@@ -217,7 +216,7 @@ void main(List<String> args) {
 
 extension on Histogram {
   String bucketFor(String pkg, String lib, String cls, String fun) =>
-      (this.bucketInfo as Bucketing).bucketFor(pkg, lib, cls, fun);
+      (bucketInfo as Bucketing).bucketFor(pkg, lib, cls, fun);
 }
 
 void main() async {
@@ -838,8 +837,8 @@ void main() async {
     test('treemap', () async {
       await withV8Profile(testSource, (profileJson) async {
         final infoJson = await loadJson(File(profileJson));
-        final info = await loadProgramInfoFromJson(infoJson,
-            collapseAnonymousClosures: true);
+        final info =
+            loadProgramInfoFromJson(infoJson, collapseAnonymousClosures: true);
         final treemap = treemapFromInfo(info);
 
         List<Map<String, dynamic>> childrenOf(Map<String, dynamic> node) =>

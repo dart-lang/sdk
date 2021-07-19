@@ -273,9 +273,10 @@ void f() {
   /// But this method is used to check returning errors from the cache, or
   /// recomputing when the cache key is expected to be different.
   Future<List<AnalysisError>> _computeTestFileErrors() async {
-    var errorsResult = await contextFor(testFilePath)
+    var testFilePathConverted = convertPath(testFilePath);
+    var errorsResult = await contextFor(testFilePathConverted)
         .currentSession
-        .getErrors2(testFilePath) as ErrorsResult;
+        .getErrors2(testFilePathConverted) as ErrorsResult;
     return errorsResult.errors;
   }
 }

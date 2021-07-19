@@ -1,6 +1,12 @@
 class A {
   A.foo() {}
+  A() {}
+  factory A.bar() => new A();
 }
-
-bar() => A.foo;
+testFoo() => A.foo;
+testNew() => A.new;
+testBar() => A.bar;
+testFooExtraArgs() => A<int>.foo;
+testNewExtraArgs() => A<int>.new;
+testBarExtraArgs() => A<int>.bar;
 main() {}

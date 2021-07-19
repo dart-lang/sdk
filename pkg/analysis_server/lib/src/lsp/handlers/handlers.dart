@@ -49,7 +49,7 @@ abstract class CommandHandler<P, R> with Handler<P, R> {
 
   CommandHandler(this.server);
 
-  Future<ErrorOr<Object?>> handle(List<dynamic>? arguments,
+  Future<ErrorOr<Object?>> handle(List<Object?>? arguments,
       ProgressReporter progress, CancellationToken cancellationToken);
 }
 

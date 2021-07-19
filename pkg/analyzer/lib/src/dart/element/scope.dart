@@ -45,12 +45,6 @@ class EnclosedScope implements Scope {
     return _parent.lookup(id);
   }
 
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
-  }
-
   void _addGetter(Element element) {
     _addTo(_getters, element);
   }
@@ -156,7 +150,7 @@ class LibraryScope extends EnclosedScope {
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);
-    compilationUnit.types.forEach(_addGetter);
+    compilationUnit.classes.forEach(_addGetter);
   }
 }
 
@@ -197,12 +191,6 @@ class PrefixScope implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     return ScopeLookupResult(getter, setter);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 
   void _add(Element element) {
@@ -305,11 +293,5 @@ class _LibraryImportScope implements Scope {
   @override
   ScopeLookupResult lookup(String id) {
     return _nullPrefixScope.lookup(id);
-  }
-
-  @Deprecated('Use lookup() instead')
-  @override
-  ScopeLookupResult lookup2(String id) {
-    return lookup(id);
   }
 }

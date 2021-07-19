@@ -86,6 +86,7 @@ Component transformComponent(
     required bool desugarSets,
     required bool enableTripleShift,
     required bool enableConstFunctions,
+    required bool enableConstructorTearOff,
     required bool errorOnUnevaluatedConstant,
     CoreTypes? coreTypes,
     ClassHierarchy? hierarchy}) {
@@ -99,6 +100,8 @@ Component transformComponent(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component, coreTypes);
 
@@ -110,21 +113,23 @@ Component transformComponent(
       enableTripleShift: enableTripleShift,
       enableConstFunctions: enableConstFunctions,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
-      evaluateAnnotations: evaluateAnnotations);
+      evaluateAnnotations: evaluateAnnotations,
+      enableConstructorTearOff: enableConstructorTearOff);
   return component;
 }
 
 ConstantCoverage transformLibraries(
     List<Library> libraries,
     ConstantsBackend backend,
-    Map<String, String> environmentDefines,
+    Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
     {required bool evaluateAnnotations,
     required bool enableTripleShift,
     required bool enableConstFunctions,
-    required bool errorOnUnevaluatedConstant}) {
+    required bool errorOnUnevaluatedConstant,
+    required bool enableConstructorTearOff}) {
   // ignore: unnecessary_null_comparison
   assert(evaluateAnnotations != null);
   // ignore: unnecessary_null_comparison
@@ -133,12 +138,15 @@ ConstantCoverage transformLibraries(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
+      enableConstructorTearOff,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -152,14 +160,15 @@ ConstantCoverage transformLibraries(
 void transformProcedure(
     Procedure procedure,
     ConstantsBackend backend,
-    Map<String, String> environmentDefines,
+    Map<String, String>? environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
     EvaluationMode evaluationMode,
-    {bool evaluateAnnotations: true,
-    bool enableTripleShift: false,
-    bool enableConstFunctions: false,
-    bool errorOnUnevaluatedConstant: false}) {
+    {required bool evaluateAnnotations,
+    required bool enableTripleShift,
+    required bool enableConstFunctions,
+    required bool enableConstructorTearOff,
+    required bool errorOnUnevaluatedConstant}) {
   // ignore: unnecessary_null_comparison
   assert(evaluateAnnotations != null);
   // ignore: unnecessary_null_comparison
@@ -168,12 +177,15 @@ void transformProcedure(
   assert(enableConstFunctions != null);
   // ignore: unnecessary_null_comparison
   assert(errorOnUnevaluatedConstant != null);
+  // ignore: unnecessary_null_comparison
+  assert(enableConstructorTearOff != null);
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
       evaluateAnnotations,
       enableTripleShift,
       enableConstFunctions,
+      enableConstructorTearOff,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter,
@@ -316,8 +328,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
   }
 
   @override
-  Constant? visitPartialInstantiationConstant(
-      PartialInstantiationConstant node) {
+  Constant? visitInstantiationConstant(InstantiationConstant node) {
     List<DartType>? types;
     for (int index = 0; index < node.types.length; index++) {
       DartType? type = computeConstCanonicalType(
@@ -329,13 +340,13 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
       }
     }
     if (types != null) {
-      return new PartialInstantiationConstant(node.tearOffConstant, types);
+      return new InstantiationConstant(node.tearOffConstant, types);
     }
     return null;
   }
 
   @override
-  Constant? visitTearOffConstant(TearOffConstant node) => null;
+  Constant? visitStaticTearOffConstant(StaticTearOffConstant node) => null;
 
   @override
   Constant? visitTypeLiteralConstant(TypeLiteralConstant node) {
@@ -360,14 +371,16 @@ class ConstantsTransformer extends RemovingTransformer {
   final bool evaluateAnnotations;
   final bool enableTripleShift;
   final bool enableConstFunctions;
+  final bool enableConstructorTearOff;
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
       this.backend,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       this.evaluateAnnotations,
       this.enableTripleShift,
       this.enableConstFunctions,
+      this.enableConstructorTearOff,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       ErrorReporter errorReporter,
@@ -696,6 +709,18 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
+    Instantiation result =
+        super.visitInstantiation(node, removalSentinel) as Instantiation;
+    if (enableConstructorTearOff &&
+        result.expression is ConstantExpression &&
+        result.typeArguments.every(isInstantiated)) {
+      return evaluateAndTransformWithContext(node, result);
+    }
+    return node;
+  }
+
+  @override
   TreeNode visitSwitchCase(SwitchCase node, TreeNode? removalSentinel) {
     transformExpressions(node.expressions, node);
     return super.visitSwitchCase(node, removalSentinel);
@@ -871,9 +896,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableConstFunctions;
-
-  final bool Function(DartType) isInstantiated =
-      new IsInstantiatedVisitor().isInstantiated;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
@@ -1523,7 +1545,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (isSymbol) {
       final Constant nameValue = positionals.single;
 
-      if (nameValue is StringConstant && isValidSymbolName(nameValue.value)) {
+      // For libraries with null safety Symbol constructor accepts arbitrary
+      // string as argument.
+      if (nameValue is StringConstant &&
+          (isNonNullableByDefault || isValidSymbolName(nameValue.value))) {
         return canonicalize(new SymbolConstant(nameValue.value, null));
       }
       return createErrorConstant(
@@ -1849,8 +1874,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           assert(_gotError == null);
           // ignore: unnecessary_null_comparison
           assert(namedArguments != null);
-          error = handleConstructorInvocation(init.target, types,
-              positionalArguments, namedArguments, constructor);
+          error = handleConstructorInvocation(
+              init.target, types, positionalArguments, namedArguments, caller);
           if (error != null) return error;
         } else if (init is RedirectingInitializer) {
           // Since a redirecting constructor targets a constructor of the same
@@ -1880,7 +1905,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           assert(namedArguments != null);
 
           error = handleConstructorInvocation(init.target, typeArguments,
-              positionalArguments, namedArguments, constructor);
+              positionalArguments, namedArguments, caller);
           if (error != null) return error;
         } else if (init is AssertInitializer) {
           AbortConstant? error = checkAssert(init.statement);
@@ -2891,7 +2916,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 .withArguments(target.name.text));
       } else if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
-          return canonicalize(new TearOffConstant(target));
+          return canonicalize(new StaticTearOffConstant(target));
         }
         return createErrorConstant(
             node,
@@ -2910,7 +2935,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       final Member target = node.target;
       if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
-          return canonicalize(new TearOffConstant(target));
+          return canonicalize(new StaticTearOffConstant(target));
         }
         return createErrorConstant(
             node,
@@ -3159,7 +3184,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
 
     String name = target.name.text;
-    if (target is Procedure && target.isFactory) {
+    if (target.isFactory) {
       if (name.isEmpty) {
         name = target.enclosingClass!.name;
       } else {
@@ -3376,34 +3401,58 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(extract(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
-    if (constant is TearOffConstant) {
-      if (node.typeArguments.length ==
-          constant.procedure.function.typeParameters.length) {
-        List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
-        if (types == null) {
-          AbortConstant error = _gotError!;
-          _gotError = null;
-          return error;
-        }
-        assert(_gotError == null);
-        // ignore: unnecessary_null_comparison
-        assert(types != null);
+    if (constant is StaticTearOffConstant) {
+      Member constantMember = constant.procedure;
+      if (constantMember is Procedure) {
+        if (node.typeArguments.length ==
+            constantMember.function.typeParameters.length) {
+          List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
+          if (types == null) {
+            AbortConstant error = _gotError!;
+            _gotError = null;
+            return error;
+          }
+          assert(_gotError == null);
+          // ignore: unnecessary_null_comparison
+          assert(types != null);
 
-        final List<DartType> typeArguments = convertTypes(types);
-        return canonicalize(
-            new PartialInstantiationConstant(constant, typeArguments));
+          final List<DartType> typeArguments = convertTypes(types);
+          return canonicalize(
+              new InstantiationConstant(constant, typeArguments));
+        } else {
+          // Probably unreachable.
+          return createInvalidExpressionConstant(
+              node,
+              'The number of type arguments supplied in the partial '
+              'instantiation does not match the number of type arguments '
+              'of the $constant.');
+        }
+      } else if (constantMember is Constructor) {
+        // TODO(dmitryas): Add support for instantiated constructor tear-offs.
+        return defaultExpression(node);
+      } else {
+        // Probably unreachable.
+        return createInvalidExpressionConstant(
+            node,
+            "Unsupported kind of a torn off member: "
+            "'${constantMember.runtimeType}'.");
       }
-      // Probably unreachable.
-      return createInvalidExpressionConstant(
-          node,
-          'The number of type arguments supplied in the partial instantiation '
-          'does not match the number of type arguments of the $constant.');
     }
     // The inner expression in an instantiation can never be null, since
     // instantiations are only inferred on direct references to declarations.
     // Probably unreachable.
     return createInvalidExpressionConstant(
         node, 'Only tear-off constants can be partially instantiated.');
+  }
+
+  @override
+  Constant visitConstructorTearOff(ConstructorTearOff node) {
+    return defaultExpression(node);
+  }
+
+  @override
+  Constant visitTypedefTearOff(TypedefTearOff node) {
+    return defaultExpression(node);
   }
 
   @override
@@ -4469,6 +4518,10 @@ class SimpleErrorReporter implements ErrorReporter {
     io.exitCode = 42;
     io.stderr.writeln('$uri:$offset Constant evaluation error: $message');
   }
+}
+
+bool isInstantiated(DartType type) {
+  return type.accept(new IsInstantiatedVisitor());
 }
 
 class IsInstantiatedVisitor extends DartTypeVisitor<bool> {

@@ -752,7 +752,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     Element? element = node.writeOrReadElement;
-    if (node is SimpleIdentifier && element is ParameterElement) {
+    if (element is ParameterElement) {
       element = declaredParameterElement(node, element);
     }
 
@@ -911,7 +911,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var seenConstructors = <ConstructorElement?>{};
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement;
-      if (enclosing is ClassElement && enclosing.isMixinApplication) {
+      if (enclosing.isMixinApplication) {
         var superInvocation = constructor.constantInitializers
             .whereType<SuperConstructorInvocation>()
             .singleOrNull;

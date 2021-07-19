@@ -133,6 +133,7 @@ class DartUnitHoverComputer {
   String? _elementDisplayString(Element? element) {
     return element?.getDisplayString(
       withNullability: _unit.isNonNullableByDefault,
+      multiline: true,
     );
   }
 

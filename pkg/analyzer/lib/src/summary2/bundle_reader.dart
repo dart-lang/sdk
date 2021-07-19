@@ -124,6 +124,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
 
 class CompilationUnitElementLinkedData
     extends ElementLinkedData<CompilationUnitElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   CompilationUnitElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -136,6 +138,7 @@ class CompilationUnitElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -368,6 +371,8 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
 }
 
 class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   LibraryElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -402,6 +407,8 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
     }
 
     element.entryPoint = reader.readElement() as FunctionElement?;
+
+    applyConstantOffsets?.perform();
   }
 }
 
@@ -547,7 +554,7 @@ class LibraryReader {
     Reference unitReference,
   ) {
     var length = _reader.readUInt30();
-    unitElement.types = List.generate(length, (index) {
+    unitElement.classes = List.generate(length, (index) {
       return _readClassElement(unitElement, unitReference);
     });
   }
@@ -629,7 +636,7 @@ class LibraryReader {
     for (var i = 0; i < constantCount; i++) {
       var constantName = _reader.readStringReference();
       var field = ConstFieldElementImpl_EnumValue(element, constantName, i);
-      var constantRef = containerRef.getChild(name);
+      var constantRef = containerRef.getChild(constantName);
       field.reference = constantRef;
       constantRef.element = field;
       fields.add(field);
@@ -880,13 +887,13 @@ class LibraryReader {
 
     element.typeParameters = _readTypeParameters();
 
-    var accessors = <PropertyAccessorElement>[];
     var fields = <FieldElement>[];
+    var accessors = <PropertyAccessorElement>[];
+    _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-    _readFields(unitElement, element, reference, accessors, fields);
-    element.accessors = accessors;
     element.fields = fields;
+    element.accessors = accessors;
 
     element.constructors = _readConstructors(unitElement, element, reference);
     element.methods = _readMethods(unitElement, element, reference);
@@ -1128,9 +1135,8 @@ class LibraryReader {
 
     TypeAliasElementImpl element;
     if (isFunctionTypeAliasBased) {
-      element =
-          // ignore: deprecated_member_use_from_same_package
-          FunctionTypeAliasElementImpl(name, -1);
+      element = TypeAliasElementImpl(name, -1);
+      element.isFunctionTypeAliasBased = true;
     } else {
       element = TypeAliasElementImpl(name, -1);
     }
@@ -1201,6 +1207,7 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
+    unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
@@ -1369,6 +1376,11 @@ class ResolutionReader {
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
+  }
+
+  FunctionType? readOptionalFunctionType() {
+    var type = readType();
+    return type is FunctionType ? type : null;
   }
 
   List<DartType>? readOptionalTypeList() {
@@ -1625,15 +1637,7 @@ class ResolutionReader {
   }
 
   InterfaceType _readInterfaceType() {
-    var element = _readRawElement() as ClassElement;
-    var typeArguments = _readTypeList();
-    var nullability = _readNullability();
-    var type = InterfaceTypeImpl(
-      element: element,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullability,
-    );
-    return type;
+    return readType() as InterfaceType;
   }
 
   List<InterfaceType> _readInterfaceTypeList() {
@@ -1663,10 +1667,7 @@ class ResolutionReader {
   }
 
   InterfaceType? _readOptionalInterfaceType() {
-    var hasSuperType = _reader.readByte() != 0;
-    if (hasSuperType) {
-      return _readInterfaceType();
-    }
+    return readType() as InterfaceType?;
   }
 
   Element? _readRawElement() {
@@ -1762,6 +1763,8 @@ class TopLevelVariableElementLinkedData
 
 class TypeAliasElementLinkedData
     extends ElementLinkedData<TypeAliasElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
   TypeAliasElementLinkedData({
     required Reference reference,
     required LibraryReader libraryReader,
@@ -1777,6 +1780,7 @@ class TypeAliasElementLinkedData
     _readTypeParameters(reader, element.typeParameters);
     element.aliasedElement = reader._readAliasedElement(unitElement);
     element.aliasedType = reader.readRequiredType();
+    applyConstantOffsets?.perform();
   }
 }
 

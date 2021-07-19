@@ -23,7 +23,7 @@ class CreateFile extends CorrectionProducer {
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
-      if (parent is ImportDirective) {
+      if (parent is NamespaceDirective) {
         // TODO(brianwilkerson) Support the case where the node's parent is a
         //  Configuration.
         var source = parent.uriSource;
@@ -41,10 +41,16 @@ class CreateFile extends CorrectionProducer {
       } else if (parent is PartDirective) {
         var source = parent.uriSource;
         if (source != null) {
-          var libName = resolvedResult.libraryElement.name;
+          var pathContext = resourceProvider.pathContext;
+          var relativePath = pathContext.relative(
+              resolvedResult.libraryElement.source.fullName,
+              from: pathContext.dirname(source.fullName));
+
+          // URIs always use forward slashes regardless of platform.
+          var relativeUri = pathContext.split(relativePath).join('/');
+
           await builder.addDartFileEdit(source.fullName, (builder) {
-            // TODO(brianwilkerson) Consider using the URI rather than name.
-            builder.addSimpleInsertion(0, 'part of $libName;$eol$eol');
+            builder.addSimpleInsertion(0, "part of '$relativeUri';$eol$eol");
           });
           _fileName = source.shortName;
         }

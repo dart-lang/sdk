@@ -36,11 +36,16 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
     var optionsFile = getFile('/analysis_options.yaml');
     var sourceFactory = SourceFactory([]);
     var errors = analyzeAnalysisOptions(
-        optionsFile.createSource(), content, sourceFactory);
+      optionsFile.createSource(),
+      content,
+      sourceFactory,
+      '/',
+    );
     expect(errors, hasLength(1));
     var error = errors[0];
     var options = _parseYaml(content);
-    var generator = AnalysisOptionsFixGenerator(error, content, options);
+    var generator =
+        AnalysisOptionsFixGenerator(resourceProvider, error, content, options);
     return generator.computeFixes();
   }
 

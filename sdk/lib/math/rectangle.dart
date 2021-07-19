@@ -137,9 +137,12 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// single point `(left, top)`.
   const Rectangle(this.left, this.top, T width, T height)
       : width = (width < 0)
-            ? (-width * 0) as dynamic
-            : width, // Inline _clampToZero<num>.
-        height = (height < 0) ? (-height * 0) as dynamic : height;
+            ? (width == double.negativeInfinity ? 0.0 : (-width * 0)) as dynamic
+            : (width + 0 as dynamic), // Inline _clampToZero<num>.
+        height = (height < 0)
+            ? (height == double.negativeInfinity ? 0.0 : (-height * 0))
+                as dynamic
+            : (height + 0 as dynamic);
 
   /// Create a rectangle spanned by the points [a] and [b];
   ///
@@ -189,8 +192,10 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// If `width` and `height` are zero, the "rectangle" comprises only the
   /// single point `(left, top)`.
   MutableRectangle(this.left, this.top, T width, T height)
-      : this._width = (width < 0) ? _clampToZero<T>(width) : width,
-        this._height = (height < 0) ? _clampToZero<T>(height) : height;
+      : this._width =
+            (width < 0) ? _clampToZero<T>(width) : (width + 0 as dynamic),
+        this._height =
+            (height < 0) ? _clampToZero<T>(height) : (height + 0 as dynamic);
 
   /// Create a mutable rectangle spanned by the points [a] and [b];
   ///
@@ -244,5 +249,6 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
 /// Returns `0` if value is int, `0.0` if value is double.
 T _clampToZero<T extends num>(T value) {
   assert(value < 0);
-  return (-value * 0) as T;
+  if (value == double.negativeInfinity) return 0.0 as dynamic;
+  return (-value * 0) as dynamic;
 }

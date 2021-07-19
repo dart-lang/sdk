@@ -88,14 +88,14 @@ class _MyWidgetState<T> extends State<MyWidget<T>> {
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
-  static String staticField1;
+  static String staticField1 = '';
   final String instanceField1;
   final String instanceField2;
-  String instanceField3;
-  static String staticField2;
-  String instanceField4;
-  String instanceField5;
-  static String staticField3;
+  String instanceField3 = '';
+  static String staticField2 = '';
+  String instanceField4 = '';
+  String instanceField5 = '';
+  static String staticField3 = '';
 
   MyWidget(this.instanceField1) : instanceField2 = '' {
     instanceField3 = '';
@@ -123,12 +123,12 @@ class /*caret*/MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
-  static String staticField1;
+  static String staticField1 = '';
   final String instanceField1;
   final String instanceField2;
-  String instanceField3;
-  static String staticField2;
-  static String staticField3;
+  String instanceField3 = '';
+  static String staticField2 = '';
+  static String staticField3 = '';
 
   MyWidget(this.instanceField1) : instanceField2 = '' {
     instanceField3 = '';
@@ -139,9 +139,9 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  String instanceField4;
+  String instanceField4 = '';
 
-  String instanceField5;
+  String instanceField5 = '';
 
   @override
   Widget build(BuildContext context) {
@@ -226,9 +226,9 @@ class _MyWidgetState extends State<MyWidget> {
 import 'package:flutter/material.dart';
 
 class /*caret*/MyWidget extends StatelessWidget {
-  static String staticField;
+  static String staticField = '';
   final String instanceField1;
-  String instanceField2;
+  String instanceField2 = '';
 
   MyWidget(this.instanceField1);
 
@@ -266,7 +266,7 @@ class /*caret*/MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatefulWidget {
-  static String staticField;
+  static String staticField = '';
   final String instanceField1;
 
   MyWidget(this.instanceField1);
@@ -284,7 +284,7 @@ class MyWidget extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MyWidget> {
-  String instanceField2;
+  String instanceField2 = '';
 
   @override
   Widget build(BuildContext context) {

@@ -101,7 +101,7 @@ ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
 }
 
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedCards) {
-  const intptr_t length = Heap::kNewAllocatableSize / kWordSize;
+  const intptr_t length = Heap::kNewAllocatableSize / Array::kBytesPerElement;
   ASSERT(Array::UseCardMarkingForAllocation(length));
   const Array& card_remembered_array = Array::Handle(Array::New(length));
   EXPECT(card_remembered_array.ptr()->untag()->IsCardRemembered());

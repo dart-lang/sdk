@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.dill_class_builder;
 
 import 'package:kernel/ast.dart';
@@ -47,8 +45,10 @@ class DillClassBuilder extends ClassBuilderImpl {
             parent,
             cls.fileOffset);
 
-  List<TypeVariableBuilder> get typeVariables {
-    List<TypeVariableBuilder> typeVariables = super.typeVariables;
+  DillLibraryBuilder get library => super.library as DillLibraryBuilder;
+
+  List<TypeVariableBuilder>? get typeVariables {
+    List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
       typeVariables = super.typeVariables =
           computeTypeVariableBuilders(library, cls.typeParameters);
@@ -58,10 +58,10 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   Uri get fileUri => cls.fileUri;
 
-  TypeBuilder get supertypeBuilder {
-    TypeBuilder supertype = super.supertypeBuilder;
+  TypeBuilder? get supertypeBuilder {
+    TypeBuilder? supertype = super.supertypeBuilder;
     if (supertype == null) {
-      Supertype targetSupertype = cls.supertype;
+      Supertype? targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
       super.supertypeBuilder =
           supertype = computeTypeBuilder(library, targetSupertype);
@@ -98,7 +98,8 @@ class DillClassBuilder extends ClassBuilderImpl {
           break;
       }
     } else if (member is Constructor) {
-      DillConstructorBuilder builder = new DillConstructorBuilder(member, this);
+      DillConstructorBuilder builder =
+          new DillConstructorBuilder(member, null, this);
       String name = member.name.text;
       constructorScopeBuilder.addMember(name, builder);
     } else {
@@ -112,28 +113,23 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
-      List<DartType> result = new List<DartType>.filled(
-          cls.typeParameters.length, null,
+      return new List<DartType>.generate(cls.typeParameters.length,
+          (int i) => cls.typeParameters[i].defaultType,
           growable: true);
-      for (int i = 0; i < result.length; ++i) {
-        result[i] = cls.typeParameters[i].defaultType;
-      }
-      return result;
     }
 
     // [arguments] != null
-    List<DartType> result =
-        new List<DartType>.filled(arguments.length, null, growable: true);
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = arguments[i].build(library, null, notInstanceContext);
-    }
-    return result;
+    return new List<DartType>.generate(
+        arguments.length,
+        (int i) =>
+            arguments[i].build(library, nonInstanceContext: nonInstanceContext),
+        growable: true);
   }
 
   /// Returns true if this class is the result of applying a mixin to its
@@ -143,25 +139,26 @@ class DillClassBuilder extends ClassBuilderImpl {
   @override
   bool get declaresConstConstructor => cls.hasConstConstructor;
 
-  TypeBuilder get mixedInTypeBuilder {
+  @override
+  TypeBuilder? get mixedInTypeBuilder {
     return computeTypeBuilder(library, cls.mixedInType);
   }
 
-  List<TypeBuilder> get interfaceBuilders {
+  @override
+  void set mixedInTypeBuilder(TypeBuilder? mixin) {
+    unimplemented("mixedInType=", -1, null);
+  }
+
+  List<TypeBuilder>? get interfaceBuilders {
     if (cls.implementedTypes.isEmpty) return null;
     if (super.interfaceBuilders == null) {
-      List<TypeBuilder> result =
-          new List<TypeBuilder>.filled(cls.implementedTypes.length, null);
-      for (int i = 0; i < result.length; i++) {
-        result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
-      }
+      List<TypeBuilder> result = new List<TypeBuilder>.generate(
+          cls.implementedTypes.length,
+          (int i) => computeTypeBuilder(library, cls.implementedTypes[i])!,
+          growable: false);
       super.interfaceBuilders = result;
     }
     return super.interfaceBuilders;
-  }
-
-  void set mixedInTypeBuilder(TypeBuilder mixin) {
-    unimplemented("mixedInType=", -1, null);
   }
 
   void clearCachedValues() {
@@ -175,26 +172,24 @@ int computeModifiers(Class cls) {
   if (cls.isAbstract) {
     modifiers |= abstractMask;
   }
+  // ignore: unnecessary_null_comparison
   if (cls.isMixinApplication && cls.name != null) {
     modifiers |= namedMixinApplicationMask;
   }
   return modifiers;
 }
 
-TypeBuilder computeTypeBuilder(
-    DillLibraryBuilder library, Supertype supertype) {
+TypeBuilder? computeTypeBuilder(
+    DillLibraryBuilder library, Supertype? supertype) {
   return supertype == null
       ? null
       : library.loader.computeTypeBuilder(supertype.asInterfaceType);
 }
 
-List<TypeVariableBuilder> computeTypeVariableBuilders(
-    DillLibraryBuilder library, List<TypeParameter> typeParameters) {
+List<TypeVariableBuilder>? computeTypeVariableBuilders(
+    LibraryBuilder library, List<TypeParameter>? typeParameters) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  List<TypeVariableBuilder> result =
-      new List.filled(typeParameters.length, null);
-  for (int i = 0; i < result.length; i++) {
-    result[i] = new TypeVariableBuilder.fromKernel(typeParameters[i], library);
-  }
-  return result;
+  return new List.generate(typeParameters.length,
+      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i], library),
+      growable: false);
 }

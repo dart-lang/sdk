@@ -34,8 +34,8 @@ class InstanceMemberInferrer {
   void inferCompilationUnit(CompilationUnitElement unit) {
     typeSystem = unit.library.typeSystem as TypeSystemImpl;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
+    _inferClasses(unit.classes);
     _inferClasses(unit.mixins);
-    _inferClasses(unit.types);
   }
 
   /// Return `true` if the elements corresponding to the [elements] have the

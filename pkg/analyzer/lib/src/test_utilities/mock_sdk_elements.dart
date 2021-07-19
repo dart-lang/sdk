@@ -874,7 +874,7 @@ class _MockSdkElementsBuilder {
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
     asyncLibrary.definingCompilationUnit = asyncUnit;
 
-    asyncUnit.types = <ClassElement>[
+    asyncUnit.classes = <ClassElement>[
       completerElement,
       futureElement,
       futureOrElement,
@@ -891,7 +891,7 @@ class _MockSdkElementsBuilder {
     var coreSource = analysisContext.sourceFactory.forUri('dart:core')!;
     coreUnit.librarySource = coreUnit.source = coreSource;
 
-    coreUnit.types = <ClassElement>[
+    coreUnit.classes = <ClassElement>[
       boolElement,
       comparableElement,
       deprecatedElement,

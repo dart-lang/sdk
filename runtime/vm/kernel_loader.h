@@ -320,9 +320,9 @@ class KernelLoader : public ValueObject {
   }
 
   // Returns the initial field value for a static function (if applicable).
-  InstancePtr GenerateFieldAccessors(const Class& klass,
-                                     const Field& field,
-                                     FieldHelper* field_helper);
+  ObjectPtr GenerateFieldAccessors(const Class& klass,
+                                   const Field& field,
+                                   FieldHelper* field_helper);
   bool FieldNeedsSetter(FieldHelper* field_helper);
 
   void LoadLibraryImportsAndExports(Library* library,
@@ -403,7 +403,7 @@ class KernelLoader : public ValueObject {
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
-  Instance& static_field_value_;
+  Object& static_field_value_;
 
   Class& pragma_class_;
 

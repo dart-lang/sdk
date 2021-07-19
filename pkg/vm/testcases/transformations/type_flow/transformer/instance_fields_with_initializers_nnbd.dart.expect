@@ -1,0 +1,30 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+[@vm.inferred-type.metadata=dart.core::_Smi?]  static field core::int f4 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 40)] self::sideEffect(40);
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 50)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  late field core::int f5 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 50)] self::sideEffect(50);
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 60)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3] [@vm.unboxing-info.metadata=()->i]  late final field core::int f6 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 60)] self::sideEffect(60);
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5] [@vm.unboxing-info.metadata=(i)->i]  field core::int f7;
+  constructor •() → self::A
+    : dynamic #t1 = self::sideEffect(1), dynamic #t2 = self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t3 = self::sideEffect(8), dynamic #t4 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 100)] self::sideEffect(100), dynamic #t5 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 200)] self::sideEffect(200), super core::Object::•()
+    ;
+  constructor foo() → self::A
+    : this self::A::•()
+    ;
+  constructor bar() → self::A
+    : dynamic #t6 = self::sideEffect(1), dynamic #t7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 2)] self::sideEffect(2), self::A::f7 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] self::sideEffect(7), dynamic #t8 = self::sideEffect(8), dynamic #t9 = [@vm.inferred-type.metadata=dart.core::_Smi (value: 801)] self::sideEffect(801), super core::Object::•()
+    ;
+}
+[@vm.unboxing-info.metadata=(i)->i]static method sideEffect([@vm.inferred-type.metadata=dart.core::_Smi] core::int x) → core::int {
+  core::print(x);
+  return x;
+}
+static method main() → dynamic {
+  let final core::int #t10 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 8.{core::int::unary-}(){() → core::int} in new self::A::•();
+  new self::A::foo();
+  let final core::int #t11 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::unary-}(){() → core::int} in new self::A::bar();
+  self::A obj = new self::A::foo();
+  core::print([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi?] self::A::f4.{core::num::+}([@vm.direct-call.metadata=#lib::A.f5] [@vm.inferred-type.metadata=dart.core::_Smi (value: 50)] obj.{self::A::f5}{core::int}){(core::num) → core::int}.{core::num::+}([@vm.direct-call.metadata=#lib::A.f6] [@vm.inferred-type.metadata=dart.core::_Smi (value: 60)] obj.{self::A::f6}{core::int}){(core::num) → core::int}.{core::num::+}([@vm.direct-call.metadata=#lib::A.f7] [@vm.inferred-type.metadata=dart.core::_Smi (value: 7)] obj.{self::A::f7}{core::int}){(core::num) → core::int});
+}

@@ -24,20 +24,24 @@ class PubWorkspace extends SimpleWorkspace {
   /// The associated pubspec file.
   final File _pubspecFile;
 
+  /// The content of the `pubspec.yaml` file.
+  /// We read it once, so that all usages return consistent results.
+  final String? _pubspecContent;
+
   PubWorkspace._(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String root,
-    this._pubspecFile,
-  ) : super(provider, packageMap, root) {
+    File pubspecFile,
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile),
+        super(provider, packageMap, root) {
     _theOnlyPackage = PubWorkspacePackage(root, this);
   }
 
-  /// Return the content of the pubspec file, `null` if cannot be read.
-  String? get _pubspecContent {
-    try {
-      return _pubspecFile.readAsStringSync();
-    } catch (_) {}
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
   }
 
   @internal
@@ -70,6 +74,13 @@ class PubWorkspace extends SimpleWorkspace {
         return PubWorkspace._(provider, packageMap, root, pubspec);
       }
     }
+  }
+
+  /// Return the content of the [file], `null` if cannot be read.
+  static String? _fileContentOrNull(File file) {
+    try {
+      return file.readAsStringSync();
+    } catch (_) {}
   }
 }
 

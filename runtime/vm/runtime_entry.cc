@@ -3608,7 +3608,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   return thread;
 }
 
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 #pragma intrinsic(_ReturnAddress)
 #endif
 
@@ -3619,7 +3619,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   void* return_address = _ReturnAddress();
 #else
   void* return_address = __builtin_return_address(0);
@@ -3674,6 +3674,8 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("AllocateHandle %p", scope);
   LocalHandle* return_value = scope->local_handles()->AllocateHandle();
+  // Don't return an uninitialised handle.
+  return_value->set_ptr(Object::sentinel().ptr());
   TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
   return return_value;
 }

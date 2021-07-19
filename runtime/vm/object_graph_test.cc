@@ -126,14 +126,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
       // c is the first element in b.
       Smi& offset_from_parent = Smi::Handle();
       offset_from_parent ^= path.At(1);
-      EXPECT_EQ(Array::element_offset(0),
-                offset_from_parent.Value() * kWordSize);
+      EXPECT_EQ(Array::element_offset(0), offset_from_parent.Value());
       Array& expected_b = Array::Handle();
       expected_b ^= path.At(2);
       // b is the element with index 10 in a.
       offset_from_parent ^= path.At(3);
-      EXPECT_EQ(Array::element_offset(10),
-                offset_from_parent.Value() * kWordSize);
+      EXPECT_EQ(Array::element_offset(10), offset_from_parent.Value());
       Array& expected_a = Array::Handle();
       expected_a ^= path.At(4);
       EXPECT(expected_c.ptr() == c.ptr());

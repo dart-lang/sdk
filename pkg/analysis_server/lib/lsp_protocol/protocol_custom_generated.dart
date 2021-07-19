@@ -25,32 +25,34 @@ class AnalyzerStatusParams implements ToJsonable {
       AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
 
   AnalyzerStatusParams({required this.isAnalyzing});
-  static AnalyzerStatusParams fromJson(Map<String, dynamic> json) {
-    final isAnalyzing = json['isAnalyzing'];
+  static AnalyzerStatusParams fromJson(Map<String, Object?> json) {
+    final isAnalyzingJson = json['isAnalyzing'];
+    final isAnalyzing = isAnalyzingJson as bool;
     return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
   }
 
   final bool isAnalyzing;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['isAnalyzing'] = isAnalyzing;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('isAnalyzing');
       try {
         if (!obj.containsKey('isAnalyzing')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['isAnalyzing'] == null) {
+        final isAnalyzing = obj['isAnalyzing'];
+        if (isAnalyzing == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['isAnalyzing'] is bool)) {
+        if (!(isAnalyzing is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -89,35 +91,38 @@ class ClosingLabel implements ToJsonable {
       LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
 
   ClosingLabel({required this.range, required this.label});
-  static ClosingLabel fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final label = json['label'];
+  static ClosingLabel fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final labelJson = json['label'];
+    final label = labelJson as String;
     return ClosingLabel(range: range, label: label);
   }
 
   final String label;
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     __result['label'] = label;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -130,11 +135,12 @@ class ClosingLabel implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -174,7 +180,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.fromJson);
 
   CompletionItemResolutionInfo({required this.file, required this.offset});
-  static CompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
+  static CompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
     if (DartCompletionItemResolutionInfo.canParse(json, nullLspJsonReporter)) {
       return DartCompletionItemResolutionInfo.fromJson(json);
     }
@@ -182,34 +188,37 @@ class CompletionItemResolutionInfo implements ToJsonable {
         json, nullLspJsonReporter)) {
       return PubPackageCompletionItemResolutionInfo.fromJson(json);
     }
-    final file = json['file'];
-    final offset = json['offset'];
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final offsetJson = json['offset'];
+    final offset = offsetJson as int;
     return CompletionItemResolutionInfo(file: file, offset: offset);
   }
 
   final String file;
   final int offset;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['file'] = file;
     __result['offset'] = offset;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('file');
       try {
         if (!obj.containsKey('file')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['file'] == null) {
+        final file = obj['file'];
+        if (file == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['file'] is String)) {
+        if (!(file is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -222,11 +231,12 @@ class CompletionItemResolutionInfo implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['offset'] == null) {
+        final offset = obj['offset'];
+        if (offset == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is int)) {
+        if (!(offset is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -275,14 +285,21 @@ class DartCompletionItemResolutionInfo
       required this.rLength,
       required this.file,
       required this.offset});
-  static DartCompletionItemResolutionInfo fromJson(Map<String, dynamic> json) {
-    final libId = json['libId'];
-    final displayUri = json['displayUri'];
-    final rOffset = json['rOffset'];
-    final iLength = json['iLength'];
-    final rLength = json['rLength'];
-    final file = json['file'];
-    final offset = json['offset'];
+  static DartCompletionItemResolutionInfo fromJson(Map<String, Object?> json) {
+    final libIdJson = json['libId'];
+    final libId = libIdJson as int;
+    final displayUriJson = json['displayUri'];
+    final displayUri = displayUriJson as String;
+    final rOffsetJson = json['rOffset'];
+    final rOffset = rOffsetJson as int;
+    final iLengthJson = json['iLength'];
+    final iLength = iLengthJson as int;
+    final rLengthJson = json['rLength'];
+    final rLength = rLengthJson as int;
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final offsetJson = json['offset'];
+    final offset = offsetJson as int;
     return DartCompletionItemResolutionInfo(
         libId: libId,
         displayUri: displayUri,
@@ -301,8 +318,8 @@ class DartCompletionItemResolutionInfo
   final int rLength;
   final int rOffset;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['libId'] = libId;
     __result['displayUri'] = displayUri;
     __result['rOffset'] = rOffset;
@@ -314,18 +331,19 @@ class DartCompletionItemResolutionInfo
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('libId');
       try {
         if (!obj.containsKey('libId')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['libId'] == null) {
+        final libId = obj['libId'];
+        if (libId == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['libId'] is int)) {
+        if (!(libId is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -338,11 +356,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['displayUri'] == null) {
+        final displayUri = obj['displayUri'];
+        if (displayUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['displayUri'] is String)) {
+        if (!(displayUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -355,11 +374,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['rOffset'] == null) {
+        final rOffset = obj['rOffset'];
+        if (rOffset == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['rOffset'] is int)) {
+        if (!(rOffset is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -372,11 +392,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['iLength'] == null) {
+        final iLength = obj['iLength'];
+        if (iLength == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['iLength'] is int)) {
+        if (!(iLength is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -389,11 +410,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['rLength'] == null) {
+        final rLength = obj['rLength'];
+        if (rLength == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['rLength'] is int)) {
+        if (!(rLength is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -406,11 +428,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['file'] == null) {
+        final file = obj['file'];
+        if (file == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['file'] is String)) {
+        if (!(file is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -423,11 +446,12 @@ class DartCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['offset'] == null) {
+        final offset = obj['offset'];
+        if (offset == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is int)) {
+        if (!(offset is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -479,32 +503,34 @@ class DartDiagnosticServer implements ToJsonable {
       DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
 
   DartDiagnosticServer({required this.port});
-  static DartDiagnosticServer fromJson(Map<String, dynamic> json) {
-    final port = json['port'];
+  static DartDiagnosticServer fromJson(Map<String, Object?> json) {
+    final portJson = json['port'];
+    final port = portJson as int;
     return DartDiagnosticServer(port: port);
   }
 
   final int port;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['port'] = port;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('port');
       try {
         if (!obj.containsKey('port')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['port'] == null) {
+        final port = obj['port'];
+        if (port == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['port'] is int)) {
+        if (!(port is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -548,13 +574,21 @@ class Element implements ToJsonable {
       this.parameters,
       this.typeParameters,
       this.returnType});
-  static Element fromJson(Map<String, dynamic> json) {
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
-    final name = json['name'];
-    final kind = json['kind'];
-    final parameters = json['parameters'];
-    final typeParameters = json['typeParameters'];
-    final returnType = json['returnType'];
+  static Element fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = rangeJson != null
+        ? Range.fromJson(rangeJson as Map<String, Object?>)
+        : null;
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final parametersJson = json['parameters'];
+    final parameters = parametersJson as String?;
+    final typeParametersJson = json['typeParameters'];
+    final typeParameters = typeParametersJson as String?;
+    final returnTypeJson = json['returnType'];
+    final returnType = returnTypeJson as String?;
     return Element(
         range: range,
         name: name,
@@ -571,8 +605,8 @@ class Element implements ToJsonable {
   final String? returnType;
   final String? typeParameters;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (range != null) {
       __result['range'] = range?.toJson();
     }
@@ -591,10 +625,11 @@ class Element implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        final range = obj['range'];
+        if (range != null && !(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -607,11 +642,12 @@ class Element implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -624,11 +660,12 @@ class Element implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
+        if (!(kind is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -637,7 +674,8 @@ class Element implements ToJsonable {
       }
       reporter.push('parameters');
       try {
-        if (obj['parameters'] != null && !(obj['parameters'] is String)) {
+        final parameters = obj['parameters'];
+        if (parameters != null && !(parameters is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -646,8 +684,8 @@ class Element implements ToJsonable {
       }
       reporter.push('typeParameters');
       try {
-        if (obj['typeParameters'] != null &&
-            !(obj['typeParameters'] is String)) {
+        final typeParameters = obj['typeParameters'];
+        if (typeParameters != null && !(typeParameters is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -656,7 +694,8 @@ class Element implements ToJsonable {
       }
       reporter.push('returnType');
       try {
-        if (obj['returnType'] != null && !(obj['returnType'] is String)) {
+        final returnType = obj['returnType'];
+        if (returnType != null && !(returnType is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -714,25 +753,32 @@ class FlutterOutline implements ToJsonable {
       required this.range,
       required this.codeRange,
       this.children});
-  static FlutterOutline fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final label = json['label'];
-    final className = json['className'];
-    final variableName = json['variableName'];
-    final attributes = json['attributes']
+  static FlutterOutline fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final labelJson = json['label'];
+    final label = labelJson as String?;
+    final classNameJson = json['className'];
+    final className = classNameJson as String?;
+    final variableNameJson = json['variableName'];
+    final variableName = variableNameJson as String?;
+    final attributesJson = json['attributes'];
+    final attributes = (attributesJson as List<Object?>?)
         ?.map((item) =>
-            item != null ? FlutterOutlineAttribute.fromJson(item) : null)
-        ?.cast<FlutterOutlineAttribute>()
-        ?.toList();
-    final dartElement = json['dartElement'] != null
-        ? Element.fromJson(json['dartElement'])
+            FlutterOutlineAttribute.fromJson(item as Map<String, Object?>))
+        .toList();
+    final dartElementJson = json['dartElement'];
+    final dartElement = dartElementJson != null
+        ? Element.fromJson(dartElementJson as Map<String, Object?>)
         : null;
-    final range = Range.fromJson(json['range']);
-    final codeRange = Range.fromJson(json['codeRange']);
-    final children = json['children']
-        ?.map((item) => item != null ? FlutterOutline.fromJson(item) : null)
-        ?.cast<FlutterOutline>()
-        ?.toList();
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final codeRangeJson = json['codeRange'];
+    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
+    final childrenJson = json['children'];
+    final children = (childrenJson as List<Object?>?)
+        ?.map((item) => FlutterOutline.fromJson(item as Map<String, Object?>))
+        .toList();
     return FlutterOutline(
         kind: kind,
         label: label,
@@ -755,8 +801,8 @@ class FlutterOutline implements ToJsonable {
   final Range range;
   final String? variableName;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     if (label != null) {
       __result['label'] = label;
@@ -783,18 +829,19 @@ class FlutterOutline implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
+        if (!(kind is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -803,7 +850,8 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('label');
       try {
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        final label = obj['label'];
+        if (label != null && !(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -812,7 +860,8 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('className');
       try {
-        if (obj['className'] != null && !(obj['className'] is String)) {
+        final className = obj['className'];
+        if (className != null && !(className is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -821,7 +870,8 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('variableName');
       try {
-        if (obj['variableName'] != null && !(obj['variableName'] is String)) {
+        final variableName = obj['variableName'];
+        if (variableName != null && !(variableName is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -830,9 +880,10 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('attributes');
       try {
-        if (obj['attributes'] != null &&
-            !((obj['attributes'] is List &&
-                (obj['attributes'].every((item) =>
+        final attributes = obj['attributes'];
+        if (attributes != null &&
+            !((attributes is List &&
+                (attributes.every((item) =>
                     FlutterOutlineAttribute.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FlutterOutlineAttribute>');
           return false;
@@ -842,8 +893,8 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('dartElement');
       try {
-        if (obj['dartElement'] != null &&
-            !(Element.canParse(obj['dartElement'], reporter))) {
+        final dartElement = obj['dartElement'];
+        if (dartElement != null && !(Element.canParse(dartElement, reporter))) {
           reporter.reportError('must be of type Element');
           return false;
         }
@@ -856,11 +907,12 @@ class FlutterOutline implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -873,11 +925,12 @@ class FlutterOutline implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['codeRange'] == null) {
+        final codeRange = obj['codeRange'];
+        if (codeRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['codeRange'], reporter))) {
+        if (!(Range.canParse(codeRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -886,9 +939,10 @@ class FlutterOutline implements ToJsonable {
       }
       reporter.push('children');
       try {
-        if (obj['children'] != null &&
-            !((obj['children'] is List &&
-                (obj['children'].every(
+        final children = obj['children'];
+        if (children != null &&
+            !((children is List &&
+                (children.every(
                     (item) => FlutterOutline.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FlutterOutline>');
           return false;
@@ -950,11 +1004,15 @@ class FlutterOutlineAttribute implements ToJsonable {
 
   FlutterOutlineAttribute(
       {required this.name, required this.label, this.valueRange});
-  static FlutterOutlineAttribute fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final label = json['label'];
-    final valueRange =
-        json['valueRange'] != null ? Range.fromJson(json['valueRange']) : null;
+  static FlutterOutlineAttribute fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final valueRangeJson = json['valueRange'];
+    final valueRange = valueRangeJson != null
+        ? Range.fromJson(valueRangeJson as Map<String, Object?>)
+        : null;
     return FlutterOutlineAttribute(
         name: name, label: label, valueRange: valueRange);
   }
@@ -963,8 +1021,8 @@ class FlutterOutlineAttribute implements ToJsonable {
   final String name;
   final Range? valueRange;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     __result['label'] = label;
     if (valueRange != null) {
@@ -974,18 +1032,19 @@ class FlutterOutlineAttribute implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -998,11 +1057,12 @@ class FlutterOutlineAttribute implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1011,8 +1071,8 @@ class FlutterOutlineAttribute implements ToJsonable {
       }
       reporter.push('valueRange');
       try {
-        if (obj['valueRange'] != null &&
-            !(Range.canParse(obj['valueRange'], reporter))) {
+        final valueRange = obj['valueRange'];
+        if (valueRange != null && !(Range.canParse(valueRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1059,14 +1119,17 @@ class Outline implements ToJsonable {
       required this.range,
       required this.codeRange,
       this.children});
-  static Outline fromJson(Map<String, dynamic> json) {
-    final element = Element.fromJson(json['element']);
-    final range = Range.fromJson(json['range']);
-    final codeRange = Range.fromJson(json['codeRange']);
-    final children = json['children']
-        ?.map((item) => item != null ? Outline.fromJson(item) : null)
-        ?.cast<Outline>()
-        ?.toList();
+  static Outline fromJson(Map<String, Object?> json) {
+    final elementJson = json['element'];
+    final element = Element.fromJson(elementJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final codeRangeJson = json['codeRange'];
+    final codeRange = Range.fromJson(codeRangeJson as Map<String, Object?>);
+    final childrenJson = json['children'];
+    final children = (childrenJson as List<Object?>?)
+        ?.map((item) => Outline.fromJson(item as Map<String, Object?>))
+        .toList();
     return Outline(
         element: element,
         range: range,
@@ -1079,8 +1142,8 @@ class Outline implements ToJsonable {
   final Element element;
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['element'] = element.toJson();
     __result['range'] = range.toJson();
     __result['codeRange'] = codeRange.toJson();
@@ -1091,18 +1154,19 @@ class Outline implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('element');
       try {
         if (!obj.containsKey('element')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['element'] == null) {
+        final element = obj['element'];
+        if (element == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Element.canParse(obj['element'], reporter))) {
+        if (!(Element.canParse(element, reporter))) {
           reporter.reportError('must be of type Element');
           return false;
         }
@@ -1115,11 +1179,12 @@ class Outline implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1132,11 +1197,12 @@ class Outline implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['codeRange'] == null) {
+        final codeRange = obj['codeRange'];
+        if (codeRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['codeRange'], reporter))) {
+        if (!(Range.canParse(codeRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1145,9 +1211,10 @@ class Outline implements ToJsonable {
       }
       reporter.push('children');
       try {
-        if (obj['children'] != null &&
-            !((obj['children'] is List &&
-                (obj['children']
+        final children = obj['children'];
+        if (children != null &&
+            !((children is List &&
+                (children
                     .every((item) => Outline.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Outline>');
           return false;
@@ -1198,10 +1265,13 @@ class PubPackageCompletionItemResolutionInfo
   PubPackageCompletionItemResolutionInfo(
       {required this.packageName, required this.file, required this.offset});
   static PubPackageCompletionItemResolutionInfo fromJson(
-      Map<String, dynamic> json) {
-    final packageName = json['packageName'];
-    final file = json['file'];
-    final offset = json['offset'];
+      Map<String, Object?> json) {
+    final packageNameJson = json['packageName'];
+    final packageName = packageNameJson as String;
+    final fileJson = json['file'];
+    final file = fileJson as String;
+    final offsetJson = json['offset'];
+    final offset = offsetJson as int;
     return PubPackageCompletionItemResolutionInfo(
         packageName: packageName, file: file, offset: offset);
   }
@@ -1210,8 +1280,8 @@ class PubPackageCompletionItemResolutionInfo
   final int offset;
   final String packageName;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['packageName'] = packageName;
     __result['file'] = file;
     __result['offset'] = offset;
@@ -1219,18 +1289,19 @@ class PubPackageCompletionItemResolutionInfo
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('packageName');
       try {
         if (!obj.containsKey('packageName')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['packageName'] == null) {
+        final packageName = obj['packageName'];
+        if (packageName == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['packageName'] is String)) {
+        if (!(packageName is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1243,11 +1314,12 @@ class PubPackageCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['file'] == null) {
+        final file = obj['file'];
+        if (file == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['file'] is String)) {
+        if (!(file is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1260,11 +1332,12 @@ class PubPackageCompletionItemResolutionInfo
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['offset'] == null) {
+        final offset = obj['offset'];
+        if (offset == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['offset'] is int)) {
+        if (!(offset is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -1309,38 +1382,40 @@ class PublishClosingLabelsParams implements ToJsonable {
       PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
 
   PublishClosingLabelsParams({required this.uri, required this.labels});
-  static PublishClosingLabelsParams fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final labels = json['labels']
-        ?.map((item) => ClosingLabel.fromJson(item))
-        ?.cast<ClosingLabel>()
-        ?.toList();
+  static PublishClosingLabelsParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final labelsJson = json['labels'];
+    final labels = (labelsJson as List<Object?>)
+        .map((item) => ClosingLabel.fromJson(item as Map<String, Object?>))
+        .toList();
     return PublishClosingLabelsParams(uri: uri, labels: labels);
   }
 
   final List<ClosingLabel> labels;
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['labels'] = labels.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1353,13 +1428,13 @@ class PublishClosingLabelsParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['labels'] == null) {
+        final labels = obj['labels'];
+        if (labels == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['labels'] is List &&
-            (obj['labels']
-                .every((item) => ClosingLabel.canParse(item, reporter)))))) {
+        if (!((labels is List &&
+            (labels.every((item) => ClosingLabel.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ClosingLabel>');
           return false;
         }
@@ -1403,35 +1478,39 @@ class PublishFlutterOutlineParams implements ToJsonable {
       PublishFlutterOutlineParams.fromJson);
 
   PublishFlutterOutlineParams({required this.uri, required this.outline});
-  static PublishFlutterOutlineParams fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final outline = FlutterOutline.fromJson(json['outline']);
+  static PublishFlutterOutlineParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final outlineJson = json['outline'];
+    final outline =
+        FlutterOutline.fromJson(outlineJson as Map<String, Object?>);
     return PublishFlutterOutlineParams(uri: uri, outline: outline);
   }
 
   final FlutterOutline outline;
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['outline'] = outline.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1444,11 +1523,12 @@ class PublishFlutterOutlineParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['outline'] == null) {
+        final outline = obj['outline'];
+        if (outline == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FlutterOutline.canParse(obj['outline'], reporter))) {
+        if (!(FlutterOutline.canParse(outline, reporter))) {
           reporter.reportError('must be of type FlutterOutline');
           return false;
         }
@@ -1488,35 +1568,38 @@ class PublishOutlineParams implements ToJsonable {
       PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
 
   PublishOutlineParams({required this.uri, required this.outline});
-  static PublishOutlineParams fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final outline = Outline.fromJson(json['outline']);
+  static PublishOutlineParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final outlineJson = json['outline'];
+    final outline = Outline.fromJson(outlineJson as Map<String, Object?>);
     return PublishOutlineParams(uri: uri, outline: outline);
   }
 
   final Outline outline;
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['outline'] = outline.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1529,11 +1612,12 @@ class PublishOutlineParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['outline'] == null) {
+        final outline = obj['outline'];
+        if (outline == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Outline.canParse(obj['outline'], reporter))) {
+        if (!(Outline.canParse(outline, reporter))) {
           reporter.reportError('must be of type Outline');
           return false;
         }
@@ -1576,11 +1660,14 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
       {required this.insertTextFormat,
       required this.range,
       required this.newText});
-  static SnippetTextEdit fromJson(Map<String, dynamic> json) {
+  static SnippetTextEdit fromJson(Map<String, Object?> json) {
+    final insertTextFormatJson = json['insertTextFormat'];
     final insertTextFormat =
-        InsertTextFormat.fromJson(json['insertTextFormat']);
-    final range = Range.fromJson(json['range']);
-    final newText = json['newText'];
+        InsertTextFormat.fromJson(insertTextFormatJson as int);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
     return SnippetTextEdit(
         insertTextFormat: insertTextFormat, range: range, newText: newText);
   }
@@ -1594,8 +1681,8 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['insertTextFormat'] = insertTextFormat.toJson();
     __result['range'] = range.toJson();
     __result['newText'] = newText;
@@ -1603,18 +1690,19 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('insertTextFormat');
       try {
         if (!obj.containsKey('insertTextFormat')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['insertTextFormat'] == null) {
+        final insertTextFormat = obj['insertTextFormat'];
+        if (insertTextFormat == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
+        if (!(InsertTextFormat.canParse(insertTextFormat, reporter))) {
           reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
@@ -1627,11 +1715,12 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -1644,11 +1733,12 @@ class SnippetTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newText'] == null) {
+        final newText = obj['newText'];
+        if (newText == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newText'] is String)) {
+        if (!(newText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }

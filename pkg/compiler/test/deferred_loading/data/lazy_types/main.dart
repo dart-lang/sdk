@@ -23,9 +23,9 @@
 
 /*two-frag.library: 
  a_pre_fragments=[
-  p1: {units: [1{libB}, 6{libA}], usedBy: [p2], needs: []},
-  p2: {units: [5{libB, libC}, 4{libA, libC}, 2{libC}], usedBy: [p3], needs: [p1]},
-  p3: {units: [3{libA, libB, libC}], usedBy: [], needs: [p2]}],
+  p1: {units: [1{libB}, 6{libA}], usedBy: [p2, p3], needs: []},
+  p2: {units: [4{libA, libC}, 2{libC}], usedBy: [p3], needs: [p1]},
+  p3: {units: [3{libA, libB, libC}, 5{libB, libC}], usedBy: [], needs: [p2, p1]}],
  b_finalized_fragments=[
   f1: [1{libB}, 6{libA}],
   f2: [2{libC}],

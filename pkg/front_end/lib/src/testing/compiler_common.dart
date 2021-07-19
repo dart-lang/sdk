@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Common compiler options and helper functions used for testing.
 library front_end.testing.compiler_options_common;
 
@@ -32,10 +30,10 @@ import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<CompilerResult> compileScript(dynamic scriptOrSources,
+Future<CompilerResult?> compileScript(dynamic scriptOrSources,
     {String fileName: 'main.dart',
     List<String> additionalDills: const [],
-    CompilerOptions options,
+    CompilerOptions? options,
     bool retainDataForTesting: false,
     bool requireMain: true}) async {
   options ??= new CompilerOptions();
@@ -54,8 +52,9 @@ Future<CompilerResult> compileScript(dynamic scriptOrSources,
 /// Generate a component for a modular compilation unit.
 ///
 /// Wraps [kernelForModule] with some default testing options (see [setup]).
-Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> additionalDills: const [], CompilerOptions options}) async {
+Future<Component?> compileUnit(
+    List<String> inputs, Map<String, dynamic> sources,
+    {List<String> additionalDills: const [], CompilerOptions? options}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);
   return (await kernelForModule(inputs.map(toTestUri).toList(), options))
@@ -65,9 +64,9 @@ Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
 /// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
-Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
+Future<List<int>?> summarize(List<String> inputs, Map<String, dynamic> sources,
     {List<String> additionalDills: const [],
-    CompilerOptions options,
+    CompilerOptions? options,
     bool truncate: false}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);

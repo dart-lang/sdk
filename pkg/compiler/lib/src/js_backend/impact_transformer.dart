@@ -114,9 +114,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.SUPER_NO_SUCH_METHOD:
           registerImpact(_impacts.superNoSuchMethod);
           break;
-        case Feature.SYMBOL_CONSTRUCTOR:
-          registerImpact(_impacts.symbolConstructor);
-          break;
         case Feature.SYNC_FOR_IN:
           registerImpact(_impacts.syncForIn);
           break;

@@ -8,6 +8,7 @@ const List<String> denylistedCoreClasses = [
   "int",
   "num",
   "double",
+  "Enum",
   "String",
   "Null"
 ];

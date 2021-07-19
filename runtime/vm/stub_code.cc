@@ -35,6 +35,7 @@ StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
     VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
 #undef STUB_CODE_DECLARE
 };
+AcqRelAtomic<bool> StubCode::initialized_ = {false};
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 void StubCode::Init() {
@@ -60,6 +61,8 @@ void StubCode::Init() {
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
     entries_[i].code->set_object_pool(object_pool.ptr());
   }
+
+  InitializationDone();
 
 #if defined(DART_PRECOMPILER)
   {
@@ -111,14 +114,11 @@ CodePtr StubCode::Generate(
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void StubCode::Cleanup() {
+  initialized_.store(false, std::memory_order_release);
+
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
     entries_[i].code = nullptr;
   }
-}
-
-bool StubCode::HasBeenInitialized() {
-  // Use AsynchronousGapMarker as canary.
-  return entries_[kAsynchronousGapMarkerIndex].code != nullptr;
 }
 
 bool StubCode::InInvocationStub(uword pc) {

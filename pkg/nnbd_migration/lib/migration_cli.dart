@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/file_system.dart'
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
@@ -22,7 +21,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/core.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/exceptions.dart';
@@ -35,7 +33,7 @@ import 'package:nnbd_migration/src/utilities/progress_bar.dart';
 import 'package:nnbd_migration/src/utilities/source_edit_diff_formatter.dart';
 import 'package:path/path.dart' show Context;
 
-String _pluralize(int count, String single, {String multiple}) {
+String _pluralize(int count, String single, {String? multiple}) {
   return count == 1 ? single : (multiple ?? '${single}s');
 }
 
@@ -47,7 +45,7 @@ String _removePeriod(String value) {
 /// [AnalysisError]s.
 class AnalysisResult {
   final List<AnalysisError> errors;
-  final Map<String, LineInfo> lineInfo;
+  final Map<String?, LineInfo> lineInfo;
   final Context pathContext;
   final String rootDirectory;
   final bool allSourcesAlreadyMigrated;
@@ -74,7 +72,7 @@ class AnalysisResult {
     var result = <Map<String, dynamic>>[];
     // severity • Message ... at foo/bar.dart:6:1 • (error_code)
     for (var error in errors) {
-      var lineInfoForThisFile = lineInfo[error.source.fullName];
+      var lineInfoForThisFile = lineInfo[error.source.fullName]!;
       var location = lineInfoForThisFile.getLocation(error.offset);
       var path =
           pathContext.relative(error.source.fullName, from: rootDirectory);
@@ -108,69 +106,33 @@ class CommandLineOptions {
 
   final String directory;
 
-  final bool ignoreErrors;
+  final bool? ignoreErrors;
 
-  final bool ignoreExceptions;
+  final bool? ignoreExceptions;
 
-  final String previewHostname;
+  final String? previewHostname;
 
-  final int previewPort;
+  final int? previewPort;
 
   final String sdkPath;
 
-  final bool skipImportCheck;
+  final bool? skipImportCheck;
 
-  final String summary;
+  final String? summary;
 
-  final bool webPreview;
+  final bool? webPreview;
 
   CommandLineOptions(
-      {@required this.applyChanges,
-      @required this.directory,
-      @required this.ignoreErrors,
-      @required this.ignoreExceptions,
-      @required this.previewHostname,
-      @required this.previewPort,
-      @required this.sdkPath,
-      @required this.skipImportCheck,
-      @required this.summary,
-      @required this.webPreview});
-}
-
-class MigrateCommand extends DartdevCommand {
-  static const String cmdName = 'migrate';
-
-  static const String cmdDescription =
-      'Perform null safety migration on a project.';
-
-  static const String migrationGuideLink =
-      'See https://dart.dev/go/null-safety-migration for a migration guide.';
-
-  /// Return whether the SDK has null safety on by default.
-  static bool get nullSafetyOnByDefault => IsEnabledByDefault.non_nullable;
-
-  final bool verbose;
-
-  MigrateCommand({this.verbose = false})
-      : super(cmdName, '$cmdDescription\n\n$migrationGuideLink', verbose) {
-    MigrationCli._defineOptions(argParser, !verbose);
-  }
-
-  @override
-  String get invocation {
-    return '${super.invocation} [project or directory]';
-  }
-
-  @override
-  FutureOr<int> run() async {
-    var cli = MigrationCli(binaryName: 'dart $name');
-    try {
-      await cli.decodeCommandLineArgs(argResults, isVerbose: verbose)?.run();
-    } on MigrationExit catch (migrationExit) {
-      return migrationExit.exitCode;
-    }
-    return 0;
-  }
+      {required this.applyChanges,
+      required this.directory,
+      required this.ignoreErrors,
+      required this.ignoreExceptions,
+      required this.previewHostname,
+      required this.previewPort,
+      required this.sdkPath,
+      required this.skipImportCheck,
+      required this.summary,
+      required this.webPreview});
 }
 
 /// Command-line API for the migration tool, with additional parameters exposed
@@ -281,12 +243,15 @@ class MigrationCli {
             )),
   ];
 
+  static const String migrationGuideLink =
+      'See https://dart.dev/go/null-safety-migration for a migration guide.';
+
   /// The name of the executable, for reporting in help messages.
   final String binaryName;
 
   /// The SDK path that should be used if none is provided by the user.  Used in
   /// testing to install a mock SDK.
-  final String defaultSdkPathOverride;
+  final String? defaultSdkPathOverride;
 
   /// Factory to create an appropriate Logger instance to give feedback to the
   /// user.  Used in testing to allow user feedback messages to be tested.
@@ -304,11 +269,11 @@ class MigrationCli {
   final Map<String, String> _environmentVariables;
 
   MigrationCli({
-    @required this.binaryName,
+    required this.binaryName,
     @visibleForTesting this.loggerFactory = _defaultLoggerFactory,
     @visibleForTesting this.defaultSdkPathOverride,
-    @visibleForTesting ResourceProvider resourceProvider,
-    @visibleForTesting Map<String, String> environmentVariables,
+    @visibleForTesting ResourceProvider? resourceProvider,
+    @visibleForTesting Map<String, String>? environmentVariables,
   })  : logger = loggerFactory(false),
         resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE,
@@ -324,12 +289,12 @@ class MigrationCli {
   ///
   /// If the user supplied a bad option, a message is printed using the logger
   /// configured in the constructor, and [MigrationExit] is thrown.
-  MigrationCliRunner decodeCommandLineArgs(ArgResults argResults,
-      {bool isVerbose}) {
+  MigrationCliRunner? decodeCommandLineArgs(ArgResults argResults,
+      {bool? isVerbose}) {
     try {
-      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool;
+      isVerbose ??= argResults[CommandLineOptions.verboseFlag] as bool?;
       if (argResults[CommandLineOptions.helpFlag] as bool) {
-        _showUsage(isVerbose);
+        _showUsage(isVerbose!);
         return null;
       }
       var rest = argResults.rest;
@@ -353,43 +318,44 @@ class MigrationCli {
       var applyChanges =
           argResults[CommandLineOptions.applyChangesFlag] as bool;
       var previewPortRaw =
-          argResults[CommandLineOptions.previewPortOption] as String;
-      int previewPort;
+          argResults[CommandLineOptions.previewPortOption] as String?;
+      int? previewPort;
       try {
         previewPort = previewPortRaw == null ? null : int.parse(previewPortRaw);
       } on FormatException catch (_) {
         throw _BadArgException(
             'Invalid value for --${CommandLineOptions.previewPortOption}');
       }
-      bool webPreview;
+      bool? webPreview;
       if (argResults.wasParsed(CommandLineOptions.webPreviewFlag)) {
-        webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool;
+        webPreview = argResults[CommandLineOptions.webPreviewFlag] as bool?;
       } else {
         // If the `webPreviewFlag` wasn't explicitly passed, then the value of
         // this option is based on the value of the [applyChanges] option.
         webPreview = !applyChanges;
       }
-      if (applyChanges && webPreview) {
+      if (applyChanges && webPreview!) {
         throw _BadArgException('--apply-changes requires --no-web-preview');
       }
       var options = CommandLineOptions(
           applyChanges: applyChanges,
           directory: migratePath,
-          ignoreErrors: argResults[CommandLineOptions.ignoreErrorsFlag] as bool,
+          ignoreErrors:
+              argResults[CommandLineOptions.ignoreErrorsFlag] as bool?,
           ignoreExceptions:
-              argResults[CommandLineOptions.ignoreExceptionsFlag] as bool,
+              argResults[CommandLineOptions.ignoreExceptionsFlag] as bool?,
           previewHostname:
-              argResults[CommandLineOptions.previewHostnameOption] as String,
+              argResults[CommandLineOptions.previewHostnameOption] as String?,
           previewPort: previewPort,
-          sdkPath: argResults[CommandLineOptions.sdkPathOption] as String ??
+          sdkPath: argResults[CommandLineOptions.sdkPathOption] as String? ??
               defaultSdkPathOverride ??
               getSdkPath(),
           skipImportCheck:
-              argResults[CommandLineOptions.skipImportCheckFlag] as bool,
-          summary: argResults[CommandLineOptions.summaryOption] as String,
+              argResults[CommandLineOptions.skipImportCheckFlag] as bool?,
+          summary: argResults[CommandLineOptions.summaryOption] as String?,
           webPreview: webPreview);
       return MigrationCliRunner(this, options,
-          logger: isVerbose ? loggerFactory(true) : null);
+          logger: isVerbose! ? loggerFactory(true) : null);
     } on Object catch (exception) {
       handleArgParsingException(exception);
     }
@@ -432,8 +398,14 @@ class MigrationCli {
             'Display this help message. Add --verbose to show hidden options.',
         defaultsTo: false,
         negatable: false);
-    _defineOptions(parser, hide);
+    defineOptions(parser, hide);
     return parser;
+  }
+
+  static void defineOptions(ArgParser parser, bool hide) {
+    for (var option in options) {
+      option.addToParser(parser, hide);
+    }
   }
 
   static Logger _defaultLoggerFactory(bool isVerbose) {
@@ -442,12 +414,6 @@ class MigrationCli {
       return Logger.verbose(ansi: ansi);
     } else {
       return Logger.standard(ansi: ansi);
-    }
-  }
-
-  static void _defineOptions(ArgParser parser, bool hide) {
-    for (var option in options) {
-      option.addToParser(parser, hide);
     }
   }
 }
@@ -488,25 +454,25 @@ class MigrationCliRunner implements DartFixListenerClient {
   /// The result of parsing command-line options.
   final CommandLineOptions options;
 
-  final Map<String, LineInfo> lineInfo = {};
+  final Map<String?, LineInfo> lineInfo = {};
 
-  DartFixListener _dartFixListener;
+  DartFixListener? _dartFixListener;
 
-  _FixCodeProcessor _fixCodeProcessor;
+  _FixCodeProcessor? _fixCodeProcessor;
 
-  AnalysisContextCollectionImpl _contextCollection;
+  AnalysisContextCollectionImpl? _contextCollection;
 
   bool _hasExceptions = false;
 
   bool _hasAnalysisErrors = false;
 
   /// Subscription of interrupt signals (control-C).
-  StreamSubscription<ProcessSignal> _sigIntSubscription;
+  StreamSubscription<ProcessSignal>? _sigIntSubscription;
 
   /// Completes when an interrupt signal (control-C) is received.
-  Completer<void> sigIntSignalled;
+  late Completer<void> sigIntSignalled;
 
-  MigrationCliRunner(this.cli, this.options, {Logger logger})
+  MigrationCliRunner(this.cli, this.options, {Logger? logger})
       : logger = logger ?? cli.logger;
 
   @visibleForTesting
@@ -514,15 +480,15 @@ class MigrationCliRunner implements DartFixListenerClient {
     // Handle the case of more than one analysis context being found (typically,
     // the current directory and one or more sub-directories).
     if (hasMultipleAnalysisContext) {
-      return contextCollection.contextFor(options.directory);
+      return contextCollection!.contextFor(options.directory);
     } else {
-      return contextCollection.contexts.single;
+      return contextCollection!.contexts.single;
     }
   }
 
   Ansi get ansi => logger.ansi;
 
-  AnalysisContextCollectionImpl get contextCollection {
+  AnalysisContextCollectionImpl? get contextCollection {
     _contextCollection ??= AnalysisContextCollectionImpl(
         includedPaths: [options.directory],
         resourceProvider: resourceProvider,
@@ -532,7 +498,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   @visibleForTesting
   bool get hasMultipleAnalysisContext {
-    return contextCollection.contexts.length > 1;
+    return contextCollection!.contexts.length > 1;
   }
 
   @visibleForTesting
@@ -549,7 +515,7 @@ class MigrationCliRunner implements DartFixListenerClient {
 
   /// Computes the internet address that should be passed to `HttpServer.bind`
   /// when starting the preview server.  May be overridden in derived classes.
-  Object computeBindAddress() {
+  Object? computeBindAddress() {
     var hostname = options.previewHostname;
     if (hostname == 'localhost') {
       return InternetAddress.loopbackIPv4;
@@ -583,13 +549,13 @@ class MigrationCliRunner implements DartFixListenerClient {
       DartFixListener listener,
       ResourceProvider resourceProvider,
       LineInfo Function(String path) getLineInfo,
-      Object bindAddress,
+      Object? bindAddress,
       {List<String> included = const <String>[],
-      int preferredPort,
-      String summaryPath,
-      @required String sdkPath}) {
+      int? preferredPort,
+      String? summaryPath,
+      required String sdkPath}) {
     return NonNullableFix(listener, resourceProvider, getLineInfo, bindAddress,
-        logger, (String path) => shouldBeMigrated(path),
+        logger, (String? path) => shouldBeMigrated(path!),
         included: included,
         preferredPort: preferredPort,
         summaryPath: summaryPath,
@@ -611,7 +577,7 @@ class MigrationCliRunner implements DartFixListenerClient {
   @override
   void onException(String detail) {
     if (_hasExceptions) {
-      if (!options.ignoreExceptions) {
+      if (!options.ignoreExceptions!) {
         // Our intention is to exit immediately when an exception occurred.  We
         // tried, but failed (probably due to permissive mode logic in the
         // migration tool itself catching the MigrationExit exception).  The
@@ -623,7 +589,7 @@ class MigrationCliRunner implements DartFixListenerClient {
       return;
     }
     _hasExceptions = true;
-    if (options.ignoreExceptions) {
+    if (options.ignoreExceptions!) {
       logger.stdout('''
 Exception(s) occurred during migration.  Attempting to perform
 migration anyway due to the use of --${CommandLineOptions.ignoreExceptionsFlag}.
@@ -679,7 +645,7 @@ Exception details:
     logger.stdout('Migrating ${options.directory}');
     logger.stdout('');
 
-    logger.stdout(MigrateCommand.migrationGuideLink);
+    logger.stdout(MigrationCli.migrationGuideLink);
     logger.stdout('');
 
     if (hasMultipleAnalysisContext) {
@@ -694,21 +660,21 @@ Exception details:
     _fixCodeProcessor = _FixCodeProcessor(analysisContext, this);
     _dartFixListener = DartFixListener(
         DriverProviderImpl(resourceProvider, analysisContext), this);
-    nonNullableFix = createNonNullableFix(_dartFixListener, resourceProvider,
-        _fixCodeProcessor.getLineInfo, computeBindAddress(),
+    nonNullableFix = createNonNullableFix(_dartFixListener!, resourceProvider,
+        _fixCodeProcessor!.getLineInfo, computeBindAddress(),
         included: [options.directory],
         preferredPort: options.previewPort,
         summaryPath: options.summary,
         sdkPath: options.sdkPath);
     nonNullableFix.rerunFunction = _rerunFunction;
-    _fixCodeProcessor.registerCodeTask(nonNullableFix);
+    _fixCodeProcessor!.registerCodeTask(nonNullableFix);
 
     try {
-      var analysisResult = await _fixCodeProcessor.runFirstPhase();
+      var analysisResult = await _fixCodeProcessor!.runFirstPhase();
 
       if (analysisResult.hasErrors) {
         _logErrors(analysisResult);
-        if (!options.ignoreErrors) {
+        if (!options.ignoreErrors!) {
           throw MigrationExit(1);
         }
       } else if (analysisResult.allSourcesAlreadyMigrated) {
@@ -728,12 +694,12 @@ Exception details:
 
     logger.stdout('');
     logger.stdout(ansi.emphasized('Generating migration suggestions...'));
-    var previewUrls = (await _fixCodeProcessor.runLaterPhases()).previewUrls;
+    var previewUrls = (await _fixCodeProcessor!.runLaterPhases()).previewUrls;
 
     if (options.applyChanges) {
       logger.stdout(ansi.emphasized('Applying changes:'));
 
-      var allEdits = _dartFixListener.sourceChange.edits;
+      var allEdits = _dartFixListener!.sourceChange.edits;
       _applyMigrationSuggestions(allEdits);
 
       logger.stdout('');
@@ -746,11 +712,11 @@ Exception details:
       return;
     }
 
-    if (options.webPreview) {
-      assert(previewUrls.length == 1,
+    if (options.webPreview!) {
+      assert(previewUrls!.length == 1,
           'Got unexpected extra preview URLs from server');
 
-      var url = previewUrls.single;
+      var url = previewUrls!.single;
       // TODO(#41809): Open a browser automatically.
       logger.stdout('''
 View the migration suggestions by visiting:
@@ -778,7 +744,7 @@ sources' action.
     } else {
       logger.stdout(ansi.emphasized('Diff of changes:'));
 
-      _displayChangeDiff(_dartFixListener);
+      _displayChangeDiff(_dartFixListener!);
 
       logger.stdout('');
       logger.stdout('To apply these changes, re-run the tool with '
@@ -817,7 +783,7 @@ sources' action.
       int count = sourceFileEdit.edits.length;
       logger.stdout('  $relPath ($count ${_pluralize(count, 'change')})');
 
-      String source;
+      String? source;
       var file = resourceProvider.getFile(sourceFileEdit.file);
       try {
         source = file.readAsStringSync();
@@ -843,7 +809,7 @@ sources' action.
     for (DartFixSuggestion suggestion in migrationResults.suggestions) {
       String file = suggestion.location.file;
       fileSuggestions.putIfAbsent(file, () => <DartFixSuggestion>[]);
-      fileSuggestions[file].add(suggestion);
+      fileSuggestions[file]!.add(suggestion);
     }
 
     // present a diff-like view
@@ -858,7 +824,7 @@ sources' action.
       logger.stdout('${ansi.emphasized(relPath)} '
           '($count ${_pluralize(count, 'change')}):');
 
-      String source;
+      String? source;
       try {
         source = resourceProvider.getFile(file).readAsStringSync();
       } catch (_) {}
@@ -893,7 +859,7 @@ sources' action.
     logger.stdout('');
     _hasAnalysisErrors = true;
 
-    if (options.ignoreErrors) {
+    if (options.ignoreErrors!) {
       logger.stdout('Note: analysis errors will result in erroneous migration '
           'suggestions.');
       logger.stdout('Continuing with migration suggestions due to the use of '
@@ -931,32 +897,32 @@ get erroneous migration suggestions.
   Future<MigrationState> _rerunFunction() async {
     logger.stdout(ansi.emphasized('Re-analyzing project...'));
 
-    _dartFixListener.reset();
-    _fixCodeProcessor.prepareToRerun();
-    var analysisResult = await _fixCodeProcessor.runFirstPhase();
-    if (analysisResult.hasErrors && !options.ignoreErrors) {
+    _dartFixListener!.reset();
+    _fixCodeProcessor!.prepareToRerun();
+    var analysisResult = await _fixCodeProcessor!.runFirstPhase();
+    if (analysisResult.hasErrors && !options.ignoreErrors!) {
       _logErrors(analysisResult);
       return MigrationState(
-          _fixCodeProcessor._task.migration,
-          _fixCodeProcessor._task.includedRoot,
+          _fixCodeProcessor!._task!.migration,
+          _fixCodeProcessor!._task!.includedRoot,
           _dartFixListener,
-          _fixCodeProcessor._task.instrumentationListener,
+          _fixCodeProcessor!._task!.instrumentationListener,
           {},
-          _fixCodeProcessor._task.shouldBeMigratedFunction,
+          _fixCodeProcessor!._task!.shouldBeMigratedFunction,
           analysisResult);
     } else if (analysisResult.allSourcesAlreadyMigrated) {
       _logAlreadyMigrated();
       return MigrationState(
-          _fixCodeProcessor._task.migration,
-          _fixCodeProcessor._task.includedRoot,
+          _fixCodeProcessor!._task!.migration,
+          _fixCodeProcessor!._task!.includedRoot,
           _dartFixListener,
-          _fixCodeProcessor._task.instrumentationListener,
+          _fixCodeProcessor!._task!.instrumentationListener,
           {},
-          _fixCodeProcessor._task.shouldBeMigratedFunction,
+          _fixCodeProcessor!._task!.shouldBeMigratedFunction,
           analysisResult);
     } else {
       logger.stdout(ansi.emphasized('Re-generating migration suggestions...'));
-      return await _fixCodeProcessor.runLaterPhases();
+      return await _fixCodeProcessor!.runLaterPhases();
     }
   }
 
@@ -994,7 +960,7 @@ abstract class ProcessManager {
 
   /// Run a process synchronously, as in [Process.runSync].
   ProcessResult runSync(String executable, List<String> arguments,
-      {String workingDirectory});
+      {String? workingDirectory});
 }
 
 /// A [ProcessManager] that directs all method calls to static methods of
@@ -1003,7 +969,7 @@ class SystemProcessManager implements ProcessManager {
   const SystemProcessManager();
 
   ProcessResult runSync(String executable, List<String> arguments,
-          {String workingDirectory}) =>
+          {String? workingDirectory}) =>
       Process.runSync(executable, arguments,
           workingDirectory: workingDirectory ?? Directory.current.path);
 }
@@ -1020,11 +986,11 @@ class _FixCodeProcessor extends Object {
   final DriverBasedAnalysisContext context;
 
   /// The task used to migrate to NNBD.
-  NonNullableFix _task;
+  NonNullableFix? _task;
 
   Set<String> pathsToProcess;
 
-  ProgressBar _progressBar;
+  late ProgressBar _progressBar;
 
   final MigrationCliRunner _migrationCli;
 
@@ -1046,14 +1012,14 @@ class _FixCodeProcessor extends Object {
   Future<void> processResources(
       Future<void> Function(ResolvedUnitResult result) process) async {
     var driver = context.currentSession;
-    var pathsProcessed = <String>{};
+    var pathsProcessed = <String?>{};
     for (var path in pathsToProcess) {
       if (pathsProcessed.contains(path)) continue;
       var result = await driver.getResolvedLibrary2(path);
       // Parts will either be found in a library, below, or if the library
       // isn't [isIncluded], will be picked up in the final loop.
       if (result is ResolvedLibraryResult) {
-        for (var unit in result.units) {
+        for (var unit in result.units!) {
           if (!pathsProcessed.contains(unit.path)) {
             await process(unit);
             pathsProcessed.add(unit.path);
@@ -1083,7 +1049,7 @@ class _FixCodeProcessor extends Object {
     // Process each source file.
     bool allSourcesAlreadyMigrated = true;
     await processResources((ResolvedUnitResult result) async {
-      if (!result.unit.featureSet.isEnabled(Feature.non_nullable)) {
+      if (!result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
         allSourcesAlreadyMigrated = false;
       }
       _progressBar.tick();
@@ -1094,14 +1060,14 @@ class _FixCodeProcessor extends Object {
         analysisErrors.addAll(errors);
         _migrationCli.lineInfo[result.path] = result.lineInfo;
       }
-      if (_migrationCli.options.ignoreErrors || analysisErrors.isEmpty) {
-        await _task.prepareUnit(result);
+      if (_migrationCli.options.ignoreErrors! || analysisErrors.isEmpty) {
+        await _task!.prepareUnit(result);
       }
     });
 
-    var unmigratedDependencies = _task.migration.unmigratedDependencies;
+    var unmigratedDependencies = _task!.migration!.unmigratedDependencies;
     if (unmigratedDependencies.isNotEmpty) {
-      if (_migrationCli.options.skipImportCheck) {
+      if (_migrationCli.options.skipImportCheck!) {
         _migrationCli.logger.stdout(unmigratedDependenciesWarning);
       } else {
         throw ExperimentStatusException.unmigratedDependencies(
@@ -1123,25 +1089,25 @@ class _FixCodeProcessor extends Object {
 
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      await _task.processUnit(result);
+      await _task!.processUnit(result);
     });
     await processResources((ResolvedUnitResult result) async {
       _progressBar.tick();
-      if (_migrationCli.shouldBeMigrated(result.path)) {
-        await _task.finalizeUnit(result);
+      if (_migrationCli.shouldBeMigrated(result.path!)) {
+        await _task!.finalizeUnit(result);
       }
     });
     _progressBar.complete();
     _migrationCli.logger.stdout(_migrationCli.ansi
         .emphasized('Compiling instrumentation information...'));
     // Update the tasks paths-to-process, in case of new or deleted files.
-    _task.pathsToProcess = pathsToProcess;
-    var state = await _task.finish();
-    _task.processPackage(context.contextRoot.root, state.neededPackages);
-    if (_migrationCli.options.webPreview) {
-      await _task.startPreviewServer(state, _migrationCli.applyHook);
+    _task!.pathsToProcess = pathsToProcess;
+    var state = await _task!.finish();
+    _task!.processPackage(context.contextRoot.root, state.neededPackages);
+    if (_migrationCli.options.webPreview!) {
+      await _task!.startPreviewServer(state, _migrationCli.applyHook);
     }
-    state.previewUrls = _task.previewUrls;
+    state.previewUrls = _task!.previewUrls;
 
     return state;
   }
@@ -1152,14 +1118,14 @@ class _IssueRenderer {
   final Logger logger;
   final String rootDirectory;
   final Context pathContext;
-  final Map<String, LineInfo> lineInfo;
+  final Map<String?, LineInfo> lineInfo;
 
   _IssueRenderer(
       this.logger, this.rootDirectory, this.pathContext, this.lineInfo);
 
   void render(AnalysisError issue) {
     // severity • Message ... at foo/bar.dart:6:1 • (error_code)
-    var lineInfoForThisFile = lineInfo[issue.source.fullName];
+    var lineInfoForThisFile = lineInfo[issue.source.fullName]!;
     var location = lineInfoForThisFile.getLocation(issue.offset);
 
     final Ansi ansi = logger.ansi;
@@ -1185,6 +1151,5 @@ extension on Severity {
       case Severity.info:
         return 'info';
     }
-    return '???';
   }
 }

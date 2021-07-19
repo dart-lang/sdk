@@ -19,7 +19,8 @@ class AnnotationOnPointerFieldTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Double() Pointer<Int8> x;
+  @Double()
+  external Pointer<Int8> x;
 }
 ''', [
       error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 46, 9),
@@ -30,7 +31,8 @@ class C extends Struct {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() Pointer<Float> x;
+  @Int32()
+  external Pointer<Float> x;
 }
 ''', [
       error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 46, 8),

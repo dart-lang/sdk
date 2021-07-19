@@ -38,8 +38,6 @@ import 'package:vm/kernel_front_end.dart';
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
 
-export 'src/to_string_transformer.dart';
-
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
       help: 'Run through sample command line to produce snapshot',
@@ -170,6 +168,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
+  ..addFlag('emit-debug-symbols',
+      help: 'Emit debug symbols for the debugger', defaultsTo: false)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
       defaultsTo: 'amd')
@@ -326,7 +326,8 @@ class FrontendCompiler implements CompilerInterface {
       this.unsafePackageSerialization,
       this.incrementalSerialization: true,
       this.useDebuggerModuleNames: false,
-      this.emitDebugMetadata: false}) {
+      this.emitDebugMetadata: false,
+      this.emitDebugSymbols: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -337,6 +338,7 @@ class FrontendCompiler implements CompilerInterface {
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
   bool emitDebugMetadata;
+  bool emitDebugSymbols;
   bool _printIncrementalDependencies;
 
   CompilerOptions _compilerOptions;
@@ -627,6 +629,7 @@ class FrontendCompiler implements CompilerInterface {
     final File manifestFile = File('$filename.json');
     final File sourceMapsFile = File('$filename.map');
     final File metadataFile = File('$filename.metadata');
+    final File symbolsFile = File('$filename.symbols');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
@@ -634,6 +637,7 @@ class FrontendCompiler implements CompilerInterface {
         component, strongComponents, fileSystemScheme, packageConfig,
         useDebuggerModuleNames: useDebuggerModuleNames,
         emitDebugMetadata: emitDebugMetadata,
+        emitDebugSymbols: emitDebugSymbols,
         moduleFormat: moduleFormat,
         soundNullSafety: soundNullSafety);
     final sourceFileSink = sourceFile.openWrite();
@@ -641,6 +645,7 @@ class FrontendCompiler implements CompilerInterface {
     final sourceMapsFileSink = sourceMapsFile.openWrite();
     final metadataFileSink =
         emitDebugMetadata ? metadataFile.openWrite() : null;
+    final symbolsFileSink = emitDebugSymbols ? symbolsFile.openWrite() : null;
     final kernel2JsCompilers = await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
@@ -648,13 +653,15 @@ class FrontendCompiler implements CompilerInterface {
         sourceFileSink,
         manifestFileSink,
         sourceMapsFileSink,
-        metadataFileSink);
+        metadataFileSink,
+        symbolsFileSink);
     cachedProgramCompilers.addAll(kernel2JsCompilers);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
       sourceMapsFileSink.close(),
-      if (metadataFileSink != null) metadataFileSink.close()
+      if (metadataFileSink != null) metadataFileSink.close(),
+      if (symbolsFileSink != null) symbolsFileSink.close(),
     ]);
   }
 
@@ -1348,7 +1355,8 @@ Future<int> starter(
       unsafePackageSerialization: options["unsafe-package-serialization"],
       incrementalSerialization: options["incremental-serialization"],
       useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata']);
+      emitDebugMetadata: options['experimental-emit-debug-metadata'],
+      emitDebugSymbols: options['emit-debug-symbols']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

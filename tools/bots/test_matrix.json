@@ -1,8 +1,4 @@
 {
-  "global": {
-    "chrome": "81",
-    "firefox": "67"
-  },
   "branches": [
     "master"
   ],
@@ -314,14 +310,17 @@
       "xcodebuild/DebugSIMARM64C/",
       "xcodebuild/DebugX64/",
       "xcodebuild/DebugX64C/",
+      "xcodebuild/DebugXARM64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ProductX64C/",
+      "xcodebuild/ProductXARM64/",
       "xcodebuild/ReleaseIA32/",
       "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
       "xcodebuild/ReleaseSIMARM64C/",
       "xcodebuild/ReleaseX64/",
       "xcodebuild/ReleaseX64C/",
+      "xcodebuild/ReleaseXARM64/",
       "pkg/",
       "samples/",
       "samples_2/",
@@ -396,6 +395,15 @@
       "options": {
         "compiler": "dartk",
         "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
+    "unittest-asserts-(debug|product|release)-mac-arm64": {
+      "options": {
+        "compiler": "dartk",
+        "enable-asserts": true,
         "runtime": "vm",
         "timeout": 240,
         "use-sdk": true
@@ -530,7 +538,7 @@
       "options": {
         "use-sdk": true,
         "dart2js-options": [
-          "--no-legacy-javascript"
+          "--canary"
         ]
       }
     },
@@ -625,8 +633,6 @@
         "csp": true,
         "timeout": 240,
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -654,8 +660,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -684,7 +688,7 @@
         "builder-tag": "dart2js_modern",
         "use-sdk": true,
         "dart2js-options": [
-          "--no-legacy-javascript"
+          "--canary"
         ]
       }
     },
@@ -707,11 +711,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -720,8 +720,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -731,22 +729,14 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -755,8 +745,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -766,11 +754,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
@@ -867,7 +851,7 @@
         "builder-tag": "canary"
       }
     },
-    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(x64|x64c)": {
+    "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
@@ -887,18 +871,18 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "enable-asserts": true,
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-strong-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|simarm64c|x64|x64c)": {
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-(arm64|ia32|simarm|simarm64|simarm64c|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartkp-strong-(linux|mac)-(debug|product|release)-(x64|x64c)": {
+    "dartkp-strong-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
       "options": {
         "builder-tag": "vm_nnbd"
       }
@@ -1258,7 +1242,7 @@
         "vm-precomp-ffi-qemu-linux-release-arm"
       ],
       "meta": {
-        "description": "This configuration is used for running FFI tests on qemu and FFI unit tests."
+        "description": "This configuration is used for running vm unit tests and FFI tests on qemu and FFI unit tests."
       },
       "steps": [
         {
@@ -1295,10 +1279,67 @@
           ]
         },
         {
+          "name": "vm unit tests",
+          "arguments": [
+            "-ndartk-linux-${mode}-arm-qemu",
+            "vm/cc"
+          ]
+        },
+        {
           "name": "ffi tests",
           "arguments": [
             "-ndartkp-linux-${mode}-arm-qemu",
             "ffi_2"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-nnbd-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is for the macOS arm64 VM AOT nnbd builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime_kernel",
+            "dart_precompiled_runtime",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "vm nnbd tests in weak mode with asserts",
+          "arguments": [
+            "-ndartkp-weak-asserts-${system}-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "service",
+            "standalone",
+            "utils",
+            "vm"
+          ]
+        },
+        {
+          "name": "vm nnbd tests in strong mode",
+          "arguments": [
+            "-ndartkp-strong-${system}-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
           ]
         }
       ]
@@ -1745,8 +1786,10 @@
         "vm-kernel-nnbd-linux-release-simarm64c",
         "vm-kernel-nnbd-linux-release-x64",
         "vm-kernel-nnbd-linux-release-x64c",
+        "vm-kernel-nnbd-mac-debug-arm64",
         "vm-kernel-nnbd-mac-debug-x64",
         "vm-kernel-nnbd-mac-debug-x64c",
+        "vm-kernel-nnbd-mac-release-arm64",
         "vm-kernel-nnbd-mac-release-x64",
         "vm-kernel-nnbd-mac-release-x64c",
         "vm-kernel-nnbd-win-release-ia32",
@@ -1833,6 +1876,7 @@
         "vm-kernel-linux-debug-x64c",
         "vm-kernel-mac-product-x64",
         "vm-kernel-mac-product-x64c",
+        "vm-kernel-mac-release-arm64",
         "vm-kernel-mac-release-x64",
         "vm-kernel-mac-release-x64c",
         "vm-kernel-mac-debug-x64",
@@ -2604,15 +2648,15 @@
           "arguments": [
             "-ndart2js-o0-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
-          "name": "dart2js --no-legacy-javascript smoke tests",
+          "name": "dart2js --canary smoke tests",
           "arguments": [
             "-ndart2js-modern-linux-d8",
             "--dart2js-batch",
-            "dart2js_2"
+            "web_2"
           ]
         },
         {
@@ -2836,13 +2880,9 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
-        },
-        {
-          "name": "run AOT and Exe smoke tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
+            "--arch=ia32,x64,arm,arm64"
           ]
         },
         {
@@ -2856,7 +2896,8 @@
     },
     {
       "builders": [
-        "dart-sdk-mac"
+        "dart-sdk-mac",
+        "dart-sdk-mac-arm64"
       ],
       "meta": {
         "description": "This configuration is used by the sdk-builders for MacOS."
@@ -2866,7 +2907,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--arch=x64",
             "--mode=release",
             "--check-clean",
             "create_sdk"
@@ -2877,13 +2917,9 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
-        },
-        {
-          "name": "run AOT and Exe smoke tests",
-          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
+          "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
+            "--arch=${arch}"
           ]
         }
       ]
@@ -2908,13 +2944,9 @@
         },
         {
           "name": "upload sdk",
-          "script": "tools/bots/dart_sdk.py"
-        },
-        {
-          "name": "run AOT and Exe smoke tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart.exe",
+          "script": "tools/bots/dart_sdk.py",
           "arguments": [
-            "tools/bots/aot_smoke_tests.dart"
+            "--arch=ia32,x64"
           ]
         }
       ]
@@ -3425,13 +3457,9 @@
           "name": "validate SDK API docs",
           "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
           "arguments": [
-            "--exclude",
-            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db",
             "--sdk-docs",
             "--no-generate-docs"
-          ],
-          "comments1": "TODO(devoncarew): add --errors=unresolved-doc-reference above to fail on unresolved doc references",
-          "comments2": "ambiguous-doc-reference, ambiguous-reexport, broken-link, deprecated, no-library-level-docs, unknown-directive, unknown-macro"
+          ]
         },
         {
           "name": "validate SDK API data-driven fixes",
@@ -3461,6 +3489,46 @@
           "script": "tools/bots/pub_integration_test.py",
           "arguments": [
             "--mode=release"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "pkg-mac-release-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the macOS arm64 pkg builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dartdevc_test"
+          ]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}-arm64",
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+          ]
+        },
+        {
+          "name": "third_party pkg_tested unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}-arm64",
+            "pkg_tested"
+          ]
+        },
+        {
+          "name": "pub integration tests",
+          "script": "tools/bots/pub_integration_test.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm64"
           ]
         }
       ]
@@ -3628,7 +3696,7 @@
         {
           "name": "analyze flutter/plugins",
           "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
-        }        
+        }
       ]
     },
     {

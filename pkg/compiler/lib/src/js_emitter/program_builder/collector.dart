@@ -175,9 +175,7 @@ class Collector {
     // 4. Find all class types needed for rti.
     for (ClassEntity cls in _rtiNeededClasses) {
       if (backendTypeHelpers.contains(cls)) continue;
-      while (cls != null && neededClassTypes.add(cls)) {
-        cls = _elementEnvironment.getSuperClass(cls);
-      }
+      neededClassTypes.add(cls);
     }
 
     // 5. Sort classes and add them to their respective OutputUnits.

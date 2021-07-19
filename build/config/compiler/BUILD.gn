@@ -552,7 +552,10 @@ if (is_win) {
   ]
 
   if (is_clang) {
-    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+    default_warning_flags += [
+      "-Wno-tautological-constant-compare",
+      "-Wno-unused-but-set-variable", # icu
+    ]
   } else {
     default_warning_flags +=
         [ "-Wno-ignored-qualifiers" ]  # Warnings in BoringSSL headers
@@ -695,7 +698,10 @@ if (is_win) {
     ]
   }
   common_optimize_on_ldflags = [
+    # Linker GC.
     "/OPT:REF",
+    # Identical code folding to reduce size.
+    # Warning: This changes C/C++ semantics of function pointer comparison.
     "/OPT:ICF",
   ]
 } else {
@@ -726,7 +732,7 @@ if (is_win) {
     common_optimize_on_ldflags += [
       # Specifically tell the linker to perform optimizations.
       # See http://lwn.net/Articles/192624/ .
-      "-Wl,-O1",
+      "-Wl,-O2",
       "-Wl,--gc-sections",
     ]
 

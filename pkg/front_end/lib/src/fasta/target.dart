@@ -19,8 +19,8 @@ abstract class Target {
   Target(this.ticker);
 
   /// Build and return outlines for all libraries.
-  Future<Component> buildOutlines();
+  Future<Component?> buildOutlines();
 
   /// Build and return the full component for all libraries.
-  Future<Component> buildComponent();
+  Future<Component?> buildComponent();
 }

@@ -71,7 +71,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   AnalysisSession get session => contextFor('/home/test').currentSession;
 
-  String? get testPackageLanguageVersion => '2.9';
+  String? get testPackageLanguageVersion => latestLanguageVersion;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 

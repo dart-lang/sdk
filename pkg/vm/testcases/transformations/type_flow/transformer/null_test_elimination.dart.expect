@@ -53,9 +53,9 @@ static method someCondition() → dynamic
 static method main() → void {
   final core::List<self::A*>* list = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::A*>] core::_GrowableList::_literal2<self::A*>(new self::A::•("foo", null), [@vm.inferred-type.metadata=#lib::A?] self::staticField);
   {
-    core::Iterator<self::A*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A*>] list.{core::Iterable::iterator};
-    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      self::A* a = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::A?] :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<self::A*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A*>] list.{core::Iterable::iterator}{core::Iterator<self::A*>*};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::A* a = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::A?] :sync-for-iterator.{core::Iterator::current}{self::A*};
       {
         self::testNonNullableIf1(a);
         self::testNullableIf1(a);

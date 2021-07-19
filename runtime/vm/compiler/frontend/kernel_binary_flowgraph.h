@@ -153,6 +153,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void InlineBailout(const char* reason);
   Fragment DebugStepCheck(TokenPosition position);
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment IndirectGoto(intptr_t target_count);
   Fragment Return(
       TokenPosition position,
       intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex);
@@ -273,12 +274,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
   Fragment BuildVariableSetImpl(TokenPosition position,
                                 intptr_t variable_kernel_position);
-  Fragment BuildPropertyGet(TokenPosition* position);
   Fragment BuildInstanceGet(TokenPosition* position);
   Fragment BuildDynamicGet(TokenPosition* position);
   Fragment BuildInstanceTearOff(TokenPosition* position);
   Fragment BuildFunctionTearOff(TokenPosition* position);
-  Fragment BuildPropertySet(TokenPosition* position);
   Fragment BuildInstanceSet(TokenPosition* position);
   Fragment BuildDynamicSet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,
@@ -292,7 +291,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildSuperPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
-  Fragment BuildMethodInvocation(TokenPosition* position, Tag tag);
+  Fragment BuildMethodInvocation(TokenPosition* position, bool is_dynamic);
   Fragment BuildLocalFunctionInvocation(TokenPosition* position);
   Fragment BuildFunctionInvocation(TokenPosition* position);
   Fragment BuildEqualsCall(TokenPosition* position);

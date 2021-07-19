@@ -29,6 +29,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitAdjacentStrings(AdjacentStrings node) {
     _writeByte(Tag.AdjacentStrings);
     _writeNodeList(node.strings);
+    _storeExpression(node);
   }
 
   @override
@@ -114,6 +115,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     _sink.writeElement(node.staticElement);
+    _sink.writeType(node.staticInvokeType);
     _storeExpression(node);
   }
 
@@ -292,7 +294,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _writeNotSerializableExpression();
+    _writeByte(Tag.FunctionExpressionStub);
   }
 
   @override
@@ -396,11 +398,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
               ? Tag.IntegerLiteralPositive1
               : Tag.IntegerLiteralNegative1,
         );
+        _writeStringReference(node.literal.lexeme);
         _writeByte(value);
       } else {
         _writeByte(
           isPositive ? Tag.IntegerLiteralPositive : Tag.IntegerLiteralNegative,
         );
+        _writeStringReference(node.literal.lexeme);
         _writeUInt32(value >> 32);
         _writeUInt32(value & 0xFFFFFFFF);
       }
@@ -425,6 +429,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     _writeByte(Tag.InterpolationString);
+    _writeStringReference(node.contents.lexeme);
     _writeStringReference(node.value);
   }
 
@@ -492,6 +497,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   @override
   void visitNullLiteral(NullLiteral node) {
     _writeByte(Tag.NullLiteral);
+    _storeExpression(node);
   }
 
   @override
@@ -631,6 +637,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(Tag.SimpleStringLiteral);
     _writeStringReference(node.literal.lexeme);
     _writeStringReference(node.value);
+    _storeExpression(node);
   }
 
   @override
@@ -649,6 +656,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitStringInterpolation(StringInterpolation node) {
     _writeByte(Tag.StringInterpolation);
     _writeNodeList(node.elements);
+    _storeExpression(node);
   }
 
   @override

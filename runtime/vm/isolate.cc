@@ -50,7 +50,6 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/timeline_analysis.h"
 #include "vm/visitor.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -61,7 +60,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
-DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
@@ -883,6 +881,10 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 Bequest::~Bequest() {
+  if (handle_ == nullptr) {
+    return;
+  }
+
   IsolateGroup* isolate_group = IsolateGroup::Current();
   CHECK_ISOLATE_GROUP(isolate_group);
   NoSafepointScope no_safepoint_scope;
@@ -912,7 +914,7 @@ void IsolateGroup::ValidateClassTable() {
 #endif  // DEBUG
 
 void IsolateGroup::RegisterStaticField(const Field& field,
-                                       const Instance& initial_value) {
+                                       const Object& initial_value) {
   ASSERT(program_lock()->IsCurrentThreadWriter());
 
   ASSERT(field.is_static());
@@ -1347,11 +1349,19 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     msg_obj = message->raw_obj();
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.ptr()));
-  } else if (message->IsBequest()) {
-    Bequest* bequest = message->bequest();
-    PersistentHandle* handle = bequest->handle();
-    const Object& obj = Object::Handle(zone, handle->ptr());
-    msg_obj = obj.ptr();
+  } else if (message->IsPersistentHandle()) {
+    // msg_array = [<message>, <object-in-message-to-rehash>]
+    const auto& msg_array = Array::Handle(
+        zone, Array::RawCast(message->persistent_handle()->ptr()));
+    msg_obj = msg_array.At(0);
+    if (msg_array.At(1) != Object::null()) {
+      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
+      const auto& result = Object::Handle(
+          zone, DartLibraryCalls::RehashObjects(thread, objects_to_rehash));
+      if (result.ptr() != Object::null()) {
+        msg_obj = result.ptr();
+      }
+    }
   } else {
     MessageSnapshotReader reader(message.get(), thread);
     msg_obj = reader.ReadObject();
@@ -2416,19 +2426,6 @@ void Isolate::LowLevelShutdown() {
   // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(nullptr);
-#if defined(SUPPORT_TIMELINE)
-  // Before analyzing the isolate's timeline blocks- reclaim all cached
-  // blocks.
-  Timeline::ReclaimCachedBlocksFromThreads();
-#endif
-
-// Dump all timing data for the isolate.
-#if defined(SUPPORT_TIMELINE) && !defined(PRODUCT)
-  if (FLAG_timing) {
-    TimelinePauseTrace tpt;
-    tpt.Print();
-  }
-#endif  // !PRODUCT
 
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
@@ -2520,8 +2517,10 @@ void Isolate::Shutdown() {
   // This ensures that exit message comes last.
   if (bequest_.get() != nullptr) {
     auto beneficiary = bequest_->beneficiary();
-    PortMap::PostMessage(Message::New(beneficiary, bequest_.release(),
-                                      Message::kNormalPriority));
+    auto handle = bequest_->TakeHandle();
+    PortMap::PostMessage(
+        Message::New(beneficiary, handle, Message::kNormalPriority));
+    bequest_.reset();
   }
 
   LowLevelShutdown();

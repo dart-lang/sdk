@@ -52,10 +52,10 @@ Future<ProcessResult> generateAotKernel(
     genKernel,
     '--platform',
     platformDill,
-    if (enableExperiment.isNotEmpty) '--enable-experiment=${enableExperiment}',
+    if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     '--aot',
     '-Ddart.vm.product=true',
-    ...(defines.map((d) => '-D${d}')),
+    ...(defines.map((d) => '-D$d')),
     if (packages != null) ...['--packages', packages],
     '-o',
     kernelFile,
@@ -73,7 +73,7 @@ Future generateAotSnapshot(
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
-    '--elf=${snapshotFile}',
+    '--elf=$snapshotFile',
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',

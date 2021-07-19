@@ -30,6 +30,7 @@ main() {
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
+    defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(SimpleIdentifierTest);
@@ -918,6 +919,19 @@ class NodeListTest {
 }
 
 @reflectiveTest
+class NormalFormalParameterTest extends ParserTestCase {
+  test_sortedCommentAndAnnotations_noComment() {
+    var result = parseString(content: '''
+void f(int i) {}
+''');
+    var function = result.unit.declarations[0] as FunctionDeclaration;
+    var parameters = function.functionExpression.parameters;
+    var parameter = parameters?.parameters[0] as NormalFormalParameter;
+    expect(parameter.sortedCommentAndAnnotations, isEmpty);
+  }
+}
+
+@reflectiveTest
 class PreviousTokenTest {
   static final String contents = '''
 class A {
@@ -1720,6 +1734,15 @@ class VariableDeclarationTest extends ParserTestCase {
     Comment comment = astFactory.documentationComment([]);
     decl.documentationComment = comment;
     expect(decl.documentationComment, isNotNull);
+  }
+
+  test_sortedCommentAndAnnotations_noComment() {
+    var result = parseString(content: '''
+int i = 0;
+''');
+    var variables = result.unit.declarations[0] as TopLevelVariableDeclaration;
+    var variable = variables.variables.variables[0];
+    expect(variable.sortedCommentAndAnnotations, isEmpty);
   }
 }
 

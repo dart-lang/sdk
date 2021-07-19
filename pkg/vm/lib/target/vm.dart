@@ -24,6 +24,8 @@ import '../transformations/lowering.dart' as lowering
 import '../transformations/ffi.dart' as ffiHelper show importsFfi;
 import '../transformations/ffi_definitions.dart' as transformFfiDefinitions
     show transformLibraries;
+import '../transformations/ffi_native.dart' as transformFfiNative
+    show transformLibraries;
 import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 
@@ -64,6 +66,10 @@ class VmTarget extends Target {
 
   @override
   bool get supportsNewMethodInvocationEncoding => true;
+
+  @override
+  int get enabledConstructorTearOffLowerings =>
+      flags.forceConstructorTearOffLoweringForTesting;
 
   @override
   String get name => 'vm';
@@ -157,6 +163,10 @@ class VmTarget extends Target {
     if (!ffiHelper.importsFfi(component, libraries)) {
       logger?.call("Skipped ffi transformation");
     } else {
+      // Transform @FfiNative(..) functions into ffi native call functions.
+      transformFfiNative.transformLibraries(
+          component, libraries, referenceFromIndex);
+      logger?.call("Transformed ffi natives");
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
       transformFfiDefinitions.transformLibraries(

@@ -161,7 +161,7 @@ Future<void> main() async {
 
     test('format', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync(['format', '-l80']);
+      final result = p.runSync(['format', '-l80', '.']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',

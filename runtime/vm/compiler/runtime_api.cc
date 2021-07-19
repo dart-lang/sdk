@@ -508,7 +508,7 @@ word Instance::ElementSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-      return kWordSize;
+      return kCompressedWordSize;
     case kTypeArgumentsCid:
       return kCompressedWordSize;
     case kOneByteStringCid:
@@ -1138,6 +1138,10 @@ word ExceptionHandlers::NextFieldOffset() {
 }
 
 word ContextScope::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word Sentinel::NextFieldOffset() {
   return -kWordSize;
 }
 

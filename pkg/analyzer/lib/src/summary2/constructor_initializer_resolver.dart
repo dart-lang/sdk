@@ -18,7 +18,7 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unitElement in _libraryElement.units) {
-      var classElements = [...unitElement.mixins, ...unitElement.types];
+      var classElements = [...unitElement.classes, ...unitElement.mixins];
       for (var classElement in classElements) {
         for (var constructorElement in classElement.constructors) {
           _constructor(

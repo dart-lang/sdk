@@ -11,6 +11,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+dart/boxmint_test: Pass, Slow # Uses slow path
 dart/data_uri_import_test/none: SkipByDesign
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
@@ -20,6 +21,7 @@ dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-g
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
+dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/data_uri_import_test/none: SkipByDesign
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
@@ -330,6 +332,9 @@ dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Do
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+cc/Dart_SetFfiNativeResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign
@@ -457,7 +462,6 @@ dart_2/isolates/thread_pool_test: Skip # Only AOT has lightweight enough isolate
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart/compilation_trace_test: Pass, Slow
 dart/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart/issue_31959_31960_test: SkipSlow
@@ -469,9 +473,7 @@ dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloa
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/splay_test: SkipSlow
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart/type_feedback_test: Pass, Slow
 dart_2/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
-dart_2/compilation_trace_test: Pass, Slow
 dart_2/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
 dart_2/isolates/spawn_function_test: Skip # This test explicitly enables isolate groups (off-by-default atm). It will be enabled once full IG reloading is implemented.
 dart_2/issue_31959_31960_test: SkipSlow
@@ -483,7 +485,6 @@ dart_2/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it rel
 dart_2/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart_2/splay_test: SkipSlow
 dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
-dart_2/type_feedback_test: Pass, Slow
 
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.

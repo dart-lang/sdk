@@ -223,6 +223,41 @@ void f() {
     expect(diagnostic.tags, contains(DiagnosticTag.Unnecessary));
   }
 
+  Future<void> test_documentationUrl() async {
+    newFile(mainFilePath, content: '''
+    // ignore: unused_import
+    import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize(
+        textDocumentCapabilities: withDiagnosticCodeDescriptionSupport(
+            emptyTextDocumentClientCapabilities));
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics!.first;
+    expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
+    expect(
+      diagnostic.codeDescription!.href,
+      equals('https://dart.dev/diagnostics/built_in_identifier_in_declaration'),
+    );
+  }
+
+  Future<void> test_documentationUrl_notSupported() async {
+    newFile(mainFilePath, content: '''
+    // ignore: unused_import
+    import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
+    ''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics!.first;
+    expect(diagnostic.code, equals('built_in_identifier_in_declaration'));
+    expect(diagnostic.codeDescription, isNull);
+  }
+
   Future<void> test_dotFilesExcluded() async {
     var dotFolderFilePath =
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');

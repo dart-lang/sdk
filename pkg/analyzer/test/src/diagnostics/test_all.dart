@@ -15,6 +15,7 @@ import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
+import 'analysis_options/test_all.dart' as analysis_options;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'annotation_syntax_test.dart' as annotation_syntax;
 import 'argument_must_be_a_constant_test.dart' as argument_must_be_a_constant;
@@ -109,6 +110,7 @@ import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
 import 'could_not_infer_test.dart' as could_not_infer;
+import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -210,6 +212,8 @@ import 'field_initializer_redirecting_constructor_test.dart'
     as field_initializer_redirecting_constructor;
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
+import 'field_must_be_external_in_struct_test.dart'
+    as field_must_be_external_in_struct;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
 import 'final_not_initialized_constructor_test.dart'
@@ -353,12 +357,16 @@ import 'invalid_use_of_internal_member_test.dart'
     as invalid_use_of_internal_member;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
+import 'invalid_use_of_visible_for_overriding_member_test.dart'
+    as invalid_use_of_visible_for_overriding_member;
 import 'invalid_use_of_visible_for_template_member_test.dart'
     as invalid_use_of_visible_for_template_member;
 import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
+import 'invalid_visible_for_overriding_annotation_test.dart'
+    as invalid_visible_for_overriding_annotation;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -496,6 +504,8 @@ import 'not_instantiated_bound_test.dart' as not_instantiated_bound;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
+import 'null_argument_to_non_null_type_test.dart'
+    as null_argument_to_non_null_type;
 import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
@@ -679,13 +689,13 @@ import 'unused_field_test.dart' as unused_field;
 import 'unused_import_test.dart' as unused_import;
 import 'unused_label_test.dart' as unused_label;
 import 'unused_local_variable_test.dart' as unused_local_variable;
+import 'unused_result_test.dart' as unused_result;
 import 'unused_shown_name_test.dart' as unused_shown_name;
 import 'uri_does_not_exist_test.dart' as uri_does_not_exist;
 import 'uri_with_interpolation_test.dart' as uri_with_interpolation;
 import 'use_of_native_extension_test.dart' as use_of_native_extension;
 import 'use_of_nullable_value_test.dart' as use_of_nullable_value_test;
 import 'use_of_void_result_test.dart' as use_of_void_result;
-import 'use_result_test.dart' as use_result;
 import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
@@ -712,6 +722,7 @@ main() {
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
+    analysis_options.main();
     annotation_on_pointer_field.main();
     annotation_syntax.main();
     argument_must_be_a_constant.main();
@@ -775,6 +786,7 @@ main() {
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
     could_not_infer.main();
+    creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();
@@ -843,6 +855,7 @@ main() {
     field_initializer_outside_constructor.main();
     field_initializer_redirecting_constructor.main();
     field_initializing_formal_not_assignable.main();
+    field_must_be_external_in_struct.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -935,9 +948,11 @@ main() {
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_internal_member.main();
     invalid_use_of_protected_member.main();
+    invalid_use_of_visible_for_overriding_member.main();
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
+    invalid_visible_for_overriding_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();
@@ -1031,6 +1046,7 @@ main() {
     not_iterable_spread.main();
     not_map_spread.main();
     not_null_aware_null_spread.main();
+    null_argument_to_non_null_type.main();
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
@@ -1160,13 +1176,13 @@ main() {
     unused_import.main();
     unused_label.main();
     unused_local_variable.main();
+    unused_result.main();
     unused_shown_name.main();
     uri_does_not_exist.main();
     uri_with_interpolation.main();
     use_of_native_extension.main();
     use_of_nullable_value_test.main();
     use_of_void_result.main();
-    use_result.main();
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();

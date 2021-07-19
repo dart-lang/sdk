@@ -13,18 +13,31 @@ extension E on A {
   dynamic operator+(dynamic other) => 42;
 }
 
-test(A a, E e) {
+extension type ET on A {
+  dynamic operator~/(dynamic other) => 42;
+}
+
+test(A a, E e, ET et) {
   a * "foobar"; // Ok.
   a[0]; // Ok.
   a[0] = "foobar"; // Ok.
   -a; // Ok.
   a + "foobar"; // Ok.
+  a ~/ "foobar"; // Error.
 
   e * "foobar"; // Error.
   e[0]; // Error.
   e[0] = "foobar"; // Error.
   -e; // Error.
   e + "foobar"; // Ok.
+  e ~/ "foobar"; // Error.
+
+  et * "foobar"; // Error.
+  et[0]; // Error.
+  et[0] = "foobar"; // Error.
+  -et; // Error.
+  et + "foobar"; // Error.
+  et ~/ "foobar"; // Ok.
 }
 
 main() {}

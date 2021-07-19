@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field (core::int) → core::int implicitInstantiation;
+static field (core::int) → core::int explicitInstantiation;
+static const field (core::int) → core::int implicitConstInstantiation = self::id<core::int>;
+static const field (core::int) → core::int explicitConstInstantiation = self::id<core::int>;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  ;
+static method create<T extends core::Object? = dynamic>() → (self::create::T%) → self::create::T%
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:9:54 -> InstantiationConstant(id<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///identical_instantiated_function_tearoffs.dart:10:38 -> InstantiationConstant(id<int*>)
+Extra constant evaluation: evaluated: 2, effectively constant: 2

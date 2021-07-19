@@ -26,7 +26,7 @@ class CreateSetterMixinTest extends FixProcessorTest {
 mixin M {
 }
 
-main(M m) {
+void f(M m) {
   m.test = 0;
 }
 ''');
@@ -35,7 +35,7 @@ mixin M {
   set test(int test) {}
 }
 
-main(M m) {
+void f(M m) {
   m.test = 0;
 }
 ''');
@@ -44,7 +44,7 @@ main(M m) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -53,7 +53,7 @@ mixin M {
 mixin M {
   set test(int test) {}
 
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -63,7 +63,7 @@ mixin M {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 mixin M {
-  main() {
+  void f() {
     test;
   }
 }
@@ -81,7 +81,7 @@ class CreateSetterTest extends FixProcessorTest {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   a.test;
 }
 ''');
@@ -92,7 +92,7 @@ main(A a) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.test = 0;
 }
@@ -101,7 +101,7 @@ main(A a) {
 class A {
   set test(int test) {}
 }
-main(A a) {
+void f(A a) {
   var x = a;
   x.test = 0;
 }
@@ -110,7 +110,7 @@ main(A a) {
 
   Future<void> test_inSDK() async {
     await resolveTestCode('''
-main(List p) {
+void f(List p) {
   p.foo = 0;
 }
 ''');
@@ -150,27 +150,27 @@ extension E on String {
   Future<void> test_location_afterLastAccessor() async {
     await resolveTestCode('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
     await assertHasFix('''
 class A {
-  int existingField;
+  int existingField = 0;
 
-  int get existingGetter => null;
+  int get existingGetter => 0;
 
   set test(int test) {}
 
   existingMethod() {}
 }
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -181,12 +181,12 @@ main(A a) {
 class A {
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   c.b.a.test = 0;
 }
 ''');
@@ -195,12 +195,12 @@ class A {
   set test(int test) {}
 }
 class B {
-  A a;
+  A a = A();
 }
 class C {
-  B b;
+  B b = B();
 }
-main(C c) {
+void f(C c) {
   c.b.a.test = 0;
 }
 ''');
@@ -211,7 +211,7 @@ main(C c) {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   E(s).test = '0';
 }
 ''');
@@ -220,7 +220,7 @@ extension E on String {
   set test(String test) {}
 }
 
-main(String s) {
+void f(String s) {
   E(s).test = '0';
 }
 ''');
@@ -230,7 +230,7 @@ main(String s) {
     await resolveTestCode('''
 class A {
 }
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -238,7 +238,7 @@ main(A a) {
 class A {
   set test(int test) {}
 }
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -259,7 +259,7 @@ class A {
     await resolveTestCode('''
 import 'package:test/other.dart';
 
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -280,7 +280,7 @@ class A {
   Future<void> test_qualified_instance_dynamicType() async {
     await resolveTestCode('''
 class A {
-  B b;
+  B b = B();
   void f(p) {
     b.test = p;
   }
@@ -290,7 +290,7 @@ class B {
 ''');
     await assertHasFix('''
 class A {
-  B b;
+  B b = B();
   void f(p) {
     b.test = p;
   }
@@ -311,7 +311,7 @@ class A {}
     await resolveTestCode('''
 import 'package:test/a.dart';
 
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -327,7 +327,7 @@ part of lib;
 class A {
 }
 
-main(A a) {
+void f(A a) {
   a.test = 0;
 }
 ''');
@@ -339,7 +339,7 @@ main(A a) {
 class A {
   A get self => this;
 }
-main() {
+void f() {
   var a = new A();
   a.self.test = 0;
 }
@@ -350,7 +350,7 @@ class A {
 
   set test(int test) {}
 }
-main() {
+void f() {
   var a = new A();
   a.self.test = 0;
 }
@@ -362,7 +362,7 @@ main() {
 extension E on String {
 }
 
-main(String s) {
+void f(String s) {
   E.test = 0;
 }
 ''');
@@ -371,7 +371,7 @@ extension E on String {
   static set test(int test) {}
 }
 
-main(String s) {
+void f(String s) {
   E.test = 0;
 }
 ''');
@@ -380,7 +380,7 @@ main(String s) {
   Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -389,7 +389,7 @@ class A {
 class A {
   set test(int test) {}
 
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -399,7 +399,7 @@ class A {
   Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
-  main() {
+  void f() {
     test;
   }
 }

@@ -1660,7 +1660,7 @@ class C {
   static int get _x => null;
 }
 ''');
-    var x = _resultUnitElement.types[0].fields[0];
+    var x = _resultUnitElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
@@ -1671,7 +1671,7 @@ class C {
 }
 int get y => null;
 ''');
-    var x = _resultUnitElement.types[0].fields[0];
+    var x = _resultUnitElement.classes[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 

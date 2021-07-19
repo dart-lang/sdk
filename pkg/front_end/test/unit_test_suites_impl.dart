@@ -17,6 +17,7 @@ import 'package:testing/src/run.dart' show runMe;
 import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
+import 'dartdoctest_suite.dart' as dartdoctest show createContext;
 import 'fasta/expression_suite.dart' as expression show createContext;
 import 'fasta/incremental_dartino_suite.dart' as incremental_dartino
     show createContext;
@@ -351,6 +352,12 @@ class Suite {
 }
 
 const List<Suite> suites = [
+  const Suite(
+    "dartdoctest",
+    dartdoctest.createContext,
+    "../testing.json",
+    shardCount: 1,
+  ),
   const Suite(
     "fasta/expression",
     expression.createContext,

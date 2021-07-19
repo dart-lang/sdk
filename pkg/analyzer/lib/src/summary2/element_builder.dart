@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -39,19 +38,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
 
-  bool get _isNonFunctionTypeAliasesEnabled {
-    return _libraryElement.featureSet.isEnabled(
-      Feature.nonfunction_type_aliases,
-    );
-  }
-
   LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
   Linker get _linker => _libraryBuilder.linker;
 
   void buildDeclarationElements(CompilationUnit unit) {
-    unit.declarations.accept(this);
+    _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
+    _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
@@ -60,7 +54,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         .whereType<TopLevelVariableElementImpl>()
         .toList();
     _unitElement.typeAliases = _enclosingContext.typeAliases;
-    _unitElement.types = _enclosingContext.classes;
   }
 
   /// Build exports and imports, metadata into [_libraryElement].
@@ -81,14 +74,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryElement.imports = _imports;
     _libraryElement.hasExtUri = _hasExtUri;
 
-    var firstDirective = unit.directives.firstOrNull;
-    if (firstDirective != null) {
-      _libraryElement.documentationComment = getCommentNodeRawText(
-        firstDirective.documentationComment,
-      );
-      var firstDirectiveMetadata = firstDirective.element?.metadata;
-      if (firstDirectiveMetadata != null) {
-        _libraryElement.metadata = firstDirectiveMetadata;
+    if (_isFirstLibraryDirective) {
+      _isFirstLibraryDirective = false;
+      var firstDirective = unit.directives.firstOrNull;
+      if (firstDirective != null) {
+        _libraryElement.documentationComment = getCommentNodeRawText(
+          firstDirective.documentationComment,
+        );
+        var firstDirectiveMetadata = firstDirective.element?.metadata;
+        if (firstDirectiveMetadata != null) {
+          _libraryElement.metadata = firstDirectiveMetadata;
+        }
       }
     }
   }
@@ -276,6 +272,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var enclosingRef = _enclosingContext.reference;
 
+    var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
       var nameNode = variable.name as SimpleIdentifierImpl;
       var name = nameNode.name;
@@ -297,7 +294,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isFinal = node.fields.isFinal;
       element.isLate = node.fields.isLate;
       element.isStatic = node.isStatic;
-      element.metadata = _buildAnnotations(node.metadata);
+      element.metadata = metadata;
       _setCodeRange(element, variable);
       _setDocumentation(element, node);
 
@@ -444,8 +441,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    // ignore: deprecated_member_use_from_same_package
-    var element = FunctionTypeAliasElementImpl(name, nameNode.offset);
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -548,15 +544,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    TypeAliasElementImpl element;
-    var aliasedType = node.type;
-    if (aliasedType is GenericFunctionType ||
-        !_isNonFunctionTypeAliasesEnabled) {
-      // ignore: deprecated_member_use_from_same_package
-      element = FunctionTypeAliasElementImpl(name, nameNode.offset);
-    } else {
-      element = TypeAliasElementImpl(name, nameNode.offset);
-    }
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -625,6 +613,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
       node.element = _libraryElement;
+      _libraryElement.documentationComment = getCommentNodeRawText(
+        node.documentationComment,
+      );
       _libraryElement.metadata = _buildAnnotations(node.metadata);
     }
   }
@@ -767,7 +758,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     element.hasImplicitType = node.type == null;
-    element.isConst = node.isConst;
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
@@ -786,6 +776,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var enclosingRef = _enclosingContext.reference;
 
+    var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.variables.variables) {
       var nameNode = variable.name as SimpleIdentifierImpl;
       var name = nameNode.name;
@@ -803,7 +794,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isExternal = node.externalKeyword != null;
       element.isFinal = node.variables.isFinal;
       element.isLate = node.variables.isLate;
-      element.metadata = _buildAnnotations(node.metadata);
+      element.metadata = metadata;
       _setCodeRange(element, variable);
       _setDocumentation(element, node);
 
@@ -884,7 +875,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
-      members.accept(this);
+      _visitPropertyFirst<FieldDeclaration>(members);
     });
     return holder;
   }
@@ -1020,6 +1011,25 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var fields = node.fields;
     return fields.isConst ||
         fields.isFinal && _enclosingContext.hasConstConstructor;
+  }
+
+  void _visitPropertyFirst<T extends AstNode>(List<AstNode> nodes) {
+    // When loading from bytes, we read fields first.
+    // There is no particular reason for this - we just have to store
+    // either non-synthetic fields first, or non-synthetic property
+    // accessors first. And we arbitrary decided to store fields first.
+    for (var node in nodes) {
+      if (node is T) {
+        node.accept(this);
+      }
+    }
+
+    // ...then we load non-synthetic accessors.
+    for (var node in nodes) {
+      if (node is! T) {
+        node.accept(this);
+      }
+    }
   }
 
   /// Make the given [context] be the current one while running [f].

@@ -28,15 +28,15 @@ class DefaultValueResolver {
     for (var unit in _libraryElement.units) {
       _unitElement = unit as CompilationUnitElementImpl;
 
+      for (var classElement in unit.classes) {
+        _class(classElement);
+      }
+
       for (var extensionElement in unit.extensions) {
         _extension(extensionElement);
       }
 
       for (var classElement in unit.mixins) {
-        _class(classElement);
-      }
-
-      for (var classElement in unit.types) {
         _class(classElement);
       }
 

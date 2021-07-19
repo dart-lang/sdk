@@ -5,6 +5,7 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
+AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
@@ -434,6 +435,9 @@ InitializerForStaticField/example: Fail
 InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
+InstantiationNonGenericFunctionType/analyzerCode: Fail
+InstantiationTooFewArguments/analyzerCode: Fail
+InstantiationTooManyArguments/analyzerCode: Fail
 IntegerLiteralIsOutOfRange/example: Fail
 InterfaceCheck/analyzerCode: Fail
 InterfaceCheck/example: Fail

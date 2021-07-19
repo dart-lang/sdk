@@ -15,7 +15,7 @@ import 'package:nnbd_migration/src/variables.dart';
 /// For instance, if one class is a subclass of the other, we record the
 /// nullabilities of all the types involved in the subclass relationship.
 class DecoratedClassHierarchy {
-  final Variables _variables;
+  final Variables? _variables;
 
   final NullabilityGraph _graph;
 
@@ -30,12 +30,12 @@ class DecoratedClassHierarchy {
   ///
   /// If the [type] is a [TypeParameterType], it will be resolved against its
   /// bound.
-  DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+  DecoratedType asInstanceOf(DecoratedType type, ClassElement? superclass) {
     type = _getInterfaceType(type);
     var typeType = type.type as InterfaceType;
     var class_ = typeType.element;
     if (class_ == superclass) return type;
-    var result = getDecoratedSupertype(class_, superclass);
+    var result = getDecoratedSupertype(class_, superclass!);
     if (result.typeArguments.isNotEmpty && type.typeArguments.isNotEmpty) {
       // TODO(paulberry): test
       result = result.substitute(type.asSubstitution);
@@ -77,14 +77,14 @@ class DecoratedClassHierarchy {
       // superclasses relates to all of its transitive superclasses.
       decorations = {};
       var decoratedDirectSupertypes =
-          _variables.decoratedDirectSupertypes(class_);
+          _variables!.decoratedDirectSupertypes(class_);
       for (var entry in decoratedDirectSupertypes.entries) {
         var superclass = entry.key;
-        var decoratedSupertype = entry.value;
+        var decoratedSupertype = entry.value!;
         var supertype = decoratedSupertype.type as InterfaceType;
         // Compute a type substitution to determine how [class_] relates to
         // this specific [superclass].
-        Map<TypeParameterElement, DecoratedType> substitution = {};
+        Map<TypeParameterElement, DecoratedType?> substitution = {};
         for (int i = 0; i < supertype.typeArguments.length; i++) {
           substitution[supertype.element.typeParameters[i]] =
               decoratedSupertype.typeArguments[i];
@@ -114,7 +114,7 @@ class DecoratedClassHierarchy {
 
     if (typeType is TypeParameterType) {
       final innerType = _getInterfaceType(
-          _variables.decoratedTypeParameterBound(typeType.element));
+          _variables!.decoratedTypeParameterBound(typeType.element)!);
       return type.substitute({typeType.element: innerType});
     }
 

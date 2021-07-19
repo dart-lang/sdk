@@ -235,7 +235,7 @@ int b = a;
   }
 
   test_analysisOptions_file_inPackage() async {
-    newFile('/workspace/dart/test/analysis_options.yaml', content: r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/test', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: false
@@ -257,8 +257,7 @@ analyzer:
     implicit-casts: false
 ''');
 
-    newFile('/workspace/thid_party/dart/aaa/analysis_options.yaml',
-        content: r'''
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart/aaa', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: true
@@ -281,7 +280,7 @@ analyzer:
     implicit-casts: false
 ''');
 
-    newFile('/workspace/thid_party/dart_lang/aaa/analysis_options.yaml',
+    newAnalysisOptionsYamlFile('/workspace/third_party/dart_lang/aaa',
         content: r'''
 analyzer:
   strong-mode:
@@ -729,14 +728,14 @@ class A {}
     var element = fileResolver.getLibraryByUri(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.types, hasLength(1));
+    expect(element.definingCompilationUnit.classes, hasLength(1));
   }
 
   test_getLibraryByUri_notExistingFile() {
     var element = fileResolver.getLibraryByUri(
       uriStr: 'package:dart.my/a.dart',
     );
-    expect(element.definingCompilationUnit.types, isEmpty);
+    expect(element.definingCompilationUnit.classes, isEmpty);
   }
 
   test_getLibraryByUri_partOf() {
@@ -836,7 +835,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').staticElement!;
-      expect(element.nameOffset, 4);
+      expect(element.nonSynthetic.nameOffset, 4);
     }
 
     // New resolver.
@@ -845,7 +844,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').staticElement!;
-      expect(element.nameOffset, 4);
+      expect(element.nonSynthetic.nameOffset, 4);
     }
   }
 
@@ -1114,14 +1113,14 @@ int b = a;
 
   test_reuse_incompatibleOptions_implicitCasts() async {
     newFile('/workspace/dart/aaa/BUILD', content: '');
-    newFile('/workspace/dart/aaa/analysis_options.yaml', content: r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/aaa', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: false
 ''');
 
     newFile('/workspace/dart/bbb/BUILD', content: '');
-    newFile('/workspace/dart/bbb/analysis_options.yaml', content: r'''
+    newAnalysisOptionsYamlFile('/workspace/dart/bbb', content: r'''
 analyzer:
   strong-mode:
     implicit-casts: true

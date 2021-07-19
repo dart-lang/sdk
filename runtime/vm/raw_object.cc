@@ -271,7 +271,7 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     do {
       OS::Sleep(1);
       const ArrayPtr raw_array = static_cast<const ArrayPtr>(this);
-      intptr_t array_length = Smi::Value(raw_array->untag()->length_);
+      intptr_t array_length = Smi::Value(raw_array->untag()->length());
       instance_size = Array::InstanceSize(array_length);
     } while ((instance_size > tags_size) && (--retries_remaining > 0));
   }
@@ -396,30 +396,30 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
-                            << kWordSizeLog2;
+                            << kCompressedWordSizeLog2;
   ASSERT(next_field_offset > 0);
   uword obj_addr = UntaggedObject::ToAddr(this);
   uword from = obj_addr + sizeof(UntaggedObject);
-  uword to = obj_addr + next_field_offset - kWordSize;
-  const auto first = reinterpret_cast<ObjectPtr*>(from);
-  const auto last = reinterpret_cast<ObjectPtr*>(to);
+  uword to = obj_addr + next_field_offset - kCompressedWordSize;
+  const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+  const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
       visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
   if (!unboxed_fields_bitmap.IsEmpty()) {
-    intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-    for (ObjectPtr* current = first; current <= last; current++) {
+    intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
       if (!unboxed_fields_bitmap.Get(bit++)) {
-        visitor->VisitPointer(current);
+        visitor->VisitCompressedPointers(heap_base(), current, current);
       }
     }
   } else {
-    visitor->VisitPointers(first, last);
+    visitor->VisitCompressedPointers(heap_base(), first, last);
   }
 #else
-  visitor->VisitPointers(first, last);
+  visitor->VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
@@ -547,7 +547,7 @@ COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(TypeRef)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
-REGULAR_VISITOR(Closure)
+COMPRESSED_VISITOR(Closure)
 COMPRESSED_VISITOR(LibraryPrefix)
 REGULAR_VISITOR(SingleTargetCache)
 REGULAR_VISITOR(UnlinkedCall)
@@ -560,14 +560,14 @@ COMPRESSED_VISITOR(UnhandledException)
 COMPRESSED_VISITOR(UnwindError)
 COMPRESSED_VISITOR(ExternalOneByteString)
 COMPRESSED_VISITOR(ExternalTwoByteString)
-REGULAR_VISITOR(GrowableObjectArray)
-REGULAR_VISITOR(LinkedHashMap)
+COMPRESSED_VISITOR(GrowableObjectArray)
+COMPRESSED_VISITOR(LinkedHashMap)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 COMPRESSED_VISITOR(ReceivePort)
 COMPRESSED_VISITOR(StackTrace)
 COMPRESSED_VISITOR(RegExp)
-REGULAR_VISITOR(WeakProperty)
+COMPRESSED_VISITOR(WeakProperty)
 COMPRESSED_VISITOR(MirrorReference)
 COMPRESSED_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
@@ -578,12 +578,13 @@ VARIABLE_COMPRESSED_VISITOR(TypeArguments,
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries_)
 VARIABLE_VISITOR(Context, raw_obj->untag()->num_variables_)
-VARIABLE_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
+VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
+NULL_VISITOR(Sentinel)
 VARIABLE_VISITOR(InstructionsTable, raw_obj->untag()->length_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
@@ -712,9 +713,10 @@ intptr_t UntaggedInstance::VisitInstancePointers(
   // Calculate the first and last raw object pointer fields.
   uword obj_addr = UntaggedObject::ToAddr(raw_obj);
   uword from = obj_addr + sizeof(UntaggedObject);
-  uword to = obj_addr + instance_size - kWordSize;
-  visitor->VisitPointers(reinterpret_cast<ObjectPtr*>(from),
-                         reinterpret_cast<ObjectPtr*>(to));
+  uword to = obj_addr + instance_size - kCompressedWordSize;
+  visitor->VisitCompressedPointers(raw_obj->heap_base(),
+                                   reinterpret_cast<CompressedObjectPtr*>(from),
+                                   reinterpret_cast<CompressedObjectPtr*>(to));
   return instance_size;
 }
 

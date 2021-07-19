@@ -178,6 +178,7 @@ part "comparable.dart";
 part "date_time.dart";
 part "double.dart";
 part "duration.dart";
+part "enum.dart";
 part "errors.dart";
 part "exceptions.dart";
 part "expando.dart";

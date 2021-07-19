@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "issue46518_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue46518_lib.dart";
+
+static method main() → void {
+  iss::checkOptedIn(#C1);
+}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+typedef NullableIntF = () → core::int?;
+static method _check(core::Type t1, core::Type t2) → void {
+  core::print("Opted in: identical(${t1}, ${t2}) == ${core::identical(t1, t2)}");
+  core::print("Opted in: (${t1} == ${t2}) == ${t1 =={core::Type::==}{(core::Object) → core::bool} t2}");
+}
+static method checkOptedIn(core::Type t) → void {
+  iss::_check(t, #C1);
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(() →* core::int?)
+}

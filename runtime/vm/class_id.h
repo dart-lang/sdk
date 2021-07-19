@@ -42,6 +42,7 @@ typedef uint16_t ClassIdTagType;
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(Sentinel)                                                                  \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(MonomorphicSmiableCall)                                                    \

@@ -5631,7 +5631,7 @@ TEST_CASE(DartAPI_SetField_CheckIsolate) {
 
 TEST_CASE(DartAPI_New) {
   const char* kScriptChars =
-      "class MyClass {\n"
+      "class MyClass implements MyExtraHop {\n"
       "  MyClass() : foo = 7 {}\n"
       "  MyClass.named(value) : foo = value {}\n"
       "  MyClass._hidden(value) : foo = -value {}\n"
@@ -5644,7 +5644,7 @@ TEST_CASE(DartAPI_New) {
       "  var foo;\n"
       "}\n"
       "\n"
-      "abstract class MyExtraHop {\n"
+      "abstract class MyExtraHop implements MyInterface {\n"
       "  factory MyExtraHop.hop(value) = MyClass.named;\n"
       "}\n"
       "\n"
@@ -5841,26 +5841,6 @@ TEST_CASE(DartAPI_New) {
   result = Dart_New(type, NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
 
-  // Invoke two-hop redirecting factory constructor.
-  result = Dart_New(intf, NewString("named"), 1, args);
-  EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
-  EXPECT(instanceOf);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(11, int_value);
-
-  // Invoke one-hop redirecting factory constructor.
-  result = Dart_New(intf, NewString("multiply"), 1, args);
-  EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
-  EXPECT(instanceOf);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(1100, int_value);
-
   // Invoke a constructor that is missing in the interface.
   result = Dart_New(intf, Dart_Null(), 0, NULL);
   EXPECT_ERROR(result, "Dart_New: could not find constructor 'MyInterface.'.");
@@ -5870,6 +5850,71 @@ TEST_CASE(DartAPI_New) {
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
   EXPECT(!instanceOf);
+}
+
+// These two cases below currently fail because of issue
+// https://github.com/dart-lang/sdk/issues/42939
+TEST_CASE(DartAPI_New_Issue42939) {
+  const char* kScriptChars =
+      "class MyClass implements MyExtraHop {\n"
+      "  MyClass() : foo = 7 {}\n"
+      "  MyClass.named(value) : foo = value {}\n"
+      "  MyClass._hidden(value) : foo = -value {}\n"
+      "  MyClass.exception(value) : foo = value {\n"
+      "    throw 'ConstructorDeath';\n"
+      "  }\n"
+      "  factory MyClass.multiply(value) {\n"
+      "    return new MyClass.named(value * 100);\n"
+      "  }\n"
+      "  var foo;\n"
+      "}\n"
+      "\n"
+      "abstract class MyExtraHop implements MyInterface {\n"
+      "  factory MyExtraHop.hop(value) = MyClass.named;\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface {\n"
+      "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
+      "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
+      "  MyInterface.notfound(value);\n"
+      "}\n"
+      "\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle type =
+      Dart_GetNonNullableType(lib, NewString("MyClass"), 0, NULL);
+  EXPECT_VALID(type);
+  Dart_Handle intf =
+      Dart_GetNonNullableType(lib, NewString("MyInterface"), 0, NULL);
+  EXPECT_VALID(intf);
+
+  Dart_Handle args[1];
+  args[0] = Dart_NewInteger(11);
+
+  // Invoke two-hop redirecting factory constructor.
+  bool instanceOf = false;
+  Dart_Handle result = Dart_New(intf, NewString("named"), 1, args);
+  EXPECT_VALID(result);
+  if (!Dart_IsError(result)) {
+    EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
+    EXPECT(instanceOf);
+    int64_t int_value = 0;
+    Dart_Handle foo = Dart_GetField(result, NewString("foo"));
+    EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+    EXPECT_EQ(11, int_value);
+  }
+
+  // Invoke one-hop redirecting factory constructor.
+  result = Dart_New(intf, NewString("multiply"), 1, args);
+  EXPECT_VALID(result);
+  if (!Dart_IsError(result)) {
+    EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
+    EXPECT(instanceOf);
+    int64_t int_value = 0;
+    Dart_Handle foo = Dart_GetField(result, NewString("foo"));
+    EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+    EXPECT_EQ(1100, int_value);
+  }
 }
 
 TEST_CASE(DartAPI_New_Issue44205) {
@@ -9246,6 +9291,122 @@ TEST_CASE(DartAPI_InvokeVMServiceMethod) {
   Dart_Handle result = Dart_Invoke(lib, NewString("validateResult"), 1, &bytes);
   EXPECT(Dart_IsBoolean(result));
   EXPECT(result == Dart_True());
+}
+
+static intptr_t EchoInt(double x) {
+  return x;
+}
+
+static void* FfiNativeResolver(const char* name) {
+  ASSERT(strcmp(name, "EchoInt") == 0);
+  return reinterpret_cast<void*>(EchoInt);
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    external int echoInt(double x);
+    main() => echoInt(7.0);
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_SetFfiNativeResolver(lib, &FfiNativeResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_VALID(result);
+
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(7, value);
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    external int echoInt(double x);
+    main() => echoInt(7.0);
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_ERROR(
+      result,
+      "Invalid argument(s): Library has no handler: 'file:///test-lib'.");
+}
+
+static void* NopResolver(const char* name) {
+  return nullptr;
+}
+
+TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
+  const char* kScriptChars = R"(
+    import 'dart:ffi';
+    @FfiNative<Void Function()>('DoesNotResolve')
+    external void doesNotResolve();
+    main() => doesNotResolve();
+    )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle result = Dart_SetFfiNativeResolver(lib, &NopResolver);
+  EXPECT_VALID(result);
+
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_ERROR(
+      result,
+      "Invalid argument(s): Couldn't resolve function: 'DoesNotResolve'");
+}
+
+TEST_CASE(DartAPI_UserTags) {
+  Dart_Handle default_tag = Dart_GetDefaultUserTag();
+  EXPECT_VALID(default_tag);
+
+  auto default_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(default_tag), std::free);
+  EXPECT_STREQ(default_label.get(), "Default");
+
+  Dart_Handle current_tag = Dart_GetCurrentUserTag();
+  EXPECT(Dart_IdentityEquals(default_tag, current_tag));
+
+  auto current_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(current_tag), std::free);
+  EXPECT_STREQ(default_label.get(), current_label.get());
+
+  Dart_Handle new_tag = Dart_NewUserTag("Foo");
+  EXPECT_VALID(new_tag);
+
+  auto new_tag_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(new_tag), std::free);
+  EXPECT_STREQ(new_tag_label.get(), "Foo");
+
+  Dart_Handle old_tag = Dart_SetCurrentUserTag(new_tag);
+  EXPECT_VALID(old_tag);
+
+  auto old_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(old_tag), std::free);
+  EXPECT_STREQ(old_label.get(), default_label.get());
+
+  current_tag = Dart_GetCurrentUserTag();
+  EXPECT(Dart_IdentityEquals(new_tag, current_tag));
+
+  current_label =
+      Utils::CStringUniquePtr(Dart_GetUserTagLabel(current_tag), std::free);
+  EXPECT_STREQ(current_label.get(), new_tag_label.get());
+
+  EXPECT(Dart_GetUserTagLabel(Dart_Null()) == nullptr);
+
+  EXPECT_ERROR(Dart_NewUserTag(nullptr),
+               "Dart_NewUserTag expects argument 'label' to be non-null");
+
+  EXPECT_ERROR(
+      Dart_SetCurrentUserTag(Dart_Null()),
+      "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
 }
 
 #endif  // !PRODUCT

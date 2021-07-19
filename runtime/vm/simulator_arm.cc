@@ -134,7 +134,7 @@ void SimulatorDebugger::Stop(Instr* instr, const char* message) {
 }
 
 static Register LookupCpuRegisterByName(const char* name) {
-  static const char* kNames[] = {
+  static const char* const kNames[] = {
       "r0",  "r1",  "r2",  "r3",  "r4",  "r5", "r6", "r7", "r8", "r9", "r10",
       "r11", "r12", "r13", "r14", "r15", "pc", "lr", "sp", "ip", "fp", "pp"};
   static const Register kRegisters[] = {R0, R1, R2,  R3,  R4,  R5,  R6,  R7,
@@ -2223,7 +2223,7 @@ void Simulator::DoDivision(Instr* instr) {
     return;
   }
 
-  if (instr->Bit(21) == 1) {
+  if (instr->IsDivUnsigned()) {
     // unsigned division.
     uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
     uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
@@ -2245,14 +2245,34 @@ void Simulator::DoDivision(Instr* instr) {
 }
 
 void Simulator::DecodeType3(Instr* instr) {
-  if (instr->IsDivision()) {
-    DoDivision(instr);
-    return;
-  } else if (instr->IsRbit()) {
-    // Format(instr, "rbit'cond 'rd, 'rm");
-    Register rm = instr->RmField();
-    Register rd = instr->RdField();
-    set_register(rd, Utils::ReverseBits32(get_register(rm)));
+  if (instr->IsMedia()) {
+    if (instr->IsDivision()) {
+      DoDivision(instr);
+      return;
+    } else if (instr->IsRbit()) {
+      // Format(instr, "rbit'cond 'rd, 'rm");
+      Register rm = instr->RmField();
+      Register rd = instr->RdField();
+      set_register(rd, Utils::ReverseBits32(get_register(rm)));
+      return;
+    } else if (instr->IsBitFieldExtract()) {
+      // Format(instr, "sbfx'cond 'rd, 'rn, 'lsb, 'width")
+      const Register rd = instr->RdField();
+      const Register rn = instr->BitFieldExtractRnField();
+      const uint8_t width = instr->BitFieldExtractWidthField() + 1;
+      const uint8_t lsb = instr->BitFieldExtractLSBField();
+      const int32_t rn_val = get_register(rn);
+      const uint32_t extracted_bitfield =
+          ((rn_val >> lsb) & Utils::NBitMask(width));
+      const uint32_t sign_extension =
+          (instr->IsBitFieldExtractSignExtended() &&
+           Utils::TestBit(extracted_bitfield, width - 1))
+              ? ~Utils::NBitMask(width)
+              : 0;
+      set_register(rd, sign_extension | extracted_bitfield);
+    } else {
+      UNREACHABLE();
+    }
     return;
   }
   Register rd = instr->RdField();
@@ -3534,7 +3554,7 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r6_val = get_register(R6);
   int32_t r7_val = get_register(R7);
   int32_t r8_val = get_register(R8);
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   int32_t r9_val = get_register(R9);
 #endif
   int32_t r10_val = get_register(R10);
@@ -3568,7 +3588,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, callee_saved_value);
   set_register(R7, callee_saved_value);
   set_register(R8, callee_saved_value);
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   set_register(R9, callee_saved_value);
 #endif
   set_register(R10, callee_saved_value);
@@ -3596,7 +3616,7 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R6));
   ASSERT(callee_saved_value == get_register(R7));
   ASSERT(callee_saved_value == get_register(R8));
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   ASSERT(callee_saved_value == get_register(R9));
 #endif
   ASSERT(callee_saved_value == get_register(R10));
@@ -3619,7 +3639,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, r6_val);
   set_register(R7, r7_val);
   set_register(R8, r8_val);
-#if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
   set_register(R9, r9_val);
 #endif
   set_register(R10, r10_val);

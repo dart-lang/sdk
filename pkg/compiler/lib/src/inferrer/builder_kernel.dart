@@ -1548,6 +1548,29 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     Selector selector = _elementMap.getSelector(node);
     if (_closedWorld.commonElements.isForeign(member)) {
       return handleForeignInvoke(node, member, arguments, selector);
+    } else if (!_options.useLegacySubtyping &&
+        _closedWorld.commonElements.isCreateSentinel(member)) {
+      // TODO(fishythefish): Support this for --no-sound-null-safety too.
+      // `T createSentinel<T>()` ostensibly returns a `T` based on its static
+      // type. However, we need to handle this specially for a couple of
+      // reasons:
+      // 1. We do not currently handle type arguments during type inference and
+      //    in the abstract value domain. Without additional tracing, this means
+      //    that we lose all call-site sensitivity and `createSentinel` is seen
+      //    as returning `Object?`, which widens the inferred types of late
+      //    fields, resulting in poor codegen.
+      // 2. The sentinel isn't a real Dart value and doesn't really inhabit any
+      //    Dart type. Nevertheless, we must view it as inhabiting every Dart
+      //    type for the signature of `createSentinel` to make sense, making it
+      //    a bottom value (similar to an expression of type `Never`).  This
+      //    matches the expectation that reading an uninitialized late field
+      //    (that is, one initialized with the sentinel value) throws.
+      // Note that this currently breaks if `--experiment-unreachable-throw` is
+      // used. We'll be able to do something more precise here when more of the
+      // lowering is deferred to SSA and the abstract value domain can better
+      // track sentinel values.
+      handleStaticInvoke(node, selector, member, arguments);
+      return _types.nonNullEmptyType;
     } else if (member.isConstructor) {
       return handleConstructorInvoke(
           node, node.arguments, selector, member, arguments);
@@ -2284,14 +2307,13 @@ class TypeInformationConstantVisitor
   }
 
   @override
-  TypeInformation visitPartialInstantiationConstant(
-      ir.PartialInstantiationConstant node) {
+  TypeInformation visitInstantiationConstant(ir.InstantiationConstant node) {
     return builder.createInstantiationTypeInformation(
         visitConstant(node.tearOffConstant));
   }
 
   @override
-  TypeInformation visitTearOffConstant(ir.TearOffConstant node) {
+  TypeInformation visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
     return builder.createStaticGetTypeInformation(node, node.procedure);
   }
 

@@ -390,17 +390,7 @@ abstract class _StringBase implements String {
   }
 
   String substring(int startIndex, [int? endIndex]) {
-    endIndex ??= this.length;
-
-    if ((startIndex < 0) || (startIndex > this.length)) {
-      throw new RangeError.value(startIndex);
-    }
-    if ((endIndex < 0) || (endIndex > this.length)) {
-      throw new RangeError.value(endIndex);
-    }
-    if (startIndex > endIndex) {
-      throw new RangeError.value(startIndex);
-    }
+    endIndex = RangeError.checkValidRange(startIndex, endIndex, this.length);
     return _substringUnchecked(startIndex, endIndex);
   }
 
@@ -846,6 +836,7 @@ abstract class _StringBase implements String {
    */
   @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
+  @pragma("vm:never-inline")
   static String _interpolate(final List values) {
     final numValues = values.length;
     int totalLength = 0;
@@ -985,8 +976,19 @@ class _OneByteString extends _StringBase {
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 
-  List<String> _splitWithCharCode(int charCode)
-      native "OneByteString_splitWithCharCode";
+  List<String> _splitWithCharCode(int charCode) {
+    final parts = <String>[];
+    int i = 0;
+    int start = 0;
+    for (i = 0; i < this.length; ++i) {
+      if (this.codeUnitAt(i) == charCode) {
+        parts.add(this._substringUnchecked(start, i));
+        start = i + 1;
+      }
+    }
+    parts.add(this._substringUnchecked(start, i));
+    return parts;
+  }
 
   List<String> split(Pattern pattern) {
     // TODO(vegorov) investigate if this can be rewritten as `is _OneByteString`

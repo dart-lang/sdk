@@ -748,9 +748,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExtensionDeclaration(
-      Token extensionKeyword, Token onKeyword, Token token) {
-    super.endExtensionDeclaration(extensionKeyword, onKeyword, token);
+  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
+      Token onKeyword, Token token) {
+    super.endExtensionDeclaration(
+        extensionKeyword, typeKeyword, onKeyword, token);
     end('ExtensionDeclaration');
   }
 

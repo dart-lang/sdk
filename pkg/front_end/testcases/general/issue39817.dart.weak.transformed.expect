@@ -5,9 +5,9 @@ import "dart:core" as core;
 static method foo() → dynamic {
   Null _null;
   {
-    core::Iterator<invalid-type>* :sync-for-iterator = _null.{core::Iterable::iterator};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      dynamic i = :sync-for-iterator.{core::Iterator::current};
+    core::Iterator<invalid-type>* :sync-for-iterator = _null.{core::Iterable::iterator}{core::Iterator<invalid-type>*};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic i = :sync-for-iterator.{core::Iterator::current}{invalid-type};
       {}
     }
   }

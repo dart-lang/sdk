@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToContainsBulkTest);
     defineReflectiveTests(ConvertToContainsTest);
   });
+}
+
+@reflectiveTest
+class ConvertToContainsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_contains;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+bool f(List<int> list, int value) {
+  return -1 != list.indexOf(value);
+}
+
+bool f2(List<int> list, int value) {
+  return 0 > list.indexOf(value);
+}
+''');
+    await assertHasFix('''
+bool f(List<int> list, int value) {
+  return list.contains(value);
+}
+
+bool f2(List<int> list, int value) {
+  return !list.contains(value);
+}
+''');
+  }
 }
 
 @reflectiveTest

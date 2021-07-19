@@ -93,6 +93,28 @@ dynamic<int> v;
     ]);
   }
 
+  test_functionReference_tooFew() async {
+    await assertErrorsInCode('''
+f(void Function<T, U>() foo) {
+  foo<int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 36, 5),
+    ]);
+  }
+
+  test_functionReference_tooMany() async {
+    await assertErrorsInCode('''
+f(void Function<T>() foo) {
+  foo<int, int>;
+}
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 10),
+    ]);
+  }
+
   test_metadata_1of0() async {
     await assertErrorsInCode(r'''
 class A {

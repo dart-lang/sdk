@@ -11,6 +11,8 @@ general/error_recovery/issue_39058.crash: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
 dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 
+constructor_tearoffs/instantiation: TypeCheckError
+constructor_tearoffs/redirecting_constructors: RuntimeError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.
@@ -26,6 +28,7 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.
+general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/call: TypeCheckError

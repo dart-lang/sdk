@@ -29,12 +29,7 @@ DEFINE_NATIVE_ENTRY(UserTag_label, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(UserTag_makeCurrent, 0, 1) {
   const UserTag& self = UserTag::CheckedHandle(zone, arguments->NativeArgAt(0));
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("UserTag_makeCurrent: %s\n", self.ToCString());
-  }
-  const UserTag& old = UserTag::Handle(zone, isolate->current_tag());
-  self.MakeActive();
-  return old.ptr();
+  return self.MakeActive();
 }
 
 DEFINE_NATIVE_ENTRY(UserTag_defaultTag, 0, 0) {

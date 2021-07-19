@@ -38,3 +38,4 @@ constants  {
 Constructor coverage from constants:
 org-dartlang-testcase:///external_import.dart:
 - ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:92:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

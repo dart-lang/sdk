@@ -27,13 +27,6 @@ def BuildOptions():
         help="kind of snapshot to generate",
         default="core")
     result.add_option(
-        "--load_compilation_trace",
-        action="store",
-        type="string",
-        help=
-        "path to a compilation trace to load before generating a core-jit snapshot"
-    )
-    result.add_option(
         "--vm_flag",
         action="append",
         type="string",
@@ -138,10 +131,6 @@ def Main():
 
     for flag in options.vm_flag:
         script_args.append(flag)
-
-    if options.load_compilation_trace:
-        script_args.append(''.join(
-            ["--load_compilation_trace=", options.load_compilation_trace]))
 
     # Pass along the packages if there is one.
     if options.packages:

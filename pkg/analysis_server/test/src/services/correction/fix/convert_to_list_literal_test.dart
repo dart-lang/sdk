@@ -11,8 +11,26 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToListLiteralBulkTest);
     defineReflectiveTests(ConvertToListLiteralTest);
   });
+}
+
+@reflectiveTest
+class ConvertToListLiteralBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_collection_literals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+List l = List();
+var l2 = List<int>();
+''');
+    await assertHasFix('''
+List l = [];
+var l2 = <int>[];
+''');
+  }
 }
 
 @reflectiveTest
@@ -22,6 +40,9 @@ class ConvertToListLiteralTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.prefer_collection_literals;
+
+  @override
+  String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_default_declaredType() async {
     await resolveTestCode('''

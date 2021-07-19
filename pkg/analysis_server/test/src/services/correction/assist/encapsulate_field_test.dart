@@ -24,7 +24,7 @@ class EncapsulateFieldTest extends AssistProcessorTest {
 class A {
   int _test = 42;
 }
-main(A a) {
+void f(A a) {
   print(a._test);
 }
 ''');
@@ -36,14 +36,14 @@ main(A a) {
 class A {
   /// AAA
   /// BBB
-  int test;
+  int test = 0;
 }
 ''');
-    await assertHasAssistAt('test;', '''
+    await assertHasAssistAt('test', '''
 class A {
   /// AAA
   /// BBB
-  int _test;
+  int _test = 0;
 
   /// AAA
   /// BBB
@@ -83,7 +83,7 @@ class A {
   int test = 42;
   A(this.test);
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');
@@ -98,7 +98,7 @@ class A {
   }
   A(this._test);
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');
@@ -126,13 +126,13 @@ mixin M {
   Future<void> test_multipleFields() async {
     await resolveTestCode('''
 class A {
-  int aaa, bbb, ccc;
+  int aaa = 0, bbb = 0, ccc = 0;
 }
-main(A a) {
+void f(A a) {
   print(a.bbb);
 }
 ''');
-    await assertNoAssistAt('bbb, ');
+    await assertNoAssistAt('bbb ');
   }
 
   Future<void> test_notOnName() async {
@@ -149,7 +149,7 @@ class A {
 class A {
   var test = 42;
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');
@@ -163,7 +163,7 @@ class A {
     _test = test;
   }
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');
@@ -175,7 +175,7 @@ main(A a) {
 class A {
   int; // marker
 }
-main(A a) {
+void f(A a) {
   print(a.test);
 }
 ''');

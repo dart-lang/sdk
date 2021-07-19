@@ -493,49 +493,81 @@ abstract class String implements Comparable<String>, Pattern {
   /// Splits the string at matches of [pattern] and returns a list of substrings.
   ///
   /// Finds all the matches of `pattern` in this string,
-  /// and returns the list of the substrings between the matches.
+  /// as by using [Pattern.allMatches],
+  /// and returns the list of the substrings between the matches,
+  /// before the first match, and after the last match.
   /// ```dart
   /// var string = "Hello world!";
-  /// string.split(" ");                      // ['Hello', 'world!'];
+  /// string.split(" ");                      // ["Hello", "world!"];
   /// ```
-  /// Empty matches at the beginning and end of the strings are ignored,
-  /// and so are empty matches right after another match.
+  /// If the pattern doesn't match this string at all,
+  /// the result is always a list containing only the original string.
+  ///
+  /// If the [pattern] is a [String], then it's always the case that:
+  /// ```dart
+  /// string.split(pattern).join(pattern) == string
+  /// ```
+  ///
+  /// If the first match is an empty match at the start of the string,
+  /// the empty substring before it is not included in the result.
+  /// If the last match is an empty match at the end of the string,
+  /// the empty substring after it is not included in the result.
+  /// If a match is empty, and it immediately follows a previous
+  /// match (it starts at the position where the previous match ended),
+  /// then the empty substring between the two matches is not
+  /// included in the result.
   /// ```dart
   /// var string = "abba";
-  /// // Matches:   ^^ ^^
-  /// string.split(RegExp(r"b*"));        // ['a', 'a']
-  ///                                         // not ['', 'a', 'a', '']
-  ///                                         // not ['a', '', 'a']
+  /// var re = RegExp(r"b*");
+  /// // re.allMatches(string) will find four matches:
+  /// // * empty match before first "a".
+  /// // * match of "bb"
+  /// // * empty match after "bb", before second "a"
+  /// // * empty match after second "a".
+  /// print(string.split(re));  // ["a", "a"]
   /// ```
-  /// If this string is empty, the result is an empty list if `pattern` matches
-  /// the empty string, and it is `[""]` if the pattern doesn't match.
+  ///
+  /// A non-empty match at the start or end of the string, or after another
+  /// match, is not treated specially, and will introduce empty substrings
+  /// in the result:
   /// ```dart
-  /// var string = '';
-  /// string.split('');                       // []
-  /// string.split("a");                      // ['']
+  /// var string = "abbaa";
+  /// string.split("a"); // ["", "bb", "", ""]
   /// ```
+  ///
+  /// If this string is the empty string, the result is an empty list
+  /// if `pattern` matches the empty string, since the empty string
+  /// before and after the first-and-last empty match are not included.
+  /// (It is still a list containing the original empty string `[""]`
+  /// if the pattern doesn't match).
+  /// ```dart
+  /// var string = "";
+  /// string.split("");                       // []
+  /// string.split("a");                      // [""]
+  /// ```
+  ///
   /// Splitting with an empty pattern splits the string into single-code unit
   /// strings.
   /// ```dart
-  /// var string = 'Pub';
-  /// string.split('');                       // ['P', 'u', 'b']
-  ///
-  /// string.codeUnits.map((unit) {
-  ///   return String.fromCharCode(unit);
-  /// }).toList();                            // ['P', 'u', 'b']
+  /// var string = "Pub";
+  /// string.split("");                       // ["P", "u", "b"]
+  /// // Same as:
+  /// [for (var unit in string.codeUnits)
+  ///     String.fromCharCode(unit)]          // ["P", "u", "b"]
   /// ```
+  ///
   /// Splitting happens at UTF-16 code unit boundaries,
-  /// and not at rune boundaries:
+  /// and not at rune (Unicode code point) boundaries:
   /// ```dart
   /// // String made up of two code units, but one rune.
   /// string = '\u{1D11E}';
-  /// string.split('').length;                 // 2 surrogate values
+  /// string.split('')  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
   /// ```
   /// To get a list of strings containing the individual runes of a string,
-  /// you should not use split. You can instead map each rune to a string
-  /// as follows:
+  /// you should not use split.
+  /// You can instead get a string for each rune as follows:
   /// ```dart
-  /// string.runes.map((rune) => String.fromCharCode(rune)).toList();
+  /// [for (var run in string.runes) String.fromCharCode(rune)]
   /// ```
   List<String> split(Pattern pattern);
 
@@ -544,18 +576,24 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// The [pattern] is used to split the string
   /// into parts and separating matches.
+  /// Each match of [Pattern.allMatches] of [pattern] on this string is
+  /// used as a match, and the substrings between the end of one match
+  /// (or the start of the string) and the start of the next match (or the
+  /// end of the string) is treated as a non-matched part.
+  /// (There is no omission of leading or trailing empty matchs, like
+  /// in [split], all matches and parts between the are included.)
   ///
   /// Each match is converted to a string by calling [onMatch]. If [onMatch]
   /// is omitted, the matched substring is used.
   ///
-  /// Each non-matched part is converted by a call to [onNonMatch]. If
-  /// [onNonMatch] is omitted, the non-matching substring is used.
+  /// Each non-matched part is converted to a string by a call to [onNonMatch].
+  /// If [onNonMatch] is omitted, the non-matching substring itself is used.
   ///
-  /// Then all the converted parts are combined into the resulting string.
+  /// Then all the converted parts are concatenated into the resulting string.
   /// ```dart
   /// 'Eats shoots leaves'.splitMapJoin((RegExp(r'shoots')),
-  ///     onMatch:    (m) => '${m[0]!}',  // or no onMatch at all
-  ///     onNonMatch: (n) => '*'); // *shoots*
+  ///     onMatch:    (m) => '${m[0]}',  // (or no onMatch at all)
+  ///     onNonMatch: (n) => '*'); // Result: "*shoots*"
   /// ```
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});

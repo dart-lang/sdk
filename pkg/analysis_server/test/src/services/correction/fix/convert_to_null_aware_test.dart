@@ -11,8 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToNullAwareBulkTest);
     defineReflectiveTests(ConvertToNullAwareTest);
   });
+}
+
+@reflectiveTest
+class ConvertToNullAwareBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_null_aware_operators;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class A {
+  int m(int p) => p;
+}
+int f(A x, A y) => x == null ? null : x.m(y == null ? null : y.m(0));
+''');
+    await assertHasFix('''
+class A {
+  int m(int p) => p;
+}
+int f(A x, A y) => x?.m(y?.m(0));
+''');
+  }
 }
 
 @reflectiveTest
@@ -29,13 +51,13 @@ class ConvertToNullAwareTest extends FixProcessorLintTest {
 abstract class A {
   int m();
 }
-int f(A a) => null == a ? null : a.m();
+int? f(A? a) => null == a ? null : a.m();
 ''');
     await assertHasFix('''
 abstract class A {
   int m();
 }
-int f(A a) => a?.m();
+int? f(A? a) => a?.m();
 ''');
   }
 }

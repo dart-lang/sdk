@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 65;
+  UInt32 formatVersion = 67;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -700,6 +700,20 @@ type StaticTearOff extends Expression {
   MemberReference target;
 }
 
+type ConstructorTearOff extends Expression {
+  Byte tag = 60;
+  FileOffset fileOffset;
+  ConstructorReference constructor;
+  Option<List<DartType>> typeArguments;
+}
+
+type TypedefTearOff extends Expression {
+  Byte tag = 83;
+  List<TypeParameter> typeParameters;
+  Expression expression;
+  List<DartType> typeArguments;
+}
+
 type StaticSet extends Expression {
   Byte tag = 27;
   FileOffset fileOffset;
@@ -1172,13 +1186,13 @@ type InstanceConstant extends Constant {
   List<Pair<FieldReference, ConstantReference>> values;
 }
 
-type PartialInstantiationConstant extends Constant {
+type InstantiationConstant extends Constant {
   Byte tag = 9;
   ConstantReference tearOffConstant;
   List<DartType> typeArguments;
 }
 
-type TearOffConstant extends Constant {
+type StaticTearOffConstant extends Constant {
   Byte tag = 10;
   CanonicalNameReference staticProcedureReference;
 }
@@ -1191,6 +1205,18 @@ type TypeLiteralConstant extends Constant {
 type UnevaluatedConstant extends Constant {
   Byte tag = 12;
   Expression expression;
+}
+
+type TypedefTearOffConstant extends Constant {
+  Byte tag = 14;
+  List<TypeParameter> parameters;
+  CanonicalNameReference staticProcedureReference;
+  List<DartType> types;
+}
+
+type ConstructorTearOffConstant extends Constant {
+  Byte tag = 15;
+  CanonicalNameReference constructorReference;
 }
 
 abstract type Statement extends Node {}

@@ -1,6 +1,6 @@
 NOTICE: Stream was rewritten by parser!
 
-typedef A<>= void Function();
+typedef A<*synthetic*>= void Function();
 
 
 typedef[KeywordToken] A[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken]=[SimpleToken] void[KeywordToken] Function[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]

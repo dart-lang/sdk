@@ -17,13 +17,13 @@ main() {
 
 @reflectiveTest
 class SubprocessLauncherTest {
-  Function(String) outputCallback;
-  List<String> output;
-  Directory tempDir;
+  Function(String)? outputCallback;
+  List<String>? output;
+  late Directory tempDir;
 
   void setUp() async {
     output = [];
-    outputCallback = output.add;
+    outputCallback = output!.add;
     tempDir = await Directory.systemTemp.createTemp();
   }
 

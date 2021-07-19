@@ -87,7 +87,7 @@ class Driver implements CommandLineStarter {
   }
 
   @override
-  Future<void> start(List<String> args) async {
+  Future<void> start(List<String> arguments) async {
     if (analysisDriver != null) {
       throw StateError('start() can only be called once');
     }
@@ -98,14 +98,14 @@ class Driver implements CommandLineStarter {
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(resourceProvider, args);
+    var options = CommandLineOptions.parse(resourceProvider, arguments);
 
     _analysisContextProvider = _AnalysisContextProvider(resourceProvider);
 
     // Do analysis.
     if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
-      batchRunner.runAsBatch(args, (List<String> args) async {
+      batchRunner.runAsBatch(arguments, (List<String> args) async {
         var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });
@@ -186,9 +186,11 @@ class Driver implements CommandLineStarter {
     // batch flag and source file" error message.
     ErrorFormatter formatter;
     if (options.jsonFormat) {
-      formatter = JsonErrorFormatter(errorSink, options, stats,
+      formatter = JsonErrorFormatter(outSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else if (options.machineFormat) {
+      // The older machine format emits to stderr (instead of stdout) for legacy
+      // reasons.
       formatter = MachineErrorFormatter(errorSink, options, stats,
           severityProcessor: defaultSeverityProcessor);
     } else {
@@ -242,7 +244,11 @@ class Driver implements CommandLineStarter {
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
           var errors = analyzeAnalysisOptions(
-              file.createSource(), content, analysisDriver.sourceFactory);
+            file.createSource(),
+            content,
+            analysisDriver.sourceFactory,
+            analysisDriver.currentSession.analysisContext.contextRoot.root.path,
+          );
           formatter.formatErrors([
             ErrorsResultImpl(analysisDriver.currentSession, path, null,
                 lineInfo, false, errors)
@@ -364,7 +370,7 @@ class Driver implements CommandLineStarter {
 
     formatter.flush();
 
-    if (!options.machineFormat) {
+    if (!options.machineFormat && !options.jsonFormat) {
       stats.print(outSink);
     }
 

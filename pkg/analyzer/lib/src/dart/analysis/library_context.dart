@@ -150,6 +150,7 @@ class LibraryContext {
                 partDirectiveIndex: partIndex - 1,
                 partUriStr: partUriStr,
                 source: file.source,
+                sourceContent: file.content,
                 isSynthetic: isSynthetic,
                 unit: unit,
               ),
@@ -183,21 +184,18 @@ class LibraryContext {
         counterUnlinkedLinkedBytes += resolutionBytes.length;
 
         librariesLinkedTimer.stop();
-        // TODO(scheglov) Uncomment to keep linking elements.
-        // return;
       } else {
         // TODO(scheglov) Take / clear parsed units in files.
         bytesGet += resolutionBytes.length;
         librariesLoaded += cycle.libraries.length;
+        elementFactory.addBundle(
+          BundleReader(
+            elementFactory: elementFactory,
+            unitsInformativeBytes: unitsInformativeBytes,
+            resolutionBytes: resolutionBytes,
+          ),
+        );
       }
-
-      elementFactory.addBundle(
-        BundleReader(
-          elementFactory: elementFactory,
-          unitsInformativeBytes: unitsInformativeBytes,
-          resolutionBytes: resolutionBytes,
-        ),
-      );
     }
 
     logger.run('Prepare linked bundles', () {

@@ -17,6 +17,7 @@ main() {
 class ExperimentNotEnabledTest extends PubPackageResolutionTest {
   test_constructor_tearoffs_disabled_grammar() async {
     await assertErrorsInCode('''
+// @dart = 2.12
 class Foo<X> {
   const Foo.bar();
   int get baz => 0;
@@ -25,7 +26,7 @@ main() {
   Foo<int>.bar.baz();
 }
 ''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 70, 5),
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 86, 5),
     ]);
   }
 

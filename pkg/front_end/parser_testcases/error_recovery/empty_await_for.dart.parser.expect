@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 main() async {
-await for (in) {}
+await for (*synthetic*in*synthetic*) {}
 }
 
 

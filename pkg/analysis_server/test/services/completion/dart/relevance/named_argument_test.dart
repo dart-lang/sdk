@@ -22,7 +22,7 @@ class NamedArgumentTest extends CompletionRelevanceTest {
 
     var metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
 
-    newFile('$projectPath/.packages', content: '''
+    newDotPackagesFile(projectPath, content: '''
 meta:${metaLibFolder.toUri()}
 project:${toUri('$projectPath/lib')}
 ''');

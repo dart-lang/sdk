@@ -340,6 +340,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
+  void assertFunctionReference(
+      FunctionReference node, Element expectedElement, String expectedType) {
+    assertElement(node, expectedElement);
+    assertType(node, expectedType);
+  }
+
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }
@@ -750,17 +756,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }) {
     assertElement2(type.aliasElement, declaration: element);
     assertElementTypeStrings(type.aliasArguments, typeArguments);
-
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    if (type is FunctionType) {
-      assertElement2(
-        // ignore: deprecated_member_use_from_same_package
-        type.element,
-        declaration: element.aliasedElement as GenericFunctionTypeElement,
-      );
-      // ignore: deprecated_member_use_from_same_package
-      assertElementTypeStrings(type.typeArguments, typeArguments);
-    }
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the
@@ -796,6 +791,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expression!;
     NullabilitySuffix actual = expression.typeOrThrow.nullabilitySuffix;
     expect(actual, NullabilitySuffix.star);
+  }
+
+  void assertTypeLiteral(
+      TypeLiteral node, Element? expectedElement, String expectedType,
+      {Element? expectedPrefix}) {
+    assertType(node, 'Type');
+    assertTypeName(node.typeName, expectedElement, expectedType,
+        expectedPrefix: expectedPrefix);
   }
 
   void assertTypeName(
@@ -875,6 +878,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.declaredElement;
     } else if (node is FunctionExpressionInvocation) {
       return node.staticElement;
+    } else if (node is FunctionReference) {
+      var function = node.function;
+      if (function is Identifier) {
+        return function.staticElement;
+      } else if (function is PropertyAccess) {
+        return function.propertyName.staticElement;
+      } else {
+        fail('Unsupported node: (${node.runtimeType}) $node');
+      }
     } else if (node is Identifier) {
       return node.staticElement;
     } else if (node is IndexExpression) {

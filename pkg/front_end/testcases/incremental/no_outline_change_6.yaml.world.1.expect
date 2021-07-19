@@ -37,7 +37,7 @@ library from "org-dartlang-test:///main.dart" as main {
     abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
-  class CompilationStrategy extends dart.core::Object /*isEnum*/  {
+  class CompilationStrategy extends dart.core::Object implements dart.core::Enum /*isEnum*/  {
     final field dart.core::int* index;
     final field dart.core::String* _name;
     static const field dart.core::List<main::CompilationStrategy*>* values = #C14;

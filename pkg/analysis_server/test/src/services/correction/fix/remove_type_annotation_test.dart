@@ -11,11 +11,42 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AvoidAnnotatingWithDynamicBulkTest);
     defineReflectiveTests(AvoidAnnotatingWithDynamicTest);
+    defineReflectiveTests(AvoidReturnTypesOnSettersBulkTest);
     defineReflectiveTests(AvoidReturnTypesOnSettersTest);
+    defineReflectiveTests(AvoidTypesOnClosureParametersBulkTest);
     defineReflectiveTests(AvoidTypesOnClosureParametersTest);
+    defineReflectiveTests(TypeInitFormalsBulkTest);
     defineReflectiveTests(TypeInitFormalsTest);
   });
+}
+
+@reflectiveTest
+class AvoidAnnotatingWithDynamicBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_annotating_with_dynamic;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+f(void foo(dynamic x)) {
+  return null;
+}
+
+f2({dynamic defaultValue}) {
+  return null;
+}
+''');
+    await assertHasFix('''
+f(void foo(x)) {
+  return null;
+}
+
+f2({defaultValue}) {
+  return null;
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -77,6 +108,23 @@ bad([defaultValue]) {
 }
 
 @reflectiveTest
+class AvoidReturnTypesOnSettersBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_return_types_on_setters;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void set s(int s) {}
+void set s2(int s2) {}
+''');
+    await assertHasFix('''
+set s(int s) {}
+set s2(int s2) {}
+''');
+  }
+}
+
+@reflectiveTest
 class AvoidReturnTypesOnSettersTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.avoid_return_types_on_setters;
@@ -92,13 +140,30 @@ set speed2(int ms) {}
 }
 
 @reflectiveTest
+class AvoidTypesOnClosureParametersBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_types_on_closure_parameters;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+var x = ({Future<int> defaultValue}) => null;
+var y = (Future<int> defaultValue) => null;
+''');
+    await assertHasFix('''
+var x = ({defaultValue}) => null;
+var y = (defaultValue) => null;
+''');
+  }
+}
+
+@reflectiveTest
 class AvoidTypesOnClosureParametersTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
   Future<void> test_namedParameter() async {
     await resolveTestCode('''
-var x = ({Future<int> defaultValue}) => null;
+var x = ({Future<int>? defaultValue}) => null;
 ''');
     await assertHasFix('''
 var x = ({defaultValue}) => null;
@@ -116,7 +181,7 @@ var x = (defaultValue) => null;
 
   Future<void> test_optionalParameter() async {
     await resolveTestCode('''
-var x = ([Future<int> defaultValue]) => null;
+var x = ([Future<int>? defaultValue]) => null;
 ''');
     await assertHasFix('''
 var x = ([defaultValue]) => null;
@@ -128,6 +193,37 @@ var x = ([defaultValue]) => null;
 abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
+}
+
+@reflectiveTest
+class TypeInitFormalsBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.type_init_formals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class C {
+  int f;
+  C(int this.f);
+}
+
+class Point {
+  int x, y;
+  Point(int this.x, int this.y);
+}
+''');
+    await assertHasFix('''
+class C {
+  int f;
+  C(this.f);
+}
+
+class Point {
+  int x, y;
+  Point(this.x, this.y);
+}
+''');
+  }
 }
 
 @reflectiveTest

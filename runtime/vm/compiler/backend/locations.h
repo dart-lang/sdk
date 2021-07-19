@@ -28,6 +28,7 @@ class Value;
 // Format: (representation name, is unsigned, value type)
 #define FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                \
   M(UnboxedUint8, true, uint8_t)                                               \
+  M(UnboxedUint16, true, uint16_t)                                             \
   M(UnboxedInt32, false, int32_t)                                              \
   M(UnboxedUint32, true, uint32_t)                                             \
   M(UnboxedInt64, false, int64_t)
@@ -220,8 +221,8 @@ class Location : public ValueObject {
   static Location Constant(const ConstantInstr* obj, int pair_index = 0) {
     ASSERT((pair_index == 0) || (pair_index == 1));
     Location loc(reinterpret_cast<uword>(obj) |
-                 (pair_index != 0 ? kPairLocationTag : 0) |
-                 kConstantTag);
+                 (pair_index != 0 ? static_cast<uword>(kPairLocationTag) : 0) |
+                 static_cast<uword>(kConstantTag));
     ASSERT(obj == loc.constant_instruction());
     ASSERT(loc.pair_index() == pair_index);
     return loc;
@@ -780,13 +781,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc);
 
-  BitmapBuilder* stack_bitmap() {
-    if (stack_bitmap_ == NULL) {
-      stack_bitmap_ = new BitmapBuilder();
-    }
-    return stack_bitmap_;
-  }
-  void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
+  const BitmapBuilder& stack_bitmap() { return EnsureStackBitmap(); }
+  void SetStackBit(intptr_t index) { EnsureStackBitmap().Set(index, true); }
 
   bool always_calls() const {
     return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
@@ -819,6 +815,13 @@ class LocationSummary : public ZoneAllocated {
 #endif
 
  private:
+  BitmapBuilder& EnsureStackBitmap() {
+    if (stack_bitmap_ == NULL) {
+      stack_bitmap_ = new BitmapBuilder();
+    }
+    return *stack_bitmap_;
+  }
+
   const intptr_t num_inputs_;
   Location* input_locations_;
   const intptr_t num_temps_;

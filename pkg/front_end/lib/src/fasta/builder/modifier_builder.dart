@@ -26,12 +26,7 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   @override
   final int charOffset;
 
-  @override
-  final Uri? fileUri;
-
-  ModifierBuilderImpl(Builder? parent, this.charOffset, [Uri? fileUri])
-      : this.fileUri = fileUri ?? parent?.fileUri,
-        this.parent = parent;
+  ModifierBuilderImpl(Builder? parent, this.charOffset) : this.parent = parent;
 
   @override
   bool get isConst => (modifiers & constMask) != 0;
@@ -46,7 +41,7 @@ abstract class ModifierBuilderImpl extends BuilderImpl
   bool get isNative => false;
 
   StringBuffer printOn(StringBuffer buffer) {
-    return buffer..write(name ?? fullNameForErrors);
+    return buffer..write(name);
   }
 
   @override

@@ -148,6 +148,10 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
   /// The associated pubspec file.
   final File _pubspecFile;
 
+  /// The content of the `pubspec.yaml` file.
+  /// We read it once, so that all usages return consistent results.
+  final String? _pubspecContent;
+
   /// The map from a package name to the list of its `lib/` folders.
   @override
   final Map<String, List<Folder>> packageMap;
@@ -183,21 +187,20 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
     this.projectPackageName,
     this.generatedRootPath,
     this.generatedThisPath,
-    this._pubspecFile,
-  ) {
+    File pubspecFile,
+  )   : _pubspecFile = pubspecFile,
+        _pubspecContent = _fileContentOrNull(pubspecFile) {
     _theOnlyPackage = PackageBuildWorkspacePackage(root, this);
+  }
+
+  @override
+  bool get isConsistentWithFileSystem {
+    return _fileContentOrNull(_pubspecFile) == _pubspecContent;
   }
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
       this, PackageMapUriResolver(provider, packageMap));
-
-  /// Return the content of the pubspec file, `null` if cannot be read.
-  String? get _pubspecContent {
-    try {
-      return _pubspecFile.readAsStringSync();
-    } catch (_) {}
-  }
 
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
@@ -330,6 +333,13 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
         return null;
       }
     }
+  }
+
+  /// Return the content of the [file], `null` if cannot be read.
+  static String? _fileContentOrNull(File file) {
+    try {
+      return file.readAsStringSync();
+    } catch (_) {}
   }
 }
 

@@ -520,6 +520,37 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitConstructorTearOff(ConstructorTearOff node) {
+    return node.constructorReference.asConstructor.function
+        .computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitTypedefTearOff(TypedefTearOff node) {
+    DartType type = visitExpression(node.expression);
+    if (type is! FunctionType) {
+      fail(node, 'Not a function type: $type');
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
+    }
+    FunctionType functionType = type;
+    if (functionType.typeParameters.length != node.typeArguments.length) {
+      fail(node, 'Wrong number of type arguments');
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
+    }
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(node.typeParameters);
+    FunctionType result = freshTypeParameters.substitute(_instantiateFunction(
+            functionType.typeParameters, node.typeArguments, node)
+        .substituteType(functionType.withoutTypeParameters)) as FunctionType;
+    return new FunctionType(result.positionalParameters, result.returnType,
+        result.declaredNullability,
+        namedParameters: result.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: result.requiredParameterCount,
+        typedefType: null);
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
       node.expressions[i] =

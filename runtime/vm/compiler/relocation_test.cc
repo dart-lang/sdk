@@ -430,7 +430,7 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeBackwardCall2) {
 
 UNIT_TEST_CASE(PCRelativeCallPatterns) {
   {
-    uint8_t instruction[PcRelativeCallPattern::kLengthInBytes];
+    uint8_t instruction[PcRelativeCallPattern::kLengthInBytes] = {};
 
     PcRelativeCallPattern pattern(reinterpret_cast<uword>(&instruction));
 
@@ -441,7 +441,7 @@ UNIT_TEST_CASE(PCRelativeCallPatterns) {
     EXPECT_EQ(PcRelativeCallPattern::kUpperCallingRange, pattern.distance());
   }
   {
-    uint8_t instruction[PcRelativeTailCallPattern::kLengthInBytes];
+    uint8_t instruction[PcRelativeTailCallPattern::kLengthInBytes] = {};
 
     PcRelativeTailCallPattern pattern(reinterpret_cast<uword>(&instruction));
 

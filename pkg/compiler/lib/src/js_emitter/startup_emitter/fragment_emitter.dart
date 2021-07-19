@@ -4,17 +4,6 @@
 
 part of dart2js.js_emitter.startup_emitter.model_emitter;
 
-/// The name of the property that stores the tear-off getter on a static
-/// function.
-///
-/// This property is only used when isolates are used.
-///
-/// When serializing static functions we transmit the
-/// name of the static function, but not the name of the function's getter. We
-/// store the getter-function on the static function itself, which allows us to
-/// find it easily.
-const String _tearOffPropertyName = r'$tearOff';
-
 /// The fast startup emitter's goal is to minimize the amount of work that the
 /// JavaScript engine has to do before it can start running user code.
 ///
@@ -232,81 +221,78 @@ var functionCounter = 0;
 
 // Each deferred hunk comes with its own types which are added to the end
 // of the types-array.
-// The `funTypes` passed to the `installTearOff` function below is relative to
+// The `funType` passed to the `installTearOff` function below is relative to
 // the hunk the function comes from. The `typesOffset` variable encodes the
 // offset at which the new types will be added.
 var typesOffset = 0;
 
-// Adapts the stored data, so it's suitable for a tearOff call.
-//
-// Stores the tear-off getter-function in the [container]'s [getterName]
-// property.
-//
-// The [container] is either a class (that is, its prototype), or the holder for
-// static functions.
-//
-// The argument [funsOrNames] is an array of strings or functions. If it is a
-// name, then the function should be fetched from the container. The first
-// entry in that array *must* be a string.
-//
-// TODO(floitsch): Change tearOffCode to accept the data directly, or create a
-// different tearOffCode?
-function installTearOff(
-    container, getterName, isStatic, isIntercepted, requiredParameterCount,
-    optionalParameterDefaultValues, callNames, funsOrNames, funType, applyIndex) {
-  // A function can have several stubs (for example to fill in optional
-  // arguments). We collect these functions in the `funs` array.
-  var funs = [];
-  for (var i = 0; i < funsOrNames.length; i++) {
-    var fun = funsOrNames[i];
-    if ((typeof fun) == "string") fun = container[fun];
-    fun.#callName = callNames[i];
-    funs.push(fun);
+/// Collect and canonicalize tear-off parameters.
+///
+/// [container] is either the `prototype` of a class constructor, or the holder
+/// for static functions.
+///
+/// [funsOrNames] is an array of strings or functions. If it is a
+/// name, then the function should be fetched from the container. The first
+/// entry in that array *must* be a string.
+// TODO(sra): It might be more readable to manually inline and simplify at the
+// two calls. It would need to be assessed as it would likely make the object
+// references polymorphic.
+function tearOffParameters(
+    container, isStatic, isIntercepted,
+    requiredParameterCount, optionalParameterDefaultValues,
+    callNames, funsOrNames, funType, applyIndex, needsDirectAccess) {
+  if (typeof funType == "number") {
+    // The [funType] can be a string type recipe or an index into the types
+    // table.  If it points into the types-table we need to update the index, in
+    // case the tear-off is part of a deferred hunk.
+    funType += typesOffset;
   }
-
-  // The main function to which all stubs redirect.
-  var fun = funs[0];
-
-  fun[#argumentCount] = requiredParameterCount;
-  fun[#defaultArgumentValues] = optionalParameterDefaultValues;
-  var reflectionInfo = funType;
-  if (typeof reflectionInfo == "number") {
-    // The reflectionInfo can either be a function, or a pointer into the types
-    // table. If it points into the types-table we need to update the index,
-    // in case the tear-off is part of a deferred hunk.
-    reflectionInfo = reflectionInfo + typesOffset;
-  }
-  var name = funsOrNames[0];
-  fun.#stubName = name;
-  var getterFunction =
-      tearOff(funs, applyIndex || 0, reflectionInfo, isStatic, name, isIntercepted);
-  container[getterName] = getterFunction;
-  if (isStatic) {
-    fun.$_tearOffPropertyName = getterFunction;
+  return {
+    #tpContainer: container,
+    #tpIsStatic: isStatic,
+    #tpIsIntercepted: isIntercepted,
+    #tpRequiredParameterCount: requiredParameterCount,
+    #tpOptionalParamaterDefaultValues: optionalParameterDefaultValues,
+    #tpCallNames: callNames,
+    #tpFunctionsOrNames: funsOrNames,
+    #tpFunctionType: funType,
+    #tpApplyIndex: applyIndex || 0,
+    #tpNeedsDirectAccess: needsDirectAccess,
   }
 }
 
+/// Stores the static tear-off getter-function in the [holder]'s [getterName]
+/// property.
 function installStaticTearOff(
-    container, getterName,
+    holder, getterName,
     requiredParameterCount, optionalParameterDefaultValues,
     callNames, funsOrNames, funType, applyIndex) {
-  // TODO(sra): Specialize installTearOff for static methods. It might be
-  // possible to handle some very common simple cases directly.
-  return installTearOff(
-      container, getterName, true, false,
+  // TODO(sra): Specialize for very common simple cases.
+  var parameters = tearOffParameters(
+      holder, true, false,
       requiredParameterCount, optionalParameterDefaultValues,
-      callNames, funsOrNames, funType, applyIndex);
+      callNames, funsOrNames, funType, applyIndex, false);
+  var getterFunction = staticTearOffGetter(parameters);
+  // TODO(sra): Returning [getterFunction] would be more versatile. We might
+  // want to store the static tearoff getter in a different holder, or in no
+  // holder if it is immediately called from the constant pool and otherwise
+  // unreferenced.
+  holder[getterName] = getterFunction;
 }
 
+/// Stores the instance tear-off getter-function in the [prototype]'s
+/// [getterName] property.
 function installInstanceTearOff(
-    container, getterName, isIntercepted,
+    prototype, getterName, isIntercepted,
     requiredParameterCount, optionalParameterDefaultValues,
-    callNames, funsOrNames, funType, applyIndex) {
-  // TODO(sra): Specialize installTearOff for instance methods.
-  return installTearOff(
-      container, getterName, false, isIntercepted,
+    callNames, funsOrNames, funType, applyIndex, needsDirectAccess) {
+  isIntercepted = !!isIntercepted; // force to Boolean.
+  var parameters = tearOffParameters(
+      prototype, false, isIntercepted,
       requiredParameterCount, optionalParameterDefaultValues,
-      callNames, funsOrNames, funType, applyIndex);
+      callNames, funsOrNames, funType, applyIndex, !!needsDirectAccess);
+  var getterFunction = instanceTearOffGetter(isIntercepted, parameters);
+  prototype[getterName] = getterFunction;
 }
 
 // Instead of setting the interceptor tags directly we use this update
@@ -359,7 +345,8 @@ var #hunkHelpers = (function(){
       return installInstanceTearOff(
           container, getterName, isIntercepted,
           requiredParameterCount, optionalParameterDefaultValues,
-          callNames, [name], funType, applyIndex);
+          callNames, [name], funType, applyIndex,
+          /*needsDirectAccess:*/ false);
     }
   },
 
@@ -605,6 +592,9 @@ class FragmentEmitter {
       _call1Name ??= _namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX1);
   js.Name get call2Name =>
       _call2Name ??= _namer.getNameForJsGetName(null, JsGetName.CALL_PREFIX2);
+  List<js.Name> _callNamesByArity;
+  List<js.Name> get callNamesByArity =>
+      _callNamesByArity ??= [call0Name, call1Name, call2Name];
 
   FragmentEmitter(
       this._options,
@@ -616,8 +606,10 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld)
-      : _holderFinalizer =
-            DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements) {
+      : _holderFinalizer = _options.features.newHolders.isEnabled
+            ? DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements)
+            : LegacyDeferredHolderExpressionFinalizerImpl(
+                _closedWorld.commonElements) {
     _recipeEncoder = RecipeEncoderImpl(
         _closedWorld,
         _options.disableRtiOptimization
@@ -679,6 +671,7 @@ class FragmentEmitter {
       size = estimator.charCount;
     }
     var emittedOutputUnit = EmittedOutputUnit(
+        fragment,
         fragment.outputUnit,
         fragment.libraries,
         classPrototypes,
@@ -704,9 +697,10 @@ class FragmentEmitter {
     // Emit holder code.
     var holderCode = emitHolderCode(fragment.libraries);
     var holderDeclaration = DeferredHolderResource(
-        DeferredHolderResourceKind.declaration,
-        holderCode: holderCode,
-        initializeEmptyHolders: true);
+        DeferredHolderResourceKind.mainFragment,
+        mainResourceName,
+        [fragment],
+        holderCode);
     js.Statement mainCode = js.js.statement(_mainBoilerplate, {
       // TODO(29455): 'hunkHelpers' displaces other names, so don't minify it.
       'hunkHelpers': js.VariableDeclaration('hunkHelpers', allowRename: false),
@@ -726,10 +720,28 @@ class FragmentEmitter {
       'staticStateDeclaration': DeferredHolderParameter(),
       'staticState': DeferredHolderParameter(),
       'holders': holderDeclaration,
-      'callName': js.string(_namer.fixedNames.callNameField),
-      'stubName': js.string(_namer.stubNameField),
-      'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
-      'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
+
+      // Tearoff parameters:
+      'tpContainer': js.string(TearOffParametersPropertyNames.container),
+      'tpIsStatic': js.string(TearOffParametersPropertyNames.isStatic),
+      'tpIsIntercepted':
+          js.string(TearOffParametersPropertyNames.isIntercepted),
+      'tpRequiredParameterCount':
+          js.string(TearOffParametersPropertyNames.requiredParameterCount),
+      'tpOptionalParamaterDefaultValues': js.string(
+          TearOffParametersPropertyNames.optionalParameterDefaultValues),
+      'tpCallNames': js.string(TearOffParametersPropertyNames.callNames),
+      'tpFunctionsOrNames':
+          js.string(TearOffParametersPropertyNames.funsOrNames),
+      'tpFunctionType': js.string(TearOffParametersPropertyNames.funType),
+      'tpApplyIndex': js.string(TearOffParametersPropertyNames.applyIndex),
+      'tpNeedsDirectAccess':
+          js.string(TearOffParametersPropertyNames.needsDirectAccess),
+
+      //'callName': js.string(_namer.fixedNames.callNameField),
+      //'stubName': js.string(_namer.stubNameField),
+      //'argumentCount': js.string(_namer.fixedNames.requiredParameterField),
+      //'defaultArgumentValues': js.string(_namer.fixedNames.defaultValuesField),
       'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
       'isTrackingAllocations': _options.experimentalTrackAllocations,
       'prototypes': emitPrototypes(fragment),
@@ -758,7 +770,7 @@ class FragmentEmitter {
       'call2selector': js.quoteName(call2Name)
     });
     // We assume emitMainFragment will be the last piece of code we emit.
-    finalizeCode(mainCode, holderCode, finalizeHolders: true);
+    finalizeCode(mainResourceName, mainCode, holderCode, finalizeHolders: true);
     return mainCode;
   }
 
@@ -778,9 +790,12 @@ class FragmentEmitter {
       return null;
     }
 
+    var resourceName = fragment.canonicalOutputUnit.name;
     var updateHolders = DeferredHolderResource(
-        DeferredHolderResourceKind.update,
-        holderCode: holderCode);
+        DeferredHolderResourceKind.deferredFragment,
+        resourceName,
+        fragment.fragments,
+        holderCode);
     js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': new js.Parameter('init'),
@@ -806,7 +821,7 @@ class FragmentEmitter {
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeCode(code, holderCode);
+    finalizeCode(resourceName, code, holderCode);
     return code;
   }
 
@@ -823,7 +838,8 @@ class FragmentEmitter {
 
   /// Finalizes the code for a fragment, and optionally finalizes holders.
   /// Finalizing holders must be the last step of the emitter.
-  void finalizeCode(js.Node code, Map<Entity, List<js.Property>> holderCode,
+  void finalizeCode(String resourceName, js.Node code,
+      Map<Entity, List<js.Property>> holderCode,
       {bool finalizeHolders: false}) {
     StringReferenceFinalizer stringFinalizer =
         StringReferenceFinalizerImpl(_options.enableMinification);
@@ -841,7 +857,11 @@ class FragmentEmitter {
     // per output unit, the holderFinalizer is a whole-program finalizer,
     // which collects deferred [Node]s from each call to `finalizeCode`
     // before begin finalized once for the last (main) unit.
-    addCodeToFinalizer(_holderFinalizer.addCode, code, holderCode);
+    void _addCode(js.Node code) {
+      _holderFinalizer.addCode(resourceName, code);
+    }
+
+    addCodeToFinalizer(_addCode, code, holderCode);
     if (finalizeHolders) {
       _holderFinalizer.finalize();
     }
@@ -857,9 +877,17 @@ class FragmentEmitter {
       for (StaticMethod method in library.statics) {
         Map<js.Name, js.Expression> propertyMap = emitStaticMethod(method);
         propertyMap.forEach((js.Name key, js.Expression value) {
-          var property = new js.Property(js.quoteName(key), value);
-          Entity holderKey =
-              method is StaticStubMethod ? method.library : method.element;
+          var property = _options.features.legacyJavaScript.isEnabled
+              ? js.Property(js.quoteName(key), value)
+              : js.MethodDefinition(js.quoteName(key), value);
+          Entity holderKey;
+          if (method is StaticStubMethod) {
+            // [StaticStubMethod]s should only be created for interceptors.
+            assert(method.library == _commonElements.interceptorsLibrary);
+            holderKey = method.library;
+          } else {
+            holderKey = method.element;
+          }
           (holderCode[holderKey] ??= []).add(property);
           registerEntityAst(method.element, property, library: library.element);
         });
@@ -1022,7 +1050,7 @@ class FragmentEmitter {
     Iterable<Method> isChecks = cls.isChecks;
     Iterable<Method> callStubs = cls.callStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
-    Iterable<Method> gettersSetters = generateGettersSetters(cls);
+    Iterable<Method> gettersSetters = cls.gettersSetters;
     Iterable<Method> allMethods = [
       ...methods,
       ...checkedSetters,
@@ -1042,7 +1070,7 @@ class FragmentEmitter {
       // to `inherit(P.Object, null)` in the generated code. See if we can
       // remove that.
 
-      if (_options.legacyJavaScript) {
+      if (_options.features.legacyJavaScript.isEnabled) {
         // IE11 might require us to set 'constructor' but we aren't 100% sure.
         properties
             .add(js.Property(js.string("constructor"), classReference(cls)));
@@ -1053,98 +1081,41 @@ class FragmentEmitter {
     allMethods.forEach((Method method) {
       emitInstanceMethod(method)
           .forEach((js.Expression name, js.Expression code) {
-        var prop = js.Property(name, code);
-        registerEntityAst(method.element, prop);
-        properties.add(prop);
+        js.Property property;
+        if (_options.features.legacyJavaScript.isEnabled) {
+          property = js.Property(name, code);
+        } else {
+          property = code is js.Fun
+              ? js.MethodDefinition(name, code)
+              : js.Property(name, code);
+        }
+        registerEntityAst(method.element, property);
+        properties.add(property);
       });
     });
 
-    if (cls.isClosureBaseClass) {
-      // Closures extend a common base class, so we can put properties on the
-      // prototype for common values.
+    // Closures have metadata that is often the same. We avoid repeated metadata
+    // by putting it on a shared superclass. It is overridden in the subclass if
+    // necessary.
 
-      // Closures taking exactly one argument are common.
+    int arity = cls.sharedClosureApplyMetadata;
+    if (arity != null) {
+      // This is a closure base class that has the specialized `Function.apply`
+      // metadata for functions taking exactly [arity] arguments.
       properties.add(js.Property(js.string(_namer.fixedNames.callCatchAllName),
-          js.quoteName(call1Name)));
+          js.quoteName(callNamesByArity[arity])));
       properties.add(js.Property(
-          js.string(_namer.fixedNames.requiredParameterField), js.number(1)));
+          js.string(_namer.fixedNames.requiredParameterField),
+          js.number(arity)));
+    }
 
+    if (cls.isClosureBaseClass) {
       // Most closures have no optional arguments.
       properties.add(js.Property(
-          js.string(_namer.fixedNames.defaultValuesField),
-          new js.LiteralNull()));
+          js.string(_namer.fixedNames.defaultValuesField), js.LiteralNull()));
     }
 
     return new js.ObjectInitializer(properties);
-  }
-
-  /// Generates a getter for the given [field].
-  Method generateGetter(Field field) {
-    assert(field.needsGetter);
-
-    js.Expression code;
-    if (field.isElided) {
-      ConstantValue constantValue = field.constantValue;
-      assert(
-          constantValue != null, "No constant value for elided field: $field");
-      if (constantValue == null) {
-        // This should never occur because codegen member usage is now limited
-        // by closed world member usage. In the case we've missed a spot we
-        // cautiously generate a null constant.
-        constantValue = new NullConstantValue();
-      }
-      code = js.js(
-          "function() { return #; }", generateConstantReference(constantValue));
-    } else {
-      String template;
-      if (field.needsInterceptedGetterOnReceiver) {
-        template = "function(receiver) { return receiver[#]; }";
-      } else if (field.needsInterceptedGetterOnThis) {
-        template = "function(receiver) { return this[#]; }";
-      } else {
-        assert(!field.needsInterceptedGetter);
-        template = "function() { return this[#]; }";
-      }
-      js.Expression fieldName = js.quoteName(field.name);
-      code = js.js(template, fieldName);
-    }
-    js.Name getterName = _namer.deriveGetterName(field.accessorName);
-    return new StubMethod(getterName, code);
-  }
-
-  /// Generates a setter for the given [field].
-  Method generateSetter(Field field) {
-    assert(field.needsUncheckedSetter);
-
-    String template;
-    js.Expression code;
-    if (field.isElided) {
-      code = js.js("function() { }");
-    } else {
-      if (field.needsInterceptedSetterOnReceiver) {
-        template = "function(receiver, val) { return receiver[#] = val; }";
-      } else if (field.needsInterceptedSetterOnThis) {
-        template = "function(receiver, val) { return this[#] = val; }";
-      } else {
-        assert(!field.needsInterceptedSetter);
-        template = "function(val) { return this[#] = val; }";
-      }
-      js.Expression fieldName = js.quoteName(field.name);
-      code = js.js(template, fieldName);
-    }
-
-    js.Name setterName = _namer.deriveSetterName(field.accessorName);
-    return new StubMethod(setterName, code);
-  }
-
-  /// Generates all getters and setters the given class [cls] needs.
-  Iterable<Method> generateGettersSetters(Class cls) {
-    return [
-      for (Field field in cls.fields)
-        if (field.needsGetter) generateGetter(field),
-      for (Field field in cls.fields)
-        if (field.needsUncheckedSetter) generateSetter(field),
-    ];
   }
 
   /// Emits the given instance [method].
@@ -1166,35 +1137,27 @@ class FragmentEmitter {
       }
 
       if (method.isClosureCallMethod && method.canBeApplied) {
-        // TODO(sra): We should also add these properties for the user-defined
-        // `call` method on classes. Function.apply is currently broken for
-        // complex cases. [forceAdd] might be true when this is fixed.
-        bool forceAdd = !method.isClosureCallMethod;
+        // The `call` method might flow to `Function.apply`, so the metadata for
+        // `Function.apply` is needed.
 
-        // Common case of "call*": "call$1" is stored on the Closure class.
-        if (method.applyIndex != 0 ||
-            method.parameterStubs.isNotEmpty ||
-            method.requiredParameterCount != 1 ||
-            forceAdd) {
+        // Avoid adding the metadata if a superclass has the same metadata.
+        if (!method.inheritsApplyMetadata) {
           js.Name applyName = method.applyIndex == 0
               ? method.name
               : method.parameterStubs[method.applyIndex - 1].name;
           properties[js.string(_namer.fixedNames.callCatchAllName)] =
               js.quoteName(applyName);
-        }
-        // Common case of '1' is stored on the Closure class.
-        if (method.requiredParameterCount != 1 || forceAdd) {
           properties[js.string(_namer.fixedNames.requiredParameterField)] =
               js.number(method.requiredParameterCount);
-        }
 
-        js.Expression defaultValues =
-            _encodeOptionalParameterDefaultValues(method);
-        // Default values property of `null` is stored on the common JS
-        // superclass.
-        if (defaultValues is! js.LiteralNull || forceAdd) {
-          properties[js.string(_namer.fixedNames.defaultValuesField)] =
-              defaultValues;
+          js.Expression defaultValues =
+              _encodeOptionalParameterDefaultValues(method);
+          // Default values property of `null` is stored on the common JS
+          // superclass.
+          if (defaultValues is! js.LiteralNull) {
+            properties[js.string(_namer.fixedNames.defaultValuesField)] =
+                defaultValues;
+          }
         }
       }
     }
@@ -1471,10 +1434,13 @@ class FragmentEmitter {
           "applyIndex": applyIndex,
         });
       } else {
+        bool tearOffNeedsDirectAccess =
+            (method as InstanceMethod).tearOffNeedsDirectAccess;
         if (requiredParameterCount <= 2 &&
             callNames.length == 1 &&
             optionalParameterDefaultValues is js.LiteralNull &&
-            method.applyIndex == 0) {
+            method.applyIndex == 0 &&
+            !tearOffNeedsDirectAccess) {
           js.Statement finish(int arity) {
             // Short form for exactly 0/1/2 arguments.
             String isInterceptedTag = isIntercepted ? 'i' : 'u';
@@ -1501,7 +1467,8 @@ class FragmentEmitter {
         return js.js.statement('''
             #install(#container, #getterName, #isIntercepted,
                      #requiredParameterCount, #optionalParameterDefaultValues,
-                     #callNames, #funsOrNames, #funType, #applyIndex)''', {
+                     #callNames, #funsOrNames, #funType, #applyIndex,
+                     #tearOffNeedsDirectAccess)''', {
           "install": install,
           "container": container,
           "getterName": js.quoteName(method.tearOffName),
@@ -1513,6 +1480,9 @@ class FragmentEmitter {
           "funsOrNames": funsOrNamesArray,
           "funType": method.functionType,
           "applyIndex": applyIndex,
+          // 'Truthy' values are ok for `tearOffNeedsDirectAccess`.
+          "tearOffNeedsDirectAccess":
+              js.number(tearOffNeedsDirectAccess ? 1 : 0),
         });
       }
     }
@@ -1569,7 +1539,7 @@ class FragmentEmitter {
       // TODO(25230): We only need to name constants that are used from function
       // bodies or from other constants in a different part.
       var assignment = js.js.statement('#.# = #', [
-        _namer.globalObjectForConstants(),
+        _namer.globalObjectForConstant(constant.value),
         constant.name,
         _constantEmitter.generate(constant.value)
       ]);
@@ -1870,7 +1840,7 @@ class FragmentEmitter {
 
     globals.add(js.Property(
         js.string(ARRAY_RTI_PROPERTY),
-        _options.legacyJavaScript
+        _options.features.legacyJavaScript.isEnabled
             ? js.js(
                 r'typeof Symbol == "function" && typeof Symbol() == "symbol"'
                 r'    ? Symbol("$ti")'

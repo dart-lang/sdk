@@ -132,16 +132,20 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
       static_cast<ArrayPtr>(UntaggedObject::FromAddr(object_start()));
   ASSERT(obj->IsArray());
   ASSERT(obj->untag()->IsCardRemembered());
-  ObjectPtr* obj_from = obj->untag()->from();
-  ObjectPtr* obj_to = obj->untag()->to(Smi::Value(obj->untag()->length_));
+  CompressedObjectPtr* obj_from = obj->untag()->from();
+  CompressedObjectPtr* obj_to =
+      obj->untag()->to(Smi::Value(obj->untag()->length()));
+  uword heap_base = obj.heap_base();
 
   const intptr_t size = card_table_size();
   for (intptr_t i = 0; i < size; i++) {
     if (card_table_[i] != 0) {
-      ObjectPtr* card_from =
-          reinterpret_cast<ObjectPtr*>(this) + (i << kSlotsPerCardLog2);
-      ObjectPtr* card_to = reinterpret_cast<ObjectPtr*>(card_from) +
-                           (1 << kSlotsPerCardLog2) - 1;
+      CompressedObjectPtr* card_from =
+          reinterpret_cast<CompressedObjectPtr*>(this) +
+          (i << kSlotsPerCardLog2);
+      CompressedObjectPtr* card_to =
+          reinterpret_cast<CompressedObjectPtr*>(card_from) +
+          (1 << kSlotsPerCardLog2) - 1;
       // Minus 1 because to is inclusive.
 
       if (card_from < obj_from) {
@@ -154,10 +158,10 @@ void OldPage::VisitRememberedCards(ObjectPointerVisitor* visitor) {
         card_to = obj_to;
       }
 
-      visitor->VisitPointers(card_from, card_to);
+      visitor->VisitCompressedPointers(heap_base, card_from, card_to);
 
       bool has_new_target = false;
-      for (ObjectPtr* slot = card_from; slot <= card_to; slot++) {
+      for (CompressedObjectPtr* slot = card_from; slot <= card_to; slot++) {
         if ((*slot)->IsNewObjectMayBeSmi()) {
           has_new_target = true;
           break;
@@ -1411,6 +1415,15 @@ uword PageSpace::TryAllocatePromoLockedSlow(FreeList* freelist, intptr_t size) {
     return result;
   }
   return TryAllocateDataBumpLocked(freelist, size);
+}
+
+ObjectPtr PageSpace::AllocateSnapshot(intptr_t size) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  uword address = TryAllocateDataBumpLocked(size);
+  if (address == 0) {
+    OUT_OF_MEMORY();
+  }
+  return UntaggedObject::FromAddr(address);
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {

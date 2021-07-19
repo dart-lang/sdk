@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue41252.dart:7:20: Error: 'X' is already declared in this scope.
+//   static final int X = 0;
+//                    ^
+// pkg/front_end/testcases/general/issue41252.dart:6:20: Context: Previous declaration of 'X'.
+//   static final int X = 0;
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field core::int X;
+  static final field core::int foo;
+  synthetic constructor •() → self::A
+    ;
+}
+static method main() → dynamic
+  ;

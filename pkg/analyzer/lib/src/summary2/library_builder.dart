@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
@@ -28,8 +27,6 @@ class LibraryBuilder {
   final Reference reference;
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
-
-  late final LibraryScope scope;
 
   /// Local declarations.
   final Scope localScope = Scope.top();
@@ -130,10 +127,6 @@ class LibraryBuilder {
     });
   }
 
-  void buildScope() {
-    scope = element.scope as LibraryScope;
-  }
-
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
@@ -162,7 +155,7 @@ class LibraryBuilder {
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, scope, linkingUnit.element);
+      var resolver = MetadataResolver(linker, element, linkingUnit.element);
       linkingUnit.node.accept(resolver);
     }
   }
@@ -176,7 +169,6 @@ class LibraryBuilder {
         element,
         linkingUnit.reference,
         linkingUnit.node.featureSet.isEnabled(Feature.non_nullable),
-        scope,
       );
       linkingUnit.node.accept(resolver);
     }
@@ -184,6 +176,7 @@ class LibraryBuilder {
 
   void storeExportScope() {
     exports = exportScope.map.values.toList();
+    linker.elementFactory.setExportsOfLibrary('$uri', exports);
 
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
@@ -200,8 +193,6 @@ class LibraryBuilder {
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
     }
-
-    linker.elementFactory.setExportsOfLibrary('$uri', exports);
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {
@@ -251,6 +242,7 @@ class LibraryBuilder {
       unitElement.librarySource = inputLibrary.source;
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = inputUnit.source;
+      unitElement.sourceContent = inputUnit.sourceContent;
       unitElement.uri = inputUnit.partUriStr;
       unitElement.setCodeRange(0, unitNode.length);
 

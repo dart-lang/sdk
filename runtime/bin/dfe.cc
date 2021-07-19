@@ -140,7 +140,7 @@ bool DFE::CanUseDartFrontend() const {
 }
 
 PathSanitizer::PathSanitizer(const char* path) {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   // For Windows we need to massage the paths a bit according to
   // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
   //
@@ -169,15 +169,15 @@ PathSanitizer::PathSanitizer(const char* path) {
   sanitized_uri_ = std::unique_ptr<char[]>(uri);
 #else
   sanitized_uri_ = path;
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)
 }
 
 const char* PathSanitizer::sanitized_uri() const {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   return sanitized_uri_.get();
 #else
   return sanitized_uri_;
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)
 }
 
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,

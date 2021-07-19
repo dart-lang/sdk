@@ -82,9 +82,10 @@ twoClasses() async {
 
 subClass() async {
   checkOutput(String generated) {
+    Expect.isTrue(generated
+        .contains(RegExp(r'_inheritMany\([$A-Z]+\.Object, .*, [$A-Z]+\.A]')));
     Expect.isTrue(
-        generated.contains(RegExp(r'_inheritMany\(.\.Object, .*, .\.A]')));
-    Expect.isTrue(generated.contains(RegExp(r'_inherit\(.\.B, .\.A\)')));
+        generated.contains(RegExp(r'_inherit\([$A-Z]+\.B, [$A-Z]+\.A\)')));
   }
 
   checkOutput(await compileAll(TEST_TWO));

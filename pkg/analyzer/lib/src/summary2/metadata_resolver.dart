@@ -17,8 +17,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   final CompilationUnitElementImpl _unitElement;
   Scope _scope;
 
-  MetadataResolver(this._linker, this._libraryScope, this._unitElement)
-      : _scope = _libraryScope;
+  MetadataResolver(
+    this._linker,
+    LibraryElementImpl libraryElement,
+    this._unitElement,
+  )   : _libraryScope = libraryElement.scope,
+        _scope = libraryElement.scope;
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {

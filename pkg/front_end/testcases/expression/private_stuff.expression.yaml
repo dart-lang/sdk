@@ -1,0 +1,113 @@
+# Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+entry_point: "main_private.dart"
+definitions: []
+position: "main_private.dart"
+expression: |
+  () {
+    // Class constructors.
+    Foo foo = new Foo();
+    assert(foo.what == 0);
+    foo = new Foo.publicNamed();
+    assert(foo.what == 1);
+    foo = new Foo._privateNamed();
+    assert(foo.what == 2);
+
+    // Class methods.
+    assert(foo.publicMethod() == 42);
+    assert(foo._privateMethod() == 43);
+    assert(Foo.publicStaticMethod() == 44);
+    assert(Foo._privateStaticMethod() == 45);
+
+    // Class fields.
+    assert(foo.publicField == 84);
+    foo.publicField = -84;
+    assert(foo.publicField == -84);
+    assert(foo._privateField == 85);
+    foo._privateField = -85;
+    assert(foo._privateField == -85);
+    assert(Foo.publicStaticField == 86);
+    Foo.publicStaticField = -86;
+    assert(Foo.publicStaticField == -86);
+    assert(Foo._privateStaticField == 87);
+    Foo._privateStaticField = -87;
+    assert(Foo._privateStaticField == -87);
+
+    // Class getters.
+    assert(foo.publicGetter == -1);
+    assert(foo._privateGetter == -2);
+    assert(Foo.publicStaticGetter == -3);
+    assert(Foo._privateStaticGetter == -4);
+
+    // Class setters.
+    foo.publicSetter = 42;
+    foo._privateSetter = 42;
+    Foo.publicStaticSetter = 42;
+    Foo._privateStaticSetter = 42;
+
+    // Extension methods.
+    assert(foo.publicPublicExtensionMethod() == 20);
+    assert(foo._publicPrivateExtensionMethod() == 21);
+    assert(PublicExtension.publicPublicStaticExtensionMethod() == 22);
+    assert(PublicExtension._publicPrivateStaticExtensionMethod() == 23);
+    assert(foo.privatePublicExtensionMethod() == 30);
+    assert(foo._privatePrivateExtensionMethod() == 31);
+    assert(_PrivateExtension.privatePublicStaticExtensionMethod() == 32);
+    assert(_PrivateExtension._privatePrivateStaticExtensionMethod() == 33);
+
+    // Extension fields.
+    assert(PublicExtension.publicPublicStaticExtensionField == 24);
+    PublicExtension.publicPublicStaticExtensionField = -24;
+    assert(PublicExtension.publicPublicStaticExtensionField == -24);
+    assert(PublicExtension._publicPrivateStaticExtensionField == 25);
+    PublicExtension._publicPrivateStaticExtensionField = -25;
+    assert(PublicExtension._publicPrivateStaticExtensionField == -25);
+    assert(_PrivateExtension.privatePublicStaticExtensionField == 34);
+    _PrivateExtension.privatePublicStaticExtensionField = -34;
+    assert(_PrivateExtension.privatePublicStaticExtensionField == -34);
+    assert(_PrivateExtension._privatePrivateStaticExtensionField == 35);
+    _PrivateExtension._privatePrivateStaticExtensionField = -35;
+    assert(_PrivateExtension._privatePrivateStaticExtensionField == -35);
+
+    // Extension getters.
+    assert(foo.publicPublicExtensionGetter == 26);
+    assert(foo._publicPrivateExtensionGetter == 27);
+    assert(PublicExtension.publicPublicStaticExtensionGetter == 28);
+    assert(PublicExtension._publicPrivateStaticExtensionGetter == 29);
+    assert(foo.privatePublicExtensionGetter == 36);
+    assert(foo._privatePrivateExtensionGetter == 37);
+    assert(_PrivateExtension.privatePublicStaticExtensionGetter == 38);
+    assert(_PrivateExtension._privatePrivateStaticExtensionGetter == 39);
+
+    // Extension setters.
+    foo.publicPublicExtensionSetter = 42;
+    foo._publicPrivateExtensionSetter = 42;
+    PublicExtension.publicPublicStaticExtensionSetter = 42;
+    PublicExtension._publicPrivateStaticExtensionSetter = 42;
+    foo.privatePublicExtensionSetter = 42;
+    foo._privatePrivateExtensionSetter = 42;
+    _PrivateExtension.privatePublicStaticExtensionSetter = 42;
+    _PrivateExtension._privatePrivateStaticExtensionSetter = 42;
+
+    // Top-level methods.
+    assert(publicTopLevelMethod() == 50);
+    assert(_privateTopLevelMethod() == 51);
+
+    // Top-level fields.
+    assert(publicTopLevelField == 52);
+    publicTopLevelField = -52;
+    assert(publicTopLevelField == -52);
+    assert(_privateTopLevelField == 53);
+    _privateTopLevelField = -53;
+    assert(_privateTopLevelField == -53);
+
+    // Top-level getters.
+    assert(publicTopLevelGetter == 54);
+    assert(_privateTopLevelGetter == 55);
+
+    // Top-level setters.
+    publicTopLevelSetter = 42;
+    _privateTopLevelSetter = 42;
+  }

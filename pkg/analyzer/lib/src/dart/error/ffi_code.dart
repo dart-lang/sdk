@@ -31,6 +31,16 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try replacing the value with a literal or const.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode CREATION_OF_STRUCT_OR_UNION = FfiCode(
+    name: 'CREATION_OF_STRUCT_OR_UNION',
+    message: "Subclasses of 'Struct' and 'Union' are backed by native memory, "
+        "and can't be instantiated by a generative constructor.",
+    correction: "Try allocating it via allocation, or load from a 'Pointer'.",
+  );
+
+  /**
    * Parameters:
    * 0: the name of the struct class
    */
@@ -76,6 +86,15 @@ class FfiCode extends AnalyzerErrorCode {
           "initializers.",
       correction: "Try removing the field initializer and marking the field as"
           " external.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode FIELD_MUST_BE_EXTERNAL_IN_STRUCT = FfiCode(
+      name: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
+      message:
+          "Fields of 'Struct' and 'Union' subclasses must be marked external.",
+      correction: "Try adding the 'external' modifier.");
 
   /**
    * Parameters:
@@ -225,9 +244,9 @@ class FfiCode extends AnalyzerErrorCode {
    * No parameters.
    */
   static const FfiCode NON_POSITIVE_ARRAY_DIMENSION = FfiCode(
-    name: 'NON_POSITIVE_INPUT_ON_ARRAY',
-    message: "Array dimensions must be positive numbers.",
-    correction: "Try changing the input to a positive number.");
+      name: 'NON_POSITIVE_INPUT_ON_ARRAY',
+      message: "Array dimensions must be positive numbers.",
+      correction: "Try changing the input to a positive number.");
 
   /**
    * Parameters:

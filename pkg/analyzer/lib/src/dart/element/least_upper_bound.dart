@@ -206,11 +206,7 @@ class InterfaceLeastUpperBoundHelper {
         if (parameterVariance.isCovariant) {
           args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
         } else if (parameterVariance.isContravariant) {
-          if (typeSystem is TypeSystemImpl) {
-            args.add(typeSystem.getGreatestLowerBound(args1[i], args2[i]));
-          } else {
-            args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
-          }
+          args.add(typeSystem.getGreatestLowerBound(args1[i], args2[i]));
         } else if (parameterVariance.isInvariant) {
           if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
               !typeSystem.isSubtypeOf(args2[i], args1[i])) {

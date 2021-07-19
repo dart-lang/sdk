@@ -41,7 +41,7 @@ class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
   Future<void> test_function() {
     addTestFile('''
 int get test => 42;
-main() {
+void f() {
   var a = 1 + test;
   var b = 2 + test;
 }
@@ -50,7 +50,7 @@ main() {
       return _sendConvertRequest('test =>');
     }, '''
 int test() => 42;
-main() {
+void f() {
   var a = 1 + test();
   var b = 2 + test();
 }
@@ -60,7 +60,7 @@ main() {
   Future<void> test_init_fatalError_notExplicit() {
     addTestFile('''
 int test = 42;
-main() {
+void f() {
   var v = test;
 }
 ''');
@@ -88,7 +88,7 @@ class C extends B {
 class D extends A {
   int get test => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test;
   var vb = b.test;
   var vc = c.test;
@@ -110,7 +110,7 @@ class C extends B {
 class D extends A {
   int test() => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test();
   var vb = b.test();
   var vc = c.test();
@@ -136,7 +136,7 @@ class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
   Future<void> test_function() {
     addTestFile('''
 int test() => 42;
-main() {
+void f() {
   var a = 1 + test();
   var b = 2 + test();
 }
@@ -145,7 +145,7 @@ main() {
       return _sendConvertRequest('test() =>');
     }, '''
 int get test => 42;
-main() {
+void f() {
   var a = 1 + test;
   var b = 2 + test;
 }
@@ -155,7 +155,7 @@ main() {
   Future<void> test_init_fatalError_hasParameters() {
     addTestFile('''
 int test(p) => p + 1;
-main() {
+void f() {
   var v = test(2);
 }
 ''');
@@ -171,7 +171,7 @@ main() {
 
   Future<void> test_init_fatalError_notExecutableElement() {
     addTestFile('''
-main() {
+void f() {
   int abc = 1;
   print(abc);
 }
@@ -200,7 +200,7 @@ class C extends B {
 class D extends A {
   int test() => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test();
   var vb = b.test();
   var vc = c.test();
@@ -222,7 +222,7 @@ class C extends B {
 class D extends A {
   int get test => 4;
 }
-main(A a, B b, C c, D d) {
+void f(A a, B b, C c, D d) {
   var va = a.test;
   var vb = b.test;
   var vc = c.test;
@@ -282,7 +282,7 @@ foo(int myName) {}
 ''');
     addTestFile('''
 import 'other.dart';
-main() {
+void f() {
   foo(1 + 2);
 }
 ''');
@@ -297,7 +297,7 @@ main() {
 
   Future<void> test_coveringExpressions() {
     addTestFile('''
-main() {
+void f() {
   var v = 111 + 222 + 333;
 }
 ''');
@@ -317,7 +317,7 @@ main() {
 
   Future<void> test_extractAll() {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
   print(1 + 2);
 }
@@ -325,7 +325,7 @@ main() {
     return assertSuccessfulRefactoring(() {
       return sendStringRequest('1 + 2', 'res', true);
     }, '''
-main() {
+void f() {
   var res = 1 + 2;
   print(res);
   print(res);
@@ -335,7 +335,7 @@ main() {
 
   Future<void> test_extractOne() {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
   print(1 + 2); // marker
 }
@@ -343,7 +343,7 @@ main() {
     return assertSuccessfulRefactoring(() {
       return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
     }, '''
-main() {
+void f() {
   print(1 + 2);
   var res = 1 + 2;
   print(res); // marker
@@ -381,7 +381,7 @@ main() {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
-main() {
+void f() {
   var a = getSelectedItem();
 }
 ''');
@@ -396,7 +396,7 @@ main() {
 
   Future<void> test_nameWarning() async {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -407,7 +407,7 @@ main() {
         'Variable name should start with a lowercase letter.');
     // ...but there is still a change
     assertTestRefactoringResult(result, '''
-main() {
+void f() {
   var Name = 1 + 2;
   print(Name);
 }
@@ -416,7 +416,7 @@ main() {
 
   Future<void> test_offsetsLengths() {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
   print(1 +  2);
 }
@@ -432,7 +432,7 @@ main() {
 
   Future<void> test_resetOnAnalysisSetChanged_overlay() async {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2); // 0
 }
 ''');
@@ -450,7 +450,7 @@ main() {
     await checkUpdate(() {
       server.updateContent('u1', {
         testFile: AddContentOverlay('''
-main() {
+void f() {
   print(1 + 2); // 1
 }
 ''')
@@ -461,7 +461,7 @@ main() {
       server.updateContent('u2', {
         testFile: ChangeContentOverlay([
           SourceEdit(0, 0, '''
-main() {
+void f() {
   print(1 + 2); // 2
 }
 ''')
@@ -478,7 +478,7 @@ main() {
     var otherFile = join(testFolder, 'other.dart');
     newFile(otherFile, content: '// other 1');
     addTestFile('''
-main() {
+void f() {
   foo(1 + 2);
 }
 foo(int myName) {}
@@ -503,7 +503,7 @@ foo(int myName) {}
 
   Future<void> test_resetOnAnalysisSetChanged_watch_thisFile() async {
     addTestFile('''
-main() {
+void f() {
   foo(1 + 2);
 }
 foo(int myName) {}
@@ -519,7 +519,7 @@ foo(int myName) {}
     var initialResetCount = test_resetCount;
     // Update the test.dart file.
     modifyTestFile('''
-main() {
+void f() {
   foo(1 + 2);
 }
 foo(int otherName) {}
@@ -541,7 +541,7 @@ foo(int otherName) {}
   Future<void> test_serverError_change() {
     test_simulateRefactoringException_change = true;
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -556,7 +556,7 @@ main() {
   Future<void> test_serverError_final() {
     test_simulateRefactoringException_final = true;
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -571,7 +571,7 @@ main() {
   Future<void> test_serverError_init() {
     test_simulateRefactoringException_init = true;
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -593,14 +593,14 @@ class ExtractMethodTest extends _AbstractGetRefactoring_Test {
 
   Future<void> test_expression() {
     addTestFile('''
-main() {
+void f() {
   print(1 + 2);
   print(1 + 2);
 }
 ''');
     _setOffsetLengthForString('1 + 2');
     return assertSuccessfulRefactoring(_computeChange, '''
-main() {
+void f() {
   print(res());
   print(res());
 }
@@ -611,7 +611,7 @@ int res() => 1 + 2;
 
   Future<void> test_expression_hasParameters() {
     addTestFile('''
-main() {
+void f() {
   int a = 1;
   int b = 2;
   print(a + b);
@@ -620,7 +620,7 @@ main() {
 ''');
     _setOffsetLengthForString('a + b');
     return assertSuccessfulRefactoring(_computeChange, '''
-main() {
+void f() {
   int a = 1;
   int b = 2;
   print(res(a, b));
@@ -633,7 +633,7 @@ int res(int a, int b) => a + b;
 
   Future<void> test_expression_updateParameters() async {
     addTestFile('''
-main() {
+void f() {
   int a = 1;
   int b = 2;
   print(a + b);
@@ -650,7 +650,7 @@ main() {
     parameters.insert(0, parameters.removeLast());
     options!.parameters = parameters;
     return assertSuccessfulRefactoring(_sendExtractRequest, '''
-main() {
+void f() {
   int a = 1;
   int b = 2;
   print(res(b, a));
@@ -663,7 +663,7 @@ int res(num bbb, int aaa) => aaa + bbb;
 
   Future<void> test_init_fatalError_invalidStatement() {
     addTestFile('''
-main(bool b) {
+void f(bool b) {
 // start
   if (b) {
     print(1);
@@ -685,14 +685,14 @@ main(bool b) {
 
   Future<void> test_long_expression() {
     addTestFile('''
-main() {
+void f() {
   print(1 +
     2);
 }
 ''');
     _setOffsetLengthForString('1 +\n    2');
     return assertSuccessfulRefactoring(_computeChange, '''
-main() {
+void f() {
   print(res());
 }
 
@@ -707,7 +707,7 @@ int res() {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
-main() {
+void f() {
   var a = getSelectedItem( );
 }
 ''');
@@ -723,7 +723,7 @@ main() {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
-main() {
+void f() {
   var a = 1 + 2;
   var b = 1 +  2;
 }
@@ -737,7 +737,7 @@ main() {
 
   Future<void> test_statements() {
     addTestFile('''
-main() {
+void f() {
   int a = 1;
   int b = 2;
 // start
@@ -748,7 +748,7 @@ main() {
 ''');
     _setOffsetLengthForStartEnd();
     return assertSuccessfulRefactoring(_computeChange, '''
-main() {
+void f() {
   int a = 1;
   int b = 2;
 // start
@@ -759,6 +759,43 @@ main() {
 
 void res(int a, int b) {
   print(a + b);
+}
+''');
+  }
+
+  Future<void> test_statements_nullableReturnType() {
+    addTestFile('''
+void foo(int b) {
+// start
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+// end
+  print(x!);
+}
+''');
+    _setOffsetLengthForStartEnd();
+    return assertSuccessfulRefactoring(_computeChange, '''
+void foo(int b) {
+// start
+  int? x = res(b);
+// end
+  print(x!);
+}
+
+int? res(int b) {
+  int? x;
+  if (b < 2) {
+    x = 42;
+  }
+  if (b >= 2) {
+    x = 43;
+  }
+  return x;
 }
 ''');
   }
@@ -877,7 +914,7 @@ int getValue() => 42;
 
   Future test_extractLocal() async {
     addTestFile('''
-main() {
+void f() {
   var a = 1 + 2;
 }
 ''');
@@ -889,7 +926,7 @@ main() {
 
   Future test_extractLocal_withoutSelection() async {
     addTestFile('''
-main() {
+void f() {
   var a = 1 + 2;
 }
 ''');
@@ -940,7 +977,7 @@ class MyWidget extends StatelessWidget {
   Future test_rename_hasElement_class() {
     return assertHasRenameRefactoring('''
 class Test {}
-main() {
+void f() {
   Test v;
 }
 ''', 'Test v');
@@ -951,7 +988,7 @@ main() {
 class A {
   A.test() {}
 }
-main() {
+void f() {
   new A.test();
 }
 ''', 'test();');
@@ -959,7 +996,7 @@ main() {
 
   Future test_rename_hasElement_function() {
     return assertHasRenameRefactoring('''
-main() {
+void f() {
   test();
 }
 test() {}
@@ -969,7 +1006,7 @@ test() {}
   Future test_rename_hasElement_importElement_directive() {
     return assertHasRenameRefactoring('''
 import 'dart:math' as math;
-main() {
+void f() {
   math.PI;
 }
 ''', 'import ');
@@ -978,7 +1015,7 @@ main() {
   Future test_rename_hasElement_importElement_prefixDecl() {
     return assertHasRenameRefactoring('''
 import 'dart:math' as math;
-main() {
+void f() {
   math.PI;
 }
 ''', 'math;');
@@ -988,7 +1025,7 @@ main() {
     return assertHasRenameRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as test;
-main() {
+void f() {
   test.pi;
 }
 ''', 'test.pi;');
@@ -999,7 +1036,7 @@ main() {
 class A {
   get test => 0;
 }
-main(A a) {
+void f(A a) {
   a.test;
 }
 ''', 'test;');
@@ -1010,7 +1047,7 @@ main(A a) {
 class A {
   set test(x) {}
 }
-main(A a) {
+void f(A a) {
   a.test = 2;
 }
 ''', 'test = 2;');
@@ -1024,7 +1061,7 @@ library my.lib;
 
   Future test_rename_hasElement_localVariable() {
     return assertHasRenameRefactoring('''
-main() {
+void f() {
   int test = 0;
   print(test);
 }
@@ -1036,7 +1073,7 @@ main() {
 class A {
   test() {}
 }
-main(A a) {
+void f(A a) {
   a.test();
 }
 ''', 'test();');
@@ -1044,7 +1081,7 @@ main(A a) {
 
   Future test_rename_noElement() async {
     addTestFile('''
-main() {
+void f() {
   // not an element
 }
 ''');
@@ -1064,7 +1101,7 @@ foo(int p) {}
 ''');
     addTestFile('''
 import 'other.dart';
-main() {
+void f() {
   int res = 1 + 2;
   foo(res);
   foo(res);
@@ -1081,7 +1118,7 @@ main() {
 
   Future<void> test_feedback() {
     addTestFile('''
-main() {
+void f() {
   int test = 42;
   print(test);
   print(test);
@@ -1097,9 +1134,9 @@ main() {
   }
 
   Future<void> test_init_fatalError_notVariable() {
-    addTestFile('main() {}');
+    addTestFile('void f() {}');
     return getRefactoringResult(() {
-      return _sendInlineRequest('main() {}');
+      return _sendInlineRequest('void f() {}');
     }).then((result) {
       assertResultProblemsFatal(result.initialProblems,
           'Local variable declaration or reference must be selected to activate this refactoring.');
@@ -1110,7 +1147,7 @@ main() {
 
   Future<void> test_OK() {
     addTestFile('''
-main() {
+void f() {
   int test = 42;
   int a = test + 2;
   print(test);
@@ -1119,7 +1156,7 @@ main() {
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test + 2');
     }, '''
-main() {
+void f() {
   int a = 42 + 2;
   print(42);
 }
@@ -1129,7 +1166,7 @@ main() {
   Future<void> test_resetOnAnalysisSetChanged() async {
     newFile(join(testFolder, 'other.dart'), content: '// other 1');
     addTestFile('''
-main() {
+void f() {
   int res = 1 + 2;
   print(res);
 }
@@ -1141,7 +1178,7 @@ main() {
     var initialResetCount = test_resetCount;
     // Update the test.dart file.
     modifyTestFile('''
-main() {
+void f() {
   print(1 + 2);
 }
 ''');
@@ -1173,7 +1210,7 @@ class A {
   test(int p) {
     print(f + p);
   }
-  main() {
+  void f() {
     test(1);
   }
 }
@@ -1207,11 +1244,11 @@ class A {
   test(int p) {
     print(f + p);
   }
-  main() {
+  void f() {
     test(1);
   }
 }
-main(A a) {
+void f(A a) {
   a.test(2);
 }
 ''');
@@ -1220,11 +1257,11 @@ main(A a) {
     }, '''
 class A {
   int f;
-  main() {
+  void f() {
     print(f + 1);
   }
 }
-main(A a) {
+void f(A a) {
   print(a.f + 2);
 }
 ''');
@@ -1235,7 +1272,7 @@ main(A a) {
 test(a, b) {
   print(a + b);
 }
-main() {
+void f() {
   test(1, 2);
   test(10, 20);
 }
@@ -1243,7 +1280,7 @@ main() {
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(a');
     }, '''
-main() {
+void f() {
   print(1 + 2);
   print(10 + 20);
 }
@@ -1255,7 +1292,7 @@ main() {
 test(a, b) {
   print(a + b);
 }
-main() {
+void f() {
   test(1, 2);
   test(10, 20);
 }
@@ -1268,7 +1305,7 @@ main() {
 test(a, b) {
   print(a + b);
 }
-main() {
+void f() {
   test(1, 2);
   print(10 + 20);
 }
@@ -1340,7 +1377,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
 
   Future<void> test_cancelPendingRequest() async {
     addTestFile('''
-main() {
+void f() {
   int test = 0;
   print(test);
 }
@@ -1364,7 +1401,7 @@ class Test {
   Test() {}
   Test.named() {}
 }
-main() {
+void f() {
   Test v;
   new Test();
   new Test.named();
@@ -1377,7 +1414,7 @@ class NewName {
   NewName() {}
   NewName.named() {}
 }
-main() {
+void f() {
   NewName v;
   new NewName();
   new NewName.named();
@@ -1419,7 +1456,7 @@ class NewName {
 class Test {
   Test() {}
 }
-main() {
+void f() {
   new Test();
 }
 ''');
@@ -1431,13 +1468,13 @@ main() {
 class NewName {
   NewName() {}
 }
-main() {
+void f() {
   new NewName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.offset, 44);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1448,7 +1485,7 @@ main() {
 class Test {
   Test.named() {}
 }
-main() {
+void f() {
   new Test.named();
 }
 ''');
@@ -1460,13 +1497,13 @@ main() {
 class NewName {
   NewName.named() {}
 }
-main() {
+void f() {
   new NewName.named();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.offset, 50);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1477,7 +1514,7 @@ main() {
 class Test {
   Test() {}
 }
-main() {
+void f() {
   new Test();
 }
 ''');
@@ -1489,13 +1526,13 @@ main() {
 class NewName {
   NewName() {}
 }
-main() {
+void f() {
   new NewName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 42);
+        expect(renameFeedback.offset, 44);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1506,7 +1543,7 @@ main() {
 class Test {
   Test.named() {}
 }
-main() {
+void f() {
   new Test.named();
 }
 ''');
@@ -1518,13 +1555,13 @@ main() {
 class NewName {
   NewName.named() {}
 }
-main() {
+void f() {
   new NewName.named();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 48);
+        expect(renameFeedback.offset, 50);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1533,7 +1570,7 @@ main() {
   Future<void> test_class_options_fatalError() {
     addTestFile('''
 class Test {}
-main() {
+void f() {
   Test v;
 }
 ''');
@@ -1550,7 +1587,7 @@ main() {
   Future<void> test_class_validateOnly() {
     addTestFile('''
 class Test {}
-main() {
+void f() {
   Test v;
 }
 ''');
@@ -1568,7 +1605,7 @@ main() {
   Future<void> test_class_warning() {
     addTestFile('''
 class Test {}
-main() {
+void f() {
   Test v;
 }
 ''');
@@ -1580,7 +1617,7 @@ main() {
       // ...but there is still a change
       assertTestRefactoringResult(result, '''
 class newName {}
-main() {
+void f() {
   newName v;
 }
 ''');
@@ -1593,7 +1630,7 @@ main() {
         // ...and there is a new change
         assertTestRefactoringResult(result, '''
 class NewName {}
-main() {
+void f() {
   NewName v;
 }
 ''');
@@ -1606,7 +1643,7 @@ main() {
 class A {
   var test = 0;
   A(this.test);
-  main() {
+  void f() {
     print(test);
   }
 }
@@ -1617,7 +1654,7 @@ class A {
 class A {
   var newName = 0;
   A(this.newName);
-  main() {
+  void f() {
     print(newName);
   }
 }
@@ -1629,7 +1666,7 @@ class A {
 class A {
   var test = 0;
   A(this.test);
-  main() {
+  void f() {
     print(test);
   }
 }
@@ -1640,7 +1677,7 @@ class A {
 class A {
   var newName = 0;
   A(this.newName);
-  main() {
+  void f() {
     print(newName);
   }
 }
@@ -1653,7 +1690,7 @@ class A {
   final int test;
   A({this.test: 0});
 }
-main() {
+void f() {
   new A(test: 42);
 }
 ''');
@@ -1664,7 +1701,7 @@ class A {
   final int newName;
   A({this.newName: 0});
 }
-main() {
+void f() {
   new A(newName: 42);
 }
 ''');
@@ -1674,7 +1711,7 @@ main() {
     addTestFile('''
 class A {
   get test => 0;
-  main() {
+  void f() {
     print(test);
   }
 }
@@ -1684,7 +1721,7 @@ class A {
     }, '''
 class A {
   get newName => 0;
-  main() {
+  void f() {
     print(newName);
   }
 }
@@ -1695,11 +1732,11 @@ class A {
     addTestFile('''
 class A {
   test() {}
-  main() {
+  void f() {
     test();
   }
 }
-main(A a) {
+void f(A a) {
   a.test();
 }
 ''');
@@ -1708,11 +1745,11 @@ main(A a) {
     }, '''
 class A {
   newName() {}
-  main() {
+  void f() {
     newName();
   }
 }
-main(A a) {
+void f(A a) {
   a.newName();
 }
 ''');
@@ -1723,7 +1760,7 @@ main(A a) {
 class A {
   test() {}
 }
-main(A a, a2) {
+void f(A a, a2) {
   a.test();
   a2.test(); // a2
 }
@@ -1748,7 +1785,7 @@ main(A a, a2) {
     addTestFile('''
 class A {
   set test(x) {}
-  main() {
+  void f() {
     test = 0;
   }
 }
@@ -1758,7 +1795,7 @@ class A {
     }, '''
 class A {
   set newName(x) {}
-  main() {
+  void f() {
     newName = 0;
   }
 }
@@ -1799,7 +1836,7 @@ class B {
 class A {
   A.test() {}
 }
-main() {
+void f() {
   new A.test();
 }
 ''');
@@ -1811,13 +1848,13 @@ main() {
 class A {
   A.newName() {}
 }
-main() {
+void f() {
   new A.newName();
 }
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 43);
+        expect(renameFeedback.offset, 45);
         expect(renameFeedback.length, 4);
       },
     );
@@ -1826,7 +1863,7 @@ main() {
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}
-main() {
+void f() {
   Test v;
 }
 ''');
@@ -1846,7 +1883,7 @@ class A<T> {
   A({T test});
 }
 
-main() {
+void f() {
   A(test: 0);
 }
 ''');
@@ -1857,7 +1894,7 @@ class A<T> {
   A({T newName});
 }
 
-main() {
+void f() {
   A(newName: 0);
 }
 ''');
@@ -1869,7 +1906,7 @@ class A<T> {
   void foo({T test}) {}
 }
 
-main(A<int> a) {
+void f(A<int> a) {
   a.foo(test: 0);
 }
 ''');
@@ -1880,7 +1917,7 @@ class A<T> {
   void foo({T newName}) {}
 }
 
-main(A<int> a) {
+void f(A<int> a) {
   a.foo(newName: 0);
 }
 ''');
@@ -1889,7 +1926,7 @@ main(A<int> a) {
   Future<void> test_function() {
     addTestFile('''
 test() {}
-main() {
+void f() {
   test();
   print(test);
 }
@@ -1898,7 +1935,7 @@ main() {
       return sendRenameRequest('test() {}', 'newName');
     }, '''
 newName() {}
-main() {
+void f() {
   newName();
   print(newName);
 }
@@ -1909,7 +1946,7 @@ main() {
     addTestFile('''
 import 'dart:math';
 import 'dart:async';
-main() {
+void f() {
   Random r;
   Future f;
 }
@@ -1921,7 +1958,7 @@ main() {
         '''
 import 'dart:math';
 import 'dart:async' as new_name;
-main() {
+void f() {
   Random r;
   new_name.Future f;
 }
@@ -1937,7 +1974,7 @@ main() {
     addTestFile('''
 import 'dart:math' as test;
 import 'dart:async' as test;
-main() {
+void f() {
   test.Random r;
   test.Future f;
 }
@@ -1949,7 +1986,7 @@ main() {
         '''
 import 'dart:math' as test;
 import 'dart:async';
-main() {
+void f() {
   test.Random r;
   Future f;
 }
@@ -2023,7 +2060,7 @@ part of my.new_name;
 
   Future<void> test_localVariable() {
     addTestFile('''
-main() {
+void f() {
   int test = 0;
   test = 1;
   test += 2;
@@ -2033,7 +2070,7 @@ main() {
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 1', 'newName');
     }, '''
-main() {
+void f() {
   int newName = 0;
   newName = 1;
   newName += 2;
@@ -2044,7 +2081,7 @@ main() {
 
   Future<void> test_localVariable_finalCheck_shadowError() {
     addTestFile('''
-main() {
+void f() {
   var newName;
   int test = 0;
   print(test);
@@ -2064,7 +2101,7 @@ main() {
     test_simulateRefactoringReset_afterCreateChange = true;
     addTestFile('''
 test() {}
-main() {
+void f() {
   test();
 }
 ''');
@@ -2079,7 +2116,7 @@ main() {
     test_simulateRefactoringReset_afterFinalConditions = true;
     addTestFile('''
 test() {}
-main() {
+void f() {
   test();
 }
 ''');
@@ -2094,7 +2131,7 @@ main() {
     test_simulateRefactoringReset_afterInitialConditions = true;
     addTestFile('''
 test() {}
-main() {
+void f() {
   test();
 }
 ''');
@@ -2107,7 +2144,7 @@ main() {
 
   Future<void> test_resetOnAnalysis() async {
     addTestFile('''
-main() {
+void f() {
   int initialName = 0;
   print(initialName);
 }
@@ -2119,7 +2156,7 @@ main() {
     _validateFeedback(result, oldName: 'initialName');
     // update the file
     modifyTestFile('''
-main() {
+void f() {
   int otherName = 0;
   print(otherName);
 }

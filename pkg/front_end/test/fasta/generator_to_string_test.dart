@@ -10,12 +10,15 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/fasta/scope.dart';
+import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 
 import 'package:kernel/ast.dart'
     show
         Arguments,
         Class,
+        Component,
         DartType,
         Expression,
         FunctionNode,
@@ -29,6 +32,8 @@ import 'package:kernel/ast.dart'
         VariableGet,
         VoidType,
         defaultLanguageVersion;
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
@@ -65,6 +70,12 @@ main() async {
     Token token = scanString("    myToken").tokens;
     Uri uri = Uri.parse("org-dartlang-test:my_library.dart");
 
+    /// Create dummy variants of Component, CoreTypes and ClassHierarchy for
+    /// the BodyBuilder. These are not actually used in the test.
+    Component component = new Component();
+    CoreTypes coreTypes = new CoreTypes(component);
+    ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
+
     Arguments arguments = new Arguments(<Expression>[new StringLiteral("arg")]);
     DartType type = const VoidType();
     Expression expression =
@@ -84,6 +95,7 @@ main() async {
                 uriTranslator)
             .loader,
         null);
+    libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, null, -1);
     Procedure getter = new Procedure(
@@ -105,10 +117,19 @@ main() async {
         new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null);
+    engine.prepareTopLevel(coreTypes, hierarchy);
+
     BodyBuilder helper = new BodyBuilder(
         libraryBuilder: libraryBuilder,
         isDeclarationInstanceMember: false,
-        uri: uri);
+        uri: uri,
+        enclosingScope: new Scope.immutable(),
+        member: libraryBuilder,
+        coreTypes: coreTypes,
+        hierarchy: hierarchy,
+        typeInferrer:
+            engine.createTopLevelTypeInferrer(uri, null, libraryBuilder, null));
 
     Generator generator =
         new ThisAccessGenerator(helper, token, false, false, false);
@@ -196,7 +217,7 @@ main() async {
             ReadOnlyAccessKind.FinalVariable));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
-        " plainNameForRead: null, kind:"
+        " plainNameForRead: , kind:"
         " ReadOnlyAccessKind.ParenthesizedExpression)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",

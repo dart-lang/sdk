@@ -1819,9 +1819,48 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
   cmpl(src, Address(ESP, depth * target::kWordSize));
 }
 
-void Assembler::MoveRegister(Register to, Register from) {
-  if (to != from) {
-    movl(to, from);
+void Assembler::ExtendValue(Register to, Register from, OperandSize sz) {
+  switch (sz) {
+    case kUnsignedFourBytes:
+    case kFourBytes:
+      if (to == from) return;  // No operation needed.
+      return movl(to, from);
+    case kUnsignedTwoBytes:
+      return movzxw(to, from);
+    case kTwoBytes:
+      return movsxw(to, from);
+    case kUnsignedByte:
+      switch (from) {
+        case EAX:
+        case EBX:
+        case ECX:
+        case EDX:
+          return movzxb(to, ByteRegisterOf(from));
+          break;
+        default:
+          if (to != from) {
+            movl(to, from);
+          }
+          return andl(to, Immediate(0xFF));
+      }
+    case kByte:
+      switch (from) {
+        case EAX:
+        case EBX:
+        case ECX:
+        case EDX:
+          return movsxb(to, ByteRegisterOf(from));
+          break;
+        default:
+          if (to != from) {
+            movl(to, from);
+          }
+          shll(to, Immediate(24));
+          return sarl(to, Immediate(24));
+      }
+    default:
+      UNIMPLEMENTED();
+      break;
   }
 }
 

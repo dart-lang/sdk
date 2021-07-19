@@ -110,10 +110,9 @@ class RunCommand extends DartdevCommand {
       );
 
     if (verbose) {
-      argParser
-        ..addSeparator(
-          'Advanced options:',
-        );
+      argParser.addSeparator(
+        'Advanced options:',
+      );
     }
     argParser
       ..addMultiOption(

@@ -24,9 +24,9 @@ class A1 extends core::Object {
   }
 }
 class B1 extends core::Object {
-[@vm.inferred-type.metadata=#lib::A1] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  field self::A1* aa1 = new self::A1::•();
+[@vm.inferred-type.metadata=#lib::A1] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  field self::A1* aa1;
   synthetic constructor •() → self::B1*
-    : super core::Object::•()
+    : self::B1::aa1 = new self::A1::•(), super core::Object::•()
     ;
 }
 class T2 extends core::Object {
@@ -47,9 +47,9 @@ class A2 extends core::Object {
   }
 }
 abstract class B2Base extends core::Object {
-[@vm.inferred-type.metadata=#lib::A2] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  field dynamic _aa = new self::A2::•();
+[@vm.inferred-type.metadata=#lib::A2] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  field dynamic _aa;
   synthetic constructor •() → self::B2Base*
-    : super core::Object::•()
+    : self::B2Base::_aa = new self::A2::•(), super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:17]  get aa2() → dynamic
     return [@vm.direct-call.metadata=#lib::B2Base._aa] [@vm.inferred-type.metadata=#lib::A2] this.{self::B2Base::_aa}{dynamic};
@@ -80,9 +80,9 @@ class A3 extends core::Object {
   }
 }
 class B3 extends core::Object {
-[@vm.inferred-type.metadata=#lib::A3] [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:26,getterSelectorId:27]  field self::A3* aa3 = new self::A3::•();
+[@vm.inferred-type.metadata=#lib::A3] [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:26,getterSelectorId:27]  field self::A3* aa3;
   synthetic constructor •() → self::B3*
-    : super core::Object::•()
+    : self::B3::aa3 = new self::A3::•(), super core::Object::•()
     ;
 }
 class T4 extends core::Object {
@@ -103,9 +103,9 @@ class A4 extends core::Object {
   }
 }
 class B4 extends core::Object {
-[@vm.inferred-type.metadata=#lib::A4] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:34,getterSelectorId:35]  field dynamic _aa = new self::A4::•();
+[@vm.inferred-type.metadata=#lib::A4] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:34,getterSelectorId:35]  field dynamic _aa;
   synthetic constructor •() → self::B4*
-    : super core::Object::•()
+    : self::B4::_aa = new self::A4::•(), super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false,getterSelectorId:36]  get aa4() → dynamic
     return [@vm.direct-call.metadata=#lib::B4._aa] [@vm.inferred-type.metadata=#lib::A4] this.{self::B4::_aa}{dynamic};
@@ -130,7 +130,7 @@ static method test2() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic3() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown3();
+  return self::unknown3();
 static method test3() → void {
   self::getDynamic3(){dynamic}.aa3(1, 2, 3, 4, 5, 6, new self::T3::•());
   self::ok = false;
@@ -138,7 +138,7 @@ static method test3() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic4() → dynamic
-  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown4();
+  return self::unknown4();
 static method test4() → void {
   self::getDynamic4(){dynamic}.aa4(1, 2, 3, 4, 5, 6, 7, new self::T4::•());
   self::ok = false;

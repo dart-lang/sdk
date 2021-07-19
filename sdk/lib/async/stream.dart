@@ -435,6 +435,11 @@ abstract class Stream<T> {
   /// Use the callbacks, for example, for pausing the underlying subscription
   /// while having no subscribers to prevent losing events, or canceling the
   /// subscription when there are no listeners.
+  ///
+  /// Cancelling is intended to be used when there are no current subscribers.
+  /// If the subscription passed to `onListen` or `onCancel` is cancelled,
+  /// then no further events are ever emitted by current subscriptions on
+  /// the returned broadcast stream, not even a done event.
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
       void onCancel(StreamSubscription<T> subscription)?}) {
@@ -656,6 +661,14 @@ abstract class Stream<T> {
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test` and handle the error.
   Stream<T> handleError(Function onError, {bool test(error)?}) {
+    if (onError is! void Function(Object, StackTrace) &&
+        onError is! void Function(Object)) {
+      throw ArgumentError.value(
+          onError,
+          "onError",
+          "Error handler must accept one Object or one Object and a StackTrace"
+              " as arguments.");
+    }
     return new _HandleErrorStream<T>(this, onError, test);
   }
 

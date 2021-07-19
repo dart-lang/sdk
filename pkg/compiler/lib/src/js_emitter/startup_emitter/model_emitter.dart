@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
@@ -34,11 +35,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/tasks.dart';
 import '../../constants/values.dart'
-    show
-        ConstantValue,
-        FunctionConstantValue,
-        LateSentinelConstantValue,
-        NullConstantValue;
+    show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../../deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
@@ -65,7 +62,9 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderExpressionFinalizerImpl,
         DeferredHolderParameter,
         DeferredHolderResource,
-        DeferredHolderResourceKind;
+        DeferredHolderResourceKind,
+        LegacyDeferredHolderExpressionFinalizerImpl,
+        mainResourceName;
 import '../../js_backend/type_reference.dart'
     show
         TypeReferenceFinalizer,
@@ -218,8 +217,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js(
-        '#.#', [_namer.globalObjectForConstants(), _namer.constantName(value)]);
+    return js.js('#.#',
+        [_namer.globalObjectForConstant(value), _namer.constantName(value)]);
   }
 
   bool get shouldMergeFragments => _options.mergeFragmentsThreshold != null;

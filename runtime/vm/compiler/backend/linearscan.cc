@@ -471,7 +471,7 @@ void LiveRange::Print() {
   SafepointPosition* safepoint = first_safepoint();
   while (safepoint != NULL) {
     THR_Print("    Safepoint [%" Pd "]: ", safepoint->pos());
-    safepoint->locs()->stack_bitmap()->Print();
+    safepoint->locs()->stack_bitmap().Print();
     THR_Print("\n");
     safepoint = safepoint->next();
   }
@@ -2739,7 +2739,7 @@ static bool AreLocationsAllTheSame(const GrowableArray<Location>& locs) {
 // Emit move on the edge from |pred| to |succ|.
 static void EmitMoveOnEdge(BlockEntryInstr* succ,
                            BlockEntryInstr* pred,
-                           MoveOperands move) {
+                           const MoveOperands& move) {
   Instruction* last = pred->last_instruction();
   if ((last->SuccessorCount() == 1) && !pred->IsGraphEntry()) {
     ASSERT(last->IsGoto());

@@ -95,7 +95,7 @@ build() {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: /*caret*/DefaultTextStyle(
         child: Row(
@@ -112,7 +112,7 @@ class FakeFlutter {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return Container(
       child: widget(
         child: DefaultTextStyle(
@@ -134,7 +134,7 @@ class FakeFlutter {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
-  main() {\r
+  Widget f() {\r
     return Container(\r
       child: /*caret*/DefaultTextStyle(\r
         child: Row(\r
@@ -151,7 +151,7 @@ class FakeFlutter {\r
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {\r
-  main() {\r
+  Widget f() {\r
     return Container(\r
       child: widget(\r
         child: DefaultTextStyle(\r
@@ -174,10 +174,10 @@ class FakeFlutter {\r
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return foo./*caret*/bar;
 }
 ''');
@@ -185,10 +185,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return widget(child: foo.bar);
 }
 ''');
@@ -199,10 +199,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return /*caret*/foo.bar;
 }
 ''');
@@ -210,10 +210,10 @@ main(Foo foo) {
 import 'package:flutter/widgets.dart';
 
 abstract class Foo extends Widget {
-  Widget bar;
+  Widget bar = Text('');
 }
 
-main(Foo foo) {
+Widget f(Foo foo) {
   return widget(child: foo.bar);
 }
 ''');
@@ -223,8 +223,8 @@ main(Foo foo) {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
-  var obj;
+  Widget f() {
+    var obj;
     return Row(children: [/*caret*/ Container()]);
   }
 }
@@ -236,7 +236,7 @@ class FakeFlutter {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return /*caret*/Container();
   }
 }
@@ -244,7 +244,7 @@ class FakeFlutter {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return widget(child: Container());
   }
 }
@@ -255,7 +255,7 @@ class FakeFlutter {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return ClipRect./*caret*/rect();
   }
 }
@@ -263,7 +263,7 @@ class FakeFlutter {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     return widget(child: ClipRect.rect());
   }
 }
@@ -274,7 +274,7 @@ class FakeFlutter {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     var container = Container();
     return /*caret*/container;
   }
@@ -283,7 +283,7 @@ class FakeFlutter {
     await assertHasAssist('''
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
-  main() {
+  Widget f() {
     var container = Container();
     return widget(child: container);
   }
