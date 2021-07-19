@@ -240,7 +240,7 @@ Iterable<String> getSupportedLibraryNames(
 
 /// Desugar API to determine whether [member] is a redirecting factory
 /// constructor.
-// TODO(sigmund): Delete this API once `member.isRedirectingFactoryConstructor`
+// TODO(sigmund): Delete this API once `member.isRedirectingFactory`
 // is implemented correctly for patch files (Issue #33495).
 bool isRedirectingFactory(ir.Procedure member) {
   if (member.kind == ir.ProcedureKind.Factory) {

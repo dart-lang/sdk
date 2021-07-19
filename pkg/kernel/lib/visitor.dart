@@ -82,6 +82,8 @@ abstract class ExpressionVisitor<R> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) =>
+      defaultExpression(node);
   R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 }
 
@@ -124,7 +126,7 @@ abstract class MemberVisitor<R> {
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
-  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  R visitRedirectingFactory(RedirectingFactory node) {
     return defaultMember(node);
   }
 }
@@ -137,8 +139,7 @@ abstract class MemberVisitor1<R, A> {
   R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  R visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, A arg) {
+  R visitRedirectingFactory(RedirectingFactory node, A arg) {
     return defaultMember(node, arg);
   }
 }
@@ -258,6 +259,8 @@ abstract class TreeVisitor<R>
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) =>
+      defaultExpression(node);
   R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 
   // Statements
@@ -292,7 +295,7 @@ abstract class TreeVisitor<R>
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
-  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  R visitRedirectingFactory(RedirectingFactory node) {
     return defaultMember(node);
   }
 
@@ -436,6 +439,8 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, A arg) =>
       defaultExpression(node, arg);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, A arg) =>
+      defaultExpression(node, arg);
   R visitTypedefTearOff(TypedefTearOff node, A arg) =>
       defaultExpression(node, arg);
 
@@ -480,8 +485,7 @@ abstract class TreeVisitor1<R, A>
   R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  R visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, A arg) {
+  R visitRedirectingFactory(RedirectingFactory node, A arg) {
     return defaultMember(node, arg);
   }
 
@@ -589,6 +593,9 @@ abstract class ConstantVisitor<R> {
       defaultConstant(node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
@@ -610,6 +617,8 @@ abstract class _ConstantCallback<R> {
   R visitTypedefTearOffConstant(TypedefTearOffConstant node);
   R visitStaticTearOffConstant(StaticTearOffConstant node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
+  R visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node);
   R visitTypeLiteralConstant(TypeLiteralConstant node);
   R visitUnevaluatedConstant(UnevaluatedConstant node);
 }
@@ -634,6 +643,11 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
   @override
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       _callback.visitConstructorTearOffConstant(node);
+
+  @override
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      _callback.visitRedirectingFactoryTearOffConstant(node);
 
   @override
   R visitInstantiationConstant(InstantiationConstant node) =>
@@ -730,6 +744,9 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
       defaultConstant(node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
@@ -774,6 +791,9 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
       defaultConstant(node);
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       defaultConstant(node);
+  void visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   void visitTypeLiteralConstant(TypeLiteralConstant node) =>
       defaultConstant(node);
   void visitUnevaluatedConstant(UnevaluatedConstant node) =>
@@ -788,8 +808,7 @@ abstract class MemberReferenceVisitor<R> {
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  R visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
+  R visitRedirectingFactoryReference(RedirectingFactory node) {
     return defaultMemberReference(node);
   }
 }
@@ -839,6 +858,9 @@ abstract class Visitor<R> extends TreeVisitor<R>
       defaultConstant(node);
   R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
       defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 
@@ -878,6 +900,9 @@ abstract class Visitor<R> extends TreeVisitor<R>
       defaultConstantReference(node);
   R visitConstructorTearOffConstantReference(ConstructorTearOffConstant node) =>
       defaultConstantReference(node);
+  R visitRedirectingFactoryTearOffConstantReference(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstantReference(node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
       defaultConstantReference(node);
   R visitUnevaluatedConstantReference(UnevaluatedConstant node) =>
@@ -889,8 +914,7 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  R visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
+  R visitRedirectingFactoryReference(RedirectingFactory node) {
     return defaultMemberReference(node);
   }
 
@@ -1346,14 +1370,14 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyField);
   }
 
-  /// Transforms or removes [RedirectingFactoryConstructor] nodes in [nodes] as
+  /// Transforms or removes [RedirectingFactory] nodes in [nodes] as
   /// children of [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [RedirectingFactoryConstructor] nodes.
-  void transformRedirectingFactoryConstructorList(
-      List<RedirectingFactoryConstructor> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyRedirectingFactoryConstructor);
+  /// sentinel for [RedirectingFactory] nodes.
+  void transformRedirectingFactoryList(
+      List<RedirectingFactory> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyRedirectingFactory);
   }
 
   /// Transforms or removes [Typedef] nodes in [nodes] as children of [parent].
@@ -1580,6 +1604,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, T arg) =>
       defaultExpression(node, arg);
   R visitTypedefTearOff(TypedefTearOff node, T arg) =>
       defaultExpression(node, arg);

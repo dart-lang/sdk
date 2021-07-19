@@ -264,11 +264,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     } else if (constant is StaticTearOffConstant) {
       writeByte(ConstantTag.StaticTearOffConstant);
       writeNonNullCanonicalNameReference(
-          constant.procedure.reference.canonicalName!);
+          constant.targetReference.canonicalName!);
     } else if (constant is ConstructorTearOffConstant) {
       writeByte(ConstantTag.ConstructorTearOffConstant);
       writeNonNullCanonicalNameReference(
-          constant.constructor.reference.canonicalName!);
+          constant.targetReference.canonicalName!);
+    } else if (constant is RedirectingFactoryTearOffConstant) {
+      writeByte(ConstantTag.RedirectingFactoryTearOffConstant);
+      writeNonNullCanonicalNameReference(
+          constant.targetReference.canonicalName!);
     } else if (constant is TypeLiteralConstant) {
       writeByte(ConstantTag.TypeLiteralConstant);
       writeDartType(constant.type);
@@ -373,13 +377,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeRedirectingFactoryConstructorNodeList(
-      List<RedirectingFactoryConstructor> nodes) {
+  void writeRedirectingFactoryNodeList(List<RedirectingFactory> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final RedirectingFactoryConstructor node = nodes[i];
-      writeRedirectingFactoryConstructorNode(node);
+      final RedirectingFactory node = nodes[i];
+      writeRedirectingFactoryNode(node);
     }
   }
 
@@ -473,8 +476,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     node.accept(this);
   }
 
-  void writeRedirectingFactoryConstructorNode(
-      RedirectingFactoryConstructor node) {
+  void writeRedirectingFactoryNode(RedirectingFactory node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1205,8 +1207,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-    writeRedirectingFactoryConstructorNodeList(
-        node.redirectingFactoryConstructors);
+    writeRedirectingFactoryNodeList(node.redirectingFactories);
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -1366,35 +1367,21 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  void visitRedirectingFactory(RedirectingFactory node) {
     if (node.reference.canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    writeByte(Tag.RedirectingFactoryConstructor);
-    enterScope(
-        typeParameters: node.typeParameters,
-        memberScope: true,
-        variableScope: true);
+    writeByte(Tag.RedirectingFactory);
     writeNonNullCanonicalNameReference(getCanonicalNameOfMemberGetter(node));
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name);
-
     writeAnnotationList(node.annotations);
     writeNonNullReference(node.targetReference!);
     writeNodeList(node.typeArguments);
-    writeNodeList(node.typeParameters);
-    writeUInt30(node.positionalParameters.length + node.namedParameters.length);
-    writeUInt30(node.requiredParameterCount);
-    writeVariableDeclarationList(node.positionalParameters);
-    writeVariableDeclarationList(node.namedParameters);
-
-    leaveScope(
-        typeParameters: node.typeParameters,
-        memberScope: true,
-        variableScope: true);
+    writeFunctionNode(node.function);
   }
 
   @override
@@ -1609,7 +1596,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitConstructorTearOff(ConstructorTearOff node) {
     writeByte(Tag.ConstructorTearOff);
     writeOffset(node.fileOffset);
-    writeNonNullReference(node.constructorReference);
+    writeNonNullReference(node.targetReference);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    writeByte(Tag.RedirectingFactoryTearOff);
+    writeOffset(node.fileOffset);
+    writeNonNullReference(node.targetReference);
   }
 
   @override
@@ -2687,10 +2681,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
+  void visitRedirectingFactoryReference(RedirectingFactory node) {
     throw new UnsupportedError(
-        'serialization of RedirectingFactoryConstructor references');
+        'serialization of RedirectingFactory references');
   }
 
   @override
@@ -2740,6 +2733,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    throw new UnsupportedError(
+        'serialization of RedirectingFactoryTearOffConstants ');
+  }
+
+  @override
   void visitStaticTearOffConstantReference(StaticTearOffConstant node) {
     throw new UnsupportedError(
         'serialization of StaticTearOffConstant references');
@@ -2750,6 +2750,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       ConstructorTearOffConstant node) {
     throw new UnsupportedError(
         'serialization of ConstructorTearOffConstant references');
+  }
+
+  @override
+  void visitRedirectingFactoryTearOffConstantReference(
+      RedirectingFactoryTearOffConstant node) {
+    throw new UnsupportedError(
+        'serialization of RedirectingFactoryTearOffConstant references');
   }
 
   @override

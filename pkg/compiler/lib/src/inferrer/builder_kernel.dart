@@ -2314,7 +2314,7 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
-    return builder.createStaticGetTypeInformation(node, node.procedure);
+    return builder.createStaticGetTypeInformation(node, node.target);
   }
 
   @override

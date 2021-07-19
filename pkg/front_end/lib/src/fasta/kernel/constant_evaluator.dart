@@ -453,8 +453,7 @@ class ConstantsTransformer extends RemovingTransformer {
       transformTypeParameterList(node.typeParameters, node);
       transformConstructorList(node.constructors, node);
       transformProcedureList(node.procedures, node);
-      transformRedirectingFactoryConstructorList(
-          node.redirectingFactoryConstructors, node);
+      transformRedirectingFactoryList(node.redirectingFactories, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
@@ -511,17 +510,15 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  RedirectingFactoryConstructor visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, TreeNode? removalSentinel) {
+  RedirectingFactory visitRedirectingFactory(
+      RedirectingFactory node, TreeNode? removalSentinel) {
     // Currently unreachable as the compiler doesn't produce
     // RedirectingFactoryConstructor.
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      transformTypeParameterList(node.typeParameters, node);
-      transformVariableDeclarationList(node.positionalParameters, node);
-      transformVariableDeclarationList(node.namedParameters, node);
+      node.function = transform(node.function)..parent = node;
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
@@ -3397,7 +3394,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
     if (constant is StaticTearOffConstant) {
-      Member constantMember = constant.procedure;
+      Procedure constantMember = constant.target;
       if (constantMember is Procedure) {
         if (node.typeArguments.length ==
             constantMember.function.typeParameters.length) {
@@ -3422,9 +3419,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               'instantiation does not match the number of type arguments '
               'of the $constant.');
         }
-      } else if (constantMember is Constructor) {
-        // TODO(dmitryas): Add support for instantiated constructor tear-offs.
-        return defaultExpression(node);
       } else {
         // Probably unreachable.
         return createInvalidExpressionConstant(
@@ -3442,6 +3436,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitConstructorTearOff(ConstructorTearOff node) {
+    // TODO(dmitryas): Add support for instantiated constructor tear-offs.
+    return defaultExpression(node);
+  }
+
+  @override
+  Constant visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
     return defaultExpression(node);
   }
 

@@ -79,13 +79,13 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     var type = _annotationsDefineRoot(proc.annotations);
     if (type == null) return;
 
-    if (proc.isRedirectingFactoryConstructor) {
+    if (proc.isRedirectingFactory) {
       if (type != PragmaEntryPointType.CallOnly &&
           type != PragmaEntryPointType.Default) {
         throw "Error: factory $proc doesn't have a setter or getter";
       }
       Member target = proc;
-      while (target is Procedure && target.isRedirectingFactoryConstructor) {
+      while (target is Procedure && target.isRedirectingFactory) {
         target = getRedirectingFactoryBody(target).target;
         assert(target != null);
         assert(

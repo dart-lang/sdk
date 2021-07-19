@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 67;
+  UInt32 formatVersion = 68;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -328,7 +328,7 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
-  List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+  List<RedirectingFactory> redirectingFactories;
 
   // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific procedure. Note the "+1" to account for needing the end of the last entry.
@@ -424,7 +424,7 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   Byte stubKind; // Index into the ProcedureStubKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst,
-              isRedirectingFactoryConstructor, isExtensionMember,
+              isRedirectingFactory, isExtensionMember,
               isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
@@ -432,7 +432,7 @@ type Procedure extends Member {
   FunctionNode function;
 }
 
-type RedirectingFactoryConstructor extends Member {
+type RedirectingFactory extends Member {
   Byte tag = 108;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
@@ -703,8 +703,13 @@ type StaticTearOff extends Expression {
 type ConstructorTearOff extends Expression {
   Byte tag = 60;
   FileOffset fileOffset;
-  ConstructorReference constructor;
-  Option<List<DartType>> typeArguments;
+  MemberReference target;
+}
+
+type RedirectingFactoryTearOff extends Expression {
+  Byte tag = 84;
+  FileOffset fileOffset;
+  MemberReference target;
 }
 
 type TypedefTearOff extends Expression {
@@ -1216,6 +1221,11 @@ type TypedefTearOffConstant extends Constant {
 
 type ConstructorTearOffConstant extends Constant {
   Byte tag = 15;
+  CanonicalNameReference constructorReference;
+}
+
+type RedirectingFactoryTearOffConstant extends Constant {
+  Byte tag = 16;
   CanonicalNameReference constructorReference;
 }
 

@@ -5853,6 +5853,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitRedirectingFactoryTearOff(
+      RedirectingFactoryTearOff node) {
+    throw UnsupportedError('RedirectingFactory tear off');
+  }
+
+  @override
   js_ast.Expression visitTypedefTearOff(TypedefTearOff node) {
     throw UnsupportedError('Typedef instantiation');
   }
@@ -6241,13 +6247,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitConstant(Constant node) {
     if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
-      var isSdk = node.procedure.enclosingLibrary.importUri.scheme == 'dart';
+      var isSdk = node.target.enclosingLibrary.importUri.scheme == 'dart';
       if (_isInForeignJS) {
-        return _emitStaticTarget(node.procedure);
+        return _emitStaticTarget(node.target);
       }
-      if (node.procedure.isExternal && !isSdk) {
+      if (node.target.isExternal && !isSdk) {
         return runtimeCall(
-            'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
+            'tearoffInterop(#)', [_emitStaticTarget(node.target)]);
       }
     }
     if (node is TypeLiteralConstant) {
@@ -6426,8 +6432,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitStaticTearOffConstant(StaticTearOffConstant node) {
-    _declareBeforeUse(node.procedure.enclosingClass);
-    return _emitStaticGet(node.procedure);
+    _declareBeforeUse(node.target.enclosingClass);
+    return _emitStaticGet(node.target);
   }
 
   @override

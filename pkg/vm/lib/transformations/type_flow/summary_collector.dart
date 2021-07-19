@@ -605,7 +605,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
-    assert(!(member is Procedure && member.isRedirectingFactoryConstructor));
+    assert(!(member is Procedure && member.isRedirectingFactory));
 
     _protobufHandler?.beforeSummaryCreation(member);
 
@@ -2483,7 +2483,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    final Member member = constant.procedure;
+    final Member member = constant.target;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(member));
     if (member is Constructor) {

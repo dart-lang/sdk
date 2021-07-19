@@ -161,8 +161,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 cls.addField(member);
               } else if (member is Constructor) {
                 cls.addConstructor(member);
-              } else if (member is RedirectingFactoryConstructor) {
-                cls.addRedirectingFactoryConstructor(member);
+              } else if (member is RedirectingFactory) {
+                cls.addRedirectingFactory(member);
               } else {
                 unhandled("${member.runtimeType}", "getMember",
                     member.fileOffset, member.fileUri);

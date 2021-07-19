@@ -537,8 +537,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
     origin.procedure.isExternal = _procedure.isExternal;
     origin.procedure.function = _procedure.function;
     origin.procedure.function.parent = origin.procedure;
-    origin.procedure.isRedirectingFactoryConstructor =
-        _procedure.isRedirectingFactoryConstructor;
+    origin.procedure.isRedirectingFactory = _procedure.isRedirectingFactory;
     return 1;
   }
 }

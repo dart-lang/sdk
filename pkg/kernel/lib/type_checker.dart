@@ -208,7 +208,7 @@ class TypeCheckingVisitor
     handleFunctionNode(node.function);
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  visitRedirectingFactory(RedirectingFactory node) {
     currentReturnType = null;
     currentYieldType = null;
   }
@@ -521,8 +521,12 @@ class TypeCheckingVisitor
 
   @override
   DartType visitConstructorTearOff(ConstructorTearOff node) {
-    return node.constructorReference.asConstructor.function
-        .computeFunctionType(Nullability.nonNullable);
+    return node.function.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    return node.function.computeFunctionType(Nullability.nonNullable);
   }
 
   @override
