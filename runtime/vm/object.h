@@ -6747,8 +6747,6 @@ class Context : public Object {
   static const intptr_t kControllerIndex = 1;
   // Expected context index of chained futures in recognized async functions.
   // These are used to unwind async stacks.
-  static const intptr_t kFutureTimeoutFutureIndex = 2;
-  static const intptr_t kFutureWaitFutureIndex = 2;
   static const intptr_t kIsSyncIndex = 2;
 
   struct ArrayTraits {

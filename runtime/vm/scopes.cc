@@ -7,6 +7,7 @@
 
 #include "vm/compiler/backend/slot.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -194,7 +195,8 @@ void LocalScope::AddContextVariable(LocalVariable* variable) {
       &Slot::GetContextVariableSlotFor(Thread::Current(), *variable));
 }
 
-VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
+VariableIndex LocalScope::AllocateVariables(const Function& function,
+                                            VariableIndex first_parameter_index,
                                             int num_parameters,
                                             VariableIndex first_local_index,
                                             LocalScope* context_owner,
@@ -252,8 +254,17 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
   if (chained_future != nullptr) {
     AllocateContextVariable(chained_future, &context_owner);
     *found_captured_variables = true;
-    ASSERT(chained_future->index().value() ==
-           chained_future->expected_context_index());
+    // Remember context indices of _future variables in _Future.timeout and
+    // Future.wait. They are used while collecting async stack traces.
+    if (function.recognized_kind() == MethodRecognizer::kFutureTimeout) {
+      IsolateGroup::Current()->object_store()->set_future_timeout_future_index(
+          Smi::Handle(Smi::New(chained_future->index().value())));
+    } else if (function.recognized_kind() == MethodRecognizer::kFutureWait) {
+      IsolateGroup::Current()->object_store()->set_future_wait_future_index(
+          Smi::Handle(Smi::New(chained_future->index().value())));
+    } else {
+      UNREACHABLE();
+    }
   }
   if (is_sync != nullptr) {
     AllocateContextVariable(is_sync, &context_owner);
@@ -312,7 +323,7 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     // No parameters in children scopes.
     const int num_parameters_in_child = 0;
     VariableIndex child_next_index = child->AllocateVariables(
-        dummy_parameter_index, num_parameters_in_child, next_index,
+        function, dummy_parameter_index, num_parameters_in_child, next_index,
         context_owner, found_captured_variables);
     if (child_next_index.value() < min_index.value()) {
       min_index = child_next_index;

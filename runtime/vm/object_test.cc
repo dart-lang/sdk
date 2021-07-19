@@ -2532,8 +2532,8 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const VariableIndex first_local_index(-1);
   bool found_captured_vars = false;
   VariableIndex next_index = parent_scope->AllocateVariables(
-      first_parameter_index, num_parameters, first_local_index, NULL,
-      &found_captured_vars);
+      Function::null_function(), first_parameter_index, num_parameters,
+      first_local_index, NULL, &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
   EXPECT_EQ(0, next_index.value() -

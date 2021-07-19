@@ -604,13 +604,11 @@ void ScopeBuilder::VisitFunctionNode() {
     LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
     ASSERT(future != nullptr);
     future->set_is_chained_future();
-    future->set_expected_context_index(Context::kFutureTimeoutFutureIndex);
   } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
              depth_.function_ == 1) {
     LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
     ASSERT(future != nullptr);
     future->set_is_chained_future();
-    future->set_expected_context_index(Context::kFutureWaitFutureIndex);
   }
 }
 
