@@ -1190,19 +1190,18 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     _proceduresView = null;
   }
 
-  List<RedirectingFactoryConstructor> _redirectingFactoryConstructorsInternal;
-  DirtifyingList<RedirectingFactoryConstructor>?
-      _redirectingFactoryConstructorsView;
+  List<RedirectingFactory> _redirectingFactoriesInternal;
+  DirtifyingList<RedirectingFactory>? _redirectingFactoryConstructorsView;
 
   /// Redirecting factory constructors declared in the class.
   ///
   /// For mixin applications this should be empty.
-  List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
+  List<RedirectingFactory> get redirectingFactories {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return _redirectingFactoryConstructorsInternal;
+    if (dirty) return _redirectingFactoriesInternal;
     return _redirectingFactoryConstructorsView ??=
-        new DirtifyingList(this, _redirectingFactoryConstructorsInternal);
+        new DirtifyingList(this, _redirectingFactoriesInternal);
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
@@ -1210,8 +1209,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Used for adding redirecting factory constructor when reading the dill
   /// file.
   void set redirectingFactoryConstructorsInternal(
-      List<RedirectingFactoryConstructor> redirectingFactoryConstructors) {
-    _redirectingFactoryConstructorsInternal = redirectingFactoryConstructors;
+      List<RedirectingFactory> redirectingFactoryConstructors) {
+    _redirectingFactoriesInternal = redirectingFactoryConstructors;
     _redirectingFactoryConstructorsView = null;
   }
 
@@ -1226,7 +1225,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Constructor>? constructors,
       List<Procedure>? procedures,
       List<Field>? fields,
-      List<RedirectingFactoryConstructor>? redirectingFactoryConstructors,
+      List<RedirectingFactory>? redirectingFactoryConstructors,
       required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
@@ -1238,14 +1237,14 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         this._fieldsInternal = fields ?? <Field>[],
         this._constructorsInternal = constructors ?? <Constructor>[],
         this._proceduresInternal = procedures ?? <Procedure>[],
-        this._redirectingFactoryConstructorsInternal =
-            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
+        this._redirectingFactoriesInternal =
+            redirectingFactoryConstructors ?? <RedirectingFactory>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this._constructorsInternal, this);
     setParents(this._proceduresInternal, this);
     setParents(this._fieldsInternal, this);
-    setParents(this._redirectingFactoryConstructorsInternal, this);
+    setParents(this._redirectingFactoriesInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1270,10 +1269,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Constructor member = constructors[i];
       canonicalName.getChildFromConstructor(member).bindTo(member.reference);
     }
-    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
-      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+    for (int i = 0; i < redirectingFactories.length; ++i) {
+      RedirectingFactory member = redirectingFactories[i];
       canonicalName
-          .getChildFromRedirectingFactoryConstructor(member)
+          .getChildFromRedirectingFactory(member)
           .bindTo(member.reference);
     }
     dirty = false;
@@ -1300,8 +1299,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Constructor member = constructors[i];
       member._relinkNode();
     }
-    for (int i = 0; i < redirectingFactoryConstructors.length; ++i) {
-      RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
+    for (int i = 0; i < redirectingFactories.length; ++i) {
+      RedirectingFactory member = redirectingFactories[i];
       member._relinkNode();
     }
     dirty = false;
@@ -1345,7 +1344,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         fields,
         constructors,
         procedures,
-        redirectingFactoryConstructors
+        redirectingFactories
       ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
@@ -1389,11 +1388,10 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   /// Adds a field to this class.
-  void addRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor redirectingFactoryConstructor) {
+  void addRedirectingFactory(RedirectingFactory redirectingFactory) {
     dirty = true;
-    redirectingFactoryConstructor.parent = this;
-    _redirectingFactoryConstructorsInternal.add(redirectingFactoryConstructor);
+    redirectingFactory.parent = this;
+    _redirectingFactoriesInternal.add(redirectingFactory);
   }
 
   @override
@@ -1446,7 +1444,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
-    visitList(redirectingFactoryConstructors, v);
+    visitList(redirectingFactories, v);
   }
 
   @override
@@ -1463,7 +1461,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(constructors, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
-    v.transformList(redirectingFactoryConstructors, this);
+    v.transformList(redirectingFactories, this);
   }
 
   @override
@@ -1490,8 +1488,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformConstructorList(constructors, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
-    v.transformRedirectingFactoryConstructorList(
-        redirectingFactoryConstructors, this);
+    v.transformRedirectingFactoryList(redirectingFactories, this);
   }
 
   @override
@@ -2237,64 +2234,45 @@ class Constructor extends Member {
 /// be removed from the class.  However, it is needed during the linking phase,
 /// because other modules can refer to that constructor.
 ///
-/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// [RedirectingFactory]s contain the necessary information for
 /// linking and are treated as non-runnable members of classes that merely serve
 /// as containers for that information.
 ///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
-class RedirectingFactoryConstructor extends Member {
+class RedirectingFactory extends Member {
   int flags = 0;
 
-  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// [RedirectingFactory]s may redirect to constructors or factories
   /// of instantiated generic types, that is, generic types with supplied type
   /// arguments.  The supplied type arguments are stored in this field.
   final List<DartType> typeArguments;
 
   /// Reference to the constructor or the factory that this
-  /// [RedirectingFactoryConstructor] redirects to.
+  /// [RedirectingFactory] redirects to.
   // TODO(johnniwinther): Make this non-nullable.
   Reference? targetReference;
 
-  /// [typeParameters] are duplicates of the type parameters of the enclosing
-  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
-  /// references to the type parameters of the enclosing class in the
-  /// redirection target description are encoded with references to the elements
-  /// of [typeParameters].
-  List<TypeParameter> typeParameters;
+  /// [FunctionNode] that holds the type parameters, copied from the enclosing
+  /// class, and the parameters defined on the redirecting factory.
+  ///
+  /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
+  /// of the [targetReference] constructor using the [typeArguments] and
+  /// [VariableGet] of the parameters.
+  FunctionNode function;
 
-  /// Positional parameters of [RedirectingFactoryConstructor]s should be
-  /// compatible with that of the target constructor.
-  List<VariableDeclaration> positionalParameters;
-  int requiredParameterCount;
-
-  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
-  /// with that of the target constructor.
-  List<VariableDeclaration> namedParameters;
-
-  RedirectingFactoryConstructor(this.targetReference,
+  RedirectingFactory(this.targetReference,
       {required Name name,
       bool isConst: false,
       bool isExternal: false,
       int transformerFlags: 0,
       List<DartType>? typeArguments,
-      List<TypeParameter>? typeParameters,
-      List<VariableDeclaration>? positionalParameters,
-      List<VariableDeclaration>? namedParameters,
-      int? requiredParameterCount,
+      required this.function,
       required Uri fileUri,
       Reference? reference})
       : this.typeArguments = typeArguments ?? <DartType>[],
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.positionalParameters =
-            positionalParameters ?? <VariableDeclaration>[],
-        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
-        this.requiredParameterCount =
-            requiredParameterCount ?? positionalParameters?.length ?? 0,
         super(name, fileUri, reference) {
-    setParents(this.typeParameters, this);
-    setParents(this.positionalParameters, this);
-    setParents(this.namedParameters, this);
+    function.parent = this;
     this.isConst = isConst;
     this.isExternal = isExternal;
     this.transformerFlags = transformerFlags;
@@ -2355,15 +2333,15 @@ class RedirectingFactoryConstructor extends Member {
   }
 
   @override
-  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactoryConstructor(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactory(this);
 
   @override
   R accept1<R, A>(MemberVisitor1<R, A> v, A arg) =>
-      v.visitRedirectingFactoryConstructor(this, arg);
+      v.visitRedirectingFactory(this, arg);
 
   @override
   R acceptReference<R>(MemberReferenceVisitor<R> v) =>
-      v.visitRedirectingFactoryConstructorReference(this);
+      v.visitRedirectingFactoryReference(this);
 
   @override
   void visitChildren(Visitor v) {
@@ -2371,18 +2349,21 @@ class RedirectingFactoryConstructor extends Member {
     target?.acceptReference(v);
     visitList(typeArguments, v);
     name.accept(v);
+    function.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformDartTypeList(typeArguments);
+    function = v.transform(function)..parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformDartTypeList(typeArguments);
+    function = v.transform(function)..parent = this;
   }
 
   @override
@@ -2705,7 +2686,7 @@ class Procedure extends Member {
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
   // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactoryConstructor = 1 << 4;
+  static const int FlagRedirectingFactory = 1 << 4;
   static const int FlagExtensionMember = 1 << 5;
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
@@ -2750,8 +2731,8 @@ class Procedure extends Member {
 
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
-  bool get isRedirectingFactoryConstructor {
-    return flags & FlagRedirectingFactoryConstructor != 0;
+  bool get isRedirectingFactory {
+    return flags & FlagRedirectingFactory != 0;
   }
 
   /// If set, this flag indicates that this function was not present in the
@@ -2783,10 +2764,10 @@ class Procedure extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
-  void set isRedirectingFactoryConstructor(bool value) {
+  void set isRedirectingFactory(bool value) {
     flags = value
-        ? (flags | FlagRedirectingFactoryConstructor)
-        : (flags & ~FlagRedirectingFactoryConstructor);
+        ? (flags | FlagRedirectingFactory)
+        : (flags & ~FlagRedirectingFactory);
   }
 
   void set isExtensionMember(bool value) {
@@ -8611,23 +8592,28 @@ class CheckLibraryIsLoaded extends Expression {
 /// Tearing off a constructor of a class.
 class ConstructorTearOff extends Expression {
   /// The reference to the constructor being torn off.
-  Reference constructorReference;
+  Reference targetReference;
 
-  ConstructorTearOff(Constructor constructor)
-      : this.byReference(getNonNullableMemberReferenceGetter(constructor));
+  ConstructorTearOff(Member target)
+      : assert(target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  ConstructorTearOff.byReference(this.constructorReference);
+  ConstructorTearOff.byReference(this.targetReference);
 
-  Constructor get constructor => constructorReference.asConstructor;
+  Member get target => targetReference.asMember;
 
-  void set constructor(Constructor constructor) {
-    constructorReference = getNonNullableMemberReferenceGetter(constructor);
+  FunctionNode get function => target.function!;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getNonNullableMemberReferenceGetter(member);
   }
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return constructorReference.asConstructor.function
-        .computeFunctionType(Nullability.nonNullable);
+    return target.function!.computeFunctionType(Nullability.nonNullable);
   }
 
   @override
@@ -8639,7 +8625,7 @@ class ConstructorTearOff extends Expression {
 
   @override
   void visitChildren(Visitor v) {
-    constructor.acceptReference(v);
+    target.acceptReference(v);
   }
 
   @override
@@ -8655,7 +8641,60 @@ class ConstructorTearOff extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(constructorReference);
+    printer.writeMemberName(targetReference);
+  }
+}
+
+/// Tearing off a redirecting factory constructor of a class.
+class RedirectingFactoryTearOff extends Expression {
+  /// The reference to the redirecting factory constructor being torn off.
+  Reference targetReference;
+
+  RedirectingFactoryTearOff(Procedure target)
+      : assert(target.isRedirectingFactory),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  RedirectingFactoryTearOff.byReference(this.targetReference);
+
+  Procedure get target => targetReference.asProcedure;
+
+  void set target(Procedure target) {
+    targetReference = getNonNullableMemberReferenceGetter(target);
+  }
+
+  FunctionNode get function => target.function;
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) {
+    return target.function.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRedirectingFactoryTearOff(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOff(this, arg);
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {}
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {}
+
+  @override
+  String toString() {
+    return "RedirectingFactoryTearOff(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
   }
 }
 
@@ -12899,32 +12938,30 @@ class InstantiationConstant extends Constant {
 }
 
 abstract class TearOffConstant implements Constant {
-  Reference get memberReference;
-  Member get member;
+  Reference get targetReference;
+  Member get target;
   FunctionNode get function;
 }
 
 class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
-  final Reference memberReference;
+  final Reference targetReference;
 
   StaticTearOffConstant(Procedure procedure)
-      : memberReference = procedure.reference {
+      : targetReference = procedure.reference {
     assert(procedure.isStatic);
   }
 
-  StaticTearOffConstant.byReference(this.memberReference);
+  StaticTearOffConstant.byReference(this.targetReference);
 
   @override
-  Member get member => memberReference.asMember;
+  Procedure get target => targetReference.asProcedure;
 
   @override
-  FunctionNode get function => procedure.function;
-
-  Procedure get procedure => memberReference.asProcedure;
+  FunctionNode get function => target.function;
 
   visitChildren(Visitor v) {
-    memberReference.asProcedure.acceptReference(v);
+    target.acceptReference(v);
   }
 
   R accept<R>(ConstantVisitor<R> v) => v.visitStaticTearOffConstant(this);
@@ -12933,66 +12970,121 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(memberReference);
+    printer.writeMemberName(targetReference);
   }
 
   @override
   String toString() => 'StaticTearOffConstant(${toStringInternal()})';
 
-  int get hashCode => memberReference.hashCode;
+  int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
     return other is StaticTearOffConstant &&
-        other.memberReference == memberReference;
+        other.targetReference == targetReference;
   }
 
   FunctionType getType(StaticTypeContext context) {
-    return procedure.function.computeFunctionType(context.nonNullable);
+    return target.function.computeFunctionType(context.nonNullable);
   }
 }
 
 class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   @override
-  final Reference memberReference;
+  final Reference targetReference;
 
-  ConstructorTearOffConstant(Constructor constructor)
-      : memberReference = constructor.reference;
+  ConstructorTearOffConstant(Member target)
+      : assert(target is Constructor ||
+            (target is Procedure && target.kind == ProcedureKind.Factory)),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
 
-  ConstructorTearOffConstant.byReference(this.memberReference);
+  ConstructorTearOffConstant.byReference(this.targetReference);
 
   @override
-  Member get member => memberReference.asMember;
+  Member get target => targetReference.asMember;
 
   @override
-  FunctionNode get function => constructor.function;
+  FunctionNode get function => target.function!;
 
-  Constructor get constructor => memberReference.asConstructor;
-
-  visitChildren(Visitor v) {
-    memberReference.asProcedure.acceptReference(v);
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitConstructorTearOffConstant(this);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitConstructorTearOffConstantReference(this);
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeMemberName(memberReference);
+    printer.writeMemberName(targetReference);
   }
 
   @override
   String toString() => 'ConstructorTearOffConstant(${toStringInternal()})';
 
-  int get hashCode => memberReference.hashCode;
+  int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
     return other is StaticTearOffConstant &&
-        other.memberReference == memberReference;
+        other.targetReference == targetReference;
   }
 
   FunctionType getType(StaticTypeContext context) {
-    return constructor.function.computeFunctionType(context.nonNullable);
+    return function.computeFunctionType(context.nonNullable);
+  }
+}
+
+class RedirectingFactoryTearOffConstant extends Constant
+    implements TearOffConstant {
+  @override
+  final Reference targetReference;
+
+  RedirectingFactoryTearOffConstant(Procedure target)
+      : assert(target.isRedirectingFactory),
+        this.targetReference = getNonNullableMemberReferenceGetter(target);
+
+  RedirectingFactoryTearOffConstant.byReference(this.targetReference);
+
+  @override
+  Procedure get target => targetReference.asProcedure;
+
+  @override
+  FunctionNode get function => target.function;
+
+  @override
+  void visitChildren(Visitor v) {
+    target.acceptReference(v);
+  }
+
+  @override
+  R accept<R>(ConstantVisitor<R> v) =>
+      v.visitRedirectingFactoryTearOffConstant(this);
+
+  @override
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitRedirectingFactoryTearOffConstantReference(this);
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeMemberName(targetReference);
+  }
+
+  @override
+  String toString() =>
+      'RedirectingFactoryTearOffConstant(${toStringInternal()})';
+
+  int get hashCode => targetReference.hashCode;
+
+  bool operator ==(Object other) {
+    return other is StaticTearOffConstant &&
+        other.targetReference == targetReference;
+  }
+
+  FunctionType getType(StaticTypeContext context) {
+    return function.computeFunctionType(context.nonNullable);
   }
 }
 
@@ -14039,12 +14131,11 @@ final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
 final List<Constructor> emptyListOfConstructor =
     List.filled(0, dummyConstructor, growable: false);
 
-/// Almost const <RedirectingFactoryConstructor>[], but not const in an attempt
-/// to avoid polymorphism. See
+/// Almost const <RedirectingFactory>[], but not const in an attempt to avoid
+/// polymorphism. See
 /// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<RedirectingFactoryConstructor>
-    emptyListOfRedirectingFactoryConstructor =
-    List.filled(0, dummyRedirectingFactoryConstructor, growable: false);
+final List<RedirectingFactory> emptyListOfRedirectingFactory =
+    List.filled(0, dummyRedirectingFactory, growable: false);
 
 /// Almost const <Initializer>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -14172,13 +14263,13 @@ final Procedure dummyProcedure = new Procedure(
 /// constructor.
 final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
-/// Non-nullable [RedirectingFactoryConstructor] dummy value.
+/// Non-nullable [RedirectingFactory] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final RedirectingFactoryConstructor dummyRedirectingFactoryConstructor =
-    new RedirectingFactoryConstructor(null, name: dummyName, fileUri: dummyUri);
+final RedirectingFactory dummyRedirectingFactory = new RedirectingFactory(null,
+    name: dummyName, fileUri: dummyUri, function: dummyFunctionNode);
 
 /// Non-nullable [Typedef] dummy value.
 ///
@@ -14309,7 +14400,7 @@ final List<TreeNode> dummyTreeNodes = [
   dummyMember,
   dummyProcedure,
   dummyField,
-  dummyRedirectingFactoryConstructor,
+  dummyRedirectingFactory,
   dummyTypedef,
   dummyInitializer,
   dummyFunctionNode,

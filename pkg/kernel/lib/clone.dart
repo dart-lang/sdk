@@ -81,8 +81,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     throw 'Cloning of fields is not implemented here';
   }
 
-  TreeNode visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node) {
+  TreeNode visitRedirectingFactory(RedirectingFactory node) {
     throw 'Cloning of redirecting factory constructors is not implemented here';
   }
 
@@ -738,7 +737,12 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitConstructorTearOff(ConstructorTearOff node) {
-    return new ConstructorTearOff.byReference(node.constructorReference);
+    return new ConstructorTearOff.byReference(node.targetReference);
+  }
+
+  @override
+  TreeNode visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    return new RedirectingFactoryTearOff.byReference(node.targetReference);
   }
 
   @override
@@ -856,24 +860,18 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     return result;
   }
 
-  RedirectingFactoryConstructor cloneRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, Reference? reference) {
+  RedirectingFactory cloneRedirectingFactory(
+      RedirectingFactory node, Reference? reference) {
     final Uri? activeFileUriSaved = _activeFileUri;
     _activeFileUri = node.fileUri;
 
-    prepareTypeParameters(node.typeParameters);
-    RedirectingFactoryConstructor result = new RedirectingFactoryConstructor(
-        node.targetReference,
+    RedirectingFactory result = new RedirectingFactory(node.targetReference,
         name: node.name,
         isConst: node.isConst,
         isExternal: node.isExternal,
         transformerFlags: node.transformerFlags,
         typeArguments: node.typeArguments.map(visitType).toList(),
-        typeParameters: node.typeParameters.map(super.clone).toList(),
-        positionalParameters:
-            node.positionalParameters.map(super.clone).toList(),
-        namedParameters: node.namedParameters.map(super.clone).toList(),
-        requiredParameterCount: node.requiredParameterCount,
+        function: super.clone(node.function),
         fileUri: node.fileUri,
         reference: reference)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty

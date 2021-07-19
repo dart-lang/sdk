@@ -1243,20 +1243,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         name: node.name, initializers: node.initializers);
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  visitRedirectingFactory(RedirectingFactory node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
     writeWord('redirecting_factory');
-
-    // ignore: unnecessary_null_comparison
-    if (node.name != null) {
-      writeName(node.name);
-    }
-    writeTypeParameterList(node.typeParameters);
-    writeParameterList(node.positionalParameters, node.namedParameters,
-        node.requiredParameterCount);
+    writeFunction(node.function, name: node.name);
     writeSpaced('=');
     writeMemberReferenceFromReference(node.targetReference!);
     if (node.typeArguments.isNotEmpty) {
@@ -1327,7 +1320,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
-    node.redirectingFactoryConstructors.forEach(writeNode);
+    node.redirectingFactories.forEach(writeNode);
     --indentation;
     writeIndentation();
     endLine('}');
@@ -2052,7 +2045,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   visitConstructorTearOff(ConstructorTearOff node) {
-    writeMemberReferenceFromReference(node.constructorReference);
+    writeMemberReferenceFromReference(node.targetReference);
   }
 
   visitTypedefTearOff(TypedefTearOff node) {
@@ -2683,7 +2676,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('=');
     writeWord('partial-instantiation');
     writeSpace();
-    writeMemberReferenceFromReference(node.tearOffConstant.memberReference);
+    writeMemberReferenceFromReference(node.tearOffConstant.targetReference);
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);
@@ -2704,7 +2697,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('=');
     writeWord('tearoff');
     writeSpace();
-    writeMemberReferenceFromReference(node.memberReference);
+    writeMemberReferenceFromReference(node.targetReference);
     endLine();
   }
 
@@ -2922,6 +2915,9 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitConstructorTearOff(ConstructorTearOff node) => PRIMARY;
+
+  @override
+  int visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) => PRIMARY;
 
   @override
   int visitTypedefTearOff(TypedefTearOff node) => EXPRESSION;

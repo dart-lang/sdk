@@ -5,6 +5,7 @@
 #include "vm/stack_trace.h"
 
 #include "vm/dart_api_impl.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -242,14 +243,26 @@ ClosurePtr CallerClosureFinder::FindCaller(const Closure& receiver_closure) {
     parent_function_ = receiver_function_.parent_function();
     if (parent_function_.recognized_kind() ==
         MethodRecognizer::kFutureTimeout) {
-      context_entry_ = receiver_context_.At(Context::kFutureTimeoutFutureIndex);
+      ASSERT(IsolateGroup::Current()
+                 ->object_store()
+                 ->future_timeout_future_index() != Object::null());
+      const intptr_t future_index =
+          Smi::Value(IsolateGroup::Current()
+                         ->object_store()
+                         ->future_timeout_future_index());
+      context_entry_ = receiver_context_.At(future_index);
       return GetCallerInFutureImpl(context_entry_);
     }
 
     if (parent_function_.recognized_kind() == MethodRecognizer::kFutureWait) {
       receiver_context_ = receiver_context_.parent();
       ASSERT(!receiver_context_.IsNull());
-      context_entry_ = receiver_context_.At(Context::kFutureWaitFutureIndex);
+      ASSERT(
+          IsolateGroup::Current()->object_store()->future_wait_future_index() !=
+          Object::null());
+      const intptr_t future_index = Smi::Value(
+          IsolateGroup::Current()->object_store()->future_wait_future_index());
+      context_entry_ = receiver_context_.At(future_index);
       return GetCallerInFutureImpl(context_entry_);
     }
   }

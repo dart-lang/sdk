@@ -4491,8 +4491,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     } else if (closure is ir.ConstantExpression &&
         closure.constant is ir.StaticTearOffConstant) {
       ir.StaticTearOffConstant tearOff = closure.constant;
-      ir.Member member = tearOff.procedure;
-      if (member is ir.Procedure && handleTarget(member)) {
+      ir.Procedure member = tearOff.target;
+      if (handleTarget(member)) {
         return;
       }
     }

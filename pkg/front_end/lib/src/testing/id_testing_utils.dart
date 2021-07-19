@@ -415,7 +415,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
   void visitInstantiationConstant(InstantiationConstant node) {
     sb.write('Instantiation(');
-    sb.write(getMemberName(node.tearOffConstant.member));
+    sb.write(getMemberName(node.tearOffConstant.target));
     sb.write('<');
     typeToText.visitList(node.types);
     sb.write('>)');
@@ -423,7 +423,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
   void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     sb.write('TypedefTearOff(');
-    sb.write(getMemberName(node.tearOffConstant.member));
+    sb.write(getMemberName(node.tearOffConstant.target));
     if (node.parameters.isNotEmpty) {
       sb.write('<');
       for (int i = 0; i < node.parameters.length; i++) {
@@ -451,13 +451,20 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
   void visitStaticTearOffConstant(StaticTearOffConstant node) {
     sb.write('Function(');
-    sb.write(getMemberName(node.procedure));
+    sb.write(getMemberName(node.target));
     sb.write(')');
   }
 
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
     sb.write('Constructor(');
-    sb.write(getMemberName(node.constructor));
+    sb.write(getMemberName(node.target));
+    sb.write(')');
+  }
+
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    sb.write('RedirectingFactory(');
+    sb.write(getMemberName(node.target));
     sb.write(')');
   }
 

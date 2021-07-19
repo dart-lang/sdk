@@ -1836,8 +1836,7 @@ const Map<int, String> procedureFlagToName = const {
   Procedure.FlagAbstract: "abstract",
   Procedure.FlagExternal: "external",
   Procedure.FlagConst: "const",
-  Procedure.FlagRedirectingFactoryConstructor:
-      "redirecting-factory-constructor",
+  Procedure.FlagRedirectingFactory: "redirecting-factory-constructor",
   Procedure.FlagExtensionMember: "extension-member",
   Procedure.FlagNonNullableByDefault: "non-nullable-by-default",
   Procedure.FlagSynthetic: "synthetic",
@@ -1906,20 +1905,18 @@ TextSerializer<int> constructorFlagsSerializer = Wrapped<List<int>, int>(
     ListSerializer(
         Case(ConstructorFlagTagger(), convertFlagsMap(constructorFlagToName))));
 
-const Map<int, String> redirectingFactoryConstructorFlagToName = const {
-  RedirectingFactoryConstructor.FlagConst: "const",
-  RedirectingFactoryConstructor.FlagExternal: "external",
-  RedirectingFactoryConstructor.FlagNonNullableByDefault:
-      "non-nullable-by-default",
+const Map<int, String> redirectingFactoryFlagToName = const {
+  RedirectingFactory.FlagConst: "const",
+  RedirectingFactory.FlagExternal: "external",
+  RedirectingFactory.FlagNonNullableByDefault: "non-nullable-by-default",
 };
 
-class RedirectingFactoryConstructorFlagTagger implements Tagger<int> {
-  const RedirectingFactoryConstructorFlagTagger();
+class RedirectingFactoryFlagTagger implements Tagger<int> {
+  const RedirectingFactoryFlagTagger();
 
   String tag(int flag) {
-    return redirectingFactoryConstructorFlagToName[flag] ??
-        (throw StateError(
-            "Unknown RedirectingFactoryConstructor flag value: ${flag}."));
+    return redirectingFactoryFlagToName[flag] ??
+        (throw StateError("Unknown RedirectingFactory flag value: ${flag}."));
   }
 }
 
@@ -1929,8 +1926,8 @@ TextSerializer<int> redirectingFactoryConstructorFlagsSerializer =
             .where((f) => f != 0)
             .toList(),
         (u) => u.fold(0, (fs, f) => fs |= f),
-        ListSerializer(Case(RedirectingFactoryConstructorFlagTagger(),
-            convertFlagsMap(redirectingFactoryConstructorFlagToName))));
+        ListSerializer(Case(RedirectingFactoryFlagTagger(),
+            convertFlagsMap(redirectingFactoryFlagToName))));
 
 class MemberTagger implements Tagger<Member> {
   const MemberTagger();
@@ -1940,7 +1937,7 @@ class MemberTagger implements Tagger<Member> {
       return node.hasSetter ? "mutable-field" : "immutable-field";
     } else if (node is Constructor) {
       return "constructor";
-    } else if (node is RedirectingFactoryConstructor) {
+    } else if (node is RedirectingFactory) {
       return "redirecting-factory-constructor";
     } else if (node is Procedure) {
       switch (node.kind) {
@@ -2036,57 +2033,25 @@ TextSerializer<Constructor> constructorSerializer = Wrapped<
     Tuple4Serializer(nameSerializer, constructorFlagsSerializer,
         functionNodeWithInitializersSerializer, UriSerializer()));
 
-TextSerializer<RedirectingFactoryConstructor>
-    redirectingFactoryConstructorSerializer
+TextSerializer<RedirectingFactory> redirectingFactoryConstructorSerializer
     // Comment added to direct formatter.
     = Wrapped<
-            Tuple5<
-                Name,
-                int,
-                CanonicalName,
-                Tuple2<
-                    List<TypeParameter>,
-                    Tuple4<List<VariableDeclaration>, List<VariableDeclaration>,
-                        List<VariableDeclaration>, List<DartType>>>,
-                Uri>,
-            RedirectingFactoryConstructor>(
-        (w) => Tuple5(
-            w.name,
-            w.flags,
-            w.targetReference!.canonicalName!,
-            Tuple2(
-                w.typeParameters,
-                Tuple4(
-                    w.positionalParameters
-                        .take(w.requiredParameterCount)
-                        .toList(),
-                    w.positionalParameters
-                        .skip(w.requiredParameterCount)
-                        .toList(),
-                    w.namedParameters,
-                    w.typeArguments)),
-            w.fileUri),
-        (u) => RedirectingFactoryConstructor(u.third.reference,
+            Tuple6<Name, int, FunctionNode, CanonicalName, List<DartType>, Uri>,
+            RedirectingFactory>(
+        (w) => Tuple6(w.name, w.flags, w.function,
+            w.targetReference!.canonicalName!, w.typeArguments, w.fileUri),
+        (u) => RedirectingFactory(u.fourth.reference,
             name: u.first,
-            typeParameters: u.fourth.first,
-            positionalParameters:
-                u.fourth.second.first + u.fourth.second.second,
-            requiredParameterCount: u.fourth.second.first.length,
-            namedParameters: u.fourth.second.third,
-            typeArguments: u.fourth.second.fourth,
-            fileUri: u.fifth)
+            function: u.third,
+            typeArguments: u.fifth,
+            fileUri: u.sixth)
           ..flags = u.second,
-        Tuple5Serializer(
+        Tuple6Serializer(
             nameSerializer,
             redirectingFactoryConstructorFlagsSerializer,
+            functionNodeSerializer,
             CanonicalNameSerializer(),
-            Bind(
-                typeParametersSerializer,
-                Tuple4Serializer(
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(variableDeclarationSerializer),
-                    ListSerializer(dartTypeSerializer))),
+            ListSerializer(dartTypeSerializer),
             UriSerializer()));
 
 Case<Member> memberSerializer = new Case.uninitialized(const MemberTagger());
@@ -2281,7 +2246,7 @@ TextSerializer<SymbolConstant> symbolConstantSerializer =
 
 TextSerializer<StaticTearOffConstant> tearOffConstantSerializer =
     Wrapped<CanonicalName, StaticTearOffConstant>(
-        (w) => w.memberReference.canonicalName!,
+        (w) => w.targetReference.canonicalName!,
         (u) => StaticTearOffConstant.byReference(u.reference),
         CanonicalNameSerializer());
 

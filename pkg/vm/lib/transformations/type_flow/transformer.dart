@@ -1129,8 +1129,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     transformConstructorList(node.constructors, node);
     transformProcedureList(node.procedures, node);
     transformFieldList(node.fields, node);
-    transformRedirectingFactoryConstructorList(
-        node.redirectingFactoryConstructors, node);
+    transformRedirectingFactoryList(node.redirectingFactories, node);
     return node;
   }
 
@@ -1811,7 +1810,7 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
 
   @override
   visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    shaker.addUsedMember(constant.procedure);
+    shaker.addUsedMember(constant.target);
   }
 
   @override

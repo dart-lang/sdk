@@ -203,8 +203,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     origin._procedure.isExternal = _procedureInternal.isExternal;
     origin._procedure.function = _procedureInternal.function;
     origin._procedure.function.parent = origin._procedure;
-    origin._procedure.isRedirectingFactoryConstructor =
-        _procedureInternal.isRedirectingFactoryConstructor;
+    origin._procedure.isRedirectingFactory =
+        _procedureInternal.isRedirectingFactory;
     return 1;
   }
 }
@@ -264,7 +264,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     bodyInternal = new RedirectingFactoryBody(target, typeArguments);
     function.body = bodyInternal;
     bodyInternal?.parent = function;
-    _procedure.isRedirectingFactoryConstructor = true;
+    _procedure.isRedirectingFactory = true;
     if (isPatch) {
       // ignore: unnecessary_null_comparison
       if (function.typeParameters != null) {
@@ -299,7 +299,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedureInternal.isExternal = isExternal;
     _procedureInternal.isConst = isConst;
     _procedureInternal.isStatic = isStatic;
-    _procedureInternal.isRedirectingFactoryConstructor = true;
+    _procedureInternal.isRedirectingFactory = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,

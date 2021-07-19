@@ -243,7 +243,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     "Field",
     "Library",
     "Procedure",
-    "RedirectingFactoryConstructor",
+    "RedirectingFactory",
     "Typedef",
   };
 

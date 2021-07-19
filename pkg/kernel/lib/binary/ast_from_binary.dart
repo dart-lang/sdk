@@ -1478,7 +1478,7 @@ class BinaryBuilder {
     node.fieldsInternal = _readFieldList(node);
     _readConstructorList(node);
     node.proceduresInternal = _readProcedureList(node, procedureOffsets);
-    _readRedirectingFactoryConstructorList(node);
+    _readRedirectingFactoryList(node);
   }
 
   void _readConstructorList(Class node) {
@@ -1494,17 +1494,17 @@ class BinaryBuilder {
     }
   }
 
-  void _readRedirectingFactoryConstructorList(Class node) {
+  void _readRedirectingFactoryList(Class node) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
       node.redirectingFactoryConstructorsInternal =
-          emptyListOfRedirectingFactoryConstructor;
+          emptyListOfRedirectingFactory;
     } else {
       node.redirectingFactoryConstructorsInternal =
-          new List<RedirectingFactoryConstructor>.generate(length,
-              (int index) => readRedirectingFactoryConstructor()..parent = node,
+          new List<RedirectingFactory>.generate(
+              length, (int index) => readRedirectingFactory()..parent = node,
               growable: useGrowableLists);
     }
   }
@@ -1690,13 +1690,12 @@ class BinaryBuilder {
     return node;
   }
 
-  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+  RedirectingFactory readRedirectingFactory() {
     int tag = readByte();
-    assert(tag == Tag.RedirectingFactoryConstructor);
+    assert(tag == Tag.RedirectingFactory);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    RedirectingFactoryConstructor? node =
-        reference.node as RedirectingFactoryConstructor?;
+    RedirectingFactory? node = reference.node as RedirectingFactory?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1705,39 +1704,34 @@ class BinaryBuilder {
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
-    if (node == null) {
-      node = new RedirectingFactoryConstructor(null,
-          reference: reference, name: name, fileUri: fileUri);
-    }
-    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
       return true;
     }());
+    List<Expression> annotations = readAnnotationList();
     Reference targetReference = readNonNullMemberReference();
     List<DartType> typeArguments = readDartTypeList();
-    int typeParameterStackHeight = typeParameterStack.length;
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-    readUInt30(); // Total parameter count.
-    int requiredParameterCount = readUInt30();
-    int variableStackHeight = variableStack.length;
-    List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
-    List<VariableDeclaration> named = readAndPushVariableDeclarationList();
-    variableStack.length = variableStackHeight;
-    typeParameterStack.length = typeParameterStackHeight;
-    debugPath.removeLast();
+    FunctionNode function = readFunctionNode(outerEndOffset: fileEndOffset);
+    if (node == null) {
+      node = new RedirectingFactory(targetReference,
+          reference: reference,
+          name: name,
+          fileUri: fileUri,
+          function: function,
+          typeArguments: typeArguments);
+    } else {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.targetReference = targetReference;
+      node.typeArguments.addAll(typeArguments);
+      node.function = function..parent = node;
+    }
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
     node.flags = flags;
-    node.name = name;
-    node.fileUri = fileUri;
     node.annotations = annotations;
-    node.targetReference = targetReference;
-    node.typeArguments.addAll(typeArguments);
-    node.typeParameters = typeParameters;
-    node.requiredParameterCount = requiredParameterCount;
-    node.positionalParameters = positional;
-    node.namedParameters = named;
+    setParents(annotations, node);
+    debugPath.removeLast();
     return node;
   }
 
@@ -3372,10 +3366,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+  RedirectingFactory readRedirectingFactory() {
     final int nodeOffset = _byteOffset;
-    final RedirectingFactoryConstructor result =
-        super.readRedirectingFactoryConstructor();
+    final RedirectingFactory result = super.readRedirectingFactory();
     return _associateMetadata(result, nodeOffset);
   }
 

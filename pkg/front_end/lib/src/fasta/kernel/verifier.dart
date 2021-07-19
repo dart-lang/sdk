@@ -283,7 +283,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     // the shape, but aren't of the RedirectingFactoryBody type.
     bool hasBody = isRedirectingFactory(node) ||
         RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
-    bool hasFlag = node.isRedirectingFactoryConstructor;
+    bool hasFlag = node.isRedirectingFactory;
     if (hasBody != hasFlag) {
       String hasBodyString = hasBody ? "has" : "doesn't have";
       String hasFlagString = hasFlag ? "has" : "doesn't have";
@@ -291,7 +291,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           node,
           "Procedure '${node.name}' ${hasBodyString} a body "
           "of a redirecting factory, but ${hasFlagString} the "
-          "'isRedirectingFactoryConstructor' bit set.");
+          "'isRedirectingFactory' bit set.");
     }
 
     super.visitProcedure(node);

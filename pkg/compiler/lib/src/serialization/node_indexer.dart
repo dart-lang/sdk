@@ -313,6 +313,10 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {}
 
   @override
+  void visitRedirectingFactoryTearOffConstant(
+      ir.RedirectingFactoryTearOffConstant node) {}
+
+  @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {
     node.tearOffConstant.accept(this);
   }

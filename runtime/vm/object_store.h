@@ -173,6 +173,8 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
+  RW(Smi, future_timeout_future_index)                                         \
+  RW(Smi, future_wait_future_index)                                            \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \

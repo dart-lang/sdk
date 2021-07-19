@@ -217,9 +217,15 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConstructorTearOff(
       ConstructorTearOff node, DartType typeContext) {
-    DartType type = node.constructor.function
-        .computeFunctionType(inferrer.library.nonNullable);
+    DartType type =
+        node.target.function!.computeFunctionType(inferrer.library.nonNullable);
     return inferrer.instantiateTearOff(type, typeContext, node);
+  }
+
+  @override
+  ExpressionInferenceResult visitRedirectingFactoryTearOff(
+      RedirectingFactoryTearOff node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
   }
 
   @override

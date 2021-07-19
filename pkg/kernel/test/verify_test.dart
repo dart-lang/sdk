@@ -729,8 +729,8 @@ class TestHarness {
       enclosingClass.addField(node);
     } else if (node is Constructor) {
       enclosingClass.addConstructor(node);
-    } else if (node is RedirectingFactoryConstructor) {
-      enclosingClass.addRedirectingFactoryConstructor(node);
+    } else if (node is RedirectingFactory) {
+      enclosingClass.addRedirectingFactory(node);
     } else {
       throw "Unexpected class member: ${node.runtimeType}";
     }
