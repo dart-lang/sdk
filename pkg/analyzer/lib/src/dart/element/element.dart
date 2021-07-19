@@ -5480,23 +5480,29 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         parameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
         element: type.element,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);

@@ -628,7 +628,7 @@ class TypeSystemImpl implements TypeSystem {
             appendParameters(type.returnType);
             type.parameters.map((p) => p.type).forEach(appendParameters);
             // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
-            type.aliasArguments?.forEach(appendParameters);
+            type.alias?.typeArguments.forEach(appendParameters);
           } else if (type is InterfaceType) {
             type.typeArguments.forEach(appendParameters);
           }

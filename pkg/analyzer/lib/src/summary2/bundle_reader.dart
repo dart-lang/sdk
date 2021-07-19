@@ -1551,23 +1551,29 @@ class ResolutionReader {
           parameters: type.parameters,
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
           element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is VoidType) {
         // TODO(scheglov) add support for `void` aliasing

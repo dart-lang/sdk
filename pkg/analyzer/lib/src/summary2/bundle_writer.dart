@@ -707,10 +707,10 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeTypeAliasElementArguments(DartType type) {
-    var aliasElement = type.aliasElement;
-    _writeElement(aliasElement);
-    if (aliasElement != null) {
-      _writeTypeList(type.aliasArguments!);
+    var alias = type.alias;
+    _writeElement(alias?.element);
+    if (alias != null) {
+      _writeTypeList(alias.typeArguments);
     }
   }
 

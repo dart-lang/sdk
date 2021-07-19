@@ -144,7 +144,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    type.aliasArguments?.forEach(_assertLegacyType);
+    type.alias?.typeArguments.forEach(_assertLegacyType);
 
     if (type is TypeParameterType) {
       _assertLegacyType(type.bound);
