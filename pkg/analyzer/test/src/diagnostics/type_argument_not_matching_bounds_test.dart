@@ -453,17 +453,19 @@ main() {
 
   test_functionReference() async {
     await assertErrorsInCode('''
-void bar(void Function<T extends num>(T a) foo) {
+void foo<T extends num>(T a) {}
+void bar() {
   foo<String>;
 }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6),
     ]);
   }
 
   test_functionReference_matching() async {
     await assertNoErrorsInCode('''
-void bar(void Function<T extends num>(T a) foo) {
+void foo<T extends num>(T a) {}
+void bar() {
   foo<int>;
 }
 ''');
@@ -471,7 +473,8 @@ void bar(void Function<T extends num>(T a) foo) {
 
   test_functionReference_regularBounded() async {
     await assertNoErrorsInCode('''
-void bar(void Function<T>(T a) foo) {
+void foo<T>(T a) {}
+void bar() {
   foo<String>;
 }
 ''');

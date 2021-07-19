@@ -45,6 +45,47 @@ class FunctionReferenceResolver {
     if (function is SimpleIdentifierImpl) {
       var element = _resolver.nameScope.lookup(function.name).getter;
 
+      if (element == null) {
+        DartType receiverType;
+        var enclosingClass = _resolver.enclosingClass;
+        if (enclosingClass != null) {
+          receiverType = enclosingClass.thisType;
+        } else {
+          // TODO(srawlins): Check `_resolver.enclosingExtension`.
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+            function,
+            [function.name],
+          );
+          node.staticType = DynamicTypeImpl.instance;
+          return;
+        }
+
+        var result = _resolver.typePropertyResolver.resolve(
+          receiver: null,
+          receiverType: receiverType,
+          name: function.name,
+          propertyErrorEntity: function,
+          nameErrorEntity: function,
+        );
+
+        var method = result.getter;
+        if (method != null) {
+          function.staticElement = method;
+          _resolve(node: node, rawType: method.type, name: function.name);
+          return;
+        } else {
+          // TODO(srawlins): Report CompileTimeErrorCode.UNDEFINED_METHOD.
+          return;
+        }
+
+        // TODO(srawlins): If `target.isStatic`, report an error, something like
+        // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
+
+        // TODO(srawlins): if `(target is PropertyAccessorElement)`, report an
+        // error.
+      }
+
       // Classes and type aliases are checked first so as to include a
       // PropertyAccess parent check, which does not need to be done for
       // functions.
@@ -66,23 +107,32 @@ class FunctionReferenceResolver {
         }
       } else if (element is ExecutableElement) {
         function.staticElement = element;
-        _resolve(node: node, name: element.name, rawType: element.type);
+        function.staticType = element.type;
+        _resolve(node: node, rawType: element.type, name: element.name);
         return;
       } else if (element is VariableElement) {
-        var functionType = element.type;
-        if (functionType is FunctionType) {
-          function.accept(_resolver);
-          _resolve(node: node, name: element.name ?? '', rawType: functionType);
-          return;
-        }
+        function.staticElement = element;
+        function.staticType = element.type;
+        _resolveDisallowedExpression(node, element.type);
+        return;
       }
-    }
 
-    // TODO(srawlins): Handle `function` being a [SuperExpression].
-
-    if (function is PrefixedIdentifierImpl) {
+      node.staticType = DynamicTypeImpl.instance;
+      return;
+    } else if (function is PrefixedIdentifierImpl) {
       var prefixElement =
           _resolver.nameScope.lookup(function.prefix.name).getter;
+
+      if (prefixElement == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          function.prefix,
+          [function.name],
+        );
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      }
+
       function.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
         var functionName = function.identifier.name;
@@ -102,10 +152,21 @@ class FunctionReferenceResolver {
               node, prefixElement, function, functionElement);
           return;
         }
-      } else if (prefixElement is VariableElement) {
-        function.prefix.staticType = prefixElement.type;
+      }
+
+      DartType? prefixType;
+      if (prefixElement is VariableElement) {
+        prefixType = prefixElement.type;
       } else if (prefixElement is PropertyAccessorElement) {
-        function.prefix.staticType = prefixElement.returnType;
+        prefixType = prefixElement.returnType;
+      }
+
+      function.prefix.staticType = prefixType;
+      if (prefixType != null && prefixType.isDynamic) {
+        // TODO(srawlins): Report error. See spec text: "We do not allow dynamic
+        // explicit instantiation."
+        node.staticType = DynamicTypeImpl.instance;
+        return;
       }
 
       var methodElement = _resolveTypeProperty(
@@ -120,8 +181,8 @@ class FunctionReferenceResolver {
         function.staticType = methodElement.type;
         _resolve(
           node: node,
-          name: function.identifier.name,
           rawType: methodElement.type,
+          name: function.identifier.name,
         );
         return;
       }
@@ -133,11 +194,17 @@ class FunctionReferenceResolver {
       function.accept(_resolver);
       node.staticType = DynamicTypeImpl.instance;
       return;
-    }
-
-    if (function is PropertyAccessImpl) {
+    } else if (function is PropertyAccessImpl) {
       function.accept(_resolver);
       var target = function.target;
+      if (target == null) {
+        // TODO(srawlins): Can we get here? Perhaps as part of a cascade, but
+        // there is currently a parsing error with cascades.
+        // https://github.com/dart-lang/sdk/issues/46635
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      }
+
       DartType targetType;
       if (target is SuperExpressionImpl) {
         targetType = target.typeOrThrow;
@@ -182,9 +249,7 @@ class FunctionReferenceResolver {
           return;
         }
       } else {
-        // TODO(srawlins): Can we get here?
-        node.staticType = DynamicTypeImpl.instance;
-        return;
+        targetType = target.typeOrThrow;
       }
 
       var propertyElement = _resolver.typePropertyResolver
@@ -197,38 +262,51 @@ class FunctionReferenceResolver {
           )
           .getter;
 
-      var functionType = function.typeOrThrow;
-      if (functionType is FunctionType && propertyElement != null) {
-        _resolve(
-          node: node,
-          name: propertyElement.name,
-          rawType: functionType,
-        );
+      if (propertyElement is TypeParameterElement) {
+        _resolveDisallowedExpression(node, propertyElement!.type);
         return;
       }
 
-      // TODO(srawlins): Handle type variables bound to function type, like
-      // `T extends void Function<U>(U)`.
-    }
+      _resolve(
+        node: node,
+        rawType: function.staticType,
+        name: propertyElement?.name,
+      );
+      return;
+    } else {
+      // TODO(srawlins): Handle `function` being a [SuperExpression].
 
-    // TODO(srawlins): Enumerate and handle all cases that fall through to
-    // here; ultimately it should just be a case of "unknown identifier."
-    function.accept(_resolver);
-    node.staticType = DynamicTypeImpl.instance;
+      function.accept(_resolver);
+      _resolveDisallowedExpression(node, node.function.staticType);
+      return;
+    }
   }
 
   List<DartType> _checkTypeArguments(
     TypeArgumentList typeArgumentList,
-    String name,
+    String? name,
     List<TypeParameterElement> typeParameters,
     CompileTimeErrorCode errorCode,
   ) {
     if (typeArgumentList.arguments.length != typeParameters.length) {
-      _errorReporter.reportErrorForNode(
-        errorCode,
-        typeArgumentList,
-        [name, typeParameters.length, typeArgumentList.arguments.length],
-      );
+      if (name == null &&
+          errorCode ==
+              CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION) {
+        errorCode = CompileTimeErrorCode
+            .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
+        _errorReporter.reportErrorForNode(
+          errorCode,
+          typeArgumentList,
+          [typeParameters.length, typeArgumentList.arguments.length],
+        );
+      } else {
+        assert(name != null);
+        _errorReporter.reportErrorForNode(
+          errorCode,
+          typeArgumentList,
+          [name, typeParameters.length, typeArgumentList.arguments.length],
+        );
+      }
       return List.filled(typeParameters.length, DynamicTypeImpl.instance);
     } else {
       return typeArgumentList.arguments
@@ -241,18 +319,33 @@ class FunctionReferenceResolver {
   /// argument types, using [rawType] as the uninstantiated function type.
   void _resolve({
     required FunctionReferenceImpl node,
-    required String name,
-    required FunctionType rawType,
+    required DartType? rawType,
+    String? name,
   }) {
-    var typeArguments = _checkTypeArguments(
-      // `node.typeArguments`, coming from the parser, is never null.
-      node.typeArguments!, name, rawType.typeFormals,
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-    );
+    if (rawType == null) {
+      node.staticType = DynamicTypeImpl.instance;
+    }
 
-    var invokeType = rawType.instantiate(typeArguments);
-    node.typeArgumentTypes = typeArguments;
-    node.staticType = invokeType;
+    if (rawType is TypeParameterTypeImpl) {
+      // If the type of the function is a type parameter, the tearoff is
+      // disallowed, reported in [_resolveDisallowedExpression]. Use the type
+      // parameter's bound here in an attempt to assign the intended types.
+      rawType = rawType.element.bound;
+    }
+
+    if (rawType is FunctionType) {
+      var typeArguments = _checkTypeArguments(
+        // `node.typeArguments`, coming from the parser, is never null.
+        node.typeArguments!, name, rawType.typeFormals,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+      );
+
+      var invokeType = rawType.instantiate(typeArguments);
+      node.typeArgumentTypes = typeArguments;
+      node.staticType = invokeType;
+    } else {
+      node.staticType = DynamicTypeImpl.instance;
+    }
   }
 
   void _resolveConstructorReference(FunctionReferenceImpl node) {
@@ -275,6 +368,20 @@ class FunctionReferenceResolver {
       nullabilitySuffix: _nullabilitySuffixForTypeNames,
     );
     _resolveTypeLiteral(node: node, instantiatedType: type, name: name);
+  }
+
+  /// Resolves [node] as a type instantiation on an illegal expression.
+  ///
+  /// This function attempts to give [node] a static type, to continue working
+  /// with what the user may be intending.
+  void _resolveDisallowedExpression(
+      FunctionReferenceImpl node, DartType? rawType) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+      node.function,
+      [],
+    );
+    _resolve(node: node, rawType: rawType);
   }
 
   void _resolveReceiverPrefix(
@@ -315,8 +422,8 @@ class FunctionReferenceResolver {
       node.function.accept(_resolver);
       _resolve(
         node: node,
-        name: element.name,
         rawType: node.function.typeOrThrow as FunctionType,
+        name: element.name,
       );
       return;
     }

@@ -15,9 +15,8 @@ import 'package:test/test.dart';
 var root = Uri.parse('org-dartlang-test:///');
 
 main() {
-  var memoryFs;
-  var rootUris;
-  var multiRoot;
+  late MemoryFileSystem memoryFs;
+  late MultiRootFileSystem multiRoot;
 
   write(String multiRoot, String path) {
     var realPath = multiRoot == '' ? path : '$multiRoot/$path';
@@ -32,11 +31,15 @@ main() {
       multiRoot.entityForUri(Uri.parse(uri)).exists();
 
   Future<String> effectiveUriOf(String uri) async =>
-      (await multiRoot.entityForUri(Uri.parse(uri)).delegate).uri.toString();
+      (await (multiRoot.entityForUri(Uri.parse(uri))
+                  as MultiRootFileSystemEntity)
+              .delegate)
+          .uri
+          .toString();
 
   setUp(() {
     memoryFs = new MemoryFileSystem(root);
-    rootUris = ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
+    final rootUris = ['r1', 'r2/', 'A/B/', ''].map((r) => root.resolve(r)).toList();
     multiRoot = new MultiRootFileSystem('multi-root', rootUris, memoryFs);
   });
 
