@@ -51,7 +51,6 @@ import 'type_variable_builder.dart';
 abstract class ConstructorBuilder implements FunctionBuilder {
   abstract Token? beginInitializers;
 
-  @override
   ConstructorBuilder? get actualOrigin;
 
   ConstructorBuilder? get patchForTesting;
@@ -139,7 +138,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, charOffset,
+            name, compilationUnit, compilationUnit.fileUri, charOffset,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);

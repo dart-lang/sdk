@@ -46,6 +46,7 @@ import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -950,7 +951,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is ProcedureBuilder) {
-      return member.actualProcedure.function.returnType;
+      return member.function.returnType;
+    } else if (member is SourceFactoryBuilder) {
+      return member.function.returnType;
     } else {
       assert(member is ConstructorBuilder);
       return const DynamicType();
@@ -1017,6 +1020,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder is ConstructorBuilder) {
       finishConstructor(builder, asyncModifier, body);
     } else if (builder is ProcedureBuilder) {
+      builder.asyncModifier = asyncModifier;
+    } else if (builder is SourceFactoryBuilder) {
       builder.asyncModifier = asyncModifier;
     } else {
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
