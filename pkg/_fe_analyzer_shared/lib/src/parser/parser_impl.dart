@@ -5160,7 +5160,10 @@ class Parser {
         // For example a(b)..<T>(c), where token is '<'.
         token = typeArg.parseArguments(token, this);
         next = token.next!;
-        assert(optional('(', next));
+        if (!optional('(', next)) {
+          listener.handleTypeArgumentApplication(token.next!);
+          typeArg = noTypeParamOrArg;
+        }
       }
       TokenType nextType = next.type;
       if (identical(nextType, TokenType.INDEX)) {
@@ -5307,7 +5310,10 @@ class Parser {
             listener.handleNonNullAssertExpression(bangToken);
           }
           token = typeArg.parseArguments(bangToken, this);
-          assert(optional('(', token.next!));
+          if (!optional('(', token.next!)) {
+            listener.handleTypeArgumentApplication(bangToken.next!);
+            typeArg = noTypeParamOrArg;
+          }
         }
         next = token.next!;
       } else if (optional('(', next)) {
@@ -5327,7 +5333,10 @@ class Parser {
             listener.handleNonNullAssertExpression(bangToken);
           }
           token = typeArg.parseArguments(bangToken, this);
-          assert(optional('(', token.next!));
+          if (!optional('(', token.next!)) {
+            listener.handleTypeArgumentApplication(bangToken.next!);
+            typeArg = noTypeParamOrArg;
+          }
         }
         next = token.next!;
       } else {
