@@ -138,7 +138,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, charOffset,
+            name, compilationUnit, compilationUnit.fileUri, charOffset,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
