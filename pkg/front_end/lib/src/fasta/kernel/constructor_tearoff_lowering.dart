@@ -38,14 +38,24 @@ Procedure? createConstructorTearOffProcedure(String name,
 }
 
 /// Creates the parameters and body for [tearOff] based on [constructor].
-void buildConstructorTearOffProcedure(
-    Procedure tearOff,
-    Constructor constructor,
-    Class enclosingClass,
-    SourceLibraryBuilder libraryBuilder) {
+void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
+    Class enclosingClass, SourceLibraryBuilder libraryBuilder) {
+  assert(constructor is Constructor ||
+      (constructor is Procedure && constructor.kind == ProcedureKind.Factory));
+
   int fileOffset = tearOff.fileOffset;
 
-  List<TypeParameter> classTypeParameters = enclosingClass.typeParameters;
+  FunctionNode function = constructor.function!;
+  List<TypeParameter> classTypeParameters;
+  if (constructor is Constructor) {
+    // Generative constructors implicitly have the type parameters of the
+    // enclosing class.
+    classTypeParameters = enclosingClass.typeParameters;
+  } else {
+    // Factory constructors explicitly copy over the type parameters of the
+    // enclosing class.
+    classTypeParameters = function.typeParameters;
+  }
 
   List<TypeParameter> typeParameters;
   List<DartType> typeArguments;
@@ -66,7 +76,7 @@ void buildConstructorTearOffProcedure(
 
   List<Expression> positionalArguments = [];
   for (VariableDeclaration constructorParameter
-      in constructor.function.positionalParameters) {
+      in function.positionalParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(
         constructorParameter.name,
         type: substitution.substituteType(constructorParameter.type))
@@ -77,8 +87,7 @@ void buildConstructorTearOffProcedure(
     tearOffParameter.parent = tearOff.function;
   }
   List<NamedExpression> namedArguments = [];
-  for (VariableDeclaration constructorParameter
-      in constructor.function.namedParameters) {
+  for (VariableDeclaration constructorParameter in function.namedParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(
         constructorParameter.name,
         type: substitution.substituteType(constructorParameter.type),
@@ -91,16 +100,22 @@ void buildConstructorTearOffProcedure(
       ..fileOffset = fileOffset);
   }
   tearOff.function.returnType =
-      substitution.substituteType(constructor.function.returnType);
-  tearOff.function.requiredParameterCount =
-      constructor.function.requiredParameterCount;
-  tearOff.function.body = new ReturnStatement(
-      new ConstructorInvocation(
-          constructor,
-          new Arguments(positionalArguments,
-              named: namedArguments, types: typeArguments)
-            ..fileOffset = tearOff.fileOffset)
-        ..fileOffset = tearOff.fileOffset)
+      substitution.substituteType(function.returnType);
+  tearOff.function.requiredParameterCount = function.requiredParameterCount;
+
+  Arguments arguments = new Arguments(positionalArguments,
+      named: namedArguments, types: typeArguments)
+    ..fileOffset = tearOff.fileOffset;
+  Expression constructorInvocation;
+  if (constructor is Constructor) {
+    constructorInvocation = new ConstructorInvocation(constructor, arguments)
+      ..fileOffset = tearOff.fileOffset;
+  } else {
+    constructorInvocation =
+        new StaticInvocation(constructor as Procedure, arguments)
+          ..fileOffset = tearOff.fileOffset;
+  }
+  tearOff.function.body = new ReturnStatement(constructorInvocation)
     ..fileOffset = tearOff.fileOffset
     ..parent = tearOff.function;
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -112,7 +127,6 @@ void buildConstructorTearOffProcedure(
 ///
 /// These might have been inferred and therefore not available when the
 /// parameters were created.
-// TODO(johnniwinther): Add tests for inferred parameter types.
 // TODO(johnniwinther): Avoid doing this when parameter types are not inferred.
 void buildConstructorTearOffOutline(
     Procedure tearOff, Constructor constructor, Class enclosingClass) {

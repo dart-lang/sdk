@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import '../dill/dill_member_builder.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_api.dart';
@@ -45,7 +46,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
 
   final bool isExtensionInstanceMember = false;
 
-  late Procedure _procedureInternal;
+  final Procedure _procedureInternal;
+  final Procedure? _factoryTearOff;
 
   SourceFactoryBuilder? actualOrigin;
 
@@ -65,19 +67,21 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       AsyncMarker asyncModifier,
       ProcedureNameScheme procedureNameScheme,
       {String? nativeMethodName})
-      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+      : _procedureInternal = new Procedure(
+            procedureNameScheme.getName(ProcedureKind.Factory, name),
+            ProcedureKind.Factory,
+            new FunctionNode(null),
+            fileUri: libraryBuilder.fileUri,
+            reference: procedureReference)
+          ..startFileOffset = startCharOffset
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
+        _factoryTearOff = createConstructorTearOffProcedure(
+            name, libraryBuilder, libraryBuilder.fileUri, charOffset,
+            forAbstractClassOrEnum: false),
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
-    _procedureInternal = new Procedure(
-        procedureNameScheme.getName(kind, name),
-        isExtensionInstanceMember ? ProcedureKind.Method : kind,
-        new FunctionNode(null),
-        fileUri: libraryBuilder.fileUri,
-        reference: procedureReference)
-      ..startFileOffset = startCharOffset
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
-
     this.asyncModifier = asyncModifier;
   }
 
@@ -116,7 +120,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
   FunctionNode get function => _procedureInternal.function;
 
   @override
-  Member? get readTarget => _procedure;
+  Member? get readTarget => origin._factoryTearOff ?? _procedure;
 
   @override
   Member? get writeTarget => null;
@@ -132,6 +136,9 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
       SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
     f(member, BuiltMemberKind.Method);
+    if (_factoryTearOff != null) {
+      f(_factoryTearOff!, BuiltMemberKind.Method);
+    }
   }
 
   @override
@@ -145,6 +152,11 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     _procedureInternal.isConst = isConst;
     updatePrivateMemberName(_procedureInternal, libraryBuilder);
     _procedureInternal.isStatic = isStatic;
+
+    if (_factoryTearOff != null) {
+      buildConstructorTearOffProcedure(_factoryTearOff!, _procedureInternal,
+          classBuilder!.cls, libraryBuilder);
+    }
     return _procedureInternal;
   }
 
