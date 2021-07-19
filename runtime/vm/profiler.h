@@ -870,7 +870,7 @@ class SampleBlockBuffer : public ProcessedSampleBufferBuilder {
 class AllocationSampleBuffer : public SampleBuffer {
  public:
   explicit AllocationSampleBuffer(intptr_t capacity = 60000);
-  virtual ~AllocationSampleBuffer() = default;
+  virtual ~AllocationSampleBuffer();
 
   virtual Sample* ReserveSample();
   virtual Sample* ReserveSampleAndLink(Sample* previous);
