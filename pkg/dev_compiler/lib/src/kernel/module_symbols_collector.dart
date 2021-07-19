@@ -14,24 +14,23 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   /// The first scope added to the stack should always be the library scope. The
   /// last element in the list represents the current scope.
   final _scopes = <ScopeSymbol>[];
-
-  final _moduleSymbols = ModuleSymbols(
-      // TODO(nshahan) version
-      // TODO(nshahan) moduleName
-      libraries: <LibrarySymbol>[],
-      scripts: <Script>[],
-      classes: <ClassSymbol>[],
-      // TODO(nshahan) functionTypes
-      // TODO(nshahan) functions
-      // TODO(nshahan) scopes
-      variables: <VariableSymbol>[]);
-
+  final ModuleSymbols _moduleSymbols;
   final Map<Class, String> _classJsNames;
   final Map<Member, String> _memberJsNames;
   final Map<VariableDeclaration, String> _variableJsNames;
 
-  ModuleSymbolsCollector(
-      this._classJsNames, this._memberJsNames, this._variableJsNames);
+  ModuleSymbolsCollector(String moduleName, this._classJsNames,
+      this._memberJsNames, this._variableJsNames)
+      : _moduleSymbols = ModuleSymbols(
+            version: ModuleSymbols.current.version,
+            moduleName: moduleName,
+            libraries: <LibrarySymbol>[],
+            scripts: <Script>[],
+            classes: <ClassSymbol>[],
+            // TODO(nshahan) functionTypes
+            // TODO(nshahan) functions
+            // TODO(nshahan) scopes
+            variables: <VariableSymbol>[]);
 
   ModuleSymbols collectSymbolInfo(Component node) {
     node.accept(this);

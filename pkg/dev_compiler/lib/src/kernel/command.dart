@@ -729,7 +729,8 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
       : null;
 
   var debugSymbols = emitDebugSymbols
-      ? _emitSymbols(compiler, nameListener.identifierNames, component)
+      ? _emitSymbols(
+          compiler, moduleTree.name, nameListener.identifierNames, component)
       : null;
 
   return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
@@ -741,7 +742,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// Uses information from the [compiler] used to compile the JS module combined
 /// with [identifierNames] that maps JavaScript identifier nodes to their actual
 /// names used when outputting the JavaScript.
-ModuleSymbols _emitSymbols(ProgramCompiler compiler,
+ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
     Map<js_ast.Identifier, String> identifierNames, Component component) {
   var classJsNames = <Class, String>{
     for (var e in compiler.classIdentifiers.entries)
@@ -753,7 +754,7 @@ ModuleSymbols _emitSymbols(ProgramCompiler compiler,
   };
 
   return ModuleSymbolsCollector(
-          classJsNames, compiler.memberNames, variableJsNames)
+          moduleName, classJsNames, compiler.memberNames, variableJsNames)
       .collectSymbolInfo(component);
 }
 
