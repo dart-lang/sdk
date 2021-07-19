@@ -504,6 +504,8 @@ class LibraryReader {
       offset: resolutionOffset,
     );
 
+    _declareDartCoreDynamicNever();
+
     InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
         .applyTo(libraryElement);
 
@@ -512,6 +514,14 @@ class LibraryReader {
         .applyTo(libraryElement);
 
     return libraryElement;
+  }
+
+  /// These elements are implicitly declared in `dart:core`.
+  void _declareDartCoreDynamicNever() {
+    if (_reference.name == 'dart:core') {
+      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
+      _reference.getChild('Never').element = NeverElementImpl.instance;
+    }
   }
 
   ClassElementImpl _readClassElement(

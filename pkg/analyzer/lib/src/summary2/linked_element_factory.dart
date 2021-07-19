@@ -27,7 +27,6 @@ class LinkedElementFactory {
   ) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
-    _declareDartCoreDynamicNever();
   }
 
   Reference get dynamicRef {
@@ -182,10 +181,22 @@ class LinkedElementFactory {
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(Set<String> uriStrSet) {
     removeLibraries(uriStrSet);
+  }
 
-    // This is the bundle with dart:core and dart:async, based on full ASTs.
-    // To link them, the linker set the type provider. We are removing these
-    // libraries, and we should also remove the type provider.
+  /// Remove libraries with the specified URIs from the reference tree, and
+  /// any session level caches.
+  void removeLibraries(Set<String> uriStrSet) {
+    for (var uriStr in uriStrSet) {
+      _exportsOfLibrary.remove(uriStr);
+      libraryReaders.remove(uriStr);
+      rootReference.removeChild(uriStr);
+    }
+
+    analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
+    analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
+
+    // If we discard `dart:core` and `dart:async`, we should also discard
+    // the type provider.
     if (uriStrSet.contains('dart:core')) {
       if (!uriStrSet.contains('dart:async')) {
         throw StateError(
@@ -200,21 +211,7 @@ class LinkedElementFactory {
         );
       }
       analysisContext.clearTypeProvider();
-      _declareDartCoreDynamicNever();
     }
-  }
-
-  /// Remove libraries with the specified URIs from the reference tree, and
-  /// any session level caches.
-  void removeLibraries(Set<String> uriStrSet) {
-    for (var uriStr in uriStrSet) {
-      _exportsOfLibrary.remove(uriStr);
-      libraryReaders.remove(uriStr);
-      rootReference.removeChild(uriStr);
-    }
-
-    analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
-    analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
 
   /// Set exports of the library with [uriStr], after building exports during
@@ -241,11 +238,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
-  }
-
-  void _declareDartCoreDynamicNever() {
-    var dartCoreRef = rootReference.getChild('dart:core');
-    dartCoreRef.getChild('dynamic').element = DynamicElementImpl.instance;
-    dartCoreRef.getChild('Never').element = NeverElementImpl.instance;
   }
 }

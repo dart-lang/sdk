@@ -346,6 +346,29 @@ class A {}
         (fileResolver.byteStore as CiderCachedByteStore).testView!.length);
   }
 
+  test_elements_export_dartCoreDynamic() async {
+    var a_path = convertPath('/workspace/dart/test/lib/a.dart');
+    newFile(a_path, content: r'''
+export 'dart:core' show dynamic;
+''');
+
+    // Analyze so that `dart:core` is linked.
+    var a_result = await resolveFile(a_path);
+
+    // Touch `dart:core` so that its element model is discarded.
+    var dartCorePath = a_result.session.uriConverter.uriToPath(
+      Uri.parse('dart:core'),
+    )!;
+    fileResolver.changeFile(dartCorePath);
+
+    // Analyze, this will read the element model for `dart:core`.
+    // There was a bug that `root::dart:core::dynamic` had no element set.
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p;
+p.dynamic f() {}
+''');
+  }
+
   test_findReferences_class() async {
     var aPath = convertPath('/workspace/dart/test/lib/a.dart');
     newFile(aPath, content: r'''

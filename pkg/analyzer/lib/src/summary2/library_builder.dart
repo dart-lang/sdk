@@ -117,10 +117,7 @@ class LibraryBuilder {
         unitElement: linkingUnit.element,
       ).buildDeclarationElementsMacro(linkingUnit.macroNode);
     }
-    if ('$uri' == 'dart:core') {
-      localScope.declare('dynamic', reference.getChild('dynamic'));
-      localScope.declare('Never', reference.getChild('Never'));
-    }
+    _declareDartCoreDynamicNever();
   }
 
   void buildEnumChildren() {
@@ -199,6 +196,19 @@ class LibraryBuilder {
     var entryPoint = namespace.get(FunctionElement.MAIN_FUNCTION_NAME);
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
+    }
+  }
+
+  /// These elements are implicitly declared in `dart:core`.
+  void _declareDartCoreDynamicNever() {
+    if (reference.name == 'dart:core') {
+      var dynamicRef = reference.getChild('dynamic');
+      dynamicRef.element = DynamicElementImpl.instance;
+      localScope.declare('dynamic', dynamicRef);
+
+      var neverRef = reference.getChild('Never');
+      neverRef.element = NeverElementImpl.instance;
+      localScope.declare('Never', neverRef);
     }
   }
 
