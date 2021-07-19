@@ -254,7 +254,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         library.checkTypesInField(builder, typeEnvironment);
       } else if (builder is ProcedureBuilder) {
         // Check procedures
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(builder.name, setter: true);

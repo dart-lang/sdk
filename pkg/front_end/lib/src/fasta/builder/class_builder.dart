@@ -42,8 +42,6 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
-
 import '../loader.dart';
 
 import '../modifier.dart';
@@ -74,7 +72,7 @@ import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'never_type_declaration_builder.dart';
 import 'nullability_builder.dart';
-import 'procedure_builder.dart';
+import 'factory_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
@@ -914,8 +912,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           charOffset, fileUri);
     }
 
-    List<DartType>? typeArguments =
-        getRedirectingFactoryBody(factory.procedure)!.typeArguments;
+    List<DartType>? typeArguments = factory.getTypeArguments();
     FunctionType targetFunctionType =
         targetNode.computeFunctionType(library.nonNullable);
     if (typeArguments != null &&
@@ -1007,7 +1004,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
-    FunctionType factoryType = factory.procedure.function
+    FunctionType factoryType = factory.function
         .computeThisFunctionType(library.nonNullable)
         .withoutTypeParameters;
     FunctionType? redirecteeType =

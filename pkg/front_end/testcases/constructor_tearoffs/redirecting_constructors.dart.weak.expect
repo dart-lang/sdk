@@ -21,18 +21,6 @@ library /*isNonNullableByDefault*/;
 //   factory A.redirectingFactory() = A.new;
 //                                    ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:15:23: Error: Getter not found: 'redirectingFactory'.
-//   A Function() f1 = A.redirectingFactory;
-//                       ^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:16:23: Error: Getter not found: 'redirectingFactoryChild'.
-//   A Function() f2 = A.redirectingFactoryChild;
-//                       ^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:17:23: Error: Getter not found: 'redirectingTwice'.
-//   A Function() f3 = A.redirectingTwice;
-//                       ^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:20:5: Error: Expected ';' after this.
 //   A x3 f3();
 //     ^^
@@ -62,15 +50,9 @@ class B extends self::A {
     ;
 }
 static method test() → dynamic {
-  () → self::A f1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:15:23: Error: Getter not found: 'redirectingFactory'.
-  A Function() f1 = A.redirectingFactory;
-                      ^^^^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
-  () → self::A f2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:16:23: Error: Getter not found: 'redirectingFactoryChild'.
-  A Function() f2 = A.redirectingFactoryChild;
-                      ^^^^^^^^^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
-  () → self::A f3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:17:23: Error: Getter not found: 'redirectingTwice'.
-  A Function() f3 = A.redirectingTwice;
-                      ^^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} () → self::A;
+  () → self::A f1 = self::A::redirectingFactory;
+  () → self::A f2 = self::A::redirectingFactoryChild;
+  () → self::A f3 = self::A::redirectingTwice;
   self::A x1 = f1(){() → self::A};
   self::B x2 = f2(){() → self::A} as{ForNonNullableByDefault} self::B;
   self::A x3;

@@ -51,7 +51,6 @@ import 'type_variable_builder.dart';
 abstract class ConstructorBuilder implements FunctionBuilder {
   abstract Token? beginInitializers;
 
-  @override
   ConstructorBuilder? get actualOrigin;
 
   ConstructorBuilder? get patchForTesting;

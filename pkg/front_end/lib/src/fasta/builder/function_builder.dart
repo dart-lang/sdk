@@ -13,7 +13,6 @@ import '../identifiers.dart';
 import '../scope.dart';
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
 
@@ -27,8 +26,6 @@ import '../messages.dart'
         templateRequiredNamedParameterHasDefaultValueError;
 
 import '../modifier.dart';
-
-import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -93,13 +90,9 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   FunctionNode get function;
 
-  FunctionBuilder? get actualOrigin;
-
   Statement? get body;
 
   void set body(Statement? newBody);
-
-  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments);
 
   bool get isNative;
 
@@ -313,19 +306,6 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
         parent.isForwardingSemiStub)) {
       function.body = newBody;
       newBody?.parent = function;
-    }
-  }
-
-  @override
-  void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    if (bodyInternal != null) {
-      unexpected("null", "${bodyInternal.runtimeType}", charOffset, fileUri);
-    }
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments);
-    function.body = bodyInternal;
-    bodyInternal?.parent = function;
-    if (isPatch) {
-      actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 

@@ -3000,12 +3000,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
     VariableDeclaration variable = target.function.namedParameters
         .singleWhere((v) => v.name == 'defaultValue');
-    return variable.initializer != null
-        ? _evaluateExpressionInContext(target, variable.initializer!)
-        :
-        // Not reachable unless a defaultValue in fromEnvironment in dart:core
-        // becomes null.
-        nullConstant;
+    return _evaluateExpressionInContext(target, variable.initializer!);
   }
 
   Constant _handleFromEnvironment(

@@ -17,6 +17,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -528,7 +529,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Check procedures
         checkVarianceInFunction(
             builder.procedure, typeEnvironment, cls.typeParameters);
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
       } else {
         assert(builder is DillFieldBuilder && builder.name == redirectingName,
             "Unexpected member: $builder.");
@@ -540,9 +541,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         library.checkTypesInConstructorBuilder(builder, typeEnvironment);
       } else if (builder is RedirectingFactoryBuilder) {
         library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
-      } else if (builder is ProcedureBuilder) {
+      } else if (builder is SourceFactoryBuilder) {
         assert(builder.isFactory, "Unexpected constructor $builder.");
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
       } else {
         assert(
             // This is a synthesized constructor.
@@ -859,7 +860,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     procedure.stubTarget = null;
   }
 
-  void _addRedirectingConstructor(ProcedureBuilder constructorBuilder,
+  void _addRedirectingConstructor(SourceFactoryBuilder constructorBuilder,
       SourceLibraryBuilder library, Reference? getterReference) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
@@ -893,7 +894,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Field field = constructorsField.field;
     ListLiteral literal = field.initializer as ListLiteral;
     literal.expressions
-        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
+        .add(new StaticGet(constructorBuilder.member)..parent = literal);
   }
 
   @override

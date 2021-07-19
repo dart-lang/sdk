@@ -47,6 +47,7 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
@@ -2503,7 +2504,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             procedureName, _currentClassReferencesFromIndexed!.library))
         ?.reference;
 
-    ProcedureBuilder procedureBuilder;
+    SourceFactoryBuilder procedureBuilder;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
           metadata,
@@ -2525,7 +2526,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           nativeMethodName,
           redirectionTarget);
     } else {
-      procedureBuilder = new SourceProcedureBuilder(
+      procedureBuilder = new SourceFactoryBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
@@ -2535,18 +2536,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   const <TypeVariableBuilder>[],
               factoryDeclaration),
           formals,
-          ProcedureKind.Factory,
           this,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
           reference,
-          /* tearOffReference = */ null,
           asyncModifier,
           procedureNameScheme,
-          isExtensionMember: false,
-          isInstanceMember: false,
           nativeMethodName: nativeMethodName);
     }
 
@@ -3272,7 +3269,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
           declaration.constructors.forEach((String name, Builder member) {
             List<FormalParameterBuilder>? formals;
-            if (member is ProcedureBuilder) {
+            if (member is SourceFactoryBuilder) {
               assert(member.isFactory,
                   "Unexpected constructor member (${member.runtimeType}).");
               count += computeDefaultTypesForVariables(member.typeVariables,
@@ -3828,10 +3825,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkTypesInProcedureBuilder(
-      ProcedureBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(procedureBuilder.procedure.function,
-        typeEnvironment, procedureBuilder.fileUri!);
+  void checkTypesInFunctionBuilder(
+      FunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(
+        procedureBuilder.function, typeEnvironment, procedureBuilder.fileUri!);
     if (procedureBuilder.formals != null &&
         !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
       checkInitializersInFormals(procedureBuilder.formals!, typeEnvironment);
@@ -3850,7 +3847,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInRedirectingFactoryBuilder(
       RedirectingFactoryBuilder redirectingFactoryBuilder,
       TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(redirectingFactoryBuilder.procedure.function,
+    checkBoundsInFunctionNode(redirectingFactoryBuilder.function,
         typeEnvironment, redirectingFactoryBuilder.fileUri);
     // Default values are not required on redirecting factory constructors so
     // we don't call [checkInitializersInFormals].
@@ -4137,7 +4134,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
-        checkTypesInProcedureBuilder(declaration, typeEnvironment);
+        checkTypesInFunctionBuilder(declaration, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(declaration.name, setter: true);
