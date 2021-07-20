@@ -65,5 +65,5 @@ static method main(core::List<core::String*>* args) → dynamic {
   new self::D::•();
 }
 constants  {
-  #C1 = tearoff self::func2
+  #C1 = static-tearoff self::func2
 }

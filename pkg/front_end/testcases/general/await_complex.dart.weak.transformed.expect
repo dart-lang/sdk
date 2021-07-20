@@ -811,7 +811,7 @@ static method expectList(core::List<dynamic>* expected, core::List<dynamic>* act
 }
 
 constants  {
-  #C1 = tearoff self::id
-  #C2 = tearoff self::future
+  #C1 = static-tearoff self::id
+  #C2 = static-tearoff self::future
   #C3 = 2
 }

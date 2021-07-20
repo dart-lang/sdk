@@ -160,5 +160,5 @@ static method fisk() → dynamic async {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::fisk
+  #C1 = static-tearoff self::fisk
 }

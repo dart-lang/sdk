@@ -39,7 +39,7 @@ static method identityList<T extends core::List<self::identityList::T*>* = core:
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::identity
-  #C2 = tearoff self::identityObject
-  #C3 = tearoff self::identityList
+  #C1 = static-tearoff self::identity
+  #C2 = static-tearoff self::identityObject
+  #C3 = static-tearoff self::identityList
 }

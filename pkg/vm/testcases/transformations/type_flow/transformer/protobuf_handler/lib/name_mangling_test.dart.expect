@@ -56,11 +56,11 @@ class NameManglingKeep extends pro::GeneratedMessage {
 }
 constants  {
   #C1 = false
-  #C2 = tearoff self::AKeep::create
+  #C2 = static-tearoff self::AKeep::create
   #C3 = "dart2js:noInline"
   #C4 = null
   #C5 = core::pragma {name:#C3, options:#C4}
-  #C6 = tearoff self::NameManglingKeep::create
+  #C6 = static-tearoff self::NameManglingKeep::create
   #C7 = 10
   #C8 = pro::TagNumber {tagNumber:#C7}
 }

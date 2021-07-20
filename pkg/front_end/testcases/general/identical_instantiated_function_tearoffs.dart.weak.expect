@@ -22,6 +22,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::id
-  #C2 = partial-instantiation self::id <core::int*>
+  #C1 = static-tearoff self::id
+  #C2 = instantiation self::id <core::int*>
 }

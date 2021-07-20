@@ -32,27 +32,42 @@ class A<X extends core::num> extends core::Object {
     return new self::A::•<self::A::bar::X>(x);
 }
 static method test1() → (core::num) → self::A<core::num>
-  return self::A::foo<core::num>;
+  return #C2;
 static method test2() → (core::int) → self::A<core::int>
-  return self::A::foo<core::int>;
+  return #C3;
 static method test3() → (core::num) → self::A<core::num>
-  return self::A::•<core::num>;
+  return #C5;
 static method test4() → (core::int) → self::A<core::int>
-  return self::A::•<core::int>;
+  return #C6;
 static method test5() → (core::String) → self::A<dynamic>
-  return self::A::foo<core::String>;
+  return #C7;
 static method test6() → (core::String) → self::A<dynamic>
-  return self::A::•<core::String>;
+  return #C8;
 static method test7() → (core::num) → self::A<dynamic>
-  return self::A::foo<core::num>;
+  return #C2;
 static method test8() → (core::num) → self::A<dynamic>
-  return self::A::•<core::num>;
+  return #C5;
 static method test9() → (core::num) → self::A<core::num>
-  return self::A::bar<core::num>;
+  return #C10;
 static method test10() → (core::int) → self::A<core::int>
-  return self::A::bar<core::int>;
+  return #C11;
 static method test11() → (core::String) → self::A<dynamic>
-  return self::A::bar<core::String>;
+  return #C12;
 static method test12() → (core::num) → self::A<dynamic>
-  return self::A::bar<core::num>;
+  return #C10;
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo
+  #C2 = instantiation self::A::foo <core::num>
+  #C3 = instantiation self::A::foo <core::int>
+  #C4 = constructor-tearoff self::A::•
+  #C5 = instantiation self::A::• <core::num>
+  #C6 = instantiation self::A::• <core::int>
+  #C7 = instantiation self::A::foo <core::String>
+  #C8 = instantiation self::A::• <core::String>
+  #C9 = static-tearoff self::A::bar
+  #C10 = instantiation self::A::bar <core::num>
+  #C11 = instantiation self::A::bar <core::int>
+  #C12 = instantiation self::A::bar <core::String>
+}

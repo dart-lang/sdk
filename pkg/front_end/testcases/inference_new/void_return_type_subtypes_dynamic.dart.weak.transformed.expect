@@ -15,5 +15,5 @@ static method printRunning() → void {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::printRunning
+  #C1 = static-tearoff self::printRunning
 }

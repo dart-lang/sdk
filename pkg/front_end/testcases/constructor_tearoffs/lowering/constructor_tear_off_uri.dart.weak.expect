@@ -27,5 +27,5 @@ static method /* from org-dartlang-testcase:///constructor_tear_off_uri_part.dar
 }
 
 constants  {
-  #C1 = tearoff self::Class::_#new#tearOff
+  #C1 = static-tearoff self::Class::_#new#tearOff
 }

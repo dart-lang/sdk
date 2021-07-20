@@ -96,13 +96,13 @@ constants  {
   #C2 = false
   #C3 = null
   #C4 = 1
-  #C5 = tearoff self::f
-  #C6 = tearoff self::g
-  #C7 = tearoff self::f1
-  #C8 = tearoff self::f2
-  #C9 = tearoff self::f3
-  #C10 = tearoff self::f4
-  #C11 = tearoff self::f5
+  #C5 = static-tearoff self::f
+  #C6 = static-tearoff self::g
+  #C7 = static-tearoff self::f1
+  #C8 = static-tearoff self::f2
+  #C9 = static-tearoff self::f3
+  #C10 = static-tearoff self::f4
+  #C11 = static-tearoff self::f5
 }
 
 Extra constant evaluation status:

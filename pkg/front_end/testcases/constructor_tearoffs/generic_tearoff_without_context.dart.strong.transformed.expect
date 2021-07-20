@@ -44,17 +44,17 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     return new self::A::•<self::A::bar::X%>();
 }
 static method testFoo() → dynamic
-  return self::A::foo;
+  return #C1;
 static method testFooArgs() → dynamic
-  return self::A::foo<core::int>;
+  return #C2;
 static method testNew() → dynamic
-  return self::A::•;
+  return #C3;
 static method testNewArgs() → dynamic
-  return self::A::•<core::int>;
+  return #C4;
 static method testBar() → dynamic
-  return self::A::bar;
+  return #C5;
 static method testBarArgs() → dynamic
-  return self::A::bar<core::int>;
+  return #C6;
 static method testFooExtraArgs() → dynamic
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:18:23: Error: Too many type arguments: 1 allowed, but 2 found.
 Try removing the extra type arguments.
@@ -71,12 +71,12 @@ Try removing the extra type arguments.
 testBarExtraArgs() => A<int, String>.bar; // Error.
                       ^";
 static method method() → dynamic {
-  <X extends core::Object? = dynamic>() → self::A<X%> foo = self::A::foo;
-  () → self::A<core::int> fooArgs = self::A::foo<core::int>;
-  <X extends core::Object? = dynamic>() → self::A<X%> _new = self::A::•;
-  () → self::A<core::int> newArgs = self::A::•<core::int>;
-  <X extends core::Object? = dynamic>() → self::A<X%> bar = self::A::bar;
-  () → self::A<core::int> barArgs = self::A::bar<core::int>;
+  <X extends core::Object? = dynamic>() → self::A<X%> foo = #C1;
+  () → self::A<core::int> fooArgs = #C2;
+  <X extends core::Object? = dynamic>() → self::A<X%> _new = #C3;
+  () → self::A<core::int> newArgs = #C4;
+  <X extends core::Object? = dynamic>() → self::A<X%> bar = #C5;
+  () → self::A<core::int> barArgs = #C6;
   invalid-type fooExtraArgs = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:30:22: Error: Too many type arguments: 1 allowed, but 2 found.
 Try removing the extra type arguments.
   var fooExtraArgs = A<int, String>.foo; // Error.
@@ -91,3 +91,12 @@ Try removing the extra type arguments.
                      ^";
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo
+  #C2 = instantiation self::A::foo <core::int>
+  #C3 = constructor-tearoff self::A::•
+  #C4 = instantiation self::A::• <core::int>
+  #C5 = static-tearoff self::A::bar
+  #C6 = instantiation self::A::bar <core::int>
+}

@@ -15,5 +15,5 @@ static method _#loadLibrary_math() → asy::Future<dynamic>
   return LoadLibrary(math);
 
 constants  {
-  #C1 = tearoff self::_#loadLibrary_math
+  #C1 = static-tearoff self::_#loadLibrary_math
 }

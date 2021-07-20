@@ -93,16 +93,16 @@ static method main() → dynamic {
 }
 constants  {
   #C1 = null
-  #C2 = tearoff self::takePositional
-  #C3 = tearoff self::takeOptional
-  #C4 = tearoff self::takeNamed
-  #C5 = tearoff self::returnUnboxedSmi
-  #C6 = tearoff self::returnUnboxedInt
-  #C7 = tearoff self::returnUnboxedDouble
-  #C8 = tearoff self::returnBoxedNullableInt
-  #C9 = tearoff self::returnBoxedNullableDouble
-  #C10 = tearoff self::returnBoxedIntOrDouble
-  #C11 = tearoff self::returnBoxedNullableIntOrDouble
-  #C12 = tearoff self::returnBoxedNullableX
-  #C13 = tearoff self::returnBoxedX
+  #C2 = static-tearoff self::takePositional
+  #C3 = static-tearoff self::takeOptional
+  #C4 = static-tearoff self::takeNamed
+  #C5 = static-tearoff self::returnUnboxedSmi
+  #C6 = static-tearoff self::returnUnboxedInt
+  #C7 = static-tearoff self::returnUnboxedDouble
+  #C8 = static-tearoff self::returnBoxedNullableInt
+  #C9 = static-tearoff self::returnBoxedNullableDouble
+  #C10 = static-tearoff self::returnBoxedIntOrDouble
+  #C11 = static-tearoff self::returnBoxedNullableIntOrDouble
+  #C12 = static-tearoff self::returnBoxedNullableX
+  #C13 = static-tearoff self::returnBoxedX
 }

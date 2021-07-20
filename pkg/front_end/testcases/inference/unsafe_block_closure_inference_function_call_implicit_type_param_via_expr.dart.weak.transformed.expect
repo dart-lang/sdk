@@ -11,5 +11,5 @@ static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → co
   return core::_GrowableList::_literal1<self::f::T*>(g(){() →* self::f::T*});
 
 constants  {
-  #C1 = tearoff self::f
+  #C1 = static-tearoff self::f
 }

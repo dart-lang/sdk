@@ -13036,7 +13036,7 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is StaticTearOffConstant &&
+    return other is ConstructorTearOffConstant &&
         other.targetReference == targetReference;
   }
 
@@ -13087,7 +13087,7 @@ class RedirectingFactoryTearOffConstant extends Constant
   int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is StaticTearOffConstant &&
+    return other is RedirectingFactoryTearOffConstant &&
         other.targetReference == targetReference;
   }
 

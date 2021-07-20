@@ -114,10 +114,10 @@ class ClearKeep extends pro::GeneratedMessage {
 }
 constants  {
   #C1 = false
-  #C2 = tearoff self::FooKeep::create
-  #C3 = tearoff self::BarKeep::create
-  #C4 = tearoff self::HasKeep::create
-  #C5 = tearoff self::ClearKeep::create
+  #C2 = static-tearoff self::FooKeep::create
+  #C3 = static-tearoff self::BarKeep::create
+  #C4 = static-tearoff self::HasKeep::create
+  #C5 = static-tearoff self::ClearKeep::create
   #C6 = "dart2js:noInline"
   #C7 = null
   #C8 = core::pragma {name:#C6, options:#C7}

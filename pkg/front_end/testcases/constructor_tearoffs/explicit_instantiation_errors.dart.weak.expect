@@ -105,8 +105,8 @@ Try changing the operand or remove the type arguments.
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::id
-  #C2 = partial-instantiation self::id <core::int*>
-  #C3 = tearoff self::boundedMethod
-  #C4 = partial-instantiation self::boundedMethod <core::String*>
+  #C1 = static-tearoff self::id
+  #C2 = instantiation self::id <core::int*>
+  #C3 = static-tearoff self::boundedMethod
+  #C4 = instantiation self::boundedMethod <core::String*>
 }

@@ -33,10 +33,29 @@ main() {
       fileUri: uri,
       isStatic: true);
 
+  Class cls = new Class(name: 'Class', fileUri: uri);
+  Procedure factory = new Procedure(
+      new Name('foo'), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: uri, isStatic: true);
+  cls.addProcedure(factory);
+  Constructor constructor = new Constructor(new FunctionNode(null),
+      name: new Name('foo'), fileUri: uri);
+  cls.addConstructor(constructor);
+  Procedure redirectingFactory = new Procedure(
+      new Name('foo'), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: uri, isStatic: true)
+    ..isRedirectingFactory = true;
+  cls.addProcedure(redirectingFactory);
+
   TearOffConstant tearOffConstant1a = new StaticTearOffConstant(procedure1);
   TearOffConstant tearOffConstant1b = new StaticTearOffConstant(procedure1);
   TearOffConstant tearOffConstant2 = new StaticTearOffConstant(procedure2);
   TearOffConstant tearOffConstant3 = new StaticTearOffConstant(procedure3);
+  TearOffConstant tearOffConstant4 =
+      new ConstructorTearOffConstant(constructor);
+  TearOffConstant tearOffConstant5 = new ConstructorTearOffConstant(factory);
+  TearOffConstant tearOffConstant6 =
+      new RedirectingFactoryTearOffConstant(redirectingFactory);
 
   // foo() {}
   // const a = foo;
@@ -161,5 +180,13 @@ main() {
             [typeParameter2a, typeParameter2b],
             tearOffConstant3,
             [new TypeParameterType(typeParameter2b, Nullability.nullable)]));
+
+    testEquals(tearOffConstant4, tearOffConstant4);
+    testEquals(tearOffConstant5, tearOffConstant5);
+    testEquals(tearOffConstant6, tearOffConstant6);
+
+    testNotEquals(tearOffConstant4, tearOffConstant5);
+    testNotEquals(tearOffConstant4, tearOffConstant6);
+    testNotEquals(tearOffConstant5, tearOffConstant6);
   }
 }

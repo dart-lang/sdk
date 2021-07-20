@@ -44,7 +44,7 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff math::max
+  #C1 = static-tearoff math::max
 }
 
 Extra constant evaluation status:

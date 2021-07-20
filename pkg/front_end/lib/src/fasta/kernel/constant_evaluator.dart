@@ -698,11 +698,13 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitStaticTearOff(StaticTearOff node, TreeNode? removalSentinel) {
-    final Member target = node.target;
-    if (target is Procedure && target.kind == ProcedureKind.Method) {
-      return evaluateAndTransformWithContext(node, node);
-    }
-    return super.visitStaticTearOff(node, removalSentinel);
+    return evaluateAndTransformWithContext(node, node);
+  }
+
+  @override
+  TreeNode visitConstructorTearOff(
+      ConstructorTearOff node, TreeNode? removalSentinel) {
+    return evaluateAndTransformWithContext(node, node);
   }
 
   @override
@@ -2928,21 +2930,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitStaticTearOff(StaticTearOff node) {
-    return withNewEnvironment(() {
-      final Member target = node.target;
-      if (target is Procedure) {
-        if (target.kind == ProcedureKind.Method) {
-          return canonicalize(new StaticTearOffConstant(target));
-        }
-        return createErrorConstant(
-            node,
-            templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
-      } else {
-        return createInvalidExpressionConstant(
-            node, 'No support for ${target.runtimeType} in a static tear-off.');
-      }
-    });
+    return canonicalize(new StaticTearOffConstant(node.target));
   }
 
   @override
@@ -3393,11 +3381,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(extract(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
-    if (constant is StaticTearOffConstant) {
-      Procedure constantMember = constant.target;
-      if (constantMember is Procedure) {
-        if (node.typeArguments.length ==
-            constantMember.function.typeParameters.length) {
+    if (constant is TearOffConstant) {
+      Member target = constant.target;
+      List<TypeParameter>? typeParameters;
+      if (target is Procedure) {
+        typeParameters = target.function.typeParameters;
+      } else if (target is Constructor) {
+        typeParameters = target.enclosingClass.typeParameters;
+      }
+      if (typeParameters != null) {
+        if (node.typeArguments.length == typeParameters.length) {
           List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
           if (types == null) {
             AbortConstant error = _gotError!;
@@ -3424,7 +3417,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return createInvalidExpressionConstant(
             node,
             "Unsupported kind of a torn off member: "
-            "'${constantMember.runtimeType}'.");
+            "'${target.runtimeType}'.");
       }
     }
     // The inner expression in an instantiation can never be null, since
@@ -3436,8 +3429,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitConstructorTearOff(ConstructorTearOff node) {
-    // TODO(dmitryas): Add support for instantiated constructor tear-offs.
-    return defaultExpression(node);
+    return canonicalize(new ConstructorTearOffConstant(node.target));
   }
 
   @override

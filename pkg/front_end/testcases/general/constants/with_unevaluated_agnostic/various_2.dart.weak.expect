@@ -103,8 +103,8 @@ static method id2<T extends core::Object? = dynamic>(var::id2::T% t) → var::id
 
 constants  {
   #C1 = TypeLiteralConstant(core::Object*)
-  #C2 = tearoff var::id1
-  #C3 = partial-instantiation var::id1 <core::int*>
+  #C2 = static-tearoff var::id1
+  #C3 = instantiation var::id1 <core::int*>
   #C4 = 0
   #C5 = var::Class<core::int*> {field:#C4}
   #C6 = 42
@@ -121,10 +121,10 @@ constants  {
   #C17 = null
   #C18 = <dynamic, dynamic>{#C7:#C15, #C17:#C7)
   #C19 = true
-  #C20 = tearoff var::id2
+  #C20 = static-tearoff var::id2
   #C21 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
   #C22 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
-  #C23 = tearoff core::identical
+  #C23 = static-tearoff core::identical
 }
 
 

@@ -94,6 +94,6 @@ static method main() → void {
 }
 
 constants  {
-  #C1 = tearoff self::numToInt
-  #C2 = tearoff self::numToNum
+  #C1 = static-tearoff self::numToInt
+  #C2 = static-tearoff self::numToNum
 }

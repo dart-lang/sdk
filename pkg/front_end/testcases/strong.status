@@ -8,7 +8,6 @@
 
 dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 
-constructor_tearoffs/instantiation: TypeCheckError
 constructor_tearoffs/redirecting_constructors: RuntimeError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.

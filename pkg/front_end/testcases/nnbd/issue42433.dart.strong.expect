@@ -14,5 +14,5 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::checkme
+  #C1 = static-tearoff self::checkme
 }
