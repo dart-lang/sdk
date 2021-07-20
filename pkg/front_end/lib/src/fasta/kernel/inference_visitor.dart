@@ -225,7 +225,9 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitRedirectingFactoryTearOff(
       RedirectingFactoryTearOff node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    DartType type =
+        node.target.function.computeFunctionType(inferrer.library.nonNullable);
+    return inferrer.instantiateTearOff(type, typeContext, node);
   }
 
   @override

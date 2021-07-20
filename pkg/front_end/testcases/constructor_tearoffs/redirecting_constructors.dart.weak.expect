@@ -62,7 +62,7 @@ static method main() → dynamic
   return self::test();
 
 constants  {
-  #C1 = static-tearoff self::A::redirectingFactory
-  #C2 = static-tearoff self::A::redirectingFactoryChild
-  #C3 = static-tearoff self::A::redirectingTwice
+  #C1 = redirecting-factory-tearoff self::A::redirectingFactory
+  #C2 = redirecting-factory-tearoff self::A::redirectingFactoryChild
+  #C3 = redirecting-factory-tearoff self::A::redirectingTwice
 }

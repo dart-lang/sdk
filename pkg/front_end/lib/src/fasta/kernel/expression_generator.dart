@@ -3178,8 +3178,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               tearOffExpression = _helper.forest
                   .createConstructorTearOff(token.charOffset, tearOff);
             } else if (tearOff is Procedure) {
-              tearOffExpression =
-                  _helper.forest.createStaticTearOff(token.charOffset, tearOff);
+              if (tearOff.isRedirectingFactory) {
+                tearOffExpression = _helper.forest
+                    .createRedirectingFactoryTearOff(token.charOffset, tearOff);
+              } else {
+                tearOffExpression = _helper.forest
+                    .createStaticTearOff(token.charOffset, tearOff);
+              }
             } else if (tearOff != null) {
               unhandled("${tearOff.runtimeType}", "buildPropertyAccess",
                   operatorOffset, _helper.uri);
