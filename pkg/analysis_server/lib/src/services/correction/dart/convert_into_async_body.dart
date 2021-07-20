@@ -17,8 +17,9 @@ class ConvertIntoAsyncBody extends CorrectionProducer {
     var body = getEnclosingFunctionBody();
     if (body == null ||
         body is EmptyFunctionBody ||
-        body.isAsynchronous ||
-        body.isGenerator) {
+        // Do not offer a correction if there is an `async`, `async*`, `sync*`,
+        // or the fictional `sync` keyword.
+        body.keyword != null) {
       return;
     }
 
