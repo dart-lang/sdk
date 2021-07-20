@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -26,10 +28,6 @@ class FactorySpecializer extends BaseSpecializer {
   TreeNode transformStaticInvocation(
       StaticInvocation invocation, Member contextMember) {
     final target = invocation.target;
-    if (target == null) {
-      return invocation;
-    }
-
     final transformer = transformers[target];
     if (transformer != null) {
       return transformer(invocation, contextMember);

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 part of dart2js.util;
 
 /// Indentation utility class. Should be used as a mixin in most cases.
@@ -64,7 +66,7 @@ abstract class Tagging<N> implements Indentation {
   String popTag() {
     assert(!tagStack.isEmpty);
     String tag = tagStack.head;
-    tagStack = tagStack.tail;
+    tagStack = tagStack.tail!;
     indentLess();
     return tag;
   }
@@ -81,7 +83,7 @@ abstract class Tagging<N> implements Indentation {
   /// The method "opens" the node, meaning that all output after calling
   /// this method and before calling closeNode() will represent contents
   /// of given node.
-  void openNode(N node, String type, [Map params]) {
+  void openNode(N node, String type, [Map? params]) {
     if (params == null) params = new Map();
     addCurrentIndent();
     sb.write("<");
@@ -92,7 +94,7 @@ abstract class Tagging<N> implements Indentation {
   }
 
   /// Adds given node to result string.
-  void openAndCloseNode(N node, String type, [Map params]) {
+  void openAndCloseNode(N node, String type, [Map? params]) {
     if (params == null) params = {};
     addCurrentIndent();
     sb.write("<");
@@ -110,7 +112,7 @@ abstract class Tagging<N> implements Indentation {
     sb.write(">\n");
   }
 
-  void addTypeWithParams(String type, [Map params]) {
+  void addTypeWithParams(String type, [Map? params]) {
     if (params == null) params = new Map();
     sb.write("${type}");
     params.forEach((k, v) {

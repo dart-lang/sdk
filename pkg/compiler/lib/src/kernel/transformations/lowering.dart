@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -16,7 +18,7 @@ import 'late_lowering.dart';
 /// Each transformation is applied locally to AST nodes of certain types after
 /// transforming children nodes.
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, CompilerOptions options) {
+    ClassHierarchy hierarchy, CompilerOptions? options) {
   final transformer = _Lowering(coreTypes, hierarchy, options);
   libraries.forEach(transformer.visitLibrary);
 
@@ -31,10 +33,10 @@ class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final LateLowering _lateLowering;
 
-  Member _currentMember;
+  Member? _currentMember;
 
   _Lowering(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions _options)
+      CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
         _lateLowering = LateLowering(coreTypes, _options);
 
@@ -51,7 +53,7 @@ class _Lowering extends Transformer {
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return factorySpecializer.transformStaticInvocation(node, _currentMember);
+    return factorySpecializer.transformStaticInvocation(node, _currentMember!);
   }
 
   @override
@@ -71,37 +73,37 @@ class _Lowering extends Transformer {
   @override
   TreeNode visitVariableGet(VariableGet node) {
     node.transformChildren(this);
-    return _lateLowering.transformVariableGet(node, _currentMember);
+    return _lateLowering.transformVariableGet(node, _currentMember!);
   }
 
   @override
   TreeNode visitVariableSet(VariableSet node) {
     node.transformChildren(this);
-    return _lateLowering.transformVariableSet(node, _currentMember);
+    return _lateLowering.transformVariableSet(node, _currentMember!);
   }
 
   @override
   TreeNode visitField(Field node) {
     _currentMember = node;
     node.transformChildren(this);
-    return _lateLowering.transformField(node, _currentMember);
+    return _lateLowering.transformField(node, _currentMember!);
   }
 
   @override
   TreeNode visitFieldInitializer(FieldInitializer node) {
     node.transformChildren(this);
-    return _lateLowering.transformFieldInitializer(node, _currentMember);
+    return _lateLowering.transformFieldInitializer(node, _currentMember!);
   }
 
   @override
   TreeNode visitStaticGet(StaticGet node) {
     node.transformChildren(this);
-    return _lateLowering.transformStaticGet(node, _currentMember);
+    return _lateLowering.transformStaticGet(node, _currentMember!);
   }
 
   @override
   TreeNode visitStaticSet(StaticSet node) {
     node.transformChildren(this);
-    return _lateLowering.transformStaticSet(node, _currentMember);
+    return _lateLowering.transformStaticSet(node, _currentMember!);
   }
 }
