@@ -41,6 +41,140 @@ bar() {
     assertType(reference, 'dynamic');
   }
 
+  test_extensionMethod() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  void foo<T>(T a) {}
+
+  bar() {
+    foo<int>;
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_extensionMethod_explicitReceiver_this() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  void foo<T>(T a) {}
+
+  bar() {
+    this.foo<int>;
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_extensionMethod_extensionOverride() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+extension E on A {
+  void foo<T>(T a) {}
+}
+
+bar(A a) {
+  E(a).foo<int>;
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_extensionMethod_extensionOverride_cascade() async {
+    await assertErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+extension E on A {
+  void foo<T>(T a) {}
+}
+
+bar(A a) {
+  E(a)..foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 85, 1),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_extensionMethod_extensionOverride_static() async {
+    await assertErrorsInCode('''
+class A {}
+
+extension E on A {
+  static void foo<T>(T a) {}
+}
+
+bar(A a) {
+  E(a).foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 81,
+          3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_extensionMethod_extensionOverride_unknown() async {
+    await assertErrorsInCode('''
+class A {}
+
+extension E on A {}
+
+bar(A a) {
+  E(a).foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 51, 3),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
+  test_extensionMethod_fromClassDeclaration() async {
+    await assertNoErrorsInCode('''
+class A {
+  bar() {
+    foo<int>;
+  }
+}
+
+extension E on A {
+  void foo<T>(T a) {}
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
   test_instanceGetter_explicitReceiver() async {
     // This test is here to assert that the resolver does not throw, but in the
     // future, an error should be reported here as well.
@@ -212,6 +346,27 @@ bar() {
         'void Function(int)');
   }
 
+  test_instanceMethod_explicitReceiver_topLevelVariable_prefix_unknown() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {}
+var a = A();
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.a.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3),
+    ]);
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
   test_instanceMethod_explicitReceiver_typeParameter() async {
     await assertErrorsInCode('''
 bar<T>() {
@@ -241,7 +396,6 @@ bar(A a) {
         reference, findElement.method('foo'), 'void Function(int)');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/46635')
   test_instanceMethod_explicitReceiver_variable_cascade() async {
     await assertNoErrorsInCode('''
 class A {
@@ -566,6 +720,24 @@ void bar() {
       findElement.importFind('package:test/a.dart').topFunction('foo'),
       'void Function(int)',
     );
+  }
+
+  test_topLevelVariable_prefix_unknown() async {
+    newFile('$testPackageLibPath/a.dart', content: '');
+    await assertErrorsInCode('''
+import 'a.dart' as prefix;
+
+bar() {
+  prefix.a.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1),
+    ]);
+
+    assertImportPrefix(
+        findNode.simple('prefix.'), findElement.prefix('prefix'));
+    var reference = findNode.functionReference('foo<int>;');
+    assertType(reference, 'dynamic');
   }
 
   test_typeAlias_function_unknownProperty() async {

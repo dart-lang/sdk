@@ -692,4 +692,32 @@ class A<X extends A<X>> {}
 A get foo => throw 0;
 ''');
   }
+
+  test_typeLiteral_class() async {
+    await assertErrorsInCode('''
+class C<T extends int> {}
+var t = C<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 36, 6),
+    ]);
+  }
+
+  test_typeLiteral_functionTypeAlias() async {
+    await assertErrorsInCode('''
+typedef Cb<T extends int> = void Function();
+var t = Cb<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 6),
+    ]);
+  }
+
+  test_typeLiteral_typeAlias() async {
+    await assertErrorsInCode('''
+class C {}
+typedef D<T extends int> = C;
+var t = D<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 51, 6),
+    ]);
+  }
 }

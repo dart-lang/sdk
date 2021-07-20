@@ -51,6 +51,21 @@ extension MyExtension on MyClass {
     ]);
   }
 
+  test_methodTearoff() async {
+    await assertErrorsInCode('''
+class MyClass {
+  static void sm<T>() {}
+}
+extension MyExtension on MyClass {
+  void m() {
+    sm<int>;
+  }
+}
+''', [
+      error(_errorCode, 95, 2),
+    ]);
+  }
+
   test_readWrite() async {
     await assertErrorsInCode('''
 class MyClass {
