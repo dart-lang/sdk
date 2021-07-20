@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-07-19T10:44:52.605499",
+  "generated": "2021-07-20T10:43:52.568177",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -64,7 +64,7 @@
       "name": "_js_interop_checks",
       "rootUri": "../pkg/_js_interop_checks",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "analysis_server",

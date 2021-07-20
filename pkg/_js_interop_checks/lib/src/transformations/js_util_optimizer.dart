@@ -36,26 +36,26 @@ class JsUtilOptimizer extends Transformer {
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _jsTarget =
-            _coreTypes.index.getTopLevelMember('dart:_foreign_helper', 'JS'),
+            _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
         _callMethodTarget =
-            _coreTypes.index.getTopLevelMember('dart:js_util', 'callMethod'),
+            _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
         _callMethodUncheckedTargets = List<Procedure>.generate(
             5,
-            (i) => _coreTypes.index
-                .getTopLevelMember('dart:js_util', '_callMethodUnchecked$i')),
-        _getPropertyTarget =
-            _coreTypes.index.getTopLevelMember('dart:js_util', 'getProperty'),
-        _setPropertyTarget =
-            _coreTypes.index.getTopLevelMember('dart:js_util', 'setProperty'),
+            (i) => _coreTypes.index.getTopLevelProcedure(
+                'dart:js_util', '_callMethodUnchecked$i')),
+        _getPropertyTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'getProperty'),
+        _setPropertyTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
-            .getTopLevelMember('dart:js_util', '_setPropertyUnchecked'),
+            .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
         _allowInteropTarget =
-            _coreTypes.index.getTopLevelMember('dart:js', 'allowInterop'),
+            _coreTypes.index.getTopLevelProcedure('dart:js', 'allowInterop'),
         _allowedInteropJsUtilTargets = _allowedInteropJsUtilMembers.map(
             (member) =>
-                _coreTypes.index.getTopLevelMember('dart:js_util', member)),
+                _coreTypes.index.getTopLevelProcedure('dart:js_util', member)),
         _listEmptyFactory =
-            _coreTypes.index.getMember('dart:core', 'List', 'empty'),
+            _coreTypes.index.getProcedure('dart:core', 'List', 'empty'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
             TypeEnvironment(_coreTypes, hierarchy)) {}
 
