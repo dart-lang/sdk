@@ -66,21 +66,32 @@ class AvoidClassesWithOnlyStaticMembers extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     var declaredElement = node.declaredElement;
     if (declaredElement == null) {
       return;
+    }
+
+    var interface = context.inheritanceManager.getInterface(declaredElement);
+    var map = interface.map;
+    for (var member in map.values) {
+      var enclosingElement = member.enclosingElement;
+      if (enclosingElement is ClassElement &&
+          !enclosingElement.isDartCoreObject) {
+        return;
+      }
     }
 
     if (node.members.isNotEmpty &&

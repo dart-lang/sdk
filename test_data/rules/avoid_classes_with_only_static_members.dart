@@ -6,14 +6,14 @@
 
 class Bad // LINT
 {
-  static int a;
+  static int a = 0;
 
   static foo() {}
 }
 
-class Bad2 extends Good1 // LINT
+class Ok extends Good1 // OK
 {
-  static int staticInt;
+  static int staticInt = 0;
 
   static foo() {}
 }
@@ -47,7 +47,11 @@ class Color // OK
 
 class DateUtils // LINT
 {
-  static DateTime mostRecent(List<DateTime> dates) {
-    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
-  }
+  static DateTime mostRecent(List<DateTime> dates) => dates.first;
+}
+
+class F // OK
+{
+  F._();
+  static int f = 0;
 }
