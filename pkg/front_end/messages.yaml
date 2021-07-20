@@ -4537,6 +4537,11 @@ FfiLeafCallMustNotReturnHandle:
   template: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
+FfiNativeAnnotationMustAnnotateStatic:
+  # Used by dart:ffi
+  template: "FfiNative annotations can only be used on static functions."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:

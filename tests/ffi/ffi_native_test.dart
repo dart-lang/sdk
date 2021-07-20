@@ -39,6 +39,15 @@ external Object foo();  //# 01: compile-time error
 @FfiNative<Void Function(Handle)>("bar", isLeaf: true)  //# 02: compile-time error
 external void bar(Object);  //# 02: compile-time error
 
+class Classy {
+  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+  external static int returnIntPtrStatic(int x);
+
+  // Error: FfiNative annotations can only be used on static functions.
+  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')  //# 03: compile-time error
+  external int returnIntPtrMethod(int x);  //# 03: compile-time error
+}
+
 void main() {
   // Register test resolver for top-level functions above.
   final root_lib_url = getRootLibraryUrl();
@@ -47,6 +56,7 @@ void main() {
   // Test we can call FfiNative functions.
   Expect.equals(123, returnIntPtr(123));
   Expect.equals(123, returnIntPtrLeaf(123));
+  Expect.equals(123, Classy.returnIntPtrStatic(123));
 
   // Test FfiNative leaf calls remain in generated code.
   // Regular calls should transition generated -> native.

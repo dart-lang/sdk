@@ -340,6 +340,7 @@ FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
 FfiLeafCallMustNotReturnHandle/analyzerCode: Fail
 FfiLeafCallMustNotTakeHandle/analyzerCode: Fail
+FfiNativeAnnotationMustAnnotateStatic/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail

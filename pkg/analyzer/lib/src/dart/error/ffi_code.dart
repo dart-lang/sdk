@@ -69,6 +69,14 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const FfiCode FFI_NATIVE_ONLY_STATIC = FfiCode(
+      name: 'FFI_NATIVE_ONLY_STATIC',
+      message: "FfiNative annotations can only be used on static functions.",
+      correction: "Change the method to static.");
+
+  /**
+   * No parameters.
+   */
   static const FfiCode FIELD_IN_STRUCT_WITH_INITIALIZER = FfiCode(
       name: 'FIELD_IN_STRUCT_WITH_INITIALIZER',
       message:

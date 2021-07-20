@@ -3992,6 +3992,16 @@ const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     message: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeAnnotationMustAnnotateStatic =
+    messageFfiNativeAnnotationMustAnnotateStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeAnnotationMustAnnotateStatic =
+    const MessageCode("FfiNativeAnnotationMustAnnotateStatic",
+        message:
+            r"""FfiNative annotations can only be used on static functions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(

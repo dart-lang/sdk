@@ -166,7 +166,7 @@ class VmTarget extends Target {
     } else {
       // Transform @FfiNative(..) functions into ffi native call functions.
       transformFfiNative.transformLibraries(
-          component, libraries, referenceFromIndex);
+          component, libraries, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi natives");
       // TODO(jensj/dacoharkes): We can probably limit the transformations to
       // libraries that transitivley depend on dart:ffi.
