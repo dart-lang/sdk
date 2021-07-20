@@ -11,6 +11,8 @@
 //   self-induced invalidations.
 //
 
+// @dart=2.9
+
 class StreamSubscription {}
 
 class _BufferingStreamSubscription extends StreamSubscription {}

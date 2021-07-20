@@ -5,6 +5,8 @@
 // Tests tree shaking of field initializer for a write-only field.
 // Regression test for https://github.com/dart-lang/sdk/issues/35632.
 
+// @dart=2.9
+
 class A {
   A() {
     print('A');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vm.target.install;
+// @dart=2.9
 
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;

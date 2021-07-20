@@ -1,7 +1,8 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library vm.target.vm;
+
+// @dart=2.9
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
@@ -111,9 +112,9 @@ class VmTarget extends Target {
     // support patching fields.
     // See http://dartbug.com/32836 for the background.
     final Field host =
-        coreTypes.index.getMember('dart:typed_data', 'Endian', 'host');
+        coreTypes.index.getField('dart:typed_data', 'Endian', 'host');
     final Field little =
-        coreTypes.index.getMember('dart:typed_data', 'Endian', 'little');
+        coreTypes.index.getField('dart:typed_data', 'Endian', 'little');
     host.isConst = true;
     host.initializer = new CloneVisitorNotMembers().clone(little.initializer)
       ..parent = host;
@@ -125,7 +126,7 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
@@ -154,7 +155,7 @@ class VmTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
@@ -204,7 +205,7 @@ class VmTarget extends Target {
       ClassHierarchy hierarchy,
       Procedure procedure,
       Map<String, String> environmentDefines,
-      {void logger(String msg)}) {
+      {void Function(String msg) logger}) {
     bool productMode = environmentDefines["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure,

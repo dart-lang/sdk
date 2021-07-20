@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vm.transformations.pragma;
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -54,7 +52,7 @@ class ParsedDisableUnboxedParameters extends ParsedPragma {
 abstract class PragmaAnnotationParser {
   /// May return 'null' if the annotation does not represent a recognized
   /// @pragma.
-  ParsedPragma parsePragma(Expression annotation);
+  ParsedPragma? parsePragma(Expression annotation);
 }
 
 class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
@@ -62,8 +60,8 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
 
   ConstantPragmaAnnotationParser(this.coreTypes);
 
-  ParsedPragma parsePragma(Expression annotation) {
-    InstanceConstant pragmaConstant;
+  ParsedPragma? parsePragma(Expression annotation) {
+    InstanceConstant? pragmaConstant;
     if (annotation is ConstantExpression) {
       Constant constant = annotation.constant;
       if (constant is InstanceConstant) {
@@ -79,7 +77,7 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     if (pragmaConstant == null) return null;
 
     String pragmaName;
-    Constant name =
+    Constant? name =
         pragmaConstant.fieldValues[coreTypes.pragmaName.getterReference];
     if (name is StringConstant) {
       pragmaName = name.value;
@@ -88,12 +86,11 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     }
 
     Constant options =
-        pragmaConstant.fieldValues[coreTypes.pragmaOptions.getterReference];
-    assert(options != null);
+        pragmaConstant.fieldValues[coreTypes.pragmaOptions.getterReference]!;
 
     switch (pragmaName) {
       case kEntryPointPragmaName:
-        PragmaEntryPointType type;
+        PragmaEntryPointType? type;
         if (options is NullConstant) {
           type = PragmaEntryPointType.Default;
         } else if (options is BoolConstant && options.value == true) {
@@ -113,7 +110,6 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
         }
         return type != null ? new ParsedEntryPointPragma(type) : null;
       case kExactResultTypePragmaName:
-        if (options == null) return null;
         if (options is TypeLiteralConstant) {
           return new ParsedResultTypeByTypePragma(options.type, false);
         } else if (options is StringConstant) {
@@ -132,7 +128,7 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       case kNonNullableResultType:
         return new ParsedNonNullableResultType();
       case kRecognizedPragmaName:
-        PragmaRecognizedType type;
+        PragmaRecognizedType? type;
         if (options is StringConstant) {
           if (options.value == "asm-intrinsic") {
             type = PragmaRecognizedType.AsmIntrinsic;

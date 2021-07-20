@@ -4,6 +4,8 @@
 
 // Test for tree shaking of write-only fields.
 
+// @dart=2.9
+
 import "package:expect/expect.dart";
 
 foo() {}

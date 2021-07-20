@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;

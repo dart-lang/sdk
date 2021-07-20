@@ -256,7 +256,7 @@ abstract class Target {
       Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
-      {void logger(String msg),
+      {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
