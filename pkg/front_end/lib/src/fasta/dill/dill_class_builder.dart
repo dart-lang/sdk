@@ -72,39 +72,42 @@ class DillClassBuilder extends ClassBuilderImpl {
   @override
   Class get actualCls => cls;
 
-  void addMember(Member member) {
-    if (member is Field) {
-      DillFieldBuilder builder = new DillFieldBuilder(member, this);
-      String name = member.name.text;
-      scopeBuilder.addMember(name, builder);
-    } else if (member is Procedure) {
-      String name = member.name.text;
-      switch (member.kind) {
-        case ProcedureKind.Factory:
-          constructorScopeBuilder.addMember(
-              name, new DillFactoryBuilder(member, this));
-          break;
-        case ProcedureKind.Setter:
-          scopeBuilder.addSetter(name, new DillSetterBuilder(member, this));
-          break;
-        case ProcedureKind.Getter:
-          scopeBuilder.addMember(name, new DillGetterBuilder(member, this));
-          break;
-        case ProcedureKind.Operator:
-          scopeBuilder.addMember(name, new DillOperatorBuilder(member, this));
-          break;
-        case ProcedureKind.Method:
-          scopeBuilder.addMember(name, new DillMethodBuilder(member, this));
-          break;
-      }
-    } else if (member is Constructor) {
-      DillConstructorBuilder builder =
-          new DillConstructorBuilder(member, null, this);
-      String name = member.name.text;
-      constructorScopeBuilder.addMember(name, builder);
-    } else {
-      throw new UnsupportedError(
-          "Unexpected class member ${member} (${member.runtimeType})");
+  void addField(Field field) {
+    DillFieldBuilder builder = new DillFieldBuilder(field, this);
+    String name = field.name.text;
+    scopeBuilder.addMember(name, builder);
+  }
+
+  void addConstructor(Constructor constructor, Procedure? constructorTearOff) {
+    DillConstructorBuilder builder =
+        new DillConstructorBuilder(constructor, constructorTearOff, this);
+    String name = constructor.name.text;
+    constructorScopeBuilder.addMember(name, builder);
+  }
+
+  void addFactory(Procedure factory, Procedure? factoryTearOff) {
+    String name = factory.name.text;
+    constructorScopeBuilder.addMember(
+        name, new DillFactoryBuilder(factory, factoryTearOff, this));
+  }
+
+  void addProcedure(Procedure procedure) {
+    String name = procedure.name.text;
+    switch (procedure.kind) {
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Use addFactory for adding factories");
+      case ProcedureKind.Setter:
+        scopeBuilder.addSetter(name, new DillSetterBuilder(procedure, this));
+        break;
+      case ProcedureKind.Getter:
+        scopeBuilder.addMember(name, new DillGetterBuilder(procedure, this));
+        break;
+      case ProcedureKind.Operator:
+        scopeBuilder.addMember(name, new DillOperatorBuilder(procedure, this));
+        break;
+      case ProcedureKind.Method:
+        scopeBuilder.addMember(name, new DillMethodBuilder(procedure, this));
+        break;
     }
   }
 

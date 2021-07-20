@@ -8,12 +8,34 @@ import 'package:kernel/type_algebra.dart';
 import '../builder/member_builder.dart';
 import '../source/source_library_builder.dart';
 
-/// Creates the synthesized name to use for the lowering of a generative
-/// constructor by the given [constructorName] in [library].
-Name constructorTearOffName(String constructorName, Library library) {
+const String _constructorTearOffNamePrefix = '_#';
+const String _constructorTearOffNameSuffix = '#tearOff';
+
+/// Creates the synthesized name to use for the lowering of the tear off of a
+/// constructor or factory by the given [name] in [library].
+Name constructorTearOffName(String name, Library library) {
   return new Name(
-      '_#${constructorName.isEmpty ? 'new' : constructorName}#tearOff',
+      '$_constructorTearOffNamePrefix'
+      '${name.isEmpty ? 'new' : name}'
+      '$_constructorTearOffNameSuffix',
       library);
+}
+
+/// Returns the name of the corresponding constructor or factory if [name] is
+/// the synthesized name of a lowering of the tear off of a constructor or
+/// factory. Returns `null` otherwise.
+String? extractConstructorNameFromTearOff(Name name) {
+  if (name.text.startsWith(_constructorTearOffNamePrefix) &&
+      name.text.endsWith(_constructorTearOffNameSuffix) &&
+      name.text.length >
+          _constructorTearOffNamePrefix.length +
+              _constructorTearOffNameSuffix.length) {
+    String text = name.text
+        .substring(0, name.text.length - _constructorTearOffNameSuffix.length);
+    text = text.substring(_constructorTearOffNamePrefix.length);
+    return text == 'new' ? '' : text;
+  }
+  return null;
 }
 
 /// Creates the [Procedure] for the lowering of a generative constructor of
