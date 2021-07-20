@@ -5892,8 +5892,7 @@ class IndexExpressionImpl extends ExpressionImpl
 
     final parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
-      var assignment = parent as CompoundAssignmentExpression;
-      element = assignment.writeElement ?? assignment.readElement;
+      element = parent.writeElement ?? parent.readElement;
     }
 
     if (element is ExecutableElement) {

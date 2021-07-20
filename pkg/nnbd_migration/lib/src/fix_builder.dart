@@ -557,7 +557,7 @@ class MigrationResolutionHooksImpl
 
   @override
   void setCompoundAssignmentExpressionTypes(CompoundAssignmentExpression node) {
-    assert(_assignmentLikeExpressionHandlers[node as Expression] == null);
+    assert(_assignmentLikeExpressionHandlers[node] == null);
     if (node is AssignmentExpression) {
       var handler = _AssignmentExpressionHandler(node);
       _assignmentLikeExpressionHandlers[node] = handler;

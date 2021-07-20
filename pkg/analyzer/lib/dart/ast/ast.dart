@@ -1061,7 +1061,7 @@ abstract class CompilationUnitMember implements Declaration {}
 /// [PostfixExpression] when the operator is an increment operator.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class CompoundAssignmentExpression {
+abstract class CompoundAssignmentExpression implements Expression {
   /// The element that is used to read the value.
   ///
   /// If this node is not a compound assignment, this element is `null`.
