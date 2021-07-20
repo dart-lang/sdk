@@ -20,7 +20,73 @@ void main() {
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
+    defineReflectiveTests(ConvertGetterToMethodCodeActionsTest);
+    defineReflectiveTests(ConvertMethodToGetterCodeActionsTest);
   });
+}
+
+@reflectiveTest
+class ConvertGetterToMethodCodeActionsTest extends AbstractCodeActionsTest {
+  final refactorTitle = 'Convert Getter to Method';
+
+  Future<void> test_refactor() async {
+    const content = '''
+int get ^test => 42;
+main() {
+  var a = test;
+  var b = test;
+}
+''';
+    const expectedContent = '''
+int test() => 42;
+main() {
+  var a = test();
+  var b = test();
+}
+''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+}
+
+@reflectiveTest
+class ConvertMethodToGetterCodeActionsTest extends AbstractCodeActionsTest {
+  final refactorTitle = 'Convert Method to Getter';
+
+  Future<void> test_refactor() async {
+    const content = '''
+int ^test() => 42;
+main() {
+  var a = test();
+  var b = test();
+}
+''';
+    const expectedContent = '''
+int get test => 42;
+main() {
+  var a = test;
+  var b = test;
+}
+''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        position: positionFromMarker(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, refactorTitle)!;
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
 }
 
 @reflectiveTest
@@ -176,7 +242,12 @@ main() {
 }
     ''';
     newFile(mainFilePath, content: withoutMarkers(content));
-    await initialize();
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+        emptyTextDocumentClientCapabilities,
+        [CodeActionKind.Empty], // Support everything (empty prefix matches all)
+      ),
+    );
 
     final ofKind = (CodeActionKind kind) => getCodeActions(
           mainFileUri.toString(),
@@ -184,13 +255,31 @@ main() {
           kinds: [kind],
         );
 
-    // The code above will return a RefactorExtract that should be included
-    // by both Refactor and RefactorExtract, but not RefactorExtractFoo or
-    // RefactorRewrite
-    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
-    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
-    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
-    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
+    // Helper that requests CodeActions for [kind] and ensures all results
+    // returned have either an equal kind, or a kind that is prefixed with the
+    // requested kind followed by a dot.
+    Future<void> checkResults(CodeActionKind kind) async {
+      final results = await ofKind(kind);
+      for (final result in results) {
+        final resultKind = result.map(
+          (cmd) => throw 'Expected CodeAction, got Command: ${cmd.title}',
+          (action) => action.kind,
+        );
+        expect(
+          '$resultKind',
+          anyOf([
+            equals('$kind'),
+            startsWith('$kind.'),
+          ]),
+        );
+      }
+    }
+
+    // Check a few of each that will produces multiple matches and no matches.
+    await checkResults(CodeActionKind.Refactor);
+    await checkResults(CodeActionKind.RefactorExtract);
+    await checkResults(CodeActionKind('refactor.extract.foo'));
+    await checkResults(CodeActionKind.RefactorRewrite);
   }
 
   Future<void> test_generatesNames() async {

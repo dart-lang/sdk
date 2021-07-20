@@ -21,7 +21,9 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart' show groupBy;
 
@@ -425,6 +427,28 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             .isAvailable()) {
           refactorActions.add(createRefactor(CodeActionKind.RefactorInline,
               'Inline Method', RefactoringKind.INLINE_METHOD));
+        }
+      }
+
+      // Converts/Rewrites
+      if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
+        final node = NodeLocator(offset).searchWithin(unit.unit);
+        final element = server.getElementOfNode(node);
+        // Getter to Method
+        if (element is PropertyAccessorElement) {
+          refactorActions.add(createRefactor(
+              CodeActionKind.RefactorRewrite,
+              'Convert Getter to Method',
+              RefactoringKind.CONVERT_GETTER_TO_METHOD));
+        }
+
+        // Method to Getter
+        if (element is ExecutableElement &&
+            element is! PropertyAccessorElement) {
+          refactorActions.add(createRefactor(
+              CodeActionKind.RefactorRewrite,
+              'Convert Method to Getter',
+              RefactoringKind.CONVERT_METHOD_TO_GETTER));
         }
       }
 
