@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -155,13 +156,11 @@ class NullabilityEliminatorTest extends AbstractTypeSystemNullSafetyTest {
       nullabilitySuffix: NullabilitySuffix.none,
     );
     expect(_typeToString(input), 'int Function()');
-    expect(input.aliasElement, same(A));
-    expect(input.aliasArguments!.map(_typeToString).join(', '), 'int');
+    _assertInstantiatedAlias(input, A, 'int');
 
     var result = NullabilityEliminator.perform(typeProvider, input);
     expect(_typeToString(result), 'int* Function()*');
-    expect(result.aliasElement, same(A));
-    expect(result.aliasArguments!.map(_typeToString).join(', '), 'int*');
+    _assertInstantiatedAlias(result, A, 'int*');
   }
 
   test_functionType_typeParameters() {
@@ -278,8 +277,7 @@ class NullabilityEliminatorTest extends AbstractTypeSystemNullSafetyTest {
 
     var result = NullabilityEliminator.perform(typeProvider, input);
     expect(_typeToString(result), 'List<int*>*');
-    expect(result.aliasElement, same(A));
-    expect(result.aliasArguments!.map(_typeToString).join(', '), 'int*');
+    _assertInstantiatedAlias(result, A, 'int*');
   }
 
   test_interfaceType_int() {
@@ -331,6 +329,13 @@ class NullabilityEliminatorTest extends AbstractTypeSystemNullSafetyTest {
 
   test_voidType() {
     _verifySame(typeProvider.voidType);
+  }
+
+  void _assertInstantiatedAlias(
+      DartType type, Element aliasElement, String aliasArguments) {
+    var alias = type.alias!;
+    expect(alias.element, same(aliasElement));
+    expect(alias.typeArguments.map(_typeToString).join(', '), aliasArguments);
   }
 
   String _typeToString(DartType type) {

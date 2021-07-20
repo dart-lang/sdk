@@ -210,10 +210,10 @@ class TypeArgumentsVerifier {
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;
-    var aliasElement = type.aliasElement;
-    if (aliasElement != null) {
-      typeParameters = aliasElement.typeParameters;
-      typeArguments = type.aliasArguments!;
+    var alias = type.alias;
+    if (alias != null) {
+      typeParameters = alias.element.typeParameters;
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
@@ -277,8 +277,9 @@ class TypeArgumentsVerifier {
 
     // Prepare type arguments for checking for super-bounded.
     type = _typeSystem.replaceTopAndBottom(type);
-    if (type.aliasElement != null) {
-      typeArguments = type.aliasArguments!;
+    alias = type.alias;
+    if (alias != null) {
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {
@@ -422,9 +423,9 @@ class TypeArgumentsVerifier {
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element,
       Expression? inferenceContextNode) {
     List<DartType> typeArguments;
-    var aliasElement = type.aliasElement;
-    if (aliasElement != null) {
-      typeArguments = type.aliasArguments!;
+    var alias = type.alias;
+    if (alias != null) {
+      typeArguments = alias.typeArguments;
     } else if (type is InterfaceType) {
       typeArguments = type.typeArguments;
     } else {

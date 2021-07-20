@@ -758,15 +758,14 @@ class _ElementWriter {
       _writelnWithIndent('$typeStr');
     }
 
-    var aliasElement = type.aliasElement;
-    var aliasArguments = type.aliasArguments;
-    if (aliasElement is TypeAliasElementImpl && aliasArguments != null) {
+    var alias = type.alias;
+    if (alias != null) {
       _withIndent(() {
-        _createAstPrinter().writeElement('aliasElement', aliasElement);
+        _createAstPrinter().writeElement('aliasElement', alias.element);
 
         _writeElements<DartType>(
           'aliasArguments',
-          aliasArguments,
+          alias.typeArguments,
           _writeType,
         );
       });

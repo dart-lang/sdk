@@ -504,6 +504,8 @@ class LibraryReader {
       offset: resolutionOffset,
     );
 
+    _declareDartCoreDynamicNever();
+
     InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
         .applyTo(libraryElement);
 
@@ -512,6 +514,14 @@ class LibraryReader {
         .applyTo(libraryElement);
 
     return libraryElement;
+  }
+
+  /// These elements are implicitly declared in `dart:core`.
+  void _declareDartCoreDynamicNever() {
+    if (_reference.name == 'dart:core') {
+      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
+      _reference.getChild('Never').element = NeverElementImpl.instance;
+    }
   }
 
   ClassElementImpl _readClassElement(
@@ -1541,23 +1551,29 @@ class ResolutionReader {
           parameters: type.parameters,
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
           element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is VoidType) {
         // TODO(scheglov) add support for `void` aliasing

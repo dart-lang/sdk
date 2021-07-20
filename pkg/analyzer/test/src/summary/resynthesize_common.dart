@@ -16762,8 +16762,8 @@ F<int> a;
     var unit = library.definingCompilationUnit;
     var type = unit.topLevelVariables[0].type as FunctionType;
 
-    expect(type.aliasElement, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.aliasArguments!, ['int']);
+    expect(type.alias!.element, same(unit.typeAliases[0]));
+    _assertTypeStrings(type.alias!.typeArguments, ['int']);
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {

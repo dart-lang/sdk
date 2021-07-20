@@ -1,4 +1,4 @@
-## 2.1.0
+## 2.1.0-dev
 * Changed `AnalysisResult.path` to be non-nullable.
 * Changed `ParsedLibraryResult.units` to be non-nullable.
 * Changed `ResolvedLibraryResult.element` to be non-nullable.
@@ -11,6 +11,9 @@
   `content` and `unit` were `null`, when the result actually had only errors.
   Now it produces either `ResolvedUnitResult`, or `ErrorsResult`, or
   some other results that might be added in the future.
+* Added `DartType.alias` with information about instantiated type alias.
+  The type alias element and arguments are present or absent together.
+* Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
 
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.

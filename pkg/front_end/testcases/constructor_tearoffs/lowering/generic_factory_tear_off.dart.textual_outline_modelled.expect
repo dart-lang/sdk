@@ -1,0 +1,31 @@
+class Class1<T> {
+  Class1._();
+  factory Class1() => new Class1<T>._();
+}
+
+class Class2<T extends num> {
+  Class2._();
+  factory Class2() => new Class2<T>._();
+}
+
+class Class3<T extends S, S> {
+  Class3._();
+  factory Class3() => new Class3<T, S>._();
+}
+
+class Class4<T extends Class4<T>> {
+  Class4._();
+  factory Class4() => new Class4<T>._();
+}
+
+class Class4int extends Class4<Class4int> {
+  Class4int._() : super._();
+  factory Class4int() => new Class4int._();
+}
+
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+testBounded() {}
+testGeneric() {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

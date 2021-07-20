@@ -85,10 +85,14 @@ bindCall(obj, name) {
 gbind(f, @rest List<Object> typeArgs) {
   GenericFunctionType type = JS('!', '#[#]', f, _runtimeType);
   type.checkBounds(typeArgs);
-  // Create a JS wrapper function that will also pass the type arguments, and
-  // tag it with the instantiated function type.
+  // Create a JS wrapper function that will also pass the type arguments.
   var result =
       JS('', '(...args) => #.apply(null, #.concat(args))', f, typeArgs);
+  // Tag the wrapper with the original function to be used for equality checks.
+  JS('', '#["_originalFn"] = #', result, f);
+  JS('', '#["_typeArgs"] = #', result, constList(typeArgs, Object));
+
+  // Tag the wrapper with the instantiated function type.
   return fn(result, type.instantiate(typeArgs));
 }
 

@@ -196,6 +196,8 @@ SampleBlockBuffer::SampleBlockBuffer(intptr_t blocks,
 SampleBlockBuffer::~SampleBlockBuffer() {
   delete[] blocks_;
   blocks_ = nullptr;
+  delete memory_;
+  memory_ = nullptr;
   capacity_ = 0;
   cursor_ = 0;
 }
@@ -343,6 +345,11 @@ AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity) {
   Init(reinterpret_cast<Sample*>(memory_->address()), capacity);
   free_sample_list_ = nullptr;
   cursor_ = 0;
+}
+
+AllocationSampleBuffer::~AllocationSampleBuffer() {
+  delete memory_;
+  memory_ = nullptr;
 }
 
 void AllocationSampleBuffer::FreeAllocationSample(Sample* sample) {

@@ -754,8 +754,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     required TypeAliasElement element,
     required List<String> typeArguments,
   }) {
-    assertElement2(type.aliasElement, declaration: element);
-    assertElementTypeStrings(type.aliasArguments, typeArguments);
+    assertElement2(type.alias?.element, declaration: element);
+    assertElementTypeStrings(type.alias?.typeArguments, typeArguments);
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the
