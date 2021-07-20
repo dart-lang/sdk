@@ -446,8 +446,8 @@ class BinaryBuilder {
   }
 
   Constant _readInstantiationConstant() {
-    final StaticTearOffConstant tearOffConstant =
-        readConstantReference() as StaticTearOffConstant;
+    final TearOffConstant tearOffConstant =
+        readConstantReference() as TearOffConstant;
     final List<DartType> types = readDartTypeList();
     return new InstantiationConstant(tearOffConstant, types);
   }

@@ -12,9 +12,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
-    show DillLibraryBuilder;
-
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -74,6 +71,8 @@ import '../combinator.dart' show Combinator;
 
 import '../configuration.dart' show Configuration;
 
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart';
@@ -81,6 +80,8 @@ import '../fasta_codes.dart';
 import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
+
+import '../kernel/constructor_tearoff_lowering.dart';
 
 import '../kernel/internal_ast.dart';
 
@@ -4231,6 +4232,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           uncheckedTypedefType.fileUri!, uncheckedTypedefType.offset!);
     }
     uncheckedTypedefTypes.clear();
+  }
+
+  int _typedefTearOffLoweringIndex = 0;
+
+  Expression getTypedefTearOffLowering(
+      TypedefTearOff node, FunctionType targetType, Uri fileUri) {
+    assert(loader.target.backendTarget.isTypedefTearOffLoweringEnabled);
+    Procedure tearOff = createTypedefTearOffLowering(
+        this, node, targetType, fileUri, _typedefTearOffLoweringIndex++);
+    library.addProcedure(tearOff);
+    return new StaticTearOff(tearOff)..fileOffset = node.fileOffset;
   }
 }
 

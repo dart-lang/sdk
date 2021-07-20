@@ -33,6 +33,6 @@ static method main() → dynamic {
   core::print(self::linkedCustomMap);
 }
 constants  {
-  #C1 = tearoff core::identical
-  #C2 = tearoff core::identityHashCode
+  #C1 = static-tearoff core::identical
+  #C2 = static-tearoff core::identityHashCode
 }

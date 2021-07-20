@@ -28,5 +28,5 @@ static method f(core::Object o) → void {}
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::f
+  #C1 = static-tearoff self::f
 }

@@ -117,11 +117,11 @@ static method test() → dynamic {
   dynamic f1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:28:14: Error: Getter not found: 'new'.
   var f1 = A.new;
              ^^^";
-  () → self::B f2 = self::B::•;
+  () → self::B f2 = #C1;
   dynamic f3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:30:14: Error: Getter not found: 'new'.
   var f3 = C.new;
              ^^^";
-  (core::int) → self::D f4 = self::D::•;
+  (core::int) → self::D f4 = #C2;
   f1{dynamic}.call();
   f2(){() → self::B};
   f3{dynamic}.call(1);
@@ -129,14 +129,19 @@ static method test() → dynamic {
   () → self::A g1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:37:23: Error: Getter not found: 'new'.
   A Function() g1 = A.new;
                       ^^^";
-  () → self::B g2 = self::B::•;
+  () → self::B g2 = #C1;
   (core::int) → self::C g3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/unnamed_constructor.dart:39:28: Error: Getter not found: 'new'.
   C Function(int x) g3 = C.new;
                            ^^^";
-  (core::int) → self::D g4 = self::D::•;
+  (core::int) → self::D g4 = #C2;
   g1(){() → self::A};
   g2(){() → self::B};
   g3(1){(core::int) → self::C};
   g4(1){(core::int) → self::D};
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::B::•
+  #C2 = constructor-tearoff self::D::•
+}

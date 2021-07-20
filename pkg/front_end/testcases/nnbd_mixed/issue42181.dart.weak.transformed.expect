@@ -28,5 +28,5 @@ import "dart:core" as core;
 typedef F = (core::int*) →* core::int*;
 
 constants  {
-  #C1 = tearoff self::f1
+  #C1 = static-tearoff self::f1
 }

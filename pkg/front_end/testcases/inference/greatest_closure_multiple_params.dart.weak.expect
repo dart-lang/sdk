@@ -30,5 +30,5 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = null
-  #C2 = tearoff self::C::_compareAny
+  #C2 = static-tearoff self::C::_compareAny
 }

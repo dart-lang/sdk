@@ -18,5 +18,5 @@ library from "org-dartlang-test:///main.dart" as main {
     return LoadLibrary(foo);
 }
 constants  {
-  #C1 = tearoff main::_#loadLibrary_foo
+  #C1 = static-tearoff main::_#loadLibrary_foo
 }

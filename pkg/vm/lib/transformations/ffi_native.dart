@@ -8,17 +8,22 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart'
     show IndexedLibrary, ReferenceFromIndex;
+import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show messageFfiNativeAnnotationMustAnnotateStatic;
 
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
 void transformLibraries(Component component, List<Library> libraries,
+    DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex) {
   final index = LibraryIndex(component, ['dart:ffi']);
   // Skip if dart:ffi isn't loaded (e.g. during incremental compile).
   if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {
     return;
   }
-  final transformer = FfiNativeTransformer(index, referenceFromIndex);
+  final transformer = FfiNativeTransformer(index, diagnosticReporter,
+      referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
 }
 
@@ -26,6 +31,7 @@ class FfiNativeTransformer extends Transformer {
   Library? currentLibrary;
   IndexedLibrary? currentLibraryIndex;
 
+  final DiagnosticReporter diagnosticReporter;
   final ReferenceFromIndex? referenceFromIndex;
   final Class ffiNativeClass;
   final Class nativeFunctionClass;
@@ -35,7 +41,8 @@ class FfiNativeTransformer extends Transformer {
   final Procedure asFunctionProcedure;
   final Procedure fromAddressInternal;
 
-  FfiNativeTransformer(LibraryIndex index, this.referenceFromIndex)
+  FfiNativeTransformer(LibraryIndex index, this.diagnosticReporter,
+      this.referenceFromIndex)
       : ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         ffiNativeNameField =
@@ -53,10 +60,9 @@ class FfiNativeTransformer extends Transformer {
     assert(currentLibrary == null);
     currentLibrary = node;
     currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
-    // We only transform top-level, external procedures:
-    transformList(node.procedures, node);
+    final result = super.visitLibrary(node);
     currentLibrary = null;
-    return node;
+    return result;
   }
 
   InstanceConstant? _tryGetFfiNativeAnnotation(Member node) {
@@ -160,6 +166,14 @@ class FfiNativeTransformer extends Transformer {
     InstanceConstant? ffiNativeAnnotation = _tryGetFfiNativeAnnotation(node);
     if (ffiNativeAnnotation == null) {
       return node;
+    }
+
+    if (!node.isStatic) {
+      diagnosticReporter.report(
+          messageFfiNativeAnnotationMustAnnotateStatic,
+          node.fileOffset,
+          1,
+          node.location!.file);
     }
 
     node.isExternal = false;

@@ -23,6 +23,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
+  static const _ffiNativeName = 'FfiNative';
 
   static const List<String> _primitiveIntegerNativeTypes = [
     'Int8',
@@ -155,6 +156,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _checkFfiNative(node);
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.staticElement;
     if (element is MethodElement) {
@@ -193,6 +200,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _checkFfiNative(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -254,6 +267,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  void _checkFfiNative(Declaration node) {
+    NodeList<Annotation> annotations = node.metadata;
+    if (annotations.isEmpty) {
+      return;
+    }
+
+    for (Annotation annotation in annotations) {
+      if (annotation.name.name == _ffiNativeName) {
+        final isStatic = (node is FunctionDeclaration) ||
+            ((node is MethodDeclaration) && node.isStatic);
+        if (!isStatic) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.FFI_NATIVE_ONLY_STATIC, node);
+        }
+      }
+    }
   }
 
   /// Returns `true` if [nativeType] is a C type that has a size.

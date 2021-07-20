@@ -34,5 +34,5 @@ static method test() → void {
 static method main() → void {}
 
 constants  {
-  #C1 = tearoff self::h
+  #C1 = static-tearoff self::h
 }

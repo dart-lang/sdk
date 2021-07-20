@@ -3386,6 +3386,14 @@ class FunctionNode extends TreeNode {
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
   FunctionType computeFunctionType(Nullability nullability) {
+    TreeNode? parent = this.parent;
+    List<TypeParameter> typeParameters;
+    if (parent is Constructor) {
+      assert(this.typeParameters.isEmpty);
+      typeParameters = parent.enclosingClass.typeParameters;
+    } else {
+      typeParameters = this.typeParameters;
+    }
     return typeParameters.isEmpty
         ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)
@@ -13028,7 +13036,7 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is StaticTearOffConstant &&
+    return other is ConstructorTearOffConstant &&
         other.targetReference == targetReference;
   }
 
@@ -13079,7 +13087,7 @@ class RedirectingFactoryTearOffConstant extends Constant
   int get hashCode => targetReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is StaticTearOffConstant &&
+    return other is RedirectingFactoryTearOffConstant &&
         other.targetReference == targetReference;
   }
 

@@ -2674,7 +2674,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('partial-instantiation');
+    writeWord('instantiation');
     writeSpace();
     writeMemberReferenceFromReference(node.tearOffConstant.targetReference);
     writeSpace();
@@ -2695,7 +2695,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('tearoff');
+    writeWord('static-tearoff');
     writeSpace();
     writeMemberReferenceFromReference(node.targetReference);
     endLine();
@@ -2708,6 +2708,16 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('eval');
     writeSpace();
     writeExpression(node.expression);
+    endLine();
+  }
+
+  visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('constructor-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
     endLine();
   }
 

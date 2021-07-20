@@ -184,10 +184,10 @@ class Class5<T extends core::num> extends core::Object {
 }
 
 constants  {
-  #C1 = tearoff mai::Class1::_#new#tearOff
-  #C2 = tearoff mai::Class2::_#named#tearOff
-  #C3 = tearoff mai::Class3::_#new#tearOff
-  #C4 = tearoff mai::Class4::_#new#tearOff
-  #C5 = tearoff mai::Class5::_#new#tearOff
+  #C1 = static-tearoff mai::Class1::_#new#tearOff
+  #C2 = static-tearoff mai::Class2::_#named#tearOff
+  #C3 = static-tearoff mai::Class3::_#new#tearOff
+  #C4 = static-tearoff mai::Class4::_#new#tearOff
+  #C5 = static-tearoff mai::Class5::_#new#tearOff
   #C6 = false
 }

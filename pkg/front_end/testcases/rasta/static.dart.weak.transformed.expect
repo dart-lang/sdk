@@ -335,7 +335,7 @@ Try correcting the name to the name of an existing method, or defining a method 
 
 constants  {
   #C1 = 42
-  #C2 = tearoff self::Foo::staticFunction
+  #C2 = static-tearoff self::Foo::staticFunction
 }
 
 Extra constant evaluation status:

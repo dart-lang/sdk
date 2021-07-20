@@ -25,5 +25,5 @@ static method foo() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::_#loadLibrary_foo
+  #C1 = static-tearoff self::_#loadLibrary_foo
 }

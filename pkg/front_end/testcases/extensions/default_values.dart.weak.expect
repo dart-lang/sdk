@@ -71,5 +71,5 @@ constants  {
   #C1 = null
   #C2 = 42
   #C3 = 87
-  #C4 = tearoff self::Extension|staticMethod
+  #C4 = static-tearoff self::Extension|staticMethod
 }

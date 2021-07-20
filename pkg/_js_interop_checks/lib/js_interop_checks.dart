@@ -105,14 +105,14 @@ class JsInteropChecks extends RecursiveVisitor {
                 cls.name, superclass.name),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       } else if (!_classHasJSAnnotation && superHasJSAnnotation) {
         _diagnosticsReporter.report(
             templateJsInteropDartClassExtendsJSClass.withArguments(
                 cls.name, superclass.name),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       }
     }
     // Since this is a breaking check, it is language-versioned.
@@ -129,10 +129,10 @@ class JsInteropChecks extends RecursiveVisitor {
         // a value for `className` that doesn't start with 'self.' or 'window.'.
         var classRegexp = new RegExp(r'^((self|window)\.)*(?<className>.*)$');
         var matches = classRegexp.allMatches(jsClass);
-        jsClass = matches.first.namedGroup('className');
+        jsClass = matches.first.namedGroup('className')!;
       }
-      if (_nativeClasses.containsKey(jsClass)) {
-        var nativeClass = _nativeClasses[jsClass];
+      var nativeClass = _nativeClasses[jsClass];
+      if (nativeClass != null) {
         _diagnosticsReporter.report(
             templateJsInteropNativeClassInAnnotation.withArguments(
                 cls.name,
@@ -140,7 +140,7 @@ class JsInteropChecks extends RecursiveVisitor {
                 nativeClass.enclosingLibrary.importUri.toString()),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       }
     }
     super.visitClass(cls);
@@ -180,32 +180,30 @@ class JsInteropChecks extends RecursiveVisitor {
             messageJsInteropNonExternalMember,
             procedure.fileOffset,
             procedure.name.text.length,
-            procedure.location.file);
+            procedure.fileUri);
       }
     }
     if (!_isJSInteropMember(procedure)) return;
 
     if (!procedure.isStatic &&
         (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
-      _diagnosticsReporter.report(
-          messageJsInteropIndexNotSupported,
-          procedure.fileOffset,
-          procedure.name.text.length,
-          procedure.location.file);
+      _diagnosticsReporter.report(messageJsInteropIndexNotSupported,
+          procedure.fileOffset, procedure.name.text.length, procedure.fileUri);
     }
 
     var isAnonymousFactory =
         _classHasAnonymousAnnotation && procedure.isFactory;
 
     if (isAnonymousFactory) {
+      // ignore: unnecessary_null_comparison
       if (procedure.function != null &&
           !procedure.function.positionalParameters.isEmpty) {
         var firstPositionalParam = procedure.function.positionalParameters[0];
         _diagnosticsReporter.report(
             messageJsInteropAnonymousFactoryPositionalParameters,
             firstPositionalParam.fileOffset,
-            firstPositionalParam.name.length,
-            firstPositionalParam.location.file);
+            firstPositionalParam.name!.length,
+            firstPositionalParam.location!.file);
       }
     } else {
       // Only factory constructors for anonymous classes are allowed to have
@@ -225,7 +223,7 @@ class JsInteropChecks extends RecursiveVisitor {
           messageJsInteropNonExternalConstructor,
           constructor.fileOffset,
           constructor.name.text.length,
-          constructor.location.file);
+          constructor.fileUri);
     }
     if (!_isJSInteropMember(constructor)) return;
 
@@ -234,13 +232,14 @@ class JsInteropChecks extends RecursiveVisitor {
 
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
+    // ignore: unnecessary_null_comparison
     if (functionNode != null && !functionNode.namedParameters.isEmpty) {
       var firstNamedParam = functionNode.namedParameters[0];
       _diagnosticsReporter.report(
           messageJsInteropNamedParameters,
           firstNamedParam.fileOffset,
-          firstNamedParam.name.length,
-          firstNamedParam.location.file);
+          firstNamedParam.name!.length,
+          firstNamedParam.location!.file);
     }
   }
 
@@ -255,10 +254,10 @@ class JsInteropChecks extends RecursiveVisitor {
       // If in a class that is not JS interop, this member is not allowed to be
       // JS interop.
       _diagnosticsReporter.report(messageJsInteropEnclosingClassJSAnnotation,
-          member.fileOffset, member.name.text.length, member.location.file,
+          member.fileOffset, member.name.text.length, member.fileUri,
           context: <LocatedMessage>[
             messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
-                enclosingClass.location.file,
+                enclosingClass.fileUri,
                 enclosingClass.fileOffset,
                 enclosingClass.name.length)
           ]);
@@ -274,7 +273,7 @@ class JsInteropChecks extends RecursiveVisitor {
             messageJsInteropExternalMemberNotJSAnnotated,
             member.fileOffset,
             member.name.text.length,
-            member.location.file);
+            member.fileUri);
       }
     }
   }

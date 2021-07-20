@@ -1,0 +1,20 @@
+class A {}
+
+class B<X> {
+  B() : this._(0, '');
+  B._(this.field1, this.field2);
+  B.foo(this.field1) : field2 = '';
+  String field2;
+  factory B.bar(int i, String j) => new B<X>._(i, j);
+  int field1;
+}
+
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}
+typedef DA1 = A;
+typedef DA2<X extends num> = A;
+typedef DB1 = B<String>;
+typedef DB2<X extends num> = B<X>;
+typedef DB3<X extends num, Y extends String> = B<X>;

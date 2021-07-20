@@ -100,12 +100,12 @@ static method main() → void {
 }
 
 constants  {
-  #C1 = tearoff self::C::stat
-  #C2 = partial-instantiation self::C::stat <core::int*>
-  #C3 = tearoff self::M::mstat
-  #C4 = partial-instantiation self::M::mstat <core::int*>
-  #C5 = tearoff self::Ext|estat
-  #C6 = partial-instantiation self::Ext|estat <core::int*>
+  #C1 = static-tearoff self::C::stat
+  #C2 = instantiation self::C::stat <core::int*>
+  #C3 = static-tearoff self::M::mstat
+  #C4 = instantiation self::M::mstat <core::int*>
+  #C5 = static-tearoff self::Ext|estat
+  #C6 = instantiation self::Ext|estat <core::int*>
   #C7 = TypeLiteralConstant(core::List<core::int*>*)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int*>*>*)
 }

@@ -235,7 +235,6 @@ class InferenceVisitor
         node.expression, const UnknownType(), true,
         isVoidAllowed: true);
     node.expression = expressionResult.expression..parent = node;
-
     assert(
         expressionResult.inferredType is FunctionType,
         "Expected a FunctionType from tearing off a constructor from "
@@ -256,8 +255,16 @@ class InferenceVisitor
         typeParameters: freshTypeParameters.freshTypeParameters,
         requiredParameterCount: resultType.requiredParameterCount,
         typedefType: null);
+    Expression replacement = node;
+    if (!inferrer.isTopLevel &&
+        inferrer.library.loader.target.backendTarget
+            .isTypedefTearOffLoweringEnabled) {
+      replacement = inferrer.library.getTypedefTearOffLowering(
+          node, expressionType, inferrer.helper!.uri);
+    }
+
     ExpressionInferenceResult inferredResult =
-        inferrer.instantiateTearOff(resultType, typeContext, node);
+        inferrer.instantiateTearOff(resultType, typeContext, replacement);
     Expression ensuredResultExpression =
         inferrer.ensureAssignableResult(typeContext, inferredResult);
     return new ExpressionInferenceResult(

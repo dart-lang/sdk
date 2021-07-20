@@ -192,9 +192,9 @@ static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C5}) → d
 }
 
 constants  {
-  #C1 = tearoff self::Class1::_#new#tearOff
-  #C2 = tearoff self::Class2::_#new#tearOff
-  #C3 = tearoff self::Class3::_#new#tearOff
-  #C4 = tearoff self::Class4::_#new#tearOff
+  #C1 = static-tearoff self::Class1::_#new#tearOff
+  #C2 = static-tearoff self::Class2::_#new#tearOff
+  #C3 = static-tearoff self::Class3::_#new#tearOff
+  #C4 = static-tearoff self::Class4::_#new#tearOff
   #C5 = false
 }

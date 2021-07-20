@@ -18,5 +18,5 @@ static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → co
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::f
+  #C1 = static-tearoff self::f
 }

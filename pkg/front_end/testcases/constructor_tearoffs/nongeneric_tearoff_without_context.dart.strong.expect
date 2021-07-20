@@ -32,11 +32,11 @@ class A extends core::Object {
     return new self::A::•();
 }
 static method testFoo() → dynamic
-  return self::A::foo;
+  return #C1;
 static method testNew() → dynamic
-  return self::A::•;
+  return #C2;
 static method testBar() → dynamic
-  return self::A::bar;
+  return #C3;
 static method testFooExtraArgs() → dynamic
   return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart:15:23: Error: The static type of the explicit instantiation operand must be a generic function type but is 'A Function()'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/nongeneric_tearoff_without_context.dart'.
@@ -56,3 +56,9 @@ Try changing the operand or remove the type arguments.
 testBarExtraArgs() => A<int>.bar; // Error.
                       ^";
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo
+  #C2 = constructor-tearoff self::A::•
+  #C3 = static-tearoff self::A::bar
+}
