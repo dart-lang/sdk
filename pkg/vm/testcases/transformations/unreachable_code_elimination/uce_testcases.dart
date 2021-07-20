@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 const bool constTrue = const bool.fromEnvironment('test.define.isTrue');
 const bool constFalse = const bool.fromEnvironment('test.define.isFalse');
 const bool constTrue2 = !constFalse;

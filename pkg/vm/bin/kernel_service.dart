@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 /// This is an interface to the Dart Kernel parser and Kernel binary generator.
 ///
 /// It is used by the kernel-isolate to load Dart source code and generate

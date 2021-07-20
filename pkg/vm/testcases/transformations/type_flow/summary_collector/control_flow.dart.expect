@@ -71,10 +71,10 @@ RESULT: x_0
 t2 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t3* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (t3)
-t5 = _TypeCheck (t4 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2()) as dart.core::bool)
 t6* = _Call direct [#lib::C3.] (_T (#lib::C3))
 t7* = _Call direct [#lib::foo] (t6)
-t8 = _TypeCheck (t7 against dart.core::bool*) (for #lib::foo(x = new #lib::C3()) as dart.core::bool*)
+t8 = _TypeCheck (t7 against dart.core::bool) (for #lib::foo(x = new #lib::C3()) as dart.core::bool)
 x_0 = _Join [dynamic] (t3, t6)
 t10 = _Call direct [#lib::bar] (x_0)
 RESULT: x_0
@@ -82,10 +82,10 @@ RESULT: x_0
 t0 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t2* = _Call direct [#lib::foo] (t1)
-t3 = _TypeCheck (t2 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x = new #lib::C2()) as dart.core::bool)
 t4* = _Call direct [#lib::C3.] (_T (#lib::C3))
 t5* = _Call direct [#lib::foo] (t4)
-t6 = _TypeCheck (t5 against dart.core::bool*) (for #lib::foo(x = new #lib::C3()) as dart.core::bool*)
+t6 = _TypeCheck (t5 against dart.core::bool) (for #lib::foo(x = new #lib::C3()) as dart.core::bool)
 t7 = _Call direct [#lib::bar] (t4)
 x_0 = _Join [dynamic] (t1, t4)
 RESULT: x_0
@@ -99,12 +99,12 @@ RESULT: _T {}?
 %x = _Parameter #0 [_T (dart.core::bool)+?]
 t1 = _Call direct [#lib::foo] (_T (dart.core::bool, true))
 t2 = _Call direct [#lib::bar] (_T (dart.core::bool, false))
-x_0 = _Join [dart.core::bool*] (_T (dart.core::bool, true), _T (dart.core::bool, false))
+x_0 = _Join [dart.core::bool] (_T (dart.core::bool, true), _T (dart.core::bool, false))
 t4 = _Call direct [#lib::baz] (x_0)
 RESULT: _T {}?
 ------------ if6b ------------
 %x = _Parameter #0 [_T ANY?]
-t1 = _TypeCheck (%x against dart.core::bool*) (for x as dart.core::bool*)
+t1 = _TypeCheck (%x against dart.core::bool) (for x as dart.core::bool)
 t2 = _Call direct [#lib::foo] (_T (dart.core::bool, true))
 t3 = _Call direct [#lib::bar] (_T (dart.core::bool, false))
 x_0 = _Join [dynamic] (_T (dart.core::bool, true), _T (dart.core::bool, false))
@@ -129,7 +129,7 @@ t2 = _Call direct [#lib::foo] (t1)
 RESULT: _T {}?
 ------------ if9 ------------
 %x = _Parameter #0 [_T (#lib::TestEnum)+?]
-t1* = _Call [#lib::TestEnum.==] (%x, _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
+t1* = _Call [dart.core::Object.==] (%x, _T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
 t2 = _Call direct [#lib::foo] (_T (#lib::TestEnum, const #lib::TestEnum{#lib::TestEnum.index: 0, #lib::TestEnum._name: "TestEnum.v1"}))
 RESULT: _T {}?
 ------------ conditional1 ------------
@@ -138,12 +138,12 @@ RESULT: _T {}?
 t2 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t3* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (t3)
-t5 = _TypeCheck (t4 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2()) as dart.core::bool)
 t6* = _Call direct [#lib::C3.] (_T (#lib::C3))
 t7* = _Call direct [#lib::C4.] (_T (#lib::C4))
 x_0 = _Join [dynamic] (t6, t7)
 t9 = _Call direct [#lib::foo] (x_0)
-t10 = _Join [dart.core::Object*] (t6, t7)
+t10 = _Join [dart.core::Object] (t6, t7)
 t11 = _Narrow (t10 to _T (dart.core::Object)+?)
 t12 = _Call direct [#lib::bar] (t11)
 RESULT: _T {}?
@@ -153,10 +153,10 @@ RESULT: _T {}?
 t2 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t3* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t4* = _Call direct [#lib::foo] (t3)
-t5 = _TypeCheck (t4 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
+t5 = _TypeCheck (t4 against dart.core::bool) (for #lib::foo(x = new #lib::C2()) as dart.core::bool)
 t6* = _Call direct [#lib::C3.] (_T (#lib::C3))
 t7* = _Call direct [#lib::C4.] (_T (#lib::C4))
-t8* = _Call direct [dart.core::_GrowableList._literal2] (#lib::C4*, t7, _T {})
+t8* = _Call direct [dart.core::_GrowableList._literal2] (#lib::C4, t7, _T {})
 t9* = _Call direct [#lib::foo] (t8)
 t10 = _Call direct [#lib::foo] (t6)
 t11 = _Join [dynamic] (t6, t9)
@@ -167,7 +167,7 @@ t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
 x_0 = _Join [dynamic] (t0, t1)
 t3* = _Call direct [#lib::foo] (x_0)
-t4 = _TypeCheck (t3 against dart.core::bool*) (for #lib::foo(x) as dart.core::bool*)
+t4 = _TypeCheck (t3 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
 t5 = _Call direct [#lib::bar] (x_0)
 RESULT: x_0
 ------------ loop2 ------------
@@ -178,13 +178,13 @@ t3 = _Call direct [#lib::foo] (x_0)
 t4* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t5 = _Call direct [#lib::bar] (t4)
 t6* = _Call direct [#lib::bar] (t1)
-t7 = _TypeCheck (t6 against dart.core::bool*) (for #lib::bar(x = new #lib::C3()) as dart.core::bool*)
+t7 = _TypeCheck (t6 against dart.core::bool) (for #lib::bar(x = new #lib::C3()) as dart.core::bool)
 RESULT: t1
 ------------ loop3 ------------
 t0 = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t2* = _Call direct [#lib::foo] (t1)
-t3 = _TypeCheck (t2 against dart.core::bool*) (for #lib::foo(x = new #lib::C2()) as dart.core::bool*)
+t3 = _TypeCheck (t2 against dart.core::bool) (for #lib::foo(x = new #lib::C2()) as dart.core::bool)
 t4 = _Call direct [#lib::C3.] (_T (#lib::C3))
 t5 = _Call direct [#lib::bar] (t1)
 RESULT: t1
@@ -206,10 +206,10 @@ t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C3.] (_T (#lib::C3))
 x_0 = _Join [dynamic] (t0, t1)
 t3* = _Call direct [#lib::foo] (x_0)
-t4 = _TypeCheck (t3 against dart.core::bool*) (for #lib::foo(x) as dart.core::bool*)
+t4 = _TypeCheck (t3 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
 t5* = _Call direct [#lib::C2.] (_T (#lib::C2))
 t6* = _Call direct [#lib::bar] (t5)
-t7 = _TypeCheck (t6 against dart.core::bool*) (for #lib::bar(x) as dart.core::bool*)
+t7 = _TypeCheck (t6 against dart.core::bool) (for #lib::bar(x) as dart.core::bool)
 x_1 = _Join [dynamic] (x_0, t5)
 RESULT: x_1
 ------------ loop6 ------------
@@ -219,9 +219,9 @@ t2* = _Call direct [#lib::C2.] (_T (#lib::C2))
 x_1 = _Join [dynamic] (t1, t2)
 x_0 = _Join [dynamic] (t0, x_1)
 t5* = _Call direct [#lib::foo] (x_0)
-t6 = _TypeCheck (t5 against dart.core::bool*) (for #lib::foo(x) as dart.core::bool*)
+t6 = _TypeCheck (t5 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
 t7* = _Call direct [#lib::bar] (t2)
-t8 = _TypeCheck (t7 against dart.core::bool*) (for #lib::bar(x) as dart.core::bool*)
+t8 = _TypeCheck (t7 against dart.core::bool) (for #lib::bar(x) as dart.core::bool)
 RESULT: x_0
 ------------ try1 ------------
 t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
@@ -273,7 +273,7 @@ x_2 = _Join [dynamic] (t1, t5)
 RESULT: x_2
 ------------ cast1 ------------
 %x = _Parameter #0 [_T ANY?]
-t1 = _TypeCheck (%x against #lib::C1*) (for x as #lib::C1*)
+t1 = _TypeCheck (%x against #lib::C1) (for x as #lib::C1)
 t2 = _Call direct [#lib::foo] (t1)
 t3 = _Call direct [#lib::bar] (t1)
 RESULT: _T {}?

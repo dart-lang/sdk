@@ -1,7 +1,8 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library vm.target.flutter;
+
+// @dart=2.9
 
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -56,7 +57,7 @@ class FlutterTarget extends VmTarget {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,

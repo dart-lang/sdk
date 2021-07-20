@@ -4,6 +4,8 @@
 
 // Tests elimination of null tests.
 
+// @dart=2.9
+
 class A {
   String nonNullable;
   String nullable;

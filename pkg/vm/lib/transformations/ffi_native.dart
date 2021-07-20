@@ -12,7 +12,7 @@ import 'package:kernel/reference_from_index.dart'
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
 void transformLibraries(Component component, List<Library> libraries,
-    ReferenceFromIndex referenceFromIndex) {
+    ReferenceFromIndex? referenceFromIndex) {
   final index = LibraryIndex(component, ['dart:ffi']);
   // Skip if dart:ffi isn't loaded (e.g. during incremental compile).
   if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {

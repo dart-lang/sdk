@@ -5,6 +5,8 @@
 // Regression test for https://github.com/flutter/flutter/issues/16182
 // Verifies that TFA correctly handles calls via fields/getters.
 
+// @dart=2.9
+
 import "package:expect/expect.dart";
 
 bool ok;

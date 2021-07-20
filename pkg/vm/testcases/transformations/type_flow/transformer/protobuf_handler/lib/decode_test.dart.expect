@@ -1,4 +1,4 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "generated/foo.pb.dart" as pb;
 import "package:test_core/scaffolding.dart" as sca;
@@ -8,15 +8,15 @@ import "dart:core" as core;
 import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
 
-[@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int*>]static field core::List<core::int*>* buffer = <core::int*>[10, 4, 8, 5, 16, 4, 26, 9, 10, 3, 102, 111, 111, 18, 2, 8, 42, 34, 9, 10, 3, 122, 111, 112, 18, 2, 8, 3, 40, 43, 50, 0, 58, 0];
+[@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int>]static field core::List<core::int> buffer = <core::int>[10, 4, 8, 5, 16, 4, 26, 9, 10, 3, 102, 111, 111, 18, 2, 8, 42, 34, 9, 10, 3, 122, 111, 112, 18, 2, 8, 3, 40, 43, 50, 0, 58, 0];
 static method main() → dynamic {
-  pb::FooKeep* foo = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int*>] self::buffer);
+  pb::FooKeep foo = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int>] self::buffer);
   sca::test(() → Null {
-    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}{core::Map<core::String*, pb::BarKeep*>*}.{core::Map::[]}("foo"){(core::Object*) →* pb::BarKeep*}.{pb::BarKeep::aKeep}{core::int*}, 42);
-    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] foo.{pb::FooKeep::barKeep}{pb::BarKeep*}.{pb::BarKeep::aKeep}{core::int*}, 5);
-    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}{core::int*}, 43);
-    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(){() →* core::bool*}, true);
-    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(){() →* void};
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=!] foo.{pb::FooKeep::mapKeep}{core::Map<core::String, pb::BarKeep>}.{core::Map::[]}("foo"){(core::Object?) → pb::BarKeep?}!.{pb::BarKeep::aKeep}{core::int}, 42);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep??] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep?] foo.{pb::FooKeep::barKeep}{pb::BarKeep}.{pb::BarKeep::aKeep}{core::int}, 5);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}{core::int}, 43);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(){() → core::bool}, true);
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(){() → void};
   });
 }
 library foo.pb.dart /*isNonNullableByDefault*/;
@@ -41,7 +41,7 @@ class FooKeep extends pro::GeneratedMessage {
   constructor _() → self::FooKeep
     : super pro::GeneratedMessage::•()
     ;
-  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int*>] core::List<core::int> i) → self::FooKeep
+  static factory fromBuffer([@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::int>] core::List<core::int> i) → self::FooKeep
     return let final self::FooKeep #t2 = [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::GeneratedMessage::mergeFromBuffer}(i){(core::List<core::int>, [pro::ExtensionRegistry]) → void};
     } =>#t2;

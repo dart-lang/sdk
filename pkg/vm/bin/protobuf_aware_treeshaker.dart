@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 /// This program will take a .dill file and do a protobuf aware tree-shaking.
 ///
 /// All fields of GeneratedMessage subclasses that are not accessed with their

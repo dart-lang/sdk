@@ -1,0 +1,6 @@
+import 'main_lib.dart';
+
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+expect(expected, actual) {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}
