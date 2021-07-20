@@ -836,7 +836,15 @@ class Forest {
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
+    assert(!procedure.isRedirectingFactory);
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  }
+
+  RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+      int fileOffset, Procedure procedure) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
   }
 
   Instantiation createInstantiation(

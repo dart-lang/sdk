@@ -2048,6 +2048,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeMemberReferenceFromReference(node.targetReference);
   }
 
+  visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    writeMemberReferenceFromReference(node.targetReference);
+  }
+
   visitTypedefTearOff(TypedefTearOff node) {
     writeTypeParameterList(node.typeParameters);
     state = SYMBOL;
@@ -2716,6 +2720,17 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeConstantReference(node);
     writeSpaced('=');
     writeWord('constructor-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('redirecting-factory-tearoff');
     writeSpace();
     writeMemberReferenceFromReference(node.targetReference);
     endLine();

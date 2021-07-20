@@ -373,6 +373,8 @@ class BinaryBuilder {
         return _readStaticTearOffConstant();
       case ConstantTag.ConstructorTearOffConstant:
         return _readConstructorTearOffConstant();
+      case ConstantTag.RedirectingFactoryTearOffConstant:
+        return _readRedirectingFactoryTearOffConstant();
       case ConstantTag.TypeLiteralConstant:
         return _readTypeLiteralConstant();
       case ConstantTag.UnevaluatedConstant:
@@ -468,6 +470,11 @@ class BinaryBuilder {
   Constant _readConstructorTearOffConstant() {
     final Reference reference = readNonNullCanonicalNameReference().reference;
     return new ConstructorTearOffConstant.byReference(reference);
+  }
+
+  Constant _readRedirectingFactoryTearOffConstant() {
+    final Reference reference = readNonNullCanonicalNameReference().reference;
+    return new RedirectingFactoryTearOffConstant.byReference(reference);
   }
 
   Constant _readTypeLiteralConstant() {

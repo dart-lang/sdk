@@ -26,4 +26,32 @@ class K {
       error(FfiCode.FFI_NATIVE_ONLY_STATIC, 31, 75),
     ]);
   }
+
+  test_FfiNativeCanUseHandles() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Handle Function(Handle)>('DoesntMatter')
+external Object doesntMatter(Object);
+''', []);
+  }
+
+  test_FfiNativeLeafMustNotReturnHandle() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Handle Function()>('DoesntMatter', isLeaf:true)
+external Object doesntMatter();
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 19, 90),
+    ]);
+  }
+
+  test_FfiNativeLeafMustNotTakeHandles() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@FfiNative<Void Function(Handle)>('DoesntMatter', isLeaf:true)
+external void doesntMatter(Object o);
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 19, 100),
+    ]);
+  }
 }

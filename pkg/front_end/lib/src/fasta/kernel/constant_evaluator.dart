@@ -708,6 +708,12 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitRedirectingFactoryTearOff(
+      RedirectingFactoryTearOff node, TreeNode? removalSentinel) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
+  @override
   TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
@@ -3434,7 +3440,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
-    return defaultExpression(node);
+    return canonicalize(new RedirectingFactoryTearOffConstant(node.target));
   }
 
   @override
