@@ -382,7 +382,7 @@ class Driver implements CommandLineStarter {
   Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
     var files = <io.File>[];
     var file = io.File(filePath);
-    if (file.existsSync() && !pathFilter.ignored(filePath)) {
+    if (file.existsSync()) {
       files.add(file);
     } else {
       var directory = io.Directory(filePath);

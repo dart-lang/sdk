@@ -73,7 +73,9 @@ class BaseTest {
         path.join(testDirectory, options),
       ];
     }
-    cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
+    cmd
+      ..addAll(sources.map(_adjustFileSpec))
+      ..addAll(args);
 
     await driver.start(cmd);
   }
@@ -389,6 +391,20 @@ class OptionsTest extends BaseTest {
 
   ErrorProcessor processorFor(AnalysisError error) =>
       processors.firstWhere((p) => p.appliesTo(error));
+
+  /// If a file is specified explicitly, it should be analyzed, even if
+  /// it is excluded. Excludes work when an including directory is specified.
+  Future<void> test_analysisOptions_excluded_requested() async {
+    await drive(
+      'data/exclude_test_project/lib/excluded_error.dart',
+      options: 'data/exclude_test_project/$analysisOptionsYaml',
+    );
+    expect(
+      bulletToDash(outSink),
+      contains("error - Undefined class 'ExcludedUndefinedClass'"),
+    );
+    expect(outSink.toString(), contains('1 error found.'));
+  }
 
   Future<void> test_analysisOptions_excludes() async {
     await drive('data/exclude_test_project',
