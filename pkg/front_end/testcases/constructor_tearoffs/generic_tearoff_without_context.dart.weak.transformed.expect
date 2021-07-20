@@ -17,6 +17,21 @@ library /*isNonNullableByDefault*/;
 // testBarExtraArgs() => A<int, String>.bar; // Error.
 //                       ^
 //
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:30:22: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+//   var fooExtraArgs = A<int, String>.foo; // Error.
+//                      ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:31:22: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+//   var newExtraArgs = A<int, String>.new; // Error.
+//                      ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:32:22: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+//   var barExtraArgs = A<int, String>.bar; // Error.
+//                      ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -55,4 +70,24 @@ static method testBarExtraArgs() → dynamic
 Try removing the extra type arguments.
 testBarExtraArgs() => A<int, String>.bar; // Error.
                       ^";
+static method method() → dynamic {
+  <X extends core::Object? = dynamic>() → self::A<X%> foo = self::A::foo;
+  () → self::A<core::int> fooArgs = self::A::foo<core::int>;
+  <X extends core::Object? = dynamic>() → self::A<X%> _new = self::A::•;
+  () → self::A<core::int> newArgs = self::A::•<core::int>;
+  <X extends core::Object? = dynamic>() → self::A<X%> bar = self::A::bar;
+  () → self::A<core::int> barArgs = self::A::bar<core::int>;
+  invalid-type fooExtraArgs = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:30:22: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+  var fooExtraArgs = A<int, String>.foo; // Error.
+                     ^";
+  invalid-type newExtraArgs = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:31:22: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+  var newExtraArgs = A<int, String>.new; // Error.
+                     ^";
+  invalid-type barExtraArgs = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_without_context.dart:32:22: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+  var barExtraArgs = A<int, String>.bar; // Error.
+                     ^";
+}
 static method main() → dynamic {}

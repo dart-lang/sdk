@@ -3386,6 +3386,14 @@ class FunctionNode extends TreeNode {
   /// resulting function type is generic, a fresh set of type parameters is used
   /// in it.
   FunctionType computeFunctionType(Nullability nullability) {
+    TreeNode? parent = this.parent;
+    List<TypeParameter> typeParameters;
+    if (parent is Constructor) {
+      assert(this.typeParameters.isEmpty);
+      typeParameters = parent.enclosingClass.typeParameters;
+    } else {
+      typeParameters = this.typeParameters;
+    }
     return typeParameters.isEmpty
         ? computeThisFunctionType(nullability)
         : getFreshTypeParameters(typeParameters)

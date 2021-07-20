@@ -7,18 +7,12 @@ library /*isNonNullableByDefault*/;
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // A<dynamic> Function(String) test5() => A.foo; // Error.
 //                                        ^
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends num> {
-//         ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
 // A<dynamic> Function(String) test6() => A.new; // Error.
 //                                        ^
-// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:5:9: Context: This is the type variable whose bound isn't conformed to.
-// class A<X extends num> {
-//         ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:23:41: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.

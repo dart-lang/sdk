@@ -4,14 +4,14 @@ library /*isNonNullableByDefault*/;
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
-//  - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'unknown'.
 //  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test2() => A.foo2; // Error.
 //                                ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
 //  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
-//  - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'unknown'.
 //  - 'X/*2*/' is from 'unknown'.
 // A<X> Function<X>(X) test3() => A.new; // Error.
 //                                ^
@@ -72,14 +72,14 @@ static method test1() → <X extends core::Object? = dynamic>(X%) → self::A<X%
 static method test2() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
- - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'unknown'.
  - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test2() => A.foo2; // Error.
                                ^" in self::A::foo2 as{TypeError,ForNonNullableByDefault} Never;
 static method test3() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
   return let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
- - 'X/*1*/' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'unknown'.
  - 'X/*2*/' is from 'unknown'.
 A<X> Function<X>(X) test3() => A.new; // Error.
                                ^" in self::A::• as{TypeError,ForNonNullableByDefault} Never;
