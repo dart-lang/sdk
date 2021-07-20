@@ -277,11 +277,25 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     for (Annotation annotation in annotations) {
       if (annotation.name.name == _ffiNativeName) {
+        // All FFI Natives must be static.
         final isStatic = (node is FunctionDeclaration) ||
             ((node is MethodDeclaration) && node.isStatic);
         if (!isStatic) {
           _errorReporter.reportErrorForNode(
               FfiCode.FFI_NATIVE_ONLY_STATIC, node);
+        }
+        // Leaf call FFI Natives can't use Handles.
+        ArgumentList? argumentList = annotation.arguments;
+        if (argumentList != null) {
+          NodeList<Expression> arguments = argumentList.arguments;
+          TypeArgumentList? typeArgumentList = annotation.typeArguments;
+          if (typeArgumentList != null) {
+            NodeList<TypeAnnotation> typeArguments = typeArgumentList.arguments;
+            if (typeArguments.isNotEmpty && typeArguments[0].type != null) {
+              _validateFfiLeafCallUsesNoHandles(
+                  arguments, typeArguments[0].type!, node);
+            }
+          }
         }
       }
     }
@@ -530,7 +544,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiLeafCallUsesNoHandles(node, TPrime, node);
+      _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, TPrime,
+          node);
     }
     _validateIsLeafIsConst(node);
   }
@@ -622,9 +637,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiLeafCallUsesNoHandles(
-      MethodInvocation node, DartType nativeType, AstNode errorNode) {
-    final args = node.argumentList.arguments;
+  void _validateFfiLeafCallUsesNoHandles(NodeList<Expression> args,
+      DartType nativeType, AstNode errorNode) {
     if (args.isNotEmpty) {
       for (final arg in args) {
         if (arg is NamedExpression) {
@@ -817,7 +831,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiLeafCallUsesNoHandles(node, S, typeArguments![0]);
+    _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, S,
+        typeArguments![0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.
