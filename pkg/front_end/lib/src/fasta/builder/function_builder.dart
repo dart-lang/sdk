@@ -4,8 +4,8 @@
 
 library fasta.procedure_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
@@ -13,6 +13,7 @@ import '../identifiers.dart';
 import '../scope.dart';
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/kernel_target.dart';
 
 import '../loader.dart' show Loader;
 
@@ -478,7 +479,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     if (!_hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
           isClassMember || isExtensionMember

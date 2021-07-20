@@ -10,6 +10,7 @@ import 'package:kernel/core_types.dart';
 import '../../base/common.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/kernel_target.dart';
 import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../source/source_library_builder.dart';
@@ -78,7 +79,8 @@ abstract class MemberBuilder implements ModifierBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -184,7 +186,8 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {}
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(

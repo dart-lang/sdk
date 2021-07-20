@@ -15,6 +15,7 @@ import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/class_hierarchy_builder.dart' show ClassMember;
+import 'kernel/kernel_target.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
 
 import 'fasta_codes.dart'
@@ -806,8 +807,11 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   ProcedureKind? get kind => null;
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(
+      LibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
   }

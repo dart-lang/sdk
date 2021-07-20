@@ -136,7 +136,7 @@ main() {
     },
     (Node node, Node parent) =>
         "Type parameter '$node' referenced out of scope,"
-        " parent is: '$parent'.",
+        " owner is: '$parent'.",
   );
   negative2Test(
     'Class type parameter from another class',
@@ -148,7 +148,7 @@ main() {
     },
     (Node node, Node parent) =>
         "Type parameter '$node' referenced out of scope,"
-        " parent is: '$parent'.",
+        " owner is: '$parent'.",
   );
   negative2Test(
     'Class type parameter in static method',
@@ -208,7 +208,7 @@ main() {
     },
     (Node node, Node parent) =>
         "Type parameter '$node' referenced out of scope,"
-        " parent is: '$parent'.",
+        " owner is: '${(parent as TreeNode).parent}'.",
   );
   negative1Test(
     'Interface type arity too low',

@@ -15,6 +15,12 @@ class Class1 {
   Class1([this.field = 42]);
 }
 
+class Class2 {
+  final int field;
+
+  Class2({this.field: 42});
+}
+
 void testDefaultValues() {
   var f1a = Class1.new;
   var c1a = f1a();
@@ -31,6 +37,22 @@ void testDefaultValues() {
   var c1d = f1b(87);
   expect(87, c1d.field);
   throws(() => f1b(42, 87));
+
+  var f2a = Class2.new;
+  var c2a = f2a();
+  expect(42, c2a.field);
+  var c2b = f2a(field: 87);
+  expect(87, c2b.field);
+  () {
+    f2a(87); // error
+  };
+
+  dynamic f2b = Class2.new;
+  var c2c = f2b();
+  expect(42, c2c.field);
+  var c2d = f2b(field: 87);
+  expect(87, c2d.field);
+  throws(() => f2b(87));
 }
 
 expect(expected, actual) {

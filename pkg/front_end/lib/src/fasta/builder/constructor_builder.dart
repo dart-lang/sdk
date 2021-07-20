@@ -251,8 +251,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -482,15 +484,16 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
       LibraryBuilder originLibraryBuilder = _origin!.library;
       if (originLibraryBuilder is SourceLibraryBuilder) {
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
-        _origin!.buildOutlineExpressions(
-            originLibraryBuilder, coreTypes, delayedActionPerformers);
+        _origin!.buildOutlineExpressions(originLibraryBuilder, coreTypes,
+            delayedActionPerformers, clonedFunctionNodes);
       }
       _clonedFunctionNode!.cloneDefaultValues();
       _clonedFunctionNode = null;

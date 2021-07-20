@@ -42,6 +42,8 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
+import '../kernel/kernel_target.dart';
+
 import '../util/helpers.dart';
 
 import '../modifier.dart'
@@ -520,7 +522,8 @@ class EnumBuilder extends SourceClassBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -564,7 +567,8 @@ class EnumBuilder extends SourceClassBuilder {
         }
       }
     }
-    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
   }
 
   @override
