@@ -11,6 +11,8 @@ import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 
+import '../kernel/kernel_target.dart';
+
 import '../scope.dart';
 
 import '../util/helpers.dart';
@@ -103,8 +105,11 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(
+      LibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     // TODO(johnniwinther): Remove the need for this.
   }
 }

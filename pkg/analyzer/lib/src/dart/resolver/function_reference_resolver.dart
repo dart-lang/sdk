@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -25,13 +26,17 @@ class FunctionReferenceResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
+  /// Helper for extension method resolution.
+  final ExtensionMemberResolver _extensionResolver;
+
   final bool _isNonNullableByDefault;
 
   /// The type representing the type 'type'.
   final InterfaceType _typeType;
 
   FunctionReferenceResolver(this._resolver, this._isNonNullableByDefault)
-      : _typeType = _resolver.typeProvider.typeType;
+      : _extensionResolver = _resolver.extensionResolver,
+        _typeType = _resolver.typeProvider.typeType;
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -43,242 +48,16 @@ class FunctionReferenceResolver {
     node.typeArguments?.accept(_resolver);
 
     if (function is SimpleIdentifierImpl) {
-      var element = _resolver.nameScope.lookup(function.name).getter;
-
-      if (element == null) {
-        DartType receiverType;
-        var enclosingClass = _resolver.enclosingClass;
-        if (enclosingClass != null) {
-          receiverType = enclosingClass.thisType;
-        } else {
-          // TODO(srawlins): Check `_resolver.enclosingExtension`.
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-            function,
-            [function.name],
-          );
-          node.staticType = DynamicTypeImpl.instance;
-          return;
-        }
-
-        var result = _resolver.typePropertyResolver.resolve(
-          receiver: null,
-          receiverType: receiverType,
-          name: function.name,
-          propertyErrorEntity: function,
-          nameErrorEntity: function,
-        );
-
-        var method = result.getter;
-        if (method != null) {
-          function.staticElement = method;
-          _resolve(node: node, rawType: method.type, name: function.name);
-          return;
-        } else {
-          // TODO(srawlins): Report CompileTimeErrorCode.UNDEFINED_METHOD.
-          return;
-        }
-
-        // TODO(srawlins): If `target.isStatic`, report an error, something like
-        // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
-
-        // TODO(srawlins): if `(target is PropertyAccessorElement)`, report an
-        // error.
-      }
-
-      // Classes and type aliases are checked first so as to include a
-      // PropertyAccess parent check, which does not need to be done for
-      // functions.
-      if (element is ClassElement || element is TypeAliasElement) {
-        // A type-instantiated constructor tearoff like `C<int>.name` or
-        // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
-        // with a [FunctionReference] target.
-        if (node.parent is PropertyAccess) {
-          _resolveConstructorReference(node);
-          return;
-        } else if (element is ClassElement) {
-          function.staticElement = element;
-          _resolveDirectTypeLiteral(node, function, element);
-          return;
-        } else if (element is TypeAliasElement) {
-          function.staticElement = element;
-          _resolveTypeAlias(node: node, element: element, typeAlias: function);
-          return;
-        }
-      } else if (element is ExecutableElement) {
-        function.staticElement = element;
-        function.staticType = element.type;
-        _resolve(node: node, rawType: element.type, name: element.name);
-        return;
-      } else if (element is VariableElement) {
-        function.staticElement = element;
-        function.staticType = element.type;
-        _resolveDisallowedExpression(node, element.type);
-        return;
-      }
-
-      node.staticType = DynamicTypeImpl.instance;
-      return;
+      _resolveSimpleIdentifierFunction(node, function);
     } else if (function is PrefixedIdentifierImpl) {
-      var prefixElement =
-          _resolver.nameScope.lookup(function.prefix.name).getter;
-
-      if (prefixElement == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-          function.prefix,
-          [function.name],
-        );
-        node.staticType = DynamicTypeImpl.instance;
-        return;
-      }
-
-      function.prefix.staticElement = prefixElement;
-      if (prefixElement is PrefixElement) {
-        var functionName = function.identifier.name;
-        var functionElement = prefixElement.scope.lookup(functionName).getter;
-        if (functionElement == null) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-            function.identifier,
-            [function.identifier.name, function.prefix.name],
-          );
-          function.staticType = DynamicTypeImpl.instance;
-          node.staticType = DynamicTypeImpl.instance;
-          return;
-        } else {
-          functionElement = _resolver.toLegacyElement(functionElement);
-          _resolveReceiverPrefix(
-              node, prefixElement, function, functionElement);
-          return;
-        }
-      }
-
-      DartType? prefixType;
-      if (prefixElement is VariableElement) {
-        prefixType = prefixElement.type;
-      } else if (prefixElement is PropertyAccessorElement) {
-        prefixType = prefixElement.returnType;
-      }
-
-      function.prefix.staticType = prefixType;
-      if (prefixType != null && prefixType.isDynamic) {
-        // TODO(srawlins): Report error. See spec text: "We do not allow dynamic
-        // explicit instantiation."
-        node.staticType = DynamicTypeImpl.instance;
-        return;
-      }
-
-      var methodElement = _resolveTypeProperty(
-        receiver: function.prefix,
-        receiverElement: prefixElement,
-        name: function.identifier,
-        nameErrorEntity: function,
-      );
-
-      if (methodElement is MethodElement) {
-        function.identifier.staticElement = methodElement;
-        function.staticType = methodElement.type;
-        _resolve(
-          node: node,
-          rawType: methodElement.type,
-          name: function.identifier.name,
-        );
-        return;
-      }
-
-      // TODO(srawlins): Need to report cases where [methodElement] is not
-      // generic. The 'test_instanceGetter_explicitReceiver' test case needs to
-      // be updated to handle this.
-
-      function.accept(_resolver);
-      node.staticType = DynamicTypeImpl.instance;
-      return;
+      _resolvePrefixedIdentifierFunction(node, function);
     } else if (function is PropertyAccessImpl) {
-      function.accept(_resolver);
-      var target = function.target;
-      if (target == null) {
-        // TODO(srawlins): Can we get here? Perhaps as part of a cascade, but
-        // there is currently a parsing error with cascades.
-        // https://github.com/dart-lang/sdk/issues/46635
-        node.staticType = DynamicTypeImpl.instance;
-        return;
-      }
-
-      DartType targetType;
-      if (target is SuperExpressionImpl) {
-        targetType = target.typeOrThrow;
-      } else if (target is ThisExpressionImpl) {
-        targetType = target.typeOrThrow;
-      } else if (target is SimpleIdentifierImpl) {
-        var targetElement = _resolver.nameScope.lookup(target.name).getter;
-        if (targetElement is VariableElement) {
-          targetType = targetElement.type;
-        } else if (targetElement is PropertyAccessorElement) {
-          targetType = targetElement.returnType;
-        } else {
-          // TODO(srawlins): Can we get here?
-          node.staticType = DynamicTypeImpl.instance;
-          return;
-        }
-      } else if (target is PrefixedIdentifierImpl) {
-        var prefixElement =
-            _resolver.nameScope.lookup(target.prefix.name).getter;
-        if (prefixElement is PrefixElement) {
-          var prefixName = target.identifier.name;
-          var targetElement = prefixElement.scope.lookup(prefixName).getter;
-
-          var methodElement = _resolveTypeProperty(
-            receiver: target,
-            receiverElement: targetElement,
-            name: function.propertyName,
-            nameErrorEntity: function,
-          );
-
-          if (methodElement == null) {
-            // TODO(srawlins): Can we get here?
-            node.staticType = DynamicTypeImpl.instance;
-            return;
-          } else {
-            _resolveReceiverPrefix(node, prefixElement, target, methodElement);
-            return;
-          }
-        } else {
-          // TODO(srawlins): Can we get here?
-          node.staticType = DynamicTypeImpl.instance;
-          return;
-        }
-      } else {
-        targetType = target.typeOrThrow;
-      }
-
-      var propertyElement = _resolver.typePropertyResolver
-          .resolve(
-            receiver: function.realTarget,
-            receiverType: targetType,
-            name: function.propertyName.name,
-            propertyErrorEntity: function.propertyName,
-            nameErrorEntity: function,
-          )
-          .getter;
-
-      if (propertyElement is TypeParameterElement) {
-        _resolveDisallowedExpression(node, propertyElement!.type);
-        return;
-      }
-
-      _resolve(
-        node: node,
-        rawType: function.staticType,
-        name: propertyElement?.name,
-      );
-      return;
+      _resolvePropertyAccessFunction(node, function);
     } else {
       // TODO(srawlins): Handle `function` being a [SuperExpression].
 
       function.accept(_resolver);
       _resolveDisallowedExpression(node, node.function.staticType);
-      return;
     }
   }
 
@@ -312,6 +91,37 @@ class FunctionReferenceResolver {
       return typeArgumentList.arguments
           .map((typeAnnotation) => typeAnnotation.typeOrThrow)
           .toList();
+    }
+  }
+
+  void _reportInvalidAccessToStaticMember(
+    SimpleIdentifier nameNode,
+    ExecutableElement element, {
+    required bool implicitReceiver,
+  }) {
+    if (_resolver.enclosingExtension != null) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+        nameNode,
+        [element.enclosingElement.displayName],
+      );
+    } else if (implicitReceiver) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        nameNode,
+        [element.enclosingElement.displayName],
+      );
+    } else {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        nameNode,
+        [
+          nameNode.name,
+          element.kind.displayName,
+          element.enclosingElement.displayName,
+        ],
+      );
     }
   }
 
@@ -384,6 +194,194 @@ class FunctionReferenceResolver {
     _resolve(node: node, rawType: rawType);
   }
 
+  void _resolveExtensionOverride(
+    FunctionReferenceImpl node,
+    PropertyAccessImpl function,
+    ExtensionOverride override,
+  ) {
+    var propertyName = function.propertyName;
+    var result =
+        _extensionResolver.getOverrideMember(override, propertyName.name);
+    var member = _resolver.toLegacyElement(result.getter);
+
+    if (member == null) {
+      node.staticType = DynamicTypeImpl.instance;
+      return;
+    }
+
+    if (member.isStatic) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        function.propertyName,
+      );
+      // Continue to resolve type.
+    }
+
+    if (function.isCascaded) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+        override.extensionName,
+      );
+      // Continue to resolve type.
+    }
+
+    // TODO(srawlins): If PropertyAccessorElement, report error.
+
+    _resolve(node: node, rawType: member.type, name: propertyName.name);
+  }
+
+  void _resolvePrefixedIdentifierFunction(
+      FunctionReferenceImpl node, PrefixedIdentifierImpl function) {
+    var prefixElement = _resolver.nameScope.lookup(function.prefix.name).getter;
+
+    if (prefixElement == null) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        function.prefix,
+        [function.name],
+      );
+      function.staticType = DynamicTypeImpl.instance;
+      node.staticType = DynamicTypeImpl.instance;
+      return;
+    }
+
+    function.prefix.staticElement = prefixElement;
+    if (prefixElement is PrefixElement) {
+      var functionName = function.identifier.name;
+      var functionElement = prefixElement.scope.lookup(functionName).getter;
+      if (functionElement == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+          function.identifier,
+          [function.identifier.name, function.prefix.name],
+        );
+        function.staticType = DynamicTypeImpl.instance;
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      } else {
+        functionElement = _resolver.toLegacyElement(functionElement);
+        _resolveReceiverPrefix(node, prefixElement, function, functionElement);
+        return;
+      }
+    }
+
+    DartType? prefixType;
+    if (prefixElement is VariableElement) {
+      prefixType = prefixElement.type;
+    } else if (prefixElement is PropertyAccessorElement) {
+      prefixType = prefixElement.returnType;
+    }
+
+    function.prefix.staticType = prefixType;
+    if (prefixType != null && prefixType.isDynamic) {
+      // TODO(srawlins): Report error. See spec text: "We do not allow dynamic
+      // explicit instantiation."
+      node.staticType = DynamicTypeImpl.instance;
+      return;
+    }
+
+    var methodElement = _resolveTypeProperty(
+      receiver: function.prefix,
+      receiverElement: prefixElement,
+      name: function.identifier,
+      nameErrorEntity: function,
+    );
+
+    if (methodElement is MethodElement) {
+      function.identifier.staticElement = methodElement;
+      function.staticType = methodElement.type;
+      _resolve(
+        node: node,
+        rawType: methodElement.type,
+        name: function.identifier.name,
+      );
+      return;
+    }
+
+    // TODO(srawlins): Need to report cases where [methodElement] is not
+    // generic. The 'test_instanceGetter_explicitReceiver' test case needs to
+    // be updated to handle this.
+
+    function.accept(_resolver);
+    node.staticType = DynamicTypeImpl.instance;
+  }
+
+  void _resolvePropertyAccessFunction(
+      FunctionReferenceImpl node, PropertyAccessImpl function) {
+    function.accept(_resolver);
+    var target = function.realTarget;
+
+    DartType targetType;
+    if (target is SuperExpressionImpl) {
+      targetType = target.typeOrThrow;
+    } else if (target is ThisExpressionImpl) {
+      targetType = target.typeOrThrow;
+    } else if (target is SimpleIdentifierImpl) {
+      var targetElement = _resolver.nameScope.lookup(target.name).getter;
+      if (targetElement is VariableElement) {
+        targetType = targetElement.type;
+      } else if (targetElement is PropertyAccessorElement) {
+        targetType = targetElement.returnType;
+      } else {
+        // TODO(srawlins): Can we get here?
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      }
+    } else if (target is PrefixedIdentifierImpl) {
+      var prefixElement = _resolver.nameScope.lookup(target.prefix.name).getter;
+      if (prefixElement is PrefixElement) {
+        var prefixName = target.identifier.name;
+        var targetElement = prefixElement.scope.lookup(prefixName).getter;
+
+        var methodElement = _resolveTypeProperty(
+          receiver: target,
+          receiverElement: targetElement,
+          name: function.propertyName,
+          nameErrorEntity: function,
+        );
+
+        if (methodElement == null) {
+          // TODO(srawlins): Can we get here?
+          node.staticType = DynamicTypeImpl.instance;
+          return;
+        } else {
+          _resolveReceiverPrefix(node, prefixElement, target, methodElement);
+          return;
+        }
+      } else {
+        // TODO(srawlins): Can we get here?
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      }
+    } else if (target is ExtensionOverrideImpl) {
+      _resolveExtensionOverride(node, function, target);
+      return;
+    } else {
+      targetType = target.typeOrThrow;
+    }
+
+    var propertyElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: function.realTarget,
+          receiverType: targetType,
+          name: function.propertyName.name,
+          propertyErrorEntity: function.propertyName,
+          nameErrorEntity: function,
+        )
+        .getter;
+
+    if (propertyElement is TypeParameterElement) {
+      _resolveDisallowedExpression(node, propertyElement!.type);
+      return;
+    }
+
+    _resolve(
+      node: node,
+      rawType: function.staticType,
+      name: propertyElement?.name,
+    );
+  }
+
   void _resolveReceiverPrefix(
     FunctionReferenceImpl node,
     PrefixElement prefixElement,
@@ -431,6 +429,94 @@ class FunctionReferenceResolver {
     // TODO(srawlins): Report undefined prefixed identifier.
 
     node.staticType = DynamicTypeImpl.instance;
+  }
+
+  void _resolveSimpleIdentifierFunction(
+      FunctionReferenceImpl node, SimpleIdentifierImpl function) {
+    var element = _resolver.nameScope.lookup(function.name).getter;
+
+    if (element == null) {
+      DartType receiverType;
+      var enclosingClass = _resolver.enclosingClass;
+      if (enclosingClass != null) {
+        receiverType = enclosingClass.thisType;
+      } else {
+        var enclosingExtension = _resolver.enclosingExtension;
+        if (enclosingExtension != null) {
+          receiverType = enclosingExtension.extendedType;
+        } else {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+            function,
+            [function.name],
+          );
+          function.staticType = DynamicTypeImpl.instance;
+          node.staticType = DynamicTypeImpl.instance;
+          return;
+        }
+      }
+
+      var result = _resolver.typePropertyResolver.resolve(
+        receiver: null,
+        receiverType: receiverType,
+        name: function.name,
+        propertyErrorEntity: function,
+        nameErrorEntity: function,
+      );
+
+      var method = result.getter;
+      if (method != null) {
+        if (method.isStatic) {
+          _reportInvalidAccessToStaticMember(function, method,
+              implicitReceiver: true);
+          // Continue to assign types.
+        }
+
+        function.staticElement = method;
+        function.staticType = method.type;
+        _resolve(node: node, rawType: method.type, name: function.name);
+        return;
+      } else {
+        // TODO(srawlins): Report CompileTimeErrorCode.UNDEFINED_METHOD.
+        return;
+      }
+
+      // TODO(srawlins): if `(target is PropertyAccessorElement)`, report an
+      // error.
+    }
+
+    // Classes and type aliases are checked first so as to include a
+    // PropertyAccess parent check, which does not need to be done for
+    // functions.
+    if (element is ClassElement || element is TypeAliasElement) {
+      // A type-instantiated constructor tearoff like `C<int>.name` or
+      // `prefix.C<int>.name` is initially represented as a [PropertyAccess]
+      // with a [FunctionReference] target.
+      if (node.parent is PropertyAccess) {
+        _resolveConstructorReference(node);
+        return;
+      } else if (element is ClassElement) {
+        function.staticElement = element;
+        _resolveDirectTypeLiteral(node, function, element);
+        return;
+      } else if (element is TypeAliasElement) {
+        function.staticElement = element;
+        _resolveTypeAlias(node: node, element: element, typeAlias: function);
+        return;
+      }
+    } else if (element is ExecutableElement) {
+      function.staticElement = element;
+      function.staticType = element.type;
+      _resolve(node: node, rawType: element.type, name: element.name);
+      return;
+    } else if (element is VariableElement) {
+      function.staticElement = element;
+      function.staticType = element.type;
+      _resolveDisallowedExpression(node, element.type);
+      return;
+    } else {
+      node.staticType = DynamicTypeImpl.instance;
+    }
   }
 
   /// Returns the element that represents the property named [propertyName] on
@@ -517,7 +603,7 @@ class FunctionReferenceResolver {
           'Unexpected receiverElement type: ${receiverElement.runtimeType}');
       return null;
     }
-    return _resolver.typePropertyResolver
+    var methodElement = _resolver.typePropertyResolver
         .resolve(
           receiver: receiver,
           receiverType: receiverType,
@@ -526,5 +612,10 @@ class FunctionReferenceResolver {
           nameErrorEntity: nameErrorEntity,
         )
         .getter;
+    if (methodElement != null && methodElement.isStatic) {
+      _reportInvalidAccessToStaticMember(name, methodElement,
+          implicitReceiver: false);
+    }
+    return methodElement;
   }
 }

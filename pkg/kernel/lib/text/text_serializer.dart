@@ -97,6 +97,10 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitStaticGet(StaticGet _) => "get-static";
   String visitStaticSet(StaticSet _) => "set-static";
   String visitStaticTearOff(StaticTearOff _) => "tearoff-static";
+  String visitConstructorTearOff(ConstructorTearOff _) => "tearoff-constructor";
+  String visitRedirectingFactoryTearOff(RedirectingFactoryTearOff _) =>
+      "tearoff-redirecting-factory";
+  String visitTypedefTearOff(TypedefTearOff _) => "tearoff-typedef";
   String visitStaticInvocation(StaticInvocation expression) {
     return expression.isConst ? "invoke-const-static" : "invoke-static";
   }
@@ -929,6 +933,55 @@ CanonicalName unwrapStaticTearOff(StaticTearOff expression) {
 
 StaticTearOff wrapStaticTearOff(CanonicalName name) {
   return new StaticTearOff.byReference(name.reference);
+}
+
+const TextSerializer<ConstructorTearOff> constructorTearOffSerializer =
+    const Wrapped(unwrapConstructorTearOff, wrapConstructorTearOff,
+        canonicalNameSerializer);
+
+CanonicalName unwrapConstructorTearOff(ConstructorTearOff expression) {
+  return expression.targetReference.canonicalName!;
+}
+
+ConstructorTearOff wrapConstructorTearOff(CanonicalName name) {
+  return new ConstructorTearOff.byReference(name.reference);
+}
+
+const TextSerializer<RedirectingFactoryTearOff>
+    redirectingFactoryTearOffSerializer = const Wrapped(
+        unwrapRedirectingFactoryTearOff,
+        wrapRedirectingFactoryTearOff,
+        canonicalNameSerializer);
+
+CanonicalName unwrapRedirectingFactoryTearOff(
+    RedirectingFactoryTearOff expression) {
+  return expression.targetReference.canonicalName!;
+}
+
+RedirectingFactoryTearOff wrapRedirectingFactoryTearOff(CanonicalName name) {
+  return new RedirectingFactoryTearOff.byReference(name.reference);
+}
+
+final TextSerializer<TypedefTearOff> typedefTearOffSerializer = new Wrapped<
+        Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>>,
+        TypedefTearOff>(
+    unwrapTypedefTearOff,
+    wrapTypedefTearOff,
+    Bind(
+        typeParametersSerializer,
+        Tuple2Serializer(
+            expressionSerializer, ListSerializer(dartTypeSerializer))));
+
+Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>>
+    unwrapTypedefTearOff(TypedefTearOff node) {
+  return new Tuple2(
+      node.typeParameters, new Tuple2(node.expression, node.typeArguments));
+}
+
+TypedefTearOff wrapTypedefTearOff(
+    Tuple2<List<TypeParameter>, Tuple2<Expression, List<DartType>>> tuple) {
+  return new TypedefTearOff(
+      tuple.first, tuple.second.first, tuple.second.second);
 }
 
 TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
@@ -2175,7 +2228,14 @@ class ConstantTagger extends ConstantVisitor<String>
   String visitStringConstant(StringConstant node) => "const-string";
   String visitSymbolConstant(SymbolConstant node) => "const-symbol";
   String visitStaticTearOffConstant(StaticTearOffConstant node) =>
-      "const-tearoff";
+      "const-tearoff-static";
+  String visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      "const-tearoff-constructor";
+  String visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      "const-tearoff-redirecting-factory";
+  String visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      "const-tearoff-typedef";
   String visitTypeLiteralConstant(TypeLiteralConstant node) => "const-type";
   String visitUnevaluatedConstant(UnevaluatedConstant node) => "const-expr";
 
@@ -2221,11 +2281,11 @@ TextSerializer<NullConstant> nullConstantSerializer =
     Wrapped<void, NullConstant>((w) => null, (u) => NullConstant(), Nothing());
 
 TextSerializer<InstantiationConstant> instantiationConstantSerializer =
-    Wrapped<Tuple2<TearOffConstant, List<DartType>>, InstantiationConstant>(
+    Wrapped<Tuple2<Constant, List<DartType>>, InstantiationConstant>(
         (w) => Tuple2(w.tearOffConstant, w.types),
-        (u) => InstantiationConstant(u.first, u.second),
+        (u) => InstantiationConstant(u.first as TearOffConstant, u.second),
         Tuple2Serializer(
-            tearOffConstantSerializer, ListSerializer(dartTypeSerializer)));
+            constantSerializer, ListSerializer(dartTypeSerializer)));
 
 TextSerializer<SetConstant> setConstantSerializer =
     Wrapped<Tuple2<DartType, List<Constant>>, SetConstant>(
@@ -2244,11 +2304,47 @@ TextSerializer<SymbolConstant> symbolConstantSerializer =
         (u) => SymbolConstant(u.first, u.second?.reference),
         Tuple2Serializer(DartString(), Optional(CanonicalNameSerializer())));
 
-TextSerializer<StaticTearOffConstant> tearOffConstantSerializer =
+TextSerializer<StaticTearOffConstant> staticTearOffConstantSerializer =
     Wrapped<CanonicalName, StaticTearOffConstant>(
         (w) => w.targetReference.canonicalName!,
         (u) => StaticTearOffConstant.byReference(u.reference),
         CanonicalNameSerializer());
+
+TextSerializer<ConstructorTearOffConstant>
+    constructorTearOffConstantSerializer =
+    Wrapped<CanonicalName, ConstructorTearOffConstant>(
+        (w) => w.targetReference.canonicalName!,
+        (u) => ConstructorTearOffConstant.byReference(u.reference),
+        CanonicalNameSerializer());
+
+TextSerializer<RedirectingFactoryTearOffConstant>
+    redirectingFactoryTearOffConstantSerializer =
+    Wrapped<CanonicalName, RedirectingFactoryTearOffConstant>(
+        (w) => w.targetReference.canonicalName!,
+        (u) => RedirectingFactoryTearOffConstant.byReference(u.reference),
+        CanonicalNameSerializer());
+
+final TextSerializer<TypedefTearOffConstant> typedefTearOffConstantSerializer =
+    new Wrapped<Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>>,
+            TypedefTearOffConstant>(
+        unwrapTypedefTearOffConstant,
+        wrapTypedefTearOffConstant,
+        Bind(
+            typeParametersSerializer,
+            Tuple2Serializer(
+                constantSerializer, ListSerializer(dartTypeSerializer))));
+
+Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>>
+    unwrapTypedefTearOffConstant(TypedefTearOffConstant node) {
+  return new Tuple2(
+      node.parameters, new Tuple2(node.tearOffConstant, node.types));
+}
+
+TypedefTearOffConstant wrapTypedefTearOffConstant(
+    Tuple2<List<TypeParameter>, Tuple2<Constant, List<DartType>>> tuple) {
+  return new TypedefTearOffConstant(
+      tuple.first, tuple.second.first as TearOffConstant, tuple.second.second);
+}
 
 TextSerializer<TypeLiteralConstant> typeLiteralConstantSerializer =
     Wrapped<DartType, TypeLiteralConstant>(
@@ -2547,7 +2643,10 @@ void initializeSerializers() {
     "set-var": variableSetSerializer,
     "get-static": staticGetSerializer,
     "set-static": staticSetSerializer,
-    "tearoff-static": staticGetSerializer,
+    "tearoff-static": staticTearOffSerializer,
+    "tearoff-constructor": constructorTearOffSerializer,
+    "tearoff-redirecting-factory": redirectingFactoryTearOffSerializer,
+    "tearoff-typedef": typedefTearOffSerializer,
     "invoke-static": staticInvocationSerializer,
     "invoke-const-static": constStaticInvocationSerializer,
     "invoke-constructor": constructorInvocationSerializer,
@@ -2624,7 +2723,11 @@ void initializeSerializers() {
     "const-set": setConstantSerializer,
     "const-string": stringConstantSerializer,
     "const-symbol": symbolConstantSerializer,
-    "const-tearoff": tearOffConstantSerializer,
+    "const-tearoff-static": staticTearOffConstantSerializer,
+    "const-tearoff-constructor": constructorTearOffConstantSerializer,
+    "const-tearoff-redirecting-factory":
+        redirectingFactoryTearOffConstantSerializer,
+    "const-tearoff-typedef": typedefTearOffConstantSerializer,
     "const-type": typeLiteralConstantSerializer,
     "const-expr": unevaluatedConstantSerializer,
     "const-object": instanceConstantSerializer,

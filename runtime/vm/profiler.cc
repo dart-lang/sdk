@@ -115,8 +115,6 @@ void Profiler::Cleanup() {
   ThreadInterrupter::Cleanup();
   SampleBlockCleanupVisitor visitor;
   Isolate::VisitIsolates(&visitor);
-  delete sample_block_buffer_;
-  sample_block_buffer_ = nullptr;
   initialized_ = false;
 }
 

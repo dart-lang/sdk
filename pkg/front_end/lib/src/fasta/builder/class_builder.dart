@@ -42,6 +42,8 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
+import '../kernel/kernel_target.dart';
+
 import '../loader.dart';
 
 import '../modifier.dart';
@@ -121,7 +123,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
@@ -341,11 +344,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration as MemberBuilder;
       member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
+          library, coreTypes, delayedActionPerformers,
+          clonedFunctionNodes);
     }
 
     MetadataBuilder.buildAnnotations(

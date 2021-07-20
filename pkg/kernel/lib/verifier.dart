@@ -828,10 +828,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     if (!typeParametersInScope.contains(parameter)) {
+      TreeNode? owner = parameter.parent is FunctionNode
+          ? parameter.parent!.parent
+          : parameter.parent;
       problem(
           currentParent,
           "Type parameter '$parameter' referenced out of"
-          " scope, parent is: '${parameter.parent}'.");
+          " scope, owner is: '${owner}'.");
     }
     if (parameter.parent is Class && !classTypeParametersAreInScope) {
       problem(

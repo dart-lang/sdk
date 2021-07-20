@@ -26,6 +26,8 @@ import '../fasta_codes.dart'
         noLength,
         templateExtensionMemberConflictsWithObjectMember;
 
+import '../kernel/kernel_target.dart';
+
 import '../problems.dart';
 
 import '../scope.dart';
@@ -273,7 +275,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
         metadata, library, this, null, fileUri);
     if (typeParameters != null) {
@@ -286,7 +289,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration as MemberBuilder;
       member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
+          library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
     }
 
     scope.forEach(build);

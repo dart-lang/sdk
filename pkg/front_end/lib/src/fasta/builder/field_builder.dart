@@ -17,6 +17,7 @@ import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
+import '../kernel/kernel_target.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
 
@@ -398,7 +399,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
     _fieldEncoding.completeSignature(coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {

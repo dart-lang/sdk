@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../dill/dill_member_builder.dart';
 
@@ -11,6 +12,7 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_api.dart';
+import '../kernel/kernel_target.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
@@ -34,7 +36,6 @@ import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'library_builder.dart';
 import 'procedure_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
@@ -161,6 +162,21 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
   }
 
   @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    if (_factoryTearOff != null) {
+      if (index < _factoryTearOff!.function.positionalParameters.length) {
+        return _factoryTearOff!.function.positionalParameters[index];
+      } else {
+        index -= _factoryTearOff!.function.positionalParameters.length;
+        if (index < _factoryTearOff!.function.namedParameters.length) {
+          return _factoryTearOff!.function.namedParameters[index];
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
   List<ClassMember> get localMembers =>
       throw new UnsupportedError('${runtimeType}.localMembers');
 
@@ -224,6 +240,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   final ConstructorReferenceBuilder redirectionTarget;
   List<DartType>? typeArguments;
+
+  FreshTypeParameters? _tearOffTypeParameters;
 
   RedirectingFactoryBuilder(
       List<MetadataBuilder>? metadata,
@@ -299,6 +317,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     Member member = build(library);
     f(member, BuiltMemberKind.RedirectingFactory);
+    if (_factoryTearOff != null) {
+      f(_factoryTearOff!, BuiltMemberKind.Method);
+    }
   }
 
   @override
@@ -319,6 +340,12 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           growable: false);
     }
     updatePrivateMemberName(_procedureInternal, libraryBuilder);
+    if (_factoryTearOff != null) {
+      _tearOffTypeParameters = buildRedirectingFactoryTearOffProcedure(
+          _factoryTearOff!,
+          _procedure,
+          library as SourceLibraryBuilder);
+    }
     return _procedureInternal;
   }
 
@@ -326,72 +353,77 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
-    LibraryBuilder thisLibrary = this.library;
-    if (thisLibrary is SourceLibraryBuilder) {
-      RedirectingFactoryBody redirectingFactoryBody =
-          _procedure.function.body as RedirectingFactoryBody;
-      if (redirectingFactoryBody.typeArguments != null &&
-          redirectingFactoryBody.typeArguments!.any((t) => t is UnknownType)) {
-        TypeInferrerImpl inferrer = thisLibrary.loader.typeInferenceEngine
-                .createLocalTypeInferrer(
-                    fileUri, classBuilder!.thisType, thisLibrary, null)
-            as TypeInferrerImpl;
-        inferrer.helper = thisLibrary.loader
-            .createBodyBuilderForOutlineExpression(
-                thisLibrary, classBuilder, this, classBuilder!.scope, fileUri);
-        Builder? targetBuilder = redirectionTarget.target;
-        Member target;
-        if (targetBuilder is FunctionBuilder) {
-          target = targetBuilder.member;
-        } else if (targetBuilder is DillMemberBuilder) {
-          target = targetBuilder.member;
-        } else {
-          unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
-              charOffset, fileUri);
-        }
-        Arguments targetInvocationArguments;
-        {
-          List<Expression> positionalArguments = <Expression>[];
-          for (VariableDeclaration parameter
-              in _procedure.function.positionalParameters) {
-            inferrer.flowAnalysis.declare(parameter, true);
-            positionalArguments.add(
-                new VariableGetImpl(parameter, forNullGuardedAccess: false));
-          }
-          List<NamedExpression> namedArguments = <NamedExpression>[];
-          for (VariableDeclaration parameter
-              in _procedure.function.namedParameters) {
-            inferrer.flowAnalysis.declare(parameter, true);
-            namedArguments.add(new NamedExpression(parameter.name!,
-                new VariableGetImpl(parameter, forNullGuardedAccess: false)));
-          }
-          // If arguments are created using [Forest.createArguments], and the
-          // type arguments are omitted, they are to be inferred.
-          targetInvocationArguments = const Forest().createArguments(
-              _procedure.fileOffset, positionalArguments,
-              named: namedArguments);
-        }
-        InvocationInferenceResult result = inferrer.inferInvocation(
-            function.returnType,
-            charOffset,
-            target.function!.computeFunctionType(Nullability.nonNullable),
-            targetInvocationArguments,
-            staticTarget: target);
-        List<DartType> typeArguments;
-        if (result.inferredType is InterfaceType) {
-          typeArguments = (result.inferredType as InterfaceType).typeArguments;
-        } else {
-          // Assume that the error is reported elsewhere, use 'dynamic' for
-          // recovery.
-          typeArguments = new List<DartType>.filled(
-              target.enclosingClass!.typeParameters.length, const DynamicType(),
-              growable: true);
-        }
-        member.function!.body =
-            new RedirectingFactoryBody(target, typeArguments);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<ClonedFunctionNode> clonedFunctionNodes) {
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
+    RedirectingFactoryBody redirectingFactoryBody =
+        _procedure.function.body as RedirectingFactoryBody;
+    List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
+    Member? target = redirectingFactoryBody.target;
+    if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
+      TypeInferrerImpl inferrer = library.loader.typeInferenceEngine
+              .createLocalTypeInferrer(
+                  fileUri, classBuilder!.thisType, library, null)
+          as TypeInferrerImpl;
+      inferrer.helper = library.loader.createBodyBuilderForOutlineExpression(
+          library, classBuilder, this, classBuilder!.scope, fileUri);
+      Builder? targetBuilder = redirectionTarget.target;
+      if (targetBuilder is FunctionBuilder) {
+        target = targetBuilder.member;
+      } else if (targetBuilder is DillMemberBuilder) {
+        target = targetBuilder.member;
+      } else {
+        unhandled("${targetBuilder.runtimeType}", "buildOutlineExpressions",
+            charOffset, fileUri);
       }
+      Arguments targetInvocationArguments;
+      {
+        List<Expression> positionalArguments = <Expression>[];
+        for (VariableDeclaration parameter
+            in _procedure.function.positionalParameters) {
+          inferrer.flowAnalysis.declare(parameter, true);
+          positionalArguments
+              .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
+        }
+        List<NamedExpression> namedArguments = <NamedExpression>[];
+        for (VariableDeclaration parameter
+            in _procedure.function.namedParameters) {
+          inferrer.flowAnalysis.declare(parameter, true);
+          namedArguments.add(new NamedExpression(parameter.name!,
+              new VariableGetImpl(parameter, forNullGuardedAccess: false)));
+        }
+        // If arguments are created using [Forest.createArguments], and the
+        // type arguments are omitted, they are to be inferred.
+        targetInvocationArguments = const Forest().createArguments(
+            _procedure.fileOffset, positionalArguments,
+            named: namedArguments);
+      }
+      InvocationInferenceResult result = inferrer.inferInvocation(
+          function.returnType,
+          charOffset,
+          target.function!.computeFunctionType(Nullability.nonNullable),
+          targetInvocationArguments,
+          staticTarget: target);
+      if (result.inferredType is InterfaceType) {
+        typeArguments = (result.inferredType as InterfaceType).typeArguments;
+      } else {
+        // Assume that the error is reported elsewhere, use 'dynamic' for
+        // recovery.
+        typeArguments = new List<DartType>.filled(
+            target.enclosingClass!.typeParameters.length, const DynamicType(),
+            growable: true);
+      }
+      member.function!.body = new RedirectingFactoryBody(target, typeArguments);
+    }
+    if (_factoryTearOff != null) {
+      clonedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
+          _factoryTearOff!,
+          target as Constructor,
+          typeArguments ?? [],
+          _tearOffTypeParameters!));
+      delayedActionPerformers.add(new _CopyDefaultValues(
+          _factoryTearOff!, redirectingFactoryBody.target!.function!));
     }
   }
 
@@ -411,5 +443,20 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   List<DartType>? getTypeArguments() {
     return getRedirectingFactoryBody(_procedure)!.typeArguments;
+  }
+}
+
+class _CopyDefaultValues implements DelayedActionPerformer {
+  final Procedure _tearOff;
+  final FunctionNode _function;
+
+  _CopyDefaultValues(this._tearOff, this._function);
+
+  @override
+  bool get hasDelayedActions => true;
+
+  @override
+  void performDelayedActions() {
+    copyTearOffDefaultValues(_tearOff, _function);
   }
 }

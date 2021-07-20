@@ -336,7 +336,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
-      loader.buildOutlineExpressions(loader.coreTypes);
+      loader.buildOutlineExpressions(loader.coreTypes, clonedFunctionNodes);
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       loader.checkMainMethods();
