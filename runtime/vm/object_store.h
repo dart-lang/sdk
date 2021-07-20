@@ -36,10 +36,11 @@ class ObjectPointerVisitor;
 //
 // R_ - needs getter only
 // RW - needs getter and setter
+// ARW - needs getter and setter with atomic access
 // CR - needs lazy Core init getter
 // FR - needs lazy Async init getter
 // IR - needs lazy Isolate init getter
-#define OBJECT_STORE_FIELD_LIST(R_, RW, CR, FR, IR)                            \
+#define OBJECT_STORE_FIELD_LIST(R_, RW, ARW, CR, FR, IR)                       \
   CR(Class, list_class)                    /* maybe be null, lazily built */   \
   CR(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
   CR(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
@@ -173,8 +174,8 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  RW(Smi, future_timeout_future_index)                                         \
-  RW(Smi, future_wait_future_index)                                            \
+  ARW(Smi, future_timeout_future_index)                                        \
+  ARW(Smi, future_wait_future_index)                                           \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
@@ -391,12 +392,24 @@ class ObjectStore {
   ObjectStore();
   ~ObjectStore();
 
+#define DECLARE_OFFSET(name)                                                   \
+  static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
 #define DECLARE_GETTER(Type, name)                                             \
   Type##Ptr name() const { return name##_; }                                   \
-  static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
+  DECLARE_OFFSET(name)
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
   void set_##name(const Type& value) { name##_ = value.ptr(); }
+#define DECLARE_ATOMIC_GETTER_AND_SETTER(Type, name)                           \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  Type##Ptr name() const {                                                     \
+    return name##_.load(order);                                                \
+  }                                                                            \
+  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(const Type& value) {                                         \
+    name##_.store(value.ptr(), order);                                         \
+  }                                                                            \
+  DECLARE_OFFSET(name)
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \
     if (name##_.load() == Type::null()) {                                      \
@@ -404,7 +417,7 @@ class ObjectStore {
     }                                                                          \
     return name##_.load();                                                     \
   }                                                                            \
-  static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
+  DECLARE_OFFSET(name)
 #define DECLARE_LAZY_INIT_CORE_GETTER(Type, name)                              \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreMembers)
 #define DECLARE_LAZY_INIT_ASYNC_GETTER(Type, name)                             \
@@ -413,11 +426,14 @@ class ObjectStore {
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitIsolateMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
+                          DECLARE_ATOMIC_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER,
                           DECLARE_LAZY_INIT_ASYNC_GETTER,
                           DECLARE_LAZY_INIT_ISOLATE_GETTER)
+#undef DECLARE_OFFSET
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
+#undef DECLARE_ATOMIC_GETTER_AND_SETTER
 #undef DECLARE_LAZY_INIT_GETTER
 #undef DECLARE_LAZY_INIT_CORE_GETTER
 #undef DECLARE_LAZY_INIT_ASYNC_GETTER
@@ -478,15 +494,19 @@ class ObjectStore {
 
   ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&list_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
+#define DECLARE_ATOMIC_OBJECT_STORE_FIELD(type, name)                          \
+  std::atomic<type##Ptr> name##_;
 #define DECLARE_LAZY_OBJECT_STORE_FIELD(type, name)                            \
   AcqRelAtomic<type##Ptr> name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD,
+                          DECLARE_ATOMIC_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD)
-#undef DECLARE_LAZY_OBJECT_STORE_FIELD
 #undef DECLARE_OBJECT_STORE_FIELD
+#undef DECLARE_ATOMIC_OBJECT_STORE_FIELD
+#undef DECLARE_LAZY_OBJECT_STORE_FIELD
   ObjectPtr* to() {
     return reinterpret_cast<ObjectPtr*>(&ffi_as_function_internal_);
   }

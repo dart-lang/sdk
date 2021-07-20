@@ -257,9 +257,22 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
     // Remember context indices of _future variables in _Future.timeout and
     // Future.wait. They are used while collecting async stack traces.
     if (function.recognized_kind() == MethodRecognizer::kFutureTimeout) {
+#ifdef DEBUG
+      auto old_value = IsolateGroup::Current()
+                           ->object_store()
+                           ->future_timeout_future_index();
+      ASSERT(old_value == Object::null() ||
+             Smi::Value(old_value) == chained_future->index().value());
+#endif  // DEBUG
       IsolateGroup::Current()->object_store()->set_future_timeout_future_index(
           Smi::Handle(Smi::New(chained_future->index().value())));
     } else if (function.recognized_kind() == MethodRecognizer::kFutureWait) {
+#ifdef DEBUG
+      auto old_value =
+          IsolateGroup::Current()->object_store()->future_wait_future_index();
+      ASSERT(old_value == Object::null() ||
+             Smi::Value(old_value) == chained_future->index().value());
+#endif  // DEBUG
       IsolateGroup::Current()->object_store()->set_future_wait_future_index(
           Smi::Handle(Smi::New(chained_future->index().value())));
     } else {
