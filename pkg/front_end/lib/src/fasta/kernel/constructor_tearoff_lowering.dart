@@ -8,16 +8,16 @@ import 'package:kernel/type_algebra.dart';
 import '../builder/member_builder.dart';
 import '../source/source_library_builder.dart';
 
-const String _constructorTearOffNamePrefix = '_#';
-const String _constructorTearOffNameSuffix = '#tearOff';
+const String _tearOffNamePrefix = '_#';
+const String _tearOffNameSuffix = '#tearOff';
 
 /// Creates the synthesized name to use for the lowering of the tear off of a
 /// constructor or factory by the given [name] in [library].
 Name constructorTearOffName(String name, Library library) {
   return new Name(
-      '$_constructorTearOffNamePrefix'
+      '$_tearOffNamePrefix'
       '${name.isEmpty ? 'new' : name}'
-      '$_constructorTearOffNameSuffix',
+      '$_tearOffNameSuffix',
       library);
 }
 
@@ -25,14 +25,13 @@ Name constructorTearOffName(String name, Library library) {
 /// the synthesized name of a lowering of the tear off of a constructor or
 /// factory. Returns `null` otherwise.
 String? extractConstructorNameFromTearOff(Name name) {
-  if (name.text.startsWith(_constructorTearOffNamePrefix) &&
-      name.text.endsWith(_constructorTearOffNameSuffix) &&
+  if (name.text.startsWith(_tearOffNamePrefix) &&
+      name.text.endsWith(_tearOffNameSuffix) &&
       name.text.length >
-          _constructorTearOffNamePrefix.length +
-              _constructorTearOffNameSuffix.length) {
-    String text = name.text
-        .substring(0, name.text.length - _constructorTearOffNameSuffix.length);
-    text = text.substring(_constructorTearOffNamePrefix.length);
+          _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
+    String text =
+        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
+    text = text.substring(_tearOffNamePrefix.length);
     return text == 'new' ? '' : text;
   }
   return null;
@@ -199,4 +198,101 @@ void buildConstructorTearOffDefaultValues(
         cloner.cloneOptional(constructorParameter.initializer);
     tearOffParameter.initializer?.parent = tearOffParameter;
   }
+}
+
+/// Creates the synthesized name to use for the lowering of the tear off of a
+/// typedef in [library] using [index] for a unique name within the library.
+Name typedefTearOffName(int index, Library library) {
+  return new Name(
+      '$_tearOffNamePrefix'
+      '${index}'
+      '$_tearOffNameSuffix',
+      library);
+}
+
+/// Creates a top level procedure to be used as the lowering for the typedef
+/// tear off [node] of a target of type [targetType]. [fileUri] together with
+/// the `fileOffset` of [node] is used as the location for the procedure.
+/// [index] is used to create a unique name for the procedure within
+/// [libraryBuilder].
+Procedure createTypedefTearOffLowering(SourceLibraryBuilder libraryBuilder,
+    TypedefTearOff node, FunctionType targetType, Uri fileUri, int index) {
+  int fileOffset = node.fileOffset;
+  Procedure tearOff = new Procedure(
+      typedefTearOffName(index, libraryBuilder.library),
+      ProcedureKind.Method,
+      new FunctionNode(null),
+      fileUri: fileUri,
+      isStatic: true)
+    ..startFileOffset = fileOffset
+    ..fileOffset = fileOffset
+    ..fileEndOffset = fileOffset
+    ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
+  List<TypeParameter> typedefTypeParameters = node.typeParameters;
+  List<TypeParameter> typeParameters;
+  List<DartType> typeArguments = node.typeArguments;
+  Substitution substitution = Substitution.empty;
+  if (typedefTypeParameters.isNotEmpty) {
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(typedefTypeParameters);
+    typeParameters = freshTypeParameters.freshTypeParameters;
+    substitution = freshTypeParameters.substitution;
+    tearOff.function.typeParameters.addAll(typeParameters);
+    setParents(typeParameters, tearOff.function);
+    if (typeArguments.isNotEmpty) {
+      // Translate [typeArgument] into the context of the synthesized procedure.
+      typeArguments = new List<DartType>.generate(typeArguments.length,
+          (int index) => substitution.substituteType(typeArguments[index]));
+    }
+  } else {
+    typeParameters = [];
+    substitution = Substitution.empty;
+  }
+  if (typeArguments.isNotEmpty) {
+    // Instantiate [targetType] with [typeArguments].
+    targetType =
+        Substitution.fromPairs(targetType.typeParameters, typeArguments)
+            .substituteType(targetType.withoutTypeParameters) as FunctionType;
+  }
+
+  List<Expression> positionalArguments = [];
+  for (DartType constructorParameter in targetType.positionalParameters) {
+    VariableDeclaration tearOffParameter = new VariableDeclaration(null,
+        type: substitution.substituteType(constructorParameter))
+      ..fileOffset = fileOffset;
+    tearOff.function.positionalParameters.add(tearOffParameter);
+    positionalArguments
+        .add(new VariableGet(tearOffParameter)..fileOffset = fileOffset);
+    tearOffParameter.parent = tearOff.function;
+  }
+  List<NamedExpression> namedArguments = [];
+  for (NamedType constructorParameter in targetType.namedParameters) {
+    VariableDeclaration tearOffParameter = new VariableDeclaration(
+        constructorParameter.name,
+        type: substitution.substituteType(constructorParameter.type),
+        isRequired: constructorParameter.isRequired)
+      ..fileOffset = fileOffset;
+    tearOff.function.namedParameters.add(tearOffParameter);
+    tearOffParameter.parent = tearOff.function;
+    namedArguments.add(new NamedExpression(tearOffParameter.name!,
+        new VariableGet(tearOffParameter)..fileOffset = fileOffset)
+      ..fileOffset = fileOffset);
+  }
+  tearOff.function.returnType =
+      substitution.substituteType(targetType.returnType);
+  tearOff.function.requiredParameterCount = targetType.requiredParameterCount;
+
+  Arguments arguments = new Arguments(positionalArguments,
+      named: namedArguments, types: typeArguments)
+    ..fileOffset = tearOff.fileOffset;
+  Expression constructorInvocation = new FunctionInvocation(
+      FunctionAccessKind.FunctionType, node.expression, arguments,
+      functionType: targetType)
+    ..fileOffset = tearOff.fileOffset;
+  tearOff.function.body = new ReturnStatement(constructorInvocation)
+    ..fileOffset = tearOff.fileOffset
+    ..parent = tearOff.function;
+  tearOff.function.fileOffset = tearOff.fileOffset;
+  tearOff.function.fileEndOffset = tearOff.fileOffset;
+  return tearOff;
 }

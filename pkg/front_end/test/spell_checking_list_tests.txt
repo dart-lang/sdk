@@ -119,6 +119,8 @@ c3a
 c3b
 c3c
 c3d
+c3e
+c3f
 c4a
 c4b
 c4c
@@ -332,6 +334,10 @@ f2b
 f3
 f3a
 f3b
+f3c
+f3d
+f3e
+f3f
 f4
 f4a
 f4b

@@ -210,8 +210,14 @@ class TypeInferrerImpl implements TypeInferrer {
   /// inside a closure.
   ClosureContext? closureContext;
 
-  TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
-      this.thisType, this.library, this.assignedVariables, this.dataForTesting)
+  TypeInferrerImpl(
+      this.engine,
+      this.uriForInstrumentation,
+      bool topLevel,
+      this.thisType,
+      this.library,
+      this.assignedVariables,
+      this.dataForTesting)
       // ignore: unnecessary_null_comparison
       : assert(library != null),
         unknownFunction = new FunctionType(
@@ -226,7 +232,7 @@ class TypeInferrerImpl implements TypeInferrer {
                 assignedVariables)
             : new FlowAnalysis.legacy(
                 new TypeOperationsCfe(engine.typeSchemaEnvironment),
-                assignedVariables);
+                assignedVariables) {}
 
   CoreTypes get coreTypes => engine.coreTypes;
 
