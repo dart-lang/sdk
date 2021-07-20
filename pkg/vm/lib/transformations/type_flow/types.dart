@@ -154,6 +154,13 @@ abstract class TypeExpr {
   Type getComputedType(List<Type> types);
 }
 
+/// Kind of a subtype test: subtype/cast/'as' test or instance check/'is' test.
+/// There is a subtle difference in how these tests handle null value.
+enum SubtypeTestKind {
+  Subtype,
+  IsTest,
+}
+
 /// Base class for types inferred by the type flow analysis.
 /// [Type] describes a specific set of values (Dart instances) and does not
 /// directly correspond to a Dart type.
@@ -174,8 +181,8 @@ abstract class Type extends TypeExpr {
   // Returns 'true' if this type will definitely pass a runtime type-check
   // against 'runtimeType'. Returns 'false' if the test might fail (e.g. due to
   // an approximation).
-  bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType);
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy,
+      RuntimeType runtimeType, SubtypeTestKind kind);
 
   @override
   Type getComputedType(List<Type> types) => this;
@@ -241,7 +248,8 @@ class EmptyType extends Type {
   @override
   Type intersection(Type other, TypeHierarchy typeHierarchy) => this;
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+  bool isSubtypeOfRuntimeType(
+      TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     return true;
   }
 }
@@ -271,12 +279,27 @@ class NullableType extends Type {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       baseType.isSubtypeOf(typeHierarchy, cls);
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
-    if (typeHierarchy.nullSafety &&
-        other.nullability == Nullability.nonNullable) {
-      return false;
+  bool isSubtypeOfRuntimeType(
+      TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
+    switch (kind) {
+      case SubtypeTestKind.Subtype:
+        if (typeHierarchy.nullSafety &&
+            other.nullability == Nullability.nonNullable) {
+          return false;
+        }
+        break;
+      case SubtypeTestKind.IsTest:
+        if (other.nullability != Nullability.nullable) {
+          final rhs = other._type;
+          if (!(rhs is InterfaceType &&
+              rhs.nullability == Nullability.legacy &&
+              rhs.classNode == typeHierarchy.coreTypes.objectClass)) {
+            return false;
+          }
+        }
+        break;
     }
-    return baseType.isSubtypeOfRuntimeType(typeHierarchy, other);
+    return baseType.isSubtypeOfRuntimeType(typeHierarchy, other, kind);
   }
 
   @override
@@ -349,7 +372,8 @@ class AnyType extends Type {
     return other;
   }
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+  bool isSubtypeOfRuntimeType(
+      TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     final rhs = other._type;
     return (rhs is DynamicType) ||
         (rhs is VoidType) ||
@@ -403,8 +427,9 @@ class SetType extends Type {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       types.every((ConcreteType t) => t.isSubtypeOf(typeHierarchy, cls));
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) =>
-      types.every((t) => t.isSubtypeOfRuntimeType(typeHierarchy, other));
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other,
+          SubtypeTestKind kind) =>
+      types.every((t) => t.isSubtypeOfRuntimeType(typeHierarchy, other, kind));
 
   @override
   int get order => TypeOrder.Set.index;
@@ -577,7 +602,8 @@ class ConeType extends Type {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>
       typeHierarchy.isSubtype(this.cls.classNode, cls);
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+  bool isSubtypeOfRuntimeType(
+      TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
     final rhs = other._type;
     if (rhs is DynamicType || rhs is VoidType) return true;
     if (rhs is InterfaceType) {
@@ -795,8 +821,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class other) =>
       typeHierarchy.isSubtype(cls.classNode, other);
 
-  bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy,
+      RuntimeType runtimeType, SubtypeTestKind kind) {
     final rhs = runtimeType._type;
     if (rhs is DynamicType || rhs is VoidType) return true;
     if (rhs is InterfaceType) {
@@ -836,7 +862,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         }
         assert(ta is RuntimeType);
         if (!ta.isSubtypeOfRuntimeType(
-            typeHierarchy, runtimeType.typeArgs[i])) {
+            typeHierarchy, runtimeType.typeArgs[i], SubtypeTestKind.Subtype)) {
           return false;
         }
       }
@@ -856,9 +882,10 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         final RuntimeType lhs =
             typeArg is RuntimeType ? typeArg : RuntimeType(DynamicType(), null);
         return lhs.isSubtypeOfRuntimeType(
-            typeHierarchy, runtimeType.typeArgs[0]);
+            typeHierarchy, runtimeType.typeArgs[0], SubtypeTestKind.Subtype);
       } else {
-        return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+        return isSubtypeOfRuntimeType(
+            typeHierarchy, runtimeType.typeArgs[0], SubtypeTestKind.Subtype);
       }
     }
     return false;
@@ -1149,8 +1176,11 @@ class RuntimeType extends Type {
   Class getConcreteClass(TypeHierarchy typeHierarchy) =>
       throw "ERROR: ConcreteClass does not support getConcreteClass.";
 
-  bool isSubtypeOfRuntimeType(
-      TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
+  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy,
+      RuntimeType runtimeType, SubtypeTestKind kind) {
+    if (kind != SubtypeTestKind.Subtype) {
+      throw 'RuntimeType could be only tested for subtyping.';
+    }
     final rhs = runtimeType._type;
     if (typeHierarchy.nullSafety &&
         _type.nullability == Nullability.nullable &&
@@ -1170,14 +1200,15 @@ class RuntimeType extends Type {
       if (_type is InterfaceType) {
         Class thisClass = (_type as InterfaceType).classNode;
         if (thisClass == typeHierarchy.coreTypes.futureClass) {
-          return typeArgs[0]
-              .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+          return typeArgs[0].isSubtypeOfRuntimeType(
+              typeHierarchy, runtimeType.typeArgs[0], SubtypeTestKind.Subtype);
         } else {
-          return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+          return isSubtypeOfRuntimeType(
+              typeHierarchy, runtimeType.typeArgs[0], SubtypeTestKind.Subtype);
         }
       } else if (_type is FutureOrType) {
-        return typeArgs[0]
-            .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[0]);
+        return typeArgs[0].isSubtypeOfRuntimeType(
+            typeHierarchy, runtimeType.typeArgs[0], SubtypeTestKind.Subtype);
       }
     }
 
@@ -1216,8 +1247,8 @@ class RuntimeType extends Type {
     assert(usableTypeArgs.length - interfaceOffset >=
         runtimeType.numImmediateTypeArgs);
     for (int i = 0; i < runtimeType.numImmediateTypeArgs; ++i) {
-      if (!usableTypeArgs[interfaceOffset + i]
-          .isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs[i])) {
+      if (!usableTypeArgs[interfaceOffset + i].isSubtypeOfRuntimeType(
+          typeHierarchy, runtimeType.typeArgs[i], SubtypeTestKind.Subtype)) {
         return false;
       }
     }
@@ -1264,7 +1295,11 @@ class UnknownType extends Type {
     throw "ERROR: UnknownType does not support intersection with ${other.runtimeType}";
   }
 
-  bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
+  bool isSubtypeOfRuntimeType(
+      TypeHierarchy typeHierarchy, RuntimeType other, SubtypeTestKind kind) {
+    if (kind != SubtypeTestKind.Subtype) {
+      throw 'UnknownType could be only tested for subtyping.';
+    }
     final rhs = other._type;
     return (rhs is DynamicType) ||
         (rhs is VoidType) ||

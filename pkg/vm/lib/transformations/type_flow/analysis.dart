@@ -1553,6 +1553,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   TypeCheck explicitCast(AsExpression cast) =>
       summaryCollector.explicitCasts[cast];
 
+  TypeCheck isTest(IsExpression node) => summaryCollector.isTests[node];
+
   NarrowNotNull nullTest(TreeNode node) => summaryCollector.nullTests[node];
 
   Type fieldType(Field field) => _fieldValues[field]?.value;

@@ -124,7 +124,7 @@ t9 = _Call direct [#lib::foo] (t6)
 RESULT: _T {}?
 ------------ if8 ------------
 %x = _Parameter #0 [_T ANY?]
-t1 = _Narrow (%x to _T (dart.core::String)+)
+t1 = _TypeCheck (%x against dart.core::String) (for x is dart.core::String)
 t2 = _Call direct [#lib::foo] (t1)
 RESULT: _T {}?
 ------------ if9 ------------
