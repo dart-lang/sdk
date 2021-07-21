@@ -752,8 +752,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     final DartType T = node.typeArgumentTypes![0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
+      AstNode errorNode = node.methodName;
+      var typeArgument = node.typeArguments?.arguments[0];
+      if (typeArgument != null) {
+        errorNode = typeArgument;
+      }
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode, [T, 'fromFunction']);
       return;
     }
 
@@ -812,7 +817,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `DynamicLibrary.lookupFunction<S, F>()`.
   void _validateLookupFunction(MethodInvocation node) {
     final typeArguments = node.typeArguments?.arguments;
-    if (typeArguments?.length != 2) {
+    if (typeArguments == null || typeArguments.length != 2) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
@@ -822,19 +827,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType S = argTypes[0];
     final DartType F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
-      final AstNode errorNode = typeArguments![0];
+      final AstNode errorNode = typeArguments[0];
       _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
           errorNode, [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
-      final AstNode errorNode = typeArguments![1];
+      final AstNode errorNode = typeArguments[1];
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
     _validateFfiLeafCallUsesNoHandles(
-        node.argumentList.arguments, S, typeArguments![0]);
+        node.argumentList.arguments, S, typeArguments[0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.
