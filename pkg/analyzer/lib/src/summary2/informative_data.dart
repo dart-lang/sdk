@@ -55,16 +55,12 @@ class ApplyConstantOffsets {
 
 class InformativeDataApplier {
   final LinkedElementFactory _elementFactory;
-  final Map<Uri, Uint8List> _unitsInformativeBytes;
-
-  /// Apply only to elements that are from macro-generated code.
-  final bool _onlyIfFromMacro;
+  final Map<Uri, Uint8List> _unitsInformativeBytes2;
 
   InformativeDataApplier(
     this._elementFactory,
-    this._unitsInformativeBytes, {
-    bool onlyIfFromMacro = false,
-  }) : _onlyIfFromMacro = onlyIfFromMacro;
+    this._unitsInformativeBytes2,
+  );
 
   void applyTo(LibraryElementImpl libraryElement) {
     if (_elementFactory.isApplyingInformativeData) {
@@ -76,7 +72,7 @@ class InformativeDataApplier {
     for (var i = 0; i < unitElements.length; i++) {
       var unitElement = unitElements[i] as CompilationUnitElementImpl;
       var unitUri = unitElement.source.uri;
-      var unitInfoBytes = _unitsInformativeBytes[unitUri];
+      var unitInfoBytes = _unitsInformativeBytes2[unitUri];
       if (unitInfoBytes != null) {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(unitReader);
@@ -181,37 +177,28 @@ class InformativeDataApplier {
     _InfoClassDeclaration info,
   ) {
     element as ClassElementImpl;
-    var linkedData = element.linkedData as ClassElementLinkedData;
-    if (_shouldApply(element)) {
-      element.setCodeRange(info.codeOffset, info.codeLength);
-      element.nameOffset = info.nameOffset;
-      element.documentationComment = info.documentationComment;
-      _applyToTypeParameters(
-        element.typeParameters_unresolved,
-        info.typeParameters,
-      );
+    element.setCodeRange(info.codeOffset, info.codeLength);
+    element.nameOffset = info.nameOffset;
+    element.documentationComment = info.documentationComment;
+    _applyToTypeParameters(
+      element.typeParameters_unresolved,
+      info.typeParameters,
+    );
 
-      linkedData.applyConstantOffsets = ApplyConstantOffsets(
-        info.constantOffsets,
-        (applier) {
-          applier.applyToMetadata(element);
-          applier.applyToTypeParameters(element.typeParameters);
-        },
-      );
-      linkedData.applyInformativeDataToMembers = () {
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.accessors, info.accessors);
-        _applyToMethods(element.methods, info.methods);
-      };
-    } else {
-      linkedData.applyInformativeDataToMacroMembers = () {
-        _applyToConstructors(element.constructors, info.constructors);
-        _applyToFields(element.fields, info.fields);
-        _applyToAccessors(element.accessors, info.accessors);
-        _applyToMethods(element.methods, info.methods);
-      };
-    }
+    var linkedData = element.linkedData as ClassElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+      },
+    );
+    linkedData.applyInformativeDataToMembers = () {
+      _applyToConstructors(element.constructors, info.constructors);
+      _applyToFields(element.fields, info.fields);
+      _applyToAccessors(element.accessors, info.accessors);
+      _applyToMethods(element.methods, info.methods);
+    };
   }
 
   void _applyToClassTypeAlias(
@@ -521,10 +508,6 @@ class InformativeDataApplier {
       infoList,
       (element, info) {
         element as MethodElementImpl;
-        if (!_shouldApply(element)) {
-          return;
-        }
-
         element.setCodeRange(info.codeOffset, info.codeLength);
         element.nameOffset = info.nameOffset;
         element.documentationComment = info.documentationComment;
@@ -643,10 +626,6 @@ class InformativeDataApplier {
         }
       },
     );
-  }
-
-  bool _shouldApply(ElementImpl element) {
-    return !_onlyIfFromMacro || element.isFromMacro;
   }
 }
 

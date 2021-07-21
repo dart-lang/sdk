@@ -269,7 +269,6 @@ class _ElementWriter {
 
   void _writeClassElement(ClassElement e) {
     _writeIndentedLine(() {
-      _writeFromMacro(e);
       _writeIf(e.isAbstract && !e.isMixin, 'abstract ');
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
@@ -471,10 +470,6 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeFromMacro(Element e) {
-    _writeIf((e as ElementImpl).isFromMacro, 'fromMacro ');
-  }
-
   void _writeFunctionElement(FunctionElement e) {
     _writeIndentedLine(() {
       _writeIf(e.isExternal, 'external ');
@@ -546,7 +541,6 @@ class _ElementWriter {
 
   void _writeMethodElement(MethodElement e) {
     _writeIndentedLine(() {
-      _writeFromMacro(e);
       _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isStatic, 'static ');
       _writeIf(e.isAbstract, 'abstract ');
