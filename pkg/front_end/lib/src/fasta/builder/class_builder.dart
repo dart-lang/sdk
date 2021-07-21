@@ -349,8 +349,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration as MemberBuilder;
       member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers,
-          clonedFunctionNodes);
+          library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
     }
 
     MetadataBuilder.buildAnnotations(
@@ -1131,6 +1130,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
     Class? instanceClass = cls;
     if (isSuper) {
       instanceClass = instanceClass.superclass;

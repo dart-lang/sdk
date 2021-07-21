@@ -1,0 +1,15 @@
+class A {
+  A.new();
+}
+class B {
+  B();
+}
+class C {
+  C();
+  C.new();
+}
+class D {
+  D.new();
+  D();
+}
+main() {}

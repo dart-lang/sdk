@@ -129,9 +129,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<String>? popIdentifierList(int count) {
     if (count == 0) return null;
-    List<String> list = new List<String>.filled(
-        count,
-        /* dummyValue = */ '');
+    List<String> list = new List<String>.filled(count, /* dummyValue = */ '');
     bool isParserRecovery = false;
     for (int i = count - 1; i >= 0; i--) {
       popCharOffset();
@@ -1808,11 +1806,7 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (fieldInfos == null) return;
     libraryBuilder.addFields(
-        metadata,
-        modifiers,
-        /* isTopLevel = */ true,
-        type,
-        fieldInfos);
+        metadata, modifiers, /* isTopLevel = */ true, type, fieldInfos);
   }
 
   @override
@@ -1873,11 +1867,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (fieldInfos == null) return;
     libraryBuilder.addFields(
-        metadata,
-        modifiers,
-        /* isTopLevel = */ false,
-        type,
-        fieldInfos);
+        metadata, modifiers, /* isTopLevel = */ false, type, fieldInfos);
   }
 
   List<FieldInfo>? popFieldInfos(int count) {
@@ -2232,13 +2222,15 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNewAsIdentifier(Token token) {
-    // TODO(johnniwinther, paulberry): disable this error when the
-    // "constructor-tearoffs" feature is enabled.
-    addProblem(
-        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
-        token.charOffset,
-        token.length);
+    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'constructor-tearoffs',
+              libraryBuilder.enableConstructorTearOffsVersionInLibrary
+                  .toText()),
+          token.charOffset,
+          token.length);
+    }
   }
 }
 
