@@ -32,8 +32,8 @@ class FormattingHandler
       return success(null);
     }
 
-    return generateEditsForFormatting(
-        result, server.clientConfiguration.lineLength);
+    final lineLength = server.clientConfiguration.forResource(path).lineLength;
+    return generateEditsForFormatting(result, lineLength);
   }
 
   @override
@@ -43,12 +43,14 @@ class FormattingHandler
       return success(null);
     }
 
-    if (!server.clientConfiguration.enableSdkFormatter) {
-      return error(ServerErrorCodes.FeatureDisabled,
-          'Formatter was disabled by client settings');
-    }
-
     final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) => formatFile(path));
+    return path.mapResult((path) {
+      if (!server.clientConfiguration.forResource(path).enableSdkFormatter) {
+        // Because we now support formatting for just some WorkspaceFolders
+        // we should silently do nothing for those that are disabled.
+        return success(null);
+      }
+      return formatFile(path);
+    });
   }
 }

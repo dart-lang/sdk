@@ -28,10 +28,8 @@ class IntializedMessageHandler extends MessageHandler<InitializedParams, void> {
       server,
     );
 
-    await server.fetchClientConfigurationAndPerformDynamicRegistration();
-
     if (!server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
-      server.updateWorkspaceFolders(openWorkspacePaths, const []);
+      await server.updateWorkspaceFolders(openWorkspacePaths, const []);
     }
 
     return success(null);

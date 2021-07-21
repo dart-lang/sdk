@@ -205,33 +205,49 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
     if (clientCapabilities?.configuration ?? false) {
+      // Take a copy of workspace folders because we need to match up the
+      // responses to the request by index and it's possible _workspaceFolders
+      // will change after we sent the request but before we get the response.
+      final folders = _workspaceFolders.toList();
+
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
       final response = await sendRequest(
           Method.workspace_configuration,
           ConfigurationParams(items: [
+            // Dart settings for each workspace folder.
+            for (final folder in folders)
+              ConfigurationItem(
+                scopeUri: Uri.file(folder).toString(),
+                section: 'dart',
+              ),
+            // Global Dart settings. This comes last to simplify matching up the
+            // indexes in the results (folder[i] is the i'th item).
             ConfigurationItem(section: 'dart'),
           ]));
 
       final result = response.result;
 
-      // Expect the result to be a single list (to match the single
-      // ConfigurationItem we requested above) and that it should be
-      // a standard map of settings.
+      // Expect the result to be a list with 1 + folders.length items to
+      // match the request above, and each should be a standard map of settings.
       // If the above code is extended to support multiple sets of config
-      // this will need tweaking to handle each group appropriately.
+      // this will need tweaking to handle the item for each section.
       if (result != null &&
           result is List<dynamic> &&
-          result.length == 1 &&
-          result.first is Map<String, dynamic>) {
-        final newConfig = result.first;
-        final refreshRoots =
-            clientConfiguration.affectsAnalysisRoots(newConfig);
+          result.length == 1 + folders.length) {
+        // Config is stored as a map keyed by the workspace folder, and a key of
+        // null for the global config
+        final workspaceFolderConfig = {
+          for (var i = 0; i < folders.length; i++)
+            folders[i]: result[i] as Map<String, Object?>? ?? {},
+        };
+        final newGlobalConfig = result.last as Map<String, Object?>? ?? {};
 
-        clientConfiguration.replace(newConfig);
+        final oldGlobalConfig = clientConfiguration.global;
+        clientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
 
-        if (refreshRoots) {
+        if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           _refreshAnalysisRoots();
         }
       }
@@ -638,13 +654,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendServerErrorNotification('Socket error', error, stack);
   }
 
-  void updateWorkspaceFolders(
-      List<String> addedPaths, List<String> removedPaths) {
+  Future<void> updateWorkspaceFolders(
+      List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
     _workspaceFolders
       ..addAll(addedPaths)
       ..removeAll(removedPaths);
+
+    await fetchClientConfigurationAndPerformDynamicRegistration();
 
     _refreshAnalysisRoots();
   }
@@ -699,7 +717,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         ? _workspaceFolders.toSet()
         : _getRootsForOpenFiles();
 
-    final excludedPaths = clientConfiguration.analysisExcludedFolders
+    final excludedPaths = clientConfiguration.global.analysisExcludedFolders
         .expand((excludePath) => resourceProvider.pathContext
                 .isAbsolute(excludePath)
             ? [excludePath]
@@ -889,5 +907,5 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   bool _shouldSendError(protocol.AnalysisError error) =>
       error.code != ErrorType.TODO.name.toLowerCase() ||
-      analysisServer.clientConfiguration.showTodos;
+      analysisServer.clientConfiguration.global.showTodos;
 }

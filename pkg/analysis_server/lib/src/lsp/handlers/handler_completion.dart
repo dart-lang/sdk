@@ -261,7 +261,7 @@ class CompletionHandler
         /// insert dupes.
         final completeFunctionCalls = _hasExistingArgList(target.entity)
             ? false
-            : server.clientConfiguration.completeFunctionCalls;
+            : server.clientConfiguration.global.completeFunctionCalls;
 
         final results = serverSuggestions.map(
           (item) {
@@ -292,7 +292,7 @@ class CompletionHandler
               // depending on how the spec is updated.
               // https://github.com/microsoft/vscode-languageserver-node/issues/673
               includeCommitCharacters:
-                  server.clientConfiguration.previewCommitCharacters,
+                  server.clientConfiguration.global.previewCommitCharacters,
               completeFunctionCalls: completeFunctionCalls,
             );
           },
@@ -390,8 +390,8 @@ class CompletionHandler
                       // this should be removed (or made conditional based on a capability)
                       // depending on how the spec is updated.
                       // https://github.com/microsoft/vscode-languageserver-node/issues/673
-                      includeCommitCharacters:
-                          server.clientConfiguration.previewCommitCharacters,
+                      includeCommitCharacters: server
+                          .clientConfiguration.global.previewCommitCharacters,
                       completeFunctionCalls: completeFunctionCalls,
                     ));
             results.addAll(setResults);
