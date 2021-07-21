@@ -77,8 +77,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter
-                .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
+            _errorReporter.reportErrorForNode(
+                FfiCode.EMPTY_STRUCT, node.name, [node.name.name]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -544,8 +544,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, TPrime,
-          node);
+      _validateFfiLeafCallUsesNoHandles(
+          node.argumentList.arguments, TPrime, node);
     }
     _validateIsLeafIsConst(node);
   }
@@ -637,8 +637,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiLeafCallUsesNoHandles(NodeList<Expression> args,
-      DartType nativeType, AstNode errorNode) {
+  void _validateFfiLeafCallUsesNoHandles(
+      NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
     if (args.isNotEmpty) {
       for (final arg in args) {
         if (arg is NamedExpression) {
@@ -715,6 +715,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
+          // TODO(brianwilkerson) There are no tests for this branch. Ensure
+          //  that the diagnostic is correct and add tests.
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
@@ -831,8 +833,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, S,
-        typeArguments![0]);
+    _validateFfiLeafCallUsesNoHandles(
+        node.argumentList.arguments, S, typeArguments![0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.

@@ -51,7 +51,7 @@ import 'dart:ffi';
 class S extends Struct {}
 class C implements S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 19, 25),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 64, 1),
     ]);
   }
@@ -62,7 +62,7 @@ import 'dart:ffi';
 class S extends Union {}
 class C implements S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 19, 24),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 63, 1),
     ]);
   }
@@ -76,7 +76,7 @@ import 'dart:ffi';
 class S extends Struct {}
 class C with S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 19, 25),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 58, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 58, 1),
     ]);
@@ -88,7 +88,7 @@ import 'dart:ffi';
 class S extends Union {}
 class C with S {}
 ''', [
-      error(FfiCode.EMPTY_STRUCT, 19, 24),
+      error(FfiCode.EMPTY_STRUCT, 25, 1),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 57, 1),
       error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 57, 1),
     ]);
