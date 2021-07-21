@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -97,5 +98,17 @@ void format() {
     expect(result.stderr,
         startsWith('No file or directory found at "$unknownFilePath".'));
     expect(result.stdout, startsWith('Formatted no files in '));
+  });
+
+  test('formats from stdin and exits', () async {
+    p = project(mainSrc: 'int get foo => 1;\n');
+    var process = await p.start(['format']);
+    process.stdin.writeln('main(   ) { }');
+
+    var result = process.stdout.reduce((a, b) => a + b);
+
+    await process.stdin.close();
+    expect(await process.exitCode, 0);
+    expect(utf8.decode(await result), 'main() {}\n');
   });
 }

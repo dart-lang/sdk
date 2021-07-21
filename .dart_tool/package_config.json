@@ -797,7 +797,7 @@
       "name": "webkit_inspection_protocol",
       "rootUri": "../third_party/pkg/webkit_inspection_protocol",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "yaml",

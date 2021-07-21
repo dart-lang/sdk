@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -11,9 +13,9 @@ import '../../options.dart';
 class _Reader {
   final Procedure _procedure;
   final FunctionType _type;
-  FunctionType _typeWithoutTypeParameters;
+  late final FunctionType _typeWithoutTypeParameters;
 
-  _Reader(this._procedure) : _type = _procedure.getterType {
+  _Reader(this._procedure) : _type = _procedure.getterType as FunctionType {
     _typeWithoutTypeParameters = _type.withoutTypeParameters;
   }
 }
@@ -31,7 +33,8 @@ class LateLowering {
 
   // Each map contains the mapping from late local variables to cells for a
   // given function scope. All late local variables are lowered to cells.
-  final List<Map<VariableDeclaration, VariableDeclaration>> _variableCells = [];
+  final List<Map<VariableDeclaration, VariableDeclaration>?> _variableCells =
+      [];
 
   // Uninitialized late static fields are lowered to cells.
   final Map<Field, Field> _fieldCells = {};
@@ -44,9 +47,9 @@ class LateLowering {
   // [Reference] to its [Field].
   final Map<Procedure, Field> _getterToField = {};
 
-  Member _contextMember;
+  Member? _contextMember;
 
-  LateLowering(this._coreTypes, CompilerOptions _options)
+  LateLowering(this._coreTypes, CompilerOptions? _options)
       : _omitLateNames = _options?.omitLateNames ?? false,
         _lowerInstanceVariables =
             _options?.experimentLateInstanceVariables ?? false,
@@ -55,7 +58,7 @@ class LateLowering {
         _readInitialized = _Reader(_coreTypes.initializedCellRead),
         _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
 
-  Nullability get nonNullable => _contextMember.enclosingLibrary.nonNullable;
+  Nullability get nonNullable => _contextMember!.enclosingLibrary.nonNullable;
 
   bool _shouldLowerVariable(VariableDeclaration variable) => variable.isLate;
 
@@ -73,7 +76,7 @@ class LateLowering {
 
   String _mangleFieldName(Field field) {
     assert(_shouldLowerInstanceField(field));
-    Class cls = field.parent;
+    Class cls = field.enclosingClass!;
     return '_#${cls.name}#${field.name.text}';
   }
 
@@ -81,7 +84,7 @@ class LateLowering {
     List<Reference> additionalExports = library.additionalExports;
     Set<Reference> newExports = {};
     additionalExports.removeWhere((Reference reference) {
-      Field cell = _fieldCells[reference.node];
+      Field? cell = _fieldCells[reference.node];
       if (cell == null) return false;
       newExports.add(cell.getterReference);
       return true;
@@ -123,7 +126,7 @@ class LateLowering {
           Arguments([name, initializer])..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
 
-  StringLiteral _nameLiteral(String name, int fileOffset) =>
+  StringLiteral _nameLiteral(String? name, int fileOffset) =>
       StringLiteral(name ?? '')..fileOffset = fileOffset;
 
   InstanceInvocation _callReader(
@@ -138,7 +141,8 @@ class LateLowering {
         interfaceTarget: procedure,
         functionType:
             Substitution.fromPairs(reader._type.typeParameters, typeArguments)
-                .substituteType(reader._typeWithoutTypeParameters))
+                    .substituteType(reader._typeWithoutTypeParameters)
+                as FunctionType)
       ..fileOffset = fileOffset;
   }
 
@@ -161,7 +165,7 @@ class LateLowering {
     _variableCells.removeLast();
   }
 
-  VariableDeclaration _lookupVariableCell(VariableDeclaration variable) {
+  VariableDeclaration? _lookupVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerVariable(variable));
     for (final scope in _variableCells) {
       if (scope == null) continue;
@@ -190,7 +194,7 @@ class LateLowering {
   VariableDeclaration _uninitializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerUninitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String name = variable.name;
+    String? name = variable.name;
     final cell = VariableDeclaration(name,
         initializer:
             _callCellConstructor(_nameLiteral(name, fileOffset), fileOffset),
@@ -213,11 +217,11 @@ class LateLowering {
   VariableDeclaration _initializedVariableCell(VariableDeclaration variable) {
     assert(_shouldLowerInitializedVariable(variable));
     int fileOffset = variable.fileOffset;
-    String name = variable.name;
+    String? name = variable.name;
     final cell = VariableDeclaration(name,
         initializer: _callInitializedCellConstructor(
             _nameLiteral(name, fileOffset),
-            _initializerClosure(variable.initializer, variable.type),
+            _initializerClosure(variable.initializer!, variable.type),
             fileOffset),
         type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
         isFinal: true)
@@ -226,7 +230,7 @@ class LateLowering {
   }
 
   TreeNode transformVariableDeclaration(
-      VariableDeclaration variable, Member contextMember) {
+      VariableDeclaration variable, Member? contextMember) {
     _contextMember = contextMember;
 
     if (!_shouldLowerVariable(variable)) return variable;
@@ -309,8 +313,8 @@ class LateLowering {
     Name name = field.name;
     String nameText = name.text;
     DartType type = field.type;
-    Expression initializer = field.initializer;
-    Class enclosingClass = field.enclosingClass;
+    Expression? initializer = field.initializer;
+    Class enclosingClass = field.enclosingClass!;
 
     Name mangledName = Name(_mangleFieldName(field), field.enclosingLibrary);
     Field backingField = Field.mutable(mangledName,
@@ -436,7 +440,7 @@ class LateLowering {
     VariableGet setterValueRead() =>
         VariableGet(setterValue)..fileOffset = fileOffset;
 
-    Statement setterBody() {
+    Statement? setterBody() {
       if (!field.isFinal) {
         // The lowered setter for `late T field;` and `late T field = e;` is
         //
@@ -470,7 +474,7 @@ class LateLowering {
       }
     }
 
-    Statement body = setterBody();
+    Statement? body = setterBody();
     if (body != null) {
       Procedure setter = Procedure(
           name,
@@ -506,17 +510,14 @@ class LateLowering {
     // getter for the backing field.
     // TODO(fishythefish): Clean this up when [FieldInitializer] maintains a
     // correct [Reference] to its [Field].
-    NamedNode node = initializer.fieldReference.node;
-    assert(node != null);
+    NamedNode node = initializer.fieldReference.node!;
     Field backingField;
     if (node is Field) {
       if (!_shouldLowerInstanceField(node)) return initializer;
       backingField = _backingInstanceField(node);
     } else {
-      backingField = _getterToField[node];
+      backingField = _getterToField[node]!;
     }
-    assert(backingField != null);
-
     return FieldInitializer(backingField, initializer.value)
       ..fileOffset = initializer.fileOffset;
   }

@@ -1049,7 +1049,11 @@ class _TreeShakerPass1 extends RemovingTransformer {
     final List<ast.Statement> statements = <ast.Statement>[];
     for (var arg in args) {
       if (mayHaveSideEffects(arg)) {
-        statements.add(ExpressionStatement(arg));
+        if (arg is BlockExpression && !mayHaveSideEffects(arg.value)) {
+          statements.add(arg.body);
+        } else {
+          statements.add(ExpressionStatement(arg));
+        }
       }
     }
     if (statements.isEmpty) {
@@ -1245,8 +1249,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
     }
     final nullTest = _getNullTest(node);
     if (nullTest.isAlwaysNull || nullTest.isAlwaysNotNull) {
-      return _evaluateArguments(
-          [node.expression], BoolLiteral(nullTest.isAlwaysNull));
+      return _evaluateArguments([node.expression],
+          BoolLiteral(nullTest.isAlwaysNull)..fileOffset = node.fileOffset);
     }
     return node;
   }
@@ -1502,11 +1506,138 @@ class _TreeShakerPass1 extends RemovingTransformer {
     return _visitAssertNode(node, removalSentinel);
   }
 
+  // Expression is an extended bool literal if it is
+  //  - a BoolLiteral
+  //  - a BlockExpression with a BoolLiteral value.
+  bool _isExtendedBoolLiteral(Expression expr) =>
+      expr is BoolLiteral ||
+      (expr is BlockExpression && expr.value is BoolLiteral);
+
+  // Returns value of an extended bool literal.
+  bool _getExtendedBoolLiteralValue(Expression expr) => (expr is BoolLiteral)
+      ? expr.value
+      : ((expr as BlockExpression).value as BoolLiteral).value;
+
+  // Returns Block corresponding to the given extended bool literal,
+  // or null if the expression is a simple bool literal.
+  Block _getExtendedBoolLiteralBlock(Expression expr) =>
+      (expr is BoolLiteral) ? null : (expr as BlockExpression).body;
+
+  @override
+  TreeNode visitIfStatement(IfStatement node, TreeNode removalSentinel) {
+    final condition = transform(node.condition);
+    if (_isExtendedBoolLiteral(condition)) {
+      final bool conditionValue = _getExtendedBoolLiteralValue(condition);
+      final Block conditionBlock = _getExtendedBoolLiteralBlock(condition);
+      ast.Statement body;
+      if (conditionValue) {
+        body = transform(node.then);
+      } else {
+        if (node.otherwise != null) {
+          body = transformOrRemoveStatement(node.otherwise);
+        }
+      }
+      if (conditionBlock != null) {
+        if (body != null) {
+          conditionBlock.addStatement(body);
+        }
+        return conditionBlock;
+      } else {
+        return body ?? EmptyStatement();
+      }
+    }
+    node.condition = condition..parent = node;
+    node.then = transform(node.then)..parent = node;
+    if (node.otherwise != null) {
+      node.otherwise = transformOrRemoveStatement(node.otherwise);
+      node.otherwise?.parent = node;
+    }
+    return node;
+  }
+
+  @override
+  visitConditionalExpression(
+      ConditionalExpression node, TreeNode removalSentinel) {
+    final condition = transform(node.condition);
+    if (_isExtendedBoolLiteral(condition)) {
+      final bool value = _getExtendedBoolLiteralValue(condition);
+      final Expression expr = transform(value ? node.then : node.otherwise);
+      if (condition is BlockExpression) {
+        condition.value = expr;
+        expr.parent = condition;
+        return condition;
+      } else {
+        return expr;
+      }
+    }
+    node.condition = condition..parent = node;
+    node.then = transform(node.then)..parent = node;
+    node.otherwise = transform(node.otherwise)..parent = node;
+    node.staticType = visitDartType(node.staticType, cannotRemoveSentinel);
+    return node;
+  }
+
+  @override
+  TreeNode visitNot(Not node, TreeNode removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    final operand = node.operand;
+    if (_isExtendedBoolLiteral(operand)) {
+      final bool value = _getExtendedBoolLiteralValue(operand);
+      if (operand is BlockExpression) {
+        (operand.value as BoolLiteral).value = !value;
+      } else {
+        (operand as BoolLiteral).value = !value;
+      }
+      return operand;
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitLogicalExpression(
+      LogicalExpression node, TreeNode removalSentinel) {
+    final left = transform(node.left);
+    final operatorEnum = node.operatorEnum;
+    if (_isExtendedBoolLiteral(left)) {
+      final leftValue = _getExtendedBoolLiteralValue(left);
+      if (leftValue && operatorEnum == LogicalExpressionOperator.OR) {
+        return left;
+      } else if (!leftValue && operatorEnum == LogicalExpressionOperator.AND) {
+        return left;
+      }
+    }
+    final right = transform(node.right);
+    // Without sound null safety arguments of logical expression
+    // are implicitly checked for null, so transform the node only
+    // if using sound null safety or it evaluates to a bool literal.
+    if (_isExtendedBoolLiteral(left) &&
+        (shaker.typeFlowAnalysis.target.flags.enableNullSafety ||
+            _isExtendedBoolLiteral(right))) {
+      return _evaluateArguments([left], right);
+    }
+    node.left = left..parent = node;
+    node.right = right..parent = node;
+    return node;
+  }
+
+  @override
+  TreeNode visitIsExpression(IsExpression node, TreeNode removalSentinel) {
+    TypeCheck check = shaker.typeFlowAnalysis.isTest(node);
+    if (check != null && (check.alwaysFail || check.alwaysPass)) {
+      final operand = transform(node.operand);
+      final result = BoolLiteral(!check.alwaysFail)
+        ..fileOffset = node.fileOffset;
+      return _evaluateArguments([operand], result);
+    }
+    node.transformOrRemoveChildren(this);
+    return node;
+  }
+
   @override
   TreeNode visitAsExpression(AsExpression node, TreeNode removalSentinel) {
     node.transformOrRemoveChildren(this);
     TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
-    if (check != null && check.canAlwaysSkip) {
+    if (check != null && check.alwaysPass) {
       return StaticInvocation(
           unsafeCast, Arguments([node.operand], types: [node.type]))
         ..fileOffset = node.fileOffset;

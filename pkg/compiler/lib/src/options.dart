@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.src.options;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
@@ -32,8 +34,8 @@ enum FeatureStatus {
 class FeatureOption {
   final String flag;
   final bool isNegativeFlag;
-  bool _state;
-  bool get isEnabled => _state;
+  bool? _state;
+  bool get isEnabled => _state!;
   bool get isDisabled => !isEnabled;
   void set state(bool value) {
     assert(_state == null);
@@ -67,22 +69,16 @@ class FeatureOptions {
   FeatureOption newHolders = FeatureOption('new-holders');
 
   /// [FeatureOption]s which default to enabled.
-  List<FeatureOption> shipping;
+  late final List<FeatureOption> shipping = [legacyJavaScript];
 
   /// [FeatureOption]s which default to disabled.
-  List<FeatureOption> canary;
+  late final List<FeatureOption> canary = [newHolders];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {
     for (var feature in canary) {
       feature.override = feature.isNegativeFlag ? false : true;
     }
-  }
-
-  // Initialize feature lists.
-  FeatureOptions() {
-    shipping = [legacyJavaScript];
-    canary = [newHolders];
   }
 
   void parse(List<String> options) {
@@ -122,12 +118,12 @@ abstract class DiagnosticOptions {
 /// as few as possible.
 class CompilerOptions implements DiagnosticOptions {
   /// The entry point of the application that is being compiled.
-  Uri entryPoint;
+  Uri? entryPoint;
 
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
-  Uri packageConfig;
+  Uri? packageConfig;
 
   /// List of kernel files to load.
   ///
@@ -140,18 +136,18 @@ class CompilerOptions implements DiagnosticOptions {
   /// At this time, this list points to full kernel files. In the future, we may
   /// use a list of outline files for modular compiles, and only use full kernel
   /// files for linking.
-  List<Uri> dillDependencies;
+  List<Uri>? dillDependencies;
 
   /// Location from which serialized inference data is read.
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri readDataUri;
+  Uri? readDataUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after type inference.
-  Uri writeDataUri;
+  Uri? writeDataUri;
 
   /// Serialize data without the closed world.
   /// TODO(joshualitt) make this the default right after landing in Google3 and
@@ -162,22 +158,22 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// If this is set, the [entryPoint] is expected to be a .dill file and the
   /// frontend work is skipped.
-  Uri readClosedWorldUri;
+  Uri? readClosedWorldUri;
 
   /// Location to which inference data is serialized.
   ///
   /// If this is set, the compilation stops after computing the closed world.
-  Uri writeClosedWorldUri;
+  Uri? writeClosedWorldUri;
 
   /// Location from which codegen data is read.
   ///
   /// If this is set, the compilation starts at codegen enqueueing.
-  Uri readCodegenUri;
+  Uri? readCodegenUri;
 
   /// Location to which codegen data is serialized.
   ///
   /// If this is set, the compilation stops after code generation.
-  Uri writeCodegenUri;
+  Uri? writeCodegenUri;
 
   /// Whether to run only the CFE and emit the generated kernel file in
   /// [outputUri].
@@ -205,7 +201,7 @@ class CompilerOptions implements DiagnosticOptions {
           explicitExperimentalFlags: explicitExperimentalFlags);
 
   /// A possibly null state object for kernel compilation.
-  fe.InitializedCompilerState kernelInitializedCompilerState;
+  fe.InitializedCompilerState? kernelInitializedCompilerState;
 
   /// Whether we allow mocking compilation of libraries such as dart:io and
   /// dart:html for unit testing purposes.
@@ -230,11 +226,11 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Location where to generate a map containing details of how deferred
   /// libraries are subdivided.
-  Uri deferredMapUri;
+  Uri? deferredMapUri;
 
   /// Location where to generate an internal format representing the deferred
   /// graph.
-  Uri deferredGraphUri;
+  Uri? deferredGraphUri;
 
   /// The maximum number of deferred fragments to generate. If the number of
   /// fragments exceeds this amount, then they may be merged.
@@ -242,8 +238,8 @@ class CompilerOptions implements DiagnosticOptions {
   /// will not merge fragments with unrelated dependencies and thus we may
   /// generate more fragments than the 'mergeFragmentsThreshold' under some
   /// situations.
-  int mergeFragmentsThreshold = null; // default value, no max.
-  int _mergeFragmentsThreshold;
+  int? mergeFragmentsThreshold = null; // default value, no max.
+  int? _mergeFragmentsThreshold;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
@@ -276,7 +272,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Diagnostic option: List of packages for which warnings and hints are
   /// reported. If `null`, no package warnings or hints are reported. If
   /// empty, all warnings and hints are reported.
-  List<String> shownPackageWarnings; // &&&&&
+  List<String>? shownPackageWarnings;
 
   /// Whether to disable global type inference.
   bool disableTypeInference = false;
@@ -304,7 +300,7 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// If set, SSA intermediate form is dumped for methods with names matching
   /// this RegExp pattern.
-  String dumpSsaPattern = null;
+  String? dumpSsaPattern = null;
 
   /// Whether we allow passing an extra argument to `assert`, containing a
   /// reason for why an assertion fails. (experimental)
@@ -354,19 +350,19 @@ class CompilerOptions implements DiagnosticOptions {
   bool generateSourceMap = true;
 
   /// URI of the main output of the compiler.
-  Uri outputUri;
+  Uri? outputUri;
 
   /// Location of the libraries specification file.
-  Uri librariesSpecificationUri;
+  Uri? librariesSpecificationUri;
 
   /// Location of the kernel platform `.dill` files.
-  Uri platformBinaries;
+  Uri? platformBinaries;
 
   /// Whether to print legacy types as T* rather than T.
   bool printLegacyStars = false;
 
   /// URI where the compiler should generate the output source map file.
-  Uri sourceMapUri;
+  Uri? sourceMapUri;
 
   /// The compiler is run from the build bot.
   bool testMode = false;
@@ -387,29 +383,29 @@ class CompilerOptions implements DiagnosticOptions {
   /// What should the compiler do with parameter type assertions.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultParameterCheckPolicy;
+  late CheckPolicy defaultParameterCheckPolicy;
 
   /// What should the compiler do with implicit downcasts.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultImplicitDowncastCheckPolicy;
+  late CheckPolicy defaultImplicitDowncastCheckPolicy;
 
   /// What the compiler should do with a boolean value in a condition context
   /// when the language specification says it is a runtime error for it to be
   /// null.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultConditionCheckPolicy;
+  late CheckPolicy defaultConditionCheckPolicy;
 
   /// What should the compiler do with explicit casts.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultExplicitCastCheckPolicy;
+  late CheckPolicy defaultExplicitCastCheckPolicy;
 
   /// What should the compiler do with List index bounds checks.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy defaultIndexBoundsCheckPolicy;
+  late CheckPolicy defaultIndexBoundsCheckPolicy;
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
@@ -492,14 +488,14 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// If specified, a bundle of optimizations to enable (or disable).
-  int optimizationLevel = null;
+  int? optimizationLevel = null;
 
   /// The shard to serialize when using [writeCodegenUri].
-  int codegenShard;
+  int? codegenShard;
 
   /// The number of shards to serialize when using [writeCodegenUri] or to
   /// deserialize when using [readCodegenUri].
-  int codegenShards;
+  int? codegenShards;
 
   /// Arguments passed to the front end about how it is invoked.
   ///
@@ -515,7 +511,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Verbosity level used for filtering messages during compilation.
   fe.Verbosity verbosity = fe.Verbosity.all;
 
-  FeatureOptions features;
+  late FeatureOptions features;
 
   // -------------------------------------------------
   // Options for deprecated features
@@ -523,11 +519,11 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {FeatureOptions featureOptions,
-      Uri librariesSpecificationUri,
-      Uri platformBinaries,
-      void Function(String) onError,
-      void Function(String) onWarning}) {
+      {FeatureOptions? featureOptions,
+      Uri? librariesSpecificationUri,
+      Uri? platformBinaries,
+      void Function(String)? onError,
+      void Function(String)? onWarning}) {
     if (featureOptions == null) featureOptions = FeatureOptions();
     featureOptions.parse(options);
     Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags =
@@ -545,7 +541,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..benchmarkingExperiment =
           _hasOption(options, Flags.benchmarkingExperiment)
       ..buildId =
-          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
+          _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)!
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
       ..deferredGraphUri =
@@ -638,11 +634,11 @@ class CompilerOptions implements DiagnosticOptions {
       .._mergeFragmentsThreshold =
           _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
       ..cfeInvocationModes = fe.InvocationMode.parseArguments(
-          _extractStringOption(options, '${Flags.cfeInvocationModes}=', ''),
+          _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
           onError: onError)
       ..verbosity = fe.Verbosity.parseArgument(
           _extractStringOption(
-              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue),
+              options, '${Flags.verbosity}=', fe.Verbosity.defaultValue)!,
           onError: onError)
       ..features = featureOptions;
   }
@@ -654,7 +650,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (librariesSpecificationUri == null) {
       throw new ArgumentError("[librariesSpecificationUri] is null.");
     }
-    if (librariesSpecificationUri.path.endsWith('/')) {
+    if (librariesSpecificationUri!.path.endsWith('/')) {
       throw new ArgumentError(
           "[librariesSpecificationUri] should be a file: $librariesSpecificationUri");
     }
@@ -697,12 +693,12 @@ class CompilerOptions implements DiagnosticOptions {
         disableTypeInference = true;
         disableRtiOptimization = true;
       }
-      if (optimizationLevel >= 2) {
+      if (optimizationLevel! >= 2) {
         enableMinification = true;
         laxRuntimeTypeToString = true;
         omitLateNames = true;
       }
-      if (optimizationLevel >= 3) {
+      if (optimizationLevel! >= 3) {
         omitImplicitChecks = true;
       }
       if (optimizationLevel == 4) {
@@ -752,7 +748,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// Returns `true` if warnings and hints are shown for all packages.
   @override
   bool get showAllPackageWarnings {
-    return shownPackageWarnings != null && shownPackageWarnings.isEmpty;
+    return shownPackageWarnings != null && shownPackageWarnings!.isEmpty;
   }
 
   /// Returns `true` if warnings and hints are hidden for all packages.
@@ -767,7 +763,7 @@ class CompilerOptions implements DiagnosticOptions {
     }
     if (shownPackageWarnings != null) {
       return uri.scheme == 'package' &&
-          shownPackageWarnings.contains(uri.pathSegments.first);
+          shownPackageWarnings!.contains(uri.pathSegments.first);
     }
     return false;
   }
@@ -794,8 +790,8 @@ class CheckPolicy {
       'isEmitted=$isEmitted)';
 }
 
-String _extractStringOption(
-    List<String> options, String prefix, String defaultValue) {
+String? _extractStringOption(
+    List<String> options, String prefix, String? defaultValue) {
   for (String option in options) {
     if (option.startsWith(prefix)) {
       return option.substring(prefix.length);
@@ -804,13 +800,13 @@ String _extractStringOption(
   return defaultValue;
 }
 
-Uri _extractUriOption(List<String> options, String prefix) {
-  String option = _extractStringOption(options, prefix, null);
+Uri? _extractUriOption(List<String> options, String prefix) {
+  String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : Uri.parse(option);
 }
 
-int _extractIntOption(List<String> options, String prefix) {
-  String option = _extractStringOption(options, prefix, null);
+int? _extractIntOption(List<String> options, String prefix) {
+  String? option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : int.parse(option);
 }
 
@@ -821,7 +817,7 @@ bool _hasOption(List<String> options, String option) {
 /// Extract list of comma separated values provided for [flag]. Returns an
 /// empty list if [option] contain [flag] without arguments. Returns `null` if
 /// [option] doesn't contain [flag] with or without arguments.
-List<String> _extractOptionalCsvOption(List<String> options, String flag) {
+List<String>? _extractOptionalCsvOption(List<String> options, String flag) {
   String prefix = '$flag=';
   for (String option in options) {
     if (option == flag) {
@@ -837,15 +833,15 @@ List<String> _extractOptionalCsvOption(List<String> options, String flag) {
 /// Extract list of comma separated Uris provided for [flag]. Returns an
 /// empty list if [option] contain [flag] without arguments. Returns `null` if
 /// [option] doesn't contain [flag] with or without arguments.
-List<Uri> _extractUriListOption(List<String> options, String flag) {
-  List<String> stringUris = _extractOptionalCsvOption(options, flag);
+List<Uri>? _extractUriListOption(List<String> options, String flag) {
+  List<String>? stringUris = _extractOptionalCsvOption(options, flag);
   if (stringUris == null) return null;
   return stringUris.map(Uri.parse).toList();
 }
 
 Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
-    {void Function(String) onError, void Function(String) onWarning}) {
-  List<String> experiments =
+    {void Function(String)? onError, void Function(String)? onWarning}) {
+  List<String>? experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
   onError ??= (String error) => throw new ArgumentError(error);
   onWarning ??= (String warning) => print(warning);

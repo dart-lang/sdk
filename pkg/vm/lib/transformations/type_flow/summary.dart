@@ -538,6 +538,7 @@ class TypeCheck extends Statement {
   final TreeNode node;
 
   final Type staticType;
+  final SubtypeTestKind kind;
 
   // 'isTestedOnlyOnCheckedEntryPoint' is whether or not this parameter's type-check will
   // occur on the "checked" entrypoint in the VM but will be skipped on
@@ -547,9 +548,10 @@ class TypeCheck extends Statement {
   VariableDeclaration get parameter =>
       node is VariableDeclaration ? node : null;
 
-  bool canAlwaysSkip = true;
+  bool alwaysPass = true;
+  bool alwaysFail = true;
 
-  TypeCheck(this.arg, this.type, this.node, this.staticType) {
+  TypeCheck(this.arg, this.type, this.node, this.staticType, this.kind) {
     assert(node != null);
     isTestedOnlyOnCheckedEntryPoint =
         parameter != null && !parameter.isCovariant;
@@ -573,14 +575,14 @@ class TypeCheck extends Statement {
     // TODO(sjindel/tfa): Narrow the result if possible.
     assert(checkType is UnknownType || checkType is RuntimeType);
 
-    bool canSkip = true; // Can this check be skipped on this invocation.
+    bool pass = true; // Can this check be skipped on this invocation.
 
     if (checkType is UnknownType) {
       // If we don't know what the RHS of the check is going to be, we can't
       // guarantee that it will pass.
-      canSkip = false;
+      pass = false;
     } else if (checkType is RuntimeType) {
-      canSkip = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType);
+      pass = argType.isSubtypeOfRuntimeType(typeHierarchy, checkType, kind);
       argType = argType.intersection(
           typeHierarchy.fromStaticType(checkType.representedTypeRaw, true),
           typeHierarchy);
@@ -591,8 +593,8 @@ class TypeCheck extends Statement {
     // If this check might be skipped on an
     // unchecked entry-point, we need to signal that the call-site must be
     // checked.
-    if (!canSkip) {
-      canAlwaysSkip = false;
+    if (!pass) {
+      alwaysPass = false;
       if (isTestedOnlyOnCheckedEntryPoint) {
         callHandler.typeCheckTriggered();
       }
@@ -601,7 +603,13 @@ class TypeCheck extends Statement {
       }
     }
 
-    argType = argType.intersection(staticType, typeHierarchy);
+    argType = argType
+        .intersection(staticType, typeHierarchy)
+        .specialize(typeHierarchy);
+
+    if (argType is! EmptyType) {
+      alwaysFail = false;
+    }
 
     return argType;
   }
@@ -782,7 +790,7 @@ class Summary {
     final params = <VariableDeclaration>[];
     for (Statement statement in _statements) {
       if (statement is TypeCheck &&
-          statement.canAlwaysSkip &&
+          statement.alwaysPass &&
           statement.parameter != null) {
         params.add(statement.parameter);
       }

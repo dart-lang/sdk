@@ -534,6 +534,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
   final Map<AsExpression, TypeCheck> explicitCasts =
       <AsExpression, TypeCheck>{};
+  final Map<IsExpression, TypeCheck> isTests = <IsExpression, TypeCheck>{};
   final Map<TreeNode, NarrowNotNull> nullTests = <TreeNode, NarrowNotNull>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
   final Set<Name> _nullMethodsAndGetters = <Name>{};
@@ -1064,10 +1065,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
     }
   }
 
-  TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node) {
+  TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node,
+      [SubtypeTestKind kind = SubtypeTestKind.Subtype]) {
     final TypeExpr runtimeType = _translator.translate(type);
-    final typeCheck = new TypeCheck(
-        value, runtimeType, node, _typesBuilder.fromStaticType(type, true));
+    final bool canBeNull = (kind == SubtypeTestKind.IsTest)
+        ? _canBeNullAfterSuccessfulIsCheck(type)
+        : true;
+    final typeCheck = new TypeCheck(value, runtimeType, node,
+        _typesBuilder.fromStaticType(type, canBeNull), kind);
     _summary.add(typeCheck);
     return typeCheck;
   }
@@ -1128,19 +1133,17 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
     return narrow;
   }
 
-  // Narrow type of [arg] after successful 'is' test against [type].
-  TypeExpr _makeNarrowAfterSuccessfulIsCheck(TypeExpr arg, DartType type) {
+  bool _canBeNullAfterSuccessfulIsCheck(DartType type) {
     // 'x is type' can succeed for null if type is
     //  - a top type (dynamic, void, Object? or Object*)
     //  - nullable (including Null)
     //  - a type parameter (it can be instantiated with Null)
     //  - legacy Never
     final nullability = type.nullability;
-    final bool canBeNull = _environment.isTop(type) ||
+    return _environment.isTop(type) ||
         nullability == Nullability.nullable ||
         type is TypeParameterType ||
         (type is NeverType && nullability == Nullability.legacy);
-    return _makeNarrow(arg, _typesBuilder.fromStaticType(type, canBeNull));
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
@@ -1400,11 +1403,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
     } else if (node is IsExpression && node.operand is VariableGet) {
       // Handle 'x is T', where x is a variable.
       final operand = node.operand as VariableGet;
-      _addUse(_visit(operand));
+      final TypeCheck typeCheck =
+          _typeCheck(_visit(operand), node.type, node, SubtypeTestKind.IsTest);
+      isTests[node] = typeCheck;
       final int varIndex = _variablesInfo.varIndex[operand.variable];
       if (_variableCells[varIndex] == null) {
-        trueState[varIndex] =
-            _makeNarrowAfterSuccessfulIsCheck(_visit(operand), node.type);
+        trueState[varIndex] = typeCheck;
       }
       _variableValues = null;
       return;
@@ -1535,7 +1539,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr> {
 
   @override
   TypeExpr visitIsExpression(IsExpression node) {
-    _visit(node.operand);
+    final operandNode = node.operand;
+    final TypeExpr operand = _visit(operandNode);
+    final TypeCheck typeCheck =
+        _typeCheck(operand, node.type, node, SubtypeTestKind.IsTest);
+    isTests[node] = typeCheck;
     return _boolType;
   }
 

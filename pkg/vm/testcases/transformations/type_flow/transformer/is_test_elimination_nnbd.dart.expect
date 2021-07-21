@@ -1,0 +1,40 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object implements self::A {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static field self::A obj = [@vm.inferred-type.metadata=dart.core::bool] [@vm.inferred-type.metadata=int?] core::int::parse("2") =={core::num::==}{(core::Object) → core::bool} 2 ?{self::A} new self::C::•() : new self::A::•();
+static method getObj() → self::A
+  return self::obj;
+static method test1() → void {
+  self::A x = self::getObj();
+  ;
+}
+static method test2() → void {
+  ;
+}
+static method test3() → void {
+  {
+    return;
+  }
+  core::print("bye");
+}
+[@vm.unboxing-info.metadata=()->i]static method test4() → dynamic
+  return block {
+    self::getObj();
+  } =>4;
+static method main() → void {
+  self::test1();
+  let final self::A #t1 = self::obj in self::test2();
+  let final self::A #t2 = self::obj in self::test3();
+  self::test4();
+}

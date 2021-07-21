@@ -21,7 +21,7 @@ RESULT: t9
 ------------ bar ------------
 %a1 = _Parameter #0 [_T (dart.core::Object)+?]
 %a2 = _Parameter #1 [_T (dart.core::int)+?]
-t2 = _Narrow (%a1 to _T (dart.core::int)+)
+t2 = _TypeCheck (%a1 against dart.core::int*) (for v1 is dart.core::int*)
 t3* = _Call [dart.core::num.+] (t2, %a2)
 t4* = _Call [dart.core::num.*] (t3, _T (dart.core::_Smi, 3))
 t5* = _Call [dart.core::int.unary-] (_T (dart.core::_Smi, 1))

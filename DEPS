@@ -73,7 +73,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_rev": "d8fea36c10ef96797be02e3d132d572445cd86f4",
-  "async_rev": "8193eac211905cf33ae1f514022fdbd843836be5",
+  "async_rev": "25a7e2ec39c03622b86918cb9ce3e7d00dd283d1",
   "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -103,7 +103,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_rev": "9d9dff90d9a2e0793ad2f795f36c2777f720eda0",
+  "dart_style_rev": "06bfd19593ed84dd288f67e02c6a753e6516288a",
 
   "dartdoc_rev" : "c9621b92c738ec21a348cc2de032858276e9c774",
   "devtools_rev" : "64cffbed6366329ad05e44d48fa2298367643bb6",
@@ -146,7 +146,7 @@ vars = {
   "resource_rev": "6b79867d0becf5395e5819a75720963b8298e9a7",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
-  "shelf_static_rev": "fb6b7d0ee4ad936a84e503ae6b3703cc99e61d52",
+  "shelf_static_rev": "202ec1a53c9a830c17cf3b718d089cf7eba568ad",
   "shelf_packages_handler_rev": "78302e67c035047e6348e692b0c1182131f0fe35",
   "shelf_proxy_tag": "v1.0.0",
   "shelf_rev": "46483f896cc4308ee3d8e997030ae799b72aa16a",
@@ -174,7 +174,7 @@ vars = {
   "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
   "webdev_rev": "b0aae7b6944d484722e6af164abedd864a2a0afa",
-  "webkit_inspection_protocol_rev": "6b15729292d030f2e5c5861022da4c5a4c11961c",
+  "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",

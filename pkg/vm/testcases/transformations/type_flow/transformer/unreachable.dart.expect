@@ -4,8 +4,6 @@ import "dart:core" as core;
 
 abstract class I extends core::Object {
 }
-abstract class A extends core::Object implements self::I {
-}
 class B extends core::Object implements self::I {
   synthetic constructor •() → self::B
     : super core::Object::•()
@@ -13,9 +11,7 @@ class B extends core::Object implements self::I {
 }
 [@vm.inferred-type.metadata=#lib::B?]static field self::I ii = new self::B::•();
 static method bar([@vm.inferred-type.metadata=#lib::B?] self::I i) → void {
-  if(i is{ForNonNullableByDefault} self::A) {
-    throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
-  }
+  ;
 }
 static method main(core::List<core::String> args) → dynamic {
   self::bar([@vm.inferred-type.metadata=#lib::B?] self::ii);
