@@ -1332,6 +1332,9 @@ dart_vm_nightly_builder(
 )
 dart_vm_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
+# Our sysroot does not support gcc, we can't use goma on RBE for this builder
+dart_vm_nightly_builder("vm-kernel-gcc-linux", category = "vm|misc|g", goma = False)
+
 # vm|ffi
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category = "vm|ffi|d32")
 dart_vm_extra_builder("vm-ffi-android-release-arm", category = "vm|ffi|r32")
@@ -1721,8 +1724,6 @@ dart_ci_sandbox_builder(
 # Try only builders
 dart_try_builder("benchmark-linux", on_cq = True, properties = JS_ENGINES)
 
-# Our sysroot does not support gcc, we can't use goma on RBE for this builder
-dart_try_builder("vm-kernel-gcc-linux", goma = False)
 dart_try_builder(
     "presubmit",
     bucket = "try.shared",
