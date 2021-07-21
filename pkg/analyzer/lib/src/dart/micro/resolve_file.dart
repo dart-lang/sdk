@@ -507,7 +507,7 @@ class FileResolver {
         );
       });
 
-      testView?.addResolvedFile(path);
+      testView?.addResolvedLibrary(path);
 
       late Map<FileState, UnitAnalysisResult> results;
 
@@ -762,13 +762,13 @@ class FileResolver {
 }
 
 class FileResolverTestView {
-  /// The paths of files which were resolved.
+  /// The paths of libraries which were resolved.
   ///
-  /// The file path is added every time when it is resolved.
-  final List<String> resolvedFiles = [];
+  /// The library path is added every time when it is resolved.
+  final List<String> resolvedLibraries = [];
 
-  void addResolvedFile(String path) {
-    resolvedFiles.add(path);
+  void addResolvedLibrary(String path) {
+    resolvedLibraries.add(path);
   }
 }
 
