@@ -826,6 +826,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {}
 
 void ProcessInfoList::Init() {
+  active_processes_ = NULL;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -837,6 +838,9 @@ void ProcessInfoList::Cleanup() {
 }
 
 void ExitCodeHandler::Init() {
+  port_ = ZX_HANDLE_INVALID;
+  running_ = false;
+  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
