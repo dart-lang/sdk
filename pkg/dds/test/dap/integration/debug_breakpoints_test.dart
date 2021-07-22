@@ -155,7 +155,14 @@ void main(List<String> args) async {
       final stepLine = lineWith(testFile, '// STEP');
 
       // Hit the initial breakpoint.
-      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugSdkLibraries: false,
+        ),
+      );
 
       // Step in and expect stopping on the next line (don't go into print).
       await Future.wait([
@@ -203,12 +210,39 @@ void main(List<String> args) async {
       // TODO(dantup): Support for debugExternalPackageLibraries
     }, skip: true);
 
-    test('allows changing debug settings during session', () {
-      // TODO(dantup): !
-      // Dart-Code's DAP has a custom method that allows an editor to change
-      // the debug settings (debugSdkLibraries/debugExternalPackageLibraries)
-      // during a debug session.
-    }, skip: true);
+    test('allows changing debug settings during session', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(r'''
+void main(List<String> args) async {
+  print('Hello!'); // BREAKPOINT
+  print('Hello!'); // STEP
+}
+    ''');
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final stepLine = lineWith(testFile, '// STEP');
+
+      // Start with debugSdkLibraryes _enabled_ and hit the breakpoint.
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugSdkLibraries: true,
+        ),
+      );
+
+      // Turn off debugSdkLibraries.
+      await client.custom('updateDebugOptions', {
+        'debugSdkLibraries': false,
+      });
+
+      // Step in and expect stopping on the next line (don't go into print
+      // because we turned off SDK debugging).
+      await Future.wait([
+        client.expectStop('step', file: testFile, line: stepLine),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }
