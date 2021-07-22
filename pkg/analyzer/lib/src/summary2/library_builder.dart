@@ -9,6 +9,8 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/macro/builders/observable.dart' as macro;
+import 'package:analyzer/src/macro/impl/macro.dart' as macro;
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -159,15 +161,66 @@ class LibraryBuilder {
 
   void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var linkingUnit in units) {
-      var resolver = ReferenceResolver(
-        linker,
-        nodesToBuildType,
-        linker.elementFactory,
-        element,
-        linkingUnit.reference,
-        linkingUnit.node.featureSet.isEnabled(Feature.non_nullable),
-      );
+      var resolver = _newTypeReferenceResolver(nodesToBuildType, linkingUnit);
       linkingUnit.node.accept(resolver);
+    }
+  }
+
+  /// Run built-in declaration macros.
+  void runDeclarationMacros() {
+    bool hasMacroAnnotation(ast.AnnotatedNode node, String name) {
+      for (var annotation in node.metadata) {
+        var nameNode = annotation.name;
+        if (nameNode is ast.SimpleIdentifier &&
+            annotation.arguments == null &&
+            annotation.constructorName == null &&
+            nameNode.name == name) {
+          var nameElement = element.scope.lookup(name).getter;
+          return nameElement != null &&
+              nameElement.library?.name == 'analyzer.macro.annotations';
+        }
+      }
+      return false;
+    }
+
+    for (var linkingUnit in units) {
+      for (var declaration in linkingUnit.node.declarations) {
+        if (declaration is ast.ClassDeclarationImpl) {
+          var members = declaration.members.toList();
+          for (var member in members) {
+            if (member is ast.FieldDeclarationImpl) {
+              if (hasMacroAnnotation(member, 'observable')) {
+                macro.ObservableMacro().visitFieldDeclaration(
+                  member,
+                  macro.ClassDeclarationBuilderImpl(declaration),
+                );
+              }
+            }
+          }
+
+          var newMembers = declaration.members.sublist(members.length);
+          if (newMembers.isNotEmpty) {
+            var elementBuilder = ElementBuilder(
+              libraryBuilder: this,
+              unitReference: linkingUnit.reference,
+              unitElement: linkingUnit.element,
+            );
+            var classElement = declaration.declaredElement as ClassElementImpl;
+            elementBuilder.buildMacroClassMembers(classElement, newMembers);
+
+            // TODO(scheglov) extract
+            {
+              var nodesToBuildType = NodesToBuildType();
+              var resolver =
+                  _newTypeReferenceResolver(nodesToBuildType, linkingUnit);
+              for (var newMember in newMembers) {
+                newMember.accept(resolver);
+              }
+              TypesBuilder(linker).build(nodesToBuildType);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -203,6 +256,21 @@ class LibraryBuilder {
       neverRef.element = NeverElementImpl.instance;
       localScope.declare('Never', neverRef);
     }
+  }
+
+  ReferenceResolver _newTypeReferenceResolver(
+    NodesToBuildType nodesToBuildType,
+    LinkingUnit linkingUnit,
+  ) {
+    /// TODO(scheglov) Do we need all these parameters?
+    return ReferenceResolver(
+      linker,
+      nodesToBuildType,
+      linker.elementFactory,
+      element,
+      linkingUnit.reference,
+      linkingUnit.node.featureSet.isEnabled(Feature.non_nullable),
+    );
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {

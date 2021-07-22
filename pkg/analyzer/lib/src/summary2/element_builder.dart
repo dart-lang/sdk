@@ -89,6 +89,34 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
+  /// Build elements for [members] and add into the [element].
+  void buildMacroClassMembers(
+    ClassElementImpl element,
+    List<ClassMember> members,
+  ) {
+    var holder = _buildClassMembers(element, members);
+
+    for (var newElement in holder.propertyAccessors) {
+      newElement.isFromMacro = true;
+      element.accessors.add(newElement);
+    }
+
+    for (var newElement in holder.constructors) {
+      newElement.isFromMacro = true;
+      element.constructors.add(newElement);
+    }
+
+    for (var newElement in holder.properties.whereType<FieldElementImpl>()) {
+      newElement.isFromMacro = true;
+      element.fields.add(newElement);
+    }
+
+    for (var newElement in holder.methods) {
+      newElement.isFromMacro = true;
+      element.methods.add(newElement);
+    }
+  }
+
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameNode = node.name;
@@ -868,7 +896,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, NodeList<ClassMember> members) {
+      ElementImpl element, List<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
