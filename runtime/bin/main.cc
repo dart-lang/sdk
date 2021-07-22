@@ -934,6 +934,7 @@ void RunMainIsolate(const char* script_name,
   int exit_code = 0;
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
+  flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",

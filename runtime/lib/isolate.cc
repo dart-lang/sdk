@@ -634,6 +634,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    api_flags.is_system_isolate = false;
     Dart_Isolate isolate = (create_group_callback)(
         state_->script_url(), name, nullptr, state_->package_config(),
         &api_flags, parent_isolate_->init_callback_data(), &error);
