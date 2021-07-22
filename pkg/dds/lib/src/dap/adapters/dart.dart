@@ -139,6 +139,9 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// processed its initial paused state).
   Future<void> get debuggerInitialized => _debuggerInitializedCompleter.future;
 
+  bool get evaluateToStringInDebugViews =>
+      args.evaluateToStringInDebugViews ?? false;
+
   /// [attachRequest] is called by the client when it wants us to to attach to
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
@@ -430,7 +433,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       final resultString = await _converter.convertVmInstanceRefToDisplayString(
         thread,
         result,
-        allowCallingToString: true,
+        allowCallingToString: evaluateToStringInDebugViews,
       );
       // TODO(dantup): We may need to store `expression` with this data
       // to allow building nested evaluateNames.
@@ -854,7 +857,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
             thread,
             variable.value,
             name: variable.name,
-            allowCallingToString: index <= maxToStringsPerEvaluation,
+            allowCallingToString: evaluateToStringInDebugViews &&
+                index <= maxToStringsPerEvaluation,
           );
         }
 
@@ -880,6 +884,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
+          allowCallingToString: evaluateToStringInDebugViews,
           startItem: childStart,
           numItems: childCount,
         ));
@@ -981,8 +986,15 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       if (ref == null || ref.kind == vm.InstanceKind.kNull) {
         return null;
       }
-      // TODO(dantup): This should handle truncation and complex types.
-      return ref.valueAsString;
+      return _converter.convertVmInstanceRefToDisplayString(
+        thread,
+        ref,
+        // Always allow calling toString() here as the user expects the full
+        // string they logged regardless of the evaluateToStringInDebugViews
+        // setting.
+        allowCallingToString: true,
+        includeQuotesAroundString: false,
+      );
     }
 
     var loggerName = await asString(record.loggerName);
@@ -996,13 +1008,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     final prefix = '[$loggerName] ';
 
     if (message != null) {
-      sendPrefixedOutput('stdout', prefix, '$message\n');
+      sendPrefixedOutput('console', prefix, '$message\n');
     }
     if (error != null) {
-      sendPrefixedOutput('stderr', prefix, '$error\n');
+      sendPrefixedOutput('console', prefix, '$error\n');
     }
     if (stack != null) {
-      sendPrefixedOutput('stderr', prefix, '$stack\n');
+      sendPrefixedOutput('console', prefix, '$stack\n');
     }
   }
 

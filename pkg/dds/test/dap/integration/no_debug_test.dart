@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'test_client.dart';
 import 'test_support.dart';
 
 main() {

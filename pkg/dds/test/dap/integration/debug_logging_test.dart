@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 
+import 'test_client.dart';
 import 'test_support.dart';
 
 main() {
@@ -35,6 +36,33 @@ void main(List<String> args) async {
         '',
         'Exited.',
       ]);
+    });
+
+    test('prints long messages from dart:developer log()', () async {
+      // Make a long message that's more than 255 chars (where the VM truncates
+      // log strings by default).
+      final longMessage = 'this is a test' * 20;
+      final testFile = dap.createTestFile('''
+import 'dart:developer';
+
+void main(List<String> args) async {
+  log('$longMessage');
+  // Prevent us exiting before the async log messages may have completed.
+  // The test will terminate the script early once the expectations are met.
+  await Future.delayed(const Duration(seconds: 30));
+}
+    ''');
+      final expectedLogMessage = '[log] $longMessage\n';
+
+      final consoleOutputs = dap.client.outputEvents
+          .where((event) => event.category == 'console')
+          .map((event) => event.output);
+
+      await Future.wait([
+        expectLater(consoleOutputs, emitsThrough(expectedLogMessage)),
+        dap.client.start(file: testFile),
+      ]);
+      await dap.client.terminate();
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

@@ -57,21 +57,32 @@ class ProtocolConverter {
     required bool allowCallingToString,
     bool includeQuotesAroundString = true,
   }) async {
-    final canCallToString = allowCallingToString &&
-        (_adapter.args.evaluateToStringInDebugViews ?? false);
+    final isTruncated = ref.valueAsStringIsTruncated ?? false;
+    if (ref.kind == vm.InstanceKind.kString && isTruncated) {
+      // Call toString() if allowed, otherwise (or if it returns null) fall back
+      // to the truncated value with "…" suffix.
+      var stringValue = allowCallingToString
+          ? await _callToString(
+              thread,
+              ref,
+              includeQuotesAroundString: includeQuotesAroundString,
+            )
+          : null;
+      stringValue ??= '${ref.valueAsString}…';
 
-    if (ref.kind == 'String' || ref.valueAsString != null) {
-      var stringValue = ref.valueAsString.toString();
-      if (ref.valueAsStringIsTruncated ?? false) {
-        stringValue = '$stringValue…';
-      }
-      if (ref.kind == 'String' && includeQuotesAroundString) {
-        stringValue = '"$stringValue"';
-      }
-      return stringValue;
+      return includeQuotesAroundString ? '"$stringValue"' : stringValue;
+    } else if (ref.kind == vm.InstanceKind.kString) {
+      // Untruncated strings.
+      return includeQuotesAroundString
+          ? '"${ref.valueAsString}"'
+          : ref.valueAsString.toString();
+    } else if (ref.valueAsString != null) {
+      return isTruncated
+          ? '${ref.valueAsString}…'
+          : ref.valueAsString.toString();
     } else if (ref.kind == 'PlainInstance') {
       var stringValue = ref.classRef?.name ?? '<unknown instance>';
-      if (canCallToString) {
+      if (allowCallingToString) {
         final toStringValue = await _callToString(
           thread,
           ref,
@@ -99,6 +110,7 @@ class ProtocolConverter {
   Future<List<dap.Variable>> convertVmInstanceToVariablesList(
     ThreadInfo thread,
     vm.Instance instance, {
+    required bool allowCallingToString,
     int? startItem = 0,
     int? numItems,
   }) async {
@@ -112,7 +124,7 @@ class ProtocolConverter {
         await convertVmResponseToVariable(
           thread,
           instance,
-          allowCallingToString: true,
+          allowCallingToString: allowCallingToString,
         )
       ];
     } else if (elements != null) {
@@ -121,10 +133,15 @@ class ProtocolConverter {
       return Future.wait(elements
           .cast<vm.Response>()
           .sublist(start, numItems != null ? start + numItems : null)
-          .mapIndexed((index, response) async => convertVmResponseToVariable(
-              thread, response,
+          .mapIndexed(
+            (index, response) => convertVmResponseToVariable(
+              thread,
+              response,
               name: '${start + index}',
-              allowCallingToString: index <= maxToStringsPerEvaluation)));
+              allowCallingToString:
+                  allowCallingToString && index <= maxToStringsPerEvaluation,
+            ),
+          ));
     } else if (associations != null) {
       // For maps, create a variable for each entry (in the requested subset).
       // Use the keys and values to create a display string in the form
@@ -135,13 +152,14 @@ class ProtocolConverter {
       return Future.wait(associations
           .sublist(start, numItems != null ? start + numItems : null)
           .mapIndexed((index, mapEntry) async {
-        final allowCallingToString = index <= maxToStringsPerEvaluation;
+        final callToString =
+            allowCallingToString && index <= maxToStringsPerEvaluation;
         final keyDisplay = await convertVmResponseToDisplayString(
             thread, mapEntry.key,
-            allowCallingToString: allowCallingToString);
+            allowCallingToString: callToString);
         final valueDisplay = await convertVmResponseToDisplayString(
             thread, mapEntry.value,
-            allowCallingToString: allowCallingToString);
+            allowCallingToString: callToString);
         return dap.Variable(
           name: '${start + index}',
           value: '$keyDisplay -> $valueDisplay',
@@ -154,7 +172,8 @@ class ProtocolConverter {
           (index, field) async => convertVmResponseToVariable(
               thread, field.value,
               name: field.decl?.name ?? '<unnamed field>',
-              allowCallingToString: index <= maxToStringsPerEvaluation)));
+              allowCallingToString:
+                  allowCallingToString && index <= maxToStringsPerEvaluation)));
 
       // Also evaluate the getters if evaluateGettersInDebugViews=true enabled.
       final service = _adapter.vmService;
@@ -177,7 +196,8 @@ class ProtocolConverter {
             thread,
             response,
             name: getterName,
-            allowCallingToString: index <= maxToStringsPerEvaluation,
+            allowCallingToString:
+                allowCallingToString && index <= maxToStringsPerEvaluation,
           );
         }
 
@@ -397,7 +417,7 @@ class ProtocolConverter {
     if (service == null) {
       return null;
     }
-    final result = await service.invoke(
+    var result = await service.invoke(
       thread.isolate.id!,
       ref.id!,
       'toString',
@@ -405,10 +425,18 @@ class ProtocolConverter {
       disableBreakpoints: true,
     );
 
+    // If the response is a string and is truncated, use getObject() to get the
+    // full value.
+    if (result is vm.InstanceRef &&
+        result.kind == 'String' &&
+        (result.valueAsStringIsTruncated ?? false)) {
+      result = await service.getObject(thread.isolate.id!, result.id!);
+    }
+
     return convertVmResponseToDisplayString(
       thread,
       result,
-      allowCallingToString: false,
+      allowCallingToString: false, // Don't allow recursing.
       includeQuotesAroundString: includeQuotesAroundString,
     );
   }

@@ -54,21 +54,6 @@ class DapTestClient {
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
 
-  /// Collects all output events until the program terminates.
-  Future<List<OutputEventBody>> collectOutput(
-      {File? file, Future<Response> Function()? launch}) async {
-    final outputEventsFuture = outputEvents.toList();
-
-    // Launch script and wait for termination.
-    await Future.wait([
-      event('terminated'),
-      initialize(),
-      launch?.call() ?? this.launch(file!.path),
-    ], eagerError: true);
-
-    return outputEventsFuture;
-  }
-
   /// Sends a continue request for the given thread.
   ///
   /// Returns a Future that completes when the server returns a corresponding
@@ -206,6 +191,19 @@ class DapTestClient {
           {int? startFrame, int? numFrames}) =>
       sendRequest(StackTraceArguments(
           threadId: threadId, startFrame: startFrame, levels: numFrames));
+
+  /// Initializes the debug adapter and launches [file] or calls the custom
+  /// [launch] method.
+  Future<void> start({
+    File? file,
+    Future<Response> Function()? launch,
+  }) {
+    // Launch script and wait for termination.
+    return Future.wait([
+      initialize(),
+      launch?.call() ?? this.launch(file!.path),
+    ], eagerError: true);
+  }
 
   /// Sends a stepIn request for the given thread.
   ///
@@ -431,6 +429,21 @@ extension DapTestClientExtension on DapTestClient {
     expect(response.success, isTrue);
     expect(response.command, equals('threads'));
     return ThreadsResponseBody.fromJson(response.body as Map<String, Object?>);
+  }
+
+  /// Collects all output events until the program terminates.
+  ///
+  /// These results include all events in the order they are recieved, including
+  /// console, stdout and stderr.
+  Future<List<OutputEventBody>> collectOutput({
+    File? file,
+    Future<Response> Function()? launch,
+  }) async {
+    final outputEventsFuture = outputEvents.toList();
+
+    await start(file: file, launch: launch);
+
+    return outputEventsFuture;
   }
 
   /// A helper that fetches scopes for a frame, checks for one with the name
