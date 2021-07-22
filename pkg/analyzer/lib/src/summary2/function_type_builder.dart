@@ -190,6 +190,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       } else if (isNNBD) {
         nullabilitySuffix = NullabilitySuffix.none;
       } else {
+        // TODO(scheglov) legacy?
         nullabilitySuffix = NullabilitySuffix.question;
       }
 
