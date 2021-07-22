@@ -6,6 +6,7 @@ class Class1 {}
 
 class Class2 {
   Class2.named();
+  factory Class2.redirect() = Class2.named;
 }
 
 class Class3 {
@@ -17,6 +18,7 @@ class Class3 {
 class Class4<T> {
   Class4._();
   factory Class4() => new Class4<T>._();
+  factory Class4.redirect() = Class4._;
 }
 
 class Class5<T extends num> {

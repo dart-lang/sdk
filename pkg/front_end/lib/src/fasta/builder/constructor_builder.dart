@@ -20,7 +20,7 @@ import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
-import '../kernel/kernel_target.dart' show ClonedFunctionNode;
+import '../kernel/kernel_target.dart' show SynthesizedFunctionNode;
 
 import '../loader.dart' show Loader;
 
@@ -252,9 +252,9 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -471,13 +471,14 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
 class SyntheticConstructorBuilder extends DillConstructorBuilder {
   MemberBuilderImpl? _origin;
-  ClonedFunctionNode? _clonedFunctionNode;
+  SynthesizedFunctionNode? _synthesizedFunctionNode;
 
   SyntheticConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
-      {MemberBuilderImpl? origin, ClonedFunctionNode? clonedFunctionNode})
+      {MemberBuilderImpl? origin,
+      SynthesizedFunctionNode? synthesizedFunctionNode})
       : _origin = origin,
-        _clonedFunctionNode = clonedFunctionNode,
+        _synthesizedFunctionNode = synthesizedFunctionNode,
         super(constructor, constructorTearOff, parent);
 
   @override
@@ -485,7 +486,7 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
       LibraryBuilder originLibraryBuilder = _origin!.library;
@@ -493,10 +494,10 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder {
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
         _origin!.buildOutlineExpressions(originLibraryBuilder, coreTypes,
-            delayedActionPerformers, clonedFunctionNodes);
+            delayedActionPerformers, synthesizedFunctionNodes);
       }
-      _clonedFunctionNode!.cloneDefaultValues();
-      _clonedFunctionNode = null;
+      _synthesizedFunctionNode!.cloneDefaultValues();
+      _synthesizedFunctionNode = null;
       _origin = null;
     }
   }

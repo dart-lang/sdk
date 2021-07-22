@@ -92,7 +92,8 @@ import '../fasta_codes.dart';
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ClassMember, DelayedCheck;
 
-import '../kernel/kernel_target.dart' show ClonedFunctionNode, KernelTarget;
+import '../kernel/kernel_target.dart'
+    show SynthesizedFunctionNode, KernelTarget;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
@@ -1182,8 +1183,8 @@ class SourceLoader extends Loader {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(
-      CoreTypes coreTypes, List<ClonedFunctionNode> clonedFunctionNodes) {
+  void buildOutlineExpressions(CoreTypes coreTypes,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (LibraryBuilder library in builders.values) {
@@ -1194,13 +1195,13 @@ class SourceLoader extends Loader {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
             declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, clonedFunctionNodes);
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else if (declaration is ExtensionBuilder) {
             declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, clonedFunctionNodes);
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, clonedFunctionNodes);
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else if (declaration is TypeAliasBuilder) {
             declaration.buildOutlineExpressions(
                 library, coreTypes, delayedActionPerformers);

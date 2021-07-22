@@ -27,6 +27,16 @@ main() {
 
   expect(true, identical(f2a, f2b));
 
+  var f2c = Class2.redirect;
+  var c2c = f2c();
+  expect(true, c2c is Class2);
+
+  dynamic f2d = Class2.redirect;
+  var c2d = f2d();
+  expect(true, c2d is Class2);
+
+  expect(true, identical(f2c, f2d));
+
   var f3a = Class3.new;
   var c3a = f3a(42);
   expect(42, c3a.field);
@@ -65,6 +75,31 @@ main() {
   expect(true, c4d is Class4<dynamic>);
   expect(false, c4d is Class4<int>);
   throws(() => f4c<int, String>());
+
+  var f4d = Class4.redirect;
+  var c4e = f4d();
+  expect(true, c4e is Class4<dynamic>);
+  expect(false, c4e is Class4<int>);
+  var c4f = f4d<int>();
+  expect(true, c4f is Class4<int>);
+  expect(false, c4f is Class4<String>);
+  () {
+    f4d<int, String>(); // error
+  };
+
+  var f4e = f4d<int>;
+  var c4g = f4e();
+  expect(true, c4g is Class4<int>);
+  expect(false, c4g is Class4<String>);
+  () {
+    f4e<int>(); // error
+  };
+
+  dynamic f4f = Class4.redirect;
+  var c4h = f4f();
+  expect(true, c4h is Class4<dynamic>);
+  expect(false, c4h is Class4<int>);
+  throws(() => f4f<int, String>());
 
   var f5a = Class5.new;
   var c5a = f5a();

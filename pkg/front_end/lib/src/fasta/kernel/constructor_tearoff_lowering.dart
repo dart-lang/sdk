@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
+import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../source/source_library_builder.dart';
 import 'kernel_api.dart';
@@ -61,7 +62,7 @@ Procedure? createConstructorTearOffProcedure(String name,
 void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
     Class enclosingClass, SourceLibraryBuilder libraryBuilder) {
   assert(constructor is Constructor ||
-      (constructor is Procedure && constructor.kind == ProcedureKind.Factory));
+      (constructor is Procedure && constructor.isFactory));
 
   int fileOffset = tearOff.fileOffset;
 
@@ -84,19 +85,7 @@ void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
   Substitution substitution = freshTypeParameters.substitution;
   _createParameters(tearOff, function, substitution);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-
-  Expression constructorInvocation;
-  if (constructor is Constructor) {
-    constructorInvocation = new ConstructorInvocation(constructor, arguments)
-      ..fileOffset = tearOff.fileOffset;
-  } else {
-    constructorInvocation =
-        new StaticInvocation(constructor as Procedure, arguments)
-          ..fileOffset = tearOff.fileOffset;
-  }
-  tearOff.function.body = new ReturnStatement(constructorInvocation)
-    ..fileOffset = tearOff.fileOffset
-    ..parent = tearOff.function;
+  _createTearOffBody(tearOff, constructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   updatePrivateMemberName(tearOff, libraryBuilder);
@@ -157,10 +146,10 @@ void copyTearOffDefaultValues(Procedure tearOff, FunctionNode function) {
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
 /// [redirectingConstructor] declaration.
-FreshTypeParameters buildRedirectingFactoryTearOffProcedure(
+FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     Procedure tearOff,
     Procedure redirectingConstructor,
-    SourceLibraryBuilder libraryBuilder) {
+    LibraryBuilder libraryBuilder) {
   assert(redirectingConstructor.isRedirectingFactory);
   FunctionNode function = redirectingConstructor.function;
   FreshTypeParameters freshTypeParameters =
@@ -176,11 +165,11 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedure(
 /// Creates the body for the redirecting factory [tearOff] with the target
 /// [constructor] and [typeArguments].
 ///
-/// Returns the [ClonedFunctionNode] object need to perform default value
+/// Returns the [SynthesizedFunctionNode] object need to perform default value
 /// computation.
-ClonedFunctionNode buildRedirectingFactoryTearOffBody(
+SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
     Procedure tearOff,
-    Constructor constructor,
+    Member target,
     List<DartType> typeArguments,
     FreshTypeParameters freshTypeParameters) {
   int fileOffset = tearOff.fileOffset;
@@ -196,18 +185,13 @@ ClonedFunctionNode buildRedirectingFactoryTearOffBody(
   }
 
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  Expression constructorInvocation =
-      new ConstructorInvocation(constructor, arguments)
-        ..fileOffset = tearOff.fileOffset;
-  tearOff.function.body = new ReturnStatement(constructorInvocation)
-    ..fileOffset = tearOff.fileOffset
-    ..parent = tearOff.function;
-
-  return new ClonedFunctionNode(
+  _createTearOffBody(tearOff, target, arguments);
+  return new SynthesizedFunctionNode(
       new Map<TypeParameter, DartType>.fromIterables(
-          constructor.enclosingClass.typeParameters, typeArguments),
-      constructor.function,
-      tearOff.function);
+          target.enclosingClass!.typeParameters, typeArguments),
+      target.function!,
+      tearOff.function,
+      identicalSignatures: false);
 }
 
 /// Creates the synthesized name to use for the lowering of the tear off of a
@@ -362,4 +346,21 @@ Arguments _createArguments(
       named: namedArguments, types: typeArguments)
     ..fileOffset = tearOff.fileOffset;
   return arguments;
+}
+
+/// Creates the tear of body for [tearOff] which calls [target] with
+/// [arguments].
+void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
+  assert(target is Constructor || (target is Procedure && target.isFactory));
+  Expression constructorInvocation;
+  if (target is Constructor) {
+    constructorInvocation = new ConstructorInvocation(target, arguments)
+      ..fileOffset = tearOff.fileOffset;
+  } else {
+    constructorInvocation = new StaticInvocation(target as Procedure, arguments)
+      ..fileOffset = tearOff.fileOffset;
+  }
+  tearOff.function.body = new ReturnStatement(constructorInvocation)
+    ..fileOffset = tearOff.fileOffset
+    ..parent = tearOff.function;
 }

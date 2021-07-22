@@ -38,7 +38,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes);
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///

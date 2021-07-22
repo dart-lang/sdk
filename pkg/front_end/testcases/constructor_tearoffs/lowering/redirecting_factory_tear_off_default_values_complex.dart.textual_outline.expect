@@ -1,0 +1,22 @@
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+
+class Class1 {
+  final int field1;
+  final int field2;
+  Class1.positional([this.field1 = 1, this.field2 = 2]);
+  factory Class1.redirectPositionalSame([int field1, int field2]) =
+      Class1.positional;
+  factory Class1.redirectPositionalFewer1([int field1]) = Class1.positional;
+  factory Class1.redirectPositionalFewer2() = Class1.positional;
+  Class1.named({this.field1 = 1, this.field2 = 2});
+  factory Class1.redirectNamedSame({int field1, int field2}) = Class1.named;
+  factory Class1.redirectNamedReorder({int field2, int field1}) = Class1.named;
+  factory Class1.redirectNamedFewer1({int field1}) = Class1.named;
+  factory Class1.redirectNamedFewer2({int field2}) = Class1.named;
+  factory Class1.redirectNamedFewer3() = Class1.named;
+}
+
+testDefaultValues() {}
+expect(expected, actual) {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

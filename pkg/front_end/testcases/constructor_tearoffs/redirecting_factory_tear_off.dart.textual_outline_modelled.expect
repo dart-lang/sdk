@@ -4,7 +4,8 @@ class Class1 {
 }
 
 class Class2 {
-  Class2._();
+  Class2.__();
+  factory Class2._() => Class2.__();
   factory Class2.named() = Class2._;
 }
 
@@ -33,6 +34,22 @@ class Class6 {
   final int? field2;
   final int field1;
   final int field3;
+}
+
+class Class7a implements Class7b {
+  Class7a();
+}
+
+class Class7b {
+  factory Class7b() = Class7a;
+}
+
+class Class8a<T> implements Class8b<T> {
+  Class8a();
+}
+
+class Class8b<T> {
+  factory Class8b() = Class8a<T>;
 }
 
 expect(expected, actual) {}
