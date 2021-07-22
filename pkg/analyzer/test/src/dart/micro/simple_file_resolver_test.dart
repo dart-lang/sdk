@@ -673,34 +673,34 @@ var foo = 0;
     var path = convertPath('/workspace/dart/test/lib/test.dart');
 
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedFiles, isEmpty);
+    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
     addTestFile('var a = c;');
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
   test_getErrors_reuse_changeDependency() {
@@ -716,15 +716,15 @@ var b = a.foo;
     var path = convertPath('/workspace/dart/test/lib/test.dart');
 
     // No resolved files yet.
-    expect(fileResolver.testView!.resolvedFiles, isEmpty);
+    expect(fileResolver.testView!.resolvedLibraries, isEmpty);
 
     // No cached, will resolve once.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Has cached, will be not resolved again.
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // Change the dependency, new resolver.
     // The signature of the result is different.
@@ -734,13 +734,13 @@ var a = 4.2;
 ''');
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, [path]);
+    expect(fileResolver.testView!.resolvedLibraries, [path]);
 
     // New resolver.
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView!.resolvedFiles, <Object>[]);
+    expect(fileResolver.testView!.resolvedLibraries, <Object>[]);
   }
 
   test_getLibraryByUri() {
@@ -1060,20 +1060,20 @@ void func() {
 
     // No resolved files yet.
     var testView = fileResolver.testView!;
-    expect(testView.resolvedFiles, isEmpty);
+    expect(testView.resolvedLibraries, isEmpty);
 
     await resolveFile2(path);
     var result1 = result;
 
     // The file was resolved.
-    expect(testView.resolvedFiles, [path]);
+    expect(testView.resolvedLibraries, [path]);
 
     // The result is cached.
     expect(fileResolver.cachedResults, contains(path));
 
     // Ask again, no changes, not resolved.
     await resolveFile2(path);
-    expect(testView.resolvedFiles, [path]);
+    expect(testView.resolvedLibraries, [path]);
 
     // The same result was returned.
     expect(result, same(result1));
@@ -1084,7 +1084,7 @@ void func() {
 
     // The was a change to a file, no matter which, resolve again.
     await resolveFile2(path);
-    expect(testView.resolvedFiles, [path, path]);
+    expect(testView.resolvedLibraries, [path, path]);
 
     // Get should get a new result.
     expect(result, isNot(same(result1)));
@@ -1103,7 +1103,7 @@ part of 'a.dart';
 
     // No resolved files yet.
     var testView = fileResolver.testView!;
-    expect(testView.resolvedFiles, isEmpty);
+    expect(testView.resolvedLibraries, isEmpty);
 
     fileResolver.resolve(
       path: b_path,
@@ -1112,7 +1112,7 @@ part of 'a.dart';
     );
 
     // The file was resolved.
-    expect(testView.resolvedFiles, [a_path]);
+    expect(testView.resolvedLibraries, [a_path]);
 
     // The completion location was set, so not units are resolved.
     // So, the result should not be cached.

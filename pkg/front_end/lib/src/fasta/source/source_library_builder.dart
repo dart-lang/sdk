@@ -644,6 +644,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       prefix = name as String;
       suffix = null;
     }
+    if (enableConstructorTearOffsInLibrary) {
+      suffix = suffix == "new" ? "" : suffix;
+    }
     if (prefix == className) {
       return suffix ?? "";
     }

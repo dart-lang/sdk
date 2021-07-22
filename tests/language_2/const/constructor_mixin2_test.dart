@@ -17,8 +17,6 @@ class B extends A
 {
   const B(foo) : super(foo);
 //      ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
-//      ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD
 //               ^
 // [cfe] A constant constructor can't call a non-constant super constructor.

@@ -136,9 +136,10 @@ class ServerCapabilitiesComputer {
       LspClientCapabilities clientCapabilities) {
     final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
     final renameOptionsSupport = clientCapabilities.renameValidation;
-    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final enableFormatter =
+        _server.clientConfiguration.global.enableSdkFormatter;
     final previewCommitCharacters =
-        _server.clientConfiguration.previewCommitCharacters;
+        _server.clientConfiguration.global.previewCommitCharacters;
 
     final dynamicRegistrations =
         ClientDynamicRegistrations(clientCapabilities.raw);
@@ -321,9 +322,10 @@ class ServerCapabilitiesComputer {
 
     final registrations = <Registration>[];
 
-    final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final enableFormatter =
+        _server.clientConfiguration.global.enableSdkFormatter;
     final previewCommitCharacters =
-        _server.clientConfiguration.previewCommitCharacters;
+        _server.clientConfiguration.global.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable? options]) {

@@ -1458,14 +1458,34 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
-  Future<ResponseMessage> provideConfig(Future<ResponseMessage> Function() f,
-      FutureOr<Map<String, dynamic>> config) {
+  Future<ResponseMessage> provideConfig(
+    Future<ResponseMessage> Function() f,
+    FutureOr<Map<String, Object?>> globalConfig, {
+    FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
+  }) {
     return handleExpectedRequest<ResponseMessage, ConfigurationParams,
-        List<Map<String, dynamic>>>(
+        List<Map<String, Object?>>>(
       Method.workspace_configuration,
       ConfigurationParams.fromJson,
       f,
-      handler: (configurationParams) async => [await config],
+      handler: (configurationParams) async {
+        // We must respond to the request for config with items that match the
+        // request. For any item in the request without a folder, we will return
+        // the global config. For any item in the request with a folder we will
+        // return the config for that item in the map, or fall back to the global
+        // config if it does not exist.
+        final global = await globalConfig;
+        final folders = await folderConfig;
+        return configurationParams.items.map(
+          (requestedConfig) {
+            final uri = requestedConfig.scopeUri;
+            final path = uri != null ? Uri.parse(uri).toFilePath() : null;
+            // Use the config the test provided for this path, or fall back to
+            // global.
+            return (folders != null ? folders[path] : null) ?? global;
+          },
+        ).toList();
+      },
     );
   }
 

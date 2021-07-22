@@ -77,8 +77,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter
-                .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
+            _errorReporter.reportErrorForNode(
+                FfiCode.EMPTY_STRUCT, node.name, [node.name.name]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -544,8 +544,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, TPrime,
-          node);
+      _validateFfiLeafCallUsesNoHandles(
+          node.argumentList.arguments, TPrime, node);
     }
     _validateIsLeafIsConst(node);
   }
@@ -637,8 +637,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiLeafCallUsesNoHandles(NodeList<Expression> args,
-      DartType nativeType, AstNode errorNode) {
+  void _validateFfiLeafCallUsesNoHandles(
+      NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
     if (args.isNotEmpty) {
       for (final arg in args) {
         if (arg is NamedExpression) {
@@ -715,6 +715,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
+          // TODO(brianwilkerson) There are no tests for this branch. Ensure
+          //  that the diagnostic is correct and add tests.
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
@@ -750,8 +752,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     final DartType T = node.typeArgumentTypes![0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
+      AstNode errorNode = node.methodName;
+      var typeArgument = node.typeArguments?.arguments[0];
+      if (typeArgument != null) {
+        errorNode = typeArgument;
+      }
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode, [T, 'fromFunction']);
       return;
     }
 
@@ -810,7 +817,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `DynamicLibrary.lookupFunction<S, F>()`.
   void _validateLookupFunction(MethodInvocation node) {
     final typeArguments = node.typeArguments?.arguments;
-    if (typeArguments?.length != 2) {
+    if (typeArguments == null || typeArguments.length != 2) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
@@ -820,19 +827,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType S = argTypes[0];
     final DartType F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
-      final AstNode errorNode = typeArguments![0];
+      final AstNode errorNode = typeArguments[0];
       _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
           errorNode, [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
-      final AstNode errorNode = typeArguments![1];
+      final AstNode errorNode = typeArguments[1];
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiLeafCallUsesNoHandles(node.argumentList.arguments, S,
-        typeArguments![0]);
+    _validateFfiLeafCallUsesNoHandles(
+        node.argumentList.arguments, S, typeArguments[0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.

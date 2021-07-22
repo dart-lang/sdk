@@ -56,21 +56,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
 
-  void buildDeclarationElementsMacro(CompilationUnit? unit) {
-    if (unit == null) {
-      return;
-    }
-
-    _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
-
-    _unitElement.classes = _mergeElements(
-      _unitElement.classes,
-      _enclosingContext.classes,
-    );
-
-    // TODO(scheglov) other top-level elements
-  }
-
   /// Build exports and imports, metadata into [_libraryElement].
   void buildLibraryElementChildren(CompilationUnit unit) {
     unit.directives.accept(this);
@@ -985,41 +970,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   /// TODO(scheglov) Maybe inline?
   void _buildType(TypeAnnotation? node) {
     node?.accept(this);
-  }
-
-  /// Return a new list that includes [sourceElements] plus elements
-  /// with not yet existing names from [macroElements].
-  List<T> _mergeElements<T extends Element>(
-    List<T> sourceElements,
-    List<T> macroElements,
-  ) {
-    var result = <T>[];
-
-    var sourceMap = <String, T>{};
-    for (var element in sourceElements) {
-      var name = element.name;
-      if (name != null) {
-        result.add(element);
-        sourceMap[name] = element;
-      }
-    }
-
-    for (var element in macroElements) {
-      var sourceElement = sourceMap[element.name];
-      if (sourceElement == null) {
-        (element as ElementImpl).isFromMacro = true;
-        result.add(element);
-      } else if (sourceElement is ClassElementImpl &&
-          element is ClassElementImpl) {
-        sourceElement.methods = _mergeElements(
-          sourceElement.methods,
-          element.methods,
-        );
-      }
-      // TODO(scheglov) Other class members.
-    }
-
-    return result;
   }
 
   Uri? _selectAbsoluteUri(NamespaceDirective directive) {

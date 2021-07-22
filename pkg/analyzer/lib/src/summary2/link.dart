@@ -251,7 +251,6 @@ class LinkInputUnit {
   final String? sourceContent;
   final bool isSynthetic;
   final ast.CompilationUnit unit;
-  final LinkInputUnitMacro? macro;
 
   LinkInputUnit({
     required this.partDirectiveIndex,
@@ -260,25 +259,11 @@ class LinkInputUnit {
     this.sourceContent,
     required this.isSynthetic,
     required this.unit,
-    this.macro,
   });
 
   Uri get uri => source.uri;
 
   String get uriStr => '$uri';
-}
-
-class LinkInputUnitMacro {
-  /// The path of the file that was parsed into [unit].
-  /// We don't need complete [Source] because this file does not have a
-  /// separate [Uri], it is a reflection of the source file.
-  final String path;
-  final ast.CompilationUnit unit;
-
-  LinkInputUnitMacro({
-    required this.path,
-    required this.unit,
-  });
 }
 
 class LinkResult {
