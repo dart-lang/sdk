@@ -124,7 +124,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes);
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
@@ -345,11 +345,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration as MemberBuilder;
-      member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
+      member.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
     }
 
     MetadataBuilder.buildAnnotations(

@@ -53,7 +53,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
           enableDds: enableDds,
           enableAuthCodes: enableAuthCodes,
           logger: logger,
-        );
+        ) {
+    channel.closed.then((_) => shutdown());
+  }
 
   Future<void> debuggerConnected(vm.VM vmInfo) async {
     if (!isAttach) {

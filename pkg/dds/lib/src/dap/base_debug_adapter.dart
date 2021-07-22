@@ -65,14 +65,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     RawRequestArguments? args,
     void Function(Object?) sendResponse,
   ) async {
-    final response = Response(
-      success: false,
-      requestSeq: request.seq,
-      seq: _sequence++,
-      command: request.command,
-      message: 'Unknown command: ${request.command}',
-    );
-    sendResponse(response);
+    throw DebugAdapterException('Unknown command  ${request.command}');
   }
 
   Future<void> disconnectRequest(
@@ -251,7 +244,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     } else if (message is Response) {
       _handleIncomingResponse(message);
     } else {
-      throw Exception('Unknown Protocol message ${message.type}');
+      throw DebugAdapterException('Unknown Protocol message ${message.type}');
     }
   }
 

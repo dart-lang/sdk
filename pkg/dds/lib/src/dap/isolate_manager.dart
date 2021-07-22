@@ -23,15 +23,33 @@ class IsolateManager {
   final Map<int, ThreadInfo> _threadsByThreadId = {};
   int _nextThreadNumber = 1;
 
-  /// Whether debugging is enabled.
+  /// Whether debugging is enabled for this session.
   ///
   /// This must be set before any isolates are spawned and controls whether
   /// breakpoints or exception pause modes are sent to the VM.
   ///
+  /// If false, requests to send breakpoints or exception pause mode will be
+  /// dropped. Other functionality (handling pause events, resuming, etc.) will
+  /// all still function.
+  ///
   /// This is used to support debug sessions that have VM Service connections
   /// but were run with noDebug: true (for example we may need a VM Service
   /// connection for a noDebug flutter app in order to support hot reload).
-  bool _debug = false;
+  bool debug = false;
+
+  /// Whether SDK libraries should be marked as debuggable.
+  ///
+  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// apply changes. This allows applying both [debugSdkLibraries] and
+  /// [debugExternalPackageLibraries] in one step.
+  bool debugSdkLibraries = true;
+
+  /// Whether external package libraries should be marked as debuggable.
+  ///
+  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// apply changes. This allows applying both [debugSdkLibraries] and
+  /// [debugExternalPackageLibraries] in one step.
+  bool debugExternalPackageLibraries = true;
 
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
@@ -71,6 +89,18 @@ class IsolateManager {
   /// due to the async nature, it's not guaranteed that threads in this list have
   /// not exited between accessing this list and trying to use the results.
   List<ThreadInfo> get threads => _threadsByIsolateId.values.toList();
+
+  /// Re-applies debug options to all isolates/libraries.
+  ///
+  /// This is required if options like debugSdkLibraries are modified, but is a
+  /// separate step to batch together changes to multiple options.
+  Future<void> applyDebugOptions() async {
+    await Future.wait(_threadsByThreadId.values.map(
+      // debuggable libraries is the only thing currently affected by these
+      // changable options.
+      (isolate) => _sendLibraryDebuggables(isolate.isolate),
+    ));
+  }
 
   Future<T> getObject<T extends vm.Response>(
       vm.IsolateRef isolate, vm.ObjRef object) async {
@@ -219,19 +249,6 @@ class IsolateManager {
         .map((isolate) => _sendBreakpoints(isolate.isolate, uri: uri)));
   }
 
-  /// Sets whether debugging is enabled for this session.
-  ///
-  /// If not, requests to send breakpoints or exception pause mode will be
-  /// dropped. Other functionality (handling pause events, resuming, etc.) will
-  /// all still function.
-  ///
-  /// This is used to support debug sessions that have VM Service connections
-  /// but were run with noDebug: true (for example we may need a VM Service
-  /// connection for a noDebug flutter app in order to support hot reload).
-  void setDebugEnabled(bool debug) {
-    _debug = debug;
-  }
-
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
   /// existing isolates will be updated to reflect the new setting.
   Future<void> setExceptionPauseMode(String mode) async {
@@ -371,13 +388,13 @@ class IsolateManager {
 
   /// Checks whether a library should be considered debuggable.
   ///
-  /// This usesthe settings from the launch arguments (debugSdkLibraries
-  /// and debugExternalPackageLibraries) against the type of library given.
+  /// Initial values are provided in the launch arguments, but may be updated
+  /// by the `updateDebugOptions` custom request.
   bool _libaryIsDebuggable(vm.LibraryRef library) {
     if (_isSdkLibrary(library)) {
-      return _adapter.args.debugSdkLibraries ?? false;
+      return debugSdkLibraries;
     } else if (_isExternalPackageLibrary(library)) {
-      return _adapter.args.debugExternalPackageLibraries ?? false;
+      return debugExternalPackageLibraries;
     } else {
       return true;
     }
@@ -391,7 +408,7 @@ class IsolateManager {
   /// newly-created isolates).
   Future<void> _sendBreakpoints(vm.IsolateRef isolate, {String? uri}) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 
@@ -425,7 +442,7 @@ class IsolateManager {
   /// Sets the exception pause mode for an individual isolate.
   Future<void> _sendExceptionPauseMode(vm.IsolateRef isolate) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 
@@ -436,7 +453,7 @@ class IsolateManager {
   /// on the debug settings.
   Future<void> _sendLibraryDebuggables(vm.IsolateRef isolateRef) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 

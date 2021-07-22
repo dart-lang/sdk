@@ -21246,6 +21246,58 @@ library
 ''');
   }
 
+  test_macro_observable() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const observable = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+class A {
+  @observable
+  int _f = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @39
+        fields
+          _f @63
+            metadata
+              Annotation
+                atSign: @ @45
+                element: macro_annotations.dart::@getter::observable
+                name: SimpleIdentifier
+                  staticElement: macro_annotations.dart::@getter::observable
+                  staticType: null
+                  token: observable @46
+            type: int
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get _f @-1
+            returnType: int
+          synthetic set _f @-1
+            parameters
+              requiredPositional __f @-1
+                type: int
+            returnType: void
+          get f @-1
+            returnType: int
+          set f @-1
+            parameters
+              requiredPositional val @-1
+                type: int
+            returnType: void
+''');
+  }
+
   test_main_class() async {
     var library = await checkLibrary('class main {}');
     checkElementText(library, r'''

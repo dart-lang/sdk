@@ -645,6 +645,8 @@ class _ElementWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
+    e as PropertyAccessorElementImpl;
+
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -667,7 +669,7 @@ class _ElementWriter {
       }
     }
 
-    if (e.isSynthetic) {
+    if (e.isSynthetic || e.isFromMacro) {
       expect(e.nameOffset, -1);
     } else {
       expect(e.nameOffset, isPositive);

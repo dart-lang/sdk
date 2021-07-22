@@ -523,7 +523,7 @@ class EnumBuilder extends SourceClassBuilder {
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -568,7 +568,7 @@ class EnumBuilder extends SourceClassBuilder {
       }
     }
     super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
   }
 
   @override

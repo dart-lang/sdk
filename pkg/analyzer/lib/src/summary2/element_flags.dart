@@ -8,12 +8,14 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isMixinApplication = 1 << 1;
-  static const int _isSimplyBounded = 1 << 2;
+  static const int _isFromMacro = 1 << 1;
+  static const int _isMixinApplication = 1 << 2;
+  static const int _isSimplyBounded = 1 << 3;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readByte();
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isFromMacro = (byte & _isFromMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
@@ -21,6 +23,7 @@ class ClassElementFlags {
   static void write(BufferedSink sink, ClassElementImpl element) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isFromMacro ? _isFromMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
@@ -60,8 +63,9 @@ class FieldElementFlags {
   static const int _isCovariant = 1 << 5;
   static const int _isExternal = 1 << 6;
   static const int _isFinal = 1 << 7;
-  static const int _isLate = 1 << 8;
-  static const int _isStatic = 1 << 9;
+  static const int _isFromMacro = 1 << 8;
+  static const int _isLate = 1 << 9;
+  static const int _isStatic = 1 << 10;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -73,6 +77,7 @@ class FieldElementFlags {
     element.isCovariant = (byte & _isCovariant) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
+    element.isFromMacro = (byte & _isFromMacro) != 0;
     element.isLate = (byte & _isLate) != 0;
     element.isStatic = (byte & _isStatic) != 0;
   }
@@ -87,6 +92,7 @@ class FieldElementFlags {
     result |= element.isCovariant ? _isCovariant : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
+    result |= element.isFromMacro ? _isFromMacro : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isStatic ? _isStatic : 0;
     sink.writeUInt30(result);
@@ -161,8 +167,9 @@ class MethodElementFlags {
   static const int _isAbstract = 1 << 1;
   static const int _isAsynchronous = 1 << 2;
   static const int _isExternal = 1 << 3;
-  static const int _isGenerator = 1 << 4;
-  static const int _isStatic = 1 << 5;
+  static const int _isFromMacro = 1 << 4;
+  static const int _isGenerator = 1 << 5;
+  static const int _isStatic = 1 << 6;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var byte = reader.readByte();
@@ -170,6 +177,7 @@ class MethodElementFlags {
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
     element.isExternal = (byte & _isExternal) != 0;
+    element.isFromMacro = (byte & _isFromMacro) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
   }
@@ -180,6 +188,7 @@ class MethodElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isExternal ? _isExternal : 0;
+    result |= element.isFromMacro ? _isFromMacro : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
     sink.writeByte(result);
@@ -217,8 +226,9 @@ class PropertyAccessorElementFlags {
   static const int _isAbstract = 1 << 3;
   static const int _isAsynchronous = 1 << 4;
   static const int _isExternal = 1 << 5;
-  static const int _isGenerator = 1 << 6;
-  static const int _isStatic = 1 << 7;
+  static const int _isFromMacro = 1 << 6;
+  static const int _isGenerator = 1 << 7;
+  static const int _isStatic = 1 << 8;
 
   static void read(
     SummaryDataReader reader,
@@ -231,6 +241,7 @@ class PropertyAccessorElementFlags {
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
     element.isExternal = (byte & _isExternal) != 0;
+    element.isFromMacro = (byte & _isFromMacro) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
   }
@@ -243,6 +254,7 @@ class PropertyAccessorElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isExternal ? _isExternal : 0;
+    result |= element.isFromMacro ? _isFromMacro : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
     sink.writeUInt30(result);

@@ -400,7 +400,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     _fieldEncoding.completeSignature(coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {

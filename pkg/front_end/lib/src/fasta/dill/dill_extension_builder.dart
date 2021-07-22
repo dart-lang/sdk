@@ -109,7 +109,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
       LibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     // TODO(johnniwinther): Remove the need for this.
   }
 }

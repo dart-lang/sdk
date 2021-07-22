@@ -80,7 +80,7 @@ abstract class MemberBuilder implements ModifierBuilder {
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes);
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
@@ -187,7 +187,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {}
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
 
   /// Builds the core AST structures for this member as needed for the outline.
   void buildMembers(

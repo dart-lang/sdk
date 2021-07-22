@@ -15,14 +15,18 @@ class Class1 extends core::Object {
 }
 class Class2 extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::Class2::named]/*isLegacy*/;
-  constructor _() → self::Class2
+  constructor __() → self::Class2
+    ;
+  static method _#__#tearOff() → self::Class2
+    return new self::Class2::__();
+  static factory _() → self::Class2
     ;
   static method _#_#tearOff() → self::Class2
-    return new self::Class2::_();
+    return self::Class2::_();
   static factory named() → self::Class2
     let dynamic #redirecting_factory = self::Class2::_ in invalid-expression;
   static method _#named#tearOff() → self::Class2
-    return new self::Class2::_();
+    return self::Class2::_();
 }
 class Class3 extends core::Object {
   final field core::int field;
@@ -74,6 +78,32 @@ class Class6 extends core::Object {
     let dynamic #redirecting_factory = self::Class6::_ in invalid-expression;
   static method _#new#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::_(field1, field2: field2, field3: field3);
+}
+class Class7a extends core::Object implements self::Class7b {
+  constructor •() → self::Class7a
+    ;
+  static method _#new#tearOff() → self::Class7a
+    return new self::Class7a::•();
+}
+class Class7b extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class7b::•]/*isLegacy*/;
+  static factory •() → self::Class7b
+    let dynamic #redirecting_factory = self::Class7a::• in invalid-expression;
+  static method _#new#tearOff() → self::Class7b
+    return new self::Class7a::•();
+}
+class Class8a<T extends core::Object? = dynamic> extends core::Object implements self::Class8b<self::Class8a::T%> {
+  constructor •() → self::Class8a<self::Class8a::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#new#tearOff::T%>
+    return new self::Class8a::•<self::Class8a::_#new#tearOff::T%>();
+}
+class Class8b<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
+    let dynamic #redirecting_factory = self::Class8a::• in let self::Class8b::•::T% #typeArg0 = null in invalid-expression;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
+    return new self::Class8a::•<self::Class8b::_#new#tearOff::T%>();
 }
 static final field core::bool inSoundMode;
 static method main() → dynamic

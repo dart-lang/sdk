@@ -4,13 +4,19 @@
 
 import 'package:test/test.dart';
 
+import 'test_client.dart';
 import 'test_support.dart';
 
 main() {
-  testDap((dap) async {
-    group('noDebug mode', () {
-      test('runs a simple script', () async {
-        final testFile = dap.createTestFile(r'''
+  late DapTestSession dap;
+  setUp(() async {
+    dap = await DapTestSession.setUp();
+  });
+  tearDown(() => dap.tearDown());
+
+  group('noDebug mode', () {
+    test('runs a simple script', () async {
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) async {
   print('Hello!');
   print('World!');
@@ -18,24 +24,23 @@ void main(List<String> args) async {
 }
     ''');
 
-        final outputEvents = await dap.client.collectOutput(
-          launch: () => dap.client.launch(
-            testFile.path,
-            noDebug: true,
-            args: ['one', 'two'],
-          ),
-        );
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(
+          testFile.path,
+          noDebug: true,
+          args: ['one', 'two'],
+        ),
+      );
 
-        final output = outputEvents.map((e) => e.output).join();
-        expectLines(output, [
-          'Hello!',
-          'World!',
-          'args: [one, two]',
-          '',
-          'Exited.',
-        ]);
-      });
-      // These tests can be slow due to starting up the external server process.
-    }, timeout: Timeout.none);
-  });
+      final output = outputEvents.map((e) => e.output).join();
+      expectLines(output, [
+        'Hello!',
+        'World!',
+        'args: [one, two]',
+        '',
+        'Exited.',
+      ]);
+    });
+    // These tests can be slow due to starting up the external server process.
+  }, timeout: Timeout.none);
 }

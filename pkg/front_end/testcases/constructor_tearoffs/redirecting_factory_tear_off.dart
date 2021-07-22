@@ -16,7 +16,8 @@ class Class1 {
 }
 
 class Class2 {
-  Class2._();
+  Class2.__();
+  factory Class2._() => Class2.__();
   factory Class2.named() = Class2._;
 }
 
@@ -72,6 +73,22 @@ class Class6 {
   Class6._(this.field1, {this.field2, required this.field3});
   factory Class6(int field1, {int? field2, required int field3}) =
       Class6._;
+}
+
+class Class7a implements Class7b {
+  Class7a();
+}
+
+class Class7b {
+  factory Class7b() = Class7a;
+}
+
+class Class8a<T> implements Class8b<T> {
+  Class8a();
+}
+
+class Class8b<T> {
+  factory Class8b() = Class8a<T>;
 }
 
 testArgs() {
@@ -143,6 +160,20 @@ testArgs() {
   throws(() => f6b(42), inSoundModeOnly: true);
   throws(() => f6b(42, 87), inSoundModeOnly: true);
   throws(() => f6b(field1: 87, field2: 87));
+
+  var f7a = Class7b.new;
+  var c7a = f7a();
+  expect(true, c7a is Class7a);
+  expect(true, c7a is Class7b);
+
+  var f8a = Class8b.new;
+  var c8a = f8a();
+  expect(true, c8a is Class8a);
+  expect(true, c8a is Class8b);
+  var c8b = f8a<int>();
+  expect(true, c8b is Class8a<int>);
+  expect(true, c8b is Class8b<int>);
+  expect(false, c8b is Class8b<String>);
 }
 
 expect(expected, actual) {

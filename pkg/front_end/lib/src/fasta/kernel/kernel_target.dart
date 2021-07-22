@@ -139,7 +139,8 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<ClonedFunctionNode> clonedFunctionNodes = <ClonedFunctionNode>[];
+  final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
+      <SynthesizedFunctionNode>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator)
@@ -336,7 +337,8 @@ class KernelTarget extends TargetImplementation {
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
-      loader.buildOutlineExpressions(loader.coreTypes, clonedFunctionNodes);
+      loader.buildOutlineExpressions(
+          loader.coreTypes, synthesizedFunctionNodes);
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       loader.checkMainMethods();
@@ -757,16 +759,17 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
-    ClonedFunctionNode clonedFunctionNode =
-        new ClonedFunctionNode(substitutionMap, constructor.function, function);
+    SynthesizedFunctionNode synthesizedFunctionNode =
+        new SynthesizedFunctionNode(
+            substitutionMap, constructor.function, function);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
       // [SyntheticConstructorBuilder] below.
       //
       // For non-constant constructors default values are cloned as part of the
-      // full compilation using [clonedFunctionNodes].
-      clonedFunctionNodes.add(clonedFunctionNode);
+      // full compilation using [synthesizedFunctionNodes].
+      synthesizedFunctionNodes.add(synthesizedFunctionNode);
     }
     return new SyntheticConstructorBuilder(
         classBuilder,
@@ -785,14 +788,15 @@ class KernelTarget extends TargetImplementation {
         // cloned function nodes to ensure that the default values are computed
         // and cloned for the outline.
         origin: isConst ? memberBuilder : null,
-        clonedFunctionNode: isConst ? clonedFunctionNode : null);
+        synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
   }
 
   void finishClonedParameters() {
-    for (ClonedFunctionNode clonedFunctionNode in clonedFunctionNodes) {
-      clonedFunctionNode.cloneDefaultValues();
+    for (SynthesizedFunctionNode synthesizedFunctionNode
+        in synthesizedFunctionNodes) {
+      synthesizedFunctionNode.cloneDefaultValues();
     }
-    clonedFunctionNodes.clear();
+    synthesizedFunctionNodes.clear();
     ticker.logMs("Cloned default values of formals");
   }
 
@@ -1424,12 +1428,36 @@ class DelayedParameterType {
   }
 }
 
-class ClonedFunctionNode {
+/// Data for clone default values for synthesized function nodes once the
+/// original default values have been computed.
+///
+/// This is used for constructors in unnamed mixin application, which are
+/// created from the constructors in the superclass, and for tear off lowerings
+/// for redirecting factories, which are created from the effective target
+/// constructor.
+class SynthesizedFunctionNode {
+  /// Type parameter map from type parameters in scope [_original] to types
+  /// in scope of [_synthesized].
+  // TODO(johnniwinther): Is this ever needed? Should occurrence of type
+  //  variable types in default values be a compile time error?
   final Map<TypeParameter, DartType> _typeSubstitution;
-  final FunctionNode _original;
-  final FunctionNode _clone;
 
-  ClonedFunctionNode(this._typeSubstitution, this._original, this._clone);
+  /// The original function node.
+  final FunctionNode _original;
+
+  /// The synthesized function node.
+  final FunctionNode _synthesized;
+
+  /// If `true`, the [_synthesized] is guaranteed to have the same parameters in
+  /// the same order as [_original]. Otherwise [_original] is only guaranteed to
+  /// be callable from [_synthesized], meaning that is has at most the same
+  /// number of positional parameters and a, possibly reordered, subset of the
+  /// named parameters.
+  final bool identicalSignatures;
+
+  SynthesizedFunctionNode(
+      this._typeSubstitution, this._original, this._synthesized,
+      {this.identicalSignatures: true});
 
   void cloneDefaultValues() {
     // TODO(ahe): It is unclear if it is legal to use type variables in
@@ -1449,13 +1477,35 @@ class ClonedFunctionNode {
       }
     }
 
-    for (int i = 0; i < _original.positionalParameters.length; i++) {
-      cloneInitializer(
-          _original.positionalParameters[i], _clone.positionalParameters[i]);
+    // For mixin application constructors, the argument count is the same, but
+    // for redirecting tear off lowerings, the argument count of the tear off
+    // can be less than that of the redirection target.
+
+    assert(_synthesized.positionalParameters.length <=
+        _original.positionalParameters.length);
+    for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
+      cloneInitializer(_original.positionalParameters[i],
+          _synthesized.positionalParameters[i]);
     }
 
-    for (int i = 0; i < _original.namedParameters.length; i++) {
-      cloneInitializer(_original.namedParameters[i], _clone.namedParameters[i]);
+    if (identicalSignatures) {
+      assert(_synthesized.namedParameters.length ==
+          _original.namedParameters.length);
+      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
+        cloneInitializer(
+            _original.namedParameters[i], _synthesized.namedParameters[i]);
+      }
+    } else if (_synthesized.namedParameters.isNotEmpty) {
+      Map<String, VariableDeclaration> originalParameters = {};
+      for (int i = 0; i < _original.namedParameters.length; i++) {
+        originalParameters[_original.namedParameters[i].name!] =
+            _original.namedParameters[i];
+      }
+      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
+        cloneInitializer(
+            originalParameters[_synthesized.namedParameters[i].name!]!,
+            _synthesized.namedParameters[i]);
+      }
     }
   }
 }

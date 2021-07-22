@@ -341,10 +341,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     }
     updatePrivateMemberName(_procedureInternal, libraryBuilder);
     if (_factoryTearOff != null) {
-      _tearOffTypeParameters = buildRedirectingFactoryTearOffProcedure(
-          _factoryTearOff!,
-          _procedure,
-          library as SourceLibraryBuilder);
+      _tearOffTypeParameters =
+          buildRedirectingFactoryTearOffProcedureParameters(
+              _factoryTearOff!, _procedure, library);
     }
     return _procedureInternal;
   }
@@ -354,9 +353,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
-      List<ClonedFunctionNode> clonedFunctionNodes) {
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, clonedFunctionNodes);
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
     RedirectingFactoryBody redirectingFactoryBody =
         _procedure.function.body as RedirectingFactoryBody;
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
@@ -416,14 +415,13 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
       member.function!.body = new RedirectingFactoryBody(target, typeArguments);
     }
-    if (_factoryTearOff != null) {
-      clonedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
+    if (_factoryTearOff != null &&
+        (target is Constructor || target is Procedure && target.isFactory)) {
+      synthesizedFunctionNodes.add(buildRedirectingFactoryTearOffBody(
           _factoryTearOff!,
-          target as Constructor,
+          target!,
           typeArguments ?? [],
           _tearOffTypeParameters!));
-      delayedActionPerformers.add(new _CopyDefaultValues(
-          _factoryTearOff!, redirectingFactoryBody.target!.function!));
     }
   }
 
@@ -443,20 +441,5 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
   List<DartType>? getTypeArguments() {
     return getRedirectingFactoryBody(_procedure)!.typeArguments;
-  }
-}
-
-class _CopyDefaultValues implements DelayedActionPerformer {
-  final Procedure _tearOff;
-  final FunctionNode _function;
-
-  _CopyDefaultValues(this._tearOff, this._function);
-
-  @override
-  bool get hasDelayedActions => true;
-
-  @override
-  void performDelayedActions() {
-    copyTearOffDefaultValues(_tearOff, _function);
   }
 }
