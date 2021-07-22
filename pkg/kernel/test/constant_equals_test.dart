@@ -8,6 +8,9 @@ testEquals(Constant a, Constant b) {
   if (a != b) {
     throw 'Expected $a and $b to be equal.';
   }
+  if (a.hashCode != b.hashCode) {
+    throw 'Expected $a and $b hash codes to be equal.';
+  }
 }
 
 testNotEquals(Constant a, Constant b) {

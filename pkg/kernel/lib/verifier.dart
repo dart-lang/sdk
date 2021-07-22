@@ -72,6 +72,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   bool inUnevaluatedConstant = false;
 
+  bool inConstant = false;
+
   Library? currentLibrary;
 
   Member? currentMember;
@@ -885,6 +887,31 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           " type arguments, but the typedef declares"
           " ${node.typedefNode.typeParameters.length} parameters.");
     }
+  }
+
+  @override
+  void visitConstantExpression(ConstantExpression node) {
+    bool oldInConstant = inConstant;
+    inConstant = true;
+    visitChildren(node);
+    inConstant = oldInConstant;
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    if (inConstant) {
+      // Don't expect the type parameters to have the current parent as parent.
+      node.visitChildren(this);
+    } else {
+      visitChildren(node);
+    }
+  }
+
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    declareTypeParameters(node.parameters);
+    super.visitTypedefTearOffConstant(node);
+    undeclareTypeParameters(node.parameters);
   }
 }
 

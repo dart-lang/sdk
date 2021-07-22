@@ -714,6 +714,11 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitTypedefTearOff(TypedefTearOff node, TreeNode? removalSentinel) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
+  @override
   TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
@@ -3387,43 +3392,38 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           new Instantiation(extract(constant),
               node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
+    List<TypeParameter>? typeParameters;
     if (constant is TearOffConstant) {
       Member target = constant.target;
-      List<TypeParameter>? typeParameters;
       if (target is Procedure) {
         typeParameters = target.function.typeParameters;
       } else if (target is Constructor) {
         typeParameters = target.enclosingClass.typeParameters;
       }
-      if (typeParameters != null) {
-        if (node.typeArguments.length == typeParameters.length) {
-          List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
-          if (types == null) {
-            AbortConstant error = _gotError!;
-            _gotError = null;
-            return error;
-          }
-          assert(_gotError == null);
-          // ignore: unnecessary_null_comparison
-          assert(types != null);
-
-          final List<DartType> typeArguments = convertTypes(types);
-          return canonicalize(
-              new InstantiationConstant(constant, typeArguments));
-        } else {
-          // Probably unreachable.
-          return createInvalidExpressionConstant(
-              node,
-              'The number of type arguments supplied in the partial '
-              'instantiation does not match the number of type arguments '
-              'of the $constant.');
+    } else if (constant is TypedefTearOffConstant) {
+      typeParameters = constant.parameters;
+    }
+    if (typeParameters != null) {
+      if (node.typeArguments.length == typeParameters.length) {
+        List<DartType>? types = _evaluateDartTypes(node, node.typeArguments);
+        if (types == null) {
+          AbortConstant error = _gotError!;
+          _gotError = null;
+          return error;
         }
+        assert(_gotError == null);
+        // ignore: unnecessary_null_comparison
+        assert(types != null);
+
+        final List<DartType> typeArguments = convertTypes(types);
+        return canonicalize(new InstantiationConstant(constant, typeArguments));
       } else {
         // Probably unreachable.
         return createInvalidExpressionConstant(
             node,
-            "Unsupported kind of a torn off member: "
-            "'${target.runtimeType}'.");
+            'The number of type arguments supplied in the partial '
+            'instantiation does not match the number of type arguments '
+            'of the $constant.');
       }
     }
     // The inner expression in an instantiation can never be null, since
@@ -3445,7 +3445,23 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitTypedefTearOff(TypedefTearOff node) {
-    return defaultExpression(node);
+    final Constant constant = _evaluateSubexpression(node.expression);
+    if (constant is TearOffConstant) {
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(node.typeParameters);
+      List<TypeParameter> typeParameters =
+          freshTypeParameters.freshTypeParameters;
+      List<DartType> typeArguments = new List<DartType>.generate(
+          node.typeArguments.length,
+          (int i) => freshTypeParameters.substitute(node.typeArguments[i]),
+          growable: false);
+      return canonicalize(
+          new TypedefTearOffConstant(typeParameters, constant, typeArguments));
+    } else {
+      // Probably unreachable.
+      return createInvalidExpressionConstant(
+          node, "Unexpected typedef tearoff target: ${constant}.");
+    }
   }
 
   @override

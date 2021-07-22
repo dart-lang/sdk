@@ -903,6 +903,8 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitRedirectingFactoryTearOffConstantReference(
           RedirectingFactoryTearOffConstant node) =>
       defaultConstantReference(node);
+  R visitTypedefTearOffConstantReference(TypedefTearOffConstant node) =>
+      defaultConstantReference(node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
       defaultConstantReference(node);
   R visitUnevaluatedConstantReference(UnevaluatedConstant node) =>

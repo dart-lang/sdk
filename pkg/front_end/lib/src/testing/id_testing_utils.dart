@@ -415,7 +415,12 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
 
   void visitInstantiationConstant(InstantiationConstant node) {
     sb.write('Instantiation(');
-    sb.write(getMemberName(node.tearOffConstant.target));
+    Constant tearOffConstant = node.tearOffConstant;
+    if (tearOffConstant is TearOffConstant) {
+      sb.write(getMemberName(tearOffConstant.target));
+    } else {
+      visit(tearOffConstant);
+    }
     sb.write('<');
     typeToText.visitList(node.types);
     sb.write('>)');

@@ -1,4 +1,21 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/simple_proper_rename_identity.dart:32:18: Error: Constant evaluation error:
+// test4() => const StaticIdentityTest(A4.new, B4.new); // Error.
+//                  ^
+// pkg/front_end/testcases/constructor_tearoffs/simple_proper_rename_identity.dart:26:43: Context: This assertion failed.
+//   const StaticIdentityTest(a, b) : assert(identical(a, b));
+//                                           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/simple_proper_rename_identity.dart:33:18: Error: Constant evaluation error:
+// test5() => const StaticIdentityTest(A5.new, B5.new); // Error.
+//                  ^
+// pkg/front_end/testcases/constructor_tearoffs/simple_proper_rename_identity.dart:26:43: Context: This assertion failed.
+//   const StaticIdentityTest(a, b) : assert(identical(a, b));
+//                                           ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -44,9 +61,9 @@ static method test2() → dynamic
 static method test3() → dynamic
   return #C1;
 static method test4() → dynamic
-  return invalid-expression "Constant evaluation has no support for TypedefTearOff!";
+  return invalid-expression "This assertion failed.";
 static method test5() → dynamic
-  return invalid-expression "Constant evaluation has no support for TypedefTearOff!";
+  return invalid-expression "This assertion failed.";
 static method main() → dynamic {}
 
 constants  {

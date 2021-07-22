@@ -448,17 +448,17 @@ class BinaryBuilder {
   }
 
   Constant _readInstantiationConstant() {
-    final TearOffConstant tearOffConstant =
-        readConstantReference() as TearOffConstant;
+    final Constant tearOffConstant = readConstantReference();
     final List<DartType> types = readDartTypeList();
     return new InstantiationConstant(tearOffConstant, types);
   }
 
   Constant _readTypedefTearOffConstant() {
     final List<TypeParameter> parameters = readAndPushTypeParameterList();
-    final StaticTearOffConstant tearOffConstant =
-        readConstantReference() as StaticTearOffConstant;
+    final TearOffConstant tearOffConstant =
+        readConstantReference() as TearOffConstant;
     final List<DartType> types = readDartTypeList();
+    typeParameterStack.length -= parameters.length;
     return new TypedefTearOffConstant(parameters, tearOffConstant, types);
   }
 
@@ -1988,6 +1988,8 @@ class BinaryBuilder {
         return _readConstructorTearOff();
       case Tag.TypedefTearOff:
         return _readTypedefTearOff();
+      case Tag.RedirectingFactoryTearOff:
+        return _readRedirectingFactoryTearOff();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
       case Tag.InstanceInvocation:
@@ -2230,6 +2232,13 @@ class BinaryBuilder {
     List<DartType> typeArguments = readDartTypeList();
     typeParameterStack.length -= typeParameters.length;
     return new TypedefTearOff(typeParameters, expression, typeArguments);
+  }
+
+  Expression _readRedirectingFactoryTearOff() {
+    int offset = readOffset();
+    Reference constructorReference = readNonNullMemberReference();
+    return new RedirectingFactoryTearOff.byReference(constructorReference)
+      ..fileOffset = offset;
   }
 
   Expression _readStaticTearOff() {

@@ -8721,10 +8721,9 @@ class TypedefTearOff extends Expression {
     FreshTypeParameters freshTypeParameters =
         getFreshTypeParameters(typeParameters);
     FunctionType type = expression.getStaticType(context) as FunctionType;
-    type = Substitution.combine(
-            Substitution.fromPairs(type.typeParameters, typeArguments),
-            freshTypeParameters.substitution)
-        .substituteType(type.withoutTypeParameters) as FunctionType;
+    type = freshTypeParameters.substitute(
+        Substitution.fromPairs(type.typeParameters, typeArguments)
+            .substituteType(type.withoutTypeParameters)) as FunctionType;
     return new FunctionType(
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
@@ -12903,7 +12902,7 @@ class InstanceConstant extends Constant {
 }
 
 class InstantiationConstant extends Constant {
-  final TearOffConstant tearOffConstant;
+  final Constant tearOffConstant;
   final List<DartType> types;
 
   InstantiationConstant(this.tearOffConstant, this.types);
@@ -13101,6 +13100,8 @@ class TypedefTearOffConstant extends Constant {
   final TearOffConstant tearOffConstant;
   final List<DartType> types;
 
+  late final int hashCode = _computeHashCode();
+
   TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
 
   visitChildren(Visitor v) {
@@ -13110,7 +13111,8 @@ class TypedefTearOffConstant extends Constant {
   }
 
   R accept<R>(ConstantVisitor<R> v) => v.visitTypedefTearOffConstant(this);
-  R acceptReference<R>(Visitor<R> v) => v.visitTypedefTearOffConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitTypedefTearOffConstantReference(this);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -13147,13 +13149,26 @@ class TypedefTearOffConstant extends Constant {
     return true;
   }
 
+  int _computeHashCode() {
+    int hash = 1237;
+    for (int i = 0; i < parameters.length; ++i) {
+      TypeParameter parameter = parameters[i];
+      hash = 0x3fffffff & (hash * 31 + parameter.bound.hashCode);
+    }
+    for (int i = 0; i < types.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + types[i].hashCode);
+    }
+    hash = 0x3fffffff & (hash * 31 + tearOffConstant.hashCode);
+    return hash;
+  }
+
   DartType getType(StaticTypeContext context) {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
     FreshTypeParameters freshTypeParameters =
         getFreshTypeParameters(parameters);
     type = freshTypeParameters.substitute(
-            Substitution.fromPairs(parameters, types).substituteType(type))
-        as FunctionType;
+        Substitution.fromPairs(type.typeParameters, types)
+            .substituteType(type.withoutTypeParameters)) as FunctionType;
     return new FunctionType(
         type.positionalParameters, type.returnType, type.declaredNullability,
         namedParameters: type.namedParameters,
