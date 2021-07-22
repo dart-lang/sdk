@@ -207,9 +207,9 @@ def GenerateSingleFile(library_path, output_dir, generated_output_dir=None, pref
         prefix_arg, 'cd', library_dir, ';', copy_dart_script, output_dir, library_filename
     ])
     subprocess.call([command], shell=True)
-    prebuilt_dartfmt = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dartfmt')
+    dart_bin = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
     sdk_file = os.path.join(library_dir, output_dir, library_filename)
-    formatCommand = ' '.join([prebuilt_dartfmt, '-w', sdk_file])
+    formatCommand = ' '.join([dart_bin, 'format', sdk_file])
     subprocess.call([formatCommand], shell=True)
 
 
