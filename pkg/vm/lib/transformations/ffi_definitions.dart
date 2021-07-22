@@ -733,13 +733,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     for (final fieldType in fieldTypes.entries) {
       if (fieldType is TypeLiteralConstant) {
         final dartType = fieldType.type;
-        members.add(NativeTypeCfe(this, dartType));
+        members
+            .add(NativeTypeCfe(this, dartType, compoundCache: compoundCache));
       } else if (fieldType is InstanceConstant) {
         final singleElementConstant = fieldType
                 .fieldValues[ffiInlineArrayElementTypeField.getterReference]
             as TypeLiteralConstant;
-        final singleElementType =
-            NativeTypeCfe(this, singleElementConstant.type);
+        final singleElementType = NativeTypeCfe(
+            this, singleElementConstant.type,
+            compoundCache: compoundCache);
         final arrayLengthConstant =
             fieldType.fieldValues[ffiInlineArrayLengthField.getterReference]
                 as IntConstant;

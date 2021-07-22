@@ -36,6 +36,7 @@ import 'kernel_ast_api.dart'
         StaticGet,
         TreeNode,
         TypeParameter,
+        Typedef,
         VariableDeclaration;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
@@ -176,4 +177,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ///
   /// This is needed for type promotion.
   void registerVariableAssignment(VariableDeclaration variable);
+
+  /// Checks that a generic [typedef] for a generic class.
+  bool isProperRenameForClass(Typedef typedef);
 }

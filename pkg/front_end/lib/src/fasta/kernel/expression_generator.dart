@@ -3120,8 +3120,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             _uri);
       } else {
         if (declarationBuilder is DeclarationBuilder) {
-          unaliasedTypeArguments =
-              aliasBuilder.unaliasTypeArguments(aliasedTypeArguments);
           if (aliasedTypeArguments != null) {
             _helper.libraryBuilder.uncheckedTypedefTypes.add(
                 new UncheckedTypedefType(new TypedefType(
@@ -3132,6 +3130,10 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   ..fileUri = _uri
                   ..offset = fileOffset);
           }
+
+          // If the arguments weren't supplied, the tear off is treated as
+          // generic, and the aliased type arguments match type parameters of
+          // the type alias.
           if (aliasedTypeArguments == null &&
               aliasBuilder.typeVariablesCount != 0) {
             isGenericTypedefTearOff = true;
@@ -3192,16 +3194,34 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             if (tearOffExpression != null) {
               List<DartType>? builtTypeArguments;
               if (unaliasedTypeArguments != null) {
-                builtTypeArguments = declarationBuilder.buildTypeArguments(
-                    _helper.libraryBuilder, unaliasedTypeArguments);
+                if (unaliasedTypeArguments.length !=
+                    declarationBuilder.typeVariablesCount) {
+                  // The type arguments are either aren't provided or mismatch
+                  // in number with the type variables of the RHS declaration.
+                  // We substitute them with the default types here: in the
+                  // first case that would be exactly what type inference fills
+                  // in for the RHS, and in the second case it's a reasonable
+                  // fallback, as the error is reported during a check on the
+                  // typedef.
+                  builtTypeArguments = <DartType>[];
+                  for (TypeParameter typeParameter
+                      in declarationBuilder.cls.typeParameters) {
+                    builtTypeArguments.add(typeParameter.defaultType);
+                  }
+                } else {
+                  builtTypeArguments = declarationBuilder.buildTypeArguments(
+                      _helper.libraryBuilder, unaliasedTypeArguments);
+                }
               } else if (typeArguments != null) {
                 builtTypeArguments =
                     _helper.buildDartTypeArguments(typeArguments);
               }
               if (isGenericTypedefTearOff) {
+                if (_helper.isProperRenameForClass(aliasBuilder!.typedef)) {
+                  return tearOffExpression;
+                }
                 FreshTypeParameters freshTypeParameters =
-                    getFreshTypeParameters(
-                        aliasBuilder!.typedef.typeParameters);
+                    getFreshTypeParameters(aliasBuilder.typedef.typeParameters);
                 List<DartType>? substitutedTypeArguments;
                 if (builtTypeArguments != null) {
                   substitutedTypeArguments = <DartType>[];
