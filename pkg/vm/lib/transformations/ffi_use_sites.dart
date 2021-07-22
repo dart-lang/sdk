@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
-library vm.transformations.ffi_use_sites;
-
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiExceptionalReturnNull,
@@ -46,7 +42,7 @@ void transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    ReferenceFromIndex referenceFromIndex) {
+    ReferenceFromIndex? referenceFromIndex) {
   final index = new LibraryIndex(
       component, ["dart:ffi", "dart:_internal", "dart:typed_data"]);
   if (!index.containsLibrary("dart:ffi")) {
@@ -66,7 +62,7 @@ void transformLibraries(
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 class _FfiUseSiteTransformer extends FfiTransformer {
-  StaticTypeContext _staticTypeContext;
+  StaticTypeContext? _staticTypeContext;
 
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
 
@@ -79,7 +75,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex)
+      ReferenceFromIndex? referenceFromIndex)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -176,7 +172,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
         if (nativeType is InterfaceType) {
-          Expression inlineSizeOf = _inlineSizeOf(nativeType);
+          Expression? inlineSizeOf = _inlineSizeOf(nativeType);
           if (inlineSizeOf != null) {
             return inlineSizeOf;
           }
@@ -206,7 +202,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         return replacement;
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
-        final DartType nativeType = InterfaceType(
+        final InterfaceType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
 
         _ensureNativeTypeValid(nativeType, node);
@@ -214,10 +210,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureIsLeafIsConst(node);
         _ensureLeafCallDoesNotUseHandles(nativeType, node);
 
-        final DartType nativeSignature =
-            (nativeType as InterfaceType).typeArguments[0];
+        final DartType nativeSignature = nativeType.typeArguments[0];
 
-        bool isLeaf = _getIsLeafBoolean(node);
+        bool? isLeaf = _getIsLeafBoolean(node);
         if (isLeaf == null) {
           isLeaf = false;
         }
@@ -243,7 +238,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
-        final DartType dartType = func.getStaticType(_staticTypeContext);
+        final DartType dartType = func.getStaticType(_staticTypeContext!);
 
         _ensureIsStaticFunction(func);
 
@@ -257,7 +252,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
             ((node.arguments.types[0] as FunctionType).returnType
                     as InterfaceType)
                 .classNode;
-        final NativeType expectedReturn = getType(expectedReturnClass);
+        final NativeType? expectedReturn = getType(expectedReturnClass);
 
         if (expectedReturn == NativeType.kVoid ||
             expectedReturn == NativeType.kPointer ||
@@ -309,7 +304,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           }
 
           final DartType returnType =
-              exceptionalReturn.getStaticType(_staticTypeContext);
+              exceptionalReturn.getStaticType(_staticTypeContext!);
 
           if (!env.isSubtypeOf(returnType, funcType.returnType,
               SubtypeCheckMode.ignoringNullabilities)) {
@@ -339,7 +334,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `allignmentOf<T>()` call.
-        Expression sizeInBytes = _inlineSizeOf(nativeType);
+        Expression? sizeInBytes = _inlineSizeOf(nativeType as InterfaceType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
             sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
@@ -401,9 +396,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           .distinct()
           .fold(nestedExpression, _invokeCompoundConstructor);
 
-  Expression _inlineSizeOf(InterfaceType nativeType) {
+  Expression? _inlineSizeOf(InterfaceType nativeType) {
     final Class nativeClass = nativeType.classNode;
-    final NativeType nt = getType(nativeClass);
+    final NativeType? nt = getType(nativeClass);
     if (nt == null) {
       // User-defined compounds.
       final Procedure sizeOfGetter = nativeClass.procedures
@@ -457,7 +452,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
                 .substituteType(lookupFunctionType.withoutTypeParameters)
             as FunctionType);
 
-    bool isLeaf = _getIsLeafBoolean(node);
+    bool? isLeaf = _getIsLeafBoolean(node);
     if (isLeaf == null) {
       isLeaf = false;
     }
@@ -518,7 +513,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
           pointer,
           offsetByMethod.name,
           Arguments([
-            multiply(node.arguments.positional[1], _inlineSizeOf(dartType))
+            multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!)
           ]),
           interfaceTarget: offsetByMethod,
           functionType:
@@ -536,8 +531,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final typedDataBasePrime = typedDataBaseOffset(
         getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
-        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)),
-        _inlineSizeOf(dartType),
+        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!),
+        _inlineSizeOf(dartType)!,
         dartType,
         node.fileOffset);
 
@@ -600,7 +595,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final singleElementSizeVar = VariableDeclaration("#singleElementSize",
-        initializer: _inlineSizeOf(elementType),
+        initializer: _inlineSizeOf(elementType as InterfaceType),
         type: coreTypes.intNonNullableRawType)
       ..fileOffset = node.fileOffset;
     final elementSizeVar = VariableDeclaration("#elementSize",
@@ -684,12 +679,12 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     try {
       if (target == elementAtMethod) {
         final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+            node.receiver.getStaticType(_staticTypeContext!);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType)!;
 
         _ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
-        Expression inlineSizeOf = _inlineSizeOf(nativeType);
+        Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
           return InstanceInvocation(
@@ -714,7 +709,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return node;
   }
 
-  DartType _pointerTypeGetTypeArg(DartType pointerType) {
+  DartType? _pointerTypeGetTypeArg(DartType pointerType) {
     return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
   }
 
@@ -724,7 +719,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final DartType correspondingDartType = convertNativeTypeToDartType(
         nativeType,
         allowCompounds: true,
-        allowHandle: allowHandle);
+        allowHandle: allowHandle)!;
     if (dartType == correspondingDartType) return;
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
@@ -787,7 +782,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   /// Returns the class that should not be implemented or extended.
   ///
   /// If the superclass is not sealed, returns `null`.
-  Class _extendsOrImplementsSealedClass(Class klass) {
+  Class? _extendsOrImplementsSealedClass(Class klass) {
     // Classes in dart:ffi themselves can extend FFI classes.
     if (klass == arrayClass ||
         klass == arraySizeClass ||
@@ -824,7 +819,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNotExtendsOrImplementsSealedClass(Class klass) {
-    final Class extended = _extendsOrImplementsSealedClass(klass);
+    final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
           templateFfiExtendsOrImplementsSealedClass
@@ -840,7 +835,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   // - `true` if leaf
   // - `false` if not leaf
   // - `null` if the expression is not valid (e.g. non-const bool, null)
-  bool _getIsLeafBoolean(StaticInvocation node) {
+  bool? _getIsLeafBoolean(StaticInvocation node) {
     for (final named in node.arguments.named) {
       if (named.name == 'isLeaf') {
         final expr = named.value;
@@ -893,8 +888,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         }
       }
       // Check if any of the argument types are Handle.
-      for (InterfaceType param in functionType.positionalParameters) {
-        if (param.classNode == handleClass) {
+      for (DartType param in functionType.positionalParameters) {
+        if ((param as InterfaceType).classNode == handleClass) {
           diagnosticReporter.report(messageFfiLeafCallMustNotTakeHandle,
               node.fileOffset, 1, node.location?.file);
         }

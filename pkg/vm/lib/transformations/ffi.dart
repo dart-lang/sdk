@@ -292,7 +292,9 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  Library? currentLibrary;
+  Library? _currentLibrary;
+  Library get currentLibrary => _currentLibrary!;
+
   IndexedLibrary? currentLibraryIndex;
 
   FfiTransformer(this.index, this.coreTypes, this.hierarchy,
@@ -459,11 +461,11 @@ class FfiTransformer extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    assert(currentLibrary == null);
-    currentLibrary = node;
+    assert(_currentLibrary == null);
+    _currentLibrary = node;
     currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     final result = super.visitLibrary(node);
-    currentLibrary = null;
+    _currentLibrary = null;
     return result;
   }
 
