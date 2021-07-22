@@ -463,7 +463,7 @@ abstract class CheckboxInputElement implements InputElementBase {
 
 
 /**
- * A control that when used with other [ReadioButtonInputElement] controls
+ * A control that when used with other [RadioButtonInputElement] controls
  * forms a radio button group in which only one control can be checked at a
  * time.
  *

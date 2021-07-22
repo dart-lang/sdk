@@ -279,7 +279,7 @@ $!MEMBERS
    * options, such as typeface and size, and the current
    * [CanvasRenderingContext2D.fillStyle] for style options such as color.
    * The current [CanvasRenderingContext2D.textAlign] and
-   * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
+   * [CanvasRenderingContext2D.textBaseline] properties are also applied to the
    * drawn text.
    */
   void fillText(String text, num x, num y, [num$NULLABLE maxWidth]) {
