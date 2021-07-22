@@ -22,6 +22,7 @@ void main() {
       'foo',
       '_foo',
       '__foo',
+      'async',
     ], isValidPackageName, isTrue);
     testEach([
       'fOO',

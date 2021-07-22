@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'ast.dart';
-
 final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
 
 final _lowerCamelCase = RegExp(
@@ -62,8 +60,7 @@ bool isValidLibraryPrefix(String libraryPrefix) =>
 
 /// Returns true if this [id] is a valid package name.
 bool isValidPackageName(String id) =>
-    _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) &&
-    isValidDartIdentifier(id);
+    _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) && isIdentifier(id);
 
 class CamelCaseString {
   static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
