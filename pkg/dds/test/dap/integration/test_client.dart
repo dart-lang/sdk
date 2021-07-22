@@ -10,7 +10,6 @@ import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
-import 'package:dds/src/dap/protocol_stream_transformers.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -22,19 +21,17 @@ import 'test_server.dart';
 /// Methods on this class should map directly to protocol methods. Additional
 /// helpers are available in [DapTestClientExtension].
 class DapTestClient {
-  final Socket _socket;
   final ByteStreamServerChannel _channel;
   late final StreamSubscription<String> _subscription;
 
   final Logger? _logger;
   final bool captureVmServiceTraffic;
-  final _requestWarningDuration = const Duration(seconds: 2);
+  final _requestWarningDuration = const Duration(seconds: 5);
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
 
   DapTestClient._(
-    this._socket,
     this._channel,
     this._logger, {
     this.captureVmServiceTraffic = false,
@@ -226,7 +223,6 @@ class DapTestClient {
 
   Future<void> stop() async {
     _channel.close();
-    await _socket.close();
     await _subscription.cancel();
   }
 
@@ -305,16 +301,12 @@ class DapTestClient {
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].
   static Future<DapTestClient> connect(
-    String host,
-    int port, {
+    DapTestServer server, {
     bool captureVmServiceTraffic = false,
     Logger? logger,
   }) async {
-    final socket = await Socket.connect(host, port);
-    final channel = ByteStreamServerChannel(
-        socket.transform(Uint8ListTransformer()), socket, logger);
-
-    return DapTestClient._(socket, channel, logger,
+    final channel = ByteStreamServerChannel(server.stream, server.sink, logger);
+    return DapTestClient._(channel, logger,
         captureVmServiceTraffic: captureVmServiceTraffic);
   }
 }

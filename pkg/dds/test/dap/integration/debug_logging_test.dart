@@ -7,10 +7,15 @@ import 'package:test/test.dart';
 import 'test_support.dart';
 
 main() {
-  testDap((dap) async {
-    group('debug mode', () {
-      test('prints messages from dart:developer log()', () async {
-        final testFile = dap.createTestFile(r'''
+  late DapTestSession dap;
+  setUp(() async {
+    dap = await DapTestSession.setUp();
+  });
+  tearDown(() => dap.tearDown());
+
+  group('debug mode', () {
+    test('prints messages from dart:developer log()', () async {
+      final testFile = dap.createTestFile(r'''
 import 'dart:developer';
 
 void main(List<String> args) async {
@@ -19,19 +24,18 @@ void main(List<String> args) async {
 }
     ''');
 
-        var outputEvents = await dap.client.collectOutput(file: testFile);
+      var outputEvents = await dap.client.collectOutput(file: testFile);
 
-        // Skip the first line because it's the VM Service connection info.
-        final output = outputEvents.skip(1).map((e) => e.output).join();
-        expectLines(output, [
-          '[log] this is a test',
-          '      across two lines',
-          '[foo] this is a test',
-          '',
-          'Exited.',
-        ]);
-      });
-      // These tests can be slow due to starting up the external server process.
-    }, timeout: Timeout.none);
-  });
+      // Skip the first line because it's the VM Service connection info.
+      final output = outputEvents.skip(1).map((e) => e.output).join();
+      expectLines(output, [
+        '[log] this is a test',
+        '      across two lines',
+        '[foo] this is a test',
+        '',
+        'Exited.',
+      ]);
+    });
+    // These tests can be slow due to starting up the external server process.
+  }, timeout: Timeout.none);
 }
