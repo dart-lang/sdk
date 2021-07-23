@@ -81,8 +81,6 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
 
-import '../kernel/constructor_tearoff_lowering.dart';
-
 import '../kernel/internal_ast.dart';
 
 import '../kernel/kernel_builder.dart'
@@ -4237,15 +4235,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     uncheckedTypedefTypes.clear();
   }
 
-  int _typedefTearOffLoweringIndex = 0;
-
-  Expression getTypedefTearOffLowering(
-      TypedefTearOff node, FunctionType targetType, Uri fileUri) {
-    assert(loader.target.backendTarget.isTypedefTearOffLoweringEnabled);
-    Procedure tearOff = createTypedefTearOffLowering(
-        this, node, targetType, fileUri, _typedefTearOffLoweringIndex++);
-    library.addProcedure(tearOff);
-    return new StaticTearOff(tearOff)..fileOffset = node.fileOffset;
+  void installTypedefTearOffs() {
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder? declaration = iterator.current;
+      while (declaration != null) {
+        if (declaration is SourceTypeAliasBuilder) {
+          declaration.buildTypedefTearOffs(this,
+              (Procedure procedure) {
+                procedure.isStatic = true;
+              if (!declaration!.isPatch && !declaration.isDuplicate) {
+                library.addProcedure(procedure);
+              }
+          });
+        }
+        declaration = declaration.next;
+      }
+    }
   }
 }
 

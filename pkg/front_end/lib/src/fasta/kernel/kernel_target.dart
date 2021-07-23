@@ -326,6 +326,7 @@ class KernelTarget extends TargetImplementation {
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();
+      loader.installTypedefTearOffs();
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();

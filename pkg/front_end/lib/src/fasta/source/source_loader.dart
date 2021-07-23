@@ -124,6 +124,7 @@ import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_type_alias_builder.dart';
 
 class SourceLoader extends Loader {
   /// The [FileSystem] which should be used to access files.
@@ -719,6 +720,16 @@ class SourceLoader extends Loader {
     ticker.logMs("Resolved $count constructors");
   }
 
+  void installTypedefTearOffs() {
+    if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
+      for (LibraryBuilder library in builders.values) {
+        if (library.loader == this && library is SourceLibraryBuilder) {
+          library.installTypedefTearOffs();
+        }
+      }
+    }
+  }
+
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
     for (LibraryBuilder library in builders.values) {
@@ -1202,9 +1213,9 @@ class SourceLoader extends Loader {
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(library, coreTypes,
                 delayedActionPerformers, synthesizedFunctionNodes);
-          } else if (declaration is TypeAliasBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
+          } else if (declaration is SourceTypeAliasBuilder) {
+            declaration.buildOutlineExpressions(library, coreTypes,
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else {
             assert(
                 declaration is PrefixBuilder ||

@@ -13116,8 +13116,8 @@ class TypedefTearOffConstant extends Constant {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeConstant(tearOffConstant);
     printer.writeTypeParameters(parameters);
+    printer.writeConstant(tearOffConstant);
     printer.writeTypeArguments(types);
   }
 

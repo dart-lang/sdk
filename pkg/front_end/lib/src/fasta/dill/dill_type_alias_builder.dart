@@ -4,8 +4,7 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, InvalidType, NullType, Typedef;
-import 'package:kernel/core_types.dart';
+import 'package:kernel/ast.dart';
 
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -15,20 +14,20 @@ import '../builder/type_variable_builder.dart';
 
 import '../problems.dart' show unimplemented;
 
-import '../util/helpers.dart';
-
 import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   final Typedef typedef;
 
+  final Map<Name, Procedure>? tearOffs;
+
   List<TypeVariableBuilder>? _typeVariables;
   TypeBuilder? _type;
 
   DartType? thisType;
 
-  DillTypeAliasBuilder(this.typedef, DillLibraryBuilder parent)
+  DillTypeAliasBuilder(this.typedef, this.tearOffs, DillLibraryBuilder parent)
       : super(null, typedef.name, parent, typedef.fileOffset);
 
   List<MetadataBuilder> get metadata {
@@ -91,10 +90,4 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   bool get isNullAlias => typedef.type is NullType;
-
-  @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    // TODO(johnniwinther): Remove the need for this.
-  }
 }

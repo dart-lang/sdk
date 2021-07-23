@@ -78,9 +78,8 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault,
-        _factoryTearOff = createConstructorTearOffProcedure(
-            name, libraryBuilder, libraryBuilder.fileUri, charOffset,
-            forAbstractClassOrEnum: false),
+        _factoryTearOff = createFactoryTearOffProcedure(
+            name, libraryBuilder, libraryBuilder.fileUri, charOffset),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             libraryBuilder, charOffset, nativeMethodName) {
     this.asyncModifier = asyncModifier;

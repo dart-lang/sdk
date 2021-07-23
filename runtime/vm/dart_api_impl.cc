@@ -6163,10 +6163,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   return ServiceIsolate::IsServiceIsolate(iso);
 }
 
-DART_EXPORT int64_t Dart_TimelineGetMicros() {
-  return OS::GetCurrentMonotonicMicros();
-}
-
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
@@ -6306,6 +6302,18 @@ DART_EXPORT bool Dart_IsReloading() {
   CHECK_ISOLATE(isolate);
   return isolate->group()->IsReloading();
 #endif
+}
+
+DART_EXPORT int64_t Dart_TimelineGetMicros() {
+  return OS::GetCurrentMonotonicMicros();
+}
+
+DART_EXPORT int64_t Dart_TimelineGetTicks() {
+  return OS::GetCurrentMonotonicTicks();
+}
+
+DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
+  return OS::GetCurrentMonotonicFrequency();
 }
 
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {

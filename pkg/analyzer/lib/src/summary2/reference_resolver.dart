@@ -45,6 +45,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         scope = libraryElement.scope,
         isNNBD = libraryElement.isNonNullableByDefault;
 
+  void enterScopeClassElement(ClassElementImpl element) {
+    scope = TypeParameterScope(scope, element.typeParameters);
+  }
+
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
@@ -53,9 +57,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ClassElementImpl;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -102,7 +103,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ConstructorElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -158,7 +158,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as FieldFormalParameterElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -180,7 +179,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(outerScope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -208,9 +206,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
-
-    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    function.parameters; // create elements
     node.parameters.accept(this);
 
     nodesToBuildType.addDeclaration(node);
@@ -223,7 +218,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ParameterElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -287,7 +281,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -305,9 +298,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as MixinElementImpl;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 

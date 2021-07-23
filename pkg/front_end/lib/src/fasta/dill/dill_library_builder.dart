@@ -6,29 +6,7 @@ library fasta.dill_library_builder;
 
 import 'dart:convert' show jsonDecode;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        ConstantExpression,
-        Constructor,
-        DartType,
-        DynamicType,
-        Expression,
-        Extension,
-        Field,
-        FunctionType,
-        Library,
-        ListLiteral,
-        Member,
-        NamedNode,
-        NeverType,
-        Procedure,
-        ProcedureKind,
-        Reference,
-        StaticGet,
-        StringConstant,
-        StringLiteral,
-        Typedef;
+import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -122,8 +100,23 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuilt = true;
     library.classes.forEach(addClass);
     library.extensions.forEach(addExtension);
+
+    Map<String, Map<Name, Procedure>> tearOffs = {};
+    List<Procedure> nonTearOffs = [];
+    for (Procedure procedure in library.procedures) {
+      List<Object>? names = extractTypedefNameFromTearOff(procedure.name);
+      if (names != null) {
+        Map<Name, Procedure> map = tearOffs[names[0] as String] ??= {};
+        map[names[1] as Name] = procedure;
+      } else {
+        nonTearOffs.add(procedure);
+      }
+    }
+    nonTearOffs.forEach(addMember);
     library.procedures.forEach(addMember);
-    library.typedefs.forEach(addTypedef);
+    for (Typedef typedef in library.typedefs) {
+      addTypedef(typedef, tearOffs[typedef.name]);
+    }
     library.fields.forEach(addMember);
 
     if (isReadyToFinalizeExports) {
@@ -285,12 +278,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     return declaration;
   }
 
-  void addTypedef(Typedef typedef) {
+  void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
     DartType? type = typedef.type;
     if (type is FunctionType && type.typedefType == null) {
       unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
     }
-    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
+    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this),
         typedef.fileOffset);
   }
 
