@@ -26,7 +26,7 @@ import '../fasta_codes.dart'
         noLength,
         templateExtensionMemberConflictsWithObjectMember;
 
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../problems.dart';
 

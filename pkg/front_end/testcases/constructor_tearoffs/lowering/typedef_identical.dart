@@ -6,17 +6,15 @@ import 'typedef_identical_lib.dart';
 
 typedef H<X, Y> = A<Y>;
 
-// TODO(johnniwinther): Use 'var' here when dependency on inferred parameter
-// types is handled.
-dynamic H_new = H.new;
-dynamic H_named = H.named;
-dynamic H_fact = H.fact;
-dynamic H_redirect = H.redirect;
+var H_new = H.new;
+var H_named = H.named;
+var H_fact = H.fact;
+var H_redirect = H.redirect;
 
-dynamic F_new = F.new;
-dynamic F_named = F.named;
-dynamic F_fact = F.fact;
-dynamic F_redirect = F.redirect;
+var F_new = F.new;
+var F_named = F.named;
+var F_fact = F.fact;
+var F_redirect = F.redirect;
 
 main() {
   expect(true, identical(F_new, F_new_lib));

@@ -13,7 +13,7 @@ import '../identifiers.dart';
 import '../scope.dart';
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../loader.dart' show Loader;
 

@@ -32,7 +32,7 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../util/helpers.dart';
 
@@ -264,8 +264,6 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
       InterfaceType targetType = typedef.type as InterfaceType;
-      buildTypedefTearOffProcedure(tearOff, target, target.enclosingClass!,
-          typedef.typeParameters, targetType.typeArguments, library);
       synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
           new Map<TypeParameter, DartType>.fromIterables(
               target.enclosingClass!.typeParameters, targetType.typeArguments),
@@ -295,6 +293,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               createTypedefTearOffProcedure(
                   name, constructorName, library, fileUri, charOffset);
           _tearOffDependencies![tearOff] = target;
+          InterfaceType targetType = typedef.type as InterfaceType;
+          buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
+              typedef.typeParameters, targetType.typeArguments, library);
           f(tearOff);
         }
       });

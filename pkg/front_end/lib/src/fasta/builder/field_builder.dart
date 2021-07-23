@@ -17,7 +17,7 @@ import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../kernel/member_covariance.dart';
 

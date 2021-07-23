@@ -12,7 +12,7 @@ import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_api.dart';
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
 
@@ -342,7 +342,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     if (_factoryTearOff != null) {
       _tearOffTypeParameters =
           buildRedirectingFactoryTearOffProcedureParameters(
-              _factoryTearOff!, _procedure, library);
+              _factoryTearOff!, _procedureInternal, libraryBuilder);
     }
     return _procedureInternal;
   }

@@ -42,7 +42,7 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../util/helpers.dart';
 

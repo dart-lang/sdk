@@ -30,12 +30,14 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         Class,
         Component,
+        Constructor,
         DartType,
         Expression,
         FunctionNode,
         InterfaceType,
         Library,
         LibraryDependency,
+        Member,
         NeverType,
         Nullability,
         Procedure,
@@ -70,6 +72,7 @@ import '../denylisted_classes.dart'
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
@@ -89,18 +92,14 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart';
 
+import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ClassMember, DelayedCheck;
-
-import '../kernel/kernel_target.dart'
-    show SynthesizedFunctionNode, KernelTarget;
-
-import '../kernel/body_builder.dart' show BodyBuilder;
-
+import '../kernel/kernel_helper.dart'
+    show SynthesizedFunctionNode, TypeDependency;
+import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/transform_collections.dart' show CollectionTransformer;
-
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
-
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
@@ -110,19 +109,14 @@ import '../problems.dart' show internalProblem;
 import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../type_inference/type_inference_engine.dart';
-
 import '../type_inference/type_inferrer.dart';
 
 import '../util/helpers.dart';
 
 import 'diet_listener.dart' show DietListener;
-
 import 'diet_parser.dart' show DietParser;
-
 import 'outline_builder.dart' show OutlineBuilder;
-
 import 'source_class_builder.dart' show SourceClassBuilder;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_type_alias_builder.dart';
 
@@ -366,6 +360,15 @@ class SourceLoader extends Loader {
     _nnbdMismatchLibraries ??= {};
     _nnbdMismatchLibraries![libraryBuilder] = message;
     hasInvalidNnbdModeLibrary = true;
+  }
+
+  void registerConstructorToBeInferred(
+      Constructor constructor, ConstructorBuilder builder) {
+    _typeInferenceEngine!.toBeInferred[constructor] = builder;
+  }
+
+  void registerTypeDependency(Member member, TypeDependency typeDependency) {
+    _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
   @override

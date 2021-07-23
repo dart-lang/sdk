@@ -42,7 +42,7 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../loader.dart';
 

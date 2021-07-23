@@ -10,7 +10,7 @@ import 'package:kernel/core_types.dart';
 import '../../base/common.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 import '../modifier.dart';
 import '../problems.dart' show unsupported;
 import '../source/source_library_builder.dart';
