@@ -96,25 +96,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var holder = _buildClassMembers(element, members);
 
-    for (var newElement in holder.propertyAccessors) {
-      newElement.isFromMacro = true;
-      element.accessors.add(newElement);
-    }
-
-    for (var newElement in holder.constructors) {
-      newElement.isFromMacro = true;
-      element.constructors.add(newElement);
-    }
-
-    for (var newElement in holder.properties.whereType<FieldElementImpl>()) {
-      newElement.isFromMacro = true;
-      element.fields.add(newElement);
-    }
-
-    for (var newElement in holder.methods) {
-      newElement.isFromMacro = true;
-      element.methods.add(newElement);
-    }
+    element.accessors.addAll(holder.propertyAccessors);
+    element.constructors.addAll(holder.constructors);
+    element.fields.addAll(holder.properties.whereType<FieldElementImpl>());
+    element.methods.addAll(holder.methods);
   }
 
   @override
