@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -2723,7 +2724,12 @@ class ElementMacro {
   /// The code that for produced by the macro.
   final String code;
 
-  ElementMacro(this.id, this.code);
+  /// When we build elements from macro-produced code, we remember informative
+  /// data, such as offsets - to store it into bytes. This field is set to
+  /// an empty list when reading from bytes.
+  final Uint8List informative;
+
+  ElementMacro(this.id, this.code, this.informative);
 }
 
 /// An [AbstractClassElementImpl] which is an enum.

@@ -285,6 +285,7 @@ class BundleWriter {
     if (macro != null) {
       _sink.writeUInt30(macro.id);
       _sink.writeStringUtf8(macro.code);
+      _sink.writeUint8List(macro.informative);
     }
   }
 
@@ -372,11 +373,12 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.displayName);
     PropertyAccessorElementFlags.write(_sink, element);
-    _writeMacro(element.macro);
 
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
+
     _writeList(element.parameters, _writeParameterElement);
+    _writeMacro(element.macro);
   }
 
   void _writeReferences(List<Reference> references) {
