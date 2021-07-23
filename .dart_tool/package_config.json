@@ -142,7 +142,7 @@
       "name": "browser_launcher",
       "rootUri": "../third_party/pkg/browser_launcher",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "build_integration",
