@@ -4,11 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
-import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../source/source_library_builder.dart';
 import 'kernel_api.dart';
-import 'kernel_target.dart';
+import 'kernel_helper.dart';
 
 const String _tearOffNamePrefix = '_#';
 const String _tearOffNameSuffix = '#tearOff';
@@ -155,7 +154,7 @@ void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
 
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(tearOff, function, substitution);
+  _createParameters(tearOff, constructor, substitution, libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, constructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -206,8 +205,11 @@ void buildTypedefTearOffProcedure(
           (int index) => substitution.substituteType(typeArguments[index]));
     }
   }
-  _createParameters(tearOff, function,
-      Substitution.fromPairs(classTypeParameters, typeArguments));
+  _createParameters(
+      tearOff,
+      constructor,
+      Substitution.fromPairs(classTypeParameters, typeArguments),
+      libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, constructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -215,52 +217,19 @@ void buildTypedefTearOffProcedure(
   updatePrivateMemberName(tearOff, libraryBuilder);
 }
 
-/// Copies the parameter types from [constructor] to [tearOff].
-///
-/// These might have been inferred and therefore not available when the
-/// parameters were created.
-// TODO(johnniwinther): Avoid doing this when parameter types are not inferred.
-void buildConstructorTearOffOutline(
-    Procedure tearOff, Constructor constructor, Class enclosingClass) {
-  List<TypeParameter> classTypeParameters = enclosingClass.typeParameters;
-  Substitution substitution = Substitution.empty;
-  if (classTypeParameters.isNotEmpty) {
-    List<DartType> typeArguments = [];
-    for (TypeParameter typeParameter in tearOff.function.typeParameters) {
-      typeArguments.add(new TypeParameterType(typeParameter,
-          TypeParameterType.computeNullabilityFromBound(typeParameter)));
-    }
-    substitution = Substitution.fromPairs(classTypeParameters, typeArguments);
-  }
-  for (int i = 0; i < constructor.function.positionalParameters.length; i++) {
-    VariableDeclaration tearOffParameter =
-        tearOff.function.positionalParameters[i];
-    VariableDeclaration constructorParameter =
-        constructor.function.positionalParameters[i];
-    tearOffParameter.type =
-        substitution.substituteType(constructorParameter.type);
-  }
-  for (int i = 0; i < constructor.function.namedParameters.length; i++) {
-    VariableDeclaration tearOffParameter = tearOff.function.namedParameters[i];
-    VariableDeclaration constructorParameter =
-        constructor.function.namedParameters[i];
-    tearOffParameter.type =
-        substitution.substituteType(constructorParameter.type);
-  }
-}
-
 /// Creates the parameters for the redirecting factory [tearOff] based on the
 /// [redirectingConstructor] declaration.
 FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     Procedure tearOff,
     Procedure redirectingConstructor,
-    LibraryBuilder libraryBuilder) {
+    SourceLibraryBuilder libraryBuilder) {
   assert(redirectingConstructor.isRedirectingFactory);
   FunctionNode function = redirectingConstructor.function;
   FreshTypeParameters freshTypeParameters =
       _createFreshTypeParameters(function.typeParameters, tearOff.function);
   Substitution substitution = freshTypeParameters.substitution;
-  _createParameters(tearOff, function, substitution);
+  _createParameters(
+      tearOff, redirectingConstructor, substitution, libraryBuilder);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
   updatePrivateMemberName(tearOff, libraryBuilder);
@@ -330,10 +299,11 @@ FreshTypeParameters _createFreshTypeParameters(
 }
 
 /// Creates the parameters for the [tearOff] lowering based of the parameters
-/// in [function] and using the [substitution] to compute the parameter and
+/// in [constructor] and using the [substitution] to compute the parameter and
 /// return types.
-void _createParameters(
-    Procedure tearOff, FunctionNode function, Substitution substitution) {
+void _createParameters(Procedure tearOff, Member constructor,
+    Substitution substitution, SourceLibraryBuilder libraryBuilder) {
+  FunctionNode function = constructor.function!;
   for (VariableDeclaration constructorParameter
       in function.positionalParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(
@@ -355,6 +325,8 @@ void _createParameters(
   tearOff.function.returnType =
       substitution.substituteType(function.returnType);
   tearOff.function.requiredParameterCount = function.requiredParameterCount;
+  libraryBuilder.loader.registerTypeDependency(
+      tearOff, new TypeDependency(tearOff, constructor, substitution));
 }
 
 /// Creates the [Arguments] for passing the parameters from [tearOff] to its

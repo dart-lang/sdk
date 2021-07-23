@@ -198,16 +198,21 @@ class LibraryBuilder {
       TypesBuilder(linker).build(nodesToBuildType);
     }
 
+    var collector = macro.DeclarationCollector();
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
         if (declaration is ast.ClassDeclarationImpl) {
           var members = declaration.members.toList();
+          var classBuilder = macro.ClassDeclarationBuilderImpl(
+            collector,
+            declaration,
+          );
           for (var member in members) {
             if (member is ast.FieldDeclarationImpl) {
               if (hasMacroAnnotation(member, 'observable')) {
                 macro.ObservableMacro().visitFieldDeclaration(
                   member,
-                  macro.ClassDeclarationBuilderImpl(declaration),
+                  classBuilder,
                 );
               }
             }
@@ -227,6 +232,7 @@ class LibraryBuilder {
         }
       }
     }
+    collector.updateElements();
   }
 
   void storeExportScope() {

@@ -11,7 +11,7 @@ import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 
-import '../kernel/kernel_target.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../scope.dart';
 

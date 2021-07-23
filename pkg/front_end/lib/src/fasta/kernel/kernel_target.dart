@@ -6,7 +6,6 @@ library fasta.kernel_target;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -82,6 +81,7 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
+import 'kernel_helper.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -364,7 +364,7 @@ class KernelTarget extends TargetImplementation {
     return withCrashReporting<Component?>(() async {
       ticker.logMs("Building component");
       await loader.buildBodies();
-      finishClonedParameters();
+      finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
       List<SourceClassBuilder> myClasses = collectMyClasses();
@@ -792,7 +792,7 @@ class KernelTarget extends TargetImplementation {
         synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
   }
 
-  void finishClonedParameters() {
+  void finishSynthesizedParameters() {
     for (SynthesizedFunctionNode synthesizedFunctionNode
         in synthesizedFunctionNodes) {
       synthesizedFunctionNode.cloneDefaultValues();
@@ -1426,87 +1426,5 @@ class DelayedParameterType {
     // ignore: unnecessary_null_comparison
     assert(source.type != null, "No type computed for $source.");
     target.type = substitute(source.type, substitutionMap);
-  }
-}
-
-/// Data for clone default values for synthesized function nodes once the
-/// original default values have been computed.
-///
-/// This is used for constructors in unnamed mixin application, which are
-/// created from the constructors in the superclass, and for tear off lowerings
-/// for redirecting factories, which are created from the effective target
-/// constructor.
-class SynthesizedFunctionNode {
-  /// Type parameter map from type parameters in scope [_original] to types
-  /// in scope of [_synthesized].
-  // TODO(johnniwinther): Is this ever needed? Should occurrence of type
-  //  variable types in default values be a compile time error?
-  final Map<TypeParameter, DartType> _typeSubstitution;
-
-  /// The original function node.
-  final FunctionNode _original;
-
-  /// The synthesized function node.
-  final FunctionNode _synthesized;
-
-  /// If `true`, the [_synthesized] is guaranteed to have the same parameters in
-  /// the same order as [_original]. Otherwise [_original] is only guaranteed to
-  /// be callable from [_synthesized], meaning that is has at most the same
-  /// number of positional parameters and a, possibly reordered, subset of the
-  /// named parameters.
-  final bool identicalSignatures;
-
-  SynthesizedFunctionNode(
-      this._typeSubstitution, this._original, this._synthesized,
-      {this.identicalSignatures: true});
-
-  void cloneDefaultValues() {
-    // TODO(ahe): It is unclear if it is legal to use type variables in
-    // default values, but Fasta is currently allowing it, and the VM
-    // accepts it. If it isn't legal, the we can speed this up by using a
-    // single cloner without substitution.
-    CloneVisitorNotMembers? cloner;
-
-    void cloneInitializer(VariableDeclaration originalParameter,
-        VariableDeclaration clonedParameter) {
-      if (originalParameter.initializer != null) {
-        cloner ??=
-            new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
-        clonedParameter.initializer = cloner!
-            .clone(originalParameter.initializer!)
-              ..parent = clonedParameter;
-      }
-    }
-
-    // For mixin application constructors, the argument count is the same, but
-    // for redirecting tear off lowerings, the argument count of the tear off
-    // can be less than that of the redirection target.
-
-    assert(_synthesized.positionalParameters.length <=
-        _original.positionalParameters.length);
-    for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-      cloneInitializer(_original.positionalParameters[i],
-          _synthesized.positionalParameters[i]);
-    }
-
-    if (identicalSignatures) {
-      assert(_synthesized.namedParameters.length ==
-          _original.namedParameters.length);
-      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-        cloneInitializer(
-            _original.namedParameters[i], _synthesized.namedParameters[i]);
-      }
-    } else if (_synthesized.namedParameters.isNotEmpty) {
-      Map<String, VariableDeclaration> originalParameters = {};
-      for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalParameters[_original.namedParameters[i].name!] =
-            _original.namedParameters[i];
-      }
-      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-        cloneInitializer(
-            originalParameters[_synthesized.namedParameters[i].name!]!,
-            _synthesized.namedParameters[i]);
-      }
-    }
   }
 }

@@ -360,6 +360,8 @@ class ModelEmitter {
       flavor.write(', lax runtime type');
     }
     if (_options.useContentSecurityPolicy) flavor.write(', CSP');
+    var featureString = _options.features.flavorString();
+    if (featureString.isNotEmpty) flavor.write(', $featureString');
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 

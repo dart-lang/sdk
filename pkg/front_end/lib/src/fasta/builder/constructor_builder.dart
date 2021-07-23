@@ -20,7 +20,7 @@ import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
-import '../kernel/kernel_target.dart' show SynthesizedFunctionNode;
+import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 
 import '../loader.dart' show Loader;
 
@@ -229,8 +229,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             library == libraryBuilder,
             "Unexpected library builder ${libraryBuilder} for"
             " constructor $this in ${library}.");
-        libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
-            this;
+        libraryBuilder.loader
+            .registerConstructorToBeInferred(_constructor, this);
       }
     }
     return _constructor;
@@ -265,10 +265,6 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.resolveRedirectingFactoryTargets();
-    }
-    if (_constructorTearOff != null) {
-      buildConstructorTearOffOutline(
-          _constructorTearOff!, constructor, classBuilder!.cls);
     }
     beginInitializers = null;
   }

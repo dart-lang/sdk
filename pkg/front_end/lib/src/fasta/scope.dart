@@ -15,7 +15,7 @@ import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/class_hierarchy_builder.dart' show ClassMember;
-import 'kernel/kernel_target.dart';
+import 'kernel/kernel_helper.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
 
 import 'fasta_codes.dart'

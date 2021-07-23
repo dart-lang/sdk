@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 
 import 'package:kernel/ast.dart';
 
@@ -18,9 +17,10 @@ import '../../base/instrumentation.dart' show Instrumentation;
 import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
-
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
+import '../kernel/kernel_helper.dart';
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -128,6 +128,8 @@ abstract class TypeInferenceEngine {
   /// is used to report errors.
   final Map<Constructor, ConstructorBuilder> beingInferred = {};
 
+  final Map<Member, TypeDependency> typeDependencies = {};
+
   final Instrumentation? instrumentation;
 
   TypeInferenceEngine(this.instrumentation);
@@ -152,6 +154,10 @@ abstract class TypeInferenceEngine {
       builder.inferFormalTypes();
     }
     toBeInferred.clear();
+    for (TypeDependency typeDependency in typeDependencies.values) {
+      typeDependency.copyInferred();
+    }
+    typeDependencies.clear();
   }
 
   /// Gets ready to do top level type inference for the component having the

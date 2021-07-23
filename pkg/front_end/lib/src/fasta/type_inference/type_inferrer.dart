@@ -37,6 +37,7 @@ import '../builder/member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
+import '../kernel/kernel_helper.dart';
 import '../kernel/inference_visitor.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
@@ -210,14 +211,8 @@ class TypeInferrerImpl implements TypeInferrer {
   /// inside a closure.
   ClosureContext? closureContext;
 
-  TypeInferrerImpl(
-      this.engine,
-      this.uriForInstrumentation,
-      bool topLevel,
-      this.thisType,
-      this.library,
-      this.assignedVariables,
-      this.dataForTesting)
+  TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
+      this.thisType, this.library, this.assignedVariables, this.dataForTesting)
       // ignore: unnecessary_null_comparison
       : assert(library != null),
         unknownFunction = new FunctionType(
@@ -368,6 +363,11 @@ class TypeInferrerImpl implements TypeInferrer {
   void ensureMemberType(Member member) {
     if (member is Constructor) {
       inferConstructorParameterTypes(member);
+    }
+    TypeDependency? typeDependency = engine.typeDependencies.remove(member);
+    if (typeDependency != null) {
+      ensureMemberType(typeDependency.original);
+      typeDependency.copyInferred();
     }
   }
 
