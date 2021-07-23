@@ -9082,6 +9082,19 @@ TEST_CASE(DartAPI_TimelineAsync) {
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
+TEST_CASE(DartAPI_TimelineClock) {
+  int64_t micros1 = Dart_TimelineGetMicros();
+  int64_t ticks1 = Dart_TimelineGetTicks();
+  int64_t frequency1 = Dart_TimelineGetTicksFrequency();
+  OS::Sleep(1);
+  int64_t micros2 = Dart_TimelineGetMicros();
+  int64_t ticks2 = Dart_TimelineGetTicks();
+  int64_t frequency2 = Dart_TimelineGetTicksFrequency();
+  EXPECT_NE(micros1, micros2);
+  EXPECT_NE(ticks1, ticks2);
+  EXPECT_EQ(frequency1, frequency2);
+}
+
 static void HintFreedNative(Dart_NativeArguments args) {
   int64_t size = 0;
   EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));

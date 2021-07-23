@@ -371,6 +371,20 @@ DART_EXPORT bool Dart_IsReloading();
  */
 DART_EXPORT int64_t Dart_TimelineGetMicros();
 
+/**
+ * Returns a raw timestamp in from the monotonic clock.
+ *
+ * \return A raw timestamp from the monotonic clock.
+ */
+DART_EXPORT int64_t Dart_TimelineGetTicks();
+
+/**
+ * Returns the frequency of the monotonic clock.
+ *
+ * \return The frequency of the monotonic clock.
+ */
+DART_EXPORT int64_t Dart_TimelineGetTicksFrequency();
+
 /** Timeline stream for Dart API calls */
 #define DART_TIMELINE_STREAM_API (1 << 0)
 /** Timeline stream for compiler events */
