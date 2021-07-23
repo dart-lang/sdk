@@ -363,6 +363,14 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
+  /// Ensures that the type of [member] has been computed.
+  // TODO(johnniwinther): Expand this to handle lowerings.
+  void ensureMemberType(Member member) {
+    if (member is Constructor) {
+      inferConstructorParameterTypes(member);
+    }
+  }
+
   @override
   void inferConstructorParameterTypes(Constructor target) {
     ConstructorBuilder? constructor = engine.beingInferred[target];

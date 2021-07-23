@@ -2,11 +2,21 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:35:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:28:18: Error: A value of type 'Class1 Function(int)' can't be assigned to a variable of type 'Class1 Function(dynamic)'.
+//  - 'Class1' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart'.
+// var Class1_new = Class1.new;
+//                  ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:29:18: Error: A value of type 'Class2 Function(int)' can't be assigned to a variable of type 'Class2 Function(dynamic)'.
+//  - 'Class2' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart'.
+// var Class2_new = Class2.new;
+//                  ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:38:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
 //     f1a(''); // error
 //         ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:49:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:52:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
 //     f2a(''); // error
 //         ^
 //
@@ -36,6 +46,14 @@ class Class2 extends core::Object implements self::Interface2 {
     return new self::Class2::•(field);
 }
 static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
+static field (dynamic) → self::Class1 Class1_new = let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:28:18: Error: A value of type 'Class1 Function(int)' can't be assigned to a variable of type 'Class1 Function(dynamic)'.
+ - 'Class1' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart'.
+var Class1_new = Class1.new;
+                 ^" in (#C1) as{TypeError,ForNonNullableByDefault} (dynamic) → self::Class1;
+static field (dynamic) → self::Class2 Class2_new = let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:29:18: Error: A value of type 'Class2 Function(int)' can't be assigned to a variable of type 'Class2 Function(dynamic)'.
+ - 'Class2' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart'.
+var Class2_new = Class2.new;
+                 ^" in (#C2) as{TypeError,ForNonNullableByDefault} (dynamic) → self::Class2;
 static method main() → dynamic {
   core::print("inSoundMode: ${self::inSoundMode}");
   self::testInferred();
@@ -47,7 +65,7 @@ static method testInferred() → dynamic {
   self::Class1 c1a = f1a(0){(core::int) → self::Class1};
   self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
   () → Null {
-    f1a(let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:35:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+    f1a(let final Never #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:38:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
     f1a(''); // error
         ^" in "" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → self::Class1};
   };
@@ -61,7 +79,7 @@ static method testInferred() → dynamic {
   self::Class2 c2a = f2a(0){(core::int) → self::Class2};
   self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
   () → Null {
-    f2a(let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:49:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+    f2a(let final Never #t4 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/inferred_constructor_tear_off.dart:52:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
     f2a(''); // error
         ^" in "" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → self::Class2};
   };

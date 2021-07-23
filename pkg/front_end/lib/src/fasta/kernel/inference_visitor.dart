@@ -217,6 +217,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConstructorTearOff(
       ConstructorTearOff node, DartType typeContext) {
+    inferrer.ensureMemberType(node.target);
     DartType type =
         node.target.function!.computeFunctionType(inferrer.library.nonNullable);
     return inferrer.instantiateTearOff(type, typeContext, node);
