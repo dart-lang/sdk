@@ -182,6 +182,22 @@ class LibraryBuilder {
       return false;
     }
 
+    /// Build types for type annotations in new [nodes].
+    void resolveTypeAnnotations(
+      List<ast.AstNode> nodes, {
+      ClassElementImpl? classElement,
+    }) {
+      var nodesToBuildType = NodesToBuildType();
+      var resolver = ReferenceResolver(linker, nodesToBuildType, element);
+      if (classElement != null) {
+        resolver.enterScopeClassElement(classElement);
+      }
+      for (var node in nodes) {
+        node.accept(resolver);
+      }
+      TypesBuilder(linker).build(nodesToBuildType);
+    }
+
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations) {
         if (declaration is ast.ClassDeclarationImpl) {
@@ -206,17 +222,7 @@ class LibraryBuilder {
             );
             var classElement = declaration.declaredElement as ClassElementImpl;
             elementBuilder.buildMacroClassMembers(classElement, newMembers);
-
-            // TODO(scheglov) extract
-            {
-              var nodesToBuildType = NodesToBuildType();
-              var resolver =
-                  ReferenceResolver(linker, nodesToBuildType, element);
-              for (var newMember in newMembers) {
-                newMember.accept(resolver);
-              }
-              TypesBuilder(linker).build(nodesToBuildType);
-            }
+            resolveTypeAnnotations(newMembers, classElement: classElement);
           }
         }
       }
