@@ -2047,9 +2047,6 @@ abstract class ElementImpl implements Element {
   /// The length of the element's code, or `null` if the element is synthetic.
   int? _codeLength;
 
-  /// The language version for the library.
-  LibraryLanguageVersion? _languageVersion;
-
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
   ElementImpl(String? name, this._nameOffset, {this.reference}) {
@@ -3643,6 +3640,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   final AnalysisSession session;
+
+  /// The language version for the library.
+  LibraryLanguageVersion? _languageVersion;
 
   bool hasTypeProviderSystemSet = false;
 
