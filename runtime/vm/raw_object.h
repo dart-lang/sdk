@@ -2522,6 +2522,9 @@ class UntaggedAbstractType : public UntaggedInstance {
 
   // Accessed from generated code.
   std::atomic<uword> type_test_stub_entry_point_;
+#if defined(DART_COMPRESSED_POINTERS)
+  uint32_t padding_;  // Makes Windows and Posix agree on layout.
+#endif
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
   VISIT_FROM(type_test_stub)
 
@@ -2805,6 +2808,9 @@ class UntaggedPointerBase : public UntaggedInstance {
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
 class UntaggedTypedDataBase : public UntaggedPointerBase {
  protected:
+#if defined(DART_COMPRESSED_POINTERS)
+  uint32_t padding_;  // Makes Windows and Posix agree on layout.
+#endif
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   COMPRESSED_SMI_FIELD(SmiPtr, length);
