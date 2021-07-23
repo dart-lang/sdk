@@ -81,6 +81,21 @@ class FeatureOptions {
     }
   }
 
+  /// Returns a list of enabled features as a comma separated string.
+  String flavorString() {
+    bool _shouldPrint(FeatureOption feature) {
+      return feature.isNegativeFlag ? feature.isDisabled : feature.isEnabled;
+    }
+    String _toString(FeatureOption feature) {
+      return feature.isNegativeFlag ? 'no-${feature.flag}' : feature.flag;
+    }
+    Iterable<String> _listToString(List<FeatureOption> options) {
+      return options.where(_shouldPrint).map(_toString);
+    }
+    return _listToString(shipping).followedBy(_listToString(canary)).join(', ');
+  }
+
+  /// Parses a [List<String>] and enables / disables features as necessary.
   void parse(List<String> options) {
     _extractFeatures(options, shipping, FeatureStatus.shipping);
     _extractFeatures(options, canary, FeatureStatus.canary);

@@ -128,7 +128,26 @@ void testFlagCollision() {
   Expect.throwsArgumentError(() => test(['--cf1', '--no-cf1']));
 }
 
+void flavorStringTest(List<String> options, String expectedFlavorString) {
+  var tfo = test(options);
+  Expect.equals(expectedFlavorString, tfo.flavorString());
+}
+
+void flavorStringTests() {
+  flavorStringTest([], 'sf1, sf2, no-sf3, no-sf4');
+  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4'], '');
+  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3'], 'no-sf4');
+  flavorStringTest(['--no-sf1', '--sf3', '--sf4'], 'sf2');
+  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--cf1'], 'cf1');
+  flavorStringTest(['--cf1'], 'sf1, sf2, no-sf3, no-sf4, cf1');
+  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--no-cf3'], 'no-cf3');
+  flavorStringTest(['--no-cf3'], 'sf1, sf2, no-sf3, no-sf4, no-cf3');
+  flavorStringTest(['--no-sf1', '--no-sf2', '--sf3', '--sf4', '--cf1',
+      '--no-cf3'], 'cf1, no-cf3');
+}
+
 void main() {
+  // Test feature options functionality.
   testShipping();
   testNoShipping();
   testCanary();
@@ -138,4 +157,7 @@ void main() {
   testNoCanaryEnabled();
   testNoShippingEnabled();
   testFlagCollision();
+
+  // Supplemental tests.
+  flavorStringTests();
 }
