@@ -850,6 +850,15 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
+  ElementMacro? _readMacro() {
+    var hasData = _reader.readBool();
+    if (hasData) {
+      var id = _reader.readUInt30();
+      var code = _reader.readStringUtf8();
+      return ElementMacro(id, code);
+    }
+  }
+
   List<MethodElementImpl> _readMethods(
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
@@ -986,6 +995,7 @@ class LibraryReader {
 
     var element = PropertyAccessorElementImpl(name, -1);
     PropertyAccessorElementFlags.read(_reader, element);
+    element.macro = _readMacro();
 
     var reference = classReference
         .getChild(element.isGetter ? '@getter' : '@setter')

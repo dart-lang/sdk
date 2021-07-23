@@ -402,10 +402,7 @@ class _ElementWriter {
   void _writeDocumentation(Element element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
-      var str = documentation;
-      str = str.replaceAll('\n', r'\n');
-      str = str.replaceAll('\r', r'\r');
-      _writelnWithIndent('documentationComment: $str');
+      _writelnMultiLineWithIndent('documentationComment: $documentation');
     }
   }
 
@@ -521,9 +518,28 @@ class _ElementWriter {
     buffer.writeln();
   }
 
+  void _writelnMultiLineWithIndent(String str) {
+    str = str.replaceAll('\n', r'\n');
+    str = str.replaceAll('\r', r'\r');
+    _writelnWithIndent(str);
+  }
+
   void _writelnWithIndent(String line) {
     buffer.write(indent);
     buffer.writeln(line);
+  }
+
+  void _writeMacro(Element e) {
+    if (e is HasElementMacro) {
+      var macro = (e as HasElementMacro).macro;
+      if (macro != null) {
+        _writelnWithIndent('macro');
+        _withIndent(() {
+          _writelnWithIndent('id: ${macro.id}');
+          _writelnMultiLineWithIndent('code: ${macro.code}');
+        });
+      }
+    }
   }
 
   void _writeMetadata(Element element) {
@@ -693,6 +709,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);

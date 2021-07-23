@@ -2715,6 +2715,17 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
+/// Information about a macro-produced [Element].
+class ElementMacro {
+  /// The sequential id of this macro-produced element.
+  final int id;
+
+  /// The code that for produced by the macro.
+  final String code;
+
+  ElementMacro(this.id, this.code);
+}
+
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
   ElementLinkedData? linkedData;
@@ -3478,6 +3489,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
+}
+
+/// This interface is implemented by [Element]s that can be added by macros.
+abstract class HasElementMacro {
+  /// If this element was added by a macro, the code of a declaration that
+  /// was produced by the macro.
+  ElementMacro? macro;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -4912,10 +4930,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, HasElementMacro {
   /// The variable associated with this accessor.
   @override
   late PropertyInducingElement variable;
+
+  @override
+  ElementMacro? macro;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
