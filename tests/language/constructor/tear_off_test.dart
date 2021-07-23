@@ -24,18 +24,16 @@ class NGenRedir {
   const NGenRedir._(this.x);
 }
 
-class NFac {
+class NFac implements NFacRedir {
   final int x;
-  factory NFac(int x) => NFacRedir._(x);
-  factory NFac.named(int x) => NFacRedir._(x);
-  NFac._(this.x);
+  factory NFac(int x) => NFac._(x);
+  factory NFac.named(int x) => NFac._(x);
+  const NFac._(this.x);
 }
 
 class NFacRedir {
-  final int x;
   const factory NFacRedir(int x) = NFac._;
   const factory NFacRedir.named(int x) = NFac._;
-  NFacRedir._(this.x);
 }
 
 // Generic classes.
@@ -52,18 +50,16 @@ class GGenRedir<T> {
   const GGenRedir._(this.x);
 }
 
-class GFac<T> {
+class GFac<T> implements GFacRedir<T> {
   final int x;
-  factory GFac(int x) => GFacRedir._(x);
-  factory GFac.named(int x) => GFacRedir._(x);
-  GFac._(this.x);
+  factory GFac(int x) => GFac._(x);
+  factory GFac.named(int x) => GFac._(x);
+  const GFac._(this.x);
 }
 
 class GFacRedir<T> {
-  final int x;
   const factory GFacRedir(int x) = GFac._;
   const factory GFacRedir.named(int x) = GFac._;
-  GFacRedir._(this.x);
 }
 
 class Optional<T> {
@@ -96,9 +92,9 @@ void main() {
   GGen<int>.new.expectStaticType<Exactly<GGen<int> Function(int)>>();
   GGen<int>.named.expectStaticType<Exactly<GGen<int> Function(int)>>();
   GGenRedir<int>.new
-      .expectStaticType<Exactly<GGenRedir<T> Function<T>(int)>>();
+      .expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
   GGenRedir<int>.named
-      .expectStaticType<Exactly<GGenRedir<T> Function<T>(int)>>();
+      .expectStaticType<Exactly<GGenRedir<int> Function(int)>>();
   GFac<int>.new.expectStaticType<Exactly<GFac<int> Function(int)>>();
   GFac<int>.named.expectStaticType<Exactly<GFac<int> Function(int)>>();
   GFacRedir<int>.new
@@ -106,26 +102,26 @@ void main() {
   GFacRedir<int>.named
       .expectStaticType<Exactly<GFacRedir<int> Function(int)>>();
 
-  contextType<GGen<int> Function(int)>(
+  context<GGen<int> Function(int)>(
       GGen.new..expectStaticType<Exactly<GGen<int> Function(int)>>());
-  contextType<GGen<int> Function(int)>(
+  context<GGen<int> Function(int)>(
       GGen.named..expectStaticType<Exactly<GGen<int> Function(int)>>());
-  contextType<GGenRedir<int> Function(int)>(GGenRedir.new
+  context<GGenRedir<int> Function(int)>(GGenRedir.new
     ..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
-  contextType<GGenRedir<int> Function(int)>(GGenRedir.named
+  context<GGenRedir<int> Function(int)>(GGenRedir.named
     ..expectStaticType<Exactly<GGenRedir<int> Function(int)>>());
-  contextType<GFac<int> Function(int)>(
+  context<GFac<int> Function(int)>(
       GFac.new..expectStaticType<Exactly<GFac<int> Function(int)>>());
-  contextType<GFac<int> Function(int)>(
+  context<GFac<int> Function(int)>(
       GFac.named..expectStaticType<Exactly<GFac<int> Function(int)>>());
-  contextType<GFacRedir<int> Function(int)>(
+  context<GFacRedir<int> Function(int)>(
       GFacRedir.new..expectStaticType<Exactly<GFacRedir<int> Function(int)>>());
-  contextType<GFacRedir<int> Function(int)>(GFacRedir.named
+  context<GFacRedir<int> Function(int)>(GFacRedir.named
     ..expectStaticType<Exactly<GFacRedir<int> Function(int)>>());
 
-  contextType<Optional<int> Function()>(Optional.new
+  context<Optional<int> Function()>(Optional.new
     ..expectStaticType<Exactly<Optional<int> Function([int, int])>>());
-  contextType<Optional<int> Function()>(Optional.named
+  context<Optional<int> Function()>(Optional.named
     ..expectStaticType<Exactly<Optional<int> Function({int x, int y})>>());
 
   // Check that tear-offs are canonicalized where possible
