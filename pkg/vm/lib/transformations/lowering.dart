@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -39,8 +37,8 @@ class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final ListLiteralsLowering listLiteralsLowering;
 
-  Member _currentMember;
-  StaticTypeContext _cachedStaticTypeContext;
+  Member? _currentMember;
+  StaticTypeContext? _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
       : env = TypeEnvironment(coreTypes, hierarchy),
@@ -49,7 +47,7 @@ class _Lowering extends Transformer {
         listLiteralsLowering = ListLiteralsLowering(coreTypes);
 
   StaticTypeContext get _staticTypeContext =>
-      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
+      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
 
   @override
   defaultMember(Member node) {

@@ -2680,7 +2680,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSpaced('=');
     writeWord('instantiation');
     writeSpace();
-    writeMemberReferenceFromReference(node.tearOffConstant.targetReference);
+    Constant tearOffConstant = node.tearOffConstant;
+    if (tearOffConstant is TearOffConstant) {
+      writeMemberReferenceFromReference(tearOffConstant.targetReference);
+    } else {
+      writeConstantReference(tearOffConstant);
+    }
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);
@@ -2702,6 +2707,26 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeWord('static-tearoff');
     writeSpace();
     writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('typedef-tearoff');
+    writeSpace();
+    writeTypeParameterList(node.parameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeConstantReference(node.tearOffConstant);
+    if (node.types.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.types, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
     endLine();
   }
 

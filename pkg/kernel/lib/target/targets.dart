@@ -74,7 +74,7 @@ Target? getTarget(String name, TargetFlags flags) {
 }
 
 abstract class DiagnosticReporter<M, C> {
-  void report(M message, int charOffset, int length, Uri fileUri,
+  void report(M message, int charOffset, int length, Uri? fileUri,
       {List<C> context});
 }
 

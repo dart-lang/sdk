@@ -1403,7 +1403,7 @@ class KernelDiagnosticReporter
 
   KernelDiagnosticReporter(this.loader);
 
-  void report(Message message, int charOffset, int length, Uri fileUri,
+  void report(Message message, int charOffset, int length, Uri? fileUri,
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
   }

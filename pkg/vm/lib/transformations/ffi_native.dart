@@ -14,7 +14,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
 
 /// Transform @FfiNative annotated functions into FFI native function pointer
 /// functions.
-void transformLibraries(Component component, List<Library> libraries,
+void transformLibraries(
+    Component component,
+    List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex) {
   final index = LibraryIndex(component, ['dart:ffi']);
@@ -22,8 +24,8 @@ void transformLibraries(Component component, List<Library> libraries,
   if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {
     return;
   }
-  final transformer = FfiNativeTransformer(index, diagnosticReporter,
-      referenceFromIndex);
+  final transformer =
+      FfiNativeTransformer(index, diagnosticReporter, referenceFromIndex);
   libraries.forEach(transformer.visitLibrary);
 }
 
@@ -41,8 +43,8 @@ class FfiNativeTransformer extends Transformer {
   final Procedure asFunctionProcedure;
   final Procedure fromAddressInternal;
 
-  FfiNativeTransformer(LibraryIndex index, this.diagnosticReporter,
-      this.referenceFromIndex)
+  FfiNativeTransformer(
+      LibraryIndex index, this.diagnosticReporter, this.referenceFromIndex)
       : ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         ffiNativeNameField =
@@ -169,11 +171,8 @@ class FfiNativeTransformer extends Transformer {
     }
 
     if (!node.isStatic) {
-      diagnosticReporter.report(
-          messageFfiNativeAnnotationMustAnnotateStatic,
-          node.fileOffset,
-          1,
-          node.location!.file);
+      diagnosticReporter.report(messageFfiNativeAnnotationMustAnnotateStatic,
+          node.fileOffset, 1, node.location!.file);
     }
 
     node.isExternal = false;

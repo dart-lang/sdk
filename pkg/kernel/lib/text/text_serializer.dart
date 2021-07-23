@@ -2283,7 +2283,7 @@ TextSerializer<NullConstant> nullConstantSerializer =
 TextSerializer<InstantiationConstant> instantiationConstantSerializer =
     Wrapped<Tuple2<Constant, List<DartType>>, InstantiationConstant>(
         (w) => Tuple2(w.tearOffConstant, w.types),
-        (u) => InstantiationConstant(u.first as TearOffConstant, u.second),
+        (u) => InstantiationConstant(u.first, u.second),
         Tuple2Serializer(
             constantSerializer, ListSerializer(dartTypeSerializer)));
 

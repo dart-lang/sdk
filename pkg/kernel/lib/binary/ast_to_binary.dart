@@ -2760,6 +2760,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitTypedefTearOffConstantReference(TypedefTearOffConstant node) {
+    throw new UnsupportedError('serialization of TypedefTearOffConstants ');
+  }
+
+  @override
   void visitTypeLiteralConstant(TypeLiteralConstant node) {
     throw new UnsupportedError('serialization of TypeLiteralConstants');
   }
