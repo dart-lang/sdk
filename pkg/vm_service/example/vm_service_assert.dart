@@ -178,6 +178,7 @@ String assertInstanceKind(String obj) {
   if (obj == "Float64List") return obj;
   if (obj == "Float64x2") return obj;
   if (obj == "Float64x2List") return obj;
+  if (obj == "FunctionType") return obj;
   if (obj == "Int") return obj;
   if (obj == "Int16List") return obj;
   if (obj == "Int32List") return obj;
@@ -578,6 +579,7 @@ vms.FuncRef assertFuncRef(vms.FuncRef obj) {
   }
   assertBool(obj.isStatic!);
   assertBool(obj.isConst!);
+  assertBool(obj.implicit!);
   return obj;
 }
 
@@ -603,6 +605,8 @@ vms.Func assertFunc(vms.Func obj) {
   }
   assertBool(obj.isStatic!);
   assertBool(obj.isConst!);
+  assertBool(obj.implicit!);
+  assertInstanceRef(obj.signature!);
   return obj;
 }
 
@@ -880,6 +884,13 @@ vms.Obj assertObj(vms.Obj obj) {
   return obj;
 }
 
+vms.Parameter assertParameter(vms.Parameter obj) {
+  assertNotNull(obj);
+  assertInstanceRef(obj.parameterType!);
+  assertBool(obj.fixed!);
+  return obj;
+}
+
 vms.PortList assertPortList(vms.PortList obj) {
   assertNotNull(obj);
   assertListOfInstanceRef(obj.ports!);
@@ -1118,6 +1129,14 @@ vms.TypeArguments assertTypeArguments(vms.TypeArguments obj) {
   assertString(obj.id!);
   assertString(obj.name!);
   assertListOfInstanceRef(obj.types!);
+  return obj;
+}
+
+vms.TypeParameters assertTypeParameters(vms.TypeParameters obj) {
+  assertNotNull(obj);
+  assertListOfString(obj.names!);
+  assertTypeArgumentsRef(obj.bounds!);
+  assertTypeArgumentsRef(obj.defaults!);
   return obj;
 }
 
