@@ -164,7 +164,7 @@ vars = {
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "099dcc4d052a30c6921489cfbefa1c8531d12975",
-  "typed_data_tag": "f94fc57b8e8c0e4fe4ff6cfd8290b94af52d3719",
+  "typed_data_rev": "29ce5a92b03326d0b8035916ac04f528874994bd",
   "usage_rev": "e0780cd8b2f8af69a28dc52678ffe8492da27d06",
   "vector_math_rev": "0c9f5d68c047813a6dcdeb88ba7a42daddf25025",
   "watcher_rev": "3924194385fb215cef483193ed2879a618a3d69c",
@@ -456,7 +456,7 @@ deps = {
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_rev"),
   Var("dart_root") + "/third_party/pkg/typed_data":
-      Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_tag"),
+      Var("dart_git") + "typed_data.git" + "@" + Var("typed_data_rev"),
   Var("dart_root") + "/third_party/pkg/usage":
       Var("dart_git") + "usage.git" + "@" + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/vector_math":
