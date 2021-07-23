@@ -354,12 +354,21 @@ abstract class Target {
   /// synthesized top level functions.
   int get enabledConstructorTearOffLowerings;
 
-  /// Returns `true` if lowering of constructor tear offs is enabled.
+  /// Returns `true` if lowering of generative constructor tear offs is enabled.
   ///
   /// This is determined by the [enabledConstructorTearOffLowerings] mask.
   bool get isConstructorTearOffLoweringEnabled =>
       (enabledConstructorTearOffLowerings &
           ConstructorTearOffLowering.constructors) !=
+      0;
+
+  /// Returns `true` if lowering of non-redirecting factory tear offs is
+  /// enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isFactoryTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.factories) !=
       0;
 
   /// Returns `true` if lowering of redirecting factory tear offs is enabled.
@@ -643,16 +652,19 @@ class LateLowering {
 }
 
 class ConstructorTearOffLowering {
-  /// Create static functions to use as tear offs of constructors and.
+  /// Create static functions to use as tear offs of generative constructors.
   static const int constructors = 1 << 0;
 
+  /// Create static functions to use as tear offs of non-redirecting factories.
+  static const int factories = 1 << 1;
+
   /// Create static functions to use as tear offs of redirecting factories.
-  static const int redirectingFactories = 1 << 1;
+  static const int redirectingFactories = 1 << 2;
 
   /// Create top level functions to use as tear offs of typedefs that are not
   /// proper renames.
-  static const int typedefs = 1 << 2;
+  static const int typedefs = 1 << 3;
 
   static const int none = 0;
-  static const int all = (1 << 3) - 1;
+  static const int all = (1 << 4) - 1;
 }

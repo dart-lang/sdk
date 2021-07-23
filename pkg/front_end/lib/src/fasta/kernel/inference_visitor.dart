@@ -258,16 +258,8 @@ class InferenceVisitor
         typeParameters: freshTypeParameters.freshTypeParameters,
         requiredParameterCount: resultType.requiredParameterCount,
         typedefType: null);
-    Expression replacement = node;
-    if (!inferrer.isTopLevel &&
-        inferrer.library.loader.target.backendTarget
-            .isTypedefTearOffLoweringEnabled) {
-      replacement = inferrer.library.getTypedefTearOffLowering(
-          node, expressionType, inferrer.helper!.uri);
-    }
-
     ExpressionInferenceResult inferredResult =
-        inferrer.instantiateTearOff(resultType, typeContext, replacement);
+        inferrer.instantiateTearOff(resultType, typeContext, node);
     Expression ensuredResultExpression =
         inferrer.ensureAssignableResult(typeContext, inferredResult);
     return new ExpressionInferenceResult(

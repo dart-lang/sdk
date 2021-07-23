@@ -23,6 +23,18 @@ Name constructorTearOffName(String name, Library library) {
       library);
 }
 
+/// Creates the synthesized name to use for the lowering of the tear off of a
+/// constructor or factory by the given [constructorName] in [library].
+Name typedefTearOffName(
+    String typedefName, String constructorName, Library library) {
+  return new Name(
+      '$_tearOffNamePrefix'
+      '$typedefName#'
+      '${constructorName.isEmpty ? 'new' : constructorName}'
+      '$_tearOffNameSuffix',
+      library);
+}
+
 /// Returns the name of the corresponding constructor or factory if [name] is
 /// the synthesized name of a lowering of the tear off of a constructor or
 /// factory. Returns `null` otherwise.
@@ -34,7 +46,33 @@ String? extractConstructorNameFromTearOff(Name name) {
     String text =
         name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
     text = text.substring(_tearOffNamePrefix.length);
+    if (text.contains('#')) {
+      return null;
+    }
     return text == 'new' ? '' : text;
+  }
+  return null;
+}
+
+/// If [name] is the synthesized name of a lowering of a typedef tear off, a
+/// list containing the [String] name of the typedef and the [Name] name of the
+/// corresponding constructor or factory is returned. Returns `null` otherwise.
+List<Object>? extractTypedefNameFromTearOff(Name name) {
+  if (name.text.startsWith(_tearOffNamePrefix) &&
+      name.text.endsWith(_tearOffNameSuffix) &&
+      name.text.length >
+          _tearOffNamePrefix.length + _tearOffNameSuffix.length) {
+    String text =
+        name.text.substring(0, name.text.length - _tearOffNameSuffix.length);
+    text = text.substring(_tearOffNamePrefix.length);
+    int hashIndex = text.indexOf('#');
+    if (hashIndex == -1) {
+      return null;
+    }
+    String typedefName = text.substring(0, hashIndex);
+    String constructorName = text.substring(hashIndex + 1);
+    constructorName = constructorName == 'new' ? '' : constructorName;
+    return [typedefName, new Name(constructorName, name.library)];
   }
   return null;
 }
@@ -58,11 +96,45 @@ Procedure? createConstructorTearOffProcedure(String name,
   return null;
 }
 
-/// Creates the parameters and body for [tearOff] based on [constructor].
+/// Creates the [Procedure] for the lowering of a non-redirecting factory of
+/// the given [name] in [compilationUnit].
+///
+/// If constructor tear off lowering is not enabled, `null` is returned.
+Procedure? createFactoryTearOffProcedure(String name,
+    SourceLibraryBuilder compilationUnit, Uri fileUri, int fileOffset) {
+  if (compilationUnit
+      .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
+    return _createTearOffProcedure(
+        compilationUnit,
+        constructorTearOffName(name, compilationUnit.library),
+        fileUri,
+        fileOffset);
+  }
+  return null;
+}
+
+/// Creates the [Procedure] for the lowering of a typedef tearoff of a
+/// constructor of the given [name] in with the typedef defined in
+/// [libraryBuilder].
+Procedure createTypedefTearOffProcedure(String typedefName, String name,
+    SourceLibraryBuilder libraryBuilder, Uri fileUri, int fileOffset) {
+  return _createTearOffProcedure(
+      libraryBuilder,
+      typedefTearOffName(typedefName, name, libraryBuilder.library),
+      fileUri,
+      fileOffset);
+}
+
+/// Creates the parameters and body for [tearOff] based on [constructor] in
+/// [enclosingClass].
 void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
     Class enclosingClass, SourceLibraryBuilder libraryBuilder) {
-  assert(constructor is Constructor ||
-      (constructor is Procedure && constructor.isFactory));
+  assert(
+      constructor is Constructor ||
+          (constructor is Procedure && constructor.isFactory) ||
+          (constructor is Procedure && constructor.isStatic),
+      "Unexpected constructor tear off target $constructor "
+      "(${constructor.runtimeType}).");
 
   int fileOffset = tearOff.fileOffset;
 
@@ -84,6 +156,58 @@ void buildConstructorTearOffProcedure(Procedure tearOff, Member constructor,
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;
   _createParameters(tearOff, function, substitution);
+  Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
+  _createTearOffBody(tearOff, constructor, arguments);
+  tearOff.function.fileOffset = tearOff.fileOffset;
+  tearOff.function.fileEndOffset = tearOff.fileOffset;
+  updatePrivateMemberName(tearOff, libraryBuilder);
+}
+
+/// Creates the parameters and body for [tearOff] for a typedef tearoff of
+/// [constructor] in [enclosingClass] with [typeParameters] as the typedef
+/// parameters and [typeArguments] as the arguments passed to the
+/// [enclosingClass].
+void buildTypedefTearOffProcedure(
+    Procedure tearOff,
+    Member constructor,
+    Class enclosingClass,
+    List<TypeParameter> typeParameters,
+    List<DartType> typeArguments,
+    SourceLibraryBuilder libraryBuilder) {
+  assert(
+      constructor is Constructor ||
+          (constructor is Procedure && constructor.isFactory) ||
+          (constructor is Procedure && constructor.isStatic),
+      "Unexpected constructor tear off target $constructor "
+      "(${constructor.runtimeType}).");
+
+  int fileOffset = tearOff.fileOffset;
+
+  FunctionNode function = constructor.function!;
+  List<TypeParameter> classTypeParameters;
+  if (constructor is Constructor) {
+    // Generative constructors implicitly have the type parameters of the
+    // enclosing class.
+    classTypeParameters = enclosingClass.typeParameters;
+  } else {
+    // Factory constructors explicitly copy over the type parameters of the
+    // enclosing class.
+    classTypeParameters = function.typeParameters;
+  }
+
+  FreshTypeParameters freshTypeParameters =
+      _createFreshTypeParameters(typeParameters, tearOff.function);
+
+  Substitution substitution = freshTypeParameters.substitution;
+  if (!substitution.isEmpty) {
+    if (typeArguments.isNotEmpty) {
+      // Translate [typeArgument] into the context of the synthesized procedure.
+      typeArguments = new List<DartType>.generate(typeArguments.length,
+          (int index) => substitution.substituteType(typeArguments[index]));
+    }
+  }
+  _createParameters(tearOff, function,
+      Substitution.fromPairs(classTypeParameters, typeArguments));
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, constructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -122,25 +246,6 @@ void buildConstructorTearOffOutline(
         constructor.function.namedParameters[i];
     tearOffParameter.type =
         substitution.substituteType(constructorParameter.type);
-  }
-}
-
-void copyTearOffDefaultValues(Procedure tearOff, FunctionNode function) {
-  CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
-  for (int i = 0; i < function.positionalParameters.length; i++) {
-    VariableDeclaration tearOffParameter =
-        tearOff.function.positionalParameters[i];
-    VariableDeclaration constructorParameter = function.positionalParameters[i];
-    tearOffParameter.initializer =
-        cloner.cloneOptional(constructorParameter.initializer);
-    tearOffParameter.initializer?.parent = tearOffParameter;
-  }
-  for (int i = 0; i < function.namedParameters.length; i++) {
-    VariableDeclaration tearOffParameter = tearOff.function.namedParameters[i];
-    VariableDeclaration constructorParameter = function.namedParameters[i];
-    tearOffParameter.initializer =
-        cloner.cloneOptional(constructorParameter.initializer);
-    tearOffParameter.initializer?.parent = tearOffParameter;
   }
 }
 
@@ -192,79 +297,6 @@ SynthesizedFunctionNode buildRedirectingFactoryTearOffBody(
       target.function!,
       tearOff.function,
       identicalSignatures: false);
-}
-
-/// Creates the synthesized name to use for the lowering of the tear off of a
-/// typedef in [library] using [index] for a unique name within the library.
-Name typedefTearOffName(int index, Library library) {
-  return new Name(
-      '$_tearOffNamePrefix'
-      '${index}'
-      '$_tearOffNameSuffix',
-      library);
-}
-
-/// Creates a top level procedure to be used as the lowering for the typedef
-/// tear off [node] of a target of type [targetType]. [fileUri] together with
-/// the `fileOffset` of [node] is used as the location for the procedure.
-/// [index] is used to create a unique name for the procedure within
-/// [libraryBuilder].
-Procedure createTypedefTearOffLowering(SourceLibraryBuilder libraryBuilder,
-    TypedefTearOff node, FunctionType targetType, Uri fileUri, int index) {
-  int fileOffset = node.fileOffset;
-  Procedure tearOff = _createTearOffProcedure(
-      libraryBuilder,
-      typedefTearOffName(index, libraryBuilder.library),
-      fileUri,
-      node.fileOffset);
-  FreshTypeParameters freshTypeParameters =
-      _createFreshTypeParameters(node.typeParameters, tearOff.function);
-  Substitution substitution = freshTypeParameters.substitution;
-
-  List<DartType> typeArguments = node.typeArguments;
-  if (typeArguments.isNotEmpty) {
-    if (!substitution.isEmpty) {
-      // Translate [typeArgument] into the context of the synthesized procedure.
-      typeArguments = new List<DartType>.generate(typeArguments.length,
-          (int index) => substitution.substituteType(typeArguments[index]));
-    }
-    // Instantiate [targetType] with [typeArguments].
-    targetType =
-        Substitution.fromPairs(targetType.typeParameters, typeArguments)
-            .substituteType(targetType.withoutTypeParameters) as FunctionType;
-  }
-
-  for (DartType constructorParameter in targetType.positionalParameters) {
-    VariableDeclaration tearOffParameter = new VariableDeclaration(null,
-        type: substitution.substituteType(constructorParameter))
-      ..fileOffset = fileOffset;
-    tearOff.function.positionalParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
-  for (NamedType constructorParameter in targetType.namedParameters) {
-    VariableDeclaration tearOffParameter = new VariableDeclaration(
-        constructorParameter.name,
-        type: substitution.substituteType(constructorParameter.type),
-        isRequired: constructorParameter.isRequired)
-      ..fileOffset = fileOffset;
-    tearOff.function.namedParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
-  tearOff.function.returnType =
-      substitution.substituteType(targetType.returnType);
-  tearOff.function.requiredParameterCount = targetType.requiredParameterCount;
-
-  Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  Expression constructorInvocation = new FunctionInvocation(
-      FunctionAccessKind.FunctionType, node.expression, arguments,
-      functionType: targetType)
-    ..fileOffset = tearOff.fileOffset;
-  tearOff.function.body = new ReturnStatement(constructorInvocation)
-    ..fileOffset = tearOff.fileOffset
-    ..parent = tearOff.function;
-  tearOff.function.fileOffset = tearOff.fileOffset;
-  tearOff.function.fileEndOffset = tearOff.fileOffset;
-  return tearOff;
 }
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
@@ -351,7 +383,9 @@ Arguments _createArguments(
 /// Creates the tear of body for [tearOff] which calls [target] with
 /// [arguments].
 void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
-  assert(target is Constructor || (target is Procedure && target.isFactory));
+  assert(target is Constructor ||
+      (target is Procedure && target.isFactory) ||
+      (target is Procedure && target.isStatic));
   Expression constructorInvocation;
   if (target is Constructor) {
     constructorInvocation = new ConstructorInvocation(target, arguments)

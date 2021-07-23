@@ -3220,6 +3220,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 if (_helper.isProperRenameForClass(aliasBuilder!.typedef)) {
                   return tearOffExpression;
                 }
+                Procedure? tearOffLowering = aliasBuilder
+                    .findConstructorOrFactory(
+                        name.text, nameOffset, _uri, _helper.libraryBuilder);
+                if (tearOffLowering != null) {
+                  return _helper.forest
+                      .createStaticTearOff(token.charOffset, tearOffLowering);
+                }
                 FreshTypeParameters freshTypeParameters =
                     getFreshTypeParameters(aliasBuilder.typedef.typeParameters);
                 List<DartType>? substitutedTypeArguments;
@@ -3230,6 +3237,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                         .add(freshTypeParameters.substitute(builtTypeArgument));
                   }
                 }
+
                 tearOffExpression = _helper.forest.createTypedefTearOff(
                     token.charOffset,
                     freshTypeParameters.freshTypeParameters,

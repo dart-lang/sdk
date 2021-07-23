@@ -48,10 +48,10 @@ Evaluated: StaticTearOff @ org-dartlang-testcase:///const_tear_off.dart:22:11 ->
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:23:11 -> InstantiationConstant(A.fact<int*>)
 Evaluated: RedirectingFactoryTearOff @ org-dartlang-testcase:///const_tear_off.dart:24:11 -> RedirectingFactoryTearOffConstant(A.redirect)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:25:11 -> InstantiationConstant(A.redirect<int*>)
-Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:26:11 -> TypedefTearOffConstant(A.<T><int>)
+Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:26:11 -> TypedefTearOffConstant(<T>A.<int>)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:27:11 -> InstantiationConstant(A.<int*>)
-Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:28:11 -> TypedefTearOffConstant(A.fact<T><int>)
+Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:28:11 -> TypedefTearOffConstant(<T>A.fact<int>)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:29:11 -> InstantiationConstant(A.fact<int*>)
-Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:30:11 -> TypedefTearOffConstant(A.redirect<T><int>)
+Evaluated: TypedefTearOff @ org-dartlang-testcase:///const_tear_off.dart:30:11 -> TypedefTearOffConstant(<T>A.redirect<int>)
 Evaluated: Instantiation @ org-dartlang-testcase:///const_tear_off.dart:31:11 -> InstantiationConstant(A.redirect<int*>)
 Extra constant evaluation: evaluated: 23, effectively constant: 18

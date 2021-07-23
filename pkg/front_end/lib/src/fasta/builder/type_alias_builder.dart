@@ -5,7 +5,6 @@
 library fasta.function_type_alias_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
 import 'package:kernel/type_algebra.dart' show substitute, uniteNullabilities;
@@ -20,7 +19,6 @@ import '../fasta_codes.dart'
 
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart';
-import '../util/helpers.dart';
 
 import 'class_builder.dart';
 import 'library_builder.dart';
@@ -113,10 +111,28 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   // as stated in the docs? It is not needed for the implementation.
   List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments);
 
-  void buildOutlineExpressions(
-      SourceLibraryBuilder library,
-      CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers);
+  /// Returns the lowering for the constructor or factory named [name] on the
+  /// effective target class of this typedef.
+  ///
+  /// For instance, if we have
+  ///
+  ///     class A<T> {
+  ///       A();
+  ///     }
+  ///     typedef F = A<int>;
+  ///     typedef G = F;
+  ///     typedef H<X, Y> = A<X>;
+  ///
+  /// the lowering will create
+  ///
+  ///     A<int> _#F#new#tearOff() => new A<int>();
+  ///     A<int> _#G#new#tearOff() => new A<int>();
+  ///     A<int> _#H#new#tearOff<X, Y>() => new A<X>();
+  ///
+  /// which will be return by [findConstructorOrFactory] on `F`, `G`, `H` with
+  /// name 'new' or ''.
+  Procedure? findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 }
 
 abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
@@ -493,6 +509,17 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       currentTypeArguments = namedBuilder.arguments ?? [];
     }
     return currentTypeArguments;
+  }
+
+  Map<Name, Procedure>? get tearOffs;
+
+  Procedure? findConstructorOrFactory(
+      String text, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    if (tearOffs != null) {
+      Name name = new Name(text == 'new' ? '' : text, accessingLibrary.library);
+      return tearOffs![name];
+    }
+    return null;
   }
 }
 
