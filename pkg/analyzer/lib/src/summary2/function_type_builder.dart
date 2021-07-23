@@ -190,7 +190,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       } else if (isNNBD) {
         nullabilitySuffix = NullabilitySuffix.none;
       } else {
-        nullabilitySuffix = NullabilitySuffix.question;
+        nullabilitySuffix = NullabilitySuffix.star;
       }
 
       return FunctionTypeBuilder(

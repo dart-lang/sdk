@@ -38,7 +38,7 @@ class EventStreamProvider<T extends Event> {
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
-   * Gets an [ElementEventStream] for this event type, on the specified element.
+   * Gets a [Stream] for this event type, on the specified element.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.
@@ -64,7 +64,7 @@ class EventStreamProvider<T extends Event> {
   }
 
   /**
-   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   * Gets a [Stream] for this event type, on the list of elements.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.

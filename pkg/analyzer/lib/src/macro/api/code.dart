@@ -6,19 +6,23 @@
 /// Must only contain [Code] or [String] instances.
 String _combineParts(List<Object> parts) {
   var buffer = StringBuffer();
-  for (var part in parts) {
+
+  void write(Object part) {
     if (part is String) {
       buffer.write(part);
     } else if (part is Code) {
       buffer.write(part.code);
-    } else if (part is List<Code>) {
-      buffer.write(part.map((p) => p.code).join());
+    } else if (part is Iterable<Object>) {
+      part.forEach(write);
     } else {
       throw UnsupportedError(
-        'Only String, Code, and List<Code> are allowed but got $part',
+        'Only String, Code, and List(s) of them are '
+        'allowed but got ${part.runtimeType}',
       );
     }
   }
+
+  write(parts);
   return buffer.toString();
 }
 
@@ -38,7 +42,7 @@ class Declaration extends Code {
   Declaration(this.code);
 
   /// Creates a [Declaration] from [parts], which must be of type [Code],
-  /// `List<Code>`, or [String].
+  /// [String], or [Iterable]s of them.
   factory Declaration.fromParts(List<Object> parts) =>
       Declaration(_combineParts(parts));
 }
@@ -52,7 +56,7 @@ class Fragment extends Code {
   Fragment(this.code);
 
   /// Creates a [Fragment] from [parts], which must be of type [Code],
-  /// `List<Code>`, or [String].
+  /// [String], or [Iterable]s of them.
   factory Fragment.fromParts(List<Object> parts) =>
       Fragment(_combineParts(parts));
 }

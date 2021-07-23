@@ -18,6 +18,7 @@
  * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
+ * {@canonicalFor dart:_internal.HttpStatus}
  */
 library dart.dom.html;
 

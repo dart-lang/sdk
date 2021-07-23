@@ -87,7 +87,7 @@ vars = {
   "clock_rev" : "a494269254ba978e7ef8f192c5f7fec3fc05b9d3",
   "collection_rev": "75a7a5510979a3cd70143af85bcc1667ee233674",
   "convert_rev": "413f591577419d8a8b95d445094a82c926650bd1",
-  "crypto_rev": "1c8ccc07b83b100216dc6dede767371043385648",
+  "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
   "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
   "dart2js_info_rev" : "e0acfeb5affdf94c53067e68bd836adf589628fd",
 
@@ -116,8 +116,7 @@ vars = {
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev": "de1b312164c24a1690b46c6e97bd47eff40c4649",
   "http_parser_rev": "7720bfd42a0c096734c5213478fdce92c62f0293",
-  "http_retry_rev": "845771af7bb5ab38ab740ce4a31f3b0c7680302b",
-  "http_rev": "f93c76fabdb03963303762e3fe16cbdf60799cff",
+  "http_rev": "778174bca2c13becd88ef3353309190b1e8b9479",
   "http_throttle_tag" : "1.0.2",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
@@ -134,7 +133,7 @@ vars = {
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "a84c0d45401f215fbe9384df923a38f4022a3c45",
-  "path_rev": "407ab76187fade41c31e39c745b39661b710106c",
+  "path_rev": "c20d73c3516d3a0061c90f14b761ff532b9bf707",
   "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
   "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -370,9 +369,6 @@ deps = {
       "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
-  Var("dart_root") + "/third_party/pkg/http_retry":
-      Var("dart_git") + "http_retry.git" +
-      "@" + Var("http_retry_rev"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
       Var("dart_git") + "http_throttle.git" +
       "@" + Var("http_throttle_tag"),

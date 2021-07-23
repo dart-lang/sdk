@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
@@ -161,7 +160,7 @@ class LibraryBuilder {
 
   void resolveTypes(NodesToBuildType nodesToBuildType) {
     for (var linkingUnit in units) {
-      var resolver = _newTypeReferenceResolver(nodesToBuildType, linkingUnit);
+      var resolver = ReferenceResolver(linker, nodesToBuildType, element);
       linkingUnit.node.accept(resolver);
     }
   }
@@ -212,7 +211,7 @@ class LibraryBuilder {
             {
               var nodesToBuildType = NodesToBuildType();
               var resolver =
-                  _newTypeReferenceResolver(nodesToBuildType, linkingUnit);
+                  ReferenceResolver(linker, nodesToBuildType, element);
               for (var newMember in newMembers) {
                 newMember.accept(resolver);
               }
@@ -256,21 +255,6 @@ class LibraryBuilder {
       neverRef.element = NeverElementImpl.instance;
       localScope.declare('Never', neverRef);
     }
-  }
-
-  ReferenceResolver _newTypeReferenceResolver(
-    NodesToBuildType nodesToBuildType,
-    LinkingUnit linkingUnit,
-  ) {
-    /// TODO(scheglov) Do we need all these parameters?
-    return ReferenceResolver(
-      linker,
-      nodesToBuildType,
-      linker.elementFactory,
-      element,
-      linkingUnit.reference,
-      linkingUnit.node.featureSet.isEnabled(Feature.non_nullable),
-    );
   }
 
   static void build(Linker linker, LinkInputLibrary inputLibrary) {

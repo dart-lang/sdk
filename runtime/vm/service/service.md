@@ -117,6 +117,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [NativeFunction](#nativefunction)
   - [Null](#null)
   - [Object](#object)
+  - [Parameter](#parameter)[
   - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
@@ -139,6 +140,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [TimelineFlags](#timelineflags)
   - [Timestamp](#timestamp)
   - [TypeArguments](#typearguments)
+  - [TypeParameters](#typeparameters)[
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
   - [VM](#vm)
@@ -1694,6 +1696,11 @@ class @Class extends @Object {
 
   // The library which contains this class.
   @Library library;
+
+  // The type parameters for the class.
+  //
+  // Provided if the class is generic.
+  @Instance[] typeParameters [optional];
 }
 ```
 
@@ -1709,6 +1716,11 @@ class Class extends Object {
 
   // The library which contains this class.
   @Library library;
+
+  // The type parameters for the class.
+  //
+  // Provided if the class is generic.
+  @Instance[] typeParameters [optional];
 
   // The error which occurred during class finalization, if it exists.
   @Error error [optional];
@@ -2427,6 +2439,9 @@ class @Function extends @Object {
   // Is this function const?
   bool const;
 
+  // Is this function implicitly defined (e.g., implicit getter/setter)?
+  bool implicit;
+
   // The location of this function in the source code.
   SourceLocation location [optional];
 }
@@ -2449,8 +2464,14 @@ class Function extends Object {
   // Is this function const?
   bool const;
 
+  // Is this function implicitly defined (e.g., implicit getter/setter)?
+  bool implicit;
+
   // The location of this function in the source code.
   SourceLocation location [optional];
+
+  // The signature of the function.
+  @Instance signature;
 
   // The compiled code associated with this function.
   @Code code [optional];
@@ -2529,12 +2550,29 @@ class @Instance extends @Object {
   //   Type
   @Class typeClass [optional];
 
-  // The parameterized class of a type parameter:
+  // The parameterized class of a type parameter.
   //
   // Provided for instance kinds:
   //   TypeParameter
   @Class parameterizedClass [optional];
 
+  // The return type of a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  @Instance returnType [optional];
+
+  // The list of parameter types for a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  Parameter[] parameters [optional];
+
+  // The type parameters for a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  @Instance[] typeParameters [optional];
 
   // The pattern of a RegExp instance.
   //
@@ -2693,6 +2731,24 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   TypeParameter
   @Class parameterizedClass [optional];
+
+  // The return type of a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  @Instance returnType [optional];
+
+  // The list of parameter types for a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  Parameter[] parameters [optional];
+
+  // The type parameters for a function.
+  //
+  // Provided for instance kinds:
+  //   FunctionType
+  @Instance[] typeParameters [optional];
 
   // The fields of this Instance.
   BoundField[] fields [optional];
@@ -2910,6 +2966,9 @@ enum InstanceKind {
 
   // An instance of the Dart class TypeRef.
   TypeRef,
+
+  // An instance of the Dart class FunctionType.
+  FunctionType,
 
   // An instance of the Dart class BoundedType.
   BoundedType,
@@ -3362,7 +3421,29 @@ class Object extends Response {
 }
 ```
 
-An _Object_ is a  persistent object that is owned by some isolate.
+An _Object_ is a persistent object that is owned by some isolate.
+
+### Parameter
+
+```
+class Parameter {
+  // The type of the parameter.
+  @Instance parameterType;
+
+  // Represents whether or not this parameter is fixed or optional.
+  bool fixed;
+
+  // The name of a named optional parameter.
+  string name [optional];
+
+  // Whether or not this named optional parameter is marked as required.
+  bool required [optional];
+}
+```
+
+A _Parameter_ is a representation of a function parameter.
+
+See [Instance](#instance).
 
 ### PortList
 
@@ -3914,6 +3995,24 @@ class TypeArguments extends Object {
 A _TypeArguments_ object represents the type argument vector for some
 instantiated generic type.
 
+### TypeParameters
+
+```
+class TypeParameters {
+  // The names of the type parameters.
+  string[] names;
+
+  // The bounds set on each type parameter.
+  @TypeArguments bounds;
+
+  // The default types for each type parameter.
+  @TypeArguments defaults;
+}
+```
+
+A _TypeParameters_ object represents the type argument vector for some
+uninstantiated generic type.
+
 ### UnresolvedSourceLocation
 
 ```
@@ -4076,5 +4175,6 @@ version | comments
 3.47 | Added `shows` and `hides` properties to `LibraryDependency`.
 3.48 | Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and `previousTag` properties to `Event`.
 3.49 | Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
+3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

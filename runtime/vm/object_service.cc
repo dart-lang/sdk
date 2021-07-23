@@ -94,6 +94,15 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   jsobj.AddProperty("library", Object::Handle(library()));
 
+  const intptr_t num_type_params = NumTypeParameters();
+  if (num_type_params > 0) {
+    JSONArray jsarr(&jsobj, "typeParameters");
+    TypeParameter& type_param = TypeParameter::Handle();
+    for (intptr_t i = 0; i < num_type_params; ++i) {
+      type_param = TypeParameterAt(i);
+      jsarr.AddValue(type_param);
+    }
+  }
   if (ref) {
     return;
   }
@@ -172,8 +181,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // Consider making this type public if we decide to expose TypeParameters
+  // through the protocol.
   JSONObject jsobj(stream);
-  jsobj.AddProperty("kind", "TypeParameters");
+  jsobj.AddProperty("kind", "_TypeParameters");
   jsobj.AddProperty("flags", Array::Handle(flags()));
   jsobj.AddProperty("names", Array::Handle(names()));
   jsobj.AddProperty("bounds", TypeArguments::Handle(bounds()));
@@ -317,6 +328,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_kind", kind_string);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("implicit", IsImplicitGetterOrSetter());
   jsobj.AddProperty("_intrinsic", is_intrinsic());
   jsobj.AddProperty("_native", is_native());
 
@@ -328,6 +340,9 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  const FunctionType& sig = FunctionType::Handle(signature());
+  jsobj.AddProperty("signature", sig);
+
   Code& code = Code::Handle(CurrentCode());
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
@@ -1178,7 +1193,38 @@ void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "FunctionType");
-  // TODO(regis): Function types were not handled before, necessary now?
+  AbstractType& type = AbstractType::Handle(result_type());
+  jsobj.AddProperty("returnType", type);
+
+  const int type_params_count = NumTypeParameters();
+  if (type_params_count > 0) {
+    JSONArray arr(&jsobj, "typeParameters");
+    TypeParameter& type_param = TypeParameter::Handle();
+    for (intptr_t i = 0; i < type_params_count; ++i) {
+      type_param = TypeParameterAt(i);
+      arr.AddValue(type_param);
+    }
+  }
+
+  {
+    JSONArray jsarr(&jsobj, "parameters");
+    String& name = String::Handle();
+    const intptr_t param_count = NumParameters();
+    const intptr_t fixed_param_count = num_fixed_parameters();
+    const bool has_named = HasOptionalNamedParameters();
+    for (intptr_t i = 0; i < param_count; ++i) {
+      JSONObject param(&jsarr);
+      type = ParameterTypeAt(i);
+      param.AddProperty("parameterType", type);
+      bool fixed = i < fixed_param_count;
+      param.AddProperty("fixed", fixed);
+      if (!fixed && has_named) {
+        name = ParameterNameAt(i);
+        param.AddProperty("name", name.ToCString());
+        param.AddProperty("required", IsRequiredAt(i));
+      }
+    }
+  }
 }
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
