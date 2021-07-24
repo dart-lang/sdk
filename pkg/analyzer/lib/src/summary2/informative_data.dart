@@ -19,6 +19,15 @@ import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:collection/collection.dart';
 
+/// Write the informative data (mostly offsets) of the given [node].
+/// Throw [UnimplementedError] if [node] is not supported.
+Uint8List writeDeclarationInformative(AstNode node) {
+  var byteSink = ByteSink();
+  var sink = BufferedSink(byteSink);
+  _InformativeDataWriter(sink).writeDeclaration(node);
+  return sink.flushAndTake();
+}
+
 Uint8List writeUnitInformative(CompilationUnit unit) {
   var byteSink = ByteSink();
   var sink = BufferedSink(byteSink);
@@ -55,14 +64,13 @@ class ApplyConstantOffsets {
 
 class InformativeDataApplier {
   final LinkedElementFactory _elementFactory;
-  final Map<Uri, Uint8List> _unitsInformativeBytes2;
 
-  InformativeDataApplier(
-    this._elementFactory,
-    this._unitsInformativeBytes2,
-  );
+  InformativeDataApplier(this._elementFactory);
 
-  void applyTo(LibraryElementImpl libraryElement) {
+  void applyTo(
+    Map<Uri, Uint8List> unitsInformativeBytes,
+    LibraryElementImpl libraryElement,
+  ) {
     if (_elementFactory.isApplyingInformativeData) {
       throw StateError('Unexpected recursion.');
     }
@@ -72,7 +80,7 @@ class InformativeDataApplier {
     for (var i = 0; i < unitElements.length; i++) {
       var unitElement = unitElements[i] as CompilationUnitElementImpl;
       var unitUri = unitElement.source.uri;
-      var unitInfoBytes = _unitsInformativeBytes2[unitUri];
+      var unitInfoBytes = unitsInformativeBytes[unitUri];
       if (unitInfoBytes != null) {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(unitReader);
@@ -140,35 +148,41 @@ class InformativeDataApplier {
     _elementFactory.isApplyingInformativeData = false;
   }
 
+  /// Read informative data from [bytes], and apply it to [element].
+  /// The data and the [element] must correspond to each other.
+  void applyToDeclaration(Element element, Uint8List bytes) {
+    if (_elementFactory.isApplyingInformativeData) {
+      throw StateError('Unexpected recursion.');
+    }
+    _elementFactory.isApplyingInformativeData = true;
+
+    var reader = SummaryDataReader(bytes);
+
+    var kindIndex = reader.readByte();
+    var kind = _DeclarationKind.values[kindIndex];
+
+    if (kind == _DeclarationKind.methodDeclaration &&
+        element is PropertyAccessorElement) {
+      var info = _InfoMethodDeclaration(reader);
+      _applyToPropertyAccessor(element, info);
+    } else {
+      throw UnimplementedError(
+        'Unsupported kind: $kind, '
+        'or element: ${element.runtimeType}',
+      );
+    }
+
+    _elementFactory.isApplyingInformativeData = false;
+  }
+
   void _applyToAccessors(
     List<PropertyAccessorElement> elementList,
     List<_InfoMethodDeclaration> infoList,
   ) {
-    forCorrespondingPairs<PropertyAccessorElement, _InfoMethodDeclaration>(
+    forCorrespondingPairs(
       elementList.notSynthetic,
       infoList,
-      (element, info) {
-        element as PropertyAccessorElementImpl;
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.documentationComment = info.documentationComment;
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
-
-        var linkedData = element.linkedData;
-        if (linkedData is PropertyAccessorElementLinkedData) {
-          linkedData.applyConstantOffsets = ApplyConstantOffsets(
-            info.constantOffsets,
-            (applier) {
-              applier.applyToMetadata(element);
-              applier.applyToTypeParameters(element.typeParameters);
-              applier.applyToFormalParameters(element.parameters);
-            },
-          );
-        }
-      },
+      _applyToPropertyAccessor,
     );
   }
 
@@ -499,6 +513,31 @@ class InformativeDataApplier {
     );
   }
 
+  void _applyToMethod(MethodElement element, _InfoMethodDeclaration info) {
+    element as MethodElementImpl;
+    element.setCodeRange(info.codeOffset, info.codeLength);
+    element.nameOffset = info.nameOffset;
+    element.documentationComment = info.documentationComment;
+    _applyToTypeParameters(
+      element.typeParameters_unresolved,
+      info.typeParameters,
+    );
+    _applyToFormalParameters(
+      element.parameters_unresolved,
+      info.parameters,
+    );
+
+    var linkedData = element.linkedData as MethodElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToTypeParameters(element.typeParameters);
+        applier.applyToFormalParameters(element.parameters);
+      },
+    );
+  }
+
   void _applyToMethods(
     List<MethodElement> elementList,
     List<_InfoMethodDeclaration> infoList,
@@ -506,30 +545,7 @@ class InformativeDataApplier {
     forCorrespondingPairs<MethodElement, _InfoMethodDeclaration>(
       elementList,
       infoList,
-      (element, info) {
-        element as MethodElementImpl;
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
-        element.documentationComment = info.documentationComment;
-        _applyToTypeParameters(
-          element.typeParameters_unresolved,
-          info.typeParameters,
-        );
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
-
-        var linkedData = element.linkedData as MethodElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToTypeParameters(element.typeParameters);
-            applier.applyToFormalParameters(element.parameters);
-          },
-        );
-      },
+      _applyToMethod,
     );
   }
 
@@ -558,6 +574,32 @@ class InformativeDataApplier {
         applier.applyToTypeParameters(element.typeParameters);
       },
     );
+  }
+
+  void _applyToPropertyAccessor(
+    PropertyAccessorElement element,
+    _InfoMethodDeclaration info,
+  ) {
+    element as PropertyAccessorElementImpl;
+    element.setCodeRange(info.codeOffset, info.codeLength);
+    element.nameOffset = info.nameOffset;
+    element.documentationComment = info.documentationComment;
+    _applyToFormalParameters(
+      element.parameters_unresolved,
+      info.parameters,
+    );
+
+    var linkedData = element.linkedData;
+    if (linkedData is PropertyAccessorElementLinkedData) {
+      linkedData.applyConstantOffsets = ApplyConstantOffsets(
+        info.constantOffsets,
+        (applier) {
+          applier.applyToMetadata(element);
+          applier.applyToTypeParameters(element.typeParameters);
+          applier.applyToFormalParameters(element.parameters);
+        },
+      );
+    }
   }
 
   void _applyToTopLevelVariable(
@@ -627,6 +669,10 @@ class InformativeDataApplier {
       },
     );
   }
+}
+
+enum _DeclarationKind {
+  methodDeclaration,
 }
 
 class _InfoClassDeclaration {
@@ -1289,6 +1335,15 @@ class _InformativeDataWriter {
     );
   }
 
+  void writeDeclaration(AstNode node) {
+    if (node is MethodDeclaration) {
+      sink.addByte(_DeclarationKind.methodDeclaration.index);
+      _writeMethod(node);
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+  }
+
   int _codeOffsetForVariable(VariableDeclaration node) {
     var codeOffset = node.offset;
     var variableList = node.parent as VariableDeclarationList;
@@ -1383,19 +1438,7 @@ class _InformativeDataWriter {
           .whereType<MethodDeclaration>()
           .where((e) => e.isGetter || e.isSetter)
           .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
+      _writeMethod,
     );
   }
 
@@ -1420,25 +1463,27 @@ class _InformativeDataWriter {
     );
   }
 
+  void _writeMethod(MethodDeclaration node) {
+    sink.writeUInt30(node.offset);
+    sink.writeUInt30(node.length);
+    sink.writeUInt30(node.name.offset);
+    _writeDocumentationComment(node);
+    _writeTypeParameters(node.typeParameters);
+    _writeFormalParameters(node.parameters);
+    _writeOffsets(
+      metadata: node.metadata,
+      typeParameters: node.typeParameters,
+      formalParameters: node.parameters,
+    );
+  }
+
   void _writeMethods(List<ClassMember> members) {
     sink.writeList<MethodDeclaration>(
       members
           .whereType<MethodDeclaration>()
           .where((e) => !(e.isGetter || e.isSetter))
           .toList(),
-      (node) {
-        sink.writeUInt30(node.offset);
-        sink.writeUInt30(node.length);
-        sink.writeUInt30(node.name.offset);
-        _writeDocumentationComment(node);
-        _writeTypeParameters(node.typeParameters);
-        _writeFormalParameters(node.parameters);
-        _writeOffsets(
-          metadata: node.metadata,
-          typeParameters: node.typeParameters,
-          formalParameters: node.parameters,
-        );
-      },
+      _writeMethod,
     );
   }
 

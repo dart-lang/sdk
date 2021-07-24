@@ -495,8 +495,10 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
-        .applyTo(libraryElement);
+    InformativeDataApplier(_elementFactory).applyTo(
+      _unitsInformativeBytes,
+      libraryElement,
+    );
 
     return libraryElement;
   }
@@ -850,12 +852,17 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
-  ElementMacro? _readMacro() {
-    var hasData = _reader.readBool();
-    if (hasData) {
-      var id = _reader.readUInt30();
-      var code = _reader.readStringUtf8();
-      return ElementMacro(id, code);
+  void _readMacro(Element element, HasElementMacro hasMacro) {
+    if (_reader.readBool()) {
+      hasMacro.macro = ElementMacro(
+        _reader.readUInt30(),
+        _reader.readStringUtf8(),
+        Uint8List(0),
+      );
+      InformativeDataApplier(_elementFactory).applyToDeclaration(
+        element,
+        _reader.readUint8List(),
+      );
     }
   }
 
@@ -995,7 +1002,6 @@ class LibraryReader {
 
     var element = PropertyAccessorElementImpl(name, -1);
     PropertyAccessorElementFlags.read(_reader, element);
-    element.macro = _readMacro();
 
     var reference = classReference
         .getChild(element.isGetter ? '@getter' : '@setter')
@@ -1009,6 +1015,7 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.parameters = _readParameters(element, reference);
+    _readMacro(element, element);
     return element;
   }
 

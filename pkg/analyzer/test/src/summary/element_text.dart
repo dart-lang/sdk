@@ -685,7 +685,7 @@ class _ElementWriter {
       }
     }
 
-    if (e.isSynthetic || e.isFromMacro) {
+    if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
       expect(e.nameOffset, isPositive);

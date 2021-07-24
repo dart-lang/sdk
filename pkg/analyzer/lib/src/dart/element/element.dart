@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -2046,9 +2047,6 @@ abstract class ElementImpl implements Element {
   /// The length of the element's code, or `null` if the element is synthetic.
   int? _codeLength;
 
-  /// The language version for the library.
-  LibraryLanguageVersion? _languageVersion;
-
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
   ElementImpl(String? name, this._nameOffset, {this.reference}) {
@@ -2360,15 +2358,6 @@ abstract class ElementImpl implements Element {
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier => name!;
-
-  /// Return `true` if this element was created from a macro-generated code.
-  bool get isFromMacro {
-    return hasModifier(Modifier.IS_FROM_MACRO);
-  }
-
-  set isFromMacro(bool isFromMacro) {
-    setModifier(Modifier.IS_FROM_MACRO, isFromMacro);
-  }
 
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
@@ -2723,7 +2712,12 @@ class ElementMacro {
   /// The code that for produced by the macro.
   final String code;
 
-  ElementMacro(this.id, this.code);
+  /// When we build elements from macro-produced code, we remember informative
+  /// data, such as offsets - to store it into bytes. This field is set to
+  /// an empty list when reading from bytes.
+  final Uint8List informative;
+
+  ElementMacro(this.id, this.code, this.informative);
 }
 
 /// An [AbstractClassElementImpl] which is an enum.
@@ -3638,6 +3632,9 @@ class LibraryElementImpl extends _ExistingElementImpl
   @override
   final AnalysisSession session;
 
+  /// The language version for the library.
+  LibraryLanguageVersion? _languageVersion;
+
   bool hasTypeProviderSystemSet = false;
 
   @override
@@ -4308,26 +4305,23 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
-  /// Indicates that this element was created from macro-generated code.
-  static const Modifier IS_FROM_MACRO = Modifier('IS_FROM_MACRO', 17);
-
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 18);
+  static const Modifier LATE = Modifier('LATE', 17);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 20);
+  static const Modifier SETTER = Modifier('SETTER', 19);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 21);
+  static const Modifier STATIC = Modifier('STATIC', 20);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 22);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4346,7 +4340,6 @@ class Modifier implements Comparable<Modifier> {
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
-    IS_FROM_MACRO,
     LATE,
     MIXIN_APPLICATION,
     SETTER,

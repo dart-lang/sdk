@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 
@@ -31,14 +30,6 @@ class Reference {
 
   /// The simple name of the reference in its [parent].
   final String name;
-
-  /// The node accessor, used to read nodes lazily.
-  /// Or `null` if a named container.
-  ReferenceNodeAccessor? nodeAccessor;
-
-  /// The corresponding [AstNode], or `null` if a named container.
-  /// TODO(scheglov) remove it
-  AstNode? node;
 
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
@@ -97,35 +88,10 @@ class Reference {
     return map[name] ??= Reference._(this, name);
   }
 
-  /// If the reference has element, and it is for the [node], return `true`.
-  ///
-  /// The element might be not `null`, but the node is different in case of
-  /// duplicate declarations.
-  bool hasElementFor(AstNode node) {
-    if (element != null && this.node == node) {
-      return true;
-    } else {
-      if (this.node == null) {
-        this.node = node;
-      }
-      return false;
-    }
-  }
-
   void removeChild(String name) {
     _children!.remove(name);
   }
 
   @override
   String toString() => parent == null ? 'root' : '$parent::$name';
-}
-
-abstract class ReferenceNodeAccessor {
-  /// Return the node that corresponds to this [Reference], read it if not yet.
-  AstNode get node;
-
-  /// Fill [Reference.nodeAccessor] for children.
-  ///
-  /// TODO(scheglov) only class reader has a meaningful implementation.
-  void readIndex();
 }

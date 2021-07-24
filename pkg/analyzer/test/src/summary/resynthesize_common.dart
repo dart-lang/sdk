@@ -21288,17 +21288,17 @@ library
               requiredPositional __f @-1
                 type: int
             returnType: void
-          get f @-1
+          get f @8
             macro
               id: 0
               code: int get f => _f;
             returnType: int
-          set f @-1
+          set f @4
             macro
               id: 1
               code: set f(int val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
             parameters
-              requiredPositional val @-1
+              requiredPositional val @10
                 type: int
             returnType: void
 ''');
@@ -21349,17 +21349,17 @@ library
               requiredPositional __f @-1
                 type: T
             returnType: void
-          get f @-1
+          get f @6
             macro
               id: 0
               code: T get f => _f;
             returnType: T
-          set f @-1
+          set f @4
             macro
               id: 1
               code: set f(T val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
             parameters
-              requiredPositional val @-1
+              requiredPositional val @8
                 type: T
             returnType: void
 ''');
