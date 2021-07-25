@@ -120,6 +120,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (target == node &&
             node.expression is SetOrMapLiteral &&
             parent.parent is ExpressionStatement) return;
+
+        if (node.expression is PropertyAccess ||
+            node.expression is MethodInvocation) {
+          rule.reportLint(node);
+        }
       }
 
       if (parent.precedence < node.expression.precedence) {

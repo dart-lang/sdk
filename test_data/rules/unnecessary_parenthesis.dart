@@ -62,6 +62,10 @@ main() async {
   ({false, true}).length;
   print(({1, 2, 3}).length); // LINT
   ([false, true]).forEach(print); // LINT
+  (0.sign).isEven; // LINT
+  (0.isEven).toString(); // LINT
+  (0.toString()).isEmpty; // LINT
+  (0.toDouble()).toString(); // LINT
 }
 
 m({p}) => null;
