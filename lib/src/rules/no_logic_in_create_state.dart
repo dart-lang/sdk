@@ -102,6 +102,8 @@ class _Visitor extends SimpleAstVisitor {
       }
     } else if (body is ExpressionFunctionBody) {
       expressionToTest = body.expression;
+    } else if (body is EmptyFunctionBody) {
+      return;
     }
 
     if (expressionToTest is InstanceCreationExpression) {

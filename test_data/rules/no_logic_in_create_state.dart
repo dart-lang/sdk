@@ -65,3 +65,8 @@ class MyStatefulBad5 extends StatefulWidget {
   @override
   MyState2 createState() => MyState2(1); // LINT
 }
+
+abstract class MyAbstractStateful extends StatefulWidget {
+  @override
+  MyState createState(); // OK
+}
