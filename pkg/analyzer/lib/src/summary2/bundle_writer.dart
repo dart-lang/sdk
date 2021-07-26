@@ -164,6 +164,7 @@ class BundleWriter {
     _resolutionSink.localElements.declareAll(element.parameters);
     try {
       _writeList(element.parameters, _writeParameterElement);
+      _writeMacro(element.macro);
       if (element.isConst || element.isFactory) {
         _resolutionSink.writeElement(element.redirectedConstructor);
         _resolutionSink._writeNodeList(element.constantInitializers);
@@ -302,6 +303,8 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
     });
+
+    _writeMacro(element.macro);
   }
 
   void _writeMixinElement(ClassElement element) {

@@ -361,6 +361,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -395,7 +396,7 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isPositive);
+      expect(e.nameOffset, isNonNegative);
     }
   }
 
@@ -567,6 +568,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);

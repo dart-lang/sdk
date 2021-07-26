@@ -15,6 +15,12 @@ abstract class ClassDeclarationBuilder implements DeclarationBuilder {
   void addToClass(Declaration declaration);
 }
 
+/// The interface for [DeclarationMacro]s that can be applied to classes.
+abstract class ClassDeclarationMacro implements DeclarationMacro {
+  void visitClassDeclaration(
+      ast.ClassDeclaration declaration, ClassDeclarationBuilder builder);
+}
+
 /// The api used by [DeclarationMacro]s to contribute new declarations to the
 /// current library.
 abstract class DeclarationBuilder {

@@ -592,6 +592,7 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters(element, reference);
+      _readMacro(element, element);
       return element;
     });
   }
@@ -889,6 +890,7 @@ class LibraryReader {
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       element.typeInferenceError = _readTopLevelInferenceError();
+      _readMacro(element, element);
       return element;
     });
   }

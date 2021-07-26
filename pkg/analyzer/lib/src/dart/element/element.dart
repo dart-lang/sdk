@@ -1404,13 +1404,16 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, HasElementMacro {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
+
+  @override
+  ElementMacro? macro;
 
   @override
   int? periodOffset;
@@ -4110,7 +4113,8 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 }
 
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+class MethodElementImpl extends ExecutableElementImpl
+    implements MethodElement, HasElementMacro {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4119,6 +4123,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
+
+  @override
+  ElementMacro? macro;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].

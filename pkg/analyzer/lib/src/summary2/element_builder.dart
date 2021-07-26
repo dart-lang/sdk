@@ -897,29 +897,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
-
-    var constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      var containerRef = element.reference!.getChild('@constructor');
-      constructors = [
-        ConstructorElementImpl('', -1)
-          ..isSynthetic = true
-          ..reference = containerRef.getChild(''),
-      ];
-    }
-    element.constructors = constructors;
-
-    // We have all fields and constructors.
-    // Now we can resolve field formal parameters.
-    for (var constructor in constructors) {
-      for (var parameter in constructor.parameters) {
-        if (parameter is FieldFormalParameterElementImpl) {
-          parameter.field = element.getField(parameter.name);
-        }
-      }
-    }
   }
 
   void _buildExecutableElementChildren({
