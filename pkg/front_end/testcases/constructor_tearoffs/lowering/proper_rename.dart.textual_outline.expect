@@ -1,0 +1,25 @@
+class A {}
+
+class B<T> {}
+
+class C<X, Y> {}
+
+class D<X extends num> {}
+
+typedef F = A;
+typedef G0 = B;
+typedef G1 = B<int>;
+typedef G2<T> = B<T>;
+typedef G3<T extends num> = B<T>;
+typedef H0 = C;
+typedef H1 = C<int, String>;
+typedef H2<T> = C<int, T>;
+typedef H3<T, S> = C<T, S>;
+typedef H4<T, S> = C<S, T>;
+typedef H5<T extends num, S> = C<T, S>;
+typedef H6<T, S extends num> = C<T, S>;
+typedef I0 = D;
+typedef I1 = D<num>;
+typedef I2<T extends num> = D<T>;
+typedef I3<T extends int> = D<T>;
+main() {}

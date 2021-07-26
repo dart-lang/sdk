@@ -63,7 +63,8 @@ import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
 
-import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+import 'expression_generator_helper.dart'
+    show ExpressionGeneratorHelper, isProperRenameForClass;
 
 import 'forest.dart';
 
@@ -3217,11 +3218,12 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     _helper.buildDartTypeArguments(typeArguments);
               }
               if (isGenericTypedefTearOff) {
-                if (_helper.isProperRenameForClass(aliasBuilder!.typedef)) {
+                if (isProperRenameForClass(
+                    _helper.typeEnvironment, aliasBuilder!.typedef)) {
                   return tearOffExpression;
                 }
-                Procedure? tearOffLowering = aliasBuilder
-                    .findConstructorOrFactory(
+                Procedure? tearOffLowering =
+                    aliasBuilder.findConstructorOrFactory(
                         name.text, nameOffset, _uri, _helper.libraryBuilder);
                 if (tearOffLowering != null) {
                   return _helper.forest

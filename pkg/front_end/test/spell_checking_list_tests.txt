@@ -437,6 +437,10 @@ futures
 fuzz
 fuzzing
 fx
+g2a
+g2b
+g3a
+g3b
 gallery
 gamma
 gave
@@ -454,6 +458,16 @@ greeting
 gtgt
 gulp
 gunk
+h2a
+h2b
+h3a
+h3b
+h4a
+h4b
+h5a
+h5b
+h6a
+h6b
 hackish
 hardly
 helper2
@@ -472,6 +486,9 @@ hotreload
 hunk
 hurray
 i'm
+i2a
+i3a
+i3b
 ia
 ideal
 identification

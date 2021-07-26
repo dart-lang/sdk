@@ -326,12 +326,12 @@ class KernelTarget extends TargetImplementation {
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();
-      loader.installTypedefTearOffs();
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
       loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
+      loader.installTypedefTearOffs();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
       loader.checkOverrides(myClasses);

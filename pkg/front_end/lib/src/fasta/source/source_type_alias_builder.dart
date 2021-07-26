@@ -4,6 +4,7 @@
 
 library fasta.source_type_alias_builder;
 
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
@@ -277,7 +278,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   void buildTypedefTearOffs(
       SourceLibraryBuilder library, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
-    if (declaration is ClassBuilder) {
+    if (declaration is ClassBuilder &&
+        typedef.typeParameters.isNotEmpty &&
+        !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
       tearOffs = {};
       _tearOffDependencies = {};
       declaration
