@@ -3,13 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart'
-    show
-        AstNode,
-        ParenthesizedExpression,
-        PrefixExpression,
-        PrefixedIdentifier,
-        PropertyAccess,
-        SimpleIdentifier;
+    show PrefixExpression, PrefixedIdentifier, PropertyAccess, SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
@@ -53,7 +47,7 @@ class PreferIsNotEmpty extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addSimpleIdentifier(this, visitor);
+    registry.addPrefixExpression(this, visitor);
   }
 }
 
@@ -63,48 +57,39 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    late AstNode isEmptyAccess;
-    SimpleIdentifier? isEmptyIdentifier;
-
-    var parent = node.parent;
-    if (parent is PropertyAccess) {
-      isEmptyIdentifier = parent.propertyName;
-      isEmptyAccess = parent;
-    } else if (parent is PrefixedIdentifier) {
-      isEmptyIdentifier = parent.identifier;
-      isEmptyAccess = parent;
+  void visitPrefixExpression(PrefixExpression node) {
+    // Should be prefixed w/ a "!".
+    var prefix = node.operator;
+    if (prefix.type != TokenType.BANG) {
+      return;
     }
 
+    var expression = node.operand.unParenthesized;
+
+    // Should be a property access or prefixed identifier.
+    SimpleIdentifier? isEmptyIdentifier;
+    if (expression is PropertyAccess) {
+      isEmptyIdentifier = expression.propertyName;
+    } else if (expression is PrefixedIdentifier) {
+      isEmptyIdentifier = expression.identifier;
+    }
     if (isEmptyIdentifier == null) {
       return;
     }
 
-    // Should be "isEmpty".
+    // Element identifier should be "isEmpty".
     var propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
-    // Should have "isNotEmpty".
+
+    // Element should also support "isNotEmpty".
     var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget == null ||
         getChildren(propertyTarget, 'isNotEmpty').isEmpty) {
       return;
     }
 
-    // Walk up any parentheses above the isEmpty / isNotEmpty.
-    var isEmptyParent = isEmptyAccess.parent;
-    while (isEmptyParent is ParenthesizedExpression) {
-      isEmptyParent = isEmptyParent.parent;
-    }
-
-    // Should be in PrefixExpression.
-    if (isEmptyParent is PrefixExpression) {
-      // Should be !
-      if (isEmptyParent.operator.type != TokenType.BANG) {
-        return;
-      }
-      rule.reportLint(isEmptyParent);
-    }
+    rule.reportLint(node);
   }
 }
