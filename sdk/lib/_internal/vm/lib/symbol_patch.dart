@@ -6,6 +6,7 @@
 
 @patch
 class Symbol {
+  // TODO(http://dartbug.com/46716): Recognize Symbol in the VM.
   @patch
   const Symbol(String name) : this._name = name;
 
@@ -52,6 +53,7 @@ class Symbol {
     return result.toString();
   }
 
+  // Must be kept in sync with Symbol::CanonicalizeHash in object.cc.
   @patch
   int get hashCode {
     const arbitraryPrime = 664597;

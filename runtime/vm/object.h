@@ -9120,6 +9120,14 @@ class Double : public Number {
   friend class Number;
 };
 
+// TODO(http://dartbug.com/46716): Recognize Symbol in the VM.
+class Symbol : public AllStatic {
+ public:
+  static bool IsSymbolCid(classid_t class_id);
+
+  static uint32_t CanonicalizeHash(const Instance& instance);
+};
+
 // String may not be '\0' terminated.
 class String : public Instance {
  public:

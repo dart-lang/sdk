@@ -12,7 +12,9 @@ part of dart._internal;
  * make it accessible to Dart platform code via the static method
  * [getName].
  */
+@pragma('vm:entry-point')
 class Symbol implements core.Symbol {
+  @pragma('vm:entry-point')
   final String _name;
 
   /**

@@ -4874,8 +4874,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     const char* value_script,
     uint32_t hashcode_canonicalize_vm = kCalculateCanonizalizeHash,
     bool check_identity = true,
-    bool check_hashcode = true,
-    bool print_failure = true) {
+    bool check_hashcode = true) {
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
                   "%s"
@@ -4929,7 +4928,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     success &= identity_hashcode_dart == hashcode_canonicalize_vm;
   }
 
-  if (!success && print_failure) {
+  if (!success) {
     LogBlock lb;
     THR_Print(
         "Dart hashCode or Dart identityHashCode does not equal VM "
@@ -4989,6 +4988,15 @@ TEST_CASE(HashCode_String) {
       "  return 'asdf';\n"
       "}\n";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
+}
+
+TEST_CASE(HashCode_Symbol) {
+  const char* kScript =
+      "value() {\n"
+      "  return #A;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+                                        /*check_identity=*/false));
 }
 
 TEST_CASE(HashCode_True) {

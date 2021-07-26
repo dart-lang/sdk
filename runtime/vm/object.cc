@@ -18902,6 +18902,49 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
+static ClassPtr EnsureSymbolClass(Thread* thread) {
+  ObjectStore* const store = thread->isolate_group()->object_store();
+
+  if (store->symbol_class() != Class::null()) {
+    return store->symbol_class();
+  }
+  Zone* const zone = thread->zone();
+  const auto& library = Library::Handle(zone, Library::InternalLibrary());
+  const auto& symbol_class =
+      Class::Handle(zone, library.LookupClass(Symbols::Symbol()));
+  ASSERT(!symbol_class.IsNull());
+  store->set_symbol_class(symbol_class);
+  return symbol_class.ptr();
+}
+
+bool Symbol::IsSymbolCid(classid_t class_id) {
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+
+  Class& symbol_class = Class::Handle(zone, EnsureSymbolClass(thread));
+
+  return class_id == symbol_class.id();
+}
+
+// Must be kept in sync with Symbol.hashCode in symbol_patch.dart
+uint32_t Symbol::CanonicalizeHash(const Instance& instance) {
+  ASSERT(IsSymbolCid(instance.GetClassId()));
+
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+
+  Class& symbol_class = Class::Handle(zone, EnsureSymbolClass(thread));
+  const auto& symbol_name_field = Field::Handle(
+      zone, symbol_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  ASSERT(!symbol_name_field.IsNull());
+
+  // Keep in sync with sdk/lib/_internal/vm/lib/symbol_patch.dart.
+  const auto& name =
+      String::Cast(Object::Handle(zone, instance.GetField(symbol_name_field)));
+  const uint32_t arbitrary_prime = 664597;
+  return 0x1fffffff & (arbitrary_prime * name.CanonicalizeHash());
+}
+
 uint32_t Instance::CanonicalizeHash() const {
   if (GetClassId() == kNullCid) {
     return 2011;  // Matches null_patch.dart.
@@ -18914,41 +18957,46 @@ uint32_t Instance::CanonicalizeHash() const {
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
   NoSafepointScope no_safepoint(thread);
-  const intptr_t instance_size = SizeFromClass();
-  ASSERT(instance_size != 0);
-  hash = instance_size / kCompressedWordSize;
-  uword this_addr = reinterpret_cast<uword>(this->untag());
-  Object& obj = Object::Handle(zone);
-  Instance& instance = Instance::Handle(zone);
 
-  const auto unboxed_fields_bitmap =
-      thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
-          GetClassId());
+  if (Symbol::IsSymbolCid(GetClassId())) {
+    hash = Symbol::CanonicalizeHash(*this);
+  } else {
+    const intptr_t instance_size = SizeFromClass();
+    ASSERT(instance_size != 0);
+    hash = instance_size / kCompressedWordSize;
+    uword this_addr = reinterpret_cast<uword>(this->untag());
+    Object& obj = Object::Handle(zone);
+    Instance& instance = Instance::Handle(zone);
 
-  for (intptr_t offset = Instance::NextFieldOffset();
-       offset < cls.host_next_field_offset(); offset += kCompressedWordSize) {
-    if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
-      if (kCompressedWordSize == 8) {
-        hash = CombineHashes(hash,
-                             *reinterpret_cast<uint32_t*>(this_addr + offset));
-        hash = CombineHashes(
-            hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+    const auto unboxed_fields_bitmap =
+        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
+            GetClassId());
+
+    for (intptr_t offset = Instance::NextFieldOffset();
+         offset < cls.host_next_field_offset(); offset += kCompressedWordSize) {
+      if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
+        if (kCompressedWordSize == 8) {
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset));
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+        } else {
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset));
+        }
       } else {
-        hash = CombineHashes(hash,
-                             *reinterpret_cast<uint32_t*>(this_addr + offset));
-      }
-    } else {
-      obj = reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
-                ->Decompress(untag()->heap_base());
-      if (obj.IsSentinel()) {
-        hash = CombineHashes(hash, 11);
-      } else {
-        instance ^= obj.ptr();
-        hash = CombineHashes(hash, instance.CanonicalizeHash());
+        obj = reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
+                  ->Decompress(untag()->heap_base());
+        if (obj.IsSentinel()) {
+          hash = CombineHashes(hash, 11);
+        } else {
+          instance ^= obj.ptr();
+          hash = CombineHashes(hash, instance.CanonicalizeHash());
+        }
       }
     }
+    hash = FinalizeHash(hash, String::kHashBits);
   }
-  hash = FinalizeHash(hash, String::kHashBits);
   thread->heap()->SetCanonicalHash(ptr(), hash);
   return hash;
 }
