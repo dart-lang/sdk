@@ -18961,9 +18961,9 @@ uint32_t Instance::CanonicalizeHash() const {
   if (Symbol::IsSymbolCid(GetClassId())) {
     hash = Symbol::CanonicalizeHash(*this);
   } else {
-    const intptr_t instance_size = SizeFromClass();
-    ASSERT(instance_size != 0);
-    hash = instance_size / kCompressedWordSize;
+    const intptr_t class_id = cls.id();
+    ASSERT(class_id != 0);
+    hash = class_id;
     uword this_addr = reinterpret_cast<uword>(this->untag());
     Object& obj = Object::Handle(zone);
     Instance& instance = Instance::Handle(zone);

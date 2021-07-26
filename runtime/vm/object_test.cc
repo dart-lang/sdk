@@ -5029,6 +5029,64 @@ TEST_CASE(HashCode_Type_Int) {
                                         /*check_identity=*/false));
 }
 
+// Because we want to reuse CanonicalizeHash for hashCode, we should not have
+// collisions.
+TEST_CASE(CanonicalizeHash_Const_Instances) {
+  const char* kScript =
+      "class A {\n"
+      "  final int n;\n"
+      "  \n"
+      "  const A(this.n);\n"
+      "}\n"
+      "\n"
+      "class B {\n"
+      "  final int n;\n"
+      "  \n"
+      "  const B(this.n);\n"
+      "}\n"
+      "\n"
+      "valueA() {\n"
+      "  return const A(5);\n"
+      "}\n"
+      "\n"
+      "valueB() {\n"
+      "  return const B(5);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle value_a_result =
+      Dart_Invoke(lib, NewString("valueA"), 0, nullptr);
+  EXPECT_VALID(value_a_result);
+  Dart_Handle value_b_result =
+      Dart_Invoke(lib, NewString("valueB"), 0, nullptr);
+  EXPECT_VALID(value_b_result);
+
+  TransitionNativeToVM transition(Thread::Current());
+
+  const auto& value_a_dart = Instance::CheckedHandle(
+      Thread::Current()->zone(), Api::UnwrapHandle(value_a_result));
+  const auto& value_b_dart = Instance::CheckedHandle(
+      Thread::Current()->zone(), Api::UnwrapHandle(value_b_result));
+
+  const uint32_t canonicalize_hash_a = value_a_dart.CanonicalizeHash();
+  const uint32_t canonicalize_hash_b = value_b_dart.CanonicalizeHash();
+
+  bool success = canonicalize_hash_a != canonicalize_hash_b;
+
+  if (!success) {
+    LogBlock lb;
+    THR_Print("Hash collision between %s and %s\n", value_a_dart.ToCString(),
+              value_b_dart.ToCString());
+    THR_Print("VM CanonicalizeHash a %" Px32 " %" Pd32 "\n",
+              canonicalize_hash_a, canonicalize_hash_a);
+    THR_Print("VM CanonicalizeHash b %" Px32 " %" Pd32 "\n",
+              canonicalize_hash_b, canonicalize_hash_b);
+  }
+  EXPECT(success);
+}
+
 TEST_CASE(LinkedHashMap_iteration) {
   const char* kScript =
       "makeMap() {\n"
