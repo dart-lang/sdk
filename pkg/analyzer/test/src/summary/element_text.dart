@@ -531,8 +531,8 @@ class _ElementWriter {
   }
 
   void _writeMacro(Element e) {
-    if (e is HasElementMacro) {
-      var macro = (e as HasElementMacro).macro;
+    if (e is HasMacroGenerationData) {
+      var macro = (e as HasMacroGenerationData).macro;
       if (macro != null) {
         _writelnWithIndent('macro');
         _withIndent(() {

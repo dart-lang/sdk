@@ -853,9 +853,9 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
-  void _readMacro(Element element, HasElementMacro hasMacro) {
+  void _readMacro(Element element, HasMacroGenerationData hasMacro) {
     if (_reader.readBool()) {
-      hasMacro.macro = ElementMacro(
+      hasMacro.macro = MacroGenerationData(
         _reader.readUInt30(),
         _reader.readStringUtf8(),
         Uint8List(0),

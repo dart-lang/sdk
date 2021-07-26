@@ -281,7 +281,7 @@ class BundleWriter {
     }
   }
 
-  void _writeMacro(ElementMacro? macro) {
+  void _writeMacro(MacroGenerationData? macro) {
     _sink.writeBool(macro != null);
     if (macro != null) {
       _sink.writeUInt30(macro.id);
