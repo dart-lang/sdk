@@ -25,8 +25,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   final ConstantIndexer _constantIndexer;
   final UriIndexer _sourceUriIndexer = new UriIndexer();
   bool _currentlyInNonimplementation = false;
-  final List<bool> _sourcesFromRealImplementation = <bool>[];
-  final List<bool> _sourcesUsedInLibrary = <bool>[];
+  final List<bool?> _sourcesFromRealImplementation = <bool?>[];
+  final List<bool?> _sourcesUsedInLibrary = <bool?>[];
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
   NonNullableByDefaultCompiledMode? compilationMode;

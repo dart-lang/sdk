@@ -2078,7 +2078,7 @@ class InferenceVisitor
       DartType inferredKeyType,
       DartType inferredValueType,
       DartType spreadContext,
-      List<DartType?> actualTypes,
+      List<DartType> actualTypes,
       List<DartType> actualTypesForSet,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
@@ -2096,8 +2096,8 @@ class InferenceVisitor
       DartType spreadType = spreadResult.inferredType;
       inferredSpreadTypes[entry.expression] = spreadType;
       int length = actualTypes.length;
-      actualTypes.add(null);
-      actualTypes.add(null);
+      actualTypes.add(noInferredType);
+      actualTypes.add(noInferredType);
       storeSpreadMapEntryElementTypes(
           spreadType, entry.isNullAware, actualTypes, length);
       DartType? actualKeyType = actualTypes[length];
@@ -2108,7 +2108,7 @@ class InferenceVisitor
 
       MapLiteralEntry replacement = entry;
       if (typeChecksNeeded) {
-        if (actualKeyType == null) {
+        if (actualKeyType == noInferredType) {
           if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !entry.isNullAware) {
             replacement = new MapLiteralEntry(
@@ -2204,7 +2204,7 @@ class InferenceVisitor
                   1);
             }
           }
-          if (!inferrer.isAssignable(inferredValueType, actualValueType!)) {
+          if (!inferrer.isAssignable(inferredValueType, actualValueType)) {
             if (inferrer.isNonNullableByDefault) {
               IsSubtypeOf subtypeCheckResult = inferrer.typeSchemaEnvironment
                   .performNullabilityAwareSubtypeCheck(
@@ -2273,7 +2273,7 @@ class InferenceVisitor
       }
 
       // Use 'dynamic' for error recovery.
-      if (actualKeyType == null) {
+      if (actualKeyType == noInferredType) {
         actualKeyType = actualTypes[length] = const DynamicType();
         actualValueType = actualTypes[length + 1] = const DynamicType();
       }
@@ -2287,7 +2287,7 @@ class InferenceVisitor
       entry.entryType = new InterfaceType(
           mapEntryClass!,
           inferrer.library.nonNullable,
-          <DartType>[actualKeyType, actualValueType!]);
+          <DartType>[actualKeyType, actualValueType]);
 
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
@@ -2354,10 +2354,10 @@ class InferenceVisitor
             typeChecksNeeded);
         int length = actualTypes.length;
         actualTypes[length - 2] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualKeyType!, actualTypes[length - 2]!,
+            .getStandardUpperBound(actualKeyType, actualTypes[length - 2],
                 inferrer.library.library);
         actualTypes[length - 1] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualValueType!, actualTypes[length - 1]!,
+            .getStandardUpperBound(actualValueType, actualTypes[length - 1],
                 inferrer.library.library);
         int lengthForSet = actualTypesForSet.length;
         actualTypesForSet[lengthForSet - 1] = inferrer.typeSchemaEnvironment
@@ -2622,7 +2622,7 @@ class InferenceVisitor
       inferredConditionTypes = new Map<Expression, DartType>.identity();
     }
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType(), const UnknownType()];
+      inferredTypes = [noInferredType, noInferredType];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
           mapType,
           mapClass.typeParameters,
@@ -2701,7 +2701,7 @@ class InferenceVisitor
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
-        List<DartType> inferredTypesForSet = <DartType>[const UnknownType()];
+        List<DartType> inferredTypesForSet = <DartType>[noInferredType];
         inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
             setType,
             inferrer.coreTypes.setClass.typeParameters,

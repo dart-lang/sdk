@@ -1722,6 +1722,8 @@ class ClassSet extends IterableBase<Class> {
 /// are removed first; in the case of ties, classes with lower topological sort
 /// index are removed first.
 class _LubHeap extends Heap<_ClassInfo> {
+  _LubHeap() : super(_dummyClassInfo);
+
   @override
   bool sortsBefore(_ClassInfo a, _ClassInfo b) => sortsBeforeStatic(a, b);
 
@@ -1731,3 +1733,5 @@ class _LubHeap extends Heap<_ClassInfo> {
     return a.topologicalIndex < b.topologicalIndex;
   }
 }
+
+final _ClassInfo _dummyClassInfo = new _ClassInfo(dummyClass);

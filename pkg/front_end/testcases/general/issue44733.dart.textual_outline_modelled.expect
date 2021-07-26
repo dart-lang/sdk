@@ -1,0 +1,17 @@
+B get x => super.x;
+
+abstract class A {
+  F get y => super.y as F;
+}
+
+abstract class B extends A with C {}
+
+abstract class D {
+  E get y {}
+}
+
+abstract class E {}
+
+main() {}
+mixin C on D {}
+void f() {}

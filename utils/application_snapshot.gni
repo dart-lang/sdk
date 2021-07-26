@@ -82,6 +82,9 @@ template("_application_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
     deps = extra_deps + [
              "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
              "$_dart_root/runtime/vm:vm_platform",
@@ -131,6 +134,9 @@ template("_application_snapshot") {
 
   # Create a snapshot from kernel built above.
   dart_action(target_name) {
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
     deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
 

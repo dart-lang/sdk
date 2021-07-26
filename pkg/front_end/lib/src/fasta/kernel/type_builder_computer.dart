@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/future_or_type_declaration_builder.dart';
@@ -39,7 +40,10 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
-    throw "Not implemented";
+    return new FixedTypeBuilder(
+        node,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
   }
 
   @override

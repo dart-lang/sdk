@@ -716,7 +716,9 @@ class KernelTarget extends TargetImplementation {
       Constructor? referenceFrom) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
-          isFinal: formal.isFinal, isConst: formal.isConst);
+          isFinal: formal.isFinal,
+          isConst: formal.isConst,
+          type: const UnknownType());
       if (formal.type is! UnknownType) {
         copy.type = substitute(formal.type, substitutionMap);
       } else {
@@ -1424,7 +1426,7 @@ class DelayedParameterType {
 
   void updateType() {
     // ignore: unnecessary_null_comparison
-    assert(source.type != null, "No type computed for $source.");
+    assert(source.type is! UnknownType, "No type computed for $source.");
     target.type = substitute(source.type, substitutionMap);
   }
 }

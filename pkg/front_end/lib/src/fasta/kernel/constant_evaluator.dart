@@ -943,7 +943,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
-        nodeCache = <Node, Constant>{},
+        nodeCache = <Node, Constant?>{},
         env = new EvaluationEnvironment() {
     if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
       throw new ArgumentError(

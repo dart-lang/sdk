@@ -179,12 +179,11 @@ class RedirectionTarget {
 }
 
 RedirectionTarget? getRedirectionTarget(Procedure member, EnsureLoaded helper) {
-  List<DartType> typeArguments = <DartType>[]..length =
-      member.function.typeParameters.length;
-  for (int i = 0; i < typeArguments.length; i++) {
-    typeArguments[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+  List<DartType> typeArguments = new List<DartType>.generate(
+      member.function.typeParameters.length, (int i) {
+    return new TypeParameterType.withDefaultNullabilityForLibrary(
         member.function.typeParameters[i], member.enclosingLibrary);
-  }
+  }, growable: true);
 
   // We use the [tortoise and hare algorithm]
   // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
@@ -201,15 +200,15 @@ RedirectionTarget? getRedirectionTarget(Procedure member, EnsureLoaded helper) {
     Member nextTortoise = tortoiseBody!.target!;
     helper.ensureLoaded(nextTortoise);
     List<DartType>? nextTypeArguments = tortoiseBody.typeArguments;
-    if (nextTypeArguments == null) {
-      nextTypeArguments = <DartType>[];
-    }
-
-    Substitution sub = Substitution.fromPairs(
-        tortoise.function!.typeParameters, typeArguments);
-    typeArguments = <DartType>[]..length = nextTypeArguments.length;
-    for (int i = 0; i < typeArguments.length; i++) {
-      typeArguments[i] = sub.substituteType(nextTypeArguments[i]);
+    if (nextTypeArguments != null) {
+      Substitution sub = Substitution.fromPairs(
+          tortoise.function!.typeParameters, typeArguments);
+      typeArguments =
+          new List<DartType>.generate(nextTypeArguments.length, (int i) {
+        return sub.substituteType(nextTypeArguments[i]);
+      }, growable: true);
+    } else {
+      typeArguments = <DartType>[];
     }
 
     tortoise = nextTortoise;

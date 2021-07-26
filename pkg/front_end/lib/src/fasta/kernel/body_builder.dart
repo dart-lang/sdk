@@ -1256,12 +1256,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         Substitution substitution = Substitution.fromPairs(
             initialTarget.function.typeParameters, arguments.types);
-        arguments.types.clear();
-        arguments.types.length = redirectionTarget!.typeArguments.length;
-        for (int i = 0; i < arguments.types.length; i++) {
-          arguments.types[i] =
+        for (int i = 0; i < redirectionTarget!.typeArguments.length; i++) {
+          DartType typeArgument =
               substitution.substituteType(redirectionTarget.typeArguments[i]);
+          if (i < arguments.types.length) {
+            arguments.types[i] = typeArgument;
+          } else {
+            arguments.types.add(typeArgument);
+          }
         }
+        arguments.types.length = redirectionTarget.typeArguments.length;
 
         replacementNode = buildStaticInvocation(
             resolvedTarget,
@@ -1686,7 +1690,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSend(Token beginToken, Token endToken) {
     assert(checkState(beginToken, [
-      ValueKinds.ArgumentsOrNull,
+      unionOfKinds([
+        ValueKinds.ArgumentsOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
       ValueKinds.TypeArgumentsOrNull,
       unionOfKinds([
         ValueKinds.Expression,
@@ -1697,12 +1704,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ])
     ]));
     debugEvent("Send");
-    Arguments? arguments = pop() as Arguments?;
+    Object? arguments = pop();
     List<UnresolvedType>? typeArguments = pop() as List<UnresolvedType>?;
     Object receiver = pop()!;
     // Delay adding [typeArguments] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.
-    bool isInForest = arguments != null &&
+    bool isInForest = arguments is Arguments &&
         typeArguments != null &&
         (receiver is! TypeUseGenerator ||
             (receiver is TypeUseGenerator &&
@@ -1716,22 +1723,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           (receiver is TypeUseGenerator &&
               receiver.declaration is TypeAliasBuilder));
     }
-    if (receiver is Identifier) {
+    if (receiver is ParserRecovery || arguments is ParserRecovery) {
+      push(new ParserErrorGenerator(
+          this, beginToken, fasta.messageSyntheticToken));
+    } else if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
         push(new SendAccessGenerator(
-            this, beginToken, name, typeArguments, arguments,
+            this, beginToken, name, typeArguments, arguments as Arguments,
             isTypeArgumentsInForest: isInForest));
       }
-    } else if (receiver is ParserRecovery) {
-      push(new ParserErrorGenerator(
-          this, beginToken, fasta.messageSyntheticToken));
     } else if (arguments == null) {
       push(receiver);
     } else {
-      push(finishSend(receiver, typeArguments, arguments, beginToken.charOffset,
+      push(finishSend(receiver, typeArguments, arguments as Arguments,
+          beginToken.charOffset,
           isTypeArgumentsInForest: isInForest));
     }
     assert(checkState(beginToken, [
@@ -2679,7 +2687,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
-    UnresolvedType type = pop() as UnresolvedType;
+    UnresolvedType? type = pop() as UnresolvedType?;
     int modifiers = (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
@@ -4954,7 +4962,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(const FixedNullableList<UnresolvedType>().pop(stack, count) ??
+    push(const FixedNullableList<UnresolvedType>()
+            .popNonNullable(stack, count, dummyUnresolvedType) ??
         NullValue.TypeArguments);
   }
 
@@ -5001,10 +5010,28 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleNamedArgument(Token colon) {
     debugEvent("NamedArgument");
+    assert(checkState(colon, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+      ]),
+      unionOfKinds([
+        ValueKinds.Identifier,
+        ValueKinds.ParserRecovery,
+      ])
+    ]));
     Expression value = popForValue();
-    Identifier identifier = pop() as Identifier;
-    push(new NamedExpression(identifier.name, value)
-      ..fileOffset = identifier.charOffset);
+    Object? identifier = pop();
+    if (identifier is Identifier) {
+      push(new NamedExpression(identifier.name, value)
+        ..fileOffset = identifier.charOffset);
+    } else {
+      assert(
+          identifier is ParserRecovery,
+          "Unexpected argument name: "
+          "${identifier} (${identifier.runtimeType})");
+      push(identifier);
+    }
   }
 
   @override

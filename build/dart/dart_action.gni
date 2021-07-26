@@ -51,6 +51,10 @@ template("_compiled_action") {
       testonly = invoker.testonly
     }
 
+    if (defined(invoker.pool)) {
+      pool = invoker.pool
+    }
+
     script = "$_dart_root/build/gn_run_binary.py"
 
     if (defined(invoker.inputs)) {
@@ -109,6 +113,7 @@ template("_prebuilt_tool_action") {
                              "depfile",
                              "deps",
                              "outputs",
+                             "pool",
                              "testonly",
                              "visibility",
                            ])
@@ -256,6 +261,7 @@ template("_built_tool_action") {
                              "deps",
                              "inputs",
                              "outputs",
+                             "pool",
                              "tool",
                              "testonly",
                              "visibility",
@@ -321,6 +327,7 @@ template("dart_action") {
                                "inputs",
                                "outputs",
                                "packages",
+                               "pool",
                                "script",
                                "testonly",
                                "tool",
@@ -380,6 +387,7 @@ template("gen_snapshot_action") {
                                "inputs",
                                "outputs",
                                "packages",
+                               "pool",
                                "testonly",
                                "tool",
                                "visibility",

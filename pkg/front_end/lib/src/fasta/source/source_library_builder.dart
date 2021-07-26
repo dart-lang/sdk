@@ -803,7 +803,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
-        Token endToken = info.beforeLast;
+        Token endToken = info.beforeLast!;
         endToken.setNext(new Token.eof(endToken.next!.offset));
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
@@ -4241,12 +4241,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder? declaration = iterator.current;
       while (declaration != null) {
         if (declaration is SourceTypeAliasBuilder) {
-          declaration.buildTypedefTearOffs(this,
-              (Procedure procedure) {
-                procedure.isStatic = true;
-              if (!declaration!.isPatch && !declaration.isDuplicate) {
-                library.addProcedure(procedure);
-              }
+          declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+            procedure.isStatic = true;
+            if (!declaration!.isPatch && !declaration.isDuplicate) {
+              library.addProcedure(procedure);
+            }
           });
         }
         declaration = declaration.next;
@@ -4523,7 +4522,7 @@ class FieldInfo {
   final String name;
   final int charOffset;
   final Token? initializerToken;
-  final Token beforeLast;
+  final Token? beforeLast;
   final int charEndOffset;
 
   const FieldInfo(this.name, this.charOffset, this.initializerToken,
