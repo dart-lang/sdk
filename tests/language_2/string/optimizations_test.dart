@@ -8,15 +8,16 @@
 // correctly infer optional named parameters.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 foo({path}) {
   () => 42;
   return path.toString();
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 bar({path}) {
   () => 42;
   return path;
