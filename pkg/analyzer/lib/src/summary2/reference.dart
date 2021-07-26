@@ -53,29 +53,13 @@ class Reference {
     return const [];
   }
 
-  bool get isClass => parent != null && parent!.name == '@class';
-
-  bool get isConstructor => parent != null && parent!.name == '@constructor';
-
-  bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
-
-  bool get isEnum => parent != null && parent!.name == '@enum';
-
-  bool get isGetter => parent != null && parent!.name == '@getter';
-
   bool get isLibrary => parent != null && parent!.isRoot;
-
-  bool get isParameter => parent != null && parent!.name == '@parameter';
 
   bool get isPrefix => parent != null && parent!.name == '@prefix';
 
   bool get isRoot => parent == null;
 
   bool get isSetter => parent != null && parent!.name == '@setter';
-
-  bool get isTypeAlias => parent != null && parent!.name == '@typeAlias';
-
-  bool get isUnit => parent != null && parent!.name == '@unit';
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
