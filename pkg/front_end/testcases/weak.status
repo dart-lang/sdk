@@ -91,6 +91,7 @@ general/issue38961: RuntimeError # no main and compile time errors.
 general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
+general/issue44733: TypeCheckError
 general/issue45204: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
