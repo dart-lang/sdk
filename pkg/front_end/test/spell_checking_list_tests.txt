@@ -245,6 +245,7 @@ darttest
 dash
 dashes
 day
+days
 db
 ddart
 dds
