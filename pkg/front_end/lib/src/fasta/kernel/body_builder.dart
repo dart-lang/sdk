@@ -1256,12 +1256,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         Substitution substitution = Substitution.fromPairs(
             initialTarget.function.typeParameters, arguments.types);
-        arguments.types.clear();
-        arguments.types.length = redirectionTarget!.typeArguments.length;
-        for (int i = 0; i < arguments.types.length; i++) {
-          arguments.types[i] =
+        for (int i = 0; i < redirectionTarget!.typeArguments.length; i++) {
+          DartType typeArgument =
               substitution.substituteType(redirectionTarget.typeArguments[i]);
+          if (i < arguments.types.length) {
+            arguments.types[i] = typeArgument;
+          } else {
+            arguments.types.add(typeArgument);
+          }
         }
+        arguments.types.length = redirectionTarget.typeArguments.length;
 
         replacementNode = buildStaticInvocation(
             resolvedTarget,
@@ -2679,7 +2683,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
-    UnresolvedType type = pop() as UnresolvedType;
+    UnresolvedType? type = pop() as UnresolvedType?;
     int modifiers = (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
@@ -4954,7 +4958,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(const FixedNullableList<UnresolvedType>().pop(stack, count) ??
+    push(const FixedNullableList<UnresolvedType>()
+            .popNonNullable(stack, count, dummyUnresolvedType) ??
         NullValue.TypeArguments);
   }
 

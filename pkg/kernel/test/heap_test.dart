@@ -36,5 +36,7 @@ main() {
 }
 
 class _intHeap extends Heap<int> {
+  _intHeap() : super(0);
+
   bool sortsBefore(int a, int b) => a < b;
 }

@@ -51,6 +51,8 @@ import 'variable_builder.dart';
 /// constructor.
 class FormalParameterBuilder extends ModifierBuilderImpl
     implements VariableBuilder {
+  static const String noNameSentinel = 'no name sentinel';
+
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder>? metadata;
 
@@ -130,7 +132,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       if (!library.isNonNullableByDefault && builtType != null) {
         builtType = legacyErasure(builtType);
       }
-      variable = new VariableDeclarationImpl(name, functionNestingLevel,
+      variable = new VariableDeclarationImpl(
+          name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
           isFinal: isFinal,
           isConst: isConst,
