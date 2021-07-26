@@ -1,8 +1,20 @@
-# master
+# 1.8.0
 
-- New lint: `eol_at_end_of_file`
-- Fix false negative case of else-if in `curly_braces_in_flow_control_structures.dart`
-- Update `analyzer` constraint to `>=2.0.0 <3.0.0`.
+- fixed false-positive in `package_names` (causing keywords to wrongly get flagged)
+- fixed `avoid_classes_with_only_static_member` to check for inherited members and also
+  flag classes with only methods
+- fixed `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
+  blocks
+- improved `always_specify_types` to support type aliases
+- fixed false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+  strings
+- fixed false positive in `avoid_function_literals_in_foreach_calls` for nullable
+  iterables
+- fixed false positive in `avoid_returning_null` w/ NNBD
+- fixed false positive in `use_late_for_private_fields_and_variables` in the presence
+  of const constructors
+- new lint: `eol_at_end_of_file`
+- updated `analyzer` constraint to `>=2.0.0 <3.0.0`
 
 # 1.7.1
 
