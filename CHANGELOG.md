@@ -1,5 +1,8 @@
 # 1.8.0
 
+- performance improvements for `prefer_is_not_empty`
+- fixed false positive in `no_logic_in_create_state`
+- improve `package_names` to allow dart identifiers as package names
 - fixed false-positive in `package_names` (causing keywords to wrongly get flagged)
 - fixed `avoid_classes_with_only_static_member` to check for inherited members and also
   flag classes with only methods
