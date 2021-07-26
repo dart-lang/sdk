@@ -225,7 +225,11 @@ class FunctionReferenceResolver {
       // Continue to resolve type.
     }
 
-    // TODO(srawlins): If PropertyAccessorElement, report error.
+    if (member is PropertyAccessorElement) {
+      function.accept(_resolver);
+      _resolveDisallowedExpression(node, member.returnType);
+      return;
+    }
 
     _resolve(node: node, rawType: member.type, name: propertyName.name);
   }
@@ -298,9 +302,11 @@ class FunctionReferenceResolver {
       return;
     }
 
-    // TODO(srawlins): Need to report cases where [methodElement] is not
-    // generic. The 'test_instanceGetter_explicitReceiver' test case needs to
-    // be updated to handle this.
+    if (methodElement is PropertyAccessorElement) {
+      function.accept(_resolver);
+      _resolveDisallowedExpression(node, methodElement.returnType);
+      return;
+    }
 
     function.accept(_resolver);
     node.staticType = DynamicTypeImpl.instance;
@@ -388,8 +394,6 @@ class FunctionReferenceResolver {
     PrefixedIdentifier prefix,
     Element element,
   ) {
-    // TODO(srawlins): Handle `loadLibrary`, as in `p.loadLibrary<int>;`.
-
     if (element is MultiplyDefinedElement) {
       MultiplyDefinedElement multiply = element;
       element = multiply.conflictingElements[0];
@@ -472,17 +476,25 @@ class FunctionReferenceResolver {
           // Continue to assign types.
         }
 
+        if (method is PropertyAccessorElement) {
+          _resolveDisallowedExpression(node, method.returnType);
+          return;
+        }
+
         function.staticElement = method;
         function.staticType = method.type;
         _resolve(node: node, rawType: method.type, name: function.name);
         return;
       } else {
-        // TODO(srawlins): Report CompileTimeErrorCode.UNDEFINED_METHOD.
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_METHOD,
+          function,
+          [function.name, enclosingClass],
+        );
+        function.staticType = DynamicTypeImpl.instance;
+        node.staticType = DynamicTypeImpl.instance;
         return;
       }
-
-      // TODO(srawlins): if `(target is PropertyAccessorElement)`, report an
-      // error.
     }
 
     // Classes and type aliases are checked first so as to include a
@@ -504,10 +516,25 @@ class FunctionReferenceResolver {
         _resolveTypeAlias(node: node, element: element, typeAlias: function);
         return;
       }
-    } else if (element is ExecutableElement) {
+    } else if (element is MethodElement) {
       function.staticElement = element;
       function.staticType = element.type;
       _resolve(node: node, rawType: element.type, name: element.name);
+      return;
+    } else if (element is FunctionElement) {
+      function.staticElement = element;
+      function.staticType = element.type;
+      _resolve(node: node, rawType: element.type, name: element.name);
+      return;
+    } else if (element is PropertyAccessorElement) {
+      function.staticElement = element;
+      function.staticType = element.returnType;
+      _resolveDisallowedExpression(node, element.returnType);
+      return;
+    } else if (element is ExecutableElement) {
+      function.staticElement = element;
+      function.staticType = element.type;
+      _resolveDisallowedExpression(node, element.type);
       return;
     } else if (element is VariableElement) {
       function.staticElement = element;
@@ -515,7 +542,8 @@ class FunctionReferenceResolver {
       _resolveDisallowedExpression(node, element.type);
       return;
     } else {
-      node.staticType = DynamicTypeImpl.instance;
+      _resolveDisallowedExpression(node, DynamicTypeImpl.instance);
+      return;
     }
   }
 
