@@ -2709,10 +2709,21 @@ class ElementLocationImpl implements ElementLocation {
 
 /// Information about a macro-produced [Element].
 class ElementMacro {
-  /// The sequential id of this macro-produced element.
+  /// The sequential id of this macro-produced element, for an element created
+  /// for a declaration that was macro-generated later this value is greater.
+  ///
+  /// This is different from [ElementImpl.id], which is also incrementing,
+  /// but shows the order in which elements were built from declarations,
+  /// not the order of declarations, and we process all field declarations
+  /// before method declarations.
   final int id;
 
-  /// The code that for produced by the macro.
+  /// The code that was produced by the macro. It is used to compose full
+  /// code of a unit to display to the user, so that new declarations are
+  /// added to the unit or existing classes.
+  ///
+  /// When a class is generated, its code might have some members, or might
+  /// be empty, and new elements might be macro-generated into it.
   final String code;
 
   /// When we build elements from macro-produced code, we remember informative
