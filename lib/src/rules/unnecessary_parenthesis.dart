@@ -48,7 +48,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    if (node.expression is SimpleIdentifier) {
+    var expression = node.expression;
+    if (expression is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is PropertyAccess) {
         if (parent.propertyName.name == 'hashCode' ||
@@ -75,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // `a..b=(c..d)` is OK.
-    if (node.expression is CascadeExpression ||
+    if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
                 (n) => n is Statement || n is CascadeExpression)
             is CascadeExpression) {
@@ -100,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // "unnecessary" parens if that argument has potentially confusing
       // whitespace after its first token.
       if (parent is PrefixExpression &&
-          _expressionStartsWithWhitespace(node.expression)) return;
+          _expressionStartsWithWhitespace(expression)) return;
 
       // Another case of the above exception, something like
       // `!(const [7]).contains(5);`, where the _parent's_ parent is the
@@ -109,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var target = parent.target;
         if (parent.parent is PrefixExpression &&
             target == node &&
-            _expressionStartsWithWhitespace(node.expression)) return;
+            _expressionStartsWithWhitespace(expression)) return;
       }
 
       // Something like `({1, 2, 3}).forEach(print);`.
@@ -118,22 +119,19 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is PropertyAccess || parent is MethodInvocation) {
         var target = (parent as dynamic).target;
         if (target == node &&
-            node.expression is SetOrMapLiteral &&
+            expression is SetOrMapLiteral &&
             parent.parent is ExpressionStatement) return;
 
-        if (node.expression is PropertyAccess ||
-            node.expression is MethodInvocation) {
+        if (expression is PropertyAccess || expression is MethodInvocation) {
           rule.reportLint(node);
         }
       }
 
-      if (parent.precedence < node.expression.precedence) {
+      if (parent.precedence < expression.precedence) {
         rule.reportLint(node);
-        return;
       }
     } else {
       rule.reportLint(node);
-      return;
     }
   }
 
