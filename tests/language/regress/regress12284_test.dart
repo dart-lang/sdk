@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 class A {
   int field = -1;
 
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   A(param) {
     // Currently defeat inlining by using a closure.
     var bar = () => 42;

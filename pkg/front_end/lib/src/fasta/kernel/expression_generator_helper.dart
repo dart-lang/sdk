@@ -5,6 +5,8 @@
 library fasta.expression_generator_helper;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -30,12 +32,14 @@ import 'kernel_ast_api.dart'
         Expression,
         FunctionNode,
         Initializer,
+        InterfaceType,
         Member,
         Name,
         Procedure,
         StaticGet,
         TreeNode,
         TypeParameter,
+        TypeParameterType,
         Typedef,
         VariableDeclaration;
 
@@ -178,6 +182,44 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// This is needed for type promotion.
   void registerVariableAssignment(VariableDeclaration variable);
 
-  /// Checks that a generic [typedef] for a generic class.
-  bool isProperRenameForClass(Typedef typedef);
+  TypeEnvironment get typeEnvironment;
+}
+
+/// Checks that a generic [typedef] for a generic class.
+bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
+  DartType? rhsType = typedef.type;
+  if (rhsType is! InterfaceType) {
+    return false;
+  }
+
+  List<TypeParameter> fromParameters = typedef.typeParameters;
+  List<TypeParameter> toParameters = rhsType.classNode.typeParameters;
+  List<DartType> typeArguments = rhsType.typeArguments;
+  if (fromParameters.length != typeArguments.length) {
+    return false;
+  }
+  for (int i = 0; i < fromParameters.length; ++i) {
+    if (typeArguments[i] !=
+        new TypeParameterType.withDefaultNullabilityForLibrary(
+            fromParameters[i], typedef.enclosingLibrary)) {
+      return false;
+    }
+  }
+
+  Map<TypeParameter, DartType> substitutionMap = {};
+  for (int i = 0; i < fromParameters.length; ++i) {
+    substitutionMap[fromParameters[i]] = new TypeParameterType.forAlphaRenaming(
+        fromParameters[i], toParameters[i]);
+  }
+  Substitution substitution = Substitution.fromMap(substitutionMap);
+  for (int i = 0; i < fromParameters.length; ++i) {
+    if (!typeEnvironment.areMutualSubtypes(
+        toParameters[i].bound,
+        substitution.substituteType(fromParameters[i].bound),
+        SubtypeCheckMode.withNullabilities)) {
+      return false;
+    }
+  }
+
+  return true;
 }

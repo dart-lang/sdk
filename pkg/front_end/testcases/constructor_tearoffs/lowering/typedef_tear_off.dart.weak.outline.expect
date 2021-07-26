@@ -40,18 +40,8 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
   ;
-static method _#DA1#new#tearOff() → self::A
-  return new self::A::•();
 static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
   return new self::A::•();
-static method _#DB1#_#tearOff(core::int field1, core::String field2) → self::B<core::String>
-  return new self::B::_<core::String>(field1, field2);
-static method _#DB1#new#tearOff() → self::B<core::String>
-  return new self::B::•<core::String>();
-static method _#DB1#foo#tearOff(core::int field1) → self::B<core::String>
-  return new self::B::foo<core::String>(field1);
-static method _#DB1#bar#tearOff(core::int i, core::String j) → self::B<core::String>
-  return self::B::bar<core::String>(i, j);
 static method _#DB2#_#tearOff<X extends core::num>(core::int field1, core::String field2) → self::B<self::_#DB2#_#tearOff::X>
   return new self::B::_<self::_#DB2#_#tearOff::X>(field1, field2);
 static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>

@@ -1369,46 +1369,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeAliasedFactoryInvocations.clear();
   }
 
-  @override
-  bool isProperRenameForClass(Typedef typedef) {
-    DartType? rhsType = typedef.type;
-    if (rhsType is! InterfaceType) {
-      return false;
-    }
-
-    List<TypeParameter> fromParameters = typedef.typeParameters;
-    List<TypeParameter> toParameters = rhsType.classNode.typeParameters;
-    List<DartType> typeArguments = rhsType.typeArguments;
-    if (fromParameters.length != typeArguments.length) {
-      return false;
-    }
-    for (int i = 0; i < fromParameters.length; ++i) {
-      if (typeArguments[i] !=
-          new TypeParameterType.withDefaultNullabilityForLibrary(
-              fromParameters[i], typedef.enclosingLibrary)) {
-        return false;
-      }
-    }
-
-    Map<TypeParameter, DartType> substitutionMap = {};
-    for (int i = 0; i < fromParameters.length; ++i) {
-      substitutionMap[fromParameters[i]] =
-          new TypeParameterType.forAlphaRenaming(
-              fromParameters[i], toParameters[i]);
-    }
-    Substitution substitution = Substitution.fromMap(substitutionMap);
-    for (int i = 0; i < fromParameters.length; ++i) {
-      if (!typeEnvironment.areMutualSubtypes(
-          toParameters[i].bound,
-          substitution.substituteType(fromParameters[i].bound),
-          SubtypeCheckMode.withNullabilities)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   /// Perform actions that were delayed
   ///
   /// An action can be delayed, for instance, because it depends on some

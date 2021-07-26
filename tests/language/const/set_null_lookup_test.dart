@@ -2,9 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+// Tests lookup of null in const maps.
 
 import 'package:expect/expect.dart';
+
+main() {
+  final set1 = const {null, 1, 'asdf'};
+  Expect.isTrue(set1.contains(getValueNonOptimized(null)));
+  Expect.equals(null, set1.lookup(null));
+  final set2 = const {42, 1, 'asdf'};
+  Expect.isFalse(set2.contains(getValueNonOptimized(null)));
+  Expect.equals(null, set2.lookup(null));
+}
 
 /// Returns its argument.
 ///
@@ -17,24 +26,4 @@ dynamic getValueNonOptimized(dynamic x) {
     return getValueNonOptimized(2);
   }
   return x;
-}
-
-class Nasty {
-  final int n;
-
-  const Nasty(this.n);
-
-  int get hashCode {
-    while (true) {}
-  }
-}
-
-main() {
-  final map = const {1: 42, 'foo': 499, 2: 'bar', Nasty(1): 'baz'};
-  Expect.equals(42, map[getValueNonOptimized(1.0)]);
-  Expect.equals(
-      499, map[getValueNonOptimized(new String.fromCharCodes('foo'.runes))]);
-  Expect.equals('bar', map[getValueNonOptimized(2)]);
-  Expect.isNull(map[getValueNonOptimized(Nasty(1))]);
-  Expect.equals('baz', map[getValueNonOptimized(const Nasty(1))]);
 }

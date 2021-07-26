@@ -6,13 +6,13 @@
 // methods to handle `noSuchMethod`.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 abstract class Foo {
   noSuchMethod(im) => 42;
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 returnFoo() {
   (() => 42)();
   return new Foo();
