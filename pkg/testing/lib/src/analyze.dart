@@ -18,21 +18,21 @@ import 'log.dart' show isVerbose, splitLines;
 import 'suite.dart' show Suite;
 
 class Analyze extends Suite {
-  final Uri analysisOptions;
+  final Uri? analysisOptions;
 
   final List<Uri> uris;
 
   final List<RegExp> exclude;
 
-  final List<String> gitGrepPathspecs;
+  final List<String>? gitGrepPathspecs;
 
-  final List<String> gitGrepPatterns;
+  final List<String>? gitGrepPatterns;
 
   Analyze(this.analysisOptions, this.uris, this.exclude, this.gitGrepPathspecs,
       this.gitGrepPatterns)
       : super("analyze", "analyze", null);
 
-  Future<Null> run(Uri packages, List<Uri> extraUris) {
+  Future<Null> run(Uri packages, List<Uri>? extraUris) {
     List<Uri> allUris = new List<Uri>.from(uris);
     if (extraUris != null) {
       allUris.addAll(extraUris);
@@ -43,8 +43,8 @@ class Analyze extends Suite {
 
   static Future<Analyze> fromJsonMap(
       Uri base, Map json, List<Suite> suites) async {
-    String optionsPath = json["options"];
-    Uri optionsUri = optionsPath == null ? null : base.resolve(optionsPath);
+    String? optionsPath = json["options"];
+    Uri? optionsUri = optionsPath == null ? null : base.resolve(optionsPath);
 
     List<Uri> uris = json["uris"].map<Uri>((relative) {
       String r = relative;
@@ -54,9 +54,9 @@ class Analyze extends Suite {
     List<RegExp> exclude =
         json["exclude"].map<RegExp>((p) => new RegExp(p)).toList();
 
-    Map gitGrep = json["git grep"];
-    List<String> gitGrepPathspecs;
-    List<String> gitGrepPatterns;
+    Map? gitGrep = json["git grep"];
+    List<String>? gitGrepPathspecs;
+    List<String>? gitGrepPatterns;
     if (gitGrep != null) {
       gitGrepPathspecs = gitGrep["pathspecs"] == null
           ? const <String>["."]
@@ -73,13 +73,13 @@ class Analyze extends Suite {
 }
 
 class AnalyzerDiagnostic {
-  final String kind;
+  final String? kind;
 
-  final String detailedKind;
+  final String? detailedKind;
 
-  final String code;
+  final String? code;
 
-  final Uri uri;
+  final Uri? uri;
 
   final int line;
 
@@ -106,7 +106,7 @@ class AnalyzerDiagnostic {
     addPart() {
       parts.add(line
           .substring(start, index == -1 ? null : index)
-          .replaceAllMapped(unescapePattern, (Match m) => m[1]));
+          .replaceAllMapped(unescapePattern, (Match m) => m[1]!));
     }
 
     while (index != -1) {
@@ -136,8 +136,8 @@ class AnalyzerDiagnostic {
   String toString() {
     return kind == null
         ? "Malformed output from dartanalyzer:\n$message"
-        : "${uri.toFilePath()}:$line:$startColumn: "
-            "${kind == 'INFO' ? 'warning: hint' : kind.toLowerCase()}:\n"
+        : "${uri!.toFilePath()}:$line:$startColumn: "
+            "${kind == 'INFO' ? 'warning: hint' : kind!.toLowerCase()}:\n"
             "[$code] $message";
   }
 }
@@ -154,12 +154,12 @@ Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
 
 /// Run dartanalyzer on all tests in [uris].
 Future<Null> analyzeUris(
-    Uri analysisOptions,
+    Uri? analysisOptions,
     Uri packages,
     List<Uri> uris,
     List<RegExp> exclude,
-    List<String> gitGrepPathspecs,
-    List<String> gitGrepPatterns) async {
+    List<String>? gitGrepPathspecs,
+    List<String>? gitGrepPatterns) async {
   if (uris.isEmpty) return;
   String topLevel;
   try {
@@ -205,7 +205,7 @@ Future<Null> analyzeUris(
     arguments.addAll(
         gitGrepPatterns.expand((String pattern) => <String>["-e", pattern]));
     arguments.add("--");
-    arguments.addAll(gitGrepPathspecs);
+    arguments.addAll(gitGrepPathspecs!);
     filesToAnalyze.addAll(splitLines(await git("grep", arguments))
         .map((String line) => line.trimRight()));
   }
@@ -245,7 +245,7 @@ Future<Null> analyzeUris(
   processAnalyzerOutput(Stream<AnalyzerDiagnostic> diagnostics) async {
     await for (AnalyzerDiagnostic diagnostic in diagnostics) {
       if (diagnostic.uri != null) {
-        String path = toFilePath(diagnostic.uri);
+        String path = toFilePath(diagnostic.uri!);
         if (!filesToAnalyze.contains(path)) continue;
       }
       String message = "$diagnostic";
@@ -283,7 +283,7 @@ String _findSdkPath() {
 }
 
 Future<String> git(String command, Iterable<String> arguments,
-    {String workingDirectory}) async {
+    {String? workingDirectory}) async {
   ProcessResult result = await Process.run(
       Platform.isWindows ? "git.bat" : "git",
       <String>[command]..addAll(arguments),

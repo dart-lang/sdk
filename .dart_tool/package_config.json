@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-07-26T14:57:34.624319",
+  "generated": "2021-07-27T19:27:52.638315",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -725,7 +725,7 @@
       "name": "testing",
       "rootUri": "../pkg/testing",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "typed_data",

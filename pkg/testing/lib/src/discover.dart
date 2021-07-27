@@ -20,10 +20,10 @@ List<String> get dartArguments =>
     <String>["-c", "--packages=${packageConfig.toFilePath()}"];
 
 Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
-    {Pattern pattern}) {
+    {Pattern? pattern}) {
   StreamController<FileBasedTestDescription> controller =
       new StreamController<FileBasedTestDescription>();
-  Map<Uri, StreamSubscription> subscriptions = <Uri, StreamSubscription>{};
+  Map<Uri, StreamSubscription?> subscriptions = <Uri, StreamSubscription>{};
   for (Uri testRootUri in testRoots) {
     subscriptions[testRootUri] = null;
     Directory testRoot = new Directory.fromUri(testRootUri);
@@ -32,8 +32,9 @@ Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
         Stream<FileSystemEntity> stream =
             testRoot.list(recursive: true, followLinks: false);
         var subscription = stream.listen((FileSystemEntity entity) {
-          FileBasedTestDescription description = FileBasedTestDescription
-              .from(testRootUri, entity, pattern: pattern);
+          FileBasedTestDescription? description = FileBasedTestDescription.from(
+              testRootUri, entity,
+              pattern: pattern);
           if (description != null) {
             controller.add(description);
           }
@@ -59,7 +60,7 @@ Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
 }
 
 Uri computePackageConfig() {
-  String path = Platform.packageConfig;
+  String? path = Platform.packageConfig;
   if (path != null) return Uri.base.resolve(path);
   return Uri.base.resolve(".packages");
 }
@@ -72,7 +73,7 @@ const _dartSdk = (String.fromEnvironment("DART_SDK", defaultValue: "1") ==
     : null;
 
 Uri computeDartSdk() {
-  String dartSdkPath = Platform.environment["DART_SDK"] ?? _dartSdk;
+  String? dartSdkPath = Platform.environment["DART_SDK"] ?? _dartSdk;
   if (dartSdkPath != null) {
     return Uri.base.resolveUri(new Uri.file(dartSdkPath));
   } else {
@@ -83,7 +84,7 @@ Uri computeDartSdk() {
 }
 
 Future<Process> startDart(Uri program,
-    [List<String> arguments, List<String> vmArguments]) {
+    [List<String>? arguments, List<String>? vmArguments]) {
   List<String> allArguments = <String>[];
   allArguments.addAll(vmArguments ?? dartArguments);
   allArguments.add(program.toFilePath());

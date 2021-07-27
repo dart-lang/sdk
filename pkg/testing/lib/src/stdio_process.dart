@@ -41,13 +41,13 @@ class StdioProcess {
   }
 
   static Future<StdioProcess> run(String executable, List<String> arguments,
-      {String input,
-      Duration timeout: const Duration(seconds: 60),
+      {String? input,
+      Duration? timeout: const Duration(seconds: 60),
       bool suppressOutput: true,
       bool runInShell: false}) async {
     Process process =
         await Process.start(executable, arguments, runInShell: runInShell);
-    Timer timer;
+    Timer? timer;
     StringBuffer sb = new StringBuffer();
     if (timeout != null) {
       timer = new Timer(timeout, () {
@@ -75,8 +75,8 @@ class StdioProcess {
       stdoutStream = stdoutStream.transform(transformToStdio(io.stdout));
       stderrStream = stderrStream.transform(transformToStdio(io.stderr));
     }
-    Future<List<String>> stdoutFuture = stdoutStream.toList();
-    Future<List<String>> stderrFuture = stderrStream.toList();
+    Future<List<String>> stdoutFuture = stdoutStream.toList() as Future<List<String>>;
+    Future<List<String>> stderrFuture = stderrStream.toList() as Future<List<String>>;
     int exitCode = await process.exitCode;
     timer?.cancel();
     sb.writeAll(await stdoutFuture);
