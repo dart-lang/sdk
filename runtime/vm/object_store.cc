@@ -121,9 +121,9 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
     Object& value = Object::Handle();
     static const char* const names[] = {
 #define EMIT_FIELD_NAME(type, name) #name "_",
-        OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-                                EMIT_FIELD_NAME, EMIT_FIELD_NAME,
-                                EMIT_FIELD_NAME, EMIT_FIELD_NAME)
+        OBJECT_STORE_FIELD_LIST(
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME)
 #undef EMIT_FIELD_NAME
     };
     ObjectPtr* current = from();
@@ -270,10 +270,6 @@ void ObjectStore::InitKnownObjects() {
       function.set_is_inlinable(false);
     }
   }
-
-  const Library& internal_lib = Library::Handle(zone, _internal_library());
-  cls = internal_lib.LookupClass(Symbols::Symbol());
-  set_symbol_class(cls);
 
   const Library& core_lib = Library::Handle(zone, core_library());
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
@@ -447,6 +443,31 @@ void ObjectStore::LazyInitIsolateMembers() {
     function = cls.LookupFunctionAllowPrivate(Symbols::_handleMessage());
     ASSERT(!function.IsNull());
     handle_message_function_.store(function.ptr());
+  }
+}
+
+void ObjectStore::LazyInitInternalMembers() {
+  auto* const thread = Thread::Current();
+  SafepointWriteRwLocker locker(thread,
+                                thread->isolate_group()->program_lock());
+  if (symbol_class_.load() == Type::null()) {
+    ASSERT(symbol_name_field_.load() == Field::null());
+
+    auto* const zone = thread->zone();
+    auto& cls = Class::Handle(zone);
+    auto& field = Field::Handle(zone);
+
+    const auto& internal_lib =
+        Library::Handle(zone, Library::InternalLibrary());
+    cls = internal_lib.LookupClass(Symbols::Symbol());
+    ASSERT(!cls.IsNull());
+    const auto& error = cls.EnsureIsFinalized(thread);
+    ASSERT(error == Error::null());
+    symbol_class_.store(cls.ptr());
+
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+    symbol_name_field_.store(field.ptr());
   }
 }
 

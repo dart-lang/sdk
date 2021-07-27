@@ -18902,40 +18902,20 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
-static ClassPtr EnsureSymbolClass(Thread* thread) {
-  ObjectStore* const store = thread->isolate_group()->object_store();
-
-  if (store->symbol_class() != Class::null()) {
-    return store->symbol_class();
-  }
-  Zone* const zone = thread->zone();
-  const auto& library = Library::Handle(zone, Library::InternalLibrary());
-  const auto& symbol_class =
-      Class::Handle(zone, library.LookupClass(Symbols::Symbol()));
-  ASSERT(!symbol_class.IsNull());
-  store->set_symbol_class(symbol_class);
-  return symbol_class.ptr();
-}
-
-bool Symbol::IsSymbolCid(classid_t class_id) {
-  Thread* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
-
-  Class& symbol_class = Class::Handle(zone, EnsureSymbolClass(thread));
-
-  return class_id == symbol_class.id();
+bool Symbol::IsSymbolCid(Thread* thread, classid_t class_id) {
+  auto object_store = thread->isolate_group()->object_store();
+  return Class::GetClassId(object_store->symbol_class()) == class_id;
 }
 
 // Must be kept in sync with Symbol.hashCode in symbol_patch.dart
-uint32_t Symbol::CanonicalizeHash(const Instance& instance) {
-  ASSERT(IsSymbolCid(instance.GetClassId()));
+uint32_t Symbol::CanonicalizeHash(Thread* thread, const Instance& instance) {
+  ASSERT(IsSymbolCid(thread, instance.GetClassId()));
 
-  Thread* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
+  auto zone = thread->zone();
+  auto object_store = thread->isolate_group()->object_store();
 
-  Class& symbol_class = Class::Handle(zone, EnsureSymbolClass(thread));
-  const auto& symbol_name_field = Field::Handle(
-      zone, symbol_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  const auto& symbol_name_field =
+      Field::Handle(zone, object_store->symbol_name_field());
   ASSERT(!symbol_name_field.IsNull());
 
   // Keep in sync with sdk/lib/_internal/vm/lib/symbol_patch.dart.
@@ -18956,10 +18936,12 @@ uint32_t Instance::CanonicalizeHash() const {
   }
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
+  const bool is_symbol = Symbol::IsSymbolCid(thread, cls.id());
+
   NoSafepointScope no_safepoint(thread);
 
-  if (Symbol::IsSymbolCid(GetClassId())) {
-    hash = Symbol::CanonicalizeHash(*this);
+  if (is_symbol) {
+    hash = Symbol::CanonicalizeHash(thread, *this);
   } else {
     const intptr_t class_id = cls.id();
     ASSERT(class_id != 0);

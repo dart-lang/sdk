@@ -6343,9 +6343,10 @@ class InferenceVisitor
 
     Set<Field?>? enumFields;
     if (expressionType is InterfaceType && expressionType.classNode.isEnum) {
-      enumFields = expressionType.classNode.fields
-          .where((Field field) => field.isConst && field.type == expressionType)
-          .toSet();
+      enumFields = <Field?>{
+        ...expressionType.classNode.fields.where(
+            (Field field) => field.isConst && field.type == expressionType)
+      };
       if (expressionType.isPotentiallyNullable) {
         enumFields.add(null);
       }

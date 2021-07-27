@@ -1328,14 +1328,18 @@ class Class : public Object {
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(ClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return cls->untag()->id_ == kClosureCid;
+    return GetClassId(cls) == kClosureCid;
   }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
     return UntaggedLibrary::InFullSnapshotBit::decode(
         cls->untag()->library()->untag()->flags_);
+  }
+
+  static intptr_t GetClassId(ClassPtr cls) {
+    NoSafepointScope no_safepoint;
+    return cls->untag()->id_;
   }
 
   // Returns true if the type specified by cls, type_arguments, and nullability
@@ -9123,9 +9127,9 @@ class Double : public Number {
 // TODO(http://dartbug.com/46716): Recognize Symbol in the VM.
 class Symbol : public AllStatic {
  public:
-  static bool IsSymbolCid(classid_t class_id);
+  static bool IsSymbolCid(Thread* thread, classid_t class_id);
 
-  static uint32_t CanonicalizeHash(const Instance& instance);
+  static uint32_t CanonicalizeHash(Thread* thread, const Instance& instance);
 };
 
 // String may not be '\0' terminated.

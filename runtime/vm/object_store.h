@@ -37,22 +37,26 @@ class ObjectPointerVisitor;
 // R_ - needs getter only
 // RW - needs getter and setter
 // ARW - needs getter and setter with atomic access
-// CR - needs lazy Core init getter
-// FR - needs lazy Async init getter
-// IR - needs lazy Isolate init getter
-#define OBJECT_STORE_FIELD_LIST(R_, RW, ARW, CR, FR, IR)                       \
-  CR(Class, list_class)                    /* maybe be null, lazily built */   \
-  CR(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
-  CR(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
-  CR(Function, _object_equals_function)    /* maybe be null, lazily built */   \
-  CR(Function, _object_hash_code_function) /* maybe be null, lazily built */   \
-  CR(Function, _object_to_string_function) /* maybe be null, lazily built */   \
-  FR(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
-  FR(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
-  FR(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
-  IR(Function, lookup_port_handler)        /* maybe be null, lazily built */   \
-  IR(Function, lookup_open_ports)          /* maybe be null, lazily built */   \
-  IR(Function, handle_message_function)    /* maybe be null, lazily built */   \
+// LAZY_CORE - needs lazy init getter for a "dart:core" member
+// LAZY_ASYNC - needs lazy init getter for a "dart:async" member
+// LAZY_ISOLATE - needs lazy init getter for a "dart:isolate" member
+// LAZY_INTERNAL - needs lazy init getter for a "dart:_internal" member
+#define OBJECT_STORE_FIELD_LIST(R_, RW, ARW, LAZY_CORE, LAZY_ASYNC,            \
+                                LAZY_ISOLATE, LAZY_INTERNAL)                   \
+  LAZY_CORE(Class, list_class)                                                 \
+  LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
+  LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
+  LAZY_CORE(Function, _object_equals_function)                                 \
+  LAZY_CORE(Function, _object_hash_code_function)                              \
+  LAZY_CORE(Function, _object_to_string_function)                              \
+  LAZY_INTERNAL(Class, symbol_class)                                           \
+  LAZY_INTERNAL(Field, symbol_name_field)                                      \
+  LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
+  LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
+  LAZY_ASYNC(Type, nullable_future_null_type)                                  \
+  LAZY_ISOLATE(Function, lookup_port_handler)                                  \
+  LAZY_ISOLATE(Function, lookup_open_ports)                                    \
+  LAZY_ISOLATE(Function, handle_message_function)                              \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
@@ -116,7 +120,6 @@ class ObjectPointerVisitor;
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
   RW(Class, completer_class)                                                   \
-  RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \
   RW(Class, two_byte_string_class)                                             \
   RW(Class, external_one_byte_string_class)                                    \
@@ -424,12 +427,15 @@ class ObjectStore {
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitAsyncMembers)
 #define DECLARE_LAZY_INIT_ISOLATE_GETTER(Type, name)                           \
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitIsolateMembers)
+#define DECLARE_LAZY_INIT_INTERNAL_GETTER(Type, name)                          \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitInternalMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
                           DECLARE_ATOMIC_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER,
                           DECLARE_LAZY_INIT_ASYNC_GETTER,
-                          DECLARE_LAZY_INIT_ISOLATE_GETTER)
+                          DECLARE_LAZY_INIT_ISOLATE_GETTER,
+                          DECLARE_LAZY_INIT_INTERNAL_GETTER)
 #undef DECLARE_OFFSET
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
@@ -438,6 +444,7 @@ class ObjectStore {
 #undef DECLARE_LAZY_INIT_CORE_GETTER
 #undef DECLARE_LAZY_INIT_ASYNC_GETTER
 #undef DECLARE_LAZY_INIT_ISOLATE_GETTER
+#undef DECLARE_LAZY_INIT_INTERNAL_GETTER
 
   LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
@@ -488,6 +495,7 @@ class ObjectStore {
   void LazyInitCoreMembers();
   void LazyInitAsyncMembers();
   void LazyInitIsolateMembers();
+  void LazyInitInternalMembers();
 
   // Finds a core library private method in Object.
   FunctionPtr PrivateObjectLookup(const String& name);
@@ -501,6 +509,7 @@ class ObjectStore {
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_ATOMIC_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD)

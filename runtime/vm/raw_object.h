@@ -3011,13 +3011,17 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash_mask)
   COMPRESSED_POINTER_FIELD(ArrayPtr, data)
   COMPRESSED_POINTER_FIELD(SmiPtr, used_data)
   COMPRESSED_POINTER_FIELD(SmiPtr, deleted_keys)
-  VISIT_TO(deleted_keys)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
+  VISIT_TO(index)
+
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    // Do not serialize index.
+    return reinterpret_cast<CompressedObjectPtr*>(&deleted_keys_);
+  }
 };
 
 class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {

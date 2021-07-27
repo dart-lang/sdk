@@ -195,16 +195,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 36;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 24;
+    LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    12;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
+    8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
@@ -220,11 +220,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    176;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 116;
+    184;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 124;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    204;
-static constexpr dart::compiler::target::word ObjectStore_type_type_offset = 96;
+    212;
+static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
+    104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
@@ -737,16 +738,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 48;
+    LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    24;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
+    16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 48;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    40;
+    32;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -762,12 +763,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -1285,16 +1286,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 36;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 24;
+    LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    12;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
+    8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
@@ -1310,11 +1311,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    176;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 116;
+    184;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 124;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    204;
-static constexpr dart::compiler::target::word ObjectStore_type_type_offset = 96;
+    212;
+static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
+    104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
@@ -1824,16 +1826,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 48;
+    LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    24;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
+    16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 48;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    40;
+    32;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -1849,12 +1851,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -2373,16 +2375,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 28;
+    LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    16;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
+    12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 28;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -2398,12 +2400,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -2921,16 +2923,16 @@ static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_single_step_offset = 72;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 28;
+    LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    16;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
+    12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 28;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -2946,12 +2948,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -3466,16 +3468,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 24;
+    LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    12;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
+    8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
@@ -3491,11 +3493,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    176;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 116;
+    184;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 124;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    204;
-static constexpr dart::compiler::target::word ObjectStore_type_type_offset = 96;
+    212;
+static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
+    104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
@@ -4002,16 +4005,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 48;
+    LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    24;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
+    16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 48;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    40;
+    32;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -4027,12 +4030,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -4544,16 +4547,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 16;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 12;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 24;
+    LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    12;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 8;
+    8;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 24;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 8;
@@ -4569,11 +4572,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    176;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 116;
+    184;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 124;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    204;
-static constexpr dart::compiler::target::word ObjectStore_type_type_offset = 96;
+    212;
+static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
+    104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
@@ -5077,16 +5081,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 32;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 24;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 48;
+    LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    24;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 16;
+    16;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 48;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    40;
+    32;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -5102,12 +5106,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -5620,16 +5624,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 28;
+    LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    16;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
+    12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 28;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -5645,12 +5649,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -6162,16 +6166,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word Isolate_user_tag_offset = 32;
-static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 20;
+static constexpr dart::compiler::target::word LinkedHashBase_data_offset = 16;
 static constexpr dart::compiler::target::word
-    LinkedHashBase_deleted_keys_offset = 28;
+    LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word LinkedHashBase_hash_mask_offset =
-    16;
-static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 12;
+    12;
+static constexpr dart::compiler::target::word LinkedHashBase_index_offset = 28;
 static constexpr dart::compiler::target::word
     LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word LinkedHashBase_used_data_offset =
-    24;
+    20;
 static constexpr dart::compiler::target::word LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     MarkingStackBlock_pointers_offset = 16;
@@ -6187,12 +6191,12 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    352;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 232;
+    368;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 248;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    408;
+    424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_field_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
@@ -6731,17 +6735,17 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     36;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    16;
+    12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 24;
+    AOT_LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 12;
+    AOT_LinkedHashBase_hash_mask_offset = 8;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    8;
+    24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 20;
+    AOT_LinkedHashBase_used_data_offset = 16;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
@@ -6761,13 +6765,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 176;
+    AOT_ObjectStore_double_type_offset = 184;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    116;
+    124;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 204;
+    AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    96;
+    104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -7338,17 +7342,17 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    32;
+    24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 24;
+    AOT_LinkedHashBase_hash_mask_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    16;
+    48;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 32;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -7368,13 +7372,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -7951,17 +7955,17 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    32;
+    24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 24;
+    AOT_LinkedHashBase_hash_mask_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    16;
+    48;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 32;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -7981,13 +7985,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -8561,17 +8565,17 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 16;
+    AOT_LinkedHashBase_hash_mask_offset = 12;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    12;
+    28;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -8591,13 +8595,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -9170,17 +9174,17 @@ static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
     72;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 16;
+    AOT_LinkedHashBase_hash_mask_offset = 12;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    12;
+    28;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -9200,13 +9204,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -9775,17 +9779,17 @@ static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 16;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    16;
+    12;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 24;
+    AOT_LinkedHashBase_deleted_keys_offset = 20;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 12;
+    AOT_LinkedHashBase_hash_mask_offset = 8;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    8;
+    24;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 20;
+    AOT_LinkedHashBase_used_data_offset = 16;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 8;
@@ -9805,13 +9809,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 176;
+    AOT_ObjectStore_double_type_offset = 184;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    116;
+    124;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 204;
+    AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    96;
+    104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -10375,17 +10379,17 @@ static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    32;
+    24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 24;
+    AOT_LinkedHashBase_hash_mask_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    16;
+    48;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 32;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -10405,13 +10409,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -10981,17 +10985,17 @@ static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    32;
+    24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 48;
+    AOT_LinkedHashBase_deleted_keys_offset = 40;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 24;
+    AOT_LinkedHashBase_hash_mask_offset = 16;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    16;
+    48;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 40;
+    AOT_LinkedHashBase_used_data_offset = 32;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -11011,13 +11015,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -11584,17 +11588,17 @@ static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 16;
+    AOT_LinkedHashBase_hash_mask_offset = 12;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    12;
+    28;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -11614,13 +11618,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -12186,17 +12190,17 @@ static constexpr dart::compiler::target::word
     AOT_IsolateGroup_cached_class_table_table_offset = 32;
 static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_data_offset =
-    20;
+    16;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_deleted_keys_offset = 28;
+    AOT_LinkedHashBase_deleted_keys_offset = 24;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_hash_mask_offset = 16;
+    AOT_LinkedHashBase_hash_mask_offset = 12;
 static constexpr dart::compiler::target::word AOT_LinkedHashBase_index_offset =
-    12;
+    28;
 static constexpr dart::compiler::target::word
     AOT_LinkedHashBase_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_LinkedHashBase_used_data_offset = 24;
+    AOT_LinkedHashBase_used_data_offset = 20;
 static constexpr dart::compiler::target::word AOT_LocalHandle_ptr_offset = 0;
 static constexpr dart::compiler::target::word
     AOT_MarkingStackBlock_pointers_offset = 16;
@@ -12216,13 +12220,13 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 352;
+    AOT_ObjectStore_double_type_offset = 368;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    232;
+    248;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 408;
+    AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
-    192;
+    208;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
