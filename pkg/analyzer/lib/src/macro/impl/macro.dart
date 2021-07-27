@@ -74,9 +74,9 @@ class DeclarationCollector {
       var node = entry.key;
       if (node is ast.Declaration) {
         var element = node.declaredElement;
-        if (element is HasElementMacro) {
+        if (element is HasMacroGenerationData) {
           var collectedDeclaration = entry.value;
-          (element as HasElementMacro).macro = ElementMacro(
+          (element as HasMacroGenerationData).macro = MacroGenerationData(
             collectedDeclaration.id,
             collectedDeclaration.declaration.code,
             collectedDeclaration.informative,

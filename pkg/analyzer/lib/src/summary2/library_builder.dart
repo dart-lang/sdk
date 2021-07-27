@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/macro/builders/data_class.dart' as macro;
 import 'package:analyzer/src/macro/builders/observable.dart' as macro;
 import 'package:analyzer/src/macro/impl/macro.dart' as macro;
 import 'package:analyzer/src/summary2/combinator.dart';
@@ -143,6 +144,38 @@ class LibraryBuilder {
     }
   }
 
+  /// We don't create default constructors during building elements from AST,
+  /// there might be macros that will add one later. So, this method is
+  /// invoked after all macros that affect element models.
+  void processClassConstructors() {
+    // TODO(scheglov) We probably don't need constructors for mixins.
+    var classes = element.topLevelElements
+        .whereType<ClassElementImpl>()
+        .where((e) => !e.isMixinApplication)
+        .toList();
+
+    for (var element in classes) {
+      if (element.constructors.isEmpty) {
+        var containerRef = element.reference!.getChild('@constructor');
+        element.constructors = [
+          ConstructorElementImpl('', -1)
+            ..isSynthetic = true
+            ..reference = containerRef.getChild(''),
+        ];
+      }
+
+      // We have all fields and constructors.
+      // Now we can resolve field formal parameters.
+      for (var constructor in element.constructors) {
+        for (var parameter in constructor.parameters) {
+          if (parameter is FieldFormalParameterElementImpl) {
+            parameter.field = element.getField(parameter.name);
+          }
+        }
+      }
+    }
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -207,6 +240,24 @@ class LibraryBuilder {
             collector,
             declaration,
           );
+          if (hasMacroAnnotation(declaration, 'autoConstructor')) {
+            macro.AutoConstructorMacro().visitClassDeclaration(
+              declaration,
+              classBuilder,
+            );
+          }
+          if (hasMacroAnnotation(declaration, 'hashCode')) {
+            macro.HashCodeMacro().visitClassDeclaration(
+              declaration,
+              classBuilder,
+            );
+          }
+          if (hasMacroAnnotation(declaration, 'toString')) {
+            macro.ToStringMacro().visitClassDeclaration(
+              declaration,
+              classBuilder,
+            );
+          }
           for (var member in members) {
             if (member is ast.FieldDeclarationImpl) {
               if (hasMacroAnnotation(member, 'observable')) {

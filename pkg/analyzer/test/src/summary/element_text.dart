@@ -361,6 +361,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -395,7 +396,7 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isPositive);
+      expect(e.nameOffset, isNonNegative);
     }
   }
 
@@ -530,8 +531,8 @@ class _ElementWriter {
   }
 
   void _writeMacro(Element e) {
-    if (e is HasElementMacro) {
-      var macro = (e as HasElementMacro).macro;
+    if (e is HasMacroGenerationData) {
+      var macro = (e as HasMacroGenerationData).macro;
       if (macro != null) {
         _writelnWithIndent('macro');
         _withIndent(() {
@@ -567,6 +568,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);

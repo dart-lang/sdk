@@ -217,6 +217,7 @@ class Linker {
   void _runDeclarationMacros() {
     for (var library in builders.values) {
       library.runDeclarationMacros();
+      library.processClassConstructors();
     }
   }
 

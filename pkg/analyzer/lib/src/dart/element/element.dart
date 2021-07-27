@@ -1404,13 +1404,16 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, HasMacroGenerationData {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
+
+  @override
+  MacroGenerationData? macro;
 
   @override
   int? periodOffset;
@@ -2704,22 +2707,6 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
-/// Information about a macro-produced [Element].
-class ElementMacro {
-  /// The sequential id of this macro-produced element.
-  final int id;
-
-  /// The code that for produced by the macro.
-  final String code;
-
-  /// When we build elements from macro-produced code, we remember informative
-  /// data, such as offsets - to store it into bytes. This field is set to
-  /// an empty list when reading from bytes.
-  final Uint8List informative;
-
-  ElementMacro(this.id, this.code, this.informative);
-}
-
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
   ElementLinkedData? linkedData;
@@ -3486,10 +3473,10 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
 }
 
 /// This interface is implemented by [Element]s that can be added by macros.
-abstract class HasElementMacro {
+abstract class HasMacroGenerationData {
   /// If this element was added by a macro, the code of a declaration that
   /// was produced by the macro.
-  ElementMacro? macro;
+  MacroGenerationData? macro;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -4109,8 +4096,36 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
+/// Information about a macro-produced [Element].
+class MacroGenerationData {
+  /// The sequential id of this macro-produced element, for an element created
+  /// for a declaration that was macro-generated later this value is greater.
+  ///
+  /// This is different from [ElementImpl.id], which is also incrementing,
+  /// but shows the order in which elements were built from declarations,
+  /// not the order of declarations, and we process all field declarations
+  /// before method declarations.
+  final int id;
+
+  /// The code that was produced by the macro. It is used to compose full
+  /// code of a unit to display to the user, so that new declarations are
+  /// added to the unit or existing classes.
+  ///
+  /// When a class is generated, its code might have some members, or might
+  /// be empty, and new elements might be macro-generated into it.
+  final String code;
+
+  /// When we build elements from macro-produced code, we remember informative
+  /// data, such as offsets - to store it into bytes. This field is set to
+  /// an empty list when reading from bytes.
+  final Uint8List informative;
+
+  MacroGenerationData(this.id, this.code, this.informative);
+}
+
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+class MethodElementImpl extends ExecutableElementImpl
+    implements MethodElement, HasMacroGenerationData {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4119,6 +4134,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
+
+  @override
+  MacroGenerationData? macro;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
@@ -4923,13 +4941,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement, HasElementMacro {
+    implements PropertyAccessorElement, HasMacroGenerationData {
   /// The variable associated with this accessor.
   @override
   late PropertyInducingElement variable;
 
   @override
-  ElementMacro? macro;
+  MacroGenerationData? macro;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].

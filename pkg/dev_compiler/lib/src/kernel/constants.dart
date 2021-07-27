@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
+import 'package:collection/collection.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -21,7 +20,7 @@ class DevCompilerConstants {
   /// failed, or if the constant was unavailable.
   ///
   /// Returns [NullConstant] to represent the `null` value.
-  Constant evaluate(Expression e) {
+  Constant? evaluate(Expression e) {
     return e is ConstantExpression ? e.constant : null;
   }
 
@@ -43,13 +42,12 @@ class DevCompilerConstants {
   ///     main() { ... }
   ///
   /// Given the node for `@MyAnnotation('FooBar')` this will return `'FooBar'`.
-  Object getFieldValueFromAnnotation(Expression node, String name) {
+  Object? getFieldValueFromAnnotation(Expression node, String name) {
     if (node is ConstantExpression) {
       var constant = node.constant;
       if (constant is InstanceConstant) {
         var value = constant.fieldValues.entries
-            .firstWhere((e) => e.key.asField.name.text == name,
-                orElse: () => null)
+            .firstWhereOrNull((e) => e.key.asField.name.text == name)
             ?.value;
         if (value is PrimitiveConstant) return value.value;
         if (value is UnevaluatedConstant) {
@@ -64,11 +62,10 @@ class DevCompilerConstants {
     //
     // We may need to address this in the kernel outline files.
     if (node is ConstructorInvocation) {
-      Expression first;
+      Expression? first;
       var named = node.arguments.named;
       if (named.isNotEmpty) {
-        first =
-            named.firstWhere((n) => n.name == name, orElse: () => null)?.value;
+        first = named.firstWhereOrNull((n) => n.name == name)?.value;
       }
       var positional = node.arguments.positional;
       if (positional.isNotEmpty) first ??= positional[0];
@@ -79,7 +76,7 @@ class DevCompilerConstants {
     return null;
   }
 
-  Object _evaluateAnnotationArgument(Expression node) {
+  Object? _evaluateAnnotationArgument(Expression node) {
     if (node is ConstantExpression) {
       var constant = node.constant;
       if (constant is PrimitiveConstant) return constant.value;
@@ -87,7 +84,7 @@ class DevCompilerConstants {
     if (node is StaticGet) {
       var target = node.target;
       if (target is Field) {
-        return _evaluateAnnotationArgument(target.initializer);
+        return _evaluateAnnotationArgument(target.initializer!);
       }
     }
     return node is BasicLiteral ? node.value : null;

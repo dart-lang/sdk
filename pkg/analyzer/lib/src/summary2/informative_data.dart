@@ -161,7 +161,15 @@ class InformativeDataApplier {
     var kindIndex = reader.readByte();
     var kind = _DeclarationKind.values[kindIndex];
 
-    if (kind == _DeclarationKind.methodDeclaration &&
+    if (kind == _DeclarationKind.constructorDeclaration &&
+        element is ConstructorElement) {
+      var info = _InfoConstructorDeclaration(reader);
+      _applyToConstructor(element, info);
+    } else if (kind == _DeclarationKind.methodDeclaration &&
+        element is MethodElement) {
+      var info = _InfoMethodDeclaration(reader);
+      _applyToMethod(element, info);
+    } else if (kind == _DeclarationKind.methodDeclaration &&
         element is PropertyAccessorElement) {
       var info = _InfoMethodDeclaration(reader);
       _applyToPropertyAccessor(element, info);
@@ -254,6 +262,32 @@ class InformativeDataApplier {
     );
   }
 
+  void _applyToConstructor(
+    ConstructorElement element,
+    _InfoConstructorDeclaration info,
+  ) {
+    element as ConstructorElementImpl;
+    element.setCodeRange(info.codeOffset, info.codeLength);
+    element.periodOffset = info.periodOffset;
+    element.nameOffset = info.nameOffset;
+    element.nameEnd = info.nameEnd;
+    element.documentationComment = info.documentationComment;
+    _applyToFormalParameters(
+      element.parameters_unresolved,
+      info.parameters,
+    );
+
+    var linkedData = element.linkedData as ConstructorElementLinkedData;
+    linkedData.applyConstantOffsets = ApplyConstantOffsets(
+      info.constantOffsets,
+      (applier) {
+        applier.applyToMetadata(element);
+        applier.applyToFormalParameters(element.parameters);
+        applier.applyToConstructorInitializers(element);
+      },
+    );
+  }
+
   void _applyToConstructors(
     List<ConstructorElement> elementList,
     List<_InfoConstructorDeclaration> infoList,
@@ -261,28 +295,7 @@ class InformativeDataApplier {
     forCorrespondingPairs<ConstructorElement, _InfoConstructorDeclaration>(
       elementList,
       infoList,
-      (element, info) {
-        element as ConstructorElementImpl;
-        element.setCodeRange(info.codeOffset, info.codeLength);
-        element.periodOffset = info.periodOffset;
-        element.nameOffset = info.nameOffset;
-        element.nameEnd = info.nameEnd;
-        element.documentationComment = info.documentationComment;
-        _applyToFormalParameters(
-          element.parameters_unresolved,
-          info.parameters,
-        );
-
-        var linkedData = element.linkedData as ConstructorElementLinkedData;
-        linkedData.applyConstantOffsets = ApplyConstantOffsets(
-          info.constantOffsets,
-          (applier) {
-            applier.applyToMetadata(element);
-            applier.applyToFormalParameters(element.parameters);
-            applier.applyToConstructorInitializers(element);
-          },
-        );
-      },
+      _applyToConstructor,
     );
   }
 
@@ -672,6 +685,7 @@ class InformativeDataApplier {
 }
 
 enum _DeclarationKind {
+  constructorDeclaration,
   methodDeclaration,
 }
 
@@ -1336,7 +1350,10 @@ class _InformativeDataWriter {
   }
 
   void writeDeclaration(AstNode node) {
-    if (node is MethodDeclaration) {
+    if (node is ConstructorDeclaration) {
+      sink.addByte(_DeclarationKind.constructorDeclaration.index);
+      _writeConstructor(node);
+    } else if (node is MethodDeclaration) {
       sink.addByte(_DeclarationKind.methodDeclaration.index);
       _writeMethod(node);
     } else {
@@ -1360,22 +1377,24 @@ class _InformativeDataWriter {
     });
   }
 
+  void _writeConstructor(ConstructorDeclaration node) {
+    sink.writeUInt30(node.offset);
+    sink.writeUInt30(node.length);
+    sink.writeOptionalUInt30(node.period?.offset);
+    var nameNode = node.name ?? node.returnType;
+    sink.writeUInt30(nameNode.offset);
+    sink.writeUInt30(nameNode.end);
+    _writeDocumentationComment(node);
+    _writeFormalParameters(node.parameters);
+    _writeOffsets(
+      metadata: node.metadata,
+      formalParameters: node.parameters,
+      constructorInitializers: node.initializers,
+    );
+  }
+
   void _writeConstructors(List<ClassMember> members) {
-    sink.writeList2<ConstructorDeclaration>(members, (node) {
-      sink.writeUInt30(node.offset);
-      sink.writeUInt30(node.length);
-      sink.writeOptionalUInt30(node.period?.offset);
-      var nameNode = node.name ?? node.returnType;
-      sink.writeUInt30(nameNode.offset);
-      sink.writeUInt30(nameNode.end);
-      _writeDocumentationComment(node);
-      _writeFormalParameters(node.parameters);
-      _writeOffsets(
-        metadata: node.metadata,
-        formalParameters: node.parameters,
-        constructorInitializers: node.initializers,
-      );
-    });
+    sink.writeList2<ConstructorDeclaration>(members, _writeConstructor);
   }
 
   void _writeDocumentationComment(AnnotatedNode node) {
