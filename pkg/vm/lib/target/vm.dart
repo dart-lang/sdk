@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -34,14 +32,14 @@ import '../transformations/ffi_use_sites.dart' as transformFfiUseSites
 class VmTarget extends Target {
   final TargetFlags flags;
 
-  Class _growableList;
-  Class _immutableList;
-  Class _internalLinkedHashMap;
-  Class _immutableMap;
-  Class _oneByteString;
-  Class _twoByteString;
-  Class _smi;
-  Class _double; // _Double, not double.
+  Class? _growableList;
+  Class? _immutableList;
+  Class? _internalLinkedHashMap;
+  Class? _immutableMap;
+  Class? _oneByteString;
+  Class? _twoByteString;
+  Class? _smi;
+  Class? _double; // _Double, not double.
 
   VmTarget(this.flags);
 
@@ -116,7 +114,7 @@ class VmTarget extends Target {
     final Field little =
         coreTypes.index.getField('dart:typed_data', 'Endian', 'little');
     host.isConst = true;
-    host.initializer = new CloneVisitorNotMembers().clone(little.initializer)
+    host.initializer = new CloneVisitorNotMembers().clone(little.initializer!)
       ..parent = host;
   }
 
@@ -126,8 +124,8 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger, changedStructureNotifier: changedStructureNotifier);
@@ -152,11 +150,11 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
@@ -184,7 +182,7 @@ class VmTarget extends Target {
     }
 
     // TODO(kmillikin): Make this run on a per-method basis.
-    bool productMode = environmentDefines["dart.vm.product"] == "true";
+    bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformLibraries(
         new TypeEnvironment(coreTypes, hierarchy), libraries,
         productMode: productMode);
@@ -204,9 +202,9 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       Procedure procedure,
-      Map<String, String> environmentDefines,
-      {void Function(String msg) logger}) {
-    bool productMode = environmentDefines["dart.vm.product"] == "true";
+      Map<String, String>? environmentDefines,
+      {void Function(String msg)? logger}) {
+    bool productMode = environmentDefines!["dart.vm.product"] == "true";
     transformAsync.transformProcedure(
         new TypeEnvironment(coreTypes, hierarchy), procedure,
         productMode: productMode);
@@ -451,7 +449,7 @@ class VmTarget extends Target {
   }
 
   @override
-  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) {
+  Class? concreteIntLiteralClass(CoreTypes coreTypes, int value) {
     const int bitsPerInt32 = 32;
     const int smiBits32 = bitsPerInt32 - 2;
     const int smiMin32 = -(1 << smiBits32);
@@ -490,7 +488,6 @@ class VmTarget extends Target {
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
-    assert(map != null);
     map['dart.isVM'] = 'true';
     // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
     for (String library in extraRequiredLibraries) {

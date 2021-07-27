@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Type flow summary of a member, function or initializer.
-library vm.transformations.type_flow.summary;
 
 import 'dart:core' hide Type;
 
@@ -18,7 +15,7 @@ import 'utils.dart';
 
 abstract class CallHandler {
   Type applyCall(Call callSite, Selector selector, Args<Type> args,
-      {bool isResultUsed});
+      {required bool isResultUsed});
   void typeCheckTriggered();
   void addAllocatedClass(Class c);
 }
@@ -27,14 +24,10 @@ abstract class CallHandler {
 abstract class Statement extends TypeExpr {
   /// Index of this statement in the [Summary].
   int index = -1;
-  Summary summary;
+  late Summary summary;
 
   @override
-  Type getComputedType(List<Type> types) {
-    final type = types[index];
-    assert(type != null);
-    return type;
-  }
+  Type getComputedType(List<Type?> types) => types[index]!;
 
   String get label => "t$index";
 
@@ -48,7 +41,7 @@ abstract class Statement extends TypeExpr {
   void accept(StatementVisitor visitor);
 
   /// Execute this statement and compute its resulting type.
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler);
 }
 
@@ -74,9 +67,9 @@ class Parameter extends Statement {
   // [staticType] is null if no narrowing should be performed. This happens for
   // type parameters and for parameters whose type is narrowed by a [TypeCheck]
   // statement.
-  final Type staticTypeForNarrowing;
+  final Type? staticTypeForNarrowing;
 
-  Type defaultValue;
+  Type? defaultValue;
   Type _argumentType = const EmptyType();
 
   Parameter(this.name, this.staticTypeForNarrowing);
@@ -97,7 +90,7 @@ class Parameter extends Statement {
   }
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       throw 'Unable to apply _Parameter';
 
@@ -110,7 +103,7 @@ class Parameter extends Statement {
   }
 
   Type _observeNotPassed(TypeHierarchy typeHierarchy) {
-    final Type argType = defaultValue.specialize(typeHierarchy);
+    final Type argType = defaultValue!.specialize(typeHierarchy);
     _observeArgumentType(argType, typeHierarchy);
     return argType;
   }
@@ -130,7 +123,7 @@ class Narrow extends Statement {
   String dump() => "$label = _Narrow ($arg to $type)";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       arg.getComputedType(computedTypes).intersection(type, typeHierarchy);
 }
@@ -147,11 +140,11 @@ class NarrowNotNull extends Narrow {
 
   // Shared NarrowNotNull instances which are used when the outcome is
   // known at summary creation time.
-  static final NarrowNotNull alwaysNotNull = NarrowNotNull(null)
+  static final NarrowNotNull alwaysNotNull = NarrowNotNull(const EmptyType())
     .._flags = canBeNotNullFlag;
-  static final NarrowNotNull alwaysNull = NarrowNotNull(null)
+  static final NarrowNotNull alwaysNull = NarrowNotNull(const EmptyType())
     .._flags = canBeNullFlag;
-  static final NarrowNotNull unknown = NarrowNotNull(null)
+  static final NarrowNotNull unknown = NarrowNotNull(const EmptyType())
     .._flags = canBeNullFlag | canBeNotNullFlag;
 
   bool get isAlwaysNull => (_flags & canBeNotNullFlag) == 0;
@@ -173,14 +166,14 @@ class NarrowNotNull extends Narrow {
   }
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       handleArgument(arg.getComputedType(computedTypes));
 }
 
 /// Joins values from multiple sources. Its type is a union of [values].
 class Join extends Statement {
-  final String _name;
+  final String? _name;
   final DartType staticType;
   final List<TypeExpr> values = <TypeExpr>[]; // TODO(alexmarkov): Set
 
@@ -197,15 +190,14 @@ class Join extends Statement {
       " (${values.join(", ")})";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    Type type = null;
-    assert(values.isNotEmpty);
+    Type? type = null;
     for (var value in values) {
       final valueType = value.getComputedType(computedTypes);
       type = type != null ? type.union(valueType, typeHierarchy) : valueType;
     }
-    return type;
+    return type!;
   }
 }
 
@@ -222,7 +214,7 @@ class Use extends Statement {
   String dump() => "$label = _Use ($arg)";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
           CallHandler callHandler) =>
       throw 'Use statements should be removed during summary normalization';
 }
@@ -231,7 +223,7 @@ class Use extends Statement {
 class Call extends Statement {
   final Selector selector;
   final Args<TypeExpr> args;
-  final Type staticResultType;
+  final Type? staticResultType;
 
   Call(this.selector, this.args, this.staticResultType,
       bool isInstanceCreation) {
@@ -252,9 +244,10 @@ class Call extends Statement {
   String dump() => "$label${isResultUsed ? '*' : ''} = _Call $selector $args";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    final List<Type> argTypes = new List<Type>.filled(args.values.length, null);
+    final List<Type> argTypes =
+        new List<Type>.filled(args.values.length, const EmptyType());
     for (int i = 0; i < args.values.length; i++) {
       final Type type = args.values[i].getComputedType(computedTypes);
       if (type == const EmptyType()) {
@@ -271,14 +264,15 @@ class Call extends Statement {
       callHandler
           .addAllocatedClass((argTypes[0] as ConcreteType).cls.classNode);
     }
-    final Stopwatch timer = kPrintTimings ? (new Stopwatch()..start()) : null;
+    final Stopwatch? timer = kPrintTimings ? (new Stopwatch()..start()) : null;
     Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
         isResultUsed: isResultUsed);
-    summary.calleeTime += kPrintTimings ? timer.elapsedMicroseconds : 0;
+    summary.calleeTime += kPrintTimings ? timer!.elapsedMicroseconds : 0;
     if (isInstanceCreation) {
       result = argTypes[0];
     } else if (isResultUsed) {
+      final staticResultType = this.staticResultType;
       if (staticResultType != null) {
         result = result.intersection(staticResultType, typeHierarchy);
       }
@@ -302,9 +296,9 @@ class Call extends Statement {
   static const int kReceiverMayBeInt = (1 << 6);
   static const int kInstanceCreation = (1 << 7);
 
-  Member _monomorphicTarget;
+  Member? _monomorphicTarget;
 
-  Member get monomorphicTarget => _monomorphicTarget;
+  Member? get monomorphicTarget => _monomorphicTarget;
 
   bool get isMonomorphic => (_flags & kMonomorphic) != 0;
 
@@ -396,18 +390,19 @@ class Extract extends Statement {
       "/$paramIndex]${nullability.suffix})";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     Type argType = arg.getComputedType(computedTypes);
-    Type extractedType;
+    Type? extractedType;
 
     void extractType(ConcreteType c) {
-      if (c.typeArgs == null) {
+      final typeArgs = c.typeArgs;
+      if (typeArgs == null) {
         extractedType = const UnknownType();
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
-        final typeArg = c.typeArgs[interfaceOffset + paramIndex];
+        final typeArg = typeArgs[interfaceOffset + paramIndex];
         Type extracted = typeArg;
         if (typeArg is RuntimeType) {
           final argNullability = typeArg.nullability;
@@ -472,16 +467,15 @@ class CreateConcreteType extends Statement {
   }
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     bool hasRuntimeType = false;
-    final types = new List<Type>.filled(flattenedTypeArgs.length, null);
-    for (int i = 0; i < types.length; ++i) {
+    final types = List<Type>.generate(flattenedTypeArgs.length, (int i) {
       final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
       assert(computed is RuntimeType || computed is UnknownType);
       if (computed is RuntimeType) hasRuntimeType = true;
-      types[i] = computed;
-    }
+      return computed;
+    });
     return new ConcreteType(cls, hasRuntimeType ? types : null);
   }
 }
@@ -505,14 +499,13 @@ class CreateRuntimeType extends Statement {
       "${nullability.suffix})";
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    final types = new List<RuntimeType>.filled(flattenedTypeArgs.length, null);
-    for (int i = 0; i < types.length; ++i) {
-      final computed = flattenedTypeArgs[i].getComputedType(computedTypes);
-      assert(computed is RuntimeType || computed is UnknownType);
+    final types = <RuntimeType>[];
+    for (TypeExpr arg in flattenedTypeArgs) {
+      final computed = arg.getComputedType(computedTypes);
       if (computed is UnknownType) return const UnknownType();
-      types[i] = computed;
+      types.add(computed as RuntimeType);
     }
     DartType dartType;
     if (klass == typeHierarchy.coreTypes.deprecatedFutureOrClass) {
@@ -545,17 +538,15 @@ class TypeCheck extends Statement {
   // "unchecked" entrypoint.
   bool isTestedOnlyOnCheckedEntryPoint;
 
-  VariableDeclaration get parameter =>
-      node is VariableDeclaration ? node : null;
+  bool get isParameterCheck => node is VariableDeclaration;
+  VariableDeclaration get parameterVariable => node as VariableDeclaration;
 
   bool alwaysPass = true;
   bool alwaysFail = true;
 
-  TypeCheck(this.arg, this.type, this.node, this.staticType, this.kind) {
-    assert(node != null);
-    isTestedOnlyOnCheckedEntryPoint =
-        parameter != null && !parameter.isCovariant;
-  }
+  TypeCheck(this.arg, this.type, this.node, this.staticType, this.kind)
+      : isTestedOnlyOnCheckedEntryPoint =
+            node is VariableDeclaration && !node.isCovariant;
 
   @override
   void accept(StatementVisitor visitor) => visitor.visitTypeCheck(this);
@@ -568,7 +559,7 @@ class TypeCheck extends Statement {
   }
 
   @override
-  Type apply(List<Type> computedTypes, TypeHierarchy typeHierarchy,
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     Type argType = arg.getComputedType(computedTypes);
     Type checkType = type.getComputedType(computedTypes);
@@ -624,11 +615,11 @@ class Summary {
   int requiredParameterCount;
 
   List<Statement> _statements = <Statement>[];
-  TypeExpr result = null;
-  Type resultType = EmptyType();
+  TypeExpr result = const EmptyType();
+  Type resultType = const EmptyType();
 
   // Analysis time of callees. Populated only if kPrintTimings.
-  int calleeTime;
+  int calleeTime = 0;
 
   Summary(this.name,
       {this.parameterCount: 0,
@@ -658,7 +649,7 @@ class Summary {
   /// Apply this summary to the given arguments and return the resulting type.
   Type apply(Args<Type> arguments, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
-    final Stopwatch timer = kPrintTimings ? (new Stopwatch()..start()) : null;
+    final Stopwatch? timer = kPrintTimings ? (new Stopwatch()..start()) : null;
     final int oldCalleeTime = calleeTime;
     calleeTime = 0;
     final args = arguments.values;
@@ -677,7 +668,7 @@ class Summary {
     //
     // The first `parameterCount` statements are Parameters.
 
-    List<Type> types = new List<Type>.filled(_statements.length, null);
+    List<Type?> types = new List<Type?>.filled(_statements.length, null);
 
     for (int i = 0; i < positionalArgCount; i++) {
       final Parameter param = _statements[i] as Parameter;
@@ -687,9 +678,9 @@ class Summary {
       }
       final argType = args[i].specialize(typeHierarchy);
       param._observeArgumentType(argType, typeHierarchy);
-      if (param.staticTypeForNarrowing != null) {
-        types[i] =
-            argType.intersection(param.staticTypeForNarrowing, typeHierarchy);
+      final staticTypeForNarrowing = param.staticTypeForNarrowing;
+      if (staticTypeForNarrowing != null) {
+        types[i] = argType.intersection(staticTypeForNarrowing, typeHierarchy);
       } else {
         // TODO(sjindel/tfa): Narrowing is performed inside a [TypeCheck] later.
         types[i] = args[i];
@@ -710,9 +701,10 @@ class Summary {
             args[positionalArgCount + argIndex].specialize(typeHierarchy);
         argIndex++;
         param._observeArgumentType(argType, typeHierarchy);
-        if (param.staticTypeForNarrowing != null) {
+        final staticTypeForNarrowing = param.staticTypeForNarrowing;
+        if (staticTypeForNarrowing != null) {
           types[i] =
-              argType.intersection(param.staticTypeForNarrowing, typeHierarchy);
+              argType.intersection(staticTypeForNarrowing, typeHierarchy);
         } else {
           types[i] = argType;
         }
@@ -741,7 +733,7 @@ class Summary {
     resultType = resultType.union(computedType, typeHierarchy);
 
     if (kPrintTimings) {
-      final dirtyTime = timer.elapsedMicroseconds;
+      final dirtyTime = timer!.elapsedMicroseconds;
       final pureTime = dirtyTime < calleeTime ? 0 : (dirtyTime - calleeTime);
       Statistics.numSummaryApplications.add(name);
       Statistics.dirtySummaryAnalysisTime.add(name, dirtyTime);
@@ -753,9 +745,9 @@ class Summary {
   }
 
   Args<Type> get argumentTypes {
-    final argTypes = new List<Type>.filled(parameterCount, null);
-    final argNames = new List<String>.filled(
-        parameterCount - positionalParameterCount, null);
+    final argTypes = new List<Type>.filled(parameterCount, const EmptyType());
+    final argNames =
+        new List<String>.filled(parameterCount - positionalParameterCount, '');
     for (int i = 0; i < parameterCount; i++) {
       Parameter param = _statements[i] as Parameter;
       argTypes[i] = param.argumentType;
@@ -769,7 +761,7 @@ class Summary {
   Type argumentType(Member member, VariableDeclaration memberParam) {
     final int firstParamIndex =
         numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
-    final positional = member.function.positionalParameters;
+    final positional = member.function!.positionalParameters;
     for (int i = 0; i < positional.length; i++) {
       if (positional[i] == memberParam) {
         final Parameter param = _statements[firstParamIndex + i] as Parameter;
@@ -791,8 +783,8 @@ class Summary {
     for (Statement statement in _statements) {
       if (statement is TypeCheck &&
           statement.alwaysPass &&
-          statement.parameter != null) {
-        params.add(statement.parameter);
+          statement.isParameterCheck) {
+        params.add(statement.parameterVariable);
       }
     }
     return params;
@@ -808,17 +800,17 @@ class Summary {
         (hasReceiverArg(member) ? 1 : 0) + numTypeParams(member);
     final Map<String, Parameter> paramsByName = {};
     for (int i = implicit; i < parameterCount; i++) {
-      final Parameter param = statements[i];
+      final Parameter param = statements[i] as Parameter;
       paramsByName[param.name] = param;
     }
-    FunctionNode function = member.function;
+    FunctionNode function = member.function!;
     statements.length = implicit;
     for (VariableDeclaration param in function.positionalParameters) {
-      statements.add(paramsByName[param.name]);
+      statements.add(paramsByName[param.name]!);
     }
     positionalParameterCount = statements.length;
     for (VariableDeclaration param in function.namedParameters) {
-      statements.add(paramsByName[param.name]);
+      statements.add(paramsByName[param.name]!);
     }
     parameterCount = statements.length;
     requiredParameterCount = implicit + function.requiredParameterCount;

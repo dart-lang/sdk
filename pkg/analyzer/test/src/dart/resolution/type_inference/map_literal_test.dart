@@ -11,13 +11,121 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
-    defineReflectiveTests(MapLiteralWithNullSafetyTest);
+    defineReflectiveTests(MapLiteralWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MapLiteralTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class MapLiteralTest extends PubPackageResolutionTest with MapLiteralTestCases {
+  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
+    await assertNoErrorsInCode('''
+class C<T extends Object?> {
+  Map<String, T> a = {}; // 1
+  Map<String, T>? b = {}; // 2
+  Map<String, T?> c = {}; // 3
+  Map<String, T?>? d = {}; // 4
+}
+''');
+    assertType(setOrMapLiteral('{}; // 1'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
+    assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
+  }
+
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int, double>{...?f(null)};
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Map<int, double>?'],
+      invokeType: 'Map<int, double>? Function(Map<int, double>?)',
+      type: 'Map<int, double>?',
+    );
+  }
+
+  test_noContext_noTypeArgs_spread_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 87, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await assertErrorsInCode('''
+void f(Never a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
+      error(HintCode.DEAD_CODE, 88, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_null() async {
+    await assertErrorsInCode('''
+void f(Null a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 99, 9),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
+      error(HintCode.DEAD_CODE, 101, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
+    await assertErrorsInCode('''
+void f<T extends Null>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...?a, if (b) throw 0: throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 112, 9),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_never() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a, bool b) async {
+  // ignore:unused_local_variable
+  var v = {...a, if (b) throw 0: throw 0};
+}
+''', [
+      error(HintCode.DEAD_CODE, 100, 21),
+    ]);
+    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
+  }
+}
+
+mixin MapLiteralTestCases on PubPackageResolutionTest {
   AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_context_noTypeArgs_entry_conflictingKey() async {
@@ -439,112 +547,5 @@ var a = <num, String>{};
 }
 
 @reflectiveTest
-class MapLiteralWithNullSafetyTest extends MapLiteralTest
-    with WithNullSafetyMixin {
-  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
-    await assertNoErrorsInCode('''
-class C<T extends Object?> {
-  Map<String, T> a = {}; // 1
-  Map<String, T>? b = {}; // 2
-  Map<String, T?> c = {}; // 3
-  Map<String, T?>? d = {}; // 4
-}
-''');
-    assertType(setOrMapLiteral('{}; // 1'), 'Map<String, T>');
-    assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
-    assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
-    assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
-  }
-
-  test_context_spread_nullAware() async {
-    await assertNoErrorsInCode('''
-T f<T>(T t) => t;
-
-main() {
-  <int, double>{...?f(null)};
-}
-''');
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['Map<int, double>?'],
-      invokeType: 'Map<int, double>? Function(Map<int, double>?)',
-      type: 'Map<int, double>?',
-    );
-  }
-
-  test_noContext_noTypeArgs_spread_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0: throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 87, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
-void f(Never a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 77, 4),
-      error(HintCode.DEAD_CODE, 88, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_null() async {
-    await assertErrorsInCode('''
-void f(Null a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 99, 9),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 90, 4),
-      error(HintCode.DEAD_CODE, 101, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_null() async {
-    await assertErrorsInCode('''
-void f<T extends Null>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...?a, if (b) throw 0: throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 112, 9),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_typeParameter_never() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a, bool b) async {
-  // ignore:unused_local_variable
-  var v = {...a, if (b) throw 0: throw 0};
-}
-''', [
-      error(HintCode.DEAD_CODE, 100, 21),
-    ]);
-    assertType(setOrMapLiteral('{...'), 'Map<Never, Never>');
-  }
-}
+class MapLiteralWithoutNullSafetyTest extends PubPackageResolutionTest
+    with MapLiteralTestCases, WithoutNullSafetyMixin {}

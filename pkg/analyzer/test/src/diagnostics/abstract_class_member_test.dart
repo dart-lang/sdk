@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractClassMemberTest);
-    defineReflectiveTests(AbstractClassMemberWithNullSafetyTest);
+    defineReflectiveTests(AbstractClassMemberWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class AbstractClassMemberTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with AbstractClassMemberTestCases {}
+
+mixin AbstractClassMemberTestCases on PubPackageResolutionTest {
   test_abstract_field_dynamic() async {
     await assertErrorsInCode(
         '''
@@ -55,5 +57,5 @@ abstract class A {
 }
 
 @reflectiveTest
-class AbstractClassMemberWithNullSafetyTest extends AbstractClassMemberTest
-    with WithNullSafetyMixin {}
+class AbstractClassMemberWithoutNullSafetyTest extends PubPackageResolutionTest
+    with AbstractClassMemberTestCases, WithoutNullSafetyMixin {}

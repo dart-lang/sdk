@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
@@ -30,12 +28,12 @@ class UnboxingInfoManager {
         _coreTypes = typeFlowAnalysis.environment.coreTypes,
         _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle;
 
-  UnboxingInfoMetadata getUnboxingInfoOfMember(Member member) {
-    final UnboxingInfoMetadata info = _memberInfo[member];
+  UnboxingInfoMetadata? getUnboxingInfoOfMember(Member member) {
+    final UnboxingInfoMetadata? info = _memberInfo[member];
     if (member is Procedure && member.isGetter) {
       // Remove placeholder parameter info slot for setters that the getter is
       // grouped with.
-      return UnboxingInfoMetadata(0)..returnInfo = info.returnInfo;
+      return UnboxingInfoMetadata(0)..returnInfo = info!.returnInfo;
     }
     return info;
   }
@@ -81,8 +79,8 @@ class UnboxingInfoManager {
           ? (member.hasSetter ? 1 : 0)
           : member is Procedure && member.isGetter
               ? 1
-              : member.function.requiredParameterCount;
-      UnboxingInfoMetadata info;
+              : member.function!.requiredParameterCount;
+      UnboxingInfoMetadata? info;
       if (member.isInstanceMember) {
         int selectorId =
             member is Field || member is Procedure && member.isGetter
@@ -121,20 +119,18 @@ class UnboxingInfoManager {
   void _updateUnboxingInfoOfMember(
       Member member, TypeFlowAnalysis typeFlowAnalysis) {
     if (typeFlowAnalysis.isMemberUsed(member)) {
-      final UnboxingInfoMetadata unboxingInfo = _memberInfo[member];
+      final UnboxingInfoMetadata unboxingInfo = _memberInfo[member]!;
       if (_cannotUnbox(member)) {
         unboxingInfo.unboxedArgsInfo.length = 0;
         unboxingInfo.returnInfo = UnboxingInfoMetadata.kBoxed;
         return;
       }
       if (member is Procedure || member is Constructor) {
-        final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-        assert(argTypes != null);
-
+        final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member)!;
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
-        final positionalParams = member.function.positionalParameters;
+        final positionalParams = member.function!.positionalParameters;
         assert(argTypes.positionalCount ==
             firstParamIndex + positionalParams.length);
 

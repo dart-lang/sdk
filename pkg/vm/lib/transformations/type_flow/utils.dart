@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Declares miscellaneous utility functions and constants for type flow
 /// analysis.
 library vm.transformations.type_flow.utils;
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -123,9 +122,8 @@ bool isSorted(List list) {
   return true;
 }
 
-VariableDeclaration findNamedParameter(FunctionNode function, String name) {
-  return function.namedParameters
-      .firstWhere((p) => p.name == name, orElse: () => null);
+VariableDeclaration? findNamedParameter(FunctionNode function, String name) {
+  return function.namedParameters.firstWhereOrNull((p) => p.name == name);
 }
 
 class Histogram<K> {
@@ -143,7 +141,7 @@ class Histogram<K> {
     print(
         '-------------------------------------------------------------------');
     List<K> keys = values.keys.toList();
-    keys.sort((k1, k2) => values[k1].compareTo(values[k2]));
+    keys.sort((k1, k2) => values[k1]!.compareTo(values[k2]!));
     final cut = keys.length < n ? 0 : keys.length - n;
     for (int i = keys.length - 1; i >= cut; --i) {
       final k = keys[i];
@@ -376,7 +374,7 @@ const nullabilitySuffix = {
 };
 
 extension NullabilitySuffix on Nullability {
-  String get suffix => nullabilitySuffix[this];
+  String get suffix => nullabilitySuffix[this]!;
 }
 
 bool mayHaveSideEffects(Expression node) {

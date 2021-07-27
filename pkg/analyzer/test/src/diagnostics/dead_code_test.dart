@@ -10,13 +10,139 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeadCodeTest);
-    defineReflectiveTests(DeadCodeWithNullSafetyTest);
+    defineReflectiveTests(DeadCodeWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class DeadCodeTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+class DeadCodeTest extends PubPackageResolutionTest with DeadCodeTestCases {
+  test_assert_dead_message() async {
+    // We don't warn if an assert statement is live but its message is dead,
+    // because this results in nuisance warnings for desirable assertions (e.g.
+    // a `!= null` assertion that is redundant with strong checking but still
+    // useful with weak checking).
+    await assertErrorsInCode('''
+void f(Object waldo) {
+  assert(waldo != null, "Where's Waldo?");
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+    ]);
+  }
+
+  test_flowEnd_tryStatement_body() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  try {
+    foo();
+    1;
+  } catch (_) {
+    2;
+  }
+  3;
+}
+''', [
+      error(HintCode.DEAD_CODE, 57, 2),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_getter_propertyAccess() async {
+    await assertErrorsInCode(r'''
+class A {
+  Never get f => throw 0;
+}
+void g(A a) {
+  a.f(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
+      error(HintCode.DEAD_CODE, 57, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_parenthesizedExpression() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  (f)(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
+      error(HintCode.DEAD_CODE, 23, 16),
+    ]);
+  }
+
+  test_invokeNever_functionExpressionInvocation_simpleIdentifier() async {
+    await assertErrorsInCode(r'''
+void g(Never f) {
+  f(0);
+  print(1);
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
+      error(HintCode.DEAD_CODE, 21, 16),
+    ]);
+  }
+
+  test_returnTypeNever_function() async {
+    await assertErrorsInCode(r'''
+Never foo() => throw 0;
+
+main() {
+  foo();
+  1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  test_returnTypeNever_getter() async {
+    await assertErrorsInCode(r'''
+Never get foo => throw 0;
+
+main() {
+  foo;
+  2;
+}
+''', [
+      error(HintCode.DEAD_CODE, 45, 2),
+    ]);
+  }
+
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsFunction() async {
+    return super.test_statementAfterAlwaysThrowsFunction();
+  }
+
+  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
+  @override
+  test_statementAfterAlwaysThrowsMethod() async {
+    return super.test_statementAfterAlwaysThrowsMethod();
+  }
+
+  test_switchStatement_exhaustive() async {
+    await assertErrorsInCode(r'''
+enum Foo { a, b }
+
+int f(Foo foo) {
+  switch (foo) {
+    case Foo.a: return 0;
+    case Foo.b: return 1;
+  }
+  return -1;
+}
+''', [
+      error(HintCode.DEAD_CODE, 111, 10),
+    ]);
+  }
+}
+
+mixin DeadCodeTestCases on PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
@@ -846,129 +972,5 @@ void f(int a) {
 }
 
 @reflectiveTest
-class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
-  test_assert_dead_message() async {
-    // We don't warn if an assert statement is live but its message is dead,
-    // because this results in nuisance warnings for desirable assertions (e.g.
-    // a `!= null` assertion that is redundant with strong checking but still
-    // useful with weak checking).
-    await assertErrorsInCode('''
-void f(Object waldo) {
-  assert(waldo != null, "Where's Waldo?");
-}
-''', [
-      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
-    ]);
-  }
-
-  test_flowEnd_tryStatement_body() async {
-    await assertErrorsInCode(r'''
-Never foo() => throw 0;
-
-main() {
-  try {
-    foo();
-    1;
-  } catch (_) {
-    2;
-  }
-  3;
-}
-''', [
-      error(HintCode.DEAD_CODE, 57, 2),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_getter_propertyAccess() async {
-    await assertErrorsInCode(r'''
-class A {
-  Never get f => throw 0;
-}
-void g(A a) {
-  a.f(0);
-  print(1);
-}
-''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 54, 3),
-      error(HintCode.DEAD_CODE, 57, 16),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_parenthesizedExpression() async {
-    await assertErrorsInCode(r'''
-void g(Never f) {
-  (f)(0);
-  print(1);
-}
-''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 3),
-      error(HintCode.DEAD_CODE, 23, 16),
-    ]);
-  }
-
-  test_invokeNever_functionExpressionInvocation_simpleIdentifier() async {
-    await assertErrorsInCode(r'''
-void g(Never f) {
-  f(0);
-  print(1);
-}
-''', [
-      error(HintCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-      error(HintCode.DEAD_CODE, 21, 16),
-    ]);
-  }
-
-  test_returnTypeNever_function() async {
-    await assertErrorsInCode(r'''
-Never foo() => throw 0;
-
-main() {
-  foo();
-  1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 45, 2),
-    ]);
-  }
-
-  test_returnTypeNever_getter() async {
-    await assertErrorsInCode(r'''
-Never get foo => throw 0;
-
-main() {
-  foo;
-  2;
-}
-''', [
-      error(HintCode.DEAD_CODE, 45, 2),
-    ]);
-  }
-
-  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
-  @override
-  test_statementAfterAlwaysThrowsFunction() async {
-    return super.test_statementAfterAlwaysThrowsFunction();
-  }
-
-  @FailingTest(reason: '@alwaysThrows is not supported in flow analysis')
-  @override
-  test_statementAfterAlwaysThrowsMethod() async {
-    return super.test_statementAfterAlwaysThrowsMethod();
-  }
-
-  test_switchStatement_exhaustive() async {
-    await assertErrorsInCode(r'''
-enum Foo { a, b }
-
-int f(Foo foo) {
-  switch (foo) {
-    case Foo.a: return 0;
-    case Foo.b: return 1;
-  }
-  return -1;
-}
-''', [
-      error(HintCode.DEAD_CODE, 111, 10),
-    ]);
-  }
-}
+class DeadCodeWithoutNullSafetyTest extends PubPackageResolutionTest
+    with DeadCodeTestCases, WithoutNullSafetyMixin {}

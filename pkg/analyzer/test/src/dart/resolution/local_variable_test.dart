@@ -11,7 +11,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalVariableResolutionTest);
-    defineReflectiveTests(LocalVariableResolutionWithNullSafetyTest);
   });
 }
 
@@ -95,11 +94,7 @@ void f() {
     expect(x.isLate, isFalse);
     expect(x.isStatic, isFalse);
   }
-}
 
-@reflectiveTest
-class LocalVariableResolutionWithNullSafetyTest
-    extends LocalVariableResolutionTest with WithNullSafetyMixin {
   test_element_late() async {
     await assertErrorsInCode(r'''
 void f() {

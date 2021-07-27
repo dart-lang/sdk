@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'package:kernel/ast.dart';
 
 import 'utils.dart' show UnionFind;
@@ -18,7 +16,7 @@ class TableSelectorAssigner {
   final Map<Class, Map<Name, int>> _methodOrSetterMemberIds = {};
 
   final UnionFind _unionFind = UnionFind();
-  List<int> _selectorIdForMemberId;
+  late List<int?> _selectorIdForMemberId;
 
   TableSelectorAssigner(Component component) {
     for (Library library in component.libraries) {
@@ -44,20 +42,21 @@ class TableSelectorAssigner {
     }
   }
 
-  Map<Name, int> _memberIdsForClass(Class cls, {bool getter}) {
+  Map<Name, int> _memberIdsForClass(Class? cls, {required bool getter}) {
     if (cls == null) return {};
 
     final cache = getter ? _getterMemberIds : _methodOrSetterMemberIds;
 
     // Already computed for this class?
-    Map<Name, int> memberIds = cache[cls];
-    if (memberIds != null) return memberIds;
+    final cachedMemberIds = cache[cls];
+    if (cachedMemberIds != null) return cachedMemberIds;
 
     // Merge maps from supertypes.
-    memberIds = Map.from(_memberIdsForClass(cls.superclass, getter: getter));
+    final memberIds =
+        Map<Name, int>.from(_memberIdsForClass(cls.superclass, getter: getter));
     for (Supertype impl in cls.implementedTypes) {
       _memberIdsForClass(impl.classNode, getter: getter).forEach((name, id) {
-        final int firstId = memberIds[name];
+        final int? firstId = memberIds[name];
         if (firstId == null) {
           memberIds[name] = id;
         } else if (firstId != id) {
@@ -99,9 +98,9 @@ class TableSelectorAssigner {
     return cache[cls] = memberIds;
   }
 
-  int _selectorIdForMember(Member member, {bool getter}) {
+  int _selectorIdForMember(Member member, {required bool getter}) {
     final map = getter ? _getterMemberIds : _methodOrSetterMemberIds;
-    int memberId = map[member.enclosingClass][member.name];
+    int? memberId = map[member.enclosingClass!]![member.name];
     if (memberId == null) {
       assert(member is Procedure &&
               ((identical(map, _getterMemberIds) &&
@@ -115,7 +114,7 @@ class TableSelectorAssigner {
       return ProcedureAttributesMetadata.kInvalidSelectorId;
     }
     memberId = _unionFind.find(memberId);
-    int selectorId = _selectorIdForMemberId[memberId];
+    int? selectorId = _selectorIdForMemberId[memberId];
     if (selectorId == null) {
       _selectorIdForMemberId[memberId] = selectorId = metadata.addSelector();
     }
