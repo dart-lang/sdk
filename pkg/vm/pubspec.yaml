@@ -18,6 +18,7 @@ dependencies:
   meta:
     path: ../meta
   package_config: any
+  collection: ^1.15.0
 
 dev_dependencies:
   expect:

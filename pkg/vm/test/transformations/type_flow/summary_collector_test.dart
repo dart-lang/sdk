@@ -60,7 +60,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordMemberCalledViaThis(Member target) {}
 
   @override
-  void recordTearOff(Procedure target) {}
+  void recordTearOff(Member target) {}
 }
 
 class PrintSummaries extends RecursiveVisitor {
@@ -78,7 +78,7 @@ class PrintSummaries extends RecursiveVisitor {
         typesBuilder,
         new NativeCodeOracle(
             null, new ConstantPragmaAnnotationParser(coreTypes)),
-        new GenericInterfacesInfoImpl(hierarchy),
+        new GenericInterfacesInfoImpl(coreTypes, hierarchy),
         /*_protobufHandler=*/ null);
   }
 
