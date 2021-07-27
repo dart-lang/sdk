@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart';
@@ -129,8 +127,8 @@ main() {
     List<String> parts = input.split(' vs ');
     DartType aType = env.parseType(parts[0]);
     DartType bType = env.parseType(parts[1]);
-    DartType expectedOutputType1;
-    DartType expectedOutputType2;
+    DartType? expectedOutputType1;
+    DartType? expectedOutputType2;
     if (output is List) {
       expectedOutputType1 = env.parseType(output[0]);
       expectedOutputType2 = env.parseType(output[1]);
@@ -138,8 +136,8 @@ main() {
       expectedOutputType1 = expectedOutputType2 = env.parseType(output);
     }
 
-    void test(DartType a, DartType b, DartType expectedOutputType) {
-      DartType actualOutputType = nnbdTopMerge(env.coreTypes, a, b);
+    void test(DartType a, DartType b, DartType? expectedOutputType) {
+      DartType? actualOutputType = nnbdTopMerge(env.coreTypes, a, b);
       print('nnbdTopMerge($a,$b) = '
           '$actualOutputType (expected=$expectedOutputType)');
       Expect.equals(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';
@@ -42,14 +40,14 @@ main() {
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
   String getterCanonicalName = '${field.getterReference.canonicalName}';
-  if (field.getterReference.canonicalName.parent.name != "@getters") {
+  if (field.getterReference.canonicalName!.parent!.name != "@getters") {
     throw "Expected @getters parent, but had "
-        "${field.getterReference.canonicalName.parent.name}";
+        "${field.getterReference.canonicalName!.parent!.name}";
   }
-  String setterCanonicalName = '${field.setterReference.canonicalName}';
-  if (field.setterReference.canonicalName.parent.name != "@setters") {
+  String setterCanonicalName = '${field.setterReference!.canonicalName}';
+  if (field.setterReference!.canonicalName!.parent!.name != "@setters") {
     throw "Expected @setters parent, but had "
-        "${field.setterReference.canonicalName.parent.name}";
+        "${field.setterReference!.canonicalName!.parent!.name}";
   }
 
   // Replace the field with a setter/getter pair.
@@ -65,7 +63,7 @@ main() {
   // a setter/getter), the reference wouldn't (because of the way `bindTo` is
   // implemented) actually have it's canonical name set, and serialization
   // wouldn't work.)
-  field.getterReference?.canonicalName?.unbind();
+  field.getterReference.canonicalName?.unbind();
   lib1.addProcedure(getter);
 
   FunctionNode setterFunction = new FunctionNode(new Block([]),
@@ -82,18 +80,18 @@ main() {
   List<int> writtenBytesGetterSetter = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the getter/setter is marked as
   // such, canonical-name-wise.
-  if (getter.reference.canonicalName.parent.name != "@getters") {
+  if (getter.reference.canonicalName!.parent!.name != "@getters") {
     throw "Expected @getters parent, but had "
-        "${getter.reference.canonicalName.parent.name}";
+        "${getter.reference.canonicalName!.parent!.name}";
   }
   if ('${getter.reference.canonicalName}' != getterCanonicalName) {
     throw "Unexpected getter canonical name. "
         "Expected $getterCanonicalName, "
         "actual ${getter.reference.canonicalName}.";
   }
-  if (setter.reference.canonicalName.parent.name != "@setters") {
+  if (setter.reference.canonicalName!.parent!.name != "@setters") {
     throw "Expected @setters parent, but had "
-        "${setter.reference.canonicalName.parent.name}";
+        "${setter.reference.canonicalName!.parent!.name}";
   }
   if ('${setter.reference.canonicalName}' != setterCanonicalName) {
     throw "Unexpected setter canonical name. "
@@ -110,7 +108,7 @@ main() {
       fileUri: lib1Uri);
   // Important: Unbind any old canonical name
   // (nulling out the canonical name is not enough, see above).
-  fieldReplacement.getterReference?.canonicalName?.unbind();
+  fieldReplacement.getterReference.canonicalName?.unbind();
   fieldReplacement.setterReference?.canonicalName?.unbind();
   lib1.addField(fieldReplacement);
 
@@ -119,15 +117,15 @@ main() {
   List<int> writtenBytesFieldNew = serialize(lib1, lib2);
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
-  if (fieldReplacement.getterReference.canonicalName.parent.name !=
+  if (fieldReplacement.getterReference.canonicalName!.parent!.name !=
       "@getters") {
     throw "Expected @getters parent, but had "
-        "${fieldReplacement.getterReference.canonicalName.parent.name}";
+        "${fieldReplacement.getterReference.canonicalName!.parent!.name}";
   }
-  if (fieldReplacement.setterReference.canonicalName.parent.name !=
+  if (fieldReplacement.setterReference!.canonicalName!.parent!.name !=
       "@setters") {
     throw "Expected @setters parent, but had "
-        "${fieldReplacement.setterReference.canonicalName.parent.name}";
+        "${fieldReplacement.setterReference!.canonicalName!.parent!.name}";
   }
 
   // Load the written stuff and ensure it is as expected.
@@ -188,15 +186,16 @@ List<int> serialize(Library lib1, Library lib2) {
 }
 
 Member getSetTarget(Procedure p) {
-  Block block = p.function.body;
-  ExpressionStatement getterStatement = block.statements[0];
-  StaticSet staticSet = getterStatement.expression;
+  Block block = p.function.body as Block;
+  ExpressionStatement getterStatement =
+      block.statements[0] as ExpressionStatement;
+  StaticSet staticSet = getterStatement.expression as StaticSet;
   return staticSet.target;
 }
 
 Member getGetTarget(Procedure p) {
-  Block block = p.function.body;
-  ReturnStatement setterStatement = block.statements[1];
-  StaticGet staticGet = setterStatement.expression;
+  Block block = p.function.body as Block;
+  ReturnStatement setterStatement = block.statements[1] as ReturnStatement;
+  StaticGet staticGet = setterStatement.expression as StaticGet;
   return staticGet.target;
 }

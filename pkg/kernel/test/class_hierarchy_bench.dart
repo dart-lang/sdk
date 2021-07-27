@@ -3,8 +3,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -61,7 +59,8 @@ main(List<String> args) {
   int hierarchyCount = int.parse(options['cycle']);
   var hierarchies = <ClosedWorldClassHierarchy>[];
   for (int i = 0; i < hierarchyCount; i++) {
-    hierarchies.add(buildHierarchy());
+    // TODO(johnniwinther): This doesn't work for the [BasicClassHierarchy].
+    hierarchies.add(buildHierarchy() as ClosedWorldClassHierarchy);
   }
 
   List<Class> classes = hierarchies.first.classes.toList();
@@ -246,13 +245,13 @@ main(List<String> args) {
     classIds[class_] = classIds.length;
   }
 
-  List<int> depth = new List.filled(classes.length, null);
+  List<int> depth = new List.filled(classes.length, /* dummy value = */ 0);
   for (int i = 0; i < depth.length; ++i) {
     int parentDepth = 0;
     var classNode = classes[i];
     for (var supertype in classNode.supers) {
       var superclass = supertype.classNode;
-      int index = classIds[superclass];
+      int index = classIds[superclass]!;
       if (!(index < i)) {
         throw '${classNode.name}($i) extends ${superclass.name}($index)';
       }
@@ -264,7 +263,7 @@ main(List<String> args) {
   List<int> depthHistogram = getHistogramOf(depth);
   double averageDepth = average(depth);
   double medianDepth = median(depth);
-  int totalDepth = sum(depth);
+  int totalDepth = sum(depth) as int;
 
   int numberOfClasses = classes.length;
   String expenseHistogram =

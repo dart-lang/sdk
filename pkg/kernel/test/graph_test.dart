@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library kernel.test.graph_test;
 
 import 'package:expect/expect.dart' show Expect;
@@ -17,7 +15,7 @@ class TestGraph implements Graph<String> {
 
   Iterable<String> get vertices => graph.keys;
 
-  Iterable<String> neighborsOf(String vertex) => graph[vertex];
+  Iterable<String> neighborsOf(String vertex) => graph[vertex]!;
 }
 
 void test(String expected, Map<String, List<String>> graph) {

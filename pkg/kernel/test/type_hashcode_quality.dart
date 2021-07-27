@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart';
 import 'dart:io';
 
@@ -40,7 +38,7 @@ class DartTypeCollector extends RecursiveVisitor {
     if (hash == 0) {
       print('Type has a hash code of zero: $node');
     }
-    DartType existing = table[hash];
+    DartType? existing = table[hash];
     if (existing == null) {
       table[hash] = node;
     } else if (existing != node) {

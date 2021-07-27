@@ -5,9 +5,6 @@
 /// Basic implementation of a heap, with O(log n) insertion and removal.
 abstract class Heap<T> {
   final _items = <T>[];
-  final T _dummyValue;
-
-  Heap(this._dummyValue);
 
   bool get isEmpty => _items.isEmpty;
 
@@ -15,7 +12,7 @@ abstract class Heap<T> {
 
   void add(T item) {
     int index = _items.length;
-    _items.add(_dummyValue);
+    _items.add(item);
     while (index > 0) {
       T parent = _items[_parentIndex(index)];
       if (sortsBefore(parent, item)) break;
