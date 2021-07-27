@@ -14,7 +14,7 @@ const _desc = r'Cascade consecutive method invocations on the same reference.';
 
 const _details = r'''
 
-**DO** Use the cascading style when succesively invoking methods on the same
+**DO** Use the cascading style when successively invoking methods on the same
 reference.
 
 **BAD:**

@@ -29,7 +29,7 @@ var s1 = '''
   "b": 2
 }''';
 
-var s2 = '''This onliner multiline string is ok. It usually allows to escape both ' and " in the string.''';
+var s2 = '''This one-liner multiline string is ok. It usually allows to escape both ' and " in the string.''';
 ```
 
 """;
