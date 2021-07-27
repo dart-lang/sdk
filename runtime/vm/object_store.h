@@ -36,13 +36,14 @@ class ObjectPointerVisitor;
 //
 // R_ - needs getter only
 // RW - needs getter and setter
-// ARW - needs getter and setter with atomic access
+// ARW_RELAXED - needs getter and setter with relaxed atomic access
+// ARW_AR - needs getter and setter with acq/rel atomic access
 // LAZY_CORE - needs lazy init getter for a "dart:core" member
 // LAZY_ASYNC - needs lazy init getter for a "dart:async" member
 // LAZY_ISOLATE - needs lazy init getter for a "dart:isolate" member
 // LAZY_INTERNAL - needs lazy init getter for a "dart:_internal" member
-#define OBJECT_STORE_FIELD_LIST(R_, RW, ARW, LAZY_CORE, LAZY_ASYNC,            \
-                                LAZY_ISOLATE, LAZY_INTERNAL)                   \
+#define OBJECT_STORE_FIELD_LIST(R_, RW, ARW_RELAXED, ARW_AR, LAZY_CORE,        \
+                                LAZY_ASYNC, LAZY_ISOLATE, LAZY_INTERNAL)       \
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
@@ -141,7 +142,7 @@ class ObjectPointerVisitor;
   RW(Class, float64x2_class)                                                   \
   RW(Class, error_class)                                                       \
   RW(Class, weak_property_class)                                               \
-  RW(Array, symbol_table)                                                      \
+  ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_type_parameters)                                         \
@@ -177,8 +178,8 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
-  ARW(Smi, future_timeout_future_index)                                        \
-  ARW(Smi, future_wait_future_index)                                           \
+  ARW_RELAXED(Smi, future_timeout_future_index)                                \
+  ARW_RELAXED(Smi, future_wait_future_index)                                   \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
@@ -403,7 +404,7 @@ class ObjectStore {
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
   void set_##name(const Type& value) { name##_ = value.ptr(); }
-#define DECLARE_ATOMIC_GETTER_AND_SETTER(Type, name)                           \
+#define DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER(Type, name)                   \
   template <std::memory_order order = std::memory_order_relaxed>               \
   Type##Ptr name() const {                                                     \
     return name##_.load(order);                                                \
@@ -412,6 +413,10 @@ class ObjectStore {
   void set_##name(const Type& value) {                                         \
     name##_.store(value.ptr(), order);                                         \
   }                                                                            \
+  DECLARE_OFFSET(name)
+#define DECLARE_ACQREL_ATOMIC_GETTER_AND_SETTER(Type, name)                    \
+  Type##Ptr name() const { return name##_.load(); }                            \
+  void set_##name(const Type& value) { name##_.store(value.ptr()); }           \
   DECLARE_OFFSET(name)
 #define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
   Type##Ptr name() {                                                           \
@@ -431,7 +436,8 @@ class ObjectStore {
   DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitInternalMembers)
   OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
                           DECLARE_GETTER_AND_SETTER,
-                          DECLARE_ATOMIC_GETTER_AND_SETTER,
+                          DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER,
+                          DECLARE_ACQREL_ATOMIC_GETTER_AND_SETTER,
                           DECLARE_LAZY_INIT_CORE_GETTER,
                           DECLARE_LAZY_INIT_ASYNC_GETTER,
                           DECLARE_LAZY_INIT_ISOLATE_GETTER,
@@ -439,7 +445,8 @@ class ObjectStore {
 #undef DECLARE_OFFSET
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
-#undef DECLARE_ATOMIC_GETTER_AND_SETTER
+#undef DECLARE_RELAXED_ATOMIC_GETTER_AND_SETTER
+#undef DECLARE_ACQREL_ATOMIC_GETTER_AND_SETTER
 #undef DECLARE_LAZY_INIT_GETTER
 #undef DECLARE_LAZY_INIT_CORE_GETTER
 #undef DECLARE_LAZY_INIT_ASYNC_GETTER
@@ -509,6 +516,7 @@ class ObjectStore {
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_ATOMIC_OBJECT_STORE_FIELD,
+                          DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,
                           DECLARE_LAZY_OBJECT_STORE_FIELD,

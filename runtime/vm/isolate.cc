@@ -359,7 +359,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
-      symbols_lock_(new SafepointRwLock()),
+      symbols_mutex_(NOT_IN_PRODUCT("IsolateGroup::symbols_mutex_")),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(

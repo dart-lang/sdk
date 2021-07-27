@@ -114,6 +114,14 @@ struct GrowableArrayStorageTraits {
   }
 
   static bool IsImmutable(const ArrayHandle& handle) { return false; }
+
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->At(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAt(index, value);
+  }
 };
 }  // namespace
 
@@ -5579,6 +5587,7 @@ class VMDeserializationRoots : public DeserializationRoots {
 static const char* const kObjectStoreFieldNames[] = {
 #define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
     OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,

@@ -357,7 +357,9 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
 
     // Most common case: The symbol is already in the table.
     {
-      SafepointReadRwLocker sl(thread, group->symbols_lock());
+      // We do allow lock-free concurrent read access to the symbol table.
+      // Both, the array in the ObjectStore as well as elements in the array
+      // are accessed via store-release/load-acquire barriers.
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
@@ -365,7 +367,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
     }
     // Otherwise we'll have to get exclusive access and get-or-insert it.
     if (symbol.IsNull()) {
-      SafepointWriteRwLocker sl(thread, group->symbols_lock());
+      SafepointMutexLocker ml(group->symbols_mutex());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.InsertNewOrGet(str);
@@ -410,7 +412,6 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       symbol ^= table.GetOrNull(str);
       table.Release();
     } else {
-      SafepointReadRwLocker sl(thread, group->symbols_lock());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
