@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.text_serializer_test;
 
 import 'package:kernel/ast.dart';
@@ -27,7 +25,9 @@ Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
   Expression result = expressionSerializer.readFrom(
-      stream, new DeserializationState(null, new CanonicalName.root()));
+      stream,
+      new DeserializationState(
+          new DeserializationEnvironment(null), new CanonicalName.root()));
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
@@ -36,8 +36,8 @@ Expression readExpression(String input) {
 
 String writeExpression(Expression expression) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(
-      buffer, expression, new SerializationState(null));
+  expressionSerializer.writeTo(buffer, expression,
+      new SerializationState(new SerializationEnvironment(null)));
   return buffer.toString();
 }
 

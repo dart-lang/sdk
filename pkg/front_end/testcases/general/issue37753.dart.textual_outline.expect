@@ -1,0 +1,3 @@
+// @dart = 2.9
+Iterable<int> getElements() sync* {}
+main() => print(getElements());

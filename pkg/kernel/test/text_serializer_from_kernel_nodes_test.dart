@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.text_serializer_from_kernel_nodes_test;
 
 import 'package:kernel/ast.dart';
@@ -25,14 +23,17 @@ class TestCase<T extends Node> {
   final TextSerializer<T> serializer;
 
   TestCase(
-      {this.name,
-      this.node,
-      this.expectation,
-      this.serializer,
-      SerializationState Function() makeSerializationState,
-      DeserializationState Function() makeDeserializationState})
+      {required this.name,
+      required this.node,
+      required this.expectation,
+      required this.serializer,
+      SerializationState Function()? makeSerializationState,
+      DeserializationState Function()? makeDeserializationState})
+      // ignore: unnecessary_null_comparison
       : assert(node != null),
+        // ignore: unnecessary_null_comparison
         assert(expectation != null),
+        // ignore: unnecessary_null_comparison
         assert(serializer != null),
         this.makeSerializationState = makeSerializationState ??
             (() => new SerializationState(new SerializationEnvironment(null))),
@@ -75,12 +76,12 @@ void test() {
     new TestCase<Statement>(
         name: 'let dynamic x = 42 in let Null x^0 = null in x;',
         node: () {
-          VariableDeclaration outterLetVar = new VariableDeclaration('x',
+          VariableDeclaration outerLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outterLetVar,
-              new Let(innerLetVar, new VariableGet(outterLetVar))));
+          return new ExpressionStatement(new Let(outerLetVar,
+              new Let(innerLetVar, new VariableGet(outerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
@@ -90,11 +91,11 @@ void test() {
     new TestCase<Statement>(
         name: 'let dynamic x = 42 in let Null x^0 = null in x^0;',
         node: () {
-          VariableDeclaration outterLetVar = new VariableDeclaration('x',
+          VariableDeclaration outerLetVar = new VariableDeclaration('x',
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outterLetVar,
+          return new ExpressionStatement(new Let(outerLetVar,
               new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
@@ -133,9 +134,10 @@ void test() {
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
               '(expr (get-static "package:foo/bar.dart::@getters::field"))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -150,9 +152,10 @@ void test() {
           node: new ExpressionStatement(new StaticGet(field)),
           expectation: ''
               '(expr (get-static "package:foo/bar.dart::@getters::field"))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -169,9 +172,10 @@ void test() {
           expectation: ''
               '(expr'
               ' (set-static "package:foo/bar.dart::@setters::field" (int 1)))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -197,9 +201,10 @@ void test() {
           expectation: ''
               '(expr (invoke-static "package:foo/bar.dart::@methods::foo"'
               ' () ((int 42)) ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -222,9 +227,10 @@ void test() {
               '(expr (invoke-const-static'
               ' "package:foo/bar.dart::A::@factories::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -365,9 +371,10 @@ void test() {
               '(expr (invoke-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
@@ -387,13 +394,14 @@ void test() {
               '(expr (invoke-const-constructor'
               ' "package:foo/bar.dart::A::@constructors::foo"'
               ' () () ()))',
-          makeSerializationState: () => new SerializationState(null),
-          makeDeserializationState: () =>
-              new DeserializationState(null, component.root),
+          makeSerializationState: () =>
+              new SerializationState(new SerializationEnvironment(null)),
+          makeDeserializationState: () => new DeserializationState(
+              new DeserializationEnvironment(null), component.root),
           serializer: statementSerializer);
     }(),
     () {
-      TypeParameter outterParam =
+      TypeParameter outerParam =
           new TypeParameter('T', const DynamicType(), const DynamicType());
       TypeParameter innerParam =
           new TypeParameter('T', const DynamicType(), const DynamicType());
@@ -407,9 +415,9 @@ void test() {
                     Nullability.legacy,
                     typeParameters: [innerParam])
               ],
-              new TypeParameterType(outterParam, Nullability.legacy),
+              new TypeParameterType(outerParam, Nullability.legacy),
               Nullability.legacy,
-              typeParameters: [outterParam]))),
+              typeParameters: [outerParam]))),
           expectation: ''
               '(expr (type (-> ("T^0") ((dynamic)) ((dynamic)) '
               '((-> ("T^1") ((dynamic)) ((dynamic)) () () () '
@@ -417,7 +425,7 @@ void test() {
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: statementSerializer);
     }(),
     () {
@@ -444,7 +452,7 @@ void test() {
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), new CanonicalName.root()),
           serializer: statementSerializer);
     }(),
     () {
@@ -471,7 +479,7 @@ void test() {
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)),
           makeDeserializationState: () => new DeserializationState(
-              new DeserializationEnvironment(null), null),
+              new DeserializationEnvironment(null), component.root),
           serializer: memberSerializer);
     }(),
     () {
@@ -588,7 +596,7 @@ void test() {
           "  but expected:\n    ${testCase.expectation}");
     }
 
-    TreeNode deserialized =
+    Node deserialized =
         testCase.readNode(roundTripInput, testCase.makeDeserializationState());
     String roundTripOutput =
         testCase.writeNode(deserialized, testCase.makeSerializationState());

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
@@ -141,9 +139,11 @@ Procedure getMainTarget(Component component1Prime) {
       Uri.parse('org-dartlang:///main.dart')) {
     throw "Expected main first, got ${component1Prime.libraries[0].importUri}";
   }
-  Block block = component1Prime.libraries[0].procedures[0].function.body;
-  ReturnStatement returnStatement = block.statements[0];
-  StaticInvocation staticInvocation = returnStatement.expression;
+  Block block =
+      component1Prime.libraries[0].procedures[0].function.body as Block;
+  ReturnStatement returnStatement = block.statements[0] as ReturnStatement;
+  StaticInvocation staticInvocation =
+      returnStatement.expression as StaticInvocation;
   Procedure target = staticInvocation.target;
   return target;
 }

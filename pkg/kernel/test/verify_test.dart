@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/verifier.dart';
@@ -30,7 +28,7 @@ main() {
       test.addNode(VariableGet(node));
       return node;
     },
-    (Node node) => "Variable '$node' used out of scope.",
+    (Node? node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'VariableSet out of scope',
@@ -39,7 +37,7 @@ main() {
       test.addNode(VariableSet(variable, new NullLiteral()));
       return variable;
     },
-    (Node node) => "Variable '$node' used out of scope.",
+    (Node? node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable block scope',
@@ -51,7 +49,7 @@ main() {
       ]));
       return variable;
     },
-    (Node node) => "Variable '$node' used out of scope.",
+    (Node? node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable let scope',
@@ -63,7 +61,7 @@ main() {
           new VariableGet(variable)));
       return variable;
     },
-    (Node node) => "Variable '$node' used out of scope.",
+    (Node? node) => "Variable '$node' used out of scope.",
   );
   negative1Test(
     'Variable redeclared',
@@ -72,7 +70,7 @@ main() {
       test.addNode(Block([variable, variable]));
       return variable;
     },
-    (Node node) => "Variable '$node' declared more than once.",
+    (Node? node) => "Variable '$node' declared more than once.",
   );
   negative1Test(
     'Member redeclared',
@@ -86,7 +84,7 @@ main() {
           fileUri: dummyUri));
       return field;
     },
-    (Node node) => "Member '$node' has been declared more than once.",
+    (Node? node) => "Member '$node' has been declared more than once.",
   );
   negative1Test(
     'Class redeclared',
@@ -96,7 +94,7 @@ main() {
           otherClass); // Test harness also adds otherClass to component.
       return test.otherClass;
     },
-    (Node node) => "Class '$node' declared more than once.",
+    (Node? node) => "Class '$node' declared more than once.",
   );
   negative1Test(
     'Class type parameter redeclared',
@@ -109,7 +107,7 @@ main() {
           fileUri: dummyUri));
       return parameter;
     },
-    (Node node) => "Type parameter '$node' redeclared.",
+    (Node? node) => "Type parameter '$node' redeclared.",
   );
   negative1Test(
     'Member type parameter redeclared',
@@ -124,7 +122,7 @@ main() {
 
       return parameter;
     },
-    (Node node) => "Type parameter '$node' redeclared.",
+    (Node? node) => "Type parameter '$node' redeclared.",
   );
   negative2Test(
     'Type parameter out of scope',
@@ -134,7 +132,7 @@ main() {
           typeArgument: new TypeParameterType(parameter, Nullability.legacy)));
       return [parameter, null];
     },
-    (Node node, Node parent) =>
+    (Node? node, Node? parent) =>
         "Type parameter '$node' referenced out of scope,"
         " owner is: '$parent'.",
   );
@@ -146,7 +144,7 @@ main() {
           TypeLiteral(new TypeParameterType(node, Nullability.legacy)));
       return [node, test.otherClass];
     },
-    (Node node, Node parent) =>
+    (Node? node, Node? parent) =>
         "Type parameter '$node' referenced out of scope,"
         " owner is: '$parent'.",
   );
@@ -164,7 +162,7 @@ main() {
 
       return [node, test.enclosingClass];
     },
-    (Node node, Node parent) =>
+    (Node? node, Node? parent) =>
         "Type parameter '$node' referenced from static context,"
         " parent is: '$parent'.",
   );
@@ -179,7 +177,7 @@ main() {
           fileUri: dummyUri));
       return [node, test.enclosingClass];
     },
-    (Node node, Node parent) =>
+    (Node? node, Node? parent) =>
         "Type parameter '$node' referenced from static context,"
         " parent is: '$parent'.",
   );
@@ -206,7 +204,7 @@ main() {
 
       return [parameter, parent];
     },
-    (Node node, Node parent) =>
+    (Node? node, Node? parent) =>
         "Type parameter '$node' referenced out of scope,"
         " owner is: '${(parent as TreeNode).parent}'.",
   );
@@ -218,7 +216,7 @@ main() {
       test.addNode(TypeLiteral(node));
       return node;
     },
-    (Node node) => "Type $node provides 0 type arguments,"
+    (Node? node) => "Type $node provides 0 type arguments,"
         " but the class declares 1 parameters.",
   );
   negative1Test(
@@ -229,7 +227,7 @@ main() {
       test.addNode(TypeLiteral(node));
       return node;
     },
-    (Node node) => "Type $node provides 2 type arguments,"
+    (Node? node) => "Type $node provides 2 type arguments,"
         " but the class declares 1 parameters.",
   );
   negative1Test(
@@ -240,7 +238,7 @@ main() {
           new TypeLiteral(new InterfaceType(orphan, Nullability.legacy)));
       return orphan;
     },
-    (Node node) => "Dangling reference to '$node', parent is: 'null'.",
+    (Node? node) => "Dangling reference to '$node', parent is: 'null'.",
   );
   negative1Test(
     'Dangling field get',
@@ -249,7 +247,7 @@ main() {
       test.addNode(new PropertyGet(new NullLiteral(), orphan.name, orphan));
       return orphan;
     },
-    (Node node) => "Dangling reference to '$node', parent is: 'null'.",
+    (Node? node) => "Dangling reference to '$node', parent is: 'null'.",
   );
   simpleNegativeTest(
     'Missing block parent pointer',
@@ -299,7 +297,7 @@ main() {
           StaticInvocation(method, new Arguments([new NullLiteral()])));
       return method;
     },
-    (Node node) => "StaticInvocation with incompatible arguments for"
+    (Node? node) => "StaticInvocation with incompatible arguments for"
         " '$node'.",
   );
   negative1Test(
@@ -316,7 +314,7 @@ main() {
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
-    (Node node) => "StaticInvocation with incompatible arguments for '$node'.",
+    (Node? node) => "StaticInvocation with incompatible arguments for '$node'.",
   );
   negative1Test(
     'StaticInvocation with unmatched named parameter',
@@ -331,7 +329,7 @@ main() {
               named: [new NamedExpression('p', new NullLiteral())])));
       return method;
     },
-    (Node node) => "StaticInvocation with incompatible arguments for"
+    (Node? node) => "StaticInvocation with incompatible arguments for"
         " '$node'.",
   );
   negative1Test(
@@ -348,7 +346,7 @@ main() {
       test.addNode(StaticInvocation(method, new Arguments.empty()));
       return method;
     },
-    (Node node) => "StaticInvocation with wrong number of type arguments for"
+    (Node? node) => "StaticInvocation with wrong number of type arguments for"
         " '$node'.",
   );
   negative1Test(
@@ -360,7 +358,7 @@ main() {
       test.addNode(ConstructorInvocation(constructor, new Arguments.empty()));
       return constructor;
     },
-    (Node node) =>
+    (Node? node) =>
         "ConstructorInvocation with wrong number of type arguments for"
         " '$node'.",
   );
@@ -433,7 +431,7 @@ main() {
       test.addNode(typedef_);
       return typedef_;
     },
-    (Node node) => "The typedef '$node' refers to itself",
+    (Node? node) => "The typedef '$node' refers to itself",
   );
   negative1Test(
     'Invalid typedef Foo = `(Foo) => void`',
@@ -446,7 +444,7 @@ main() {
       test.addNode(typedef_);
       return typedef_;
     },
-    (Node node) => "The typedef '$node' refers to itself",
+    (Node? node) => "The typedef '$node' refers to itself",
   );
   negative1Test(
     'Invalid typedef Foo = `() => Foo`',
@@ -457,7 +455,7 @@ main() {
       test.addNode(typedef_);
       return typedef_;
     },
-    (Node node) => "The typedef '$node' refers to itself",
+    (Node? node) => "The typedef '$node' refers to itself",
   );
   negative1Test(
     'Invalid typedef Foo = C<Foo>',
@@ -468,7 +466,7 @@ main() {
       test.addNode(typedef_);
       return typedef_;
     },
-    (Node node) => "The typedef '$node' refers to itself",
+    (Node? node) => "The typedef '$node' refers to itself",
   );
   negative1Test(
     'Invalid typedefs Foo = Bar, Bar = Foo',
@@ -481,7 +479,7 @@ main() {
       test.enclosingLibrary.addTypedef(bar);
       return foo;
     },
-    (Node foo) => "The typedef '$foo' refers to itself",
+    (Node? foo) => "The typedef '$foo' refers to itself",
   );
   negative1Test(
     'Invalid typedefs Foo = Bar, Bar = C<Foo>',
@@ -495,7 +493,7 @@ main() {
       test.enclosingLibrary.addTypedef(bar);
       return foo;
     },
-    (Node foo) => "The typedef '$foo' refers to itself",
+    (Node? foo) => "The typedef '$foo' refers to itself",
   );
   negative1Test(
     'Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
@@ -510,7 +508,7 @@ main() {
       test.enclosingLibrary.addTypedef(bar);
       return foo;
     },
-    (Node foo) => "The typedef '$foo' refers to itself",
+    (Node? foo) => "The typedef '$foo' refers to itself",
   );
   positiveTest(
     'Valid long typedefs C20 = C19 = ... = C1 = C0 = dynamic',
@@ -541,7 +539,7 @@ main() {
       first.type = new TypedefType(typedef_, Nullability.legacy);
       return firstTypedef;
     },
-    (Node node) => "The typedef '$node' refers to itself",
+    (Node? node) => "The typedef '$node' refers to itself",
   );
   positiveTest(
     'Valid typedef Foo<T extends C> = C<T>',
@@ -611,7 +609,7 @@ main() {
       test.enclosingLibrary.addTypedef(bar);
       return foo;
     },
-    (Node foo) => "The typedef '$foo' refers to itself",
+    (Node? foo) => "The typedef '$foo' refers to itself",
   );
   negative1Test(
     'Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
@@ -628,7 +626,7 @@ main() {
       test.addNode(foo);
       return foo;
     },
-    (Node foo) => "The typedef '$foo' refers to itself",
+    (Node? foo) => "The typedef '$foo' refers to itself",
   );
   negative1Test(
     'Typedef arity error',
@@ -643,7 +641,7 @@ main() {
       test.enclosingLibrary.addField(field);
       return typedefType;
     },
-    (Node typedefType) =>
+    (Node? typedefType) =>
         "The typedef type $typedefType provides 0 type arguments,"
         " but the typedef declares 1 parameters.",
   );
@@ -659,7 +657,7 @@ main() {
       test.enclosingLibrary.addField(field);
       return foo;
     },
-    (Node foo) => "Dangling reference to '$foo', parent is: 'null'",
+    (Node? foo) => "Dangling reference to '$foo', parent is: 'null'",
   );
   negative1Test(
     'Non-static top-level field',
@@ -668,7 +666,7 @@ main() {
       test.enclosingLibrary.addField(field);
       return null;
     },
-    (Node node) => "The top-level field 'field' should be static",
+    (Node? node) => "The top-level field 'field' should be static",
   );
 }
 
@@ -683,21 +681,21 @@ checkHasError(Component component, Matcher matcher) {
 }
 
 class TestHarness {
-  Component component;
-  Class objectClass;
-  Library stubLibrary;
+  late Component component;
+  late Class objectClass;
+  late Library stubLibrary;
 
-  TypeParameter classTypeParameter;
+  late TypeParameter classTypeParameter;
 
-  Library enclosingLibrary;
-  Class enclosingClass;
-  Procedure enclosingMember;
+  late Library enclosingLibrary;
+  late Class enclosingClass;
+  late Procedure enclosingMember;
 
-  Class otherClass;
+  late Class otherClass;
 
-  InterfaceType objectLegacyRawType;
-  InterfaceType enclosingLegacyRawType;
-  InterfaceType otherLegacyRawType;
+  late InterfaceType objectLegacyRawType;
+  late InterfaceType enclosingLegacyRawType;
+  late InterfaceType otherLegacyRawType;
 
   void addNode(TreeNode node) {
     if (node is Expression) {
@@ -756,7 +754,7 @@ class TestHarness {
 
   VariableDeclaration makeVariable() => new VariableDeclaration(null);
 
-  TypeParameter makeTypeParameter([String name]) {
+  TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectLegacyRawType, const DynamicType());
   }
 
@@ -802,10 +800,10 @@ class TestHarness {
   }
 }
 
-negative1Test(String name, Node Function(TestHarness test) nodeProvider,
-    dynamic Function(Node node) matcher) {
+negative1Test(String name, Node? Function(TestHarness test) nodeProvider,
+    dynamic Function(Node? node) matcher) {
   TestHarness testHarness = new TestHarness();
-  Node node = nodeProvider(testHarness);
+  Node? node = nodeProvider(testHarness);
   test(
     name,
     () {
@@ -818,10 +816,10 @@ negative1Test(String name, Node Function(TestHarness test) nodeProvider,
   );
 }
 
-negative2Test(String name, List<Node> Function(TestHarness test) nodeProvider,
-    dynamic Function(Node node, Node other) matcher) {
+negative2Test(String name, List<Node?> Function(TestHarness test) nodeProvider,
+    dynamic Function(Node? node, Node? other) matcher) {
   TestHarness testHarness = new TestHarness();
-  List<Node> nodes = nodeProvider(testHarness);
+  List<Node?> nodes = nodeProvider(testHarness);
   if (nodes.length != 2) throw "Needs exactly 2 nodes: Node and other!";
   test(
     name,

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
 import 'utils.dart';
@@ -47,9 +45,9 @@ main() {
     final Library loadedLib = loadedComponent.libraries.single;
     final Class loadedClassA = loadedLib.classes.first;
     final ExpressionStatement loadedConstructorA =
-        loadedClassA.constructors.single.function.body;
+        loadedClassA.constructors.single.function.body as ExpressionStatement;
     final ConstructorInvocation loadedConstructorInvocation =
-        loadedConstructorA.expression;
+        loadedConstructorA.expression as ConstructorInvocation;
     final Class pointedToClass =
         loadedConstructorInvocation.target.enclosingClass;
     final Library pointedToLib =
@@ -81,9 +79,9 @@ main() {
     final Library loadedLib = loadedComponent2.libraries.single;
     final Class loadedClassA = loadedLib.classes.first;
     final ExpressionStatement loadedConstructorA =
-        loadedClassA.constructors.single.function.body;
+        loadedClassA.constructors.single.function.body as ExpressionStatement;
     final ConstructorInvocation loadedConstructorInvocation =
-        loadedConstructorA.expression;
+        loadedConstructorA.expression as ConstructorInvocation;
     final Class pointedToClass =
         loadedConstructorInvocation.target.enclosingClass;
     final Library pointedToLib =

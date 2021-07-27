@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // This files contains methods for benchmarking Kernel binary serialization
 // and deserialization routines.
 
@@ -35,8 +33,8 @@ final benchmarks = <String, Benchmark>{
   },
 };
 
-Benchmark benchmark;
-File sourceDill;
+Benchmark? benchmark;
+late File sourceDill;
 bool forGolem = false;
 bool forRaw = false;
 
@@ -47,7 +45,7 @@ main(List<String> args) async {
   }
 
   final bytes = sourceDill.readAsBytesSync();
-  benchmark(bytes);
+  benchmark!(bytes);
 }
 
 const warmupIterations = 100;
@@ -64,7 +62,8 @@ void _benchmarkAstFromBinary(Uint8List bytes, {bool eager: true}) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>.filled(benchmarkIterations, null);
+  final runsUs =
+      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _fromBinary(bytes, eager: eager);
@@ -88,7 +87,8 @@ void _benchmarkAstToBinary(Uint8List bytes) {
   }
   final warmupUs = sw.elapsedMicroseconds / warmupIterations;
 
-  final runsUs = new List<int>.filled(benchmarkIterations, null);
+  final runsUs =
+      new List<int>.filled(benchmarkIterations, /* dummy value = */ 0);
   for (var i = 0; i < benchmarkIterations; i++) {
     sw.reset();
     _toBinary(p);
@@ -106,7 +106,7 @@ class BenchmarkResult {
 
   BenchmarkResult(this.name, this.coldRunUs, this.warmupUs, this.runsUs);
 
-  static T add<T extends num>(T x, T y) => x + y;
+  static T add<T extends num>(T x, T y) => x + y as T;
 
   void report() {
     runsUs.sort();

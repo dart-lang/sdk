@@ -1706,7 +1706,7 @@ TextSerializer<LabeledStatement> labeledStatementSerializer =
         (ls) => Tuple2(ls, ls.body),
         (t) => t.first..body = t.second,
         Bind(
-            Wrapped<Tuple2<String, LabeledStatement>, LabeledStatement>(
+            Wrapped<Tuple2<String?, LabeledStatement>, LabeledStatement>(
                 (ls) => Tuple2("L", ls),
                 (t) => t.second,
                 Binder(Wrapped(
@@ -1775,7 +1775,7 @@ class SwitchCaseTagger implements Tagger<SwitchCase> {
 }
 
 TextSerializer<SwitchCase> switchCaseCaseSerializer =
-    Wrapped<Tuple2<String, SwitchCase>, SwitchCase>(
+    Wrapped<Tuple2<String?, SwitchCase>, SwitchCase>(
         (w) => Tuple2("L", w),
         (u) => u.second,
         Binder(Wrapped<List<Expression>, SwitchCase>(
@@ -1784,7 +1784,7 @@ TextSerializer<SwitchCase> switchCaseCaseSerializer =
             ListSerializer(expressionSerializer))));
 
 TextSerializer<SwitchCase> switchCaseDefaultSerializer = Wrapped<
-        Tuple2<String, SwitchCase>, SwitchCase>(
+        Tuple2<String?, SwitchCase>, SwitchCase>(
     (w) => Tuple2("L", w),
     (u) => u.second,
     Binder(

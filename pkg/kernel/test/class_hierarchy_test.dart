@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:expect/minitest.dart";
 
 import "package:kernel/ast.dart";
@@ -82,11 +80,11 @@ main() {
 
 class ClosedWorldClassHierarchyTest {
   final Component component = createMockSdkComponent();
-  CoreTypes coreTypes;
+  late CoreTypes coreTypes;
 
-  Library library;
+  late Library library;
 
-  ClassHierarchy _hierarchy;
+  ClassHierarchy? _hierarchy;
 
   ClosedWorldClassHierarchyTest() {
     coreTypes = new CoreTypes(component);
@@ -335,8 +333,9 @@ class H extends self::G implements self::C, self::A {}
   /// The [TypeParameterType]s corresponding to [typeParameterNames] are
   /// passed to optional [extends_] and [implements_] callbacks.
   Class addGenericClass(String name, List<String> typeParameterNames,
-      {Supertype extends_(List<DartType> typeParameterTypes),
-      List<Supertype> implements_(List<DartType> typeParameterTypes)}) {
+      {Supertype Function(List<DartType> typeParameterTypes)? extends_,
+      List<Supertype> Function(List<DartType> typeParameterTypes)?
+          implements_}) {
     var typeParameters = typeParameterNames
         .map((name) => new TypeParameter(
             name, coreTypes.objectLegacyRawType, coreTypes.objectLegacyRawType))
