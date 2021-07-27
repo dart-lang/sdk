@@ -11,13 +11,32 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableTest);
-    defineReflectiveTests(TopLevelVariableWithNullSafetyTest);
+    defineReflectiveTests(TopLevelVariableWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class TopLevelVariableTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with TopLevelVariableTestCases {
+  test_type_inferred_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+var a = 0;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+var v = a;
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+
+    assertType(findElement.topVar('v').type, 'int');
+  }
+}
+
+mixin TopLevelVariableTestCases on PubPackageResolutionTest {
   test_session_getterSetter() async {
     await resolveTestCode('''
 var v = 0;
@@ -65,22 +84,5 @@ var v = null;
 }
 
 @reflectiveTest
-class TopLevelVariableWithNullSafetyTest extends TopLevelVariableTest
-    with WithNullSafetyMixin {
-  test_type_inferred_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-var a = 0;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-var v = a;
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-
-    assertType(findElement.topVar('v').type, 'int');
-  }
-}
+class TopLevelVariableWithoutNullSafetyTest extends PubPackageResolutionTest
+    with TopLevelVariableTestCases, WithoutNullSafetyMixin {}
