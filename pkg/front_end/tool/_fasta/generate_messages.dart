@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
@@ -96,7 +94,7 @@ part of fasta.codes;
     while (description is String) {
       description = yaml[description];
     }
-    Map<dynamic, dynamic> map = description;
+    Map<dynamic, dynamic>? map = description;
     if (map == null) {
       throw "No 'template:' in key $name.";
     }
@@ -109,7 +107,7 @@ part of fasta.codes;
         index = -1;
         // Continue looking for other problems.
       } else {
-        String otherName = indexNameMap[index];
+        String? otherName = indexNameMap[index];
         if (otherName != null) {
           print('Error: The "index:" field must be unique, '
               'but is the same for $otherName and $name');
@@ -166,8 +164,8 @@ class Template {
   Template(this.text, {this.isShared}) : assert(isShared != null);
 }
 
-Template compileTemplate(String name, int index, String template, String tip,
-    Object analyzerCode, String severity) {
+Template compileTemplate(String name, int? index, String? template, String? tip,
+    Object? analyzerCode, String? severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -194,9 +192,9 @@ Template compileTemplate(String name, int index, String template, String tip,
 
   for (Match match
       in placeholderPattern.allMatches("$template\n${tip ?? ''}")) {
-    String name = match[1];
-    String padding = match[2];
-    String fractionDigits = match[3];
+    String name = match[1]!;
+    String? padding = match[2];
+    String? fractionDigits = match[3];
 
     String format(String name) {
       String conversion;
@@ -205,7 +203,7 @@ Template compileTemplate(String name, int index, String template, String tip,
       } else {
         conversion = "$name.toStringAsFixed($fractionDigits)";
       }
-      if (padding.isNotEmpty) {
+      if (padding!.isNotEmpty) {
         if (padding.startsWith("0")) {
           conversion += ".padLeft(${int.parse(padding)}, '0')";
         } else {
@@ -416,13 +414,13 @@ Template compileTemplate(String name, int index, String template, String tip,
     if (analyzerCode is String) {
       analyzerCode = <String>[analyzerCode];
     }
-    List<Object> codes = analyzerCode;
+    List<Object> codes = analyzerCode as List<Object>;
     // If "index:" is defined, then "analyzerCode:" should not be generated
     // in the front end. See comment in messages.yaml
     codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');
   }
   if (severity != null) {
-    String severityEnumName = severityEnumNames[severity];
+    String? severityEnumName = severityEnumNames[severity];
     if (severityEnumName == null) {
       throw "Unknown severity '$severity'";
     }
@@ -430,6 +428,7 @@ Template compileTemplate(String name, int index, String template, String tip,
   }
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
+    // ignore: unnecessary_null_comparison
     if (template != null) {
       codeArguments.add('message: r"""$template"""');
     }
@@ -448,6 +447,7 @@ const MessageCode message$name =
   }
 
   List<String> templateArguments = <String>[];
+  // ignore: unnecessary_null_comparison
   if (template != null) {
     templateArguments.add('messageTemplate: r"""$template"""');
   }
