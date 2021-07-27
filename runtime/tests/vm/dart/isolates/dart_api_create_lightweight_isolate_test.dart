@@ -14,6 +14,7 @@ import 'dart:isolate';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import 'test_utils.dart' show isArtificialReloadMode;
 import '../../../../../tests/ffi/dylib_utils.dart';
 
 final bool isolateGroupsEnabled =
@@ -240,5 +241,10 @@ Future main(args) async {
     await testNotSupported();
     return;
   }
+
+  // This test should not run in hot-reload because of the way it is written
+  // (embedder related code written in Dart instead of C)
+  if (isArtificialReloadMode) return;
+
   await testJitOrAot();
 }
