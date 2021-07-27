@@ -703,7 +703,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (count == 0) {
       push(NullValue.Metadata);
     } else {
-      push(const GrowableList<Expression>().pop(stack, count) ??
+      push(const GrowableList<Expression>()
+              .popNonNullable(stack, count, dummyExpression) ??
           NullValue.Metadata /* Ignore parser recovery */);
     }
   }
