@@ -2,5 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler != fasta ]
-
+Language/Generics/Superbounded_types/typedef1_A01_t03: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
+Language/Generics/Superbounded_types/typedef1_A01_t04: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
+Language/Generics/Superbounded_types/typedef2_A01_t04: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
+Language/Generics/typedef_A08_t02: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
+Language/Generics/typedef_A08_t03: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483
+Language/Generics/typedef_A08_t04: SkipByDesign # https://github.com/dart-lang/sdk/issues/46483

@@ -6,6 +6,7 @@
 Language/Expressions/Null/instance_of_class_null_t01: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/522.
 Language/Expressions/Numbers/syntax_t06: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/syntax_t09: SkipByDesign # uses integer literal not representable as JavaScript number
+Language/Expressions/Object_Identity/object_t02: SkipByDesign # https://github.com/dart-lang/sdk/issues/42222#issuecomment-640431711
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
 Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
