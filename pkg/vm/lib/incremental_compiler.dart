@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// Defines wrapper class around incremental compiler to support
 /// the flow, where incremental deltas can be rejected by VM.
 import 'dart:async';
@@ -20,23 +18,23 @@ const String kDebugProcedureName = ":Eval";
 /// deltas and combines them together into resultant program until it is
 /// accepted.
 class IncrementalCompiler {
-  IncrementalKernelGenerator _generator;
-  IncrementalSerializer incrementalSerializer;
+  late IncrementalKernelGenerator _generator;
+  IncrementalSerializer? incrementalSerializer;
 
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
-  Component _lastKnownGood;
-  List<Component> _pendingDeltas;
+  Component? _lastKnownGood;
+  late List<Component> _pendingDeltas;
   CompilerOptions _compilerOptions;
   bool initialized = false;
   bool fullComponent = false;
-  Uri initializeFromDillUri;
+  Uri? initializeFromDillUri;
   Uri _entryPoint;
   final bool forExpressionCompilationOnly;
 
   Uri get entryPoint => _entryPoint;
   IncrementalKernelGenerator get generator => _generator;
-  Component get lastKnownGoodComponent => _lastKnownGood;
+  Component? get lastKnownGoodComponent => _lastKnownGood;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
       {this.initializeFromDillUri, bool incrementalSerialization: true})
@@ -61,12 +59,12 @@ class IncrementalCompiler {
   ///
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
-  Future<Component> compile({Uri entryPoint}) async {
+  Future<Component> compile({Uri? entryPoint}) async {
     final task = new TimelineTask();
     try {
       task.start("IncrementalCompiler.compile");
       _entryPoint = entryPoint ?? _entryPoint;
-      List<Uri> entryPoints;
+      List<Uri>? entryPoints;
       if (entryPoint != null) entryPoints = [entryPoint];
       Component component = await _generator.computeDelta(
           entryPoints: entryPoints, fullComponent: fullComponent);
@@ -80,8 +78,9 @@ class IncrementalCompiler {
   }
 
   _combinePendingDeltas(bool includePlatform) {
-    Procedure mainMethod;
-    NonNullableByDefaultCompiledMode compilationMode;
+    Procedure? mainMethod;
+    NonNullableByDefaultCompiledMode compilationMode =
+        NonNullableByDefaultCompiledMode.Invalid;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
     for (Component delta in _pendingDeltas) {
@@ -104,8 +103,8 @@ class IncrementalCompiler {
       ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
   }
 
-  CoreTypes getCoreTypes() => _generator.getCoreTypes();
-  ClassHierarchy getClassHierarchy() => _generator.getClassHierarchy();
+  CoreTypes? getCoreTypes() => _generator.getCoreTypes();
+  ClassHierarchy? getClassHierarchy() => _generator.getClassHierarchy();
 
   /// This lets incremental compiler know that results of last [compile] call
   /// were accepted, don't need to be included into subsequent [compile] calls
@@ -118,13 +117,14 @@ class IncrementalCompiler {
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-    if (_lastKnownGood != null) {
+    Component? lastKnownGood = _lastKnownGood;
+    if (lastKnownGood != null) {
       // TODO(aam): Figure out how to skip no-longer-used libraries from
       // [_lastKnownGood] libraries.
-      for (Library library in _lastKnownGood.libraries) {
+      for (Library library in lastKnownGood.libraries) {
         combined[library.importUri] = library;
       }
-      uriToSource.addAll(_lastKnownGood.uriToSource);
+      uriToSource.addAll(lastKnownGood.uriToSource);
     }
 
     Component candidate = _combinePendingDeltas(true);
@@ -133,13 +133,13 @@ class IncrementalCompiler {
     }
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastKnownGood = new Component(
+    _lastKnownGood = lastKnownGood = new Component(
       libraries: combined.values.toList(),
       uriToSource: uriToSource,
     )..setMainMethodAndMode(
         candidate.mainMethod?.reference, true, candidate.mode);
     for (final repo in candidate.metadata.values) {
-      _lastKnownGood.addMetadataRepository(repo);
+      lastKnownGood.addMetadataRepository(repo);
     }
     _pendingDeltas.clear();
   }
@@ -182,12 +182,12 @@ class IncrementalCompiler {
     fullComponent = true;
   }
 
-  Future<Procedure> compileExpression(
+  Future<Procedure?> compileExpression(
       String expression,
       List<String> definitions,
       List<String> typeDefinitions,
       String libraryUri,
-      String klass,
+      String? klass,
       bool isStatic) {
     Map<String, DartType> completeDefinitions = {};
     for (String name in definitions) {
@@ -202,7 +202,6 @@ class IncrementalCompiler {
     }
 
     Uri library = Uri.parse(libraryUri);
-    if (library == null) return null;
 
     return _generator.compileExpression(expression, completeDefinitions,
         typeParameters, kDebugProcedureName, library, klass, isStatic);
