@@ -779,8 +779,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
-      Utils::SignedNBitMask(kNumberOfFpuRegisters) &
-      ~(Utils::SignedNBitMask(kAbiPreservedFpuRegCount)
+      Utils::NBitMask<intptr_t>(kNumberOfFpuRegisters) &
+      ~(Utils::NBitMask<intptr_t>(kAbiPreservedFpuRegCount)
         << kAbiFirstPreservedFpuReg) &
       ~(1 << FpuTMP);
 
