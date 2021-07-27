@@ -24,6 +24,7 @@ a {
 b {
 }
     <-- newline
+```    
 ''';
 
 class EolAtEndOfFile extends LintRule implements NodeLintRule {
