@@ -116,27 +116,31 @@ Future<String?> _sinceSdkForLinter(
     return null;
   }
 
-  var linterVersion = Version.parse(linterVersionString);
-  if (linterVersion.compareTo(earliestLinterInDart2) < 0) {
-    return bottomDartSdk.toString();
-  }
+  try {
+    var linterVersion = Version.parse(linterVersionString);
+    if (linterVersion.compareTo(earliestLinterInDart2) < 0) {
+      return bottomDartSdk.toString();
+    }
 
-  var sdkVersions = <String>[];
-  var sdkCache = await getDartSdkMap(auth);
-  if (sdkCache != null) {
-    for (var sdkEntry in sdkCache.entries) {
-      if (Version.parse(sdkEntry.value) == linterVersion) {
-        sdkVersions.add(sdkEntry.key);
+    var sdkVersions = <String>[];
+    var sdkCache = await getDartSdkMap(auth);
+    if (sdkCache != null) {
+      for (var sdkEntry in sdkCache.entries) {
+        if (Version.parse(sdkEntry.value) == linterVersion) {
+          sdkVersions.add(sdkEntry.key);
+        }
       }
     }
-  }
-  if (sdkVersions.isEmpty) {
-    var nextLinter = await _nextLinterVersion(linterVersion);
-    return _sinceSdkForLinter(nextLinter, auth);
-  }
+    if (sdkVersions.isEmpty) {
+      var nextLinter = await _nextLinterVersion(linterVersion);
+      return _sinceSdkForLinter(nextLinter, auth);
+    }
 
-  sdkVersions.sort();
-  return sdkVersions.first;
+    sdkVersions.sort();
+    return sdkVersions.first;
+  } on FormatException {
+    return null;
+  }
 }
 
 class SinceInfo {
