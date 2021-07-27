@@ -364,8 +364,8 @@ class Process {
       Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding}) {
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.run");
   }
 
@@ -375,8 +375,8 @@ class Process {
       Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding}) {
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding}) {
     throw new UnsupportedError("Process.runSync");
   }
 
