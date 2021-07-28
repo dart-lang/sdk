@@ -15,9 +15,10 @@ import 'fuzz_support.dart';
 import "package:async_helper/async_helper.dart";
 
 fuzzSyncMethods() {
+  var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   typeMapping.forEach((k, v) {
     File f;
-    doItSync(() => f = new File(v));
+    doItSync(() => f = new File('${temp.path}/$v'));
     if (f == null) return;
     doItSync(f.existsSync);
     doItSync(f.createSync);
@@ -36,14 +37,16 @@ fuzzSyncMethods() {
       doItSync(() => f.readAsLinesSync(encoding: v2));
     });
   });
+  temp.deleteSync(recursive: true);
 }
 
 fuzzAsyncMethods() {
   asyncStart();
   var futures = <Future>[];
+  var temp = Directory.systemTemp.createTempSync('dart_file_fuzz');
   typeMapping.forEach((k, v) {
     File f;
-    doItSync(() => f = new File(v));
+    doItSync(() => f = new File('${temp.path}/$v'));
     if (f == null) return;
     futures.add(doItAsync(f.exists));
     futures.add(doItAsync(f.delete));
@@ -61,7 +64,10 @@ fuzzAsyncMethods() {
       futures.add(doItAsync(() => f.readAsLines(encoding: v2)));
     });
   });
-  Future.wait(futures).then((_) => asyncEnd());
+  Future.wait(futures).then((_) {
+    temp.deleteSync(recursive: true);
+    asyncEnd();
+  });
 }
 
 fuzzSyncRandomAccessMethods() {
