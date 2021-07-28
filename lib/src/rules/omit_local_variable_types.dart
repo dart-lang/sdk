@@ -101,7 +101,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitVariableDeclarationList(VariableDeclarationList node) {
     var staticType = node.type?.type;
-    if (staticType == null || staticType.isDynamic) {
+    if (staticType == null ||
+        staticType.isDynamic ||
+        staticType.isDartCoreNull) {
       return;
     }
     for (var child in node.variables) {

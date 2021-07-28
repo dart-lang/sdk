@@ -88,3 +88,7 @@ void traverse(LinkedListNode head) {
     // doSomething
   }
 }
+
+void bug2708() {
+  const Null response = null;
+}
