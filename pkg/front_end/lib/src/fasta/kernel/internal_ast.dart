@@ -422,6 +422,7 @@ enum InternalExpressionKind {
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
+  MethodInvocation,
   NullAwareCompoundSet,
   NullAwareExtension,
   NullAwareIfNullSet,
@@ -429,7 +430,9 @@ enum InternalExpressionKind {
   NullAwarePropertyGet,
   NullAwarePropertySet,
   Parenthesized,
+  PropertyGet,
   PropertyPostIncDec,
+  PropertySet,
   StaticPostIncDec,
   SuperIndexSet,
   SuperPostIncDec,
@@ -442,16 +445,19 @@ abstract class InternalExpression extends Expression {
 
   @override
   R accept<R>(ExpressionVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence) {
-      // Allow visitors needed for toString.
+    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
+      // Allow visitors needed for toString and replaceWith.
       return visitor.defaultExpression(this);
     }
-    return unsupported("${runtimeType}.accept", -1, null);
+    return unsupported(
+        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
   }
 
   @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) =>
-      unsupported("${runtimeType}.accept1", -1, null);
+  R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) {
+    return unsupported(
+        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -1341,14 +1347,13 @@ class NullAwarePropertyGet extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     Expression propertyGet = read;
-    if (propertyGet is PropertyGet) {
+    if (propertyGet is InternalPropertyGet) {
       Expression receiver = propertyGet.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
         printer.writeExpression(variable.initializer!);
         printer.write('?.');
-        printer.writeInterfaceMemberName(
-            propertyGet.interfaceTargetReference, propertyGet.name);
+        printer.writeName(propertyGet.name);
         return;
       }
     }
@@ -4523,4 +4528,245 @@ Expression clonePureExpression(Expression node) {
       ..fileOffset = node.fileOffset;
   }
   throw new UnsupportedError("Clone not supported for ${node.runtimeType}.");
+}
+
+/// A dynamically bound method invocation of the form `o.foo()`.
+///
+/// This will be transformed into an [InstanceInvocation], [DynamicInvocation],
+/// [FunctionInvocation] or [StaticInvocation] (for implicit extension method
+/// invocation) after type inference.
+// TODO(johnniwinther): Rename to `MethodInvocation` when [MethodInvocation]
+// has been removed.
+class InternalMethodInvocation extends InternalExpression {
+  Expression receiver;
+
+  Name name;
+
+  Arguments arguments;
+
+  InternalMethodInvocation(this.receiver, this.name, this.arguments)
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(arguments != null) {
+    receiver.parent = this;
+    arguments.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitInternalMethodInvocation(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.MethodInvocation;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver.accept(v);
+    arguments.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (arguments != null) {
+      arguments = v.transform(arguments);
+      arguments.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InternalMethodInvocation(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.writeArguments(arguments);
+  }
+}
+
+/// A dynamically bound property read of the form `o.foo`.
+///
+/// This will be transformed into an [InstanceGet], [InstanceTearOff],
+/// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
+/// extension member access) after type inference.
+// TODO(johnniwinther): Rename to `PropertyGet` when [PropertyGet]
+// has been removed.
+class InternalPropertyGet extends InternalExpression {
+  Expression receiver;
+
+  Name name;
+
+  InternalPropertyGet(this.receiver, this.name)
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null) {
+    receiver.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitInternalPropertyGet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.PropertyGet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InternalPropertyGet(${toStringInternal()})";
+  }
+
+  @override
+  int get precedence => Precedence.PRIMARY;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+  }
+}
+
+/// A dynamically bound property write of the form `o.foo = e`.
+///
+/// This will be transformed into an [InstanceSet], [DynamicSet], or
+/// [StaticInvocation] (for implicit extension member access) after type
+/// inference.
+// TODO(johnniwinther): Rename to `PropertySet` when [PropertySet]
+// has been removed.
+class InternalPropertySet extends InternalExpression {
+  Expression receiver;
+  Name name;
+  Expression value;
+
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// If `true` the receiver can be cloned and doesn't need a temporary variable
+  /// for multiple reads.
+  final bool readOnlyReceiver;
+
+  InternalPropertySet(this.receiver, this.name, this.value,
+      {required this.forEffect, required this.readOnlyReceiver})
+      // ignore: unnecessary_null_comparison
+      : assert(receiver != null),
+        // ignore: unnecessary_null_comparison
+        assert(value != null),
+        // ignore: unnecessary_null_comparison
+        assert(forEffect != null),
+        // ignore: unnecessary_null_comparison
+        assert(readOnlyReceiver != null) {
+    receiver.parent = this;
+    value.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
+    return visitor.visitInternalPropertySet(this, typeContext);
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.PropertySet;
+
+  @override
+  void visitChildren(Visitor v) {
+    receiver.accept(v);
+    name.accept(v);
+    value.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (value != null) {
+      value = v.transform(value);
+      value.parent = this;
+    }
+  }
+
+  @override
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    // ignore: unnecessary_null_comparison
+    if (receiver != null) {
+      receiver = v.transform(receiver);
+      receiver.parent = this;
+    }
+    // ignore: unnecessary_null_comparison
+    if (value != null) {
+      value = v.transform(value);
+      value.parent = this;
+    }
+  }
+
+  @override
+  String toString() {
+    return "InternalPropertySet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver, minimumPrecedence: Precedence.PRIMARY);
+    printer.write('.');
+    printer.writeName(name);
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
 }

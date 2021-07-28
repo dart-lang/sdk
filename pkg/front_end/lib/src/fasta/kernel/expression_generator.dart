@@ -752,7 +752,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildSimpleRead() {
     VariableDeclarationImpl variable =
         _helper.createVariableDeclarationForValue(receiverExpression);
-    PropertyGet read = _forest.createPropertyGet(
+    Expression read = _forest.createPropertyGet(
         fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset,
             forNullGuardedAccess: true),
@@ -765,7 +765,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     VariableDeclarationImpl variable =
         _helper.createVariableDeclarationForValue(receiverExpression);
-    PropertySet read = _helper.forest.createPropertySet(
+    Expression read = _helper.forest.createPropertySet(
         fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset,
             forNullGuardedAccess: true),
