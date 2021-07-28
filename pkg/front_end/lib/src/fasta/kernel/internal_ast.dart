@@ -1357,7 +1357,7 @@ class NullAwarePropertyGet extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     Expression propertyGet = read;
-    if (propertyGet is InternalPropertyGet) {
+    if (propertyGet is PropertyGet) {
       Expression receiver = propertyGet.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
@@ -4533,16 +4533,14 @@ Expression clonePureExpression(Expression node) {
 /// This will be transformed into an [InstanceInvocation], [DynamicInvocation],
 /// [FunctionInvocation] or [StaticInvocation] (for implicit extension method
 /// invocation) after type inference.
-// TODO(johnniwinther): Rename to `MethodInvocation` when [MethodInvocation]
-// has been removed.
-class InternalMethodInvocation extends InternalExpression {
+class MethodInvocation extends InternalExpression {
   Expression receiver;
 
   Name name;
 
   Arguments arguments;
 
-  InternalMethodInvocation(this.receiver, this.name, this.arguments)
+  MethodInvocation(this.receiver, this.name, this.arguments)
       // ignore: unnecessary_null_comparison
       : assert(receiver != null),
         // ignore: unnecessary_null_comparison
@@ -4554,7 +4552,7 @@ class InternalMethodInvocation extends InternalExpression {
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInternalMethodInvocation(this, typeContext);
+    return visitor.visitMethodInvocation(this, typeContext);
   }
 
   @override
@@ -4596,7 +4594,7 @@ class InternalMethodInvocation extends InternalExpression {
 
   @override
   String toString() {
-    return "InternalMethodInvocation(${toStringInternal()})";
+    return "MethodInvocation(${toStringInternal()})";
   }
 
   @override
@@ -4616,14 +4614,12 @@ class InternalMethodInvocation extends InternalExpression {
 /// This will be transformed into an [InstanceGet], [InstanceTearOff],
 /// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
 /// extension member access) after type inference.
-// TODO(johnniwinther): Rename to `PropertyGet` when [PropertyGet]
-// has been removed.
-class InternalPropertyGet extends InternalExpression {
+class PropertyGet extends InternalExpression {
   Expression receiver;
 
   Name name;
 
-  InternalPropertyGet(this.receiver, this.name)
+  PropertyGet(this.receiver, this.name)
       // ignore: unnecessary_null_comparison
       : assert(receiver != null) {
     receiver.parent = this;
@@ -4632,7 +4628,7 @@ class InternalPropertyGet extends InternalExpression {
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInternalPropertyGet(this, typeContext);
+    return visitor.visitPropertyGet(this, typeContext);
   }
 
   @override
@@ -4663,7 +4659,7 @@ class InternalPropertyGet extends InternalExpression {
 
   @override
   String toString() {
-    return "InternalPropertyGet(${toStringInternal()})";
+    return "PropertyGet(${toStringInternal()})";
   }
 
   @override
@@ -4682,9 +4678,7 @@ class InternalPropertyGet extends InternalExpression {
 /// This will be transformed into an [InstanceSet], [DynamicSet], or
 /// [StaticInvocation] (for implicit extension member access) after type
 /// inference.
-// TODO(johnniwinther): Rename to `PropertySet` when [PropertySet]
-// has been removed.
-class InternalPropertySet extends InternalExpression {
+class PropertySet extends InternalExpression {
   Expression receiver;
   Name name;
   Expression value;
@@ -4696,7 +4690,7 @@ class InternalPropertySet extends InternalExpression {
   /// for multiple reads.
   final bool readOnlyReceiver;
 
-  InternalPropertySet(this.receiver, this.name, this.value,
+  PropertySet(this.receiver, this.name, this.value,
       {required this.forEffect, required this.readOnlyReceiver})
       // ignore: unnecessary_null_comparison
       : assert(receiver != null),
@@ -4713,7 +4707,7 @@ class InternalPropertySet extends InternalExpression {
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInternalPropertySet(this, typeContext);
+    return visitor.visitPropertySet(this, typeContext);
   }
 
   @override
@@ -4756,7 +4750,7 @@ class InternalPropertySet extends InternalExpression {
 
   @override
   String toString() {
-    return "InternalPropertySet(${toStringInternal()})";
+    return "PropertySet(${toStringInternal()})";
   }
 
   @override
