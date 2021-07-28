@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 import '../util/dart_type_utilities.dart';
 
 const alwaysFalse = 'Always false because length is always greater or equal 0.';
@@ -80,13 +81,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    var value = _getIntValue(node.rightOperand);
+    // todo(pq): not evaluating constants deliberately but we *should*.
+    // see: https://github.com/dart-lang/linter/issues/2818
+    var value = getIntValue(node.rightOperand, null);
     if (value != null) {
       if (_isLengthAccess(node.leftOperand)) {
         _check(node, value, constantOnRight: true);
       }
     } else {
-      value = _getIntValue(node.leftOperand);
+      value = getIntValue(node.leftOperand, null);
       // ignore: invariant_booleans
       if (value != null) {
         if (_isLengthAccess(node.rightOperand)) {
@@ -189,25 +192,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     return search is T ? search : null;
-  }
-
-  /// Returns the value of an [IntegerLiteral] or [PrefixExpression] with a
-  /// minus and then an [IntegerLiteral]. For anything else, returns `null`.
-  int? _getIntValue(Expression expressions) {
-    if (expressions is IntegerLiteral) {
-      return expressions.value;
-    } else if (expressions is PrefixExpression) {
-      var operand = expressions.operand;
-      if (expressions.operator.type == TokenType.MINUS &&
-          operand is IntegerLiteral) {
-        var value = operand.value;
-        if (value != null) {
-          return -value;
-        }
-      }
-    }
-    // ignore: avoid_returning_null
-    return null;
   }
 
   bool _isLengthAccess(Expression operand) {

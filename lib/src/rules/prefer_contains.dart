@@ -7,16 +7,15 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
 import '../util/dart_type_utilities.dart';
 
 const alwaysFalse =
     'Always false because indexOf is always greater or equal -1.';
-
 const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
-
 const useContains = 'Use contains instead of indexOf';
-const _desc = r'Use contains for `List` and `String` instances.';
 
+const _desc = r'Use contains for `List` and `String` instances.';
 const _details = r'''
 
 **DON'T** use `indexOf` to see if a collection contains an element.
@@ -50,7 +49,7 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addMethodInvocation(this, visitor);
+    registry.addBinaryExpression(this, visitor);
   }
 
   void reportLintWithDescription(AstNode? node, String description) {
@@ -78,59 +77,19 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name != 'indexOf') {
-      return;
-    }
-
-    var parentType = node.target?.staticType;
-    if (parentType == null ||
-        !DartTypeUtilities.implementsAnyInterface(parentType, [
-          InterfaceTypeDefinition('Iterable', 'dart.core'),
-          InterfaceTypeDefinition('String', 'dart.core'),
-        ])) {
-      return;
-    }
-
-    if (node.parent is AssignmentExpression) {
-      // The result of `indexOf` is being assigned before being compared, so
-      // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
-      return;
-    }
-
-    // Going up in AST structure to find binary comparison operator for this
-    // `indexOf` access. Most of the time it will be a parent, but sometimes
-    // it can be wrapped in parentheses or `as` operator.
-    AstNode? search = node;
-    while (
-        search != null && search is Expression && search is! BinaryExpression) {
-      search = search.parent;
-    }
-
-    if (search is! BinaryExpression) {
-      return;
-    }
-
-    var binaryExpression = search;
-    var operator = binaryExpression.operator;
-
-    // Comparing constants with result of indexOf.
-
-    var rightOperand = binaryExpression.rightOperand;
-    var rightValue = context.evaluateConstant(rightOperand).value;
-
-    if (rightValue != null && (rightValue.type?.isDartCoreInt ?? false)) {
-      // Constant is on right side of comparison operator
-      _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
-      return;
-    }
-
-    var leftOperand = binaryExpression.leftOperand;
-    var leftValue = context.evaluateConstant(leftOperand).value;
-    if (leftValue != null && (leftValue.type?.isDartCoreInt ?? false)) {
-      // Constants is on left side of comparison operator
-      _checkConstant(binaryExpression, leftValue.toIntValue(),
-          _invertedTokenType(operator.type));
+  void visitBinaryExpression(BinaryExpression node) {
+    var value = getIntValue(node.rightOperand, context);
+    if (value is int) {
+      if (_isUnassignedIndexOf(node.leftOperand)) {
+        _checkConstant(node, value, node.operator.type);
+      }
+    } else {
+      value = getIntValue(node.leftOperand, context);
+      if (value is int) {
+        if (_isUnassignedIndexOf(node.rightOperand)) {
+          _checkConstant(node, value, _invertedTokenType(node.operator.type));
+        }
+      }
     }
   }
 
@@ -186,5 +145,28 @@ class _Visitor extends SimpleAstVisitor<void> {
       default:
         return type;
     }
+  }
+
+  bool _isUnassignedIndexOf(Expression expression) {
+    // Unwrap parens and `as` expressions.
+    var invocation = expression.unParenthesized;
+    while (invocation is AsExpression) {
+      invocation = invocation.expression;
+    }
+    invocation = invocation.unParenthesized;
+
+    if (invocation is! MethodInvocation) return false;
+
+    // The result of `indexOf` is being assigned before being compared, so
+    // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
+    if (invocation.parent is AssignmentExpression) return false;
+    if (invocation.methodName.name != 'indexOf') return false;
+
+    var parentType = invocation.target?.staticType;
+    return parentType != null &&
+        DartTypeUtilities.implementsAnyInterface(parentType, [
+          InterfaceTypeDefinition('Iterable', 'dart.core'),
+          InterfaceTypeDefinition('String', 'dart.core'),
+        ]);
   }
 }

@@ -41,6 +41,21 @@ SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
   return null;
 }
 
+/// Returns the value of an [IntegerLiteral] or [PrefixExpression] with a
+/// minus and then an [IntegerLiteral]. If a [context] is provided,
+/// [SimpleIdentifier]s are evaluated as as constants. For anything else,
+/// returns `null`.
+int? getIntValue(Expression expression, LinterContext? context) {
+  if (expression is PrefixExpression) {
+    var operand = expression.operand;
+    // todo(pq): remove once 1.8.0 is landed.
+    // ignore: avoid_returning_null
+    if (expression.operator.type != TokenType.MINUS) return null;
+    return _getIntValue(operand, context, negated: true);
+  }
+  return _getIntValue(expression, context);
+}
+
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
   var mostSpecific = _getNodeToAnnotate(node);
@@ -313,6 +328,21 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   }
 
   return false;
+}
+
+int? _getIntValue(Expression expression, LinterContext? context,
+    {bool negated = false}) {
+  int? value;
+  if (expression is IntegerLiteral) {
+    value = expression.value;
+  } else if (expression is SimpleIdentifier && context != null) {
+    value = context.evaluateConstant(expression).value?.toIntValue();
+  }
+  // todo(pq): remove once 1.8.0 is landed.
+  // ignore: avoid_returning_null
+  if (value is! int) return null;
+
+  return negated ? -value : value;
 }
 
 AstNode? _getNodeToAnnotate(Declaration node) {
