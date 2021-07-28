@@ -2855,7 +2855,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // read flags.
   const uint8_t flags = is_dynamic ? 0 : ReadFlags();
-  const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
+  const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;

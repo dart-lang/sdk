@@ -1260,7 +1260,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // environment.
       // For const functions, recompute getters instead of using the cached
       // value.
-      bool isGetter = node is InstanceGet || node is PropertyGet;
+      bool isGetter = node is InstanceGet;
       if (nodeCache.containsKey(node) && !(enableConstFunctions && isGetter)) {
         Constant? cachedResult = nodeCache[node];
         if (cachedResult == null) {
@@ -1283,7 +1283,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        bool isRecursiveFunctionCall = node is MethodInvocation ||
+        bool isRecursiveFunctionCall =
             node is InstanceInvocation ||
             node is FunctionInvocation ||
             node is LocalFunctionInvocation ||
@@ -2486,52 +2486,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 
   @override
-  Constant visitMethodInvocation(MethodInvocation node) {
-    // We have no support for generic method invocation at the moment.
-    if (node.arguments.types.isNotEmpty && !enableConstFunctions) {
-      return createInvalidExpressionConstant(node, "generic method invocation");
-    }
-
-    // We have no support for method invocation with named arguments at the
-    // moment.
-    if (node.arguments.named.isNotEmpty && !enableConstFunctions) {
-      return createInvalidExpressionConstant(
-          node, "method invocation with named arguments");
-    }
-
-    final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is AbortConstant) return receiver;
-
-    final List<Constant>? positionalArguments =
-        _evaluatePositionalArguments(node.arguments);
-
-    if (positionalArguments == null) {
-      AbortConstant error = _gotError!;
-      _gotError = null;
-      return error;
-    }
-    assert(_gotError == null);
-    // ignore: unnecessary_null_comparison
-    assert(positionalArguments != null);
-
-    if (shouldBeUnevaluated) {
-      return unevaluated(
-          node,
-          new MethodInvocation(
-              extract(receiver),
-              node.name,
-              unevaluatedArguments(
-                  positionalArguments, {}, node.arguments.types),
-              node.interfaceTarget)
-            ..fileOffset = node.fileOffset
-            ..flags = node.flags);
-    }
-
-    return _handleInvocation(node, node.name, receiver, positionalArguments,
-        arguments: node.arguments);
-  }
-
-  @override
   Constant visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
     if (left is AbortConstant) return left;
@@ -2757,87 +2711,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         node,
         templateConstEvalInvalidPropertyGet.withArguments(
             Name.callName.text, receiver, isNonNullableByDefault));
-  }
-
-  @override
-  Constant visitPropertyGet(PropertyGet node) {
-    if (node.receiver is ThisExpression) {
-      // Probably unreachable unless trying to evaluate non-const stuff as
-      // const.
-      // Access "this" during instance creation.
-      if (instanceBuilder == null) {
-        return createErrorConstant(node, messageNotAConstantExpression);
-      }
-
-      for (final MapEntry<Field, Constant> entry
-          in instanceBuilder!.fields.entries) {
-        final Field field = entry.key;
-        if (field.name == node.name) {
-          return entry.value;
-        }
-      }
-
-      // Meant as a "stable backstop for situations where Fasta fails to
-      // rewrite various erroneous constructs into invalid expressions".
-      // Probably unreachable.
-      return createInvalidExpressionConstant(node,
-          'Could not evaluate field get ${node.name} on incomplete instance');
-    }
-
-    final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is AbortConstant) return receiver;
-    if (receiver is StringConstant && node.name.text == 'length') {
-      return canonicalize(intFolder.makeIntConstant(receiver.value.length));
-    } else if (shouldBeUnevaluated) {
-      return unevaluated(node,
-          new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
-    } else if (receiver is NullConstant) {
-      return createErrorConstant(node, messageConstEvalNullValue);
-    } else if (receiver is ListConstant && enableConstFunctions) {
-      switch (node.name.text) {
-        case 'first':
-          if (receiver.entries.isEmpty) {
-            return new _AbortDueToThrowConstant(
-                node, new StateError('No element'));
-          }
-          return receiver.entries.first;
-        case 'isEmpty':
-          return new BoolConstant(receiver.entries.isEmpty);
-        case 'isNotEmpty':
-          return new BoolConstant(receiver.entries.isNotEmpty);
-        // TODO(kallentu): case 'iterator'
-        case 'last':
-          if (receiver.entries.isEmpty) {
-            return new _AbortDueToThrowConstant(
-                node, new StateError('No element'));
-          }
-          return receiver.entries.last;
-        case 'length':
-          return new IntConstant(receiver.entries.length);
-        // TODO(kallentu): case 'reversed'
-        case 'single':
-          if (receiver.entries.isEmpty) {
-            return new _AbortDueToThrowConstant(
-                node, new StateError('No element'));
-          } else if (receiver.entries.length > 1) {
-            return new _AbortDueToThrowConstant(
-                node, new StateError('Too many elements'));
-          }
-          return receiver.entries.single;
-      }
-    } else if (receiver is InstanceConstant && enableConstFunctions) {
-      for (final MapEntry<Reference, Constant> entry
-          in receiver.fieldValues.entries) {
-        final Field field = entry.key.asField;
-        if (field.name == node.name) {
-          return entry.value;
-        }
-      }
-    }
-    return createErrorConstant(
-        node,
-        templateConstEvalInvalidPropertyGet.withArguments(
-            node.name.text, receiver, isNonNullableByDefault));
   }
 
   @override
@@ -3791,9 +3664,6 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
-
-  @override
-  Constant visitPropertySet(PropertySet node) => defaultExpression(node);
 
   @override
   Constant visitRethrow(Rethrow node) => defaultExpression(node);

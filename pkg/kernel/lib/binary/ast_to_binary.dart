@@ -1529,15 +1529,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitPropertyGet(PropertyGet node) {
-    writeByte(Tag.PropertyGet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeName(node.name);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
-  }
-
-  @override
   void visitDynamicSet(DynamicSet node) {
     writeByte(Tag.DynamicSet);
     writeByte(node.kind.index);
@@ -1556,16 +1547,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeName(node.name);
     writeNode(node.value);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    writeByte(Tag.PropertySet);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeName(node.name);
-    writeNode(node.value);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override
@@ -1705,17 +1686,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUInt30(index);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    writeByte(Tag.MethodInvocation);
-    writeByte(node.flags);
-    writeOffset(node.fileOffset);
-    writeNode(node.receiver);
-    writeName(node.name);
-    writeArgumentsNode(node.arguments);
-    writeNullAllowedInstanceMemberReference(node.interfaceTargetReference);
   }
 
   @override

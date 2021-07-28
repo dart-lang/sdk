@@ -244,7 +244,9 @@ main() {
     'Dangling field get',
     (TestHarness test) {
       Field orphan = new Field.mutable(new Name('foo'), fileUri: dummyUri);
-      test.addNode(new PropertyGet(new NullLiteral(), orphan.name, orphan));
+      test.addNode(new InstanceGet(
+          InstanceAccessKind.Instance, new NullLiteral(), orphan.name,
+          interfaceTarget: orphan, resultType: orphan.getterType));
       return orphan;
     },
     (Node? node) => "Dangling reference to '$node', parent is: 'null'.",

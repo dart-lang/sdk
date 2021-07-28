@@ -80,8 +80,8 @@ void test() {
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outerLetVar,
-              new Let(innerLetVar, new VariableGet(outerLetVar))));
+          return new ExpressionStatement(new Let(
+              outerLetVar, new Let(innerLetVar, new VariableGet(outerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
@@ -95,8 +95,8 @@ void test() {
               type: const DynamicType(), initializer: new IntLiteral(42));
           VariableDeclaration innerLetVar = new VariableDeclaration('x',
               type: const NullType(), initializer: new NullLiteral());
-          return new ExpressionStatement(new Let(outerLetVar,
-              new Let(innerLetVar, new VariableGet(innerLetVar))));
+          return new ExpressionStatement(new Let(
+              outerLetVar, new Let(innerLetVar, new VariableGet(innerLetVar))));
         }(),
         expectation: ''
             '(expr (let "x^0" () (dynamic) (int 42) ()'
@@ -246,10 +246,14 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new PropertyGet.byReference(
-              new VariableGet(x), field.name, field.getterReference)),
+          node: new ExpressionStatement(new InstanceGet.byReference(
+              InstanceAccessKind.Instance, new VariableGet(x), field.name,
+              interfaceTargetReference: field.getterReference,
+              resultType: field.getterType)),
           expectation: ''
-              '(expr (get-prop (get-var "x^0" _) (public "field")))',
+              '(expr (get-instance (instance) (get-var "x^0" _) '
+              '(public "field") "package:foo/bar.dart::A::@getters::field" '
+              '(dynamic)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -274,10 +278,14 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field};',
-          node: new ExpressionStatement(new PropertyGet.byReference(
-              new VariableGet(x), field.name, field.getterReference)),
+          node: new ExpressionStatement(new InstanceGet.byReference(
+              InstanceAccessKind.Instance, new VariableGet(x), field.name,
+              interfaceTargetReference: field.getterReference,
+              resultType: field.getterType)),
           expectation: ''
-              '(expr (get-prop (get-var "x^0" _) (public "field")))',
+              '(expr (get-instance (instance) (get-var "x^0" _) '
+              '(public "field") "package:foo/bar.dart::A::@getters::field" '
+              '(dynamic)))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -302,13 +310,16 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {dynamic field;} A x; */ x.{A::field} = 42;',
-          node: new ExpressionStatement(PropertySet.byReference(
+          node: new ExpressionStatement(InstanceSet.byReference(
+              InstanceAccessKind.Instance,
               new VariableGet(x),
               field.name,
               new IntLiteral(42),
-              field.setterReference)),
+              interfaceTargetReference: field.setterReference!)),
           expectation: ''
-              '(expr (set-prop (get-var "x^0" _) (public "field") (int 42)))',
+              '(expr (set-instance (instance) (get-var "x^0" _) '
+              '(public "field") (int 42) '
+              '"package:foo/bar.dart::A::@setters::field"))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')
@@ -335,14 +346,18 @@ void test() {
           new VariableDeclaration('x', type: const DynamicType());
       return new TestCase<Statement>(
           name: '/* suppose A {foo() {...}} A x; */ x.{A::foo}();',
-          node: new ExpressionStatement(new MethodInvocation.byReference(
+          node: new ExpressionStatement(new InstanceInvocation.byReference(
+              InstanceAccessKind.Instance,
               new VariableGet(x),
               method.name,
               new Arguments([]),
-              method.reference)),
+              interfaceTargetReference: method.reference,
+              functionType: method.getterType as FunctionType)),
           expectation: ''
-              '(expr (invoke-method (get-var "x^0" _) (public "foo")'
-              ' () () ()))',
+              '(expr (invoke-instance (instance) (get-var "x^0" _) '
+              '(public "foo") () () () '
+              '"package:foo/bar.dart::A::@methods::foo" '
+              '(-> () () () () () () (dynamic))))',
           makeSerializationState: () =>
               new SerializationState(new SerializationEnvironment(null)
                 ..addBinder(x, nameClue: 'x')

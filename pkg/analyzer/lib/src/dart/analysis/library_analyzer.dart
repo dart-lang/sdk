@@ -353,8 +353,7 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(
-        nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
+    unit.accept(LinterVisitor(nodeRegistry));
 
     // Run visitor based lints.
     if (visitors.isNotEmpty) {

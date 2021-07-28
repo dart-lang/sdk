@@ -1960,16 +1960,12 @@ class BinaryBuilder {
         return _readVariableSet();
       case Tag.SpecializedVariableSet:
         return _readSpecializedVariableSet(tagByte);
-      case Tag.PropertyGet:
-        return _readPropertyGet();
       case Tag.InstanceGet:
         return _readInstanceGet();
       case Tag.InstanceTearOff:
         return _readInstanceTearOff();
       case Tag.DynamicGet:
         return _readDynamicGet();
-      case Tag.PropertySet:
-        return _readPropertySet();
       case Tag.InstanceSet:
         return _readInstanceSet();
       case Tag.DynamicSet:
@@ -1990,8 +1986,6 @@ class BinaryBuilder {
         return _readTypedefTearOff();
       case Tag.RedirectingFactoryTearOff:
         return _readRedirectingFactoryTearOff();
-      case Tag.MethodInvocation:
-        return _readMethodInvocation();
       case Tag.InstanceInvocation:
         return _readInstanceInvocation();
       case Tag.InstanceGetterInvocation:
@@ -2142,13 +2136,6 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
-  Expression _readPropertyGet() {
-    int offset = readOffset();
-    return new PropertyGet.byReference(
-        readExpression(), readName(), readNullableInstanceMemberReference())
-      ..fileOffset = offset;
-  }
-
   Expression _readInstanceGet() {
     InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
     int offset = readOffset();
@@ -2171,13 +2158,6 @@ class BinaryBuilder {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
     int offset = readOffset();
     return new DynamicGet(kind, readExpression(), readName())
-      ..fileOffset = offset;
-  }
-
-  Expression _readPropertySet() {
-    int offset = readOffset();
-    return new PropertySet.byReference(readExpression(), readName(),
-        readExpression(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2252,15 +2232,6 @@ class BinaryBuilder {
     return new StaticSet.byReference(
         readNonNullMemberReference(), readExpression())
       ..fileOffset = offset;
-  }
-
-  Expression _readMethodInvocation() {
-    int flags = readByte();
-    int offset = readOffset();
-    return new MethodInvocation.byReference(readExpression(), readName(),
-        readArguments(), readNullableInstanceMemberReference())
-      ..fileOffset = offset
-      ..flags = flags;
   }
 
   Expression _readInstanceInvocation() {

@@ -46,7 +46,6 @@ class CollectionTransformer extends Transformer {
   final Procedure _setAddAll;
   late final FunctionType _setAddAllFunctionType;
   final Procedure _setOf;
-  final Procedure _objectEquals;
   final Procedure _mapEntries;
   final Procedure _mapPut;
   late final FunctionType _mapPutFunctionType;
@@ -54,7 +53,6 @@ class CollectionTransformer extends Transformer {
   final Field _mapEntryKey;
   final Field _mapEntryValue;
   final SourceLoaderDataForTesting? _dataForTesting;
-  final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
@@ -83,8 +81,6 @@ class CollectionTransformer extends Transformer {
         _setAddAll =
             _loader.coreTypes.index.getProcedure('dart:core', 'Set', 'addAll'),
         _setOf = _findSetFactory(_loader.coreTypes, 'of'),
-        _objectEquals =
-            _loader.coreTypes.index.getProcedure('dart:core', 'Object', '=='),
         _mapEntries = _loader.coreTypes.index
             .getProcedure('dart:core', 'Map', 'get:entries'),
         _mapPut =
@@ -95,9 +91,7 @@ class CollectionTransformer extends Transformer {
             _loader.coreTypes.index.getField('dart:core', 'MapEntry', 'key'),
         _mapEntryValue =
             _loader.coreTypes.index.getField('dart:core', 'MapEntry', 'value'),
-        _dataForTesting = _loader.dataForTesting,
-        useNewMethodInvocationEncoding =
-            _loader.target.backendTarget.supportsNewMethodInvocationEncoding {
+        _dataForTesting = _loader.dataForTesting {
     _listAddFunctionType = _listAdd.getterType as FunctionType;
     _listAddAllFunctionType = _listAddAll.getterType as FunctionType;
     _setAddFunctionType = _setAdd.getterType as FunctionType;
@@ -908,24 +902,17 @@ class CollectionTransformer extends Transformer {
     assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
-    if (useNewMethodInvocationEncoding) {
-      DartType functionType = Substitution.fromInterfaceType(receiverType)
-          .substituteType(isSet ? _setAddFunctionType : _listAddFunctionType);
-      if (!_currentLibrary!.isNonNullableByDefault) {
-        functionType = legacyErasure(functionType);
-      }
-      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
-          new Name('add'), new Arguments([argument]),
-          functionType: functionType as FunctionType,
-          interfaceTarget: isSet ? _setAdd : _listAdd)
-        ..fileOffset = argument.fileOffset
-        ..isInvariant = true;
-    } else {
-      return new MethodInvocation(receiver, new Name('add'),
-          new Arguments([argument]), isSet ? _setAdd : _listAdd)
-        ..fileOffset = argument.fileOffset
-        ..isInvariant = true;
+    DartType functionType = Substitution.fromInterfaceType(receiverType)
+        .substituteType(isSet ? _setAddFunctionType : _listAddFunctionType);
+    if (!_currentLibrary!.isNonNullableByDefault) {
+      functionType = legacyErasure(functionType);
     }
+    return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+        new Name('add'), new Arguments([argument]),
+        functionType: functionType as FunctionType,
+        interfaceTarget: isSet ? _setAdd : _listAdd)
+      ..fileOffset = argument.fileOffset
+      ..isInvariant = true;
   }
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
@@ -936,43 +923,26 @@ class CollectionTransformer extends Transformer {
     assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
-    if (useNewMethodInvocationEncoding) {
-      DartType functionType = Substitution.fromInterfaceType(receiverType)
-          .substituteType(
-              isSet ? _setAddAllFunctionType : _listAddAllFunctionType);
-      if (!_currentLibrary!.isNonNullableByDefault) {
-        functionType = legacyErasure(functionType);
-      }
-      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
-          new Name('addAll'), new Arguments([argument]),
-          functionType: functionType as FunctionType,
-          interfaceTarget: isSet ? _setAddAll : _listAddAll)
-        ..fileOffset = argument.fileOffset
-        ..isInvariant = true;
-    } else {
-      return new MethodInvocation(receiver, new Name('addAll'),
-          new Arguments([argument]), isSet ? _setAddAll : _listAddAll)
-        ..fileOffset = argument.fileOffset
-        ..isInvariant = true;
+    DartType functionType = Substitution.fromInterfaceType(receiverType)
+        .substituteType(
+            isSet ? _setAddAllFunctionType : _listAddAllFunctionType);
+    if (!_currentLibrary!.isNonNullableByDefault) {
+      functionType = legacyErasure(functionType);
     }
+    return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+        new Name('addAll'), new Arguments([argument]),
+        functionType: functionType as FunctionType,
+        interfaceTarget: isSet ? _setAddAll : _listAddAll)
+      ..fileOffset = argument.fileOffset
+      ..isInvariant = true;
   }
 
   Expression _createEqualsNull(Expression expression, {bool notEquals: false}) {
     // ignore: unnecessary_null_comparison
     assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
-    Expression check;
-    if (useNewMethodInvocationEncoding) {
-      check = new EqualsNull(expression)..fileOffset = expression.fileOffset;
-    } else {
-      check = new MethodInvocation(
-          expression,
-          new Name('=='),
-          new Arguments(
-              [new NullLiteral()..fileOffset = expression.fileOffset]),
-          _objectEquals)
-        ..fileOffset = expression.fileOffset;
-    }
+    Expression check = new EqualsNull(expression)
+      ..fileOffset = expression.fileOffset;
     if (notEquals) {
       check = new Not(check)..fileOffset = expression.fileOffset;
     }
@@ -984,23 +954,16 @@ class CollectionTransformer extends Transformer {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    if (useNewMethodInvocationEncoding) {
-      DartType functionType = Substitution.fromInterfaceType(receiverType)
-          .substituteType(_mapPutFunctionType);
-      if (!_currentLibrary!.isNonNullableByDefault) {
-        functionType = legacyErasure(functionType);
-      }
-      return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
-          new Name('[]='), new Arguments([key, value]),
-          functionType: functionType as FunctionType, interfaceTarget: _mapPut)
-        ..fileOffset = fileOffset
-        ..isInvariant = true;
-    } else {
-      return new MethodInvocation(
-          receiver, new Name('[]='), new Arguments([key, value]), _mapPut)
-        ..fileOffset = fileOffset
-        ..isInvariant = true;
+    DartType functionType = Substitution.fromInterfaceType(receiverType)
+        .substituteType(_mapPutFunctionType);
+    if (!_currentLibrary!.isNonNullableByDefault) {
+      functionType = legacyErasure(functionType);
     }
+    return new InstanceInvocation(InstanceAccessKind.Instance, receiver,
+        new Name('[]='), new Arguments([key, value]),
+        functionType: functionType as FunctionType, interfaceTarget: _mapPut)
+      ..fileOffset = fileOffset
+      ..isInvariant = true;
   }
 
   AsExpression _createImplicitAs(
@@ -1027,17 +990,12 @@ class CollectionTransformer extends Transformer {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    if (useNewMethodInvocationEncoding) {
-      DartType resultType = Substitution.fromInterfaceType(entryType)
-          .substituteType(_mapEntryKey.type);
-      return new InstanceGet(
-          InstanceAccessKind.Instance, receiver, new Name('key'),
-          interfaceTarget: _mapEntryKey, resultType: resultType)
-        ..fileOffset = fileOffset;
-    } else {
-      return new PropertyGet(receiver, new Name('key'), _mapEntryKey)
-        ..fileOffset = fileOffset;
-    }
+    DartType resultType = Substitution.fromInterfaceType(entryType)
+        .substituteType(_mapEntryKey.type);
+    return new InstanceGet(
+        InstanceAccessKind.Instance, receiver, new Name('key'),
+        interfaceTarget: _mapEntryKey, resultType: resultType)
+      ..fileOffset = fileOffset;
   }
 
   Expression _createGetValue(
@@ -1045,17 +1003,12 @@ class CollectionTransformer extends Transformer {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    if (useNewMethodInvocationEncoding) {
-      DartType resultType = Substitution.fromInterfaceType(entryType)
-          .substituteType(_mapEntryValue.type);
-      return new InstanceGet(
-          InstanceAccessKind.Instance, receiver, new Name('value'),
-          interfaceTarget: _mapEntryValue, resultType: resultType)
-        ..fileOffset = fileOffset;
-    } else {
-      return new PropertyGet(receiver, new Name('value'), _mapEntryValue)
-        ..fileOffset = fileOffset;
-    }
+    DartType resultType = Substitution.fromInterfaceType(entryType)
+        .substituteType(_mapEntryValue.type);
+    return new InstanceGet(
+        InstanceAccessKind.Instance, receiver, new Name('value'),
+        interfaceTarget: _mapEntryValue, resultType: resultType)
+      ..fileOffset = fileOffset;
   }
 
   Expression _createGetEntries(
@@ -1063,17 +1016,12 @@ class CollectionTransformer extends Transformer {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
-    if (useNewMethodInvocationEncoding) {
-      DartType resultType = Substitution.fromInterfaceType(mapType)
-          .substituteType(_mapEntries.getterType);
-      return new InstanceGet(
-          InstanceAccessKind.Instance, receiver, new Name('entries'),
-          interfaceTarget: _mapEntries, resultType: resultType)
-        ..fileOffset = fileOffset;
-    } else {
-      return new PropertyGet(receiver, new Name('entries'), _mapEntries)
-        ..fileOffset = fileOffset;
-    }
+    DartType resultType = Substitution.fromInterfaceType(mapType)
+        .substituteType(_mapEntries.getterType);
+    return new InstanceGet(
+        InstanceAccessKind.Instance, receiver, new Name('entries'),
+        interfaceTarget: _mapEntries, resultType: resultType)
+      ..fileOffset = fileOffset;
   }
 
   ForStatement _createForStatement(

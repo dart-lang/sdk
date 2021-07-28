@@ -260,7 +260,7 @@ abstract class MethodInvocationScanner<Y extends TreeNode?>
     return result;
   }
 
-  void visitMethodInvocation(MethodInvocation node) {
+  void visitInstanceInvocation(InstanceInvocation node) {
     if (predicate(node)) {
       _result!.targets[node] = next?.scan(node);
       // TODO: Update result.errors.

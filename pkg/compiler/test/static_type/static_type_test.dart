@@ -86,9 +86,6 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
   String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
       return typeToText(node.accept(staticTypeCache));
-    } else if (node is ir.MethodInvocation) {
-      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
-          '${typeToText(node.accept(staticTypeCache))}';
     } else if (node is ir.InstanceInvocation) {
       return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
           '${typeToText(node.accept(staticTypeCache))}';

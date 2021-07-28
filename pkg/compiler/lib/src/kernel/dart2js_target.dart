@@ -105,9 +105,6 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
-
-  @override
   int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
 
   @override

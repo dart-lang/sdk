@@ -1245,9 +1245,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     // TODO(efortuna): This is screaming for a common interface between
     // PropertyGet and SuperPropertyGet (and same for *Get). Talk to kernel
     // folks.
-    if (node is ir.PropertyGet) {
-      return getGetterSelector(node.name);
-    }
     if (node is ir.InstanceGet) {
       return getGetterSelector(node.name);
     }
@@ -1262,9 +1259,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
     if (node is ir.SuperPropertyGet) {
       return getGetterSelector(node.name);
-    }
-    if (node is ir.PropertySet) {
-      return getSetterSelector(node.name);
     }
     if (node is ir.InstanceSet) {
       return getSetterSelector(node.name);

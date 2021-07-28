@@ -157,11 +157,6 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType>
   }
 
   @override
-  ir.DartType visitPropertySet(ir.PropertySet node) {
-    return visitNode(node.value);
-  }
-
-  @override
   ThisInterfaceType visitThisExpression(ir.ThisExpression node) => thisType;
 
   @override

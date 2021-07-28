@@ -437,39 +437,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a MethodInvocation.");
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitPropertyGet(PropertyGet node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a PropertyGet.");
-    }
-    super.visitPropertyGet(node);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a PropertySet.");
-    }
-    super.visitPropertySet(node);
-  }
-
-  @override
   void defaultTreeNode(TreeNode node) {
     enterTreeNode(node);
     super.defaultTreeNode(node);

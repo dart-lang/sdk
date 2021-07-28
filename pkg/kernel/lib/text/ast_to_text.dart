@@ -1538,23 +1538,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('null');
   }
 
-  visitMethodInvocation(MethodInvocation node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-    List<String> flags = <String>[];
-    if (node.isInvariant) {
-      flags.add('Invariant');
-    }
-    if (node.isBoundsSafe) {
-      flags.add('BoundsSafe');
-    }
-    if (flags.isNotEmpty) {
-      write('{${flags.join(',')}}');
-    }
-    writeNode(node.arguments);
-  }
-
   visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
@@ -1985,12 +1968,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitPropertyGet(PropertyGet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-  }
-
   visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
@@ -2004,14 +1981,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     _writeInstanceAccessKind(node.kind);
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitPropertySet(PropertySet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2825,9 +2794,6 @@ class Precedence implements ExpressionVisitor<int> {
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
 
   @override
-  int visitMethodInvocation(MethodInvocation node) => CALLEE;
-
-  @override
   int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
 
   @override
@@ -2931,9 +2897,6 @@ class Precedence implements ExpressionVisitor<int> {
   int visitVariableSet(VariableSet node) => EXPRESSION;
 
   @override
-  int visitPropertyGet(PropertyGet node) => PRIMARY;
-
-  @override
   int visitInstanceGet(InstanceGet node) => PRIMARY;
 
   @override
@@ -2944,9 +2907,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
-
-  @override
-  int visitPropertySet(PropertySet node) => EXPRESSION;
 
   @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;

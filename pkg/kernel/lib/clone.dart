@@ -164,16 +164,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     return new VariableSet(getVariableClone(node.variable)!, clone(node.value));
   }
 
-  visitPropertyGet(PropertyGet node) {
-    return new PropertyGet.byReference(
-        clone(node.receiver), node.name, node.interfaceTargetReference);
-  }
-
-  visitPropertySet(PropertySet node) {
-    return new PropertySet.byReference(clone(node.receiver), node.name,
-        clone(node.value), node.interfaceTargetReference);
-  }
-
   visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
         node.name, node.interfaceTargetReference);
@@ -190,12 +180,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   visitStaticSet(StaticSet node) {
     return new StaticSet.byReference(node.targetReference, clone(node.value));
-  }
-
-  visitMethodInvocation(MethodInvocation node) {
-    return new MethodInvocation.byReference(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTargetReference)
-      ..flags = node.flags;
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {

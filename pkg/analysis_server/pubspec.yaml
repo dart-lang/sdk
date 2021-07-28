@@ -24,6 +24,8 @@ dependencies:
   linter: any
   meta:
     path: ../meta
+  process:
+    path: ../../third_party/pkg/process
   stream_channel: any
   telemetry:
     path: ../telemetry

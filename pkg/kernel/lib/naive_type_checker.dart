@@ -287,7 +287,6 @@ super method declares ${superParameter.type}
                 receiver == environment.coreTypes.functionNonNullableRawType ||
                 receiver is FunctionType) &&
             (where is InvocationExpression && where.name.text == 'call') ||
-        (where is PropertyGet && where.name.text == 'call') ||
         where is FunctionTearOff) {
       return;
     }

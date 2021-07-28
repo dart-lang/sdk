@@ -60,18 +60,6 @@ class AnnotateWithStaticTypes extends RecursiveVisitor {
   }
 
   @override
-  visitPropertyGet(PropertyGet node) =>
-      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
-
-  @override
-  visitPropertySet(PropertySet node) =>
-      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
-
-  @override
-  visitMethodInvocation(MethodInvocation node) =>
-      throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
-
-  @override
   visitInstanceSet(InstanceSet node) {
     super.visitInstanceSet(node);
 

@@ -21,7 +21,6 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Name,
         ProcedureKind,
-        PropertyGet,
         Reference,
         ReturnStatement,
         StaticGet,
@@ -462,15 +461,10 @@ class EnumBuilder extends SourceClassBuilder {
     Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder =
         firstMemberNamed("toString") as ProcedureBuilder;
-    if (libraryBuilder
-        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
-      toStringBuilder.body = new ReturnStatement(new InstanceGet(
-          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-          interfaceTarget: nameField, resultType: nameField.type));
-    } else {
-      toStringBuilder.body = new ReturnStatement(
-          new PropertyGet(new ThisExpression(), nameField.name, nameField));
-    }
+    toStringBuilder.body = new ReturnStatement(new InstanceGet(
+        InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+        interfaceTarget: nameField, resultType: nameField.type));
+
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
