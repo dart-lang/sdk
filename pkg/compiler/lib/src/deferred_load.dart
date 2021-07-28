@@ -114,7 +114,7 @@ class DeferredLoadTask extends CompilerTask {
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
 
-  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
+  static const ImpactUseCase IMPACT_USE = ImpactUseCase('Deferred load');
 
   /// A cache of the result of calling `computeImportDeferName` on the keys of
   /// this map.
@@ -257,7 +257,7 @@ class DeferredLoadTask extends CompilerTask {
     // Fetch the internal node in order to skip annotations on the member.
     // TODO(sigmund): replace this pattern when the kernel-ast provides a better
     // way to skip annotations (issue 31565).
-    var visitor = new ConstantCollector(
+    var visitor = ConstantCollector(
         _elementMap, _elementMap.getStaticTypeContext(element), dependencies);
     if (node is ir.Field) {
       node.initializer?.accept(visitor);
@@ -1540,7 +1540,7 @@ class OutputUnitData {
   /// Returns the [OutputUnit] where [cls] belongs.
   // TODO(johnniwinther): Remove the need for [allowNull]. Dump-info currently
   // needs it.
-  OutputUnit outputUnitForClass(ClassEntity cls, {bool allowNull: false}) {
+  OutputUnit outputUnitForClass(ClassEntity cls, {bool allowNull = false}) {
     if (!isProgramSplit) return mainOutputUnit;
     OutputUnit unit = _classToUnit[cls];
     assert(allowNull || unit != null, 'No output unit for class $cls');
@@ -1551,7 +1551,7 @@ class OutputUnitData {
 
   /// Returns the [OutputUnit] where [cls]'s type belongs.
   // TODO(joshualitt): see above TODO regarding allowNull.
-  OutputUnit outputUnitForClassType(ClassEntity cls, {bool allowNull: false}) {
+  OutputUnit outputUnitForClassType(ClassEntity cls, {bool allowNull = false}) {
     if (!isProgramSplit) return mainOutputUnit;
     OutputUnit unit = _classTypeToUnit[cls];
     assert(allowNull || unit != null, 'No output unit for type $cls');
@@ -1665,7 +1665,7 @@ class OutputUnitData {
 /// The filename is of the form "<main output file>_<name>.part.js".
 /// If [addExtension] is false, the ".part.js" suffix is left out.
 String deferredPartFileName(CompilerOptions options, String name,
-    {bool addExtension: true}) {
+    {bool addExtension = true}) {
   assert(name != "");
   String outPath = options.outputUri != null ? options.outputUri.path : "out";
   String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
@@ -1811,7 +1811,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
 
   CommonElements get commonElements => elementMap.commonElements;
 
-  void add(ir.Expression node, {bool required: true}) {
+  void add(ir.Expression node, {bool required = true}) {
     ConstantValue constant = elementMap
         .getConstantValue(staticTypeContext, node, requireConstant: required);
     if (constant != null) {
