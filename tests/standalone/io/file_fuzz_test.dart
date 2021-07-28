@@ -66,7 +66,7 @@ fuzzAsyncMethods() async {
         futures.add(doItAsync(() => f.readAsLines(encoding: v2 as Encoding)));
       });
     });
-    Future.wait(futures).then((_) {
+    await Future.wait(futures).then((_) {
       asyncEnd();
     });
   });
@@ -120,7 +120,7 @@ fuzzAsyncRandomAccessMethods() async {
         futures.add(doItAsync(() => opened.writeFrom(p[0], p[1], p[2])));
       }
     }
-    Future.wait(futures).then((ignore) {
+    await Future.wait(futures).then((ignore) {
       for (var opened in openedFiles) {
         opened.closeSync();
       }
