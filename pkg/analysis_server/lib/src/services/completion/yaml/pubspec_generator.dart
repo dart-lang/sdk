@@ -37,25 +37,18 @@ class PubPackageVersionProducer extends Producer {
   @override
   Iterable<CompletionSuggestion> suggestions(
       YamlCompletionRequest request) sync* {
-    final versions = request.pubPackageService
-        ?.cachedPubOutdatedVersions(request.filePath, package);
-    final resolvable = versions?.resolvableVersion;
-    var latest = versions?.latestVersion;
-
-    // If we didn't get a latest version from the "pub outdated" results, we can
-    // use the result from the Pub API if we've called it (this will usually
-    // only be the case for LSP where a resolve() call was sent).
+    // TOOD(dantup): Consider supporting async completion requests so this
+    // could call packageDetails() (with a short timeout, and pub retries
+    // disabled). A user that explicitly invokes completion in the location
+    // of a version may be prepared to wait a short period for a web request
+    // to get completion versions (this is also the only way for non-LSP
+    // clients to get them, since there are no resolve calls).
     //
-    // This allows us (in some cases) to still show version numbers even if the
-    // package was newly added to pubspec and not saved, so not yet in the
-    // "pub outdated" results.
-    latest ??= request.pubPackageService?.cachedPubApiLatestVersion(package);
-
-    if (resolvable != null && resolvable != latest) {
-      yield identifier('^$resolvable', docComplete: '_latest compatible_');
-    }
-    if (latest != null) {
-      yield identifier('^$latest', docComplete: '_latest_');
+    // Supporting this will require making the completion async further up.
+    final details = request.pubPackageService?.cachedPackageDetails(package);
+    final version = details?.latestVersion;
+    if (version != null) {
+      yield identifier('^$version');
     }
   }
 }

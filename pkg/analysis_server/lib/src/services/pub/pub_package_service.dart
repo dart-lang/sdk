@@ -6,11 +6,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/pub/pub_api.dart';
-import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// Information about Pub packages that can be converted to/from JSON and
 /// cached to disk.
@@ -131,27 +130,16 @@ class PubPackage {
 
 /// A service for providing Pub package information.
 ///
-/// Uses a [PubApi] to communicate with the Pub API and a [PubCommand] to
-/// interact with the local `pub` command.
-///
-/// Expensive results are cached to disk using [resourceProvider].
+/// Uses a [PubApi] to communicate with Pub and caches to disk using [cacheResourceProvider].
 class PubPackageService {
   final InstrumentationService _instrumentationService;
   final PubApi _api;
-
-  /// A wrapper over the "pub" command line too.
-  ///
-  /// This can be null when not running on a real file system because it may
-  /// try to interact with folders that don't really exist.
-  final PubCommand? _command;
-
   Timer? _nextPackageNameListRequestTimer;
   Timer? _nextWriteDiskCacheTimer;
 
-  /// [ResourceProvider] used for accessing the disk for caches and checking
-  /// project types. This should generally be a [PhysicalResourceProvider]
-  /// outside of tests.
-  final ResourceProvider resourceProvider;
+  /// [ResourceProvider] used for caching. This should generally be a
+  /// [PhysicalResourceProvider] outside of tests.
+  final ResourceProvider cacheResourceProvider;
 
   /// The current cache of package information. Initially `null`, but
   /// overwritten after first read of cache from disk or fetch from the API.
@@ -160,50 +148,25 @@ class PubPackageService {
 
   int _packageDetailsRequestsInFlight = 0;
 
-  /// A cache of version numbers from running the "pub outdated" command used
-  /// for completion in pubspec.yaml.
-  final _pubspecPackageVersions =
-      <String, Map<String, PubOutdatedPackageDetails>>{};
+  PubPackageService(
+      this._instrumentationService, this.cacheResourceProvider, this._api);
 
-  PubPackageService(this._instrumentationService, this.resourceProvider,
-      this._api, this._command);
-
-  /// Gets the last set of package results from the Pub API or an empty List if
-  /// no results.
-  ///
-  /// This data is used for completion of package names in pubspec.yaml
-  /// and for clients that support lazy resolution of completion items may also
-  /// include their descriptions and/or version numbers.
+  /// Gets the last set of package results or an empty List if no results.
   List<PubPackage> get cachedPackages =>
       packageCache?.packages.values.toList() ?? [];
 
-  @visibleForTesting
-  bool get isPackageNamesTimerRunning =>
-      _nextPackageNameListRequestTimer != null;
+  bool get isRunning => _nextPackageNameListRequestTimer != null;
 
   @visibleForTesting
   File get packageCacheFile {
-    final cacheFolder = resourceProvider
+    final cacheFolder = cacheResourceProvider
         .getStateLocation('.pub-package-details-cache')!
       ..create();
     return cacheFolder.getChildAssumingFile('packages.json');
   }
 
-  /// Begins preloading caches for package names and pub versions.
-  void beginCachePreloads(List<String> pubspecs) {
-    beginPackageNamePreload();
-    for (final pubspec in pubspecs) {
-      fetchPackageVersionsViaPubOutdated(pubspec, pubspecWasModified: false);
-    }
-  }
-
-  /// Begin a timer to pre-load and update the package name list if one has not
-  /// already been started.
+  /// Begin a request to pre-load the package name list.
   void beginPackageNamePreload() {
-    if (isPackageNamesTimerRunning) {
-      return;
-    }
-
     // If first time, try to read from disk.
     var cache = packageCache;
     if (cache == null) {
@@ -216,69 +179,11 @@ class PubPackageService {
         Timer(cache.cacheTimeRemaining, _fetchFromServer);
   }
 
-  /// Gets the latest cached package version fetched from the Pub API for the
-  /// package [packageName].
-  String? cachedPubApiLatestVersion(String packageName) =>
-      packageCache?.packages[packageName]?.latestVersion;
-
-  /// Gets the package versions cached using "pub outdated" for the package
-  /// [packageName] for the project using [pubspecPath].
+  /// Gets the cached package details for package [packageName].
   ///
-  /// Versions in here might only be available for packages that are in the
-  /// pubspec on disk. Newly-added packages in the overlay might not be
-  /// available.
-  PubOutdatedPackageDetails? cachedPubOutdatedVersions(
-      String pubspecPath, String packageName) {
-    final pubspecCache = _pubspecPackageVersions[pubspecPath];
-    return pubspecCache != null ? pubspecCache[packageName] : null;
-  }
-
-  /// Begin a request to pre-load package versions using the "pub outdated"
-  /// command.
-  ///
-  /// If [pubspecWasModified] is true, the command will always be run. Otherwise it
-  /// will only be run if data is not already cached.
-  Future<void> fetchPackageVersionsViaPubOutdated(String pubspecPath,
-      {required bool pubspecWasModified}) async {
-    final pubCommand = _command;
-    if (pubCommand == null) {
-      return;
-    }
-
-    // If we already have a cache for the file and it was not modified (only
-    // opened) we do not need to re-run the command.
-    if (!pubspecWasModified &&
-        _pubspecPackageVersions.containsKey(pubspecPath)) {
-      return;
-    }
-
-    // Check if this pubspec is inside a DEPS-managed folder, and if so
-    // just cache an empty set of results since Pub is not managing
-    // dependencies.
-    if (_hasAncestorDEPSFile(pubspecPath)) {
-      _pubspecPackageVersions.putIfAbsent(pubspecPath, () => {});
-      return;
-    }
-
-    final results = await pubCommand.outdatedVersions(pubspecPath);
-    final cache = _pubspecPackageVersions.putIfAbsent(pubspecPath, () => {});
-    for (final package in results) {
-      // We use the versions from the "pub outdated" results but only cache them
-      // in-memory for this specific pubspec, as the resolved version may be
-      // restricted by constraints/dependencies in the pubspec. The "pub"
-      // command does caching of the JSON versions to make "pub outdated" fast.
-      cache[package.packageName] = package;
-    }
-  }
-
-  /// Clears package caches for [pubspecPath].
-  ///
-  /// Does not remove other caches that are not pubspec-specific (for example
-  /// the latest version pulled directly from the Pub API independant of
-  /// pubspec).
-  Future<void> flushPackageCaches(String pubspecPath) async {
-    _pubspecPackageVersions.remove(pubspecPath);
-  }
+  /// Returns null if no package details are cached.
+  PubPackage? cachedPackageDetails(String packageName) =>
+      packageCache?.packages[packageName];
 
   /// Gets package details for package [packageName].
   ///
@@ -360,19 +265,6 @@ class PubPackageService {
       _nextPackageNameListRequestTimer =
           Timer(PackageDetailsCache.maxCacheAge, _fetchFromServer);
     }
-  }
-
-  /// Checks whether there is a DEPS file in any folder walking up from the
-  /// pubspec at [pubspecPath].
-  bool _hasAncestorDEPSFile(String pubspecPath) {
-    var folder = path.dirname(pubspecPath);
-    do {
-      if (resourceProvider.getFile(path.join(folder, 'DEPS')).exists) {
-        return true;
-      }
-      folder = path.dirname(folder);
-    } while (folder != path.dirname(folder));
-    return false;
   }
 
   /// Writes the package cache to disk after

@@ -48,7 +48,6 @@ abstract class AbstractLspAnalysisServerTest
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;
   late LspAnalysisServer server;
-  late MockProcessManager processManager;
   late MockHttpClient httpClient;
 
   /// The number of context builds that had already occurred the last time
@@ -152,7 +151,6 @@ abstract class AbstractLspAnalysisServerTest
 
   void setUp() {
     httpClient = MockHttpClient();
-    processManager = MockProcessManager();
     channel = MockLspServerChannel(debugPrintCommunication);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
@@ -164,8 +162,7 @@ abstract class AbstractLspAnalysisServerTest
         DartSdkManager(convertPath('/sdk')),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
-        httpClient: httpClient,
-        processManager: processManager);
+        httpClient: httpClient);
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/test');

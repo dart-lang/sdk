@@ -49,15 +49,6 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
-/// Pattern for docComplete text on completion items that can be upgraded to
-/// the "detail" field so that it can be shown more prominently by clients.
-///
-/// This is typically used for labels like _latest compatible_ and _latest_ in
-/// the pubspec version items. These go into docComplete so that they appear
-/// reasonably for non-LSP clients where there is no equivalent of the detail
-/// field.
-final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
-
 lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
     Set<lsp.MarkupKind>? preferredFormats, String content) {
   return preferredFormats == null
@@ -965,21 +956,7 @@ lsp.CompletionItem toCompletionItem(
   final insertText = insertTextInfo.first;
   final insertTextFormat = insertTextInfo.last;
   final isMultilineCompletion = insertText.contains('\n');
-
-  var cleanedDoc = cleanDartdoc(suggestion.docComplete);
-  var detail = getCompletionDetail(suggestion, completionKind,
-      supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
-
-  // To improve the display of some items (like pubspec version numbers),
-  // short labels in the format `_foo_` in docComplete are "upgraded" to the
-  // detail field.
-  final labelMatch = cleanedDoc != null
-      ? _upgradableDocCompletePattern.firstMatch(cleanedDoc)
-      : null;
-  if (labelMatch != null) {
-    cleanedDoc = null;
-    detail = labelMatch.group(1);
-  }
+  final cleanedDoc = cleanDartdoc(suggestion.docComplete);
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -994,7 +971,8 @@ lsp.CompletionItem toCompletionItem(
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
-    detail: detail,
+    detail: getCompletionDetail(suggestion, completionKind,
+        supportsCompletionDeprecatedFlag || supportsDeprecatedTag),
     documentation: cleanedDoc != null
         ? asStringOrMarkupContent(formats, cleanedDoc)
         : null,
