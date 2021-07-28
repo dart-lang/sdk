@@ -25,18 +25,17 @@ main() {
           producer.close();
         }
       });
-      int received = 0;
+      var timer;
       receiver.listen((event) {
         if (event != RawSocketEvent.read) return;
         var datagram = receiver.receive();
-        received++;
         Expect.listEquals([0], datagram.data);
-        if (received == 100) {
-          Expect.equals(100, sent);
+        if (timer != null) timer.cancel();
+        timer = new Timer(const Duration(seconds: 1), () {
           Expect.isNull(receiver.receive());
           receiver.close();
           asyncEnd();
-        }
+        });
       });
     });
   });
