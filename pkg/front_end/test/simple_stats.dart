@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:math' as math;
 
 class SimpleTTestStat {
   static TTestResult ttest<E extends num>(List<E> a, List<E> b) {
-    E aSum = a.reduce((value, element) => (value + element));
-    E bSum = b.reduce((value, element) => (value + element));
+    E aSum = a.reduce((value, element) => (value + element) as E);
+    E bSum = b.reduce((value, element) => (value + element) as E);
     int aCount = a.length;
     int bCount = b.length;
     double aMean = aSum / aCount;
@@ -37,7 +35,7 @@ class SimpleTTestStat {
   }
 
   static double variance<E extends num>(List<E> data) {
-    E sum = data.reduce((value, element) => (value + element));
+    E sum = data.reduce((value, element) => (value + element) as E);
     int count = data.length;
     double average = sum / count;
 

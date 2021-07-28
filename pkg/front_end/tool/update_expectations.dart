@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'fasta.dart' as fasta;
 
 const List<String> standardSuites = <String>[
@@ -19,7 +17,7 @@ const List<String> specialSuites = <String>[
   'incremental',
 ];
 
-Future<void> runStandardSuites([List<String> args]) async {
+Future<void> runStandardSuites([List<String>? args]) async {
   // Assert that 'strong' is the first suite - we use the assumption below.
   assert(standardSuites.first == 'weak', "Suite 'weak' most be the first.");
   bool first = true;
