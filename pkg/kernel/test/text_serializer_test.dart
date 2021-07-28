@@ -45,11 +45,7 @@ class TestRunner {
   final List<String> failures = [];
 
   void run() {
-    test('(get-prop (int 0) (public "hashCode"))');
     test('(get-super (public "hashCode"))');
-    test('(invoke-method (int 0) (public "foo") () ((int 1) (int 2)) ())');
-    test('(invoke-method (int 0) (public "foo") ((dynamic) (void)) '
-        '((int 1) (int 2)) ("others" (list (dynamic) ((int 3) (int 4)))))');
     test('(let "x^0" () (dynamic) (int 0) () (null))');
     test('(let "x^0" () (dynamic) _ () (null))');
     test('(let "x^0" ((const)) (dynamic) (int 0) () (null))');

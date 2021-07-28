@@ -70,8 +70,6 @@ class ExpressionTagger extends ExpressionVisitor<String>
 
   String visitLet(Let _) => "let";
 
-  String visitPropertyGet(PropertyGet _) => "get-prop";
-  String visitPropertySet(PropertySet _) => "set-prop";
   String visitInstanceGet(InstanceGet _) => "get-instance";
   String visitInstanceSet(InstanceSet _) => "set-instance";
   String visitDynamicGet(DynamicGet _) => "get-dynamic";
@@ -80,7 +78,6 @@ class ExpressionTagger extends ExpressionVisitor<String>
   String visitFunctionTearOff(FunctionTearOff _) => "tearoff-function";
   String visitSuperPropertyGet(SuperPropertyGet _) => "get-super";
   String visitSuperPropertySet(SuperPropertySet _) => "set-super";
-  String visitMethodInvocation(MethodInvocation _) => "invoke-method";
   String visitInstanceInvocation(InstanceInvocation _) => "invoke-instance";
   String visitInstanceGetterInvocation(InstanceGetterInvocation _) =>
       "invoke-instance-getter";
@@ -419,33 +416,6 @@ Let wrapLet(Tuple2<VariableDeclaration, Expression> tuple) {
   return new Let(tuple.first, tuple.second);
 }
 
-TextSerializer<PropertyGet> propertyGetSerializer = new Wrapped(
-    unwrapPropertyGet,
-    wrapPropertyGet,
-    new Tuple2Serializer(expressionSerializer, nameSerializer));
-
-Tuple2<Expression, Name> unwrapPropertyGet(PropertyGet expression) {
-  return new Tuple2(expression.receiver, expression.name);
-}
-
-PropertyGet wrapPropertyGet(Tuple2<Expression, Name> tuple) {
-  return new PropertyGet(tuple.first, tuple.second);
-}
-
-TextSerializer<PropertySet> propertySetSerializer = new Wrapped(
-    unwrapPropertySet,
-    wrapPropertySet,
-    new Tuple3Serializer(
-        expressionSerializer, nameSerializer, expressionSerializer));
-
-Tuple3<Expression, Name, Expression> unwrapPropertySet(PropertySet expression) {
-  return new Tuple3(expression.receiver, expression.name, expression.value);
-}
-
-PropertySet wrapPropertySet(Tuple3<Expression, Name, Expression> tuple) {
-  return new PropertySet(tuple.first, tuple.second, tuple.third);
-}
-
 TextSerializer<InstanceGet> instanceGetSerializer = new Wrapped<
         Tuple5<InstanceAccessKind, Expression, Name, CanonicalName, DartType>,
         InstanceGet>(
@@ -588,22 +558,6 @@ Tuple2<Name, Expression> unwrapSuperPropertySet(SuperPropertySet expression) {
 
 SuperPropertySet wrapSuperPropertySet(Tuple2<Name, Expression> tuple) {
   return new SuperPropertySet(tuple.first, tuple.second, null);
-}
-
-TextSerializer<MethodInvocation> methodInvocationSerializer = new Wrapped(
-    unwrapMethodInvocation,
-    wrapMethodInvocation,
-    new Tuple3Serializer(
-        expressionSerializer, nameSerializer, argumentsSerializer));
-
-Tuple3<Expression, Name, Arguments> unwrapMethodInvocation(
-    MethodInvocation expression) {
-  return new Tuple3(expression.receiver, expression.name, expression.arguments);
-}
-
-MethodInvocation wrapMethodInvocation(
-    Tuple3<Expression, Name, Arguments> tuple) {
-  return new MethodInvocation(tuple.first, tuple.second, tuple.third);
 }
 
 const Map<InstanceAccessKind, String> instanceAccessKindToName = const {
@@ -2620,8 +2574,6 @@ void initializeSerializers() {
     "map": mapLiteralSerializer,
     "const-map": constMapLiteralSerializer,
     "let": letSerializer,
-    "get-prop": propertyGetSerializer,
-    "set-prop": propertySetSerializer,
     "get-instance": instanceGetSerializer,
     "set-instance": instanceSetSerializer,
     "get-dynamic": dynamicGetSerializer,
@@ -2630,7 +2582,6 @@ void initializeSerializers() {
     "tearoff-function": functionTearOffSerializer,
     "get-super": superPropertyGetSerializer,
     "set-super": superPropertySetSerializer,
-    "invoke-method": methodInvocationSerializer,
     "invoke-instance": instanceInvocationSerializer,
     "invoke-instance-getter": instanceGetterInvocationSerializer,
     "invoke-dynamic": dynamicInvocationSerializer,

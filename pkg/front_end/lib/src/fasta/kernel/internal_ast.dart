@@ -1254,7 +1254,7 @@ class NullAwareMethodInvocation extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     Expression methodInvocation = invocation;
-    if (methodInvocation is MethodInvocation) {
+    if (methodInvocation is InstanceInvocation) {
       Expression receiver = methodInvocation.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
@@ -1262,6 +1262,16 @@ class NullAwareMethodInvocation extends InternalExpression {
         printer.write('?.');
         printer.writeInterfaceMemberName(
             methodInvocation.interfaceTargetReference, methodInvocation.name);
+        printer.writeArguments(methodInvocation.arguments);
+        return;
+      }
+    } else if (methodInvocation is DynamicInvocation) {
+      Expression receiver = methodInvocation.receiver;
+      if (receiver is VariableGet && receiver.variable == variable) {
+        // Special-case the usual use of this node.
+        printer.writeExpression(variable.initializer!);
+        printer.write('?.');
+        printer.writeName(methodInvocation.name);
         printer.writeArguments(methodInvocation.arguments);
         return;
       }
@@ -1438,7 +1448,7 @@ class NullAwarePropertySet extends InternalExpression {
   @override
   void toTextInternal(AstPrinter printer) {
     Expression propertySet = write;
-    if (propertySet is PropertySet) {
+    if (propertySet is InstanceSet) {
       Expression receiver = propertySet.receiver;
       if (receiver is VariableGet && receiver.variable == variable) {
         // Special-case the usual use of this node.
@@ -1446,6 +1456,17 @@ class NullAwarePropertySet extends InternalExpression {
         printer.write('?.');
         printer.writeInterfaceMemberName(
             propertySet.interfaceTargetReference, propertySet.name);
+        printer.write(' = ');
+        printer.writeExpression(propertySet.value);
+        return;
+      }
+    } else if (propertySet is DynamicSet) {
+      Expression receiver = propertySet.receiver;
+      if (receiver is VariableGet && receiver.variable == variable) {
+        // Special-case the usual use of this node.
+        printer.writeExpression(variable.initializer!);
+        printer.write('?.');
+        printer.writeName(propertySet.name);
         printer.write(' = ');
         printer.writeExpression(propertySet.value);
         return;
@@ -4098,29 +4119,6 @@ class NullAwareExtension extends InternalExpression {
   @override
   String toString() {
     return "NullAwareExtension(${toStringInternal()})";
-  }
-}
-
-/// Front end specific implementation of [PropertySet].
-class PropertySetImpl extends PropertySet {
-  /// If `true` the assignment is need for its effect and not for its value.
-  final bool forEffect;
-
-  /// If `true` the receiver can be cloned and doesn't need a temporary variable
-  /// for multiple reads.
-  final bool readOnlyReceiver;
-
-  PropertySetImpl(Expression receiver, Name name, Expression value,
-      {required this.forEffect, required this.readOnlyReceiver})
-      // ignore: unnecessary_null_comparison
-      : assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOnlyReceiver != null),
-        super(receiver, name, value);
-
-  @override
-  String toString() {
-    return "PropertySetImpl(${toStringInternal()})";
   }
 }
 

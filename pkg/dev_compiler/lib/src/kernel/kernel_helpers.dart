@@ -191,9 +191,7 @@ List<Class> getImmediateSuperclasses(Class c) {
 }
 
 Expression? getInvocationReceiver(InvocationExpression node) {
-  if (node is MethodInvocation) {
-    return node.receiver;
-  } else if (node is InstanceInvocation) {
+  if (node is InstanceInvocation) {
     return node.receiver;
   } else if (node is DynamicInvocation) {
     return node.receiver;

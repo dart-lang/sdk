@@ -23,8 +23,6 @@ abstract class ExpressionVisitor<R> {
   R visitInstanceGet(InstanceGet node) => defaultExpression(node);
   R visitInstanceSet(InstanceSet node) => defaultExpression(node);
   R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
-  R visitPropertyGet(PropertyGet node) => defaultExpression(node);
-  R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
@@ -39,7 +37,6 @@ abstract class ExpressionVisitor<R> {
       defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
-  R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -200,8 +197,6 @@ abstract class TreeVisitor<R>
   R visitInstanceGet(InstanceGet node) => defaultExpression(node);
   R visitInstanceSet(InstanceSet node) => defaultExpression(node);
   R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
-  R visitPropertyGet(PropertyGet node) => defaultExpression(node);
-  R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
@@ -216,7 +211,6 @@ abstract class TreeVisitor<R>
       defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
-  R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -356,8 +350,6 @@ abstract class TreeVisitor1<R, A>
   R visitInstanceSet(InstanceSet node, A arg) => defaultExpression(node, arg);
   R visitInstanceTearOff(InstanceTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitPropertyGet(PropertyGet node, A arg) => defaultExpression(node, arg);
-  R visitPropertySet(PropertySet node, A arg) => defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, A arg) =>
       defaultExpression(node, arg);
   R visitSuperPropertySet(SuperPropertySet node, A arg) =>
@@ -378,8 +370,6 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
-  R visitMethodInvocation(MethodInvocation node, A arg) =>
-      defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitStaticInvocation(StaticInvocation node, A arg) =>
@@ -1524,8 +1514,6 @@ abstract class ExpressionVisitor1<R, T> {
   R visitInstanceSet(InstanceSet node, T arg) => defaultExpression(node, arg);
   R visitInstanceTearOff(InstanceTearOff node, T arg) =>
       defaultExpression(node, arg);
-  R visitPropertyGet(PropertyGet node, T arg) => defaultExpression(node, arg);
-  R visitPropertySet(PropertySet node, T arg) => defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, T arg) =>
       defaultExpression(node, arg);
   R visitSuperPropertySet(SuperPropertySet node, T arg) =>
@@ -1546,8 +1534,6 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);
-  R visitMethodInvocation(MethodInvocation node, T arg) =>
-      defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitStaticInvocation(StaticInvocation node, T arg) =>

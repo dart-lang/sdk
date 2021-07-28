@@ -64,9 +64,6 @@ class VmTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
-
-  @override
   int get enabledConstructorTearOffLowerings =>
       flags.forceConstructorTearOffLoweringForTesting;
 

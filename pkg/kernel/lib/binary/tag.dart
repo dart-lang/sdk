@@ -37,13 +37,10 @@ class Tag {
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;
   static const int VariableSet = 21;
-  static const int PropertyGet = 22;
-  static const int PropertySet = 23;
   static const int SuperPropertyGet = 24;
   static const int SuperPropertySet = 25;
   static const int StaticGet = 26;
   static const int StaticSet = 27;
-  static const int MethodInvocation = 28;
   static const int SuperMethodInvocation = 29;
   static const int StaticInvocation = 30;
   static const int ConstructorInvocation = 31;
@@ -179,7 +176,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 68;
+  static const int BinaryFormatVersion = 69;
 }
 
 abstract class ConstantTag {

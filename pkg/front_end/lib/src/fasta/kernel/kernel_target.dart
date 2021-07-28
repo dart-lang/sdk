@@ -1253,9 +1253,7 @@ class KernelTarget extends TargetImplementation {
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
       valueClass.transformComponent(
-          component!, loader.coreTypes, loader.hierarchy, environment,
-          useNewMethodInvocationEncoding:
-              backendTarget.supportsNewMethodInvocationEncoding);
+          component!, loader.coreTypes, loader.hierarchy, environment);
       ticker.logMs("Lowered value classes");
     }
 

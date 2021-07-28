@@ -3467,11 +3467,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  void visitPropertyGet(ir.PropertyGet node) {
-    _handlePropertyGet(node, node.receiver, node.name);
-  }
-
-  @override
   void visitVariableGet(ir.VariableGet node) {
     ir.VariableDeclaration variable = node.variable;
     HInstruction letBinding = _letBindings[variable];
@@ -3512,11 +3507,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitDynamicSet(ir.DynamicSet node) {
-    _handlePropertySet(node, node.receiver, node.name, node.value);
-  }
-
-  @override
-  void visitPropertySet(ir.PropertySet node) {
     _handlePropertySet(node, node.receiver, node.name, node.value);
   }
 
@@ -5032,10 +5022,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           isIntercepted: isIntercepted);
     }
     invoke.instructionContext = _currentFrame.member;
-    if (node is ir.MethodInvocation) {
-      invoke.isInvariant = node.isInvariant;
-      invoke.isBoundsSafe = node.isBoundsSafe;
-    } else if (node is ir.InstanceInvocation) {
+    if (node is ir.InstanceInvocation) {
       invoke.isInvariant = node.isInvariant;
       invoke.isBoundsSafe = node.isBoundsSafe;
     }
@@ -5272,11 +5259,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         ],
         typeArguments,
         _sourceInformationBuilder.buildCall(node, node));
-  }
-
-  @override
-  void visitMethodInvocation(ir.MethodInvocation node) {
-    _handleMethodInvocation(node, node.receiver, node.arguments);
   }
 
   void _handleEquals(ir.Expression node, ir.Expression left,
@@ -7229,15 +7211,6 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   @override
-  visitPropertyGet(ir.PropertyGet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
-    skipReductiveNodes(() => visit(node.name));
-    visit(node.receiver);
-  }
-
-  @override
   visitInstanceGet(ir.InstanceGet node) {
     registerCall();
     registerRegularNode();
@@ -7262,16 +7235,6 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     registerReductiveNode();
     skipReductiveNodes(() => visit(node.name));
     visit(node.receiver);
-  }
-
-  @override
-  visitPropertySet(ir.PropertySet node) {
-    registerCall();
-    registerRegularNode();
-    registerReductiveNode();
-    skipReductiveNodes(() => visit(node.name));
-    visit(node.receiver);
-    visit(node.value);
   }
 
   @override
@@ -7340,16 +7303,6 @@ class InlineWeeder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       registerReductiveNode();
       _processArguments(node.arguments, node.target?.function);
     }
-  }
-
-  @override
-  visitMethodInvocation(ir.MethodInvocation node) {
-    registerRegularNode();
-    registerReductiveNode();
-    registerCall();
-    visit(node.receiver);
-    skipReductiveNodes(() => visit(node.name));
-    _processArguments(node.arguments, null);
   }
 
   @override

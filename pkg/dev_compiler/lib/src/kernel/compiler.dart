@@ -4563,24 +4563,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitPropertyGet(PropertyGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
-  }
-
-  @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
     return _emitPropertySet(node.receiver, null, node.value, node.name.text);
   }
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
-    return _emitPropertySet(
-        node.receiver, node.interfaceTarget, node.value, node.name.text);
-  }
-
-  @override
-  js_ast.Expression visitPropertySet(PropertySet node) {
     return _emitPropertySet(
         node.receiver, node.interfaceTarget, node.value, node.name.text);
   }
@@ -4757,12 +4745,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitEqualsNull(EqualsNull node) {
     return _emitCoreIdenticalCall([node.expression, NullLiteral()],
         negated: false);
-  }
-
-  @override
-  js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    return _emitMethodCall(
-        node.receiver, node.interfaceTarget, node.arguments, node);
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
@@ -5749,11 +5731,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitNot(Not node) {
     var operand = node.operand;
-    if (operand is MethodInvocation && operand.name.text == '==') {
-      return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
-          operand.arguments.positional[0],
-          negated: true);
-    } else if (operand is EqualsCall) {
+    if (operand is EqualsCall) {
       return _emitEqualityOperator(
           operand.left, operand.interfaceTarget, operand.right,
           negated: true);

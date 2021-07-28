@@ -20,8 +20,8 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
-static const uint32_t kMinSupportedKernelFormatVersion = 68;
-static const uint32_t kMaxSupportedKernelFormatVersion = 68;
+static const uint32_t kMinSupportedKernelFormatVersion = 69;
+static const uint32_t kMaxSupportedKernelFormatVersion = 69;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -49,13 +49,10 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 68;
   V(InvalidExpression, 19)                                                     \
   V(VariableGet, 20)                                                           \
   V(VariableSet, 21)                                                           \
-  V(PropertyGet, 22)                                                           \
-  V(PropertySet, 23)                                                           \
   V(SuperPropertyGet, 24)                                                      \
   V(SuperPropertySet, 25)                                                      \
   V(StaticGet, 26)                                                             \
   V(StaticSet, 27)                                                             \
-  V(MethodInvocation, 28)                                                      \
   V(SuperMethodInvocation, 29)                                                 \
   V(StaticInvocation, 30)                                                      \
   V(ConstructorInvocation, 31)                                                 \
@@ -210,9 +207,9 @@ enum IsExpressionFlags {
 };
 
 // Keep in sync with package:kernel/lib/ast.dart
-enum MethodInvocationFlags {
-  kMethodInvocationFlagInvariant = 1 << 0,
-  kMethodInvocationFlagBoundsSafe = 1 << 1,
+enum InstanceInvocationFlags {
+  kInstanceInvocationFlagInvariant = 1 << 0,
+  kInstanceInvocationFlagBoundsSafe = 1 << 1,
 };
 
 // Keep in sync with package:kernel/lib/ast.dart

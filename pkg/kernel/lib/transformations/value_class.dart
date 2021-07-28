@@ -61,17 +61,14 @@ class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
 }
 
 void transformComponent(Component node, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment,
-    {required bool useNewMethodInvocationEncoding}) {
+    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
   ValueClassScanner scanner = new ValueClassScanner();
   ScanResult<Class, Null> valueClasses = scanner.scan(node);
   for (Class valueClass in valueClasses.targets.keys) {
-    transformValueClass(valueClass, coreTypes, hierarchy, typeEnvironment,
-        useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
+    transformValueClass(valueClass, coreTypes, hierarchy, typeEnvironment);
   }
 
-  treatCopyWithCallSites(node, coreTypes, typeEnvironment, hierarchy,
-      useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
+  treatCopyWithCallSites(node, coreTypes, typeEnvironment, hierarchy);
 
   for (Class valueClass in valueClasses.targets.keys) {
     removeValueClassAnnotation(valueClass);
@@ -79,8 +76,7 @@ void transformComponent(Component node, CoreTypes coreTypes,
 }
 
 void transformValueClass(Class cls, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment,
-    {required bool useNewMethodInvocationEncoding}) {
+    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
   Constructor? syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
     if (constructor.isSynthetic) {
@@ -93,12 +89,9 @@ void transformValueClass(Class cls, CoreTypes coreTypes,
   allVariablesList.sort((a, b) => a.name!.compareTo(b.name!));
 
   addConstructor(cls, coreTypes, syntheticConstructor!);
-  addEqualsOperator(cls, coreTypes, hierarchy, allVariablesList,
-      useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
-  addHashCode(cls, coreTypes, hierarchy, allVariablesList,
-      useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
-  addToString(cls, coreTypes, hierarchy, allVariablesList,
-      useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
+  addEqualsOperator(cls, coreTypes, hierarchy, allVariablesList);
+  addHashCode(cls, coreTypes, hierarchy, allVariablesList);
+  addToString(cls, coreTypes, hierarchy, allVariablesList);
   addCopyWith(cls, coreTypes, hierarchy, allVariablesList, syntheticConstructor,
       typeEnvironment);
 }
@@ -140,8 +133,7 @@ void addConstructor(
 }
 
 void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList,
-    {required bool useNewMethodInvocationEncoding}) {
+    List<VariableDeclaration> allVariablesList) {
   List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Operator &&
@@ -178,16 +170,10 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
           ReturnStatement(allVariables
               .map((f) => _createEquals(
                   _createGet(ThisExpression(), Name(f.name!),
-                      interfaceTarget: targets[f],
-                      useNewMethodInvocationEncoding:
-                          useNewMethodInvocationEncoding),
+                      interfaceTarget: targets[f]),
                   _createGet(VariableGet(other, myType), Name(f.name!),
-                      interfaceTarget: targets[f],
-                      useNewMethodInvocationEncoding:
-                          useNewMethodInvocationEncoding),
-                  interfaceTarget: targetsEquals[f] as Procedure,
-                  useNewMethodInvocationEncoding:
-                      useNewMethodInvocationEncoding))
+                      interfaceTarget: targets[f]),
+                  interfaceTarget: targetsEquals[f] as Procedure))
               .fold(
                   IsExpression(VariableGet(other), myType),
                   (previousValue, element) => LogicalExpression(
@@ -200,8 +186,7 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
 }
 
 void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList,
-    {required bool useNewMethodInvocationEncoding}) {
+    List<VariableDeclaration> allVariablesList) {
   List<VariableDeclaration> allVariables = allVariablesList.toList();
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Getter &&
@@ -255,13 +240,9 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                 allVariables
                     .map((f) => (_createGet(
                         _createGet(ThisExpression(), Name(f.name!),
-                            interfaceTarget: targets[f],
-                            useNewMethodInvocationEncoding:
-                                useNewMethodInvocationEncoding),
+                            interfaceTarget: targets[f]),
                         Name("hashCode"),
-                        interfaceTarget: targetsHashcode[f],
-                        useNewMethodInvocationEncoding:
-                            useNewMethodInvocationEncoding)))
+                        interfaceTarget: targetsHashcode[f])))
                     .fold(
                         _createGet(
                             StringLiteral(
@@ -269,9 +250,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
                                     cls.name),
                             Name("hashCode"),
                             interfaceTarget: hierarchy.getInterfaceMember(
-                                coreTypes.stringClass, Name("hashCode")),
-                            useNewMethodInvocationEncoding:
-                                useNewMethodInvocationEncoding),
+                                coreTypes.stringClass, Name("hashCode"))),
                         (previousValue, element) => StaticInvocation(
                             hashCombine!, Arguments([previousValue, element])))
               ]))),
@@ -281,8 +260,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
 }
 
 void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariablesList,
-    {required bool useNewMethodInvocationEncoding}) {
+    List<VariableDeclaration> allVariablesList) {
   List<Expression> wording = [StringLiteral("${cls.name}(")];
 
   for (VariableDeclaration variable in allVariablesList) {
@@ -296,12 +274,10 @@ void addToString(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
         Name("toString")) as Procedure;
     wording.add(_createInvocation(
         _createGet(ThisExpression(), Name(variable.name!),
-            interfaceTarget: variableTarget,
-            useNewMethodInvocationEncoding: useNewMethodInvocationEncoding),
+            interfaceTarget: variableTarget),
         Name("toString"),
         Arguments([]),
-        interfaceTarget: toStringTarget,
-        useNewMethodInvocationEncoding: useNewMethodInvocationEncoding));
+        interfaceTarget: toStringTarget));
     wording.add(StringLiteral(", "));
   }
   if (allVariablesList.length != 0) {
@@ -392,8 +368,7 @@ void removeValueClassAnnotation(Class cls) {
 }
 
 void treatCopyWithCallSites(Component component, CoreTypes coreTypes,
-    TypeEnvironment typeEnvironment, ClassHierarchy hierarchy,
-    {required bool useNewMethodInvocationEncoding}) {
+    TypeEnvironment typeEnvironment, ClassHierarchy hierarchy) {
   ValueClassCopyWithScanner valueCopyWithScanner =
       new ValueClassCopyWithScanner();
   AllMemberScanner copyWithScanner = AllMemberScanner(valueCopyWithScanner);
@@ -415,8 +390,7 @@ void treatCopyWithCallSites(Component component, CoreTypes coreTypes,
           Class valueClass = valueClassType.classNode;
           if (isValueClass(valueClass)) {
             treatCopyWithCallSite(
-                valueClass, copyWithCall, coreTypes, hierarchy,
-                useNewMethodInvocationEncoding: useNewMethodInvocationEncoding);
+                valueClass, copyWithCall, coreTypes, hierarchy);
           }
         }
       }
@@ -428,8 +402,7 @@ void treatCopyWithCallSite(
     Class valueClass,
     InstanceInvocationExpression copyWithCall,
     CoreTypes coreTypes,
-    ClassHierarchy hierarchy,
-    {required bool useNewMethodInvocationEncoding}) {
+    ClassHierarchy hierarchy) {
   Map<String, Expression> preTransformationArguments = new Map();
   for (NamedExpression argument in copyWithCall.arguments.named) {
     preTransformationArguments[argument.name] = argument.value;
@@ -452,18 +425,15 @@ void treatCopyWithCallSite(
           argument.name!, preTransformationArguments[argument.name]!)
         ..parent = postTransformationArguments);
     } else {
-      postTransformationArguments.named.add(NamedExpression(
-          argument.name!,
-          _createGet(VariableGet(letVariable), Name(argument.name!),
-              useNewMethodInvocationEncoding: useNewMethodInvocationEncoding))
+      postTransformationArguments.named.add(NamedExpression(argument.name!,
+          _createGet(VariableGet(letVariable), Name(argument.name!)))
         ..parent = postTransformationArguments);
     }
   }
   copyWithCall.replaceWith(Let(
       letVariable,
       _createInvocation(VariableGet(letVariable), Name("copyWith"),
-          postTransformationArguments,
-          useNewMethodInvocationEncoding: useNewMethodInvocationEncoding)));
+          postTransformationArguments)));
 }
 
 bool isValueClass(Class node) {
@@ -483,47 +453,33 @@ bool isValueClass(Class node) {
 // access kind on InstanceInvocation.
 Expression _createInvocation(
     Expression receiver, Name name, Arguments arguments,
-    {Procedure? interfaceTarget,
-    required bool useNewMethodInvocationEncoding}) {
-  if (useNewMethodInvocationEncoding) {
-    if (interfaceTarget != null) {
-      return InstanceInvocation(
-          InstanceAccessKind.Instance, receiver, name, arguments,
-          interfaceTarget: interfaceTarget,
-          functionType: interfaceTarget.getterType as FunctionType);
-    } else {
-      return DynamicInvocation(
-          DynamicAccessKind.Dynamic, receiver, name, arguments);
-    }
+    {Procedure? interfaceTarget}) {
+  if (interfaceTarget != null) {
+    return InstanceInvocation(
+        InstanceAccessKind.Instance, receiver, name, arguments,
+        interfaceTarget: interfaceTarget,
+        functionType: interfaceTarget.getterType as FunctionType);
   } else {
-    return MethodInvocation(receiver, name, arguments, interfaceTarget);
+    return DynamicInvocation(
+        DynamicAccessKind.Dynamic, receiver, name, arguments);
   }
 }
 
 Expression _createEquals(Expression left, Expression right,
-    {required Procedure interfaceTarget,
-    required bool useNewMethodInvocationEncoding}) {
-  if (useNewMethodInvocationEncoding) {
-    return EqualsCall(left, right,
-        interfaceTarget: interfaceTarget,
-        functionType: interfaceTarget.getterType as FunctionType);
-  } else {
-    return MethodInvocation(left, Name('=='), Arguments([right]));
-  }
+    {required Procedure interfaceTarget}) {
+  return EqualsCall(left, right,
+      interfaceTarget: interfaceTarget,
+      functionType: interfaceTarget.getterType as FunctionType);
 }
 
 // TODO(johnniwinther): Ensure correct result type on InstanceGet.
 Expression _createGet(Expression receiver, Name name,
-    {Member? interfaceTarget, required bool useNewMethodInvocationEncoding}) {
-  if (useNewMethodInvocationEncoding) {
-    if (interfaceTarget != null) {
-      return InstanceGet(InstanceAccessKind.Instance, receiver, name,
-          interfaceTarget: interfaceTarget,
-          resultType: interfaceTarget.getterType);
-    } else {
-      return DynamicGet(DynamicAccessKind.Dynamic, receiver, name);
-    }
+    {Member? interfaceTarget}) {
+  if (interfaceTarget != null) {
+    return InstanceGet(InstanceAccessKind.Instance, receiver, name,
+        interfaceTarget: interfaceTarget,
+        resultType: interfaceTarget.getterType);
   } else {
-    return PropertyGet(receiver, name, interfaceTarget);
+    return DynamicGet(DynamicAccessKind.Dynamic, receiver, name);
   }
 }

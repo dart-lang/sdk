@@ -48,9 +48,6 @@ class DevCompilerTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
-
-  @override
   int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
 
   @override
@@ -409,33 +406,15 @@ class _CovarianceTransformer extends RecursiveVisitor {
   }
 
   @override
-  void visitPropertyGet(PropertyGet node) {
-    _checkTearoff(node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   void visitInstanceGet(InstanceGet node) {
     _checkTearoff(node.interfaceTarget);
     super.visitInstanceGet(node);
   }
 
   @override
-  void visitPropertySet(PropertySet node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitPropertySet(node);
-  }
-
-  @override
   void visitInstanceSet(InstanceSet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitInstanceSet(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitMethodInvocation(node);
   }
 
   @override

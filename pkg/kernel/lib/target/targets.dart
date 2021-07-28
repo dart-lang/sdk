@@ -426,8 +426,6 @@ abstract class Target {
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
 
-  bool get supportsNewMethodInvocationEncoding;
-
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
@@ -493,9 +491,6 @@ class NoneTarget extends Target {
   @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
-
-  @override
-  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   int get enabledConstructorTearOffLowerings =>

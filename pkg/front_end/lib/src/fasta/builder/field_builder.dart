@@ -330,11 +330,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       internalProblem(
           messageInternalProblemAlreadyInitialized, charOffset, fileUri);
     }
-    _fieldEncoding.createBodies(
-        coreTypes,
-        initializer,
-        library
-            .loader.target.backendTarget.supportsNewMethodInvocationEncoding);
+    _fieldEncoding.createBodies(coreTypes, initializer);
   }
 
   @override
@@ -614,8 +610,7 @@ abstract class FieldEncoding {
   ///
   /// This method is not called for fields in outlines unless their are constant
   /// or part of a const constructor.
-  void createBodies(CoreTypes coreTypes, Expression? initializer,
-      bool useNewMethodInvocationEncoding);
+  void createBodies(CoreTypes coreTypes, Expression? initializer);
 
   List<Initializer> createInitializer(int fileOffset, Expression value,
       {required bool isSynthetic});
@@ -725,8 +720,7 @@ class RegularFieldEncoding implements FieldEncoding {
   void completeSignature(CoreTypes coreTypes) {}
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer,
-      bool useNewMethodInvocationEncoding) {
+  void createBodies(CoreTypes coreTypes, Expression? initializer) {
     if (initializer != null) {
       _field.initializer = initializer..parent = _field;
     }
@@ -962,8 +956,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer,
-      bool useNewMethodInvocationEncoding) {
+  void createBodies(CoreTypes coreTypes, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
       _field.initializer = new StaticInvocation(coreTypes.createSentinelMethod,
@@ -980,15 +973,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ..fileOffset = fileOffset
         ..parent = _lateIsSetField;
     }
-    _lateGetter.function.body = _createGetterBody(
-        coreTypes, name, initializer, useNewMethodInvocationEncoding)
+    _lateGetter.function.body = _createGetterBody(coreTypes, name, initializer)
       ..parent = _lateGetter.function;
     if (_lateSetter != null) {
       _lateSetter!.function.body = _createSetterBody(
-          coreTypes,
-          name,
-          _lateSetter!.function.positionalParameters.first,
-          useNewMethodInvocationEncoding)
+          coreTypes, name, _lateSetter!.function.positionalParameters.first)
         ..parent = _lateSetter!.function;
     }
   }
@@ -1015,62 +1004,48 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   /// expression that promotes the expression to [_type]. This is needed for a
   /// sound encoding of fields with type variable type of undetermined
   /// nullability.
-  Expression _createFieldRead(bool useNewMethodInvocationEncoding,
-      {bool needsPromotion: false}) {
+  Expression _createFieldRead({bool needsPromotion: false}) {
     assert(_type != null, "Type has not been computed for field $name.");
     if (needsPromotion) {
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          _createFieldGet(_field, useNewMethodInvocationEncoding),
+          _createFieldGet(_field),
           type: _type!.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new Let(
           variable, new VariableGet(variable, _type)..fileOffset = fileOffset);
     } else {
-      return _createFieldGet(_field, useNewMethodInvocationEncoding);
+      return _createFieldGet(_field);
     }
   }
 
   /// Creates an [Expression] that reads [field].
-  Expression _createFieldGet(Field field, bool useNewMethodInvocationEncoding) {
+  Expression _createFieldGet(Field field) {
     if (field.isStatic) {
       return new StaticGet(field)..fileOffset = fileOffset;
     } else {
-      if (useNewMethodInvocationEncoding) {
-        // No substitution needed for the result type, since any type variables
-        // in there are also in scope at the access site.
-        return new InstanceGet(InstanceAccessKind.Instance,
-            new ThisExpression()..fileOffset = fileOffset, field.name,
-            interfaceTarget: field, resultType: field.type)
-          ..fileOffset = fileOffset;
-      } else {
-        return new PropertyGet(
-            new ThisExpression()..fileOffset = fileOffset, field.name, field)
-          ..fileOffset = fileOffset;
-      }
+      // No substitution needed for the result type, since any type variables
+      // in there are also in scope at the access site.
+      return new InstanceGet(InstanceAccessKind.Instance,
+          new ThisExpression()..fileOffset = fileOffset, field.name,
+          interfaceTarget: field, resultType: field.type)
+        ..fileOffset = fileOffset;
     }
   }
 
   /// Creates an [Expression] that writes [value] to [field].
-  Expression _createFieldSet(
-      Field field, Expression value, bool useNewMethodInvocationEncoding) {
+  Expression _createFieldSet(Field field, Expression value) {
     if (field.isStatic) {
       return new StaticSet(field, value)..fileOffset = fileOffset;
     } else {
-      if (useNewMethodInvocationEncoding) {
-        return new InstanceSet(InstanceAccessKind.Instance,
-            new ThisExpression()..fileOffset = fileOffset, field.name, value,
-            interfaceTarget: field)
-          ..fileOffset = fileOffset;
-      } else {
-        return new PropertySet(new ThisExpression()..fileOffset = fileOffset,
-            field.name, value, field)
-          ..fileOffset = fileOffset;
-      }
+      return new InstanceSet(InstanceAccessKind.Instance,
+          new ThisExpression()..fileOffset = fileOffset, field.name, value,
+          interfaceTarget: field)
+        ..fileOffset = fileOffset;
     }
   }
 
-  Statement _createGetterBody(CoreTypes coreTypes, String name,
-      Expression? initializer, bool useNewMethodInvocationEncoding);
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression? initializer);
 
   Procedure? _createSetter(
       Name name, Uri fileUri, int charOffset, Reference? reference,
@@ -1094,8 +1069,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       ..isNonNullableByDefault = true;
   }
 
-  Statement _createSetterBody(CoreTypes coreTypes, String name,
-      VariableDeclaration parameter, bool useNewMethodInvocationEncoding);
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter);
 
   @override
   DartType get type {
@@ -1255,30 +1230,29 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
 mixin NonFinalLate on AbstractLateFieldEncoding {
   @override
-  Statement _createSetterBody(CoreTypes coreTypes, String name,
-      VariableDeclaration parameter, bool useNewMethodInvocationEncoding) {
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createSetterBody(
         coreTypes, fileOffset, name, parameter, _type!,
         shouldReturnValue: false,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
-        createIsSetWrite: (Expression value) => _createFieldSet(
-            _lateIsSetField!, value, useNewMethodInvocationEncoding),
+            _createFieldSet(_field, value),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField!, value),
         isSetEncoding: isSetEncoding);
   }
 }
 
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
-  Statement _createGetterBody(CoreTypes coreTypes, String name,
-      Expression? initializer, bool useNewMethodInvocationEncoding) {
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
     return late_lowering.createGetterBodyWithoutInitializer(
-        coreTypes, fileOffset, name, type, useNewMethodInvocationEncoding,
+        coreTypes, fileOffset, name, type,
         createVariableRead: _createFieldRead,
-        createIsSetRead: () =>
-            _createFieldGet(_lateIsSetField!, useNewMethodInvocationEncoding),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField!),
         isSetEncoding: isSetEncoding,
         forField: true);
   }
@@ -1348,18 +1322,17 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             isSetStrategy);
 
   @override
-  Statement _createGetterBody(CoreTypes coreTypes, String name,
-      Expression? initializer, bool useNewMethodInvocationEncoding) {
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createGetterWithInitializer(coreTypes, fileOffset,
-        name, _type!, initializer!, useNewMethodInvocationEncoding,
+    return late_lowering.createGetterWithInitializer(
+        coreTypes, fileOffset, name, _type!, initializer!,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
-        createIsSetRead: () =>
-            _createFieldGet(_lateIsSetField!, useNewMethodInvocationEncoding),
-        createIsSetWrite: (Expression value) => _createFieldSet(
-            _lateIsSetField!, value, useNewMethodInvocationEncoding),
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField!),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField!, value),
         isSetEncoding: isSetEncoding);
   }
 }
@@ -1396,20 +1369,18 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             isSetStrategy);
 
   @override
-  Statement _createSetterBody(CoreTypes coreTypes, String name,
-      VariableDeclaration parameter, bool useNewMethodInvocationEncoding) {
+  Statement _createSetterBody(
+      CoreTypes coreTypes, String name, VariableDeclaration parameter) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createSetterBodyFinal(coreTypes, fileOffset, name,
-        parameter, type, useNewMethodInvocationEncoding,
+    return late_lowering.createSetterBodyFinal(
+        coreTypes, fileOffset, name, parameter, type,
         shouldReturnValue: false,
-        createVariableRead: (bool useNewMethodInvocationEncoding) =>
-            _createFieldGet(_field, useNewMethodInvocationEncoding),
+        createVariableRead: () => _createFieldGet(_field),
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
-        createIsSetRead: () =>
-            _createFieldGet(_lateIsSetField!, useNewMethodInvocationEncoding),
-        createIsSetWrite: (Expression value) => _createFieldSet(
-            _lateIsSetField!, value, useNewMethodInvocationEncoding),
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField!),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField!, value),
         isSetEncoding: isSetEncoding,
         forField: true);
   }
@@ -1445,18 +1416,17 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             isCovariant,
             isSetStrategy);
   @override
-  Statement _createGetterBody(CoreTypes coreTypes, String name,
-      Expression? initializer, bool useNewMethodInvocationEncoding) {
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression? initializer) {
     assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createGetterWithInitializerWithRecheck(coreTypes,
-        fileOffset, name, _type!, initializer!, useNewMethodInvocationEncoding,
+    return late_lowering.createGetterWithInitializerWithRecheck(
+        coreTypes, fileOffset, name, _type!, initializer!,
         createVariableRead: _createFieldRead,
         createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value, useNewMethodInvocationEncoding),
-        createIsSetRead: () =>
-            _createFieldGet(_lateIsSetField!, useNewMethodInvocationEncoding),
-        createIsSetWrite: (Expression value) => _createFieldSet(
-            _lateIsSetField!, value, useNewMethodInvocationEncoding),
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField!),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField!, value),
         isSetEncoding: isSetEncoding,
         forField: true);
   }
@@ -1468,8 +1438,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       null;
 
   @override
-  Statement _createSetterBody(CoreTypes coreTypes, String name,
-          VariableDeclaration parameter, bool useNewMethodInvocationEncoding) =>
+  Statement _createSetterBody(
+          CoreTypes coreTypes, String name, VariableDeclaration parameter) =>
       throw new UnsupportedError(
           '$runtimeType._createSetterBody is not supported.');
 }
@@ -1692,8 +1662,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   void completeSignature(CoreTypes coreTypes) {}
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer,
-      bool useNewMethodInvocationEncoding) {
+  void createBodies(CoreTypes coreTypes, Expression? initializer) {
     //assert(initializer != null);
   }
 

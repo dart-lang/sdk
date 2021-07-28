@@ -90,16 +90,14 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
   /// Returns `true` if [node] is of the form `e.runtimeType`.
   bool isGetRuntimeType(ir.TreeNode node) {
-    return node is ir.PropertyGet &&
+    return node is ir.InstanceGet &&
             node.name.text == Identifiers.runtimeType_ ||
-        node is ir.InstanceGet && node.name.text == Identifiers.runtimeType_ ||
         node is ir.DynamicGet && node.name.text == Identifiers.runtimeType_;
   }
 
   /// Returns `true` if [node] is of the form `e.toString()`.
   bool isInvokeToString(ir.TreeNode node) {
-    return node is ir.MethodInvocation && node.name.text == 'toString' ||
-        node is ir.InstanceInvocation && node.name.text == 'toString';
+    return node is ir.InstanceInvocation && node.name.text == 'toString';
   }
 
   assert(isGetRuntimeType(node));
@@ -427,17 +425,13 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
 /// Returns `true` if [node] is a potential invocation of an Object method.
 bool _isObjectMethodInvocation(ir.TreeNode node) {
-  return node is ir.MethodInvocation ||
-      node is ir.InstanceInvocation ||
-      node is ir.EqualsCall;
+  return node is ir.InstanceInvocation || node is ir.EqualsCall;
 }
 
 /// Returns the [_RuntimeTypeAccess] corresponding to [node] if it is an access
 /// of `.runtimeType`, and `null` otherwise.
 _RuntimeTypeAccess _getRuntimeTypeAccess(ir.TreeNode node) {
-  if (node is ir.PropertyGet && node.name.text == 'runtimeType') {
-    return _RuntimeTypeAccess(node, node.receiver);
-  } else if (node is ir.InstanceGet && node.name.text == 'runtimeType') {
+  if (node is ir.InstanceGet && node.name.text == 'runtimeType') {
     return _RuntimeTypeAccess(node, node.receiver);
   } else if (node is ir.DynamicGet && node.name.text == 'runtimeType') {
     return _RuntimeTypeAccess(node, node.receiver);
@@ -455,10 +449,7 @@ class _RuntimeTypeAccess {
 /// Returns the [_EqualsInvocation] corresponding to [node] if it is a call to
 /// of `==`, and `null` otherwise.
 _EqualsInvocation _getEqualsInvocation(ir.TreeNode node) {
-  if (node is ir.MethodInvocation && node.name.text == '==') {
-    return _EqualsInvocation(
-        node, node.receiver, node.arguments.positional.single);
-  } else if (node is ir.EqualsCall) {
+  if (node is ir.EqualsCall) {
     return _EqualsInvocation(node, node.left, node.right);
   }
   return null;
