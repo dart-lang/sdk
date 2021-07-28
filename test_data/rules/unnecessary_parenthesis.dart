@@ -66,6 +66,10 @@ main() async {
   (0.isEven).toString(); // LINT
   (0.toString()).isEmpty; // LINT
   (0.toDouble()).toString(); // LINT
+
+  List<String> list = <String>[];
+  (list[list.length]).toString(); // LINT
+
 }
 
 m({p}) => null;
@@ -94,4 +98,10 @@ class UnnecessaryParenthesis {
   UnnecessaryParenthesis()
       : c = (ClassWithClassWithFunction()
           ..c = ClassWithFunction().f = () => 42); // OK
+}
+
+class MyType extends Type {
+  MyType.withString(String s) {}
+  MyType.withSelf(MyType myType)
+      : this.withString((myType.toString)()); // LINT
 }

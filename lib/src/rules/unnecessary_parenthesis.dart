@@ -95,7 +95,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;
       if (parent is CascadeExpression) return;
-      if (parent is FunctionExpressionInvocation) return;
+      if (parent is FunctionExpressionInvocation) {
+        if (expression is PrefixedIdentifier) {
+          rule.reportLint(node);
+        }
+        return;
+      }
 
       // A prefix expression (! or -) can have an argument wrapped in
       // "unnecessary" parens if that argument has potentially confusing
@@ -122,7 +127,11 @@ class _Visitor extends SimpleAstVisitor<void> {
             expression is SetOrMapLiteral &&
             parent.parent is ExpressionStatement) return;
 
-        if (expression is PropertyAccess || expression is MethodInvocation) {
+        // TODO an API to the AST for better usage
+        // Precedence isn't sufficient (e.g. PostfixExpression requires parenthesis)
+        if (expression is PropertyAccess ||
+            expression is MethodInvocation ||
+            expression is IndexExpression) {
           rule.reportLint(node);
         }
       }
