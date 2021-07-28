@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.2.0
+- Update to version `3.49` of the spec.
+- Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
+
 ## 7.1.1
 - Update to version `3.48` of the spec.
 - Added `shows` and `hides` properties to `LibraryDependency`.

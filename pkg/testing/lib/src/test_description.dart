@@ -17,11 +17,11 @@ abstract class TestDescription implements Comparable<TestDescription> {
 class FileBasedTestDescription extends TestDescription {
   final Uri root;
   final File file;
-  final Uri output;
+  final Uri? output;
 
   /// If non-null, this is a generated multitest, and the set contains the
   /// expected outcomes.
-  Set<String> multitestExpectations;
+  Set<String>? multitestExpectations;
 
   FileBasedTestDescription(this.root, this.file, {this.output});
 
@@ -52,8 +52,8 @@ class FileBasedTestDescription extends TestDescription {
     sink.writeln('.main,');
   }
 
-  static FileBasedTestDescription from(Uri root, FileSystemEntity entity,
-      {Pattern pattern}) {
+  static FileBasedTestDescription? from(Uri root, FileSystemEntity entity,
+      {Pattern? pattern}) {
     if (entity is! File) return null;
     pattern ??= "_test.dart";
     String path = entity.uri.path;

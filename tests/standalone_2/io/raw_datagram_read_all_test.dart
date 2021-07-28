@@ -31,7 +31,7 @@ main() {
         var datagram = receiver.receive();
         Expect.listEquals([0], datagram.data);
         if (timer != null) timer.cancel();
-        timer = new Timer(const Duration(milliseconds: 200), () {
+        timer = new Timer(const Duration(seconds: 1), () {
           Expect.isNull(receiver.receive());
           receiver.close();
           asyncEnd();

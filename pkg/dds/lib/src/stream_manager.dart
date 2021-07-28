@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:vm_service/vm_service.dart';
 
 import 'client.dart';
 import 'dds_impl.dart';
@@ -107,18 +108,31 @@ class StreamManager {
         // Stdout and Stderr streams may not exist.
       }
     }
+    if (dds.cachedUserTags.isNotEmpty) {
+      await streamListen(null, EventStreams.kProfiler);
+    }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
-      (parameters) {
+      (json_rpc.Parameters parameters) {
         final streamId = parameters['streamId'].asString;
+        final event =
+            Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
+
         // Forward events from the streams IsolateManager subscribes to.
         if (isolateManagerStreams.contains(streamId)) {
-          dds.isolateManager.handleIsolateEvent(parameters);
+          dds.isolateManager.handleIsolateEvent(event);
         }
         // Keep a history of messages to send to clients when they first
         // subscribe to a stream with an event history.
         if (loggingRepositories.containsKey(streamId)) {
-          loggingRepositories[streamId]!.add(parameters.asMap);
+          loggingRepositories[streamId]!.add(
+            parameters.asMap.cast<String, dynamic>(),
+          );
+        }
+        // If the event contains an isolate, forward the event to the
+        // corresponding isolate to be handled.
+        if (event.isolate != null) {
+          dds.isolateManager.routeEventToIsolate(event);
         }
         streamNotify(streamId, parameters.value);
       },
@@ -251,6 +265,7 @@ class StreamManager {
   static const kExtensionStream = 'Extension';
   static const kIsolateStream = 'Isolate';
   static const kLoggingStream = 'Logging';
+  static const kProfilerStream = 'Profiler';
   static const kStderrStream = 'Stderr';
   static const kStdoutStream = 'Stdout';
 
@@ -272,10 +287,17 @@ class StreamManager {
     kStdoutStream,
   };
 
+  // Never cancel the profiler stream as `CpuSampleRepository` requires
+  // `UserTagChanged` events to enable/disable sample caching.
+  static const cpuSampleRepositoryStreams = <String>{
+    kProfilerStream,
+  };
+
   // The set of streams that DDS requires to function.
   static final ddsCoreStreams = <String>{
     ...isolateManagerStreams,
     ...loggingRepositoryStreams,
+    ...cpuSampleRepositoryStreams,
   };
 
   final DartDevelopmentServiceImpl dds;

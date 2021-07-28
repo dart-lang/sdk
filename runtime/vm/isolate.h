@@ -508,7 +508,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
-  SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
   Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
   Mutex* type_arguments_canonicalization_mutex() {
     return &type_arguments_canonicalization_mutex_;
@@ -868,7 +868,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
-  std::unique_ptr<SafepointRwLock> symbols_lock_;
+  Mutex symbols_mutex_;
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;

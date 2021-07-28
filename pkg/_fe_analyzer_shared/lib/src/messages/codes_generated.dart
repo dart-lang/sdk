@@ -6218,6 +6218,18 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
         message: r"""This is the enclosing class.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExternalExtensionMemberNotOnJSClass =
+    messageJsInteropExternalExtensionMemberNotOnJSClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExternalExtensionMemberNotOnJSClass =
+    const MessageCode("JsInteropExternalExtensionMemberNotOnJSClass",
+        message:
+            r"""JS interop class required for 'external' extension members.""",
+        tip:
+            r"""Try adding a JS interop annotation to the on type class of the extension.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalMemberNotJSAnnotated =
     messageJsInteropExternalMemberNotJSAnnotated;
 

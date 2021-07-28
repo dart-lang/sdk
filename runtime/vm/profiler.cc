@@ -226,7 +226,9 @@ void SampleBlockBuffer::ProcessCompletedBlocks() {
   int64_t start = Dart_TimelineGetMicros();
   for (intptr_t i = 0; i < capacity_; ++i) {
     SampleBlock* block = &blocks_[i];
-    if (block->is_full() && !block->evictable()) {
+    // Only evict blocks owned by the current thread.
+    if (block->owner() == thread->isolate() && block->is_full() &&
+        !block->evictable()) {
       if (Service::profiler_stream.enabled()) {
         Profile profile(block->owner());
         profile.Build(thread, nullptr, block);
@@ -327,8 +329,13 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
     isolate->set_current_sample_block(next);
   }
   next->set_is_allocation_block(allocation_sample);
-  can_process_block_.store(true);
-  isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  bool scheduled = can_process_block_.exchange(true);
+  // We don't process samples on the kernel isolate.
+  if (!isolate->is_kernel_isolate() &&
+      !isolate->is_service_isolate() &&
+      !scheduled) {
+    isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  }
   return ReserveSampleImpl(isolate, allocation_sample);
 }
 

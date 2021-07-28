@@ -64,7 +64,7 @@ class CommandLine {
 
   Iterable<String> get selectors => arguments;
 
-  Future<Uri> get configuration async {
+  Future<Uri?> get configuration async {
     const String configPrefix = "--config=";
     List<String> configurationPaths = options
         .where((String option) => option.startsWith(configPrefix))
@@ -111,7 +111,7 @@ class CommandLine {
     }
     const StdoutLogger()
         .logMessage("Reading configuration file '$configurationPath'.");
-    Uri configuration =
+    Uri? configuration =
         await Isolate.resolvePackageUri(Uri.base.resolve(configurationPath));
     if (configuration == null ||
         !await new File.fromUri(configuration).exists()) {
@@ -147,7 +147,7 @@ main(List<String> arguments) => withErrorHandling(() async {
         enableVerboseOutput();
       }
       Map<String, String> environment = cl.environment;
-      Uri configuration = await cl.configuration;
+      Uri? configuration = await cl.configuration;
       if (configuration == null) return;
       if (!isVerbose) {
         print("Use --verbose to display more details.");
@@ -155,7 +155,7 @@ main(List<String> arguments) => withErrorHandling(() async {
       TestRoot root = await TestRoot.fromUri(configuration);
       SuiteRunner runner = new SuiteRunner(
           root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
-      String program = await runner.generateDartProgram();
+      String? program = await runner.generateDartProgram();
       bool hasAnalyzerSuites = await runner.analyze(root.packages);
       Stopwatch sw = new Stopwatch()..start();
       if (program == null) {
@@ -178,7 +178,7 @@ Future<void> runTests(Map<String, Function> tests) =>
         try {
           await runGuarded(() {
             print("Running test $name");
-            return tests[name]();
+            return tests[name]!();
           }, printLineOnStdout: sb.writeln);
           const StdoutLogger().logMessage(sb);
         } catch (e) {
