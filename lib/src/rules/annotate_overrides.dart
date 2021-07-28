@@ -57,7 +57,6 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -68,6 +67,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
 
   _Visitor(this.rule, this.context);
+
+  void check(Element? element, AstNode target) {
+    if (element == null || element.hasOverride) return;
+
+    var member = getOverriddenMember(element);
+    if (member != null) {
+      rule.reportLint(target);
+    }
+  }
 
   Element? getOverriddenMember(Element member) {
     var classElement = member.thisOrAncestorOfType<ClassElement>();
@@ -88,25 +96,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isStatic) return;
+
     for (var field in node.fields.variables) {
-      var element = field.declaredElement;
-      if (element != null && !element.hasOverride) {
-        var member = getOverriddenMember(element);
-        if (member != null) {
-          rule.reportLint(field);
-        }
-      }
+      check(field.declaredElement, field);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredElement;
-    if (element != null && !element.hasOverride) {
-      var member = getOverriddenMember(element);
-      if (member != null) {
-        rule.reportLint(node.name);
-      }
-    }
+    if (node.isStatic) return;
+
+    check(node.declaredElement, node.name);
   }
 }
