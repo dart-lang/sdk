@@ -57,7 +57,6 @@ class PreferVoidToNull extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addSimpleIdentifier(this, visitor);
     registry.addTypeName(this, visitor);
   }
 }
