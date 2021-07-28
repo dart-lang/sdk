@@ -72,4 +72,45 @@ class AnonymousClass {
   // [web] Only JS interop members may be 'external'.
 }
 
+extension ExtensionNonJS on NonJSClass {
+  external get getter;
+  //           ^
+  // [web] JS interop class required for 'external' extension members.
+  external set setter(_);
+  //           ^
+  // [web] JS interop class required for 'external' extension members.
+
+  external static get staticGetter;
+  //                  ^
+  // [web] JS interop class required for 'external' extension members.
+  external static set staticSetter(_);
+  //                  ^
+  // [web] JS interop class required for 'external' extension members.
+
+  external method();
+  //       ^
+  // [web] JS interop class required for 'external' extension members.
+  external static staticMethod();
+  //              ^
+  // [web] JS interop class required for 'external' extension members.
+  external overridenMethod();
+  //       ^
+  // [web] JS interop class required for 'external' extension members.
+
+  nonExternalMethod() => 1;
+  static nonExternalStaticMethod() => 2;
+}
+
+class NonJSClass {
+  void overridenMethod() => 5;
+}
+
+extension ExtensionGenericNonJS<T> on GenericNonJSClass<T> {
+  external T method();
+  //         ^
+  // [web] JS interop class required for 'external' extension members.
+}
+
+class GenericNonJSClass<T> {}
+
 main() {}
