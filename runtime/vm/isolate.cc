@@ -2500,6 +2500,25 @@ void Isolate::Shutdown() {
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
     debugger()->Shutdown();
+    // Cleanup profiler state.
+    SampleBlock* cpu_block = current_sample_block();
+    if (cpu_block != nullptr) {
+      cpu_block->release_block();
+    }
+    SampleBlock* allocation_block = current_allocation_sample_block();
+    if (allocation_block != nullptr) {
+      allocation_block->release_block();
+    }
+
+    // Process the previously assigned sample blocks if we're using the
+    // profiler's sample buffer. Some tests create their own SampleBlockBuffer
+    // and handle block processing themselves.
+    if ((cpu_block != nullptr || allocation_block != nullptr) &&
+        Profiler::sample_block_buffer() != nullptr) {
+      StackZone zone(thread);
+      HandleScope handle_scope(thread);
+      Profiler::sample_block_buffer()->ProcessCompletedBlocks();
+    }
 #endif
   }
 
@@ -2557,26 +2576,6 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   Thread::ExitIsolate();
-
-#if !defined(PRODUCT)
-  // Cleanup profiler state.
-  SampleBlock* cpu_block = isolate->current_sample_block();
-  if (cpu_block != nullptr) {
-    cpu_block->release_block();
-  }
-  SampleBlock* allocation_block = isolate->current_allocation_sample_block();
-  if (allocation_block != nullptr) {
-    allocation_block->release_block();
-  }
-
-  // Process the previously assigned sample blocks if we're using the
-  // profiler's sample buffer. Some tests create their own SampleBlockBuffer
-  // and handle block processing themselves.
-  if ((cpu_block != nullptr || allocation_block != nullptr) &&
-      Profiler::sample_block_buffer() != nullptr) {
-    Profiler::sample_block_buffer()->ProcessCompletedBlocks();
-  }
-#endif  // !defined(PRODUCT)
 
   // Now it's safe to delete the isolate.
   delete isolate;

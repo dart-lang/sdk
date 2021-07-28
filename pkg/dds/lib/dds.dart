@@ -42,6 +42,7 @@ abstract class DartDevelopmentService {
     Uri? serviceUri,
     bool enableAuthCodes = true,
     bool ipv6 = false,
+    List<String> cachedUserTags = const [],
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
   }) async {
@@ -79,6 +80,7 @@ abstract class DartDevelopmentService {
       remoteVmServiceUri,
       serviceUri,
       enableAuthCodes,
+      cachedUserTags,
       ipv6,
       devToolsConfiguration,
       logRequests,
@@ -136,9 +138,13 @@ abstract class DartDevelopmentService {
   /// requests.
   bool get isRunning;
 
+  /// The list of [UserTag]s used to determine which CPU samples are cached by
+  /// DDS.
+  List<String> get cachedUserTags;
+
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '1.2';
+  static const String protocolVersion = '1.3';
 }
 
 class DartDevelopmentServiceException implements Exception {
