@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
@@ -23,15 +21,12 @@ class TestTypeHierarchy extends TypeHierarchy {
 
   @override
   bool isSubtype(Class sub, Class sup) {
-    return subtypes[sup].contains(sub);
+    return subtypes[sup]!.contains(sub);
   }
 
   @override
   Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
-    Type result = specializations[base.classNode];
-    expect(result, isNotNull,
-        reason: "specializeTypeCone($base) is not defined");
-    return result;
+    return specializations[base.classNode]!;
   }
 
   @override
@@ -104,10 +99,10 @@ main() {
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    final c1 = new Class(name: 'T1', fileUri: dummyUri);
-    final c2 = new Class(name: 'T2', fileUri: dummyUri);
-    final c3 = new Class(name: 'T3', fileUri: dummyUri);
-    final c4 = new Class(name: 'T4', fileUri: dummyUri);
+    final c1 = new Class(name: 'T1', fileUri: dummyUri)..parent = dummyLibrary;
+    final c2 = new Class(name: 'T2', fileUri: dummyUri)..parent = dummyLibrary;
+    final c3 = new Class(name: 'T3', fileUri: dummyUri)..parent = dummyLibrary;
+    final c4 = new Class(name: 'T4', fileUri: dummyUri)..parent = dummyLibrary;
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);
@@ -295,9 +290,9 @@ main() {
   });
 
   test('hashcode-equals', () {
-    final c1 = new Class(name: 'C1', fileUri: dummyUri);
-    final c2 = new Class(name: 'C2', fileUri: dummyUri);
-    final c3 = new Class(name: 'C3', fileUri: dummyUri);
+    final c1 = new Class(name: 'C1', fileUri: dummyUri)..parent = dummyLibrary;
+    final c2 = new Class(name: 'C2', fileUri: dummyUri)..parent = dummyLibrary;
+    final c3 = new Class(name: 'C3', fileUri: dummyUri)..parent = dummyLibrary;
 
     final tfc1 = new TFClass(1, c1);
     final tfc2 = new TFClass(2, c2);

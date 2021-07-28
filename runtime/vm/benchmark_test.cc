@@ -256,8 +256,8 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 // Measure compile of all kernel Service(CFE) functions.
 //
 BENCHMARK(KernelServiceCompileAll) {
-  if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
-    // TODO(bkonyi): remove this check when we build the CFE in strong mode.
+  // kernel_service.dill is built with sound null safety.
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
     return;
   }
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:kernel/target/targets.dart';
@@ -33,7 +31,7 @@ runTestCase(
       matcher: new ConstantPragmaAnnotationParser(coreTypes),
       treeShakeProtobufs: true);
 
-  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   // Tests in /protobuf_handler consist of multiple libraries.
   // Include libraries with protobuf generated messages into the result.
@@ -55,7 +53,7 @@ runTestCase(
   ensureKernelCanBeSerializedToBinary(component);
 }
 
-String argsTestName(List<String> args) {
+String? argsTestName(List<String> args) {
   if (args.length > 0) {
     return args.last;
   }

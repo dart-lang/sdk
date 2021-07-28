@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -22,14 +20,14 @@ const String mainScriptPackageUri = 'package:vm/kernel_front_end.dart';
 const String packagesFile = '.packages';
 const String packageConfigFile = '.dart_tool/package_config.json';
 
-void testCompile(List<String> args) async {
+Future<void> testCompile(List<String> args) async {
   final compilerExitCode =
       await runCompiler(createCompilerArgParser().parse(args), '');
   expect(compilerExitCode, successExitCode);
 }
 
 main() {
-  Directory tempDir;
+  late Directory tempDir;
   setUp(() {
     var systemTempDir = Directory.systemTemp;
     tempDir = systemTempDir.createTempSync('kernel_front_end_test');
