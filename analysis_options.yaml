@@ -38,6 +38,7 @@ linter:
     - cast_nullable_to_non_nullable
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
+    - depend_on_referenced_packages
     - directives_ordering
     - invariant_booleans
     - join_return_with_assignment
@@ -62,7 +63,6 @@ linter:
 #    - prefer_mixin
     - prefer_null_aware_method_calls
     - prefer_relative_imports
-    - depend_on_referenced_packages
 #    - public_member_api_docs
 #    - sort_constructors_first
     - sort_pub_dependencies
