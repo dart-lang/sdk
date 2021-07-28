@@ -3101,7 +3101,7 @@ class Function : public Object {
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
            IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
-           IsUtf8Scan();
+           IsUtf8Scan() || IsGetNativeField();
   }
 
   bool CanBeInlined() const;
@@ -3431,6 +3431,11 @@ class Function : public Object {
   bool IsFfiGetAddress() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kFfiGetAddress;
+  }
+
+  bool IsGetNativeField() const {
+    const auto kind = recognized_kind();
+    return kind == MethodRecognizer::kGetNativeField;
   }
 
   bool IsUtf8Scan() const {
@@ -7422,6 +7427,8 @@ class Instance : public Object {
   virtual bool IsPointer() const;
 
   static intptr_t NextFieldOffset() { return sizeof(UntaggedInstance); }
+
+  static intptr_t NativeFieldsOffset() { return sizeof(UntaggedObject); }
 
  protected:
 #ifndef PRODUCT
