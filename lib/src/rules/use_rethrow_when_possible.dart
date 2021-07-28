@@ -62,6 +62,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
+    if (node.parent is Expression || node.parent is ArgumentList) return;
+
     var element =
         DartTypeUtilities.getCanonicalElementFromIdentifier(node.expression);
     if (element != null) {
