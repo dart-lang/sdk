@@ -228,7 +228,7 @@ class Section : public ZoneAllocated {
  private:
   static intptr_t EncodeFlags(bool allocate, bool executable, bool writable) {
     // Executable and writable only make sense if this is an allocated section.
-    ASSERT(allocate || !executable && !writable);
+    ASSERT(allocate || (!executable && !writable));
     if (!allocate) return 0;
     intptr_t flags = elf::SHF_ALLOC;
     // We currently don't allow sections that are both executable and writable.

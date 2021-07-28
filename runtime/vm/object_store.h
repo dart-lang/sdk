@@ -543,6 +543,7 @@ class ObjectStore {
     UNREACHABLE();
     return NULL;
   }
+  uword unused_field_;
 
   friend class ProgramSerializationRoots;
   friend class ProgramDeserializationRoots;

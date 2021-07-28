@@ -115,7 +115,7 @@ struct PtrTypes {
 };
 
 struct HandleTypes {
-  using Object = const Object&;
+  using Object = const dart::Object&;
   static const dart::UntaggedObject* UntagObject(Object arg) {
     return arg.ptr().untag();
   }
@@ -123,7 +123,7 @@ struct HandleTypes {
   static Object HandlifyObject(Object arg) { return arg; }
 
 #define DO(V)                                                                  \
-  using V = const V&;                                                          \
+  using V = const dart::V&;                                                    \
   static Untagged##V* Untag##V(V arg) { return arg.ptr().untag(); }            \
   static V##Ptr Get##V##Ptr(V arg) { return arg.ptr(); }                       \
   static V Cast##V(const dart::Object& arg) { return dart::V::Cast(arg); }
@@ -1451,7 +1451,7 @@ class ObjectGraphCopier {
 
   // Result will be [<msg>, <objects-in-msg-to-rehash>]
   ObjectPtr CopyObjectGraph(const Object& root) {
-    const char* exception_msg = nullptr;
+    const char* volatile exception_msg = nullptr;
     auto& result = Object::Handle(zone_);
 
     {
@@ -1491,7 +1491,7 @@ class ObjectGraphCopier {
 
  private:
   ObjectPtr CopyObjectGraphInternal(const Object& root,
-                                    const char** exception_msg) {
+                                    const char* volatile* exception_msg) {
     const auto& result_array = Array::Handle(zone_, Array::New(2));
     if (!root.ptr()->IsHeapObject()) {
       result_array.SetAt(0, root);
@@ -1590,7 +1590,8 @@ class ObjectGraphCopier {
       const intptr_t size = UntaggedObject::SizeTag::decode(tags);
       // External typed data is already initialized.
       if (!IsExternalTypedDataClassId(cid) && !IsTypedDataViewClassId(cid)) {
-        memset(to.untag(), 0x0, from.untag()->HeapSize());
+        memset(reinterpret_cast<void*>(to.untag()), 0,
+               from.untag()->HeapSize());
         SetNewSpaceTaggingWord(to, cid, size);
         UpdateLengthField(cid, from, to);
       }
