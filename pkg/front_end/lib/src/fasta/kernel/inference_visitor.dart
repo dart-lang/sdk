@@ -322,7 +322,7 @@ class InferenceVisitor
   }
 
   @override
-  void visitInvalidInitializer(Initializer node) {
+  void visitInvalidInitializer(InvalidInitializer node) {
     _unhandledInitializer(node);
   }
 
@@ -1112,6 +1112,8 @@ class InferenceVisitor
       return new LocalForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is PropertySet) {
       return new PropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is InternalPropertySet) {
+      return new InternalPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is SuperPropertySet) {
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
@@ -2809,6 +2811,19 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitMethodInvocation(
       MethodInvocation node, DartType typeContext) {
+    assert(node.name != unaryMinusName);
+    ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
+        node.receiver, const UnknownType(), true);
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    Expression receiver = result.nullAwareAction;
+    DartType receiverType = result.nullAwareActionType;
+    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
+        receiver, receiverType, node.name, node.arguments, typeContext,
+        isExpressionInvocation: false, isImplicitCall: false);
+  }
+
+  ExpressionInferenceResult visitInternalMethodInvocation(
+      InternalMethodInvocation node, DartType typeContext) {
     assert(node.name != unaryMinusName);
     ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
         node.receiver, const UnknownType(), true);
@@ -5900,6 +5915,44 @@ class InferenceVisitor
         rhsType, replacement, nullAwareGuards);
   }
 
+  ExpressionInferenceResult visitInternalPropertySet(
+      InternalPropertySet node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferrer
+        .inferNullAwareExpression(node.receiver, const UnknownType(), true,
+        isVoidAllowed: false);
+
+    Link<NullAwareGuard> nullAwareGuards = receiverResult.nullAwareGuards;
+    Expression receiver = receiverResult.nullAwareAction;
+    DartType receiverType = receiverResult.nullAwareActionType;
+
+    ObjectAccessTarget target = inferrer.findInterfaceMember(
+        receiverType, node.name, node.fileOffset,
+        setter: true, instrumented: true, includeExtensionMethods: true);
+    if (target.isInstanceMember || target.isObjectMember) {
+      if (inferrer.instrumentation != null &&
+          receiverType == const DynamicType()) {
+        inferrer.instrumentation!.record(
+            inferrer.uriForInstrumentation,
+            node.fileOffset,
+            'target',
+            new InstrumentationValueForMember(target.member!));
+      }
+    }
+    DartType writeContext = inferrer.getSetterType(target, receiverType);
+    ExpressionInferenceResult rhsResult = inferrer
+        .inferExpression(node.value, writeContext, true, isVoidAllowed: true);
+    DartType rhsType = rhsResult.inferredType;
+    Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult,
+        fileOffset: node.fileOffset, isVoidAllowed: writeContext is VoidType);
+
+    Expression replacement = _computePropertySet(
+        node.fileOffset, receiver, receiverType, node.name, target, rhs,
+        valueType: rhsType, forEffect: node.forEffect);
+
+    return inferrer.createNullAwareExpressionInferenceResult(
+        rhsType, replacement, nullAwareGuards);
+  }
+
   ExpressionInferenceResult visitNullAwareIfNullSet(
       NullAwareIfNullSet node, DartType typeContext) {
     ExpressionInferenceResult receiverResult = inferrer
@@ -6007,6 +6060,31 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitPropertyGet(
       PropertyGet node, DartType typeContext) {
+    ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
+        node.receiver, const UnknownType(), true);
+
+    Link<NullAwareGuard> nullAwareGuards = result.nullAwareGuards;
+    Expression receiver = result.nullAwareAction;
+    DartType receiverType = result.nullAwareActionType;
+
+    node.receiver = receiver..parent = node;
+    PropertyGetInferenceResult propertyGetInferenceResult = _computePropertyGet(
+        node.fileOffset, receiver, receiverType, node.name, typeContext,
+        isThisReceiver: node.receiver is ThisExpression);
+    ExpressionInferenceResult readResult =
+        propertyGetInferenceResult.expressionInferenceResult;
+    inferrer.flowAnalysis.propertyGet(node, node.receiver, node.name.text,
+        propertyGetInferenceResult.member, readResult.inferredType);
+    ExpressionInferenceResult expressionInferenceResult =
+        inferrer.createNullAwareExpressionInferenceResult(
+            readResult.inferredType, readResult.expression, nullAwareGuards);
+    inferrer.flowAnalysis
+        .forwardExpression(expressionInferenceResult.nullAwareAction, node);
+    return expressionInferenceResult;
+  }
+
+  ExpressionInferenceResult visitInternalPropertyGet(
+      InternalPropertyGet node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
         node.receiver, const UnknownType(), true);
 
@@ -7306,6 +7384,69 @@ class PropertyForInVariable implements ForInVariable {
             templateForInLoopElementTypeNotAssignableNullability,
         nullabilityPartErrorTemplate:
             templateForInLoopElementTypeNotAssignablePartNullability,
+        isVoidAllowed: true);
+
+    propertySet.value = rhs..parent = propertySet;
+    ExpressionInferenceResult result = inferrer.inferExpression(
+        propertySet, const UnknownType(), !inferrer.isTopLevel,
+        isVoidAllowed: true);
+    return result.expression;
+  }
+}
+
+class InternalPropertyForInVariable implements ForInVariable {
+  final InternalPropertySet propertySet;
+
+  DartType? _writeType;
+
+  Expression? _rhs;
+
+  InternalPropertyForInVariable(this.propertySet);
+
+  @override
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        propertySet.receiver, const UnknownType(), true);
+    propertySet.receiver = receiverResult.expression..parent = propertySet;
+    DartType receiverType = receiverResult.inferredType;
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, propertySet.name, propertySet.fileOffset,
+        setter: true, instrumented: true, includeExtensionMethods: true);
+    DartType elementType =
+    _writeType = inferrer.getSetterType(writeTarget, receiverType);
+    Expression? error = inferrer.reportMissingInterfaceMember(
+        writeTarget,
+        receiverType,
+        propertySet.name,
+        propertySet.fileOffset,
+        templateUndefinedSetter);
+    if (error != null) {
+      _rhs = error;
+    } else {
+      if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
+        if (inferrer.instrumentation != null &&
+            receiverType == const DynamicType()) {
+          inferrer.instrumentation!.record(
+              inferrer.uriForInstrumentation,
+              propertySet.fileOffset,
+              'target',
+              new InstrumentationValueForMember(writeTarget.member!));
+        }
+      }
+      _rhs = propertySet.value;
+    }
+    return elementType;
+  }
+
+  @override
+  Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
+    Expression rhs = inferrer.ensureAssignable(
+        inferrer.computeGreatestClosure(_writeType!), rhsType, _rhs!,
+        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        nullabilityErrorTemplate:
+        templateForInLoopElementTypeNotAssignableNullability,
+        nullabilityPartErrorTemplate:
+        templateForInLoopElementTypeNotAssignablePartNullability,
         isVoidAllowed: true);
 
     propertySet.value = rhs..parent = propertySet;

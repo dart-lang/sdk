@@ -14393,6 +14393,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
   INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);

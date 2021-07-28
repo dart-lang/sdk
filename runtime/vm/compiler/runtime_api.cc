@@ -477,6 +477,10 @@ word Instance::first_field_offset() {
   return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
+word Instance::native_fields_array_offset() {
+  return TranslateOffsetInWords(dart::Instance::NativeFieldsOffset());
+}
+
 word Instance::DataOffsetFor(intptr_t cid) {
   if (dart::IsExternalTypedDataClassId(cid) ||
       dart::IsExternalStringClassId(cid)) {

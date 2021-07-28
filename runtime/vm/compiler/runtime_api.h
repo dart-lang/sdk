@@ -511,8 +511,8 @@ class Class : public AllStatic {
 class Instance : public AllStatic {
  public:
   // Returns the offset to the first field of [UntaggedInstance].
-  // Returns the offset to the first field of [UntaggedInstance].
   static word first_field_offset();
+  static word native_fields_array_offset();
   static word DataOffsetFor(intptr_t cid);
   static word ElementSizeFor(intptr_t cid);
   static word InstanceSize();

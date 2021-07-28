@@ -6583,9 +6583,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               arguments))
         ..fileOffset = receiver.fileOffset;
     } else {
-      MethodInvocation node =
-          forest.createMethodInvocation(offset, receiver, name, arguments);
-      return node;
+      return forest.createMethodInvocation(offset, receiver, name, arguments);
     }
   }
 

@@ -290,6 +290,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
 }
 
 static Token::Kind RecognizeTokenKindHelper(const String& name) {

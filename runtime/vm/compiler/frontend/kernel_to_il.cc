@@ -854,6 +854,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
+    case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -1490,6 +1491,20 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 #else
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
+    } break;
+    case MethodRecognizer::kGetNativeField: {
+      auto& name = String::ZoneHandle(Z, function.name());
+      // Note: This method is force optimized so we can push untagged, etc.
+      // Load TypedDataArray from Instance Handle implementing
+      // NativeFieldWrapper.
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Object.
+      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      body += LoadNativeField(Slot::Instance_native_fields_array());  // Fields.
+      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      // Load the native field at index.
+      body += IntConstant(0);  // Index.
+      body += LoadIndexed(kIntPtrCid);
+      body += Box(kUnboxedIntPtr);
     } break;
     default: {
       UNREACHABLE();

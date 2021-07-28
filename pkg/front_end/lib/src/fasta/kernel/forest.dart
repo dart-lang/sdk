@@ -722,11 +722,11 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  MethodInvocation createMethodInvocation(
+  Expression createMethodInvocation(
       int fileOffset, Expression expression, Name name, Arguments arguments) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new MethodInvocation(expression, name, arguments)
+    return new InternalMethodInvocation(expression, name, arguments)
       ..fileOffset = fileOffset;
   }
 
@@ -758,19 +758,18 @@ class Forest {
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
-  PropertyGet createPropertyGet(
-      int fileOffset, Expression receiver, Name name) {
+  Expression createPropertyGet(int fileOffset, Expression receiver, Name name) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new PropertyGet(receiver, name)..fileOffset = fileOffset;
+    return new InternalPropertyGet(receiver, name)..fileOffset = fileOffset;
   }
 
-  PropertySet createPropertySet(
+  Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
       {required bool forEffect, bool readOnlyReceiver: false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new PropertySetImpl(receiver, name, value,
+    return new InternalPropertySet(receiver, name, value,
         forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = fileOffset;
   }

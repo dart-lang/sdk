@@ -282,6 +282,9 @@ Sample* SampleBlock::ReserveSampleAndLink(Sample* previous) {
   Sample* next = previous->is_allocation_sample()
                      ? buffer->ReserveAllocationSample(isolate)
                      : buffer->ReserveCPUSample(isolate);
+  if (next == nullptr) {
+    return nullptr;  // No blocks left, so drop sample.
+  }
   next->Init(previous->port(), previous->timestamp(), previous->tid());
   next->set_head_sample(false);
   // Mark that previous continues at next.

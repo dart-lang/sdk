@@ -3082,7 +3082,12 @@ class SuperInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.write('super');
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
   }
 }
 

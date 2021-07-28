@@ -44,6 +44,8 @@ main() {
   _testFunctionDeclarationImpl();
   _testIfNullExpression();
   _testIntLiterals();
+  _testInternalMethodInvocation();
+  _testInternalPropertyGet();
   _testExpressionInvocation();
   _testNamedFunctionExpressionJudgment();
   _testNullAwareMethodInvocation();
@@ -372,6 +374,35 @@ void _testIntLiterals() {
   testExpression(new ShadowLargeIntLiteral('bar', TreeNode.noOffset), 'bar');
 }
 
+void _testInternalMethodInvocation() {
+  testExpression(
+      new InternalMethodInvocation(
+          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([])),
+      '''
+0.boz()''');
+  testExpression(
+      new InternalMethodInvocation(
+          new IntLiteral(0),
+          new Name('boz'),
+          new ArgumentsImpl([
+            new IntLiteral(1)
+          ], types: [
+            const VoidType(),
+            const DynamicType()
+          ], named: [
+            new NamedExpression('foo', new IntLiteral(2)),
+            new NamedExpression('bar', new IntLiteral(3))
+          ])),
+      '''
+0.boz<void, dynamic>(1, foo: 2, bar: 3)''');
+}
+
+void _testInternalPropertyGet() {
+  testExpression(
+      new InternalPropertyGet(new IntLiteral(0), new Name('boz')), '''
+0.boz''');
+}
+
 void _testExpressionInvocation() {
   testExpression(
       new ExpressionInvocation(new IntLiteral(0), new ArgumentsImpl([])), '''
@@ -417,7 +448,7 @@ void _testNullAwareMethodInvocation() {
   // An unusual use of this node.
   testExpression(
       new NullAwareMethodInvocation(variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo'))),
+          new InternalPropertyGet(new VariableGet(variable), new Name('foo'))),
       '''
 let final dynamic #0 = 0 in null-aware #0.foo''');
 }
@@ -429,7 +460,7 @@ void _testNullAwarePropertyGet() {
   // The usual use of this node.
   testExpression(
       new NullAwarePropertyGet(variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo'))),
+          new InternalPropertyGet(new VariableGet(variable), new Name('foo'))),
       '''
 0?.foo''');
 

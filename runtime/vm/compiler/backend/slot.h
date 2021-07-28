@@ -61,6 +61,7 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
   V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
