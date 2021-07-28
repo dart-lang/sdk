@@ -52,6 +52,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -126,6 +127,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
+    ProcessManager? processManager,
     DiagnosticServer? diagnosticServer,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
@@ -137,6 +139,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           baseResourceProvider,
           instrumentationService,
           httpClient,
+          processManager,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
           enableBazelWatcher: enableBazelWatcher,
         ) {
@@ -184,10 +187,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       RefactoringWorkspace(driverMap.values, searchEngine);
 
   void addPriorityFile(String filePath) {
-    // When a pubspec is opened, trigger package name caching for completion.
-    if (!pubPackageService.isRunning &&
-        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
-      pubPackageService.beginPackageNamePreload();
+    // When pubspecs are opened, trigger pre-loading of pub package names and
+    // versions.
+    if (file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
+      pubPackageService.beginCachePreloads([filePath]);
     }
 
     final didAdd = priorityFiles.add(filePath);
@@ -849,6 +852,18 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void pubspecChanged(String pubspecPath) {
+    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
+        pubspecPath,
+        pubspecWasModified: true);
+  }
+
+  @override
+  void pubspecRemoved(String pubspecPath) {
+    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
   }
 
   @override

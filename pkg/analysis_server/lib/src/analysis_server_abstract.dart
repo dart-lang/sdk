@@ -19,6 +19,7 @@ import 'package:analysis_server/src/services/completion/dart/documentation_cache
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -52,6 +53,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -152,14 +154,26 @@ abstract class AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
     http.Client? httpClient,
+    ProcessManager? processManager,
     this.notificationManager, {
     this.requestStatistics,
     bool enableBazelWatcher = false,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
-    pubPackageService =
-        PubPackageService(instrumentationService, baseResourceProvider, pubApi);
+    // We can only use a LocalProcessManager to run pub commands when backed by
+    // a real file system, otherwise we may try to run commands in folders that
+    // don't really exist. If processManager was supplied, it's likely a mock
+    // from a test in which case the pub command should still be created.
+    if (baseResourceProvider is PhysicalResourceProvider) {
+      processManager ??= LocalProcessManager();
+    }
+    final pubCommand = processManager != null
+        ? PubCommand(instrumentationService, processManager)
+        : null;
+
+    pubPackageService = PubPackageService(
+        instrumentationService, baseResourceProvider, pubApi, pubCommand);
     performance = performanceDuringStartup;
 
     pluginManager = PluginManager(

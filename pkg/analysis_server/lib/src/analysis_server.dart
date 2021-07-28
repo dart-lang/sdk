@@ -55,6 +55,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:process/process.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -130,6 +131,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
+    ProcessManager? processManager,
     RequestStatisticsHelper? requestStatistics,
     DiagnosticServer? diagnosticServer,
     this.detachableFileSystemManager,
@@ -143,6 +145,7 @@ class AnalysisServer extends AbstractAnalysisServer {
           baseResourceProvider,
           instrumentationService,
           httpClient,
+          processManager,
           NotificationManager(channel, baseResourceProvider.pathContext),
           requestStatistics: requestStatistics,
           enableBazelWatcher: enableBazelWatcher,
@@ -429,9 +432,11 @@ class AnalysisServer extends AbstractAnalysisServer {
     bool isPubspec(String filePath) =>
         file_paths.isPubspecYaml(resourceProvider.pathContext, filePath);
 
-    // When a pubspec is opened, trigger package name caching for completion.
-    if (!pubPackageService.isRunning && files.any(isPubspec)) {
-      pubPackageService.beginPackageNamePreload();
+    // When pubspecs are opened, trigger pre-loading of pub package names and
+    // versions.
+    final pubspecs = files.where(isPubspec).toList();
+    if (pubspecs.isNotEmpty) {
+      pubPackageService.beginCachePreloads(pubspecs);
     }
 
     priorityFiles.clear();
@@ -685,6 +690,18 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void pubspecChanged(String pubspecPath) {
+    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
+        pubspecPath,
+        pubspecWasModified: true);
+  }
+
+  @override
+  void pubspecRemoved(String pubspecPath) {
+    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
   }
 
   @override

@@ -2,10 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:collection/collection.dart';
 import 'package:http/http.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,6 +21,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PubApiTest);
+    defineReflectiveTests(PubCommandTest);
     defineReflectiveTests(PubPackageServiceTest);
   });
 }
@@ -74,6 +81,168 @@ class PubApiTest {
     final api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, null);
     api.close();
     expect(httpClient.wasClosed, isFalse);
+  }
+}
+
+@reflectiveTest
+class PubCommandTest with ResourceProviderMixin {
+  late MockProcessManager processManager;
+  late PubCommand pubCommand;
+  late String pubspecPath, pubspec2Path;
+
+  void setUp() {
+    pubspecPath = convertPath('/home/project/pubspec.yaml');
+    pubspec2Path = convertPath('/home/project2/pubspec.yaml');
+    processManager = MockProcessManager();
+    pubCommand =
+        PubCommand(InstrumentationService.NULL_SERVICE, processManager);
+  }
+
+  Future<void> test_doesNotRunConcurrently() async {
+    var isRunning = false;
+    processManager.runHandler = (command, {dir, env}) async {
+      expect(isRunning, isFalse,
+          reason: 'pub commands should not run concurrently');
+      isRunning = true;
+      await pumpEventQueue(times: 500);
+      isRunning = false;
+      return ProcessResult(0, 0, '', '');
+    };
+    await Future.wait([
+      pubCommand.outdatedVersions(pubspecPath),
+      pubCommand.outdatedVersions(pubspecPath),
+    ]);
+  }
+
+  Future<void> test_outdated_args() async {
+    processManager.runHandler = (command, {dir, env}) {
+      var expectedPubPath = path.join(
+        path.dirname(Platform.resolvedExecutable),
+        Platform.isWindows ? 'pub.bat' : 'pub',
+      );
+      expect(
+          command,
+          equals([
+            expectedPubPath,
+            'outdated',
+            '--show-all',
+            '--json',
+          ]));
+      expect(dir, equals(convertPath('/home/project')));
+      expect(
+          env!['PUB_ENVIRONMENT'],
+          anyOf(equals('analysis_server.pub_api'),
+              endsWith(':analysis_server.pub_api')));
+      return ProcessResult(0, 0, '', '');
+    };
+    await pubCommand.outdatedVersions(pubspecPath);
+  }
+
+  Future<void> test_outdated_invalidJson() async {
+    processManager.runHandler = (List<String> command, {dir, env}) =>
+        ProcessResult(1, 0, 'NOT VALID JSON', '');
+    final result = await pubCommand.outdatedVersions(pubspecPath);
+    expect(result, isEmpty);
+  }
+
+  Future<void> test_outdated_missingFields() async {
+    final validJson = r'''
+    {
+      "packages": [
+        {
+          "package":    "foo",
+          "current":    { "version": "1.0.0" },
+          "upgradable": { "version": "2.0.0" },
+          "resolvable": { }
+        }
+      ]
+    }
+    ''';
+    processManager.runHandler =
+        (command, {dir, env}) => ProcessResult(1, 0, validJson, '');
+    final result = await pubCommand.outdatedVersions(pubspecPath);
+    expect(result, hasLength(1));
+    final package = result.first;
+    expect(package.packageName, equals('foo'));
+    expect(package.currentVersion, equals('1.0.0'));
+    expect(package.upgradableVersion, equals('2.0.0'));
+    expect(package.resolvableVersion, isNull);
+    expect(package.latestVersion, isNull);
+  }
+
+  Future<void> test_outdated_multiplePubspecs() async {
+    final pubspecJson1 = r'''
+    {
+      "packages": [
+        {
+          "package":    "foo",
+          "resolvable": { "version": "1.1.1" }
+        }
+      ]
+    }
+    ''';
+    final pubspecJson2 = r'''
+    {
+      "packages": [
+        {
+          "package":    "foo",
+          "resolvable": { "version": "2.2.2" }
+        }
+      ]
+    }
+    ''';
+
+    processManager.runHandler = (command, {dir, env}) {
+      // Return different json based on the directory we were invoked in.
+      final json =
+          dir == path.dirname(pubspecPath) ? pubspecJson1 : pubspecJson2;
+      return ProcessResult(1, 0, json, '');
+    };
+    final result1 = await pubCommand.outdatedVersions(pubspecPath);
+    final result2 = await pubCommand.outdatedVersions(pubspec2Path);
+    expect(result1.first.resolvableVersion, equals('1.1.1'));
+    expect(result2.first.resolvableVersion, equals('2.2.2'));
+  }
+
+  Future<void> test_outdated_nonZeroExitCode() async {
+    processManager.runHandler =
+        (command, {dir, env}) => ProcessResult(1, 123, '{}', '');
+    final result = await pubCommand.outdatedVersions(pubspecPath);
+    expect(result, isEmpty);
+  }
+
+  Future<void> test_validJson() async {
+    final validJson = r'''
+    {
+      "packages": [
+        {
+          "package":    "foo",
+          "current":    { "version": "1.0.0" },
+          "upgradable": { "version": "2.0.0" },
+          "resolvable": { "version": "3.0.0" },
+          "latest":     { "version": "4.0.0" }
+        },
+        {
+          "package":    "bar",
+          "current":    { "version": "1.0.0" },
+          "upgradable": { "version": "2.0.0" },
+          "resolvable": { "version": "3.0.0" },
+          "latest":     { "version": "4.0.0" }
+        }
+      ]
+    }
+    ''';
+    processManager.runHandler =
+        (command, {dir, env}) => ProcessResult(1, 0, validJson, '');
+    final result = await pubCommand.outdatedVersions(pubspecPath);
+    expect(result, hasLength(2));
+    result.forEachIndexed((index, package) {
+      expect(package.packageName, equals(index == 0 ? 'foo' : 'bar'));
+      expect(package.currentVersion, equals('1.0.0'));
+      expect(package.upgradableVersion, equals('2.0.0'));
+      expect(package.resolvableVersion, equals('3.0.0'));
+      expect(package.latestVersion, equals('4.0.0'));
+    });
   }
 }
 
@@ -194,13 +363,13 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
   Future<void> test_packageCache_initializesOnPubspecOpen() async {
     await initialize();
 
-    expect(server.pubPackageService.isRunning, isFalse);
+    expect(server.pubPackageService.isPackageNamesTimerRunning, isFalse);
     expect(server.pubPackageService.packageCache, isNull);
     expectPackages([]);
     await openFile(pubspecFileUri, '');
     await pumpEventQueue();
 
-    expect(server.pubPackageService.isRunning, isTrue);
+    expect(server.pubPackageService.isPackageNamesTimerRunning, isTrue);
     expect(server.pubPackageService.packageCache, isNotNull);
     expectPackages([]);
   }
