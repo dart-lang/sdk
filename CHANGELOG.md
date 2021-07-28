@@ -159,8 +159,26 @@
 
 #### Linter
 
-Updated the Linter to `1.7.0`, which includes changes that
+Updated the Linter to `1.8.0`, which includes changes that
 
+
+- improve performance for `prefer_is_not_empty`.
+- fix false positives in `no_logic_in_create_state`.
+- improve `package_names` to allow dart identifiers as package names.
+- fix a false-positive in `package_names` (causing keywords to wrongly get flagged).
+- fix `avoid_classes_with_only_static_member` to check for inherited members and also
+  flag classes with only methods.
+- fix `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
+  blocks.
+- improve `always_specify_types` to support type aliases.
+- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+  strings
+- fix a false positive in `avoid_function_literals_in_foreach_calls` for nullable
+  iterables.
+- fix false positives in `avoid_returning_null` w/ NNBD
+- fix false positives in `use_late_for_private_fields_and_variables` in the presence
+  of const constructors.
+- adds a new lint: `eol_at_end_of_file`.
 - fix case-sensitive false positive in `use_full_hex_values_for_flutter_colors`.
 - improve try-block and switch statement flow analysis for
   `use_build_context_synchronously`.
