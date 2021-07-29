@@ -8,7 +8,6 @@
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/const_tear_off: RuntimeError
-constructor_tearoffs/explicit_new_as_unnamed: Crash
 constructor_tearoffs/inferred_constructor_tear_off: RuntimeError
 constructor_tearoffs/inferred_non_proper_rename: RuntimeError
 constructor_tearoffs/redirecting_constructors: RuntimeError

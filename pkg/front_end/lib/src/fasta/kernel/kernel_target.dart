@@ -1053,8 +1053,12 @@ class KernelTarget extends TargetImplementation {
       // To report errors on the first definition of a constructor, we need to
       // iterate until that last element.
       ConstructorBuilder earliest = constructorBuilder;
-      while (earliest.next != null) {
-        earliest = earliest.next as ConstructorBuilder;
+      Builder earliestBuilder = constructorBuilder;
+      while (earliestBuilder.next != null) {
+        earliestBuilder = earliestBuilder.next!;
+        if (earliestBuilder is ConstructorBuilder) {
+          earliest = earliestBuilder;
+        }
       }
 
       bool isRedirecting = false;
