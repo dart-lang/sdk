@@ -17,10 +17,9 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
+  _fe_analyzer_shared: any
 
   # Unpublished packages that can be used via path dependency
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
   _js_interop_checks:
     path: ../_js_interop_checks
   js_ast:
@@ -33,8 +32,7 @@ dev_dependencies:
   args: any
   dart_style: any
   http: any
-  js:
-    path: ../js
+  js: any
   package_config: any
   path: any
   source_maps: any
@@ -55,6 +53,8 @@ dev_dependencies:
 
 dependency_overrides:
   # Packages with source in the SDK
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
   front_end:
     path: ../front_end
   kernel:
@@ -81,6 +81,8 @@ dependency_overrides:
     path: ../../third_party/pkg/fixnum
   http_parser:
     path: ../../third_party/pkg/http_parser
+  js:
+    path: ../js
   matcher:
     path: ../../third_party/pkg/matcher
   mime:
@@ -90,9 +92,7 @@ dependency_overrides:
   path:
     path: ../../third_party/pkg/path
   protobuf:
-    path: ../../third_party/pkg/protobuf
-  quiver:
-    path: ../../third_party/pkg/quiver
+    path: ../../third_party/pkg/protobuf/protobuf
   shelf:
     path: ../../third_party/pkg/shelf
   shelf_static:
