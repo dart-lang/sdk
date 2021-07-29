@@ -76,6 +76,11 @@ List<Object>? extractTypedefNameFromTearOff(Name name) {
   return null;
 }
 
+/// Returns `true` if [procedure] is a lowered typedef tear off.
+bool isTypedefTearOffLowering(Procedure procedure) {
+  return extractTypedefNameFromTearOff(procedure.name) != null;
+}
+
 /// Creates the [Procedure] for the lowering of a generative constructor of
 /// the given [name] in [compilationUnit].
 ///
@@ -369,4 +374,58 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
   tearOff.function.body = new ReturnStatement(constructorInvocation)
     ..fileOffset = tearOff.fileOffset
     ..parent = tearOff.function;
+}
+
+/// Reverse engineered typedef tear off information.
+class LoweredTypedefTearOff {
+  Procedure typedefTearOff;
+  Constant targetTearOffConstant;
+  List<DartType> typeArguments;
+
+  LoweredTypedefTearOff(
+      this.typedefTearOff, this.targetTearOffConstant, this.typeArguments);
+
+  /// Reverse engineers [constant] to a [LoweredTypedefTearOff] if [constant] is
+  /// the encoding of a lowered typedef tear off.
+  // TODO(johnniwinther): Check that this works with outlines.
+  static LoweredTypedefTearOff? fromConstant(Constant constant) {
+    if (constant is StaticTearOffConstant &&
+        isTypedefTearOffLowering(constant.target)) {
+      Procedure typedefTearOff = constant.target;
+      Statement? body = typedefTearOff.function.body;
+      if (body is ReturnStatement) {
+        Expression? constructorInvocation = body.expression;
+        Member? target;
+        List<DartType>? typeArguments;
+        if (constructorInvocation is ConstructorInvocation) {
+          target = constructorInvocation.target;
+          typeArguments = constructorInvocation.arguments.types;
+        } else if (constructorInvocation is StaticInvocation) {
+          target = constructorInvocation.target;
+          typeArguments = constructorInvocation.arguments.types;
+        }
+        if (target != null) {
+          Class cls = target.enclosingClass!;
+          Name tearOffName =
+              constructorTearOffName(target.name.text, cls.enclosingLibrary);
+          for (Procedure procedure in cls.procedures) {
+            if (procedure.name == tearOffName) {
+              target = procedure;
+              break;
+            }
+          }
+          Constant tearOffConstant;
+          if (target is Constructor ||
+              target is Procedure && target.isFactory) {
+            tearOffConstant = new ConstructorTearOffConstant(target!);
+          } else {
+            tearOffConstant = new StaticTearOffConstant(target as Procedure);
+          }
+          return new LoweredTypedefTearOff(
+              typedefTearOff, tearOffConstant, typeArguments!);
+        }
+      }
+    }
+    return null;
+  }
 }

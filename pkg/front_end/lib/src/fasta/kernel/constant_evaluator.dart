@@ -20,6 +20,7 @@ library fasta.constant_evaluator;
 
 import 'dart:io' as io;
 
+import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -736,6 +737,23 @@ class ConstantsTransformer extends RemovingTransformer {
                   constant.tearOffConstant.getType(_staticTypeContext!))
                 ..fileOffset = expression.fileOffset,
               constant.types.map(substitution.substituteType).toList());
+        } else {
+          LoweredTypedefTearOff? loweredTypedefTearOff =
+              LoweredTypedefTearOff.fromConstant(constant);
+          if (loweredTypedefTearOff != null) {
+            Constant tearOffConstant = constantEvaluator
+                .canonicalize(loweredTypedefTearOff.targetTearOffConstant);
+            Substitution substitution = Substitution.fromPairs(
+                loweredTypedefTearOff.typedefTearOff.function.typeParameters,
+                node.typeArguments);
+            return new Instantiation(
+                new ConstantExpression(tearOffConstant,
+                    tearOffConstant.getType(_staticTypeContext!))
+                  ..fileOffset = expression.fileOffset,
+                loweredTypedefTearOff.typeArguments
+                    .map(substitution.substituteType)
+                    .toList());
+          }
         }
       }
     }
@@ -3307,6 +3325,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           typeArguments =
               constant.types.map(substitution.substituteType).toList();
           constant = constant.tearOffConstant;
+        } else {
+          LoweredTypedefTearOff? loweredTypedefTearOff =
+              LoweredTypedefTearOff.fromConstant(constant);
+          if (loweredTypedefTearOff != null) {
+            constant =
+                canonicalize(loweredTypedefTearOff.targetTearOffConstant);
+            Substitution substitution = Substitution.fromPairs(
+                loweredTypedefTearOff.typedefTearOff.function.typeParameters,
+                node.typeArguments);
+            typeArguments = loweredTypedefTearOff.typeArguments
+                .map(substitution.substituteType)
+                .toList();
+          }
         }
         return canonicalize(new InstantiationConstant(constant, typeArguments));
       } else {

@@ -11,7 +11,6 @@ dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 constructor_tearoffs/const_tear_off: RuntimeError
 constructor_tearoffs/inferred_constructor_tear_off: RuntimeError
 constructor_tearoffs/inferred_non_proper_rename: RuntimeError
-constructor_tearoffs/lowering/inferred_non_proper_rename: RuntimeError
 constructor_tearoffs/redirecting_constructors: RuntimeError
 constructor_tearoffs/redirecting_factory_tear_off: RuntimeError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
