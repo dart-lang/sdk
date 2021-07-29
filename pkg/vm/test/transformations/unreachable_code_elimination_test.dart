@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:kernel/target/targets.dart';
@@ -30,7 +28,7 @@ runTestCase(Uri source) async {
   component = transformComponent(component, /* enableAsserts = */ false);
   verifyComponent(component);
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   compareResultWithExpectationsFile(source, actual);
 }

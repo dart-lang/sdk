@@ -450,15 +450,11 @@ ErrorPtr Thread::HandleInterrupts() {
     }
 
 #if !defined(PRODUCT)
-    // Don't block the kernel isolate to process CPU samples as we can
-    // potentially deadlock when trying to compile source for the main isolate.
-    if (!isolate()->is_kernel_isolate() && !isolate()->is_service_isolate()) {
-      // Processes completed SampleBlocks and sends CPU sample events over the
-      // service protocol when applicable.
-      SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
-      if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
-        sample_buffer->ProcessCompletedBlocks();
-      }
+    // Processes completed SampleBlocks and sends CPU sample events over the
+    // service protocol when applicable.
+    SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
+    if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
+      sample_buffer->ProcessCompletedBlocks();
     }
 #endif  // !defined(PRODUCT)
   }

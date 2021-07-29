@@ -3,14 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:http/http.dart' as http;
-import 'package:process/process.dart';
 import 'package:test/test.dart';
 
 /// A [Matcher] that check that the given [Response] has an expected identifier
@@ -47,31 +44,6 @@ class MockHttpClient extends http.BaseClient {
         .then((resp) => http.StreamedResponse(
             Stream.value(resp.body.codeUnits), resp.statusCode))
         .whenComplete(() => sendHandlerCalls++);
-  }
-}
-
-class MockProcessManager implements ProcessManager {
-  FutureOr<ProcessResult> Function(List<String> command,
-          {String? dir, Map<String, String>? env})? runHandler =
-      (command, {dir, env}) => throw UnimplementedError();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-
-  @override
-  Future<ProcessResult> run(
-    List<dynamic> command, {
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool includeParentEnvironment = true,
-    bool runInShell = false,
-    Encoding stdoutEncoding = systemEncoding,
-    Encoding stderrEncoding = systemEncoding,
-  }) async {
-    return runHandler!(command.cast<String>(),
-        dir: workingDirectory, env: environment);
   }
 }
 

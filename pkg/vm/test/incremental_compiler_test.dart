@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -47,8 +46,8 @@ main() {
   final options = getFreshOptions();
 
   group('basic', () {
-    Directory mytest;
-    File main;
+    late Directory mytest;
+    late File main;
 
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
@@ -70,7 +69,7 @@ main() {
 
       final StringBuffer buffer = new StringBuffer();
       new Printer(buffer, showMetadata: true)
-          .writeLibraryFile(component.mainMethod.enclosingLibrary);
+          .writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
           buffer.toString(),
           equals('library /*isNonNullableByDefault*/;\n'
@@ -92,7 +91,7 @@ main() {
 
       final StringBuffer buffer = new StringBuffer();
       new Printer(buffer, showMetadata: true)
-          .writeLibraryFile(component.mainMethod.enclosingLibrary);
+          .writeLibraryFile(component.mainMethod!.enclosingLibrary);
       expect(
           buffer.toString(),
           equals('library /*isNonNullableByDefault*/;\n'
@@ -113,13 +112,13 @@ main() {
       await compiler.compile();
       compiler.accept();
       {
-        Procedure procedure = await compiler.compileExpression(
+        Procedure? procedure = await compiler.compileExpression(
             'main', <String>[], <String>[], main.uri.toString(), null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(0));
       }
       {
-        Procedure procedure = await compiler.compileExpression(
+        Procedure? procedure = await compiler.compileExpression(
             'main1', <String>[], <String>[], main.uri.toString(), null, true);
         expect(procedure, isNotNull);
         expect(errorsReported, equals(1));
@@ -138,7 +137,7 @@ main() {
   Future<Set<int>> collectAndCheckCoverageData(int port, bool getAllSources,
       {bool resume: true,
       bool onGetAllVerifyCount: true,
-      Set<int> coverageForLines}) async {
+      Set<int>? coverageForLines}) async {
     RemoteVm remoteVm = new RemoteVm(port);
 
     // Wait for the script to have finished.
@@ -177,7 +176,7 @@ main() {
     // Ensure that we can get a line and column number for all reported
     // positions in the scripts we care about.
     for (Map sourceReport in sourceReports) {
-      List scripts = sourceReport["scripts"];
+      List<Map> scripts = sourceReport["scripts"].cast<Map>();
       Map<String, int> scriptIdToIndex = new Map<String, int>();
       Set<int> lib1scriptIndices = new Set<int>();
       int i = 0;
@@ -201,9 +200,9 @@ main() {
       Map<int, Map> scriptIndexToScript = new Map<int, Map>();
       for (String scriptId in scriptIdToIndex.keys) {
         Map script = await remoteVm.getObject(scriptId);
-        int scriptIdx = scriptIdToIndex[scriptId];
+        int scriptIdx = scriptIdToIndex[scriptId]!;
         scriptIndexToScript[scriptIdx] = script;
-        List tokenPosTable = script["tokenPosTable"];
+        List? tokenPosTable = script["tokenPosTable"];
         if (tokenPosTable == null) {
           errorMessages.add("Script with uri ${script['uri']} "
               "and id ${script['id']} "
@@ -215,7 +214,7 @@ main() {
         }
       }
 
-      List ranges = sourceReport["ranges"];
+      List<Map> ranges = sourceReport["ranges"].cast<Map>();
       Set<int> scriptIndexesSet = new Set<int>.from(scriptIndexToScript.keys);
       for (Map range in ranges) {
         if (scriptIndexesSet.contains(range["scriptIndex"])) {
@@ -233,7 +232,7 @@ main() {
           if (range["possibleBreakpoints"] != null) {
             for (int pos in range["possibleBreakpoints"]) positions.add(pos);
           }
-          Map script = scriptIndexToScript[range["scriptIndex"]];
+          Map script = scriptIndexToScript[range["scriptIndex"]]!;
           Set<int> knownPositions = new Set<int>();
           Map<int, int> tokenPosToLine = {};
           if (script["tokenPosTable"] != null) {
@@ -256,7 +255,7 @@ main() {
           if (coverageForLines != null) {
             for (int pos in coverage["hits"]) {
               if (lib1scriptIndices.contains(range["scriptIndex"])) {
-                coverageForLines.add(tokenPosToLine[pos]);
+                coverageForLines.add(tokenPosToLine[pos]!);
               }
             }
           }
@@ -271,10 +270,10 @@ main() {
   }
 
   group('multiple kernels', () {
-    Directory mytest;
-    File main;
-    File lib;
-    Process vm;
+    late Directory mytest;
+    late File main;
+    late File lib;
+    late Process vm;
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
       main = new File('${mytest.path}/main.dart')..createSync();
@@ -485,8 +484,8 @@ main() {
           .listen((String s) async {
         if (s.startsWith(kObservatoryListening)) {
           expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s);
-          port = int.parse(match.group(1));
+          final match = observatoryPortRegExp.firstMatch(s)!;
+          port = int.parse(match.group(1)!);
           await collectAndCheckCoverageData(port, true);
           if (!portLineCompleter.isCompleted) {
             portLineCompleter.complete("done");
@@ -503,12 +502,12 @@ main() {
   });
 
   group('multiple kernels constant coverage', () {
-    Directory mytest;
-    File main;
-    File lib1;
-    int lineForUnnamedConstructor;
-    int lineForNamedConstructor;
-    Process vm;
+    late Directory mytest;
+    late File main;
+    late File lib1;
+    late int lineForUnnamedConstructor;
+    late int lineForNamedConstructor;
+    late Process vm;
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
       main = new File('${mytest.path}/main.dart')..createSync();
@@ -594,8 +593,8 @@ main() {
         }
         if (s.startsWith(kObservatoryListening)) {
           expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s);
-          port = int.parse(match.group(1));
+          final match = observatoryPortRegExp.firstMatch(s)!;
+          port = int.parse(match.group(1)!);
           await collectAndCheckCoverageData(port, true,
               onGetAllVerifyCount: false, coverageForLines: coverageLines);
           if (!portLineCompleter.isCompleted) {
@@ -740,11 +739,11 @@ main() {
   });
 
   group('multiple kernels 2', () {
-    Directory mytest;
-    File main;
-    File lib1;
-    File lib2;
-    Process vm;
+    late Directory mytest;
+    late File main;
+    late File lib1;
+    late File lib2;
+    late Process vm;
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
       main = new File('${mytest.path}/main.dart')..createSync();
@@ -849,8 +848,8 @@ main() {
           .listen((String s) async {
         if (s.startsWith(kObservatoryListening)) {
           expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s);
-          port = int.parse(match.group(1));
+          final match = observatoryPortRegExp.firstMatch(s)!;
+          port = int.parse(match.group(1)!);
           Set<int> hits1 =
               await collectAndCheckCoverageData(port, true, resume: false);
           Set<int> hits2 =
@@ -871,7 +870,7 @@ main() {
   });
 
   group('reload', () {
-    Directory mytest;
+    late Directory mytest;
 
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental');
@@ -941,8 +940,8 @@ main() {
       final RegExp observatoryPortRegExp =
           new RegExp("Observatory listening on http://127.0.0.1:\([0-9]*\)");
       expect(observatoryPortRegExp.hasMatch(portLine), isTrue);
-      final match = observatoryPortRegExp.firstMatch(portLine);
-      final port = int.parse(match.group(1));
+      final match = observatoryPortRegExp.firstMatch(portLine)!;
+      final port = int.parse(match.group(1)!);
 
       var remoteVm = new RemoteVm(port);
       await remoteVm.resume();
@@ -978,7 +977,7 @@ main() {
   });
 
   group('reject', () {
-    Directory mytest;
+    late Directory mytest;
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('incremental_reject');
     });
@@ -1025,7 +1024,7 @@ main() {
       }
       compiler.accept();
       {
-        Procedure procedure = await compiler.compileExpression(
+        Procedure? procedure = await compiler.compileExpression(
             'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
         expect(procedure, isNotNull);
       }
@@ -1040,7 +1039,7 @@ main() {
       }
       await compiler.reject();
       {
-        Procedure procedure = await compiler.compileExpression(
+        Procedure? procedure = await compiler.compileExpression(
             'a', <String>[], <String>[], 'package:foo/bar.dart', 'A', true);
         expect(procedure, isNotNull);
       }
@@ -1088,9 +1087,8 @@ main() {
       }
       compiler.accept();
       {
-        final Procedure procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true);
-        expect(procedure, isNotNull);
+        final Procedure procedure = (await compiler.compileExpression(
+            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
         // Verify that the expression only has links to the only bar we know
         // about.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
@@ -1107,8 +1105,8 @@ main() {
       compiler.invalidate(barUri);
       {
         final Component component = await compiler.compile(entryPoint: fooUri);
-        final Library fooLib2 = component.libraries
-            .firstWhere((lib) => lib.fileUri == fooUri, orElse: () => null);
+        final Library? fooLib2 = component.libraries
+            .firstWhereOrNull((lib) => lib.fileUri == fooUri);
         expect(fooLib2, isNull);
         final Library barLib2 =
             component.libraries.firstWhere((lib) => lib.fileUri == barUri);
@@ -1130,13 +1128,12 @@ main() {
         // Verify that the saved "last known good" compnent only contains links
         // to the original 'foo' and 'bar' libraries.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
-        compiler.lastKnownGoodComponent.accept(lrc);
+        compiler.lastKnownGoodComponent!.accept(lrc);
         expect(lrc.librariesReferenced, equals(<Library>{fooLib, barLib}));
       }
       {
-        final Procedure procedure = await compiler.compileExpression(
-            'a', <String>[], <String>[], barUri.toString(), 'A', true);
-        expect(procedure, isNotNull);
+        final Procedure procedure = (await compiler.compileExpression(
+            'a', <String>[], <String>[], barUri.toString(), 'A', true))!;
         // Verify that the expression only has links to the original bar.
         final LibraryReferenceCollector lrc = new LibraryReferenceCollector();
         procedure.accept(lrc);
@@ -1146,8 +1143,8 @@ main() {
   });
 
   group('expression evaluation', () {
-    Directory mytest;
-    Process vm;
+    late Directory mytest;
+    late Process vm;
 
     setUpAll(() {
       mytest = Directory.systemTemp.createTempSync('expression_evaluation');
@@ -1168,7 +1165,7 @@ main() {
 
     launchBreakAndEvaluate(File scriptOrDill, String scriptUriToBreakIn,
         int lineToBreakAt, List<String> expressionsAndExpectedResults,
-        {Future Function(RemoteVm remoteVm) callback}) async {
+        {Future Function(RemoteVm remoteVm)? callback}) async {
       vm = await Process.start(Platform.resolvedExecutable, <String>[
         "--pause-isolates-on-start",
         "--enable-vm-service:0",
@@ -1190,8 +1187,8 @@ main() {
         print("vm stdout: $s");
         if (s.startsWith(kObservatoryListening)) {
           expect(observatoryPortRegExp.hasMatch(s), isTrue);
-          final match = observatoryPortRegExp.firstMatch(s);
-          port = int.parse(match.group(1));
+          final match = observatoryPortRegExp.firstMatch(s)!;
+          port = int.parse(match.group(1)!);
           RemoteVm remoteVm = new RemoteVm(port);
 
           // Wait for the script to have loaded.
@@ -1591,7 +1588,7 @@ Future findScriptAndBreak(
     RemoteVm remoteVm, String scriptUriToBreakIn, int lineToBreakAt) async {
   Map scriptsMap = await remoteVm.getScripts();
   List scripts = scriptsMap["scripts"];
-  String scriptId;
+  String? scriptId;
   for (int i = 0; i < scripts.length; i++) {
     Map script = scripts[i];
     String scriptUri = script["uri"];
@@ -1602,7 +1599,7 @@ Future findScriptAndBreak(
   }
   expect(scriptId, isNotNull);
 
-  return await remoteVm.addBreakpoint(scriptId, lineToBreakAt);
+  return await remoteVm.addBreakpoint(scriptId!, lineToBreakAt);
 }
 
 Future deletePossibleBreakpoint(
@@ -1643,12 +1640,12 @@ class RemoteVm {
   /// An peer point used to send service protocol messages. The service
   /// protocol uses JSON rpc on top of web-sockets.
   json_rpc.Peer get rpc => _rpc ??= _createPeer();
-  json_rpc.Peer _rpc;
+  json_rpc.Peer? _rpc;
 
   /// The main isolate ID of the running VM. Needed to indicate to the VM which
   /// isolate to reload.
   FutureOr<String> get mainId async => _mainId ??= await _computeMainId();
-  String _mainId;
+  String? _mainId;
 
   RemoteVm([this.port = 8181]);
 
@@ -1701,41 +1698,34 @@ class RemoteVm {
     await rpc.sendRequest('resume', {'isolateId': id});
   }
 
-  Future getIsolate() async {
+  Future<Map> getIsolate() async {
     var id = await mainId;
-    return await rpc.sendRequest('getIsolate', {'isolateId': id});
+    return (await rpc.sendRequest('getIsolate', {'isolateId': id})) as Map;
   }
 
-  Future getScripts() async {
+  Future<Map> getScripts() async {
     var id = await mainId;
-    return await rpc.sendRequest('getScripts', {
+    return (await rpc.sendRequest('getScripts', {
       'isolateId': id,
-    });
+    })) as Map;
   }
 
-  Future getSourceReport([String scriptId]) async {
+  Future<Map> getSourceReport([String? scriptId]) async {
     var id = await mainId;
-    if (scriptId != null) {
-      return await rpc.sendRequest('getSourceReport', {
-        'isolateId': id,
-        'scriptId': scriptId,
-        'reports': ['Coverage', 'PossibleBreakpoints'],
-        'forceCompile': true
-      });
-    }
-    return await rpc.sendRequest('getSourceReport', {
+    return (await rpc.sendRequest('getSourceReport', {
       'isolateId': id,
+      if (scriptId != null) 'scriptId': scriptId,
       'reports': ['Coverage', 'PossibleBreakpoints'],
-      'forceCompile': true
-    });
+      'forceCompile': true,
+    })) as Map;
   }
 
-  Future getObject(String objectId) async {
+  Future<Map> getObject(String objectId) async {
     var id = await mainId;
-    return await rpc.sendRequest('getObject', {
+    return (await rpc.sendRequest('getObject', {
       'isolateId': id,
       'objectId': objectId,
-    });
+    })) as Map;
   }
 
   Future addBreakpoint(String scriptId, int line) async {
@@ -1769,21 +1759,22 @@ class RemoteVm {
     int expectGcAfter = new DateTime.now().millisecondsSinceEpoch;
     while (true) {
       var id = await mainId;
-      Map result = await rpc.sendRequest('getAllocationProfile', {
+      Map result = (await rpc.sendRequest('getAllocationProfile', {
         'isolateId': id,
         "gc": true,
-      });
-      String lastGc = result["dateLastServiceGC"];
+      })) as Map;
+      String? lastGc = result["dateLastServiceGC"];
       if (lastGc != null && int.parse(lastGc) >= expectGcAfter) return;
     }
   }
 
   /// Close any connections used to communicate with the VM.
   Future disconnect() async {
-    if (_rpc == null) return null;
+    final rpc = this._rpc;
+    if (rpc == null) return null;
     this._mainId = null;
-    if (!_rpc.isClosed) {
-      var future = _rpc.close();
+    if (!rpc.isClosed) {
+      var future = rpc.close();
       _rpc = null;
       return future;
     }

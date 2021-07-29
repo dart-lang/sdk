@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
-import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:http/http.dart';
@@ -25,7 +22,6 @@ void main() {
 @reflectiveTest
 class PubspecGeneratorTest extends YamlGeneratorTest {
   late MockHttpClient httpClient;
-  late MockProcessManager processManager;
 
   late PubPackageService pubPackageService;
 
@@ -38,12 +34,10 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
 
   void setUp() {
     httpClient = MockHttpClient();
-    processManager = MockProcessManager();
     pubPackageService = PubPackageService(
         InstrumentationService.NULL_SERVICE,
         resourceProvider,
-        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
-        PubCommand(InstrumentationService.NULL_SERVICE, processManager));
+        PubApi(InstrumentationService.NULL_SERVICE, httpClient, null));
   }
 
   void tearDown() {
@@ -344,47 +338,5 @@ dependencies:
   three:
 ''');
     assertSuggestion('two: ');
-  }
-
-  void test_packageVersion() async {
-    final json = r'''
-    {
-      "packages": [
-        {
-          "package":    "one",
-          "latest":     { "version": "3.2.1" },
-          "resolvable": { "version": "1.2.4" }
-        }
-      ]
-    }
-    ''';
-    processManager.runHandler =
-        (command, {dir, env}) => ProcessResult(1, 0, json, '');
-
-    pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
-    await pumpEventQueue(times: 500);
-
-    getCompletions('''
-dependencies:
-  one: ^
-''');
-    assertSuggestion('^1.2.4');
-    assertSuggestion('^3.2.1');
-  }
-
-  /// Ensure in a repo with a DEPS file like the SDK, we do not run pub
-  /// processes to cache the version numbers.
-  void test_packageVersion_withDEPSfile() async {
-    var didRun = false;
-    processManager.runHandler = (command, {dir, env}) {
-      didRun = true;
-      return ProcessResult(1, 0, '', '');
-    };
-
-    newFile('/home/DEPS');
-    pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
-    await pumpEventQueue(times: 500);
-
-    expect(didRun, isFalse);
   }
 }

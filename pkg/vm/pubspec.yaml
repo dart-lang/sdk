@@ -15,8 +15,6 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
-  meta:
-    path: ../meta
   package_config: any
   collection: ^1.15.0
 

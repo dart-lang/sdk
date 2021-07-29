@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
@@ -64,7 +62,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
 }
 
 class PrintSummaries extends RecursiveVisitor {
-  SummaryCollector _summaryCollector;
+  late SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(Target target, TypeEnvironment environment,
@@ -77,12 +75,12 @@ class PrintSummaries extends RecursiveVisitor {
         new FakeEntryPointsListener(typesBuilder),
         typesBuilder,
         new NativeCodeOracle(
-            null, new ConstantPragmaAnnotationParser(coreTypes)),
+            coreTypes.index, new ConstantPragmaAnnotationParser(coreTypes)),
         new GenericInterfacesInfoImpl(coreTypes, hierarchy),
         /*_protobufHandler=*/ null);
   }
 
-  String print(TreeNode node) {
+  String print(Library node) {
     visitLibrary(node);
     return _buf.toString();
   }
@@ -101,10 +99,11 @@ class PrintSummaries extends RecursiveVisitor {
 runTestCase(Uri source) async {
   final Target target = new TestingVmTarget(new TargetFlags());
   final Component component = await compileTestCaseToKernelProgram(source);
-  final Library library = component.mainMethod.enclosingLibrary;
+  final Library library = component.mainMethod!.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
+  final ClosedWorldClassHierarchy hierarchy =
+      new ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   final actual =

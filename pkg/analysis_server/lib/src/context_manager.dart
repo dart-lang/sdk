@@ -122,12 +122,6 @@ abstract class ContextManagerCallbacks {
   /// TODO(scheglov) Just pass results in here?
   void listenAnalysisDriver(AnalysisDriver driver);
 
-  /// The `pubspec.yaml` at [path] was added/modified.
-  void pubspecChanged(String path);
-
-  /// The `pubspec.yaml` at [path] was removed.
-  void pubspecRemoved(String path);
-
   /// Record error information for the file with the given [path].
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors);
 }
@@ -572,21 +566,12 @@ class ContextManagerImpl implements ContextManager {
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
 
-    final isPubpsec = file_paths.isPubspecYaml(pathContext, path);
     if (file_paths.isAnalysisOptionsYaml(pathContext, path) ||
         file_paths.isDotPackages(pathContext, path) ||
         file_paths.isPackageConfigJson(pathContext, path) ||
-        isPubpsec ||
+        file_paths.isPubspecYaml(pathContext, path) ||
         false) {
       _createAnalysisContexts();
-
-      if (isPubpsec) {
-        if (type == ChangeType.REMOVE) {
-          callbacks.pubspecRemoved(path);
-        } else {
-          callbacks.pubspecChanged(path);
-        }
-      }
       return;
     }
 
@@ -740,12 +725,6 @@ class NoopContextManagerCallbacks implements ContextManagerCallbacks {
 
   @override
   void listenAnalysisDriver(AnalysisDriver driver) {}
-
-  @override
-  void pubspecChanged(String pubspecPath) {}
-
-  @override
-  void pubspecRemoved(String pubspecPath) {}
 
   @override
   void recordAnalysisErrors(String path, List<protocol.AnalysisError> errors) {}

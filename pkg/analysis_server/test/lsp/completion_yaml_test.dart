@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:http/http.dart';
 import 'package:linter/src/rules.dart';
@@ -369,7 +367,7 @@ dependencies:
     );
   }
 
-  Future<void> test_package_versions_fromApi() async {
+  Future<void> test_package_version() async {
     httpClient.sendHandler = (BaseRequest request) async {
       if (request.url.path.startsWith(PubApi.packageNameListPath)) {
         return Response(samplePackageList, 200);
@@ -418,163 +416,6 @@ dependencies:
       expectedContent: expected,
       openCloseFile: false,
     );
-  }
-
-  Future<void> test_package_versions_fromPubOutdated() async {
-    final json = r'''
-    {
-      "packages": [
-        {
-          "package":    "one",
-          "latest":     { "version": "3.2.1" },
-          "resolvable": { "version": "1.2.4" }
-        }
-      ]
-    }
-    ''';
-    processManager.runHandler =
-        (command, {dir, env}) => ProcessResult(1, 0, json, '');
-
-    final content = '''
-name: foo
-version: 1.0.0
-
-dependencies:
-  one: ^''';
-
-    final expected = '''
-name: foo
-version: 1.0.0
-
-dependencies:
-  one: ^1.2.4''';
-
-    await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
-    await pumpEventQueue(times: 500);
-
-    await verifyCompletions(
-      pubspecFileUri,
-      content,
-      expectCompletions: ['^1.2.4', '^3.2.1'],
-      applyEditsFor: '^1.2.4',
-      expectedContent: expected,
-      openCloseFile: false,
-    );
-  }
-
-  Future<void> test_package_versions_fromPubOutdated_afterChange() async {
-    final initialJson = r'''
-    {
-      "packages": [
-        {
-          "package":    "one",
-          "latest":     { "version": "3.2.1" },
-          "resolvable": { "version": "1.2.3" }
-        }
-      ]
-    }
-    ''';
-    final updatedJson = r'''
-    {
-      "packages": [
-        {
-          "package":    "one",
-          "latest":     { "version": "2.1.0" },
-          "resolvable": { "version": "2.3.4" }
-        }
-      ]
-    }
-    ''';
-    processManager.runHandler =
-        (command, {dir, env}) => ProcessResult(1, 0, initialJson, '');
-
-    final content = '''
-name: foo
-version: 1.0.0
-
-dependencies:
-  one: ^''';
-
-    final expected = '''
-name: foo
-version: 1.0.0
-
-dependencies:
-  one: ^2.3.4''';
-
-    newFile(pubspecFilePath, content: content);
-    await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
-    await pumpEventQueue(times: 500);
-
-    // Modify the underlying file which should trigger an update of the
-    // cached data.
-    processManager.runHandler =
-        (command, {dir, env}) => ProcessResult(1, 0, updatedJson, '');
-    modifyFile(pubspecFilePath, '$content# trailing comment');
-    await pumpEventQueue(times: 500);
-
-    await verifyCompletions(
-      pubspecFileUri,
-      content,
-      expectCompletions: ['^2.3.4', '^2.1.0'],
-      applyEditsFor: '^2.3.4',
-      expectedContent: expected,
-      openCloseFile: false,
-    );
-
-    // Also veryify the detail fields were populated as expected.
-    expect(
-      completionResults.singleWhere((c) => c.label == '^2.3.4').detail,
-      equals('latest compatible'),
-    );
-    expect(
-      completionResults.singleWhere((c) => c.label == '^2.1.0').detail,
-      equals('latest'),
-    );
-  }
-
-  Future<void> test_package_versions_fromPubOutdated_afterDelete() async {
-    final initialJson = r'''
-    {
-      "packages": [
-        {
-          "package":    "one",
-          "latest":     { "version": "3.2.1" },
-          "resolvable": { "version": "1.2.3" }
-        }
-      ]
-    }
-    ''';
-    processManager.runHandler =
-        (command, {dir, env}) => ProcessResult(1, 0, initialJson, '');
-
-    final content = '''
-name: foo
-version: 1.0.0
-
-dependencies:
-  one: ^''';
-
-    newFile(pubspecFilePath, content: content);
-    await initialize();
-    await openFile(pubspecFileUri, withoutMarkers(content));
-    await pumpEventQueue(times: 500);
-
-    // Delete the underlying file which should trigger eviction of the cache.
-    deleteFile(pubspecFilePath);
-    await pumpEventQueue(times: 500);
-
-    await verifyCompletions(
-      pubspecFileUri,
-      content,
-      expectCompletions: [],
-      openCloseFile: false,
-    );
-
-    // There should have been no version numbers.
-    expect(completionResults, isEmpty);
   }
 
   Future<void> test_topLevel() async {

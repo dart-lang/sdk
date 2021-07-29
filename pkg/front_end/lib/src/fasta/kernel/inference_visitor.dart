@@ -1110,8 +1110,8 @@ class InferenceVisitor
       Expression? syntheticAssignment, bool hasProblem) {
     if (syntheticAssignment is VariableSet) {
       return new LocalForInVariable(syntheticAssignment);
-    } else if (syntheticAssignment is InternalPropertySet) {
-      return new InternalPropertyForInVariable(syntheticAssignment);
+    } else if (syntheticAssignment is PropertySet) {
+      return new PropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is SuperPropertySet) {
       return new SuperPropertyForInVariable(syntheticAssignment);
     } else if (syntheticAssignment is StaticSet) {
@@ -2806,8 +2806,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  ExpressionInferenceResult visitInternalMethodInvocation(
-      InternalMethodInvocation node, DartType typeContext) {
+  ExpressionInferenceResult visitMethodInvocation(
+      MethodInvocation node, DartType typeContext) {
     assert(node.name != unaryMinusName);
     ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
         node.receiver, const UnknownType(), true);
@@ -5608,8 +5608,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  ExpressionInferenceResult visitInternalPropertySet(
-      InternalPropertySet node, DartType typeContext) {
+  ExpressionInferenceResult visitPropertySet(
+      PropertySet node, DartType typeContext) {
     ExpressionInferenceResult receiverResult = inferrer
         .inferNullAwareExpression(node.receiver, const UnknownType(), true,
             isVoidAllowed: false);
@@ -5750,8 +5750,8 @@ class InferenceVisitor
         inferredType, replacement, nullAwareGuards.prepend(nullAwareGuard));
   }
 
-  ExpressionInferenceResult visitInternalPropertyGet(
-      InternalPropertyGet node, DartType typeContext) {
+  ExpressionInferenceResult visitPropertyGet(
+      PropertyGet node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
         node.receiver, const UnknownType(), true);
 
@@ -6970,14 +6970,14 @@ class LocalForInVariable implements ForInVariable {
   }
 }
 
-class InternalPropertyForInVariable implements ForInVariable {
-  final InternalPropertySet propertySet;
+class PropertyForInVariable implements ForInVariable {
+  final PropertySet propertySet;
 
   DartType? _writeType;
 
   Expression? _rhs;
 
-  InternalPropertyForInVariable(this.propertySet);
+  PropertyForInVariable(this.propertySet);
 
   @override
   DartType computeElementType(TypeInferrerImpl inferrer) {

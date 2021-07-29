@@ -91,7 +91,20 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   return Error::null();
 }
 
-ObjectStore::ObjectStore() {
+ObjectStore::ObjectStore()
+    :
+#define EMIT_FIELD_INIT(type, name) name##_(nullptr),
+      OBJECT_STORE_FIELD_LIST(EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT,
+                              EMIT_FIELD_INIT)
+#undef EMIT_FIELD_INIT
+          unused_field_(0)  // Just to prevent a trailing comma.
+{
   for (ObjectPtr* current = from(); current <= to(); current++) {
     *current = Object::null();
   }

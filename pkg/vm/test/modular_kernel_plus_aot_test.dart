@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
@@ -35,14 +33,14 @@ main() async {
   await withTempDirectory((Uri uri) async {
     final mixinFilename = uri.resolve('mixin.dart');
     final mixinDillFilename = uri.resolve('mixin.dart.dill');
-    await File.fromUri(mixinFilename).writeAsStringSync(mixinFile);
+    File.fromUri(mixinFilename).writeAsStringSync(mixinFile);
 
     await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
         mixinDillFilename, <Uri>[mixinFilename], <Uri>[]);
 
     final mainFilename = uri.resolve('main.dart');
     final mainDillFilename = uri.resolve('main.dart.dill');
-    await File.fromUri(mainFilename).writeAsStringSync(mainFile);
+    File.fromUri(mainFilename).writeAsStringSync(mainFile);
 
     await compileToKernel(vmTarget, librariesFile, sdkSummary, packagesFile,
         mainDillFilename, <Uri>[mainFilename], <Uri>[mixinDillFilename]);
@@ -98,9 +96,9 @@ Future compileToKernel(
     message.plainTextFormatted.forEach(print);
   }
 
-  final Component component =
+  final Component? component =
       await fe.compileComponent(state, sources, onDiagnostic);
-  final Uint8List kernel = fe.serializeComponent(component,
+  final Uint8List kernel = fe.serializeComponent(component!,
       filter: (library) => sources.contains(library.importUri));
   await File(outputFile.toFilePath()).writeAsBytes(kernel);
 }

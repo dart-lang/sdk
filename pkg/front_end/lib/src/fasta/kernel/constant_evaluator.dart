@@ -2823,7 +2823,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     for (int i = 0; i < node.expressions.length; i++) {
       Constant constant = _evaluateSubexpression(node.expressions[i]);
       if (constant is AbortConstant) return constant;
-      if (constant is PrimitiveConstant<Object>) {
+      if (constant is PrimitiveConstant) {
         String value;
         if (constant is DoubleConstant && intFolder.isInt(constant)) {
           value = new BigInt.from(constant.value).toString();

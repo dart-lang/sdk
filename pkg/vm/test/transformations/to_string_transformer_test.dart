@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:kernel/ast.dart';
@@ -29,7 +27,7 @@ runTestCase(List<String> packageUris, String expectationName) async {
   transformComponent(component, packageUris);
   verifyComponent(component);
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   compareResultWithExpectationsFile(
       testCasesUri.resolve(expectationName), actual);
