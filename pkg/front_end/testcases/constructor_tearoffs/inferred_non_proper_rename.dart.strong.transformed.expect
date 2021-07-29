@@ -10,6 +10,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
+static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
 static const field () → self::A<core::int> f1a = #C2;
 static const field () → self::A<core::int> f1b = #C2;
 static const field () → self::A<core::int> f1c = #C2;
@@ -38,15 +39,11 @@ static method test<T extends core::num>() → dynamic {
   () → self::A<self::test::T> h2a = #C1<self::test::T>;
   () → self::A<self::test::T> h2b = #C1<self::test::T>;
   () → self::A<self::test::T> h2c = #C1<self::test::T>;
-  self::expect(#C2, f2a);
-  self::expect(f2a, f2b);
-  self::expect(f2a, f2c);
   self::expect(#C2, g2a);
   self::expect(g2a, g2b);
-  self::expect(g2a, g2c);
-  self::expect(#C2, h2a);
-  self::expect(h2a, h2b);
-  self::expect(h2a, h2c);
+  if(self::inSoundMode) {
+    self::expect(g2a, g2c);
+  }
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
@@ -59,10 +56,10 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:26:3 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:27:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:28:3 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:29:3 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:30:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:31:3 -> BoolConstant(true)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:32:3 -> BoolConstant(true)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:33:3 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 45, effectively constant: 6
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:34:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:35:3 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 33, effectively constant: 6

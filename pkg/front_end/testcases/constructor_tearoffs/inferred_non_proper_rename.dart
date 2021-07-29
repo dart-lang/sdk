@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+final bool inSoundMode = <int?>[] is! List<int>;
+
 class A<T> {}
 
 typedef F<X extends num> = A<X>;
@@ -46,17 +48,24 @@ test<T extends num>() {
   var h2b = H<T, String>.new;
   A<T> Function() h2c = H.new;
 
-  expect(f1a, f2a);
+  // TODO(johnniwinther): Enable these if structural equality is supported at
+  // runtime.
+  /*expect(f1a, f2a);
   expect(f2a, f2b);
-  expect(f2a, f2c);
+  expect(f2a, f2c);*/
 
   expect(g1a, g2a);
   expect(g2a, g2b);
-  expect(g2a, g2c);
+  if (inSoundMode) {
+    // In weak mode type arguments of constants are weakened.
+    expect(g2a, g2c);
+  }
 
-  expect(h1a, h2a);
+  // TODO(johnniwinther): Enable these if structural equality is supported at
+  // runtime.
+  /*expect(h1a, h2a);
   expect(h2a, h2b);
-  expect(h2a, h2c);
+  expect(h2a, h2c);*/
 }
 
 expect(expected, actual) {
