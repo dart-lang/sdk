@@ -438,8 +438,12 @@ futures
 fuzz
 fuzzing
 fx
+g1a
+g1b
+g1c
 g2a
 g2b
+g2c
 g3a
 g3b
 gallery
@@ -459,8 +463,12 @@ greeting
 gtgt
 gulp
 gunk
+h1a
+h1b
+h1c
 h2a
 h2b
+h2c
 h3a
 h3b
 h4a

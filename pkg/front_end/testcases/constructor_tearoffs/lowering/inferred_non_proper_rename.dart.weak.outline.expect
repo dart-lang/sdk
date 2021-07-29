@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::num> = self::A<X>;
+typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
+typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+}
+static const field () → self::A<core::int> f1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> f1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> f1c = self::_#F#new#tearOff<core::int>;
+static const field () → self::A<core::int> g1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> g1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> g1c = self::_#G#new#tearOff<dynamic>;
+static const field () → self::A<core::int> h1a = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> h1b = self::A::_#new#tearOff<core::int>;
+static const field () → self::A<core::int> h1c = self::_#H#new#tearOff<core::int, dynamic>;
+static method main() → dynamic
+  ;
+static method test<T extends core::num>() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method _#F#new#tearOff<X extends core::num>() → self::A<self::_#F#new#tearOff::X>
+  return new self::A::•<self::_#F#new#tearOff::X>();
+static method _#G#new#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return new self::A::•<core::int>();
+static method _#H#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#new#tearOff::X%>
+  return new self::A::•<self::_#H#new#tearOff::X%>();
+
+
+Extra constant evaluation status:
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:11:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:12:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:13:31 -> InstantiationConstant(_#F#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:15:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:16:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:31 -> InstantiationConstant(_#G#new#tearOff<dynamic>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:20:13 -> InstantiationConstant(A._#new#tearOff<int*>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:21:31 -> InstantiationConstant(_#H#new#tearOff<int*, dynamic>)
+Extra constant evaluation: evaluated: 13, effectively constant: 9
