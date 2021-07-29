@@ -16,6 +16,7 @@
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/dart.h"
+#include "vm/dart_entry.h"
 #include "vm/dispatch_table.h"
 #include "vm/flag_list.h"
 #include "vm/growable_array.h"

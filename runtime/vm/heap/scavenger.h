@@ -12,6 +12,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/heap/spaces.h"
+#include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/raw_object.h"
 #include "vm/ring_buffer.h"

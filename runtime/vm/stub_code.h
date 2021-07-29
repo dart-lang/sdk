@@ -21,8 +21,6 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
-class SnapshotReader;
-class SnapshotWriter;
 
 DECLARE_FLAG(bool, disassemble_stubs);
 

@@ -215,11 +215,9 @@ class BaseTextBuffer;
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
 
-#define SNAPSHOT_READER_SUPPORT(object)                                        \
-  static object##Ptr ReadFrom(SnapshotReader* reader, intptr_t object_id,      \
-                              intptr_t tags, Snapshot::Kind,                   \
-                              bool as_reference);                              \
-  friend class SnapshotReader;
+#define SNAPSHOT_SUPPORT(object)                                               \
+  friend class object##MessageSerializationCluster;                            \
+  friend class object##MessageDeserializationCluster;
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public: /* NOLINT */                                                          \
@@ -243,7 +241,7 @@ class BaseTextBuffer;
     ASSERT(ptr() != null());                                                   \
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
-  SNAPSHOT_READER_SUPPORT(object)                                              \
+  SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
   friend class Thread;
 
@@ -268,7 +266,7 @@ class BaseTextBuffer;
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
   static intptr_t NextFieldOffset() { return -kWordSize; }                     \
-  SNAPSHOT_READER_SUPPORT(rettype)                                             \
+  SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;
@@ -860,7 +858,6 @@ class Object {
   friend void ClassTable::Register(const Class& cls);
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
-  friend class SnapshotReader;
   friend class InstanceDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
@@ -2482,7 +2479,6 @@ class ICData : public CallSiteData {
   friend class VMDeserializationRoots;
   friend class ICDataTestTask;
   friend class VMSerializationRoots;
-  friend class SnapshotWriter;
 };
 
 // Often used constants for number of free function type parameters.
@@ -3805,7 +3801,6 @@ class Function : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
-  friend class SnapshotWriter;
   friend class Parser;  // For set_eval_script.
   // UntaggedFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
@@ -3849,7 +3844,6 @@ class ClosureData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
   friend class Class;
   friend class Function;
-  friend class HeapProfiler;
   friend class Precompiler;  // To wrap parent functions in WSRs.
 };
 
@@ -3890,7 +3884,6 @@ class FfiTrampolineData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData, Object);
   friend class Class;
   friend class Function;
-  friend class HeapProfiler;
 };
 
 class Field : public Object {
@@ -4451,7 +4444,6 @@ class Field : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
-  friend class HeapProfiler;
   friend class UntaggedField;
   friend class FieldSerializationCluster;
   friend class FieldDeserializationCluster;
@@ -6703,7 +6695,6 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class CodeTestHelper;
-  friend class SnapshotWriter;
   friend class StubCode;     // for set_object_pool
   friend class Precompiler;  // for set_object_pool
   friend class FunctionSerializationCluster;
@@ -7495,7 +7486,6 @@ class Instance : public Object {
   friend class Pointer;
   friend class DeferredObject;
   friend class RegExp;
-  friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
   friend class InstanceSerializationCluster;
@@ -9079,6 +9069,7 @@ class Mint : public Integer {
  protected:
   // Only Integer::NewXXX is allowed to call Mint::NewXXX directly.
   friend class Integer;
+  friend class MintMessageDeserializationCluster;
 
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
@@ -9489,14 +9480,6 @@ class String : public Instance {
     ASSERT(hash_set == value);
   }
 
-  template <typename HandleType, typename ElementType, typename CallbackType>
-  static void ReadFromImpl(SnapshotReader* reader,
-                           String* str_obj,
-                           intptr_t len,
-                           intptr_t tags,
-                           CallbackType new_symbol,
-                           Snapshot::Kind kind);
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 
   friend class Class;
@@ -9666,20 +9649,14 @@ class OneByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
-  static OneByteStringPtr ReadFrom(SnapshotReader* reader,
-                                   intptr_t object_id,
-                                   intptr_t tags,
-                                   Snapshot::Kind kind,
-                                   bool as_reference);
-
   friend class Class;
   friend class ExternalOneByteString;
   friend class ImageWriter;
-  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class OneByteStringMessageSerializationCluster;
 };
 
 class TwoByteString : public AllStatic {
@@ -9792,18 +9769,12 @@ class TwoByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
-  static TwoByteStringPtr ReadFrom(SnapshotReader* reader,
-                                   intptr_t object_id,
-                                   intptr_t tags,
-                                   Snapshot::Kind kind,
-                                   bool as_reference);
-
   friend class Class;
   friend class ImageWriter;
-  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class TwoByteStringMessageSerializationCluster;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -9887,12 +9858,6 @@ class ExternalOneByteString : public AllStatic {
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
-  static ExternalOneByteStringPtr ReadFrom(SnapshotReader* reader,
-                                           intptr_t object_id,
-                                           intptr_t tags,
-                                           Snapshot::Kind kind,
-                                           bool as_reference);
-
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
@@ -9901,7 +9866,6 @@ class ExternalOneByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
   friend class Utf8;
 };
@@ -9983,12 +9947,6 @@ class ExternalTwoByteString : public AllStatic {
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
-  static ExternalTwoByteStringPtr ReadFrom(SnapshotReader* reader,
-                                           intptr_t object_id,
-                                           intptr_t tags,
-                                           Snapshot::Kind kind,
-                                           bool as_reference);
-
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
@@ -9997,7 +9955,6 @@ class ExternalTwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
 };
 
@@ -10233,6 +10190,7 @@ class Array : public Instance {
   friend class ImmutableArray;
   friend class Object;
   friend class String;
+  friend class MessageDeserializer;
 };
 
 class ImmutableArray : public AllStatic {
@@ -10242,12 +10200,6 @@ class ImmutableArray : public AllStatic {
   }
 
   static ImmutableArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
-
-  static ImmutableArrayPtr ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind,
-                                    bool as_reference);
 
   static const ClassId kClassId = kImmutableArrayCid;
 

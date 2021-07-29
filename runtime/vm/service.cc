@@ -30,6 +30,7 @@
 #include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
@@ -1018,9 +1019,9 @@ void Service::SendEvent(const char* stream_id,
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
 
-    ApiMessageWriter writer;
-    std::unique_ptr<Message> msg = writer.WriteCMessage(
-        &message, ServiceIsolate::Port(), Message::kNormalPriority);
+    std::unique_ptr<Message> msg =
+        WriteApiMessage(thread->zone(), &message, ServiceIsolate::Port(),
+                        Message::kNormalPriority);
     if (msg == nullptr) {
       result = false;
     } else {
@@ -1188,9 +1189,10 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  ApiMessageWriter writer;
-  std::unique_ptr<Message> msg = writer.WriteCMessage(
-      &list_cobj, ServiceIsolate::Port(), Message::kNormalPriority);
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg =
+      WriteApiMessage(zone.GetZone(), &list_cobj, ServiceIsolate::Port(),
+                      Message::kNormalPriority);
   if (msg != nullptr) {
     PortMap::PostMessage(std::move(msg));
   }
@@ -2017,8 +2019,7 @@ static ObjectPtr LookupHeapObjectMessage(Thread* thread,
   if (message->IsRaw()) {
     return message->raw_obj();
   } else {
-    MessageSnapshotReader reader(message, thread);
-    return reader.ReadObject();
+    return ReadMessage(thread, message);
   }
 }
 

@@ -7,7 +7,6 @@
 
 #include "vm/growable_array.h"
 #include "vm/object.h"
-#include "vm/snapshot_ids.h"
 
 namespace dart {
 
@@ -105,6 +104,7 @@ class ObjectPointerVisitor;
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
   V(ExceptionParameter, ":exception")                                          \
   V(ExceptionVar, ":exception_var")                                            \
+  V(Expando, "Expando")                                                        \
   V(ExprTemp, ":expr_temp")                                                    \
   V(ExternalName, "ExternalName")                                              \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
@@ -415,6 +415,7 @@ class ObjectPointerVisitor;
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
   V(_onData, "_onData")                                                        \
+  V(_rehash, "_rehash")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \
@@ -698,13 +699,6 @@ class Symbols : public AllStatic {
   template <typename StringType>
   static StringPtr NewSymbol(Thread* thread, const StringType& str);
 
-  static intptr_t LookupPredefinedSymbol(ObjectPtr obj);
-  static ObjectPtr GetPredefinedSymbol(intptr_t object_id);
-  static bool IsPredefinedSymbolId(intptr_t object_id) {
-    return (object_id >= kMaxPredefinedObjectIds &&
-            object_id < (kMaxPredefinedObjectIds + kMaxPredefinedId));
-  }
-
   // List of Latin1 characters stored in the vm isolate as symbols
   // in order to make Symbols::FromCharCode fast. This structure is
   // used in generated dart code for direct access to these objects.
@@ -715,11 +709,8 @@ class Symbols : public AllStatic {
 
   friend class Dart;
   friend class String;
-  friend class SnapshotReader;
-  friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
-  friend class ApiMessageReader;
 
   DISALLOW_COPY_AND_ASSIGN(Symbols);
 };

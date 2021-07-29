@@ -14,7 +14,6 @@
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
-#include "vm/snapshot_ids.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -512,24 +511,6 @@ void Symbols::DumpTable(IsolateGroup* isolate_group) {
   CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   table.Dump();
   table.Release();
-}
-
-intptr_t Symbols::LookupPredefinedSymbol(ObjectPtr obj) {
-  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
-    if (symbol_handles_[i]->ptr() == obj) {
-      return (i + kMaxPredefinedObjectIds);
-    }
-  }
-  return kInvalidIndex;
-}
-
-ObjectPtr Symbols::GetPredefinedSymbol(intptr_t object_id) {
-  ASSERT(IsPredefinedSymbolId(object_id));
-  intptr_t i = (object_id - kMaxPredefinedObjectIds);
-  if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
-    return symbol_handles_[i]->ptr();
-  }
-  return Object::null();
 }
 
 }  // namespace dart

@@ -5,11 +5,12 @@
 // part of "core_patch.dart";
 
 @patch
+@pragma("vm:entry-point")
 class Expando<T> {
   @patch
   Expando([String? name])
       : name = name,
-        _data = new List.filled(_minSize, null),
+        _data = new List<_WeakProperty?>.filled(_minSize, null),
         _used = 0;
 
   static const _minSize = 8;
@@ -95,6 +96,7 @@ class Expando<T> {
     this[object] = value; // Recursively add the value.
   }
 
+  @pragma("vm:entry-point", "call")
   _rehash() {
     // Determine the population count of the map to allocate an appropriately
     // sized map below.
@@ -119,7 +121,7 @@ class Expando<T> {
 
     // Reset the mappings to empty so that we can just add the existing
     // valid entries.
-    _data = new List.filled(new_size, null);
+    _data = new List<_WeakProperty?>.filled(new_size, null);
     _used = 0;
 
     for (var i = 0; i < old_data.length; i++) {
@@ -149,9 +151,9 @@ class Expando<T> {
     }
   }
 
-  get _size => _data.length;
-  get _limit => (3 * (_size ~/ 4));
+  int get _size => _data.length;
+  int get _limit => (3 * (_size ~/ 4));
 
-  List _data;
+  List<_WeakProperty?> _data;
   int _used; // Number of used (active and deleted) slots.
 }

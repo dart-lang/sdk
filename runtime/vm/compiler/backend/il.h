@@ -24,6 +24,7 @@
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/native_entry.h"

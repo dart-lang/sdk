@@ -32,6 +32,7 @@
 #include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -2161,17 +2162,10 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
     return false;
   }
 
-  // Smis and null can be sent without serialization.
-  ObjectPtr raw_obj = Api::UnwrapHandle(handle);
-  if (ApiObjectConverter::CanConvert(raw_obj)) {
-    return PortMap::PostMessage(
-        Message::New(port_id, raw_obj, Message::kNormalPriority));
-  }
-
-  const Object& object = Object::Handle(Z, raw_obj);
-  MessageWriter writer(false);
-  return PortMap::PostMessage(
-      writer.WriteMessage(object, port_id, Message::kNormalPriority));
+  const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
+  return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                           object, port_id,
+                                           Message::kNormalPriority));
 }
 
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
