@@ -748,13 +748,17 @@ ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
     for (var e in compiler.classIdentifiers.entries)
       e.key: identifierNames[e.value],
   };
+  var procedureJsNames = <Procedure, String>{
+    for (var e in compiler.procedureIdentifiers.entries)
+      e.key: identifierNames[e.value],
+  };
   var variableJsNames = <VariableDeclaration, String>{
     for (var e in compiler.variableIdentifiers.entries)
       e.key: identifierNames[e.value],
   };
 
-  return ModuleSymbolsCollector(
-          moduleName, classJsNames, compiler.memberNames, variableJsNames)
+  return ModuleSymbolsCollector(moduleName, classJsNames, compiler.memberNames,
+          procedureJsNames, variableJsNames)
       .collectSymbolInfo(component);
 }
 

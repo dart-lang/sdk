@@ -61,6 +61,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// module.
   final memberNames = <Member, String>{};
 
+  /// Maps each `Procedure` node compiled in the module to the `Identifier`s
+  /// used to name the class in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final procedureIdentifiers = <Procedure, js_ast.Identifier>{};
+
   /// Maps each `VariableDeclaration` node compiled in the module to the name
   /// used for the variable in JavaScript.
   ///
@@ -2368,8 +2375,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Class memberClass}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
-      // TODO(nshahan) Record the name for this member in memberNames.
-      return _emitStaticMemberName(name, member);
+      var memberName = _emitStaticMemberName(name, member);
+      memberNames[member] = memberName.valueWithoutQuotes;
+      return memberName;
     }
 
     // We allow some (illegal in Dart) member names to be used in our private
@@ -2379,6 +2387,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var runtimeName = _jsExportName(member);
       if (runtimeName != null) {
         var parts = runtimeName.split('.');
+        // TODO(nshahan) Record the name for this member in memberNames.
         if (parts.length < 2) return propertyName(runtimeName);
 
         js_ast.Expression result = _emitIdentifier(parts[0]);
@@ -2652,8 +2661,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentUri = node.fileUri;
 
     var name = node.name.text;
+    memberNames[node] = name;
     var result = js_ast.Method(
-        propertyName(name), _emitFunction(node.function, node.name.text),
+        propertyName(name), _emitFunction(node.function, name),
         isGetter: node.isGetter, isSetter: node.isSetter)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
 
@@ -2678,8 +2688,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var nameExpr = _emitTopLevelName(p);
     var jsName = _safeFunctionNameForSafari(p.name.text, fn);
-    body.add(js.statement('# = #',
-        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(jsName), fn)]));
+    var functionName = _emitTemporaryId(jsName);
+    procedureIdentifiers[p] = functionName;
+    body.add(js.statement(
+        '# = #', [nameExpr, js_ast.NamedFunction(functionName, fn)]));
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
@@ -3605,7 +3617,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     for (var p in f.positionalParameters) {
-      var jsParam = _emitVariableDef(p);
+      var jsParam = _emitVariableRef(p);
       if (_checkParameters) {
         initParameter(p, jsParam);
       }
@@ -4510,13 +4522,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var name = v.name;
     if (name == null || name.startsWith('#')) {
       name = name == null ? 't${_tempVariables.length}' : name.substring(1);
-      // TODO(nshahan) Record the Identifier for this variable in
-      // variableIdentifiers.
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name));
     }
-    var identifier = _emitIdentifier(name);
-    variableIdentifiers[v] = identifier;
-    return identifier;
+    return _emitIdentifier(name);
   }
 
   /// Emits the declaration of a variable.
@@ -4524,7 +4532,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is similar to [_emitVariableRef] but it also attaches source
   /// location information, so hover will work as expected.
   js_ast.Identifier _emitVariableDef(VariableDeclaration v) {
-    return _emitVariableRef(v)..sourceInformation = _nodeStart(v);
+    var identifier = _emitVariableRef(v)..sourceInformation = _nodeStart(v);
+    variableIdentifiers[v] = identifier;
+    return identifier;
   }
 
   js_ast.Statement _initLetVariables() {
@@ -6403,8 +6413,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Library library, String className, Member member,
       [js_ast.TemporaryId id]) {
     var name = '$className.${member.name.text}';
-    // Names used in the symbols for the public fields
-    // memberNames[member] = 'Symbol($name)';
+    // Wrap the name as a symbol here so it matches what you would find at
+    // runtime when you get all properties and symbols from an instance.
+    memberNames[member] = 'Symbol($name)';
     return emitPrivateNameSymbol(library, name, id);
   }
 
