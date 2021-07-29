@@ -85,48 +85,57 @@ class CustomCompiler extends CompilerImpl {
 }
 
 runTest() async {
-  var compiler = new CustomCompiler([], {});
+  {
+    final compiler = new CustomCompiler([], {});
 
-  await compiler.setupSdk();
+    await compiler.setupSdk();
+    final lookup = compiler.environment.valueOf;
 
-  // Core libraries are always present.
-  Expect.equals("true", compiler.fromEnvironment("dart.library.collection"));
-  // Non-existing entries in the environment return 'null'.
-  Expect.isNull(compiler.fromEnvironment("not in env"));
-  // Check for client libraries (default if there are no flags to the compiler).
-  Expect.equals("true", compiler.fromEnvironment("dart.library.mock.client"));
-  Expect.equals("true", compiler.fromEnvironment("dart.library.html"));
-  // Check for shared libraries..
-  Expect.equals("true", compiler.fromEnvironment("dart.library.mock.shared"));
-  // Check server libraries are not present.
-  Expect.equals(null, compiler.fromEnvironment("dart.library.mock.server"));
-  Expect.equals(null, compiler.fromEnvironment("dart.library.io"));
+    // Core libraries are always present.
+    Expect.equals("true", lookup("dart.library.collection"));
+    // Non-existing entries in the environment return 'null'.
+    Expect.isNull(lookup("not in env"));
+    // Check for client libraries (default if there are no flags to the compiler).
+    Expect.equals("true", lookup("dart.library.mock.client"));
+    Expect.equals("true", lookup("dart.library.html"));
+    // Check for shared libraries..
+    Expect.equals("true", lookup("dart.library.mock.shared"));
+    // Check server libraries are not present.
+    Expect.equals(null, lookup("dart.library.mock.server"));
+    Expect.equals(null, lookup("dart.library.io"));
+  }
+  {
+    final compiler = new CustomCompiler([Flags.serverMode], {});
 
-  compiler = new CustomCompiler([Flags.serverMode], {});
+    await compiler.setupSdk();
+    final lookup = compiler.environment.valueOf;
 
-  await compiler.setupSdk();
+    // Core libraries are always present.
+    Expect.equals("true", lookup("dart.library.collection"));
+    // Non-existing entries in the environment return 'null'.
+    Expect.isNull(lookup("not in env"));
+    // Check client libraries are not present.
+    Expect.equals(null, lookup("dart.library.mock.client"));
+    Expect.equals(null, lookup("dart.library.html"));
+    // Check for shared libraries..
+    Expect.equals("true", lookup("dart.library.mock.shared"));
+    // Check for server libraries.
+    Expect.equals("true", lookup("dart.library.mock.server"));
+    Expect.equals("true", lookup("dart.library.io"));
+  }
+  {
+    // Check that user-defined env-variables win.
+    final compiler = new CustomCompiler([], {
+      'dart.library.collection': "false",
+      'dart.library.mock.client': "foo"
+    });
 
-  // Core libraries are always present.
-  Expect.equals("true", compiler.fromEnvironment("dart.library.collection"));
-  // Non-existing entries in the environment return 'null'.
-  Expect.isNull(compiler.fromEnvironment("not in env"));
-  // Check client libraries are not present.
-  Expect.equals(null, compiler.fromEnvironment("dart.library.mock.client"));
-  Expect.equals(null, compiler.fromEnvironment("dart.library.html"));
-  // Check for shared libraries..
-  Expect.equals("true", compiler.fromEnvironment("dart.library.mock.shared"));
-  // Check for server libraries.
-  Expect.equals("true", compiler.fromEnvironment("dart.library.mock.server"));
-  Expect.equals("true", compiler.fromEnvironment("dart.library.io"));
+    await compiler.setupSdk();
+    final lookup = compiler.environment.valueOf;
 
-  // Check that user-defined env-variables win.
-  compiler = new CustomCompiler([],
-      {'dart.library.collection': "false", 'dart.library.mock.client': "foo"});
-
-  await compiler.setupSdk();
-
-  Expect.equals("false", compiler.fromEnvironment("dart.library.collection"));
-  Expect.equals("foo", compiler.fromEnvironment("dart.library.mock.client"));
+    Expect.equals("false", lookup("dart.library.collection"));
+    Expect.equals("foo", lookup("dart.library.mock.client"));
+  }
 }
 
 main() {
