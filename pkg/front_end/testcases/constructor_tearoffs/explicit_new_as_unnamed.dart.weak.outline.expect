@@ -16,6 +16,34 @@ library /*isNonNullableByDefault*/;
 //   D.new();
 //   ^
 //
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:26:11: Error: 'E1' is already declared in this scope.
+//   factory E1.new() => E1._(); // Error.
+//           ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:25:3: Context: Previous declaration of 'E1'.
+//   E1();
+//   ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:32:3: Error: 'E2' is already declared in this scope.
+//   E2();
+//   ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:31:11: Context: Previous declaration of 'E2'.
+//   factory E2.new() => E2._(); // Error.
+//           ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:38:11: Error: 'E3' is already declared in this scope.
+//   factory E3.new() = E3._; // Error.
+//           ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:37:3: Context: Previous declaration of 'E3'.
+//   E3();
+//   ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:44:3: Error: 'E4' is already declared in this scope.
+//   E4(); // Error.
+//   ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:43:11: Context: Previous declaration of 'E4'.
+//   factory E4.new() = E4._;
+//           ^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -34,6 +62,31 @@ class C extends core::Object {
 class D extends core::Object {
   constructor •() → self::D
     ;
+}
+class E1 extends core::Object {
+  constructor _() → self::E1
+    ;
+  constructor •() → self::E1
+    ;
+}
+class E2 extends core::Object {
+  constructor _() → self::E2
+    ;
+  static factory •() → self::E2
+    ;
+}
+class E3 extends core::Object {
+  constructor _() → self::E3
+    ;
+  constructor •() → self::E3
+    ;
+}
+class E4 extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::E4::•]/*isLegacy*/;
+  constructor _() → self::E4
+    ;
+  static factory •() → self::E4
+    let dynamic #redirecting_factory = self::E4::_ in invalid-expression;
 }
 static method main() → dynamic
   ;
