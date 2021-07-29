@@ -43,7 +43,7 @@ SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
 
 /// Returns the value of an [IntegerLiteral] or [PrefixExpression] with a
 /// minus and then an [IntegerLiteral]. If a [context] is provided,
-/// [SimpleIdentifier]s are evaluated as as constants. For anything else,
+/// [SimpleIdentifier]s are evaluated as constants. For anything else,
 /// returns `null`.
 int? getIntValue(Expression expression, LinterContext? context) {
   if (expression is PrefixExpression) {
