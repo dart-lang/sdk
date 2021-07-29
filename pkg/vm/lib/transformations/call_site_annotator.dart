@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 // This transformation annotates call sites with the receiver type.
 // This is done to avoid reimplementing [Expression.getStaticType] in
 // C++.
 // We don't annotate all call-sites, but only those where VM could benefit from
 // knowing static type of the receiver.
-library vm.transformations.call_site_annotator;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;

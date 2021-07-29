@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class T1 {}
 
 class T2 {}
@@ -71,7 +69,7 @@ class H {
 A bb = new B();
 A dd = new D();
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

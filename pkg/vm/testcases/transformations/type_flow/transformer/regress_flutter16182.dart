@@ -5,11 +5,9 @@
 // Regression test for https://github.com/flutter/flutter/issues/16182
 // Verifies that TFA correctly handles calls via fields/getters.
 
-// @dart=2.9
-
 import "package:expect/expect.dart";
 
-bool ok;
+bool? ok;
 
 class T1 {
   // Should be reachable.
@@ -19,7 +17,7 @@ class T1 {
 }
 
 class A1 {
-  T1 foo;
+  T1? foo;
 
   void call([a1, a2, a3, a4, a5]) {
     foo = a5;
@@ -35,7 +33,7 @@ void test1() {
   bb.aa1(1, 2, 3, 4, new T1());
 
   ok = false;
-  bb.aa1.foo.doTest1();
+  bb.aa1.foo!.doTest1();
   Expect.isTrue(ok);
 }
 

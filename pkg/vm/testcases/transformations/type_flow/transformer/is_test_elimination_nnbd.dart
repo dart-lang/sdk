@@ -4,8 +4,6 @@
 
 // Tests elimination of 'is' tests.
 
-// @dart = 2.12
-
 class A {}
 
 class B extends A {

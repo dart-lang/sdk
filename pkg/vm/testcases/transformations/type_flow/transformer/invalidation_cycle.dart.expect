@@ -1,80 +1,79 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 abstract class StreamSubscription extends core::Object {
-  synthetic constructor •() → self::StreamSubscription*
+  synthetic constructor •() → self::StreamSubscription
     : super core::Object::•()
     ;
 }
 class _BufferingStreamSubscription extends self::StreamSubscription {
-  synthetic constructor •() → self::_BufferingStreamSubscription*
+  synthetic constructor •() → self::_BufferingStreamSubscription
     : super self::StreamSubscription::•()
     ;
 }
 class _BroadcastSubscription extends self::StreamSubscription {
-  synthetic constructor •() → self::_BroadcastSubscription*
+  synthetic constructor •() → self::_BroadcastSubscription
     : super self::StreamSubscription::•()
     ;
 }
 abstract class Stream extends core::Object {
-  synthetic constructor •() → self::Stream*
+  synthetic constructor •() → self::Stream
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foobar() → self::StreamSubscription*;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  abstract operator ==(dynamic other) → core::bool*;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foobar() → self::StreamSubscription;
 }
 abstract class _StreamImpl extends self::Stream {
-  synthetic constructor •() → self::_StreamImpl*
+  synthetic constructor •() → self::_StreamImpl
     : super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription* {
-    return [@vm.inferred-type.metadata=! (skip check)] this.{self::_StreamImpl::_createSubscription}(){() →* self::StreamSubscription*};
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription {
+    return [@vm.inferred-type.metadata=! (skip check)] this.{self::_StreamImpl::_createSubscription}(){() → self::StreamSubscription};
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method _createSubscription() → self::StreamSubscription* {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method _createSubscription() → self::StreamSubscription {
     return new self::_BufferingStreamSubscription::•();
   }
 }
 class _ControllerStream extends self::_StreamImpl {
-  synthetic constructor •() → self::_ControllerStream*
+  synthetic constructor •() → self::_ControllerStream
     : super self::_StreamImpl::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method _createSubscription() → self::StreamSubscription* {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method _createSubscription() → self::StreamSubscription {
     return new self::_BroadcastSubscription::•();
   }
 }
 class _GeneratedStreamImpl extends self::_StreamImpl {
-  synthetic constructor •() → self::_GeneratedStreamImpl*
+  synthetic constructor •() → self::_GeneratedStreamImpl
     : super self::_StreamImpl::•()
     ;
 }
 abstract class StreamView extends self::Stream {
-[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]  final field self::Stream* _stream;
-  constructor •([@vm.inferred-type.metadata=!] self::Stream* stream) → self::StreamView*
+[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field self::Stream _stream;
+  constructor •([@vm.inferred-type.metadata=!] self::Stream stream) → self::StreamView
     : self::StreamView::_stream = stream, super self::Stream::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription* {
-    return [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream*}.{self::Stream::foobar}(){((dynamic) →* void, {onError: core::Function*}) →* self::StreamSubscription*};
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foobar() → self::StreamSubscription {
+    return [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] this.{self::StreamView::_stream}{self::Stream}.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
   }
 }
 class ByteStream extends self::StreamView {
-  constructor •([@vm.inferred-type.metadata=!] self::Stream* stream) → self::ByteStream*
+  constructor •([@vm.inferred-type.metadata=!] self::Stream stream) → self::ByteStream
     : super self::StreamView::•(stream)
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method super_foobar1() → dynamic {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  method super_foobar1() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method super_foobar2() → dynamic {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  method super_foobar2() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method super_foobar3() → dynamic {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]  method super_foobar3() → dynamic {
     super.{self::StreamView::foobar}();
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:13]  get super_stream() → self::Stream*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12]  get super_stream() → self::Stream
     return [@vm.inferred-type.metadata=!] super.{self::StreamView::_stream};
 }
 class _HandleErrorStream extends self::Stream {
-  synthetic constructor •() → self::_HandleErrorStream*
+  synthetic constructor •() → self::_HandleErrorStream
     : super self::Stream::•()
     ;
 }
@@ -82,35 +81,35 @@ static method round0() → void {
   new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
 }
 static method round1() → void {
-  self::ByteStream* x = new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
-  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(){((dynamic) →* void) →* dynamic};
+  self::ByteStream x = new self::ByteStream::•(new self::ByteStream::•(new self::_GeneratedStreamImpl::•()));
+  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar1] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar1}(){((dynamic) →? void) → dynamic};
 }
 static method round2() → void {
   new self::_ControllerStream::•();
-  self::Stream* x = new self::_GeneratedStreamImpl::•();
+  self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
-  [@vm.direct-call.metadata=#lib::StreamView.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →* void, {onError: core::Function*}) →* self::StreamSubscription*};
+  [@vm.direct-call.metadata=#lib::StreamView.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
 }
 static method round3() → void {
-  self::Stream* x = new self::_GeneratedStreamImpl::•();
+  self::Stream x = new self::_GeneratedStreamImpl::•();
   x = new self::ByteStream::•(x);
   x = new self::_ControllerStream::•();
-  [@vm.direct-call.metadata=#lib::_StreamImpl.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →* void, {onError: core::Function*}) →* self::StreamSubscription*};
+  [@vm.direct-call.metadata=#lib::_StreamImpl.foobar] [@vm.inferred-type.metadata=!? (skip check)] x.{self::Stream::foobar}(){((dynamic) →? void, {onError: core::Function?}) → self::StreamSubscription};
 }
 static method round4() → void {
-  self::ByteStream* x = new self::ByteStream::•(new self::_ControllerStream::•());
-  self::Stream* y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream}{self::Stream*};
-  self::Stream* z = [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream}{self::Stream*};
-  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={self::Stream::==}{(dynamic) →* core::bool*} z) {
-    [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(){((dynamic) →* void) →* dynamic};
+  self::ByteStream x = new self::ByteStream::•(new self::_ControllerStream::•());
+  self::Stream y = [@vm.direct-call.metadata=#lib::ByteStream.super_stream] [@vm.inferred-type.metadata=!] x.{self::ByteStream::super_stream}{self::Stream};
+  self::Stream z = [@vm.direct-call.metadata=#lib::StreamView._stream] [@vm.inferred-type.metadata=!] x.{self::StreamView::_stream}{self::Stream};
+  if([@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] y =={core::Object::==}{(core::Object) → core::bool} z) {
+    [@vm.direct-call.metadata=#lib::ByteStream.super_foobar2] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar2}(){((dynamic) →? void) → dynamic};
   }
 }
 static method round5() → void {
-  self::ByteStream* x = new self::ByteStream::•(new self::_GeneratedStreamImpl::•());
+  self::ByteStream x = new self::ByteStream::•(new self::_GeneratedStreamImpl::•());
   new self::_HandleErrorStream::•();
-  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar3] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar3}(){({onData: (dynamic) →* void, onError: core::Function*}) →* dynamic};
+  [@vm.direct-call.metadata=#lib::ByteStream.super_foobar3] [@vm.inferred-type.metadata=!? (skip check)] x.{self::ByteStream::super_foobar3}(){({onData: (dynamic) →? void, onError: core::Function?}) → dynamic};
 }
-static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String> args) → dynamic {
   new self::_GeneratedStreamImpl::•();
   self::round0();
   self::round1();

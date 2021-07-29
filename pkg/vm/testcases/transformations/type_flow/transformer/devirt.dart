@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 abstract class A {
   int foo();
 }
@@ -30,7 +28,7 @@ void callerA2(A aa) {
   aa.foo();
 }
 
-void callerA3({A aa}) {
+void callerA3({required A aa}) {
   aa.foo();
 }
 
@@ -46,7 +44,7 @@ void callerE2(x) {
   x.toString();
 }
 
-A dd;
+late A dd;
 E ee = new E();
 
 main(List<String> args) {

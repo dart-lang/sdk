@@ -11,8 +11,6 @@
 //   self-induced invalidations.
 //
 
-// @dart=2.9
-
 class StreamSubscription {}
 
 class _BufferingStreamSubscription extends StreamSubscription {}
@@ -20,11 +18,11 @@ class _BufferingStreamSubscription extends StreamSubscription {}
 class _BroadcastSubscription extends StreamSubscription {}
 
 abstract class Stream {
-  StreamSubscription foobar(void onData(event), {Function onError});
+  StreamSubscription foobar(void onData(event)?, {Function? onError});
 }
 
 abstract class _StreamImpl extends Stream {
-  StreamSubscription foobar(void onData(data), {Function onError}) {
+  StreamSubscription foobar(void onData(data)?, {Function? onError}) {
     return _createSubscription();
   }
 
@@ -46,7 +44,7 @@ class StreamView extends Stream {
 
   StreamView(Stream stream) : _stream = stream;
 
-  StreamSubscription foobar(void onData(value), {Function onError}) {
+  StreamSubscription foobar(void onData(value)?, {Function? onError}) {
     return _stream.foobar(onData, onError: onError);
   }
 }
@@ -54,15 +52,15 @@ class StreamView extends Stream {
 class ByteStream extends StreamView {
   ByteStream(Stream stream) : super(stream);
 
-  super_foobar1(void onData(value)) {
+  super_foobar1(void onData(value)?) {
     super.foobar(onData);
   }
 
-  super_foobar2(void onData(value)) {
+  super_foobar2(void onData(value)?) {
     super.foobar(onData);
   }
 
-  super_foobar3({void onData(value), Function onError}) {
+  super_foobar3({void onData(value)?, Function? onError}) {
     super.foobar(onData, onError: onError);
   }
 
@@ -70,7 +68,7 @@ class ByteStream extends StreamView {
 }
 
 class _HandleErrorStream extends Stream {
-  StreamSubscription foobar(void onData(event), {Function onError}) {
+  StreamSubscription foobar(void onData(event)?, {Function? onError}) {
     return new _BufferingStreamSubscription();
   }
 }
@@ -79,26 +77,26 @@ void round0() {
   new ByteStream(new ByteStream(new _GeneratedStreamImpl()));
 }
 
-void round1({void onData(value)}) {
+void round1({void onData(value)?}) {
   var x = new ByteStream(new ByteStream(new _GeneratedStreamImpl()));
   x.super_foobar1(onData);
 }
 
-void round2({void onData(value), Function onError}) {
+void round2({void onData(value)?, Function? onError}) {
   new _ControllerStream();
   Stream x = new _GeneratedStreamImpl();
   x = new ByteStream(x);
   x.foobar(onData, onError: onError);
 }
 
-void round3({void onData(value), Function onError}) {
+void round3({void onData(value)?, Function? onError}) {
   Stream x = new _GeneratedStreamImpl();
   x = new ByteStream(x);
   x = new _ControllerStream();
   x.foobar(onData, onError: onError);
 }
 
-void round4({void onData(value)}) {
+void round4({void onData(value)?}) {
   var x = new ByteStream(new _ControllerStream());
   var y = x.super_stream;
   var z = x._stream;
