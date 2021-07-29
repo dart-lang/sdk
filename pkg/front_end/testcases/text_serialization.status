@@ -6,6 +6,7 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/const_tear_off: RuntimeError
 constructor_tearoffs/inferred_constructor_tear_off: RuntimeError
 constructor_tearoffs/inferred_non_proper_rename: RuntimeError

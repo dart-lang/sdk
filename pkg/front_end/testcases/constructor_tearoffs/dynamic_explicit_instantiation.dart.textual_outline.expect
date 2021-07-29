@@ -1,0 +1,5 @@
+test1(dynamic x) => x.foo<int>;
+test2(Never x) => x.foo<int>;
+test3(dynamic x) => x.toString<int>;
+test4(Never x) => x.toString<int>;
+main() {}
