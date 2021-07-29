@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::num> = self::A<X>;
+typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
+typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+}
+static const field () → self::A<core::int> f1a = #C2;
+static const field () → self::A<core::int> f1b = #C2;
+static const field () → self::A<core::int> f1c = #C4;
+static const field () → self::A<core::int> g1a = #C2;
+static const field () → self::A<core::int> g1b = #C2;
+static const field () → self::A<core::int> g1c = #C6;
+static const field () → self::A<core::int> h1a = #C2;
+static const field () → self::A<core::int> h1b = #C2;
+static const field () → self::A<core::int> h1c = #C8;
+static method main() → dynamic {
+  self::test<core::int>();
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C4);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C6);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C8);
+}
+static method test<T extends core::num>() → dynamic {
+  () → self::A<self::test::T> f2a = #C1<self::test::T>;
+  () → self::A<self::test::T> f2b = #C1<self::test::T>;
+  () → self::A<self::test::T> f2c = #C3<self::test::T>;
+  () → self::A<core::int> g2a = #C2;
+  () → self::A<core::int> g2b = #C2;
+  () → self::A<core::int> g2c = #C6;
+  () → self::A<self::test::T> h2a = #C1<self::test::T>;
+  () → self::A<self::test::T> h2b = #C1<self::test::T>;
+  () → self::A<self::test::T> h2c = #C7<self::test::T, dynamic>;
+  self::expect(#C2, f2a);
+  self::expect(f2a, f2b);
+  self::expect(f2a, f2c);
+  self::expect(#C2, g2a);
+  self::expect(g2a, g2b);
+  self::expect(g2a, g2c);
+  self::expect(#C2, h2a);
+  self::expect(h2a, h2b);
+  self::expect(h2a, h2c);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method _#F#new#tearOff<X extends core::num>() → self::A<self::_#F#new#tearOff::X>
+  return new self::A::•<self::_#F#new#tearOff::X>();
+static method _#G#new#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return new self::A::•<core::int>();
+static method _#H#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#new#tearOff::X%>
+  return new self::A::•<self::_#H#new#tearOff::X%>();
+
+constants  {
+  #C1 = static-tearoff self::A::_#new#tearOff
+  #C2 = instantiation self::A::_#new#tearOff <core::int*>
+  #C3 = static-tearoff self::_#F#new#tearOff
+  #C4 = instantiation self::_#F#new#tearOff <core::int*>
+  #C5 = static-tearoff self::_#G#new#tearOff
+  #C6 = instantiation self::_#G#new#tearOff <dynamic>
+  #C7 = static-tearoff self::_#H#new#tearOff
+  #C8 = instantiation self::_#H#new#tearOff <core::int*, dynamic>
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:26:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:27:3 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:29:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:30:3 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:32:3 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:33:3 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 49, effectively constant: 6

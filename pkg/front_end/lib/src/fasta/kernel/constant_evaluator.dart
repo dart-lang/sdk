@@ -722,10 +722,22 @@ class ConstantsTransformer extends RemovingTransformer {
   TreeNode visitInstantiation(Instantiation node, TreeNode? removalSentinel) {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
-    if (enableConstructorTearOff &&
-        result.expression is ConstantExpression &&
-        result.typeArguments.every(isInstantiated)) {
-      return evaluateAndTransformWithContext(node, result);
+    Expression expression = result.expression;
+    if (enableConstructorTearOff && expression is ConstantExpression) {
+      if (result.typeArguments.every(isInstantiated)) {
+        return evaluateAndTransformWithContext(node, result);
+      } else {
+        Constant constant = expression.constant;
+        if (constant is TypedefTearOffConstant) {
+          Substitution substitution =
+              Substitution.fromPairs(constant.parameters, node.typeArguments);
+          return new Instantiation(
+              new ConstantExpression(constant.tearOffConstant,
+                  constant.tearOffConstant.getType(_staticTypeContext!))
+                ..fileOffset = expression.fileOffset,
+              constant.types.map(substitution.substituteType).toList());
+        }
+      }
     }
     return node;
   }
@@ -3257,7 +3269,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitInstantiation(Instantiation node) {
-    final Constant constant = _evaluateSubexpression(node.expression);
+    Constant constant = _evaluateSubexpression(node.expression);
     if (constant is AbortConstant) return constant;
     if (shouldBeUnevaluated) {
       return unevaluated(
@@ -3288,7 +3300,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // ignore: unnecessary_null_comparison
         assert(types != null);
 
-        final List<DartType> typeArguments = convertTypes(types);
+        List<DartType> typeArguments = convertTypes(types);
+        if (constant is TypedefTearOffConstant) {
+          Substitution substitution =
+              Substitution.fromPairs(constant.parameters, typeArguments);
+          typeArguments =
+              constant.types.map(substitution.substituteType).toList();
+          constant = constant.tearOffConstant;
+        }
         return canonicalize(new InstantiationConstant(constant, typeArguments));
       } else {
         // Probably unreachable.
