@@ -866,19 +866,30 @@ lsp.ClosingLabel toClosingLabel(
         range: toRange(lineInfo, label.offset, label.length),
         label: label.label);
 
-lsp.CodeActionKind toCodeActionKind(String? id, lsp.CodeActionKind fallback) {
+/// Converts [id] to a [CodeActionKind] using [fallbackOrPrefix] as a fallback
+/// or a prefix if the ID is not already a fix/refactor.
+lsp.CodeActionKind toCodeActionKind(
+    String? id, lsp.CodeActionKind fallbackOrPrefix) {
   if (id == null) {
-    return fallback;
+    return fallbackOrPrefix;
   }
   // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
   // we want to use the predefined prefixes for CodeActions.
-  final newId = id
+  var newId = id
       .replaceAll('dart.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll(
           'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll(
           'analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString());
+
+  // If the ID does not start with either of the kinds above, prefix it as
+  // it will be an unqualified ID from a plugin.
+  if (!newId.startsWith(lsp.CodeActionKind.Refactor.toString()) &&
+      !newId.startsWith(lsp.CodeActionKind.QuickFix.toString())) {
+    newId = '$fallbackOrPrefix.$newId';
+  }
+
   return lsp.CodeActionKind(newId);
 }
 

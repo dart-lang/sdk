@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
@@ -22,13 +21,36 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
+  // Because server+plugin results are different types and we lose
+  // priorites when converting them to CodeActions, store the priorities
+  // against each action in an expando. This avoids wrapping CodeActions in
+  // another wrapper class (since we can't modify the LSP-spec-generated
+  // CodeAction class).
+  final codeActionPriorities = Expando<int>();
+
+  /// A comparator that can be used to sort [CodeActions]s using priorties
+  /// in [codeActionPriorities]. The highest number priority will be sorted
+  /// before lower number priorityies. Items with the same relevance are sorted
+  /// alphabetically by their title.
+  late final Comparator<CodeAction> _codeActionComparator =
+      (CodeAction a, CodeAction b) {
+    // We should never be sorting actions without priorities.
+    final aPriority = codeActionPriorities[a] ?? 0;
+    final bPriority = codeActionPriorities[b] ?? 0;
+    if (aPriority != bPriority) {
+      return bPriority - aPriority;
+    }
+    return a.title.compareTo(b.title);
+  };
+
   CodeActionHandler(LspAnalysisServer server) : super(server);
 
   @override
@@ -147,12 +169,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  CodeAction _createAssistAction(Assist assist) {
+  CodeAction _createAssistAction(SourceChange change) {
     return CodeAction(
-      title: assist.change.message,
-      kind: toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
+      title: change.message,
+      kind: toCodeActionKind(change.id, CodeActionKind.Refactor),
       diagnostics: const [],
-      edit: createWorkspaceEdit(server, assist.change),
+      edit: createWorkspaceEdit(server, change),
     );
   }
 
@@ -160,12 +182,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  CodeAction _createFixAction(Fix fix, Diagnostic diagnostic) {
+  CodeAction _createFixAction(SourceChange change, Diagnostic diagnostic) {
     return CodeAction(
-      title: fix.change.message,
-      kind: toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
+      title: change.message,
+      kind: toCodeActionKind(change.id, CodeActionKind.QuickFix),
       diagnostics: [diagnostic],
-      edit: createWorkspaceEdit(server, fix.change),
+      edit: createWorkspaceEdit(server, change),
     );
   }
 
@@ -222,6 +244,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
+    String path,
     Range range,
     int offset,
     int length,
@@ -236,13 +259,28 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         length,
       );
       final processor = AssistProcessor(context);
-      final assists = await processor.compute();
-      assists.sort(Assist.SORT_BY_RELEVANCE);
+      final serverFuture = processor.compute();
+      final pluginFuture = _getPluginAssistChanges(path, offset, length);
 
-      final assistActions =
-          _dedupeActions(assists.map(_createAssistAction), range.start);
+      final assists = await serverFuture;
+      final pluginChanges = await pluginFuture;
 
-      return assistActions
+      final codeActions = <CodeAction>[];
+      codeActions.addAll(assists.map((assist) {
+        final action = _createAssistAction(assist.change);
+        codeActionPriorities[action] = assist.kind.priority;
+        return action;
+      }));
+      codeActions.addAll(pluginChanges.map((change) {
+        final action = _createAssistAction(change.change);
+        codeActionPriorities[action] = change.priority;
+        return action;
+      }));
+
+      final dedupedCodeActions = _dedupeActions(codeActions, range.start);
+      dedupedCodeActions.sort(_codeActionComparator);
+
+      return dedupedCodeActions
           .where((action) => shouldIncludeKind(action.kind))
           .map((action) => Either2<Command, CodeAction>.t2(action))
           .toList();
@@ -268,11 +306,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     final results = await Future.wait([
       _getSourceActions(shouldIncludeKind, supportsLiterals,
           supportsWorkspaceApplyEdit, path),
-      _getAssistActions(
-          shouldIncludeKind, supportsLiterals, range, offset, length, unit),
+      _getAssistActions(shouldIncludeKind, supportsLiterals, path, range,
+          offset, length, unit),
       _getRefactorActions(
           shouldIncludeKind, supportsLiterals, path, offset, length, unit),
-      _getFixActions(shouldIncludeKind, supportsLiterals,
+      _getFixActions(shouldIncludeKind, supportsLiterals, path, offset,
           supportedDiagnosticTags, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
@@ -283,22 +321,23 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     bool Function(CodeActionKind?) shouldIncludeKind,
     bool supportsLiteralCodeActions,
+    String path,
+    int offset,
     Set<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
+    final clientSupportsCodeDescription =
+        server.clientCapabilities?.diagnosticCodeDescription ?? false;
+    // TODO(dantup): We may be missing fixes for pubspec, analysis_options,
+    //   android manifests (see _computeServerErrorFixes in EditDomainHandler).
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
 
-    try {
-      final errorCodeCounts = <ErrorCode, int>{};
-      // Count the errors by code so we know whether to include a fix-all.
-      for (final error in unit.errors) {
-        errorCodeCounts[error.errorCode] =
-            (errorCodeCounts[error.errorCode] ?? 0) + 1;
-      }
+    final pluginFuture = _getPluginFixActions(unit, offset);
 
+    try {
       for (final error in unit.errors) {
         // Server lineNumber is one-based so subtract one.
         var errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
@@ -317,22 +356,44 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }, extensionCache: server.getExtensionCacheFor(unit));
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
-          fixes.sort(Fix.SORT_BY_RELEVANCE);
-
           final diagnostic = toDiagnostic(
             unit,
             error,
             supportedTags: supportedDiagnosticTags,
-            clientSupportsCodeDescription:
-                server.clientCapabilities?.diagnosticCodeDescription ?? false,
+            clientSupportsCodeDescription: clientSupportsCodeDescription,
           );
           codeActions.addAll(
-            fixes.map((fix) => _createFixAction(fix, diagnostic)),
+            fixes.map((fix) {
+              final action = _createFixAction(fix.change, diagnostic);
+              codeActionPriorities[action] = fix.kind.priority;
+              return action;
+            }),
           );
         }
       }
 
+      Diagnostic pluginErrorToDiagnostic(AnalysisError error) {
+        return pluginToDiagnostic(
+          (_) => lineInfo,
+          error,
+          supportedTags: supportedDiagnosticTags,
+          clientSupportsCodeDescription: clientSupportsCodeDescription,
+        );
+      }
+
+      final pluginFixes = await pluginFuture;
+      final pluginFixActions = pluginFixes.expand(
+        (fix) => fix.fixes.map((fixChange) {
+          final action = _createFixAction(
+              fixChange.change, pluginErrorToDiagnostic(fix.error));
+          codeActionPriorities[action] = fixChange.priority;
+          return action;
+        }),
+      );
+      codeActions.addAll(pluginFixActions);
+
       final dedupedActions = _dedupeActions(codeActions, range.start);
+      dedupedActions.sort(_codeActionComparator);
 
       return dedupedActions
           .where((action) => shouldIncludeKind(action.kind))
@@ -344,6 +405,61 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       // just return an empty set.
       return [];
     }
+  }
+
+  Future<Iterable<plugin.PrioritizedSourceChange>> _getPluginAssistChanges(
+      String path, int offset, int length) async {
+    final requestParams = plugin.EditGetAssistsParams(path, offset, length);
+    final driver = server.getAnalysisDriver(path);
+
+    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
+    if (driver == null) {
+      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
+    } else {
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext!.contextRoot,
+      );
+    }
+
+    final pluginChanges = <plugin.PrioritizedSourceChange>[];
+    final responses =
+        await waitForResponses(pluginFutures, requestParameters: requestParams);
+
+    for (final response in responses) {
+      final result = plugin.EditGetAssistsResult.fromResponse(response);
+      pluginChanges.addAll(result.assists);
+    }
+
+    return pluginChanges;
+  }
+
+  Future<Iterable<plugin.AnalysisErrorFixes>> _getPluginFixActions(
+      ResolvedUnitResult unit, int offset) async {
+    final file = unit.path;
+    final requestParams = plugin.EditGetFixesParams(file, offset);
+    final driver = server.getAnalysisDriver(file);
+
+    Map<PluginInfo, Future<plugin.Response>> pluginFutures;
+    if (driver == null) {
+      pluginFutures = <PluginInfo, Future<plugin.Response>>{};
+    } else {
+      pluginFutures = server.pluginManager.broadcastRequest(
+        requestParams,
+        contextRoot: driver.analysisContext!.contextRoot,
+      );
+    }
+
+    final pluginFixes = <plugin.AnalysisErrorFixes>[];
+    final responses =
+        await waitForResponses(pluginFutures, requestParameters: requestParams);
+
+    for (final response in responses) {
+      final result = plugin.EditGetFixesResult.fromResponse(response);
+      pluginFixes.addAll(result.fixes);
+    }
+
+    return pluginFixes;
   }
 
   Future<List<Either2<Command, CodeAction>>> _getRefactorActions(

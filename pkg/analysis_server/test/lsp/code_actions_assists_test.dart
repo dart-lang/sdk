@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -164,6 +166,87 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     final codeActions =
         await getCodeActions(pubspecFileUri.toString(), range: startOfDocRange);
     expect(codeActions, isEmpty);
+  }
+
+  Future<void> test_plugin() async {
+    // This code should get an assist to replace 'foo' with 'bar'.'
+    const content = '[[foo]]';
+    const expectedContent = 'bar';
+
+    final pluginResult = plugin.EditGetAssistsResult([
+      plugin.PrioritizedSourceChange(
+        0,
+        plugin.SourceChange(
+          "Change 'foo' to 'bar'",
+          edits: [
+            plugin.SourceFileEdit(mainFilePath, 0,
+                edits: [plugin.SourceEdit(0, 3, 'bar')])
+          ],
+          id: 'fooToBar',
+        ),
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetAssistsParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('refactor.fooToBar'), "Change 'foo' to 'bar'")!;
+
+    final edit = assist.edit!;
+    expect(edit.changes, isNotNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_plugin_sortsWithServer() async {
+    // Produces a server assist of "Convert to single quoted string" (with a
+    // priority of 30).
+    const content = 'import "[[dart:async]]";';
+
+    // Provide two plugin results that should sort either side of the server assist.
+    final pluginResult = plugin.EditGetAssistsResult([
+      plugin.PrioritizedSourceChange(10, plugin.SourceChange('Low')),
+      plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetAssistsParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      containsAllInOrder([
+        'High',
+        'Convert to single quoted string',
+        'Low',
+      ]),
+    );
   }
 
   Future<void> test_snippetTextEdits_supported() async {
