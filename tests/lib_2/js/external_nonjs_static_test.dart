@@ -9,6 +9,7 @@
 
 library external_nonjs_static_test;
 
+import 'dart:html';
 import 'package:js/js.dart';
 
 external get topLevelGetter;
@@ -75,27 +76,30 @@ class AnonymousClass {
 extension ExtensionNonJS on NonJSClass {
   external get getter;
   //           ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
   external set setter(_);
   //           ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
 
   external static get staticGetter;
   //                  ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
   external static set staticSetter(_);
   //                  ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
 
   external method();
   //       ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
   external static staticMethod();
   //              ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
+  external optionalParameterMethod([int a, int b = 0]);
+  //       ^
+  // [web] JS interop or Native class required for 'external' extension members.
   external overridenMethod();
   //       ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
 
   nonExternalMethod() => 1;
   static nonExternalStaticMethod() => 2;
@@ -108,9 +112,24 @@ class NonJSClass {
 extension ExtensionGenericNonJS<T> on GenericNonJSClass<T> {
   external T method();
   //         ^
-  // [web] JS interop class required for 'external' extension members.
+  // [web] JS interop or Native class required for 'external' extension members.
 }
 
 class GenericNonJSClass<T> {}
+
+extension ExtensionNative on HtmlElement {
+  external get getter;
+  external set setter(_);
+
+  external static get staticGetter;
+  external static set staticSetter(_);
+
+  external method();
+  external static staticMethod();
+  external optionalParameterMethod([int a, int b = 0]);
+
+  nonExternalMethod() => 1;
+  static nonExternalStaticMethod() => 2;
+}
 
 main() {}
