@@ -4914,8 +4914,8 @@ JsInteropEnclosingClassJSAnnotationContext:
   template: "This is the enclosing class."
   severity: CONTEXT
 
-JsInteropExternalExtensionMemberNotOnJSClass:
-  template: "JS interop class required for 'external' extension members."
+JsInteropExternalExtensionMemberOnTypeInvalid:
+  template: "JS interop or Native class required for 'external' extension members."
   tip: "Try adding a JS interop annotation to the on type class of the extension."
 
 JsInteropExternalMemberNotJSAnnotated:

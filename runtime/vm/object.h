@@ -2882,13 +2882,14 @@ class Function : public Object {
 
   static const char* KindToCString(UntaggedFunction::Kind kind);
 
+  bool IsConstructor() const {
+    return kind() == UntaggedFunction::kConstructor;
+  }
   bool IsGenerativeConstructor() const {
-    return (kind() == UntaggedFunction::kConstructor) && !is_static();
+    return IsConstructor() && !is_static();
   }
   bool IsImplicitConstructor() const;
-  bool IsFactory() const {
-    return (kind() == UntaggedFunction::kConstructor) && is_static();
-  }
+  bool IsFactory() const { return IsConstructor() && is_static(); }
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
@@ -3549,6 +3550,7 @@ class Function : public Object {
   static FunctionPtr NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                 const String& name,
                                                 const Function& parent,
+                                                bool is_static,
                                                 TokenPosition token_pos,
                                                 const Object& owner);
 

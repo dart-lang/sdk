@@ -353,6 +353,18 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
       instance = function.ImplicitStaticClosure();
       break;
     }
+    case kConstructorTearOffConstant: {
+      const NameIndex index = reader.ReadCanonicalNameReference();
+      Function& function = Function::Handle(Z);
+      if (H.IsConstructor(index)) {
+        function = H.LookupConstructorByKernelConstructor(index);
+      } else {
+        function = H.LookupStaticMethodByKernelProcedure(index);
+      }
+      function = function.ImplicitClosureFunction();
+      instance = function.ImplicitStaticClosure();
+      break;
+    }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
       // Const canonical type erasure is not applied to constant type literals.

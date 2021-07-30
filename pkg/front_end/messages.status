@@ -514,8 +514,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
-JsInteropExternalExtensionMemberNotOnJSClass/analyzerCode: Fail # Web compiler specific
-JsInteropExternalExtensionMemberNotOnJSClass/example: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific

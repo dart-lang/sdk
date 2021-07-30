@@ -281,6 +281,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// This option is experimental and subject to change.
   bool implicitDynamic = true;
 
+  /// Indicates whether linter exceptions should be propagated to the caller (by
+  /// re-throwing them)
+  bool propagateLinterExceptions = false;
+
   /// A flag indicating whether inference failures are allowed, off by default.
   ///
   /// This option is experimental and subject to change.
@@ -319,6 +323,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       implicitCasts = options.implicitCasts;
       implicitDynamic = options.implicitDynamic;
+      propagateLinterExceptions = options.propagateLinterExceptions;
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
     }
@@ -382,6 +387,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       // Append boolean flags.
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
+      buffer.addBool(propagateLinterExceptions);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
       buffer.addBool(useFastaParser);

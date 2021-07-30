@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
-        messageJsInteropExternalExtensionMemberNotOnJSClass,
+        messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
@@ -282,13 +282,14 @@ class JsInteropChecks extends RecursiveVisitor {
   /// [member] is `external` and not an allowed `external` usage.
   void _checkDisallowedExternal(Member member) {
     if (member.isExternal) {
-      // TODO(rileyporter): Allow extension members on some Native classes.
       if (member.isExtensionMember) {
-        _diagnosticsReporter.report(
-            messageJsInteropExternalExtensionMemberNotOnJSClass,
-            member.fileOffset,
-            member.name.text.length,
-            member.fileUri);
+        if (!_isNativeExtensionMember(member)) {
+          _diagnosticsReporter.report(
+              messageJsInteropExternalExtensionMemberOnTypeInvalid,
+              member.fileOffset,
+              member.name.text.length,
+              member.fileUri);
+        }
       } else if (!hasJSInteropAnnotation(member) &&
           !_isAllowedExternalUsage(member)) {
         // Member could be JS annotated and not considered a JS interop member
@@ -338,6 +339,18 @@ class JsInteropChecks extends RecursiveVisitor {
   /// Returns whether given extension [member] is in an extension that is on a
   /// JS interop class.
   bool _isJSExtensionMember(Member member) {
+    return _checkExtensionMember(member, hasJSInteropAnnotation);
+  }
+
+  /// Returns whether given extension [member] is in an extension on a Native
+  /// class.
+  bool _isNativeExtensionMember(Member member) {
+    return _checkExtensionMember(member, _nativeClasses.containsValue);
+  }
+
+  /// Returns whether given extension [member] is on a class that passses the
+  /// given [validateExtensionClass].
+  bool _checkExtensionMember(Member member, Function validateExtensionClass) {
     assert(member.isExtensionMember);
     if (_libraryExtensionsIndex == null) {
       _libraryExtensionsIndex = {};
@@ -347,6 +360,6 @@ class JsInteropChecks extends RecursiveVisitor {
     }
 
     var onType = _libraryExtensionsIndex![member.reference]!.onType;
-    return onType is InterfaceType && hasJSInteropAnnotation(onType.classNode);
+    return onType is InterfaceType && validateExtensionClass(onType.classNode);
   }
 }

@@ -236,6 +236,8 @@ environment:
     );
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
+    expect(
+        actual.propagateLinterExceptions, expected.propagateLinterExceptions);
     expect(actual.strictInference, expected.strictInference);
     expect(actual.strictRawTypes, expected.strictRawTypes);
   }

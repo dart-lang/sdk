@@ -836,13 +836,14 @@ abstract class TestDriver {
       soundNullSafety: soundNullSafety,
       verbose: verbose,
     );
-    workerDone = worker.start();
+    workerDone = worker.run();
   }
 
   Future<void> tearDown() async {
     unawaited(requestController.close());
     await workerDone;
     unawaited(responseController.close());
+    worker?.close();
   }
 }
 

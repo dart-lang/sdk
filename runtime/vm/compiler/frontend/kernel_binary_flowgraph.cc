@@ -5299,7 +5299,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         if (!closure_owner_.IsNull()) {
           function = Function::NewClosureFunctionWithKind(
               UntaggedFunction::kClosureFunction, *name,
-              parsed_function()->function(), position, closure_owner_);
+              parsed_function()->function(),
+              parsed_function()->function().is_static(), position,
+              closure_owner_);
         } else {
           function = Function::NewClosureFunction(
               *name, parsed_function()->function(), position);

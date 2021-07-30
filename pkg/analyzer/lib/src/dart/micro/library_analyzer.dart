@@ -348,7 +348,10 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(nodeRegistry));
+    unit.accept(LinterVisitor(
+        nodeRegistry,
+        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
+            .logException));
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {

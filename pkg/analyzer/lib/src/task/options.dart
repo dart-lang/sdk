@@ -151,6 +151,8 @@ class AnalyzerOptions {
   /// Ways to say `include`.
   static const List<String> includeSynonyms = ['include', 'true'];
 
+  static const String propagateLinterExceptions = 'propagate-linter-exceptions';
+
   /// Ways to say `true` or `false`.
   static const List<String> trueOrFalse = ['true', 'false'];
 
@@ -163,6 +165,7 @@ class AnalyzerOptions {
     language,
     optionalChecks,
     plugins,
+    propagateLinterExceptions,
     strong_mode,
   ];
 
@@ -804,6 +807,9 @@ class _OptionsProcessor {
       }
       if (feature == AnalyzerOptions.implicitDynamic) {
         options.implicitDynamic = boolValue;
+      }
+      if (feature == AnalyzerOptions.propagateLinterExceptions) {
+        options.propagateLinterExceptions = boolValue;
       }
     }
   }

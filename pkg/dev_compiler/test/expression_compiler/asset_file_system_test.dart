@@ -7,7 +7,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpServer;
-import 'dart:math';
 
 import 'package:browser_launcher/browser_launcher.dart';
 import 'package:dev_compiler/src/kernel/asset_file_system.dart';
@@ -67,6 +66,7 @@ FutureOr<Response> noisyHandler(Request request) {
   return Response.internalServerError();
 }
 
+int _attempts = 0;
 FutureOr<Response> unreliableHandler(Request request) {
   final uri = request.requestedUri;
   final headers = {
@@ -74,7 +74,7 @@ FutureOr<Response> unreliableHandler(Request request) {
     ...request.headers,
   };
 
-  if (Random().nextInt(3) == 0) return Response.internalServerError();
+  if ((_attempts++) % 5 == 0) return Response.internalServerError();
 
   if (request.method == 'HEAD') {
     // 'exists'
@@ -112,6 +112,7 @@ void main() async {
 
     tearDownAll(() async {
       await expectLater(server.close(), completes);
+      fileSystem.close();
     });
 
     test('can tell if file exists', () async {
@@ -148,12 +149,10 @@ void main() async {
     test('can read a lot of files concurrently', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       var futures = [
-        for (var i = 0; i < 512; i++) entity.readAsBytes(),
+        for (var i = 0; i < 512; i++)
+          _expectContents(entity, _smallFileContents),
       ];
-      var results = await Future.wait(futures);
-      for (var result in results) {
-        expect(utf8.decode(result), _smallFileContents);
-      }
+      await Future.wait(futures);
     }, timeout: const Timeout.factor(2));
   });
 
@@ -171,6 +170,7 @@ void main() async {
 
     tearDownAll(() async {
       await expectLater(server.close(), completes);
+      fileSystem.close();
     });
 
     test('can tell if file exists', () async {
@@ -225,15 +225,12 @@ void main() async {
     });
 
     test('can read a lot of files concurrently', () async {
+      var fileContents = _largeFileContents();
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       var futures = [
-        for (var i = 0; i < 512; i++) entity.readAsString(),
+        for (var i = 0; i < 512; i++) _expectContents(entity, fileContents),
       ];
-      var results = await Future.wait(futures);
-      var fileContents = _largeFileContents();
-      for (var result in results) {
-        expect(result, fileContents);
-      }
+      await Future.wait(futures);
     }, timeout: const Timeout.factor(2));
   });
 
@@ -251,6 +248,7 @@ void main() async {
 
     tearDownAll(() async {
       await expectLater(server.close(), completes);
+      fileSystem.close();
     });
 
     test('can tell if file exists', () async {
@@ -287,12 +285,10 @@ void main() async {
     test('can read a lot of files concurrently', () async {
       var entity = fileSystem.entityForUri(Uri.parse(_existingFile));
       var futures = [
-        for (var i = 0; i < 512; i++) entity.readAsString(),
+        for (var i = 0; i < 512; i++)
+          _expectContents(entity, _smallFileContents),
       ];
-      var results = await Future.wait(futures);
-      for (var result in results) {
-        expect(result, _smallFileContents);
-      }
+      await Future.wait(futures);
     }, timeout: const Timeout.factor(2));
   });
 
@@ -310,6 +306,7 @@ void main() async {
 
     tearDownAll(() async {
       await expectLater(server.close(), completes);
+      fileSystem.close();
     });
 
     test('cannot tell if file exists', () async {
@@ -340,4 +337,12 @@ void main() async {
           entity.readAsBytes(), throwsA(isA<FileSystemException>()));
     });
   });
+}
+
+// Read the response (and free the socket) as soon as we get it.
+// That allows some connection to buffer and wait for free sockets
+// when the limit if connections is reached.
+Future<void> _expectContents(FileSystemEntity entity, String contents) async {
+  var result = await entity.readAsString();
+  expect(result, contents);
 }

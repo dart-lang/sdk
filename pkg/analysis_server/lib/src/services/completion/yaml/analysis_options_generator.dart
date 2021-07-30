@@ -30,6 +30,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
         AnalyzerOptions.chromeOsManifestChecks: EmptyProducer(),
       }),
       AnalyzerOptions.plugins: EmptyProducer(),
+      AnalyzerOptions.propagateLinterExceptions: EmptyProducer(),
       AnalyzerOptions.strong_mode: MapProducer({
         AnalyzerOptions.declarationCasts: EmptyProducer(),
         AnalyzerOptions.implicitCasts: EmptyProducer(),
