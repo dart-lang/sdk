@@ -12,7 +12,6 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -332,7 +331,6 @@ class LibraryAnalyzer {
 
     var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
-    var visitors = <AstVisitor>[];
 
     var context = LinterContextImpl(
       allUnits,
@@ -354,13 +352,6 @@ class LibraryAnalyzer {
 
     // Run lints that handle specific node types.
     unit.accept(LinterVisitor(nodeRegistry));
-
-    // Run visitor based lints.
-    if (visitors.isNotEmpty) {
-      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
-      unit.accept(visitor);
-    }
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
