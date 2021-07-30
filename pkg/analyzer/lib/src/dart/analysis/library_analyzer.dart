@@ -12,6 +12,7 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -351,7 +352,10 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(nodeRegistry));
+    unit.accept(LinterVisitor(
+        nodeRegistry,
+        LinterExceptionHandler(_analysisOptions.propagateLinterExceptions)
+            .logException));
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
