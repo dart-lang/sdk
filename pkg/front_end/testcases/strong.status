@@ -21,6 +21,7 @@ extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Ex
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

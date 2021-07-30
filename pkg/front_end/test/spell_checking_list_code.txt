@@ -167,6 +167,7 @@ casted
 casts
 categorized
 ce
+ceil
 cfe
 ch
 channel
@@ -220,6 +221,7 @@ combine2
 combiner
 compared
 compares
+compilations
 completes
 complicating
 component's

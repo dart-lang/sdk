@@ -103,6 +103,10 @@ ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
 ConstEvalExtension/example: Fail
+ConstEvalExternalConstructor/analyzerCode: Fail
+ConstEvalExternalConstructor/example: Fail
+ConstEvalExternalFactory/analyzerCode: Fail
+ConstEvalExternalFactory/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail

@@ -23,9 +23,17 @@ String? computePlatformDillName(
     case 'dartdevc':
       switch (nnbdMode) {
         case NnbdMode.Strong:
-          return 'ddc_platform_sound.dill';
+          // DDC is always compiled against the outline so we use it here by
+          // default.
+          return 'ddc_outline_sound.dill';
+        //TODO(johnniwinther): Support using the full dill.
+        //return 'ddc_platform_sound.dill';
         case NnbdMode.Weak:
-          return 'ddc_platform.dill';
+          // DDC is always compiled against the outline so we use it here by
+          // default.
+          return 'ddc_outline.dill';
+        //TODO(johnniwinther): Support using the full dill.
+        //return 'ddc_platform.dill';
         case NnbdMode.Agnostic:
           break;
       }

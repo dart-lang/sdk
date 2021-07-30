@@ -41,6 +41,8 @@ import '../fasta_codes.dart'
         messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalExtension,
+        messageConstEvalExternalConstructor,
+        messageConstEvalExternalFactory,
         messageConstEvalFailedAssertion,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
@@ -1652,6 +1654,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node,
           'Constructor "$node" has non-trivial body '
           '"${constructor.function.body.runtimeType}".');
+    } else if (constructor.isExternal) {
+      return createErrorConstant(node, messageConstEvalExternalConstructor);
     }
     return null;
   }
@@ -3012,30 +3016,33 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               isConst: true));
     }
     if (target.kind == ProcedureKind.Factory) {
-      if (target.isConst &&
-          target.enclosingLibrary == coreTypes.coreLibrary &&
-          positionals.length == 1 &&
-          (target.name.text == "fromEnvironment" ||
-              target.name.text == "hasEnvironment")) {
-        if (environmentDefines != null) {
-          // Evaluate environment constant.
-          Constant name = positionals.single;
-          if (name is StringConstant) {
-            if (target.name.text == "fromEnvironment") {
-              return _handleFromEnvironment(target, name, named);
-            } else {
-              return _handleHasEnvironment(name);
+      if (target.isConst) {
+        if (target.enclosingLibrary == coreTypes.coreLibrary &&
+            positionals.length == 1 &&
+            (target.name.text == "fromEnvironment" ||
+                target.name.text == "hasEnvironment")) {
+          if (environmentDefines != null) {
+            // Evaluate environment constant.
+            Constant name = positionals.single;
+            if (name is StringConstant) {
+              if (target.name.text == "fromEnvironment") {
+                return _handleFromEnvironment(target, name, named);
+              } else {
+                return _handleHasEnvironment(name);
+              }
+            } else if (name is NullConstant) {
+              return createErrorConstant(node, messageConstEvalNullValue);
             }
-          } else if (name is NullConstant) {
-            return createErrorConstant(node, messageConstEvalNullValue);
+          } else {
+            // Leave environment constant unevaluated.
+            return unevaluated(
+                node,
+                new StaticInvocation(target,
+                    unevaluatedArguments(positionals, named, arguments.types),
+                    isConst: true));
           }
-        } else {
-          // Leave environment constant unevaluated.
-          return unevaluated(
-              node,
-              new StaticInvocation(target,
-                  unevaluatedArguments(positionals, named, arguments.types),
-                  isConst: true));
+        } else if (target.isExternal) {
+          return createErrorConstant(node, messageConstEvalExternalFactory);
         }
       }
     } else if (target.name.text == 'identical') {

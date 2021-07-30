@@ -219,6 +219,12 @@ ConstEvalExtension:
   template: "Extension operations can't be used in constant expressions."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
+ConstEvalExternalConstructor:
+  template: "External constructors can't be evaluated in constant expressions."
+
+ConstEvalExternalFactory:
+  template: "External factory constructors can't be evaluated in constant expressions."
+
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
 

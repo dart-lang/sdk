@@ -247,12 +247,19 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     }
   }
 
+  bool _hasBuiltOutlines = false;
+
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    if (_hasBuiltOutlines) return;
+    if (isConst && isPatch) {
+      origin.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
+    }
     super.buildOutlineExpressions(
         library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
 
@@ -267,6 +274,10 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     beginInitializers = null;
+    if (isConst && isPatch) {
+      _finishPatch();
+    }
+    _hasBuiltOutlines = true;
   }
 
   @override
@@ -388,10 +399,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     return null;
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  void _finishPatch() {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.constructor.fileUri = fileUri;
@@ -406,6 +414,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     origin.constructor.function.parent = origin.constructor;
     origin.constructor.initializers = _constructor.initializers;
     setParents(origin.constructor.initializers, origin.constructor);
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    _finishPatch();
     return 1;
   }
 
@@ -438,7 +452,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _constructor.initializers.length = 0;
+    _constructor.initializers = [];
     redirectingInitializer = null;
     superInitializer = null;
     hasMovedSuperInitializer = false;

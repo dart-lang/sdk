@@ -5,5 +5,5 @@
 class Class {
   external factory Class.fact({bool defaultValue: true});
   external const factory Class.constFact({bool defaultValue: true});
-  //external const factory Class.redirect({bool defaultValue: true});
+  external const factory Class.redirect({bool defaultValue: true});
 }
