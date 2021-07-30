@@ -7519,7 +7519,7 @@ FunctionPtr Function::GetOutermostFunction() const {
 }
 
 FunctionPtr Function::implicit_closure_function() const {
-  if (IsClosureFunction() || IsFactory() || IsDispatcherOrImplicitAccessor() ||
+  if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
       IsFieldInitializer() || IsFfiTrampoline()) {
     return Function::null();
   }
@@ -7689,6 +7689,7 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
+//   constructor, factory:    Function for implicit closure function
 //   ffi trampoline function: FfiTrampolineData  (Dart->C)
 //   dyn inv forwarder:       Array[0] = Function target
 //                            Array[1] = TypeArguments default type args
@@ -9160,6 +9161,7 @@ FunctionPtr Function::New(const FunctionType& signature,
 FunctionPtr Function::NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                  const String& name,
                                                  const Function& parent,
+                                                 bool is_static,
                                                  TokenPosition token_pos,
                                                  const Object& owner) {
   ASSERT((kind == UntaggedFunction::kClosureFunction) ||
@@ -9171,7 +9173,7 @@ FunctionPtr Function::NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                  : 0));
   const Function& result = Function::Handle(
       Function::New(signature, name, kind,
-                    /* is_static = */ parent.is_static(),
+                    /* is_static = */ is_static,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
@@ -9186,7 +9188,8 @@ FunctionPtr Function::NewClosureFunction(const String& name,
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.RawOwner());
   return NewClosureFunctionWithKind(UntaggedFunction::kClosureFunction, name,
-                                    parent, token_pos, parent_owner);
+                                    parent, parent.is_static(), token_pos,
+                                    parent_owner);
 }
 
 FunctionPtr Function::NewImplicitClosureFunction(const String& name,
@@ -9194,8 +9197,9 @@ FunctionPtr Function::NewImplicitClosureFunction(const String& name,
                                                  TokenPosition token_pos) {
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.RawOwner());
-  return NewClosureFunctionWithKind(UntaggedFunction::kImplicitClosureFunction,
-                                    name, parent, token_pos, parent_owner);
+  return NewClosureFunctionWithKind(
+      UntaggedFunction::kImplicitClosureFunction, name, parent,
+      parent.is_static() || parent.IsConstructor(), token_pos, parent_owner);
 }
 
 bool Function::SafeToClosurize() const {
@@ -9241,7 +9245,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
-  if (is_static()) {
+  if (is_static() || IsConstructor()) {
     closure_function.set_context_scope(Object::empty_context_scope());
   } else {
     const ContextScope& context_scope = ContextScope::Handle(
@@ -9252,15 +9256,46 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   FunctionType& closure_signature =
       FunctionType::Handle(zone, closure_function.signature());
 
-  // Set closure function's type parameters.
-  // This function cannot be local, therefore it has no generic parent.
-  // Its implicit closure function therefore has no generic parent function
-  // either. That is why it is safe to simply copy the type parameters.
-  closure_signature.SetTypeParameters(
-      TypeParameters::Handle(zone, type_parameters()));
+  // Set closure function's type parameters and result type.
+  if (IsConstructor()) {
+    // Inherit type parameters from owner class.
+    const auto& cls = Class::Handle(zone, Owner());
+    closure_signature.SetTypeParameters(
+        TypeParameters::Handle(zone, cls.type_parameters()));
+    ASSERT(closure_signature.NumTypeParameters() == cls.NumTypeParameters());
 
-  // Set closure function's result type to this result type.
-  closure_signature.set_result_type(AbstractType::Handle(zone, result_type()));
+    Type& result_type = Type::Handle(zone);
+    const Nullability result_nullability =
+        (nnbd_mode() == NNBDMode::kOptedInLib) ? Nullability::kNonNullable
+                                               : Nullability::kLegacy;
+    if (cls.IsGeneric()) {
+      TypeArguments& type_args = TypeArguments::Handle(zone);
+      const intptr_t num_type_params = cls.NumTypeParameters();
+      ASSERT(num_type_params > 0);
+      type_args = TypeArguments::New(num_type_params);
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param = closure_signature.TypeParameterAt(i);
+        type_args.SetTypeAt(i, type_param);
+      }
+      result_type = Type::New(cls, type_args, result_nullability);
+      result_type ^= ClassFinalizer::FinalizeType(result_type);
+    } else {
+      result_type = cls.DeclarationType();
+      result_type = result_type.ToNullability(result_nullability, Heap::kOld);
+    }
+    closure_signature.set_result_type(result_type);
+  } else {
+    // This function cannot be local, therefore it has no generic parent.
+    // Its implicit closure function therefore has no generic parent function
+    // either. That is why it is safe to simply copy the type parameters.
+    closure_signature.SetTypeParameters(
+        TypeParameters::Handle(zone, type_parameters()));
+
+    // Set closure function's result type to this result type.
+    closure_signature.set_result_type(
+        AbstractType::Handle(zone, result_type()));
+  }
 
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
@@ -9274,8 +9309,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // removing the receiver if this is an instance method and adding the closure
   // object as first parameter.
   const int kClosure = 1;
-  const int has_receiver = is_static() ? 0 : 1;
-  const int num_fixed_params = kClosure - has_receiver + num_fixed_parameters();
+  const int num_implicit_params = NumImplicitParameters();
+  const int num_fixed_params =
+      kClosure - num_implicit_params + num_fixed_parameters();
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
@@ -9294,19 +9330,19 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.SetParameterTypeAt(0, param_type);
   closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
   for (int i = kClosure; i < num_pos_params; i++) {
-    param_type = ParameterTypeAt(has_receiver - kClosure + i);
+    param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     closure_signature.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(has_receiver - kClosure + i);
+    param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the function for positional parameters.
     closure_function.SetParameterNameAt(i, param_name);
   }
   for (int i = num_pos_params; i < num_params; i++) {
-    param_type = ParameterTypeAt(has_receiver - kClosure + i);
+    param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     closure_signature.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(has_receiver - kClosure + i);
+    param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the signature for named parameters.
     closure_signature.SetParameterNameAt(i, param_name);
-    if (IsRequiredAt(has_receiver - kClosure + i)) {
+    if (IsRequiredAt(num_implicit_params - kClosure + i)) {
       closure_signature.SetIsRequiredAt(i);
     }
   }
@@ -9315,7 +9351,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   // Change covariant parameter types to either Object? for an opted-in implicit
   // closure or to Object* for a legacy implicit closure.
-  if (!is_static()) {
+  if (!is_static() && !IsConstructor()) {
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
     kernel::ReadParameterCovariance(*this, &is_covariant,
@@ -9328,7 +9364,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                       : object_store->legacy_object_type();
     ASSERT(object_type.IsCanonical());
     for (intptr_t i = kClosure; i < num_params; ++i) {
-      const intptr_t original_param_index = has_receiver - kClosure + i;
+      const intptr_t original_param_index = num_implicit_params - kClosure + i;
       if (is_covariant.Contains(original_param_index) ||
           is_generic_covariant_impl.Contains(original_param_index)) {
         closure_signature.SetParameterTypeAt(i, object_type);
@@ -9340,6 +9376,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_function.SetSignature(closure_signature);
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
+  ASSERT(HasImplicitClosureFunction());
   return closure_function.ptr();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

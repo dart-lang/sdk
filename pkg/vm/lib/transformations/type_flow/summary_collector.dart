@@ -2479,6 +2479,15 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
 
   @override
   Type visitStaticTearOffConstant(StaticTearOffConstant constant) {
+    final Procedure member = constant.target;
+    summaryCollector._entryPointsListener
+        .addRawCall(new DirectSelector(member));
+    summaryCollector._entryPointsListener.recordTearOff(member);
+    return _getStaticType(constant);
+  }
+
+  @override
+  Type visitConstructorTearOffConstant(ConstructorTearOffConstant constant) {
     final Member member = constant.target;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(member));
