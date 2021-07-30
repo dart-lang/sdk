@@ -19,6 +19,7 @@ extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Ex
 extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

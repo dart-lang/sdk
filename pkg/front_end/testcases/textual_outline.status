@@ -52,6 +52,7 @@ extension_types/simple_getter_resolution: FormatterCrash
 extension_types/simple_method_resolution: FormatterCrash
 extension_types/simple_operator_resolution: FormatterCrash
 extension_types/simple_setter_resolution: FormatterCrash
+extension_types/simple_show_hide: FormatterCrash
 extensions/extension_constructor: FormatterCrash
 extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash
