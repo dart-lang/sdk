@@ -16,11 +16,18 @@ import 'package:pedantic/pedantic.dart';
 /// A wrapper around asset server that redirects file read requests
 /// to http get requests to the asset server.
 class AssetFileSystem implements FileSystem {
-  FileSystem original;
+  final FileSystem original;
   final String server;
   final String port;
+  final RetryTimeoutClient client;
 
-  AssetFileSystem(this.original, this.server, this.port);
+  AssetFileSystem(this.original, this.server, this.port)
+      : client = RetryTimeoutClient(
+            HttpClient()
+              ..maxConnectionsPerHost = 200
+              ..connectionTimeout = const Duration(seconds: 30)
+              ..idleTimeout = const Duration(seconds: 30),
+            retries: 4);
 
   /// Convert the uri to a server uri.
   Uri _resourceUri(Uri uri) => Uri.parse('http://$server:$port/${uri.path}');
@@ -33,6 +40,10 @@ class AssetFileSystem implements FileSystem {
 
     // Pass the uri to the asset server in the debugger.
     return AssetFileSystemEntity(this, _resourceUri(uri));
+  }
+
+  void close() {
+    client?.close(force: true);
   }
 }
 
@@ -85,20 +96,16 @@ class AssetFileSystemEntity implements FileSystemEntity {
     });
   }
 
-  /// Execute the [body] with the new http client.
+  /// Execute the [body] with the http client created in [fileSystem].
   ///
   /// Throws a [FileSystemException] on failure,
   /// and cleans up the client on return or error.
   Future<T> _runWithClient<T>(
       Future<T> Function(RetryTimeoutClient httpClient) body) async {
-    RetryTimeoutClient httpClient;
     try {
-      httpClient = RetryTimeoutClient(HttpClient(), retries: 5);
-      return await body(httpClient);
+      return await body(fileSystem.client);
     } on Exception catch (e, s) {
       throw FileSystemException(uri, '$e:$s');
-    } finally {
-      httpClient?.close(force: true);
     }
   }
 

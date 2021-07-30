@@ -113,24 +113,30 @@ class ExpressionCompilerWorker {
   /// receive port corresponding to [sendPort].
   static Future<void> createAndStart(List<String> args,
       {SendPort sendPort}) async {
+    ExpressionCompilerWorker worker;
     if (sendPort != null) {
       var receivePort = ReceivePort();
       sendPort.send(receivePort.sendPort);
       try {
-        var worker = await createFromArgs(args,
+        worker = await createFromArgs(args,
             requestStream: receivePort.cast<Map<String, dynamic>>(),
             sendResponse: sendPort.send);
-        await worker.start();
+        await worker.run();
       } catch (e, s) {
         sendPort
             .send({'exception': '$e', 'stackTrace': '$s', 'succeeded': false});
         rethrow;
       } finally {
         receivePort.close();
+        worker?.close();
       }
     } else {
-      var worker = await createFromArgs(args);
-      await worker.start();
+      try {
+        worker = await createFromArgs(args);
+        await worker.run();
+      } finally {
+        worker?.close();
+      }
     }
   }
 
@@ -243,7 +249,7 @@ class ExpressionCompilerWorker {
   ///
   /// Completes when the [requestStream] closes and we finish handling the
   /// requests.
-  Future<void> start() async {
+  Future<void> run() async {
     await for (var request in requestStream) {
       try {
         var command = request['command'] as String;
@@ -273,6 +279,11 @@ class ExpressionCompilerWorker {
       }
     }
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
+  }
+
+  void close() {
+    var fileSystem = _processedOptions?.fileSystem;
+    if (fileSystem != null && fileSystem is AssetFileSystem) fileSystem.close();
   }
 
   /// Handles a `CompileExpression` request.
