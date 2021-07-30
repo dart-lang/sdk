@@ -1677,7 +1677,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ctorFields = ctor.initializers
           .map((c) => c is FieldInitializer ? c.field : null)
           .toSet()
-            ..remove(null);
+        ..remove(null);
     }
 
     var body = <js_ast.Statement>[];
@@ -2884,27 +2884,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     js_ast.Expression typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
-    // We have to use lazy JS types because until we have proper module
-    // loading for JS libraries bundled with Dart libraries, we will sometimes
-    // need to load Dart libraries before the corresponding JS libraries are
-    // actually loaded.
-    // Given a JS type such as:
-    //     @JS('google.maps.Location')
-    //     class Location { ... }
-    // We can't emit a reference to MyType because the JS library that defines
-    // it may be loaded after our code. So for now, we use a special lazy type
-    // object to represent MyType.
-    // Anonymous JS types do not have a corresponding concrete JS type so we
-    // have to use a helper to define them.
-    if (isJSAnonymousType(c)) {
-      typeRep = runtimeCall(
-          'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
-    } else {
-      var jsName = _emitJsNameWithoutGlobal(c);
-      if (jsName != null) {
-        typeRep = runtimeCall('lazyJSType(() => #, #)',
-            [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
-      }
+    // package:js types fall under either named or anonymous types. Named types
+    // are used to correspond to JS types that exist, but we do not use the
+    // underlying type for type checks, so they operate virtually the same as
+    // anonymous types. We represent package:js types with a corresponding type
+    // object.
+    var jsName = isJSAnonymousType(c) ?
+        getLocalClassName(c) : _emitJsNameWithoutGlobal(c);
+    if (jsName != null) {
+      typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
     }
 
     if (typeRep != null) {

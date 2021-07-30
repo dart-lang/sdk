@@ -81,6 +81,15 @@ void nativeNonNullAsserts(bool enable) {
 
 final metadata = JS('', 'Symbol("metadata")');
 
+/// A javascript Symbol used to store a canonical version of T? on T.
+final _cachedNullable = JS('', 'Symbol("cachedNullable")');
+
+/// A javascript Symbol used to store a canonical version of T* on T.
+final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
+
+/// A javascript Symbol used to store prior subtype checks and their results.
+final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
+
 /// Types in dart are represented internally at runtime as follows.
 ///
 ///   - Normal nominal types, produced from classes, are represented
@@ -197,67 +206,17 @@ F tearoffInterop<F extends Function?>(F f) {
   return JS('', '#', ret);
 }
 
-/// The Dart type that represents a JavaScript class(/constructor) type.
-///
-/// The JavaScript type may not exist, either because it's not loaded yet, or
-/// because it's not available (such as with mocks). To handle this gracefully,
-/// we disable type checks for in these cases, and allow any JS object to work
-/// as if it were an instance of this JS type.
-class LazyJSType extends DartType {
-  Function() _getRawJSTypeFn;
-  @notNull
-  final String _dartName;
-  Object? _rawJSType;
-
-  LazyJSType(this._getRawJSTypeFn, this._dartName);
-
-  toString() {
-    var raw = _getRawJSType();
-    return raw != null ? typeName(raw) : "JSObject<$_dartName>";
-  }
-
-  Object? _getRawJSType() {
-    var raw = _rawJSType;
-    if (raw != null) return raw;
-
-    // Try to evaluate the JS type. If this fails for any reason, we'll try
-    // again next time.
-    // TODO(jmesserly): is it worth trying again? It may create unnecessary
-    // overhead, especially if exceptions are being thrown. Also it means the
-    // behavior of a given type check can change later on.
-    try {
-      raw = _getRawJSTypeFn();
-    } catch (e) {}
-
-    if (raw == null) {
-      _warn('Cannot find native JavaScript type ($_dartName) for type check');
-    } else {
-      _rawJSType = raw;
-      JS('', '#.push(() => # = null)', _resetFields, _rawJSType);
-    }
-    return raw;
-  }
-
-  Object rawJSTypeForCheck() => _getRawJSType() ?? typeRep<JavaScriptObject>();
-
-  @notNull
-  @JSExportName('is')
-  bool is_T(obj) =>
-      obj != null &&
-      (_isJsObject(obj) || isSubtypeOf(getReifiedType(obj), this));
-
-  @JSExportName('as')
-  as_T(obj) => is_T(obj) ? obj : castError(obj, this);
-}
-
-/// An anonymous JS type
+/// Dart type that represents a package:js class type (either anonymous or not).
 ///
 /// For the purposes of subtype checks, these match any JS type.
-class AnonymousJSType extends DartType {
+class PackageJSType extends DartType {
   final String _dartName;
-  AnonymousJSType(this._dartName);
-  toString() => _dartName;
+  PackageJSType(this._dartName);
 
+  @override
+  String toString() => _dartName;
+
+  @notNull
   @JSExportName('is')
   bool is_T(obj) =>
       obj != null &&
@@ -299,35 +258,25 @@ void _nullWarnOnType(type) {
   }
 }
 
-var _lazyJSTypes = JS<Object>('', 'new Map()');
-var _anonymousJSTypes = JS<Object>('', 'new Map()');
+var _packageJSTypes = JS<Object>('', 'new Map()');
 
-lazyJSType(Function() getJSTypeCallback, String name) {
-  var ret = JS('', '#.get(#)', _lazyJSTypes, name);
+packageJSType(String name) {
+  var ret = JS('', '#.get(#)', _packageJSTypes, name);
   if (ret == null) {
-    ret = LazyJSType(getJSTypeCallback, name);
-    JS('', '#.set(#, #)', _lazyJSTypes, name, ret);
+    ret = PackageJSType(name);
+    JS('', '#.set(#, #)', _packageJSTypes, name, ret);
   }
   return ret;
 }
 
-anonymousJSType(String name) {
-  var ret = JS('', '#.get(#)', _anonymousJSTypes, name);
-  if (ret == null) {
-    ret = AnonymousJSType(name);
-    JS('', '#.set(#, #)', _anonymousJSTypes, name, ret);
-  }
-  return ret;
-}
-
-/// A javascript Symbol used to store a canonical version of T? on T.
-final _cachedNullable = JS('', 'Symbol("cachedNullable")');
-
-/// A javascript Symbol used to store a canonical version of T* on T.
-final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
-
-/// A javascript Symbol used to store prior subtype checks and their results.
-final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
+/// Since package:js types are all subtypes of each other, we use this var to
+/// denote *some* package:js type in our subtyping logic.
+///
+/// Used only when a concrete PackageJSType is not available i.e. when neither
+/// the object nor the target type is a PackageJSType. Avoids initializating a
+/// new PackageJSType every time. Note that we don't add it to the set of JS
+/// types, since it's not an actual JS class.
+final _pkgJSTypeForSubtyping = PackageJSType('');
 
 /// Returns a nullable (question, ?) version of [type].
 ///
@@ -1522,34 +1471,20 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
     //
     // JavaScriptObject <: package:js types
     // package:js types <: JavaScriptObject
-    //
-    // TODO: This doesn't allow package:js type <: another package:js type yet.
 
     if (${_isInterfaceSubtype(t1, JavaScriptObject, strictMode)}
-        && (${_jsInstanceOf(t2, LazyJSType)}
-            || ${_jsInstanceOf(t2, AnonymousJSType)}
-            // TODO: Since package:js types are instances of LazyJSType and
-            // AnonymousJSType, we don't have a mechanism to determine if *some*
-            // package:js type implements t2. This will possibly require keeping
-            // a map of these relationships for this subtyping check. For now,
-            // don't execute the following checks.
-            // || _isInterfaceSubtype(LazyJSType, t2, strictMode)
-            // || _isInterfaceSubtype(AnonymousJSType, t2, strictMode)
-            )) {
+        &&
+            // TODO: Since package:js types are instances of PackageJSType and
+            // we don't have a mechanism to determine if *some* package:js type
+            // implements t2. This will possibly require keeping a map of these
+            // relationships for this subtyping check. For now, this will only
+            // work if t2 is also a PackageJSType.
+            ${_isInterfaceSubtype(_pkgJSTypeForSubtyping, t2, strictMode)}) {
       return true;
     }
 
     if (${_isInterfaceSubtype(JavaScriptObject, t2, strictMode)}
-        && (${_jsInstanceOf(t1, LazyJSType)}
-            || ${_jsInstanceOf(t1, AnonymousJSType)}
-            // TODO: We don't have a check in `isInterfaceSubtype` to check that
-            // a class is a subtype of *some* package:js class. This will likely
-            // require modifying `_isInterfaceSubtype` to check if the
-            // interfaces of t1 include a package:js type. For now, don't
-            // execute the following checks.
-            // || _isInterfaceSubtype(t1, LazyJSType, strictMode)
-            // || _isInterfaceSubtype(t1, AnonymousJSType, strictMode)
-            )) {
+        && ${_isInterfaceSubtype(t1, _pkgJSTypeForSubtyping, strictMode)}) {
       return true;
     }
 
@@ -1617,10 +1552,11 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) => JS<bool>('!', '''(() => {
 })()''');
 
 bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) => JS('', '''(() => {
-  // If we have lazy JS types, unwrap them.  This will effectively
-  // reduce to a prototype check below.
-  if (${_jsInstanceOf(t1, LazyJSType)}) $t1 = $t1.rawJSTypeForCheck();
-  if (${_jsInstanceOf(t2, LazyJSType)}) $t2 = $t2.rawJSTypeForCheck();
+  // Instances of PackageJSType are all subtypes of each other.
+  if (${_jsInstanceOf(t1, PackageJSType)}
+      && ${_jsInstanceOf(t2, PackageJSType)}) {
+    return true;
+  }
 
   if ($t1 === $t2) {
     return true;

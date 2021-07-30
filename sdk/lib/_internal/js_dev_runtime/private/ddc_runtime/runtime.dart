@@ -181,8 +181,8 @@ final List<Object> _cacheMaps = JS('!', '[]');
 /// A list of functions to reset static fields back to their uninitialized
 /// state.
 ///
-/// This is populated by [defineLazyField] and [LazyJSType] and only contains
-/// fields that have been initialized.
+/// This is populated by [defineLazyField] and only contains fields that have
+/// been initialized.
 @notNull
 final List<void Function()> _resetFields = JS('', '[]');
 

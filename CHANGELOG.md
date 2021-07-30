@@ -264,6 +264,16 @@ Updated the Linter to `1.8.0`, which includes changes that
 [#46545]: https://github.com/dart-lang/sdk/issues/46545
 [1]: https://dart.dev/faq#q-what-browsers-do-you-support-as-javascript-compilation-targets
 
+#### Dart Dev Compiler (DDC)
+
+- **Breaking Change** [#44154][]: Subtyping relations of `package:js` classes
+  have been changed to be more correct and consistent with Dart2JS.
+  Like `anonymous` classes, non-`anonymous` classes will no longer check the
+  underlying type in DDC. The internal type representation of these objects have
+  changed as well, which will affect the `toString` value of these types.
+
+[#44154]: https://github.com/dart-lang/sdk/issues/44154
+
 ## 2.13.4 - 2021-06-28
 
 This is a patch release that fixes:
