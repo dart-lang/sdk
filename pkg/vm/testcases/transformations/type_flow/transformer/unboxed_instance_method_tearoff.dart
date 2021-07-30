@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
@@ -18,7 +16,7 @@ class X {}
 
 abstract class Interface {
   void takePositional(
-      int unboxedSmi,
+      int? unboxedSmi,
       dynamic unboxedInt,
       dynamic unboxedDouble,
       dynamic boxedNullableInt,
@@ -28,20 +26,20 @@ abstract class Interface {
       dynamic boxedNullableX,
       dynamic boxedX);
 
-  dynamic returnUnboxedSmi(X ignored);
-  dynamic returnUnboxedInt(X ignored);
-  dynamic returnUnboxedDouble(X ignored);
-  dynamic returnBoxedNullableInt(X ignored);
-  dynamic returnBoxedNullableDouble(X ignored);
-  dynamic returnBoxedIntOrDouble(X ignored);
-  dynamic returnBoxedNullableIntOrDouble(X ignored);
-  dynamic returnBoxedNullableX(X ignored);
-  dynamic returnBoxedX(X ignored);
+  dynamic returnUnboxedSmi(X? ignored);
+  dynamic returnUnboxedInt(X? ignored);
+  dynamic returnUnboxedDouble(X? ignored);
+  dynamic returnBoxedNullableInt(X? ignored);
+  dynamic returnBoxedNullableDouble(X? ignored);
+  dynamic returnBoxedIntOrDouble(X? ignored);
+  dynamic returnBoxedNullableIntOrDouble(X? ignored);
+  dynamic returnBoxedNullableX(X? ignored);
+  dynamic returnBoxedX(X? ignored);
 }
 
 class Impl1 implements Interface {
   void takePositional(
-      int unboxedSmi,
+      int? unboxedSmi,
       dynamic unboxedInt,
       dynamic unboxedDouble,
       dynamic boxedNullableInt,
@@ -60,20 +58,20 @@ class Impl1 implements Interface {
     use(boxedX);
   }
 
-  dynamic returnUnboxedSmi(X ignored) => 1;
-  dynamic returnUnboxedInt(X ignored) => 1;
-  dynamic returnUnboxedDouble(X ignored) => 1.1;
-  dynamic returnBoxedNullableInt(X ignored) => null;
-  dynamic returnBoxedNullableDouble(X ignored) => null;
-  dynamic returnBoxedIntOrDouble(X ignored) => 1;
-  dynamic returnBoxedNullableIntOrDouble(X ignored) => null;
-  dynamic returnBoxedNullableX(X ignored) => null;
-  dynamic returnBoxedX(X ignored) => X();
+  dynamic returnUnboxedSmi(X? ignored) => 1;
+  dynamic returnUnboxedInt(X? ignored) => 1;
+  dynamic returnUnboxedDouble(X? ignored) => 1.1;
+  dynamic returnBoxedNullableInt(X? ignored) => null;
+  dynamic returnBoxedNullableDouble(X? ignored) => null;
+  dynamic returnBoxedIntOrDouble(X? ignored) => 1;
+  dynamic returnBoxedNullableIntOrDouble(X? ignored) => null;
+  dynamic returnBoxedNullableX(X? ignored) => null;
+  dynamic returnBoxedX(X? ignored) => X();
 }
 
 class BaseImpl2 {
   void takePositional(
-      int unboxedSmi,
+      int? unboxedSmi,
       dynamic unboxedInt,
       dynamic unboxedDouble,
       dynamic boxedNullableInt,
@@ -92,20 +90,20 @@ class BaseImpl2 {
     use(boxedX);
   }
 
-  dynamic returnUnboxedSmi(X ignored) => 2;
-  dynamic returnUnboxedInt(X ignored) => mint;
-  dynamic returnUnboxedDouble(X ignored) => 2.2;
-  dynamic returnBoxedNullableInt(X ignored) => 2;
-  dynamic returnBoxedNullableDouble(X ignored) => 2.2;
-  dynamic returnBoxedIntOrDouble(X ignored) => 2.2;
-  dynamic returnBoxedNullableIntOrDouble(X ignored) => 2;
-  dynamic returnBoxedNullableX(X ignored) => X();
-  dynamic returnBoxedX(X ignored) => X();
+  dynamic returnUnboxedSmi(X? ignored) => 2;
+  dynamic returnUnboxedInt(X? ignored) => mint;
+  dynamic returnUnboxedDouble(X? ignored) => 2.2;
+  dynamic returnBoxedNullableInt(X? ignored) => 2;
+  dynamic returnBoxedNullableDouble(X? ignored) => 2.2;
+  dynamic returnBoxedIntOrDouble(X? ignored) => 2.2;
+  dynamic returnBoxedNullableIntOrDouble(X? ignored) => 2;
+  dynamic returnBoxedNullableX(X? ignored) => X();
+  dynamic returnBoxedX(X? ignored) => X();
 }
 
 class SubImpl3 extends BaseImpl2 implements Interface {
   void takePositional(
-      int unboxedSmi,
+      int? unboxedSmi,
       dynamic unboxedInt,
       dynamic unboxedDouble,
       dynamic boxedNullableInt,
@@ -124,15 +122,15 @@ class SubImpl3 extends BaseImpl2 implements Interface {
     use(boxedX);
   }
 
-  dynamic returnUnboxedSmi(X ignored) => 3;
-  dynamic returnUnboxedInt(X ignored) => mint;
-  dynamic returnUnboxedDouble(X ignored) => 3.3;
-  dynamic returnBoxedNullableInt(X ignored) => mint;
-  dynamic returnBoxedNullableDouble(X ignored) => 3.3;
-  dynamic returnBoxedIntOrDouble(X ignored) => 3.3;
-  dynamic returnBoxedNullableIntOrDouble(X ignored) => 3.3;
-  dynamic returnBoxedNullableX(X ignored) => X();
-  dynamic returnBoxedX(X ignored) => X();
+  dynamic returnUnboxedSmi(X? ignored) => 3;
+  dynamic returnUnboxedInt(X? ignored) => mint;
+  dynamic returnUnboxedDouble(X? ignored) => 3.3;
+  dynamic returnBoxedNullableInt(X? ignored) => mint;
+  dynamic returnBoxedNullableDouble(X? ignored) => 3.3;
+  dynamic returnBoxedIntOrDouble(X? ignored) => 3.3;
+  dynamic returnBoxedNullableIntOrDouble(X? ignored) => 3.3;
+  dynamic returnBoxedNullableX(X? ignored) => X();
+  dynamic returnBoxedX(X? ignored) => X();
 }
 
 main() {

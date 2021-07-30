@@ -4,8 +4,6 @@
 
 // Test for tree shaking of write-only fields.
 
-// @dart=2.9
-
 import "package:expect/expect.dart";
 
 foo() {}
@@ -33,12 +31,12 @@ class B {
 
 class C<T> {
   // Should be replaced with setter.
-  T bar;
+  T? bar;
 }
 
 class D implements C<int> {
   // Should be replaced with setter.
-  int bar;
+  int? bar;
 }
 
 class E {
@@ -61,7 +59,7 @@ class G {
 
 class H {
   // Should be replaced with setter.
-  int unused6;
+  int? unused6;
 }
 
 class I extends H {

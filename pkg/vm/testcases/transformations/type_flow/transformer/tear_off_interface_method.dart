@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 A aa = new B();
 
 dynamic knownResult() => new B();
@@ -13,12 +11,12 @@ abstract class A {
 }
 
 class B extends A {
-  int foo() => 1 + knownResult().bar(); // Should have metadata.
+  int foo() => 1 + knownResult().bar() as int; // Should have metadata.
   int bar() => 3;
 }
 
 class C implements A {
-  int foo() => 2 + knownResult().bar(); // Should be unreachable.
+  int foo() => 2 + knownResult().bar() as int; // Should be unreachable.
 }
 
 class TearOffInterfaceMethod {

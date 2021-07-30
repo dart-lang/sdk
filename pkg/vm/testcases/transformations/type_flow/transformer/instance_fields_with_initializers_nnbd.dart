@@ -4,8 +4,6 @@
 
 // Test for tree shaking of instance fields with initializers.
 
-// @dart = 2.12
-
 int sideEffect(int x) {
   print(x);
   return x;

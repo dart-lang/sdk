@@ -11610,14 +11610,14 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
 
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
-  if (!IsolateGroup::Current()->use_field_guards()) {
+  Thread* const thread = Thread::Current();
+  if (!thread->isolate_group()->use_field_guards()) {
     return;
   }
 
   // We should never try to record a sentinel.
   ASSERT(value.ptr() != Object::sentinel().ptr());
 
-  Thread* const thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if ((guarded_cid() == kDynamicCid) ||
       (is_nullable() && value.ptr() == Object::null())) {

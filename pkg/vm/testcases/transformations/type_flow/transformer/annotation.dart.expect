@@ -1,23 +1,23 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-typedef SomeType<contravariant T extends core::Object* = dynamic> = (core::List<T*>*) →* void;
+typedef SomeType<contravariant T extends core::Object? = dynamic> = (core::List<T%>) → void;
 abstract class A extends core::Object {
   static method staticMethod() → void {}
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method instanceMethod() → void {}
 }
-[@vm.unboxing-info.metadata=()->i]static method foo() → core::int* {
-  core::int* x = 2;
-  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2){(core::num*) →* core::int*};
+[@vm.unboxing-info.metadata=()->i]static method foo() → core::int {
+  core::int x = 2;
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2){(core::num) → core::int};
 }
-static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String> args) → dynamic {
   self::A::staticMethod();
-  [@vm.direct-call.metadata=#lib::B.instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}(){() →* void};
+  [@vm.direct-call.metadata=#lib::B.instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}(){() → void};
   self::foo();
 }

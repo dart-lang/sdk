@@ -142,10 +142,9 @@ baz.LazyClass = function LazyClass(a) {
       expect(new Object() is! AnonClass2, isTrue);
 
       expect(<AnonClass>[] is List<AnonClass>, isTrue);
-      // TODO(jacobr): why doesn't this test pass?
-      // expect(<AnonClass>[] is List<AnonClass2>, isTrue);
+      expect(<AnonClass>[] is List<AnonClass2>, isTrue);
       expect(<int>[] is! List<AnonClass>, isTrue);
-      expect(<AnonClass>[] is! List<LazyClass>, isTrue); //# 01: ok
+      expect(<AnonClass>[] is List<LazyClass>, isTrue);
       expect(<int>[] is! List<LazyClass>, isTrue);
       expect(<LazyClass>[] is List<LazyClass>, isTrue);
 
@@ -234,10 +233,9 @@ baz.foo.NestedLazyClass = function NestedLazyClass(a) {
       expect(new Object() is! AnonClass2, isTrue);
 
       expect(<AnonClass>[] is List<AnonClass>, isTrue);
-      // TODO(jacobr): why doesn't this test pass?
-      // expect(<AnonClass>[] is List<AnonClass2>, isTrue);
+      expect(<AnonClass>[] is List<AnonClass2>, isTrue);
       expect(<int>[] is! List<AnonClass>, isTrue);
-      expect(<AnonClass>[] is! List<NestedLazyClass>, isTrue); //# 01: ok
+      expect(<AnonClass>[] is List<NestedLazyClass>, isTrue);
       expect(<int>[] is! List<NestedLazyClass>, isTrue);
       expect(<NestedLazyClass>[] is List<NestedLazyClass>, isTrue);
 

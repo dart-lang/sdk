@@ -5,8 +5,6 @@
 // This test verifies that inferred types of parameters are valid *before*
 // applying strong mode argument type checks.
 
-// @dart=2.9
-
 abstract class T0 {
   void foo();
 }
@@ -56,7 +54,7 @@ class D {
   }
 }
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 use(x) => unknown.call(x);

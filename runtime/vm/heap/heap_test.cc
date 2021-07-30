@@ -16,6 +16,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/object_graph.h"
 #include "vm/port.h"
 #include "vm/symbols.h"
@@ -544,8 +545,7 @@ class SendAndExitMessagesHandler : public MessageHandler {
       isolate()->group()->api_state()->FreePersistentHandle(handle);
     } else {
       Thread* thread = Thread::Current();
-      MessageSnapshotReader reader(message.get(), thread);
-      response_obj = reader.ReadObject();
+      response_obj = ReadMessage(thread, message.get());
     }
     if (response_obj.IsString()) {
       String& response = String::Handle();

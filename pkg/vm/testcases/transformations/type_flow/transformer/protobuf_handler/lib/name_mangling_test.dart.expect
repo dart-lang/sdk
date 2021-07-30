@@ -3,7 +3,6 @@ import self as self;
 import "generated/name_mangling.pb.dart" as pb;
 import "dart:core" as core;
 
-import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/name_mangling.pb.dart";
 
 static method main() → dynamic {

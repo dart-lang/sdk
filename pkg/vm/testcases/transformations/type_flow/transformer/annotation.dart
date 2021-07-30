@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class ClassAnnotation {
   const ClassAnnotation();
 }
@@ -47,7 +45,7 @@ class B {
 @TypedefAnnotation([1, 2, 3])
 typedef void SomeType<T>(List<T> arg);
 
-int foo(SomeType<int> a) {
+int foo(SomeType<int>? a) {
   @VarAnnotation()
   int x = 2;
   return x + 2;

@@ -91,10 +91,6 @@ abstract class Compiler {
   ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
 
   final Environment environment;
-  // TODO(sigmund): delete once we migrate the rest of the compiler to use
-  // `environment` directly.
-  @deprecated
-  fromEnvironment(String name) => environment.valueOf(name);
 
   Entity get currentElement => _reporter.currentElement;
 

@@ -11,6 +11,7 @@
 #include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/port.h"
@@ -59,10 +60,10 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 0, 2) {
                 Smi::Handle(thread->zone(), Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
-  MessageWriter writer(false);
   // TODO(turnidge): Throw an exception when the return value is false?
-  bool result = PortMap::PostMessage(
-      writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
+  bool result = PortMap::PostMessage(WriteMessage(
+      /* can_send_any_object */ false, message, sp.Id(),
+      Message::kOOBPriority));
   return Bool::Get(result).ptr();
 #else
   return Object::null();

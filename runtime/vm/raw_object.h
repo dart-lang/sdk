@@ -18,8 +18,10 @@
 #include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
 #include "vm/tagged_pointer.h"
+#include "vm/thread.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
+#include "vm/visitor.h"
 
 // Currently we have two different axes for offset generation:
 //
@@ -118,16 +120,9 @@ enum TypedDataElementType {
 #undef V
 };
 
-#define SNAPSHOT_WRITER_SUPPORT()                                              \
-  void WriteTo(SnapshotWriter* writer, intptr_t object_id,                     \
-               Snapshot::Kind kind, bool as_reference);                        \
-  friend class SnapshotWriter;
-
 #define VISITOR_SUPPORT(object)                                                \
   static intptr_t Visit##object##Pointers(object##Ptr raw_obj,                 \
                                           ObjectPointerVisitor* visitor);
-
-#define HEAP_PROFILER_SUPPORT() friend class HeapProfiler;
 
 #define RAW_OBJECT_IMPLEMENTATION(object)                                      \
  private: /* NOLINT */                                                         \
@@ -144,10 +139,10 @@ enum TypedDataElementType {
 #define RAW_HEAP_OBJECT_IMPLEMENTATION(object)                                 \
  private:                                                                      \
   RAW_OBJECT_IMPLEMENTATION(object);                                           \
-  SNAPSHOT_WRITER_SUPPORT()                                                    \
-  HEAP_PROFILER_SUPPORT()                                                      \
   friend class object##SerializationCluster;                                   \
   friend class object##DeserializationCluster;                                 \
+  friend class object##MessageSerializationCluster;                            \
+  friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
   template <typename Base>                                                     \
@@ -547,6 +542,8 @@ class UntaggedObject {
     }
   }
 
+  friend class MessageDeserializer;  // bogus
+
   template <typename type,
             typename compressed_type,
             std::memory_order order = std::memory_order_relaxed>
@@ -760,9 +757,7 @@ class UntaggedObject {
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
-  friend class SnapshotReader;
   friend class Deserializer;
-  friend class SnapshotWriter;
   friend class String;
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
@@ -840,8 +835,8 @@ inline intptr_t ObjectPtr::GetClassId() const {
   }                                                                            \
   template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
-    StoreArrayPointer<Compressed##type, order>(&name##_,                       \
-                                               Compressed##type(value));       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(&name##_,       \
+                                                               value);         \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -1015,7 +1010,6 @@ class UntaggedClass : public UntaggedObject {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
 #endif
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1062,7 +1056,7 @@ class UntaggedClass : public UntaggedObject {
   friend class UntaggedInstance;
   friend class UntaggedInstructions;
   friend class UntaggedTypeArguments;
-  friend class SnapshotReader;
+  friend class MessageSerializer;
   friend class InstanceSerializationCluster;
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
@@ -1088,7 +1082,6 @@ class UntaggedPatchClass : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&library_kernel_data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1272,7 +1265,6 @@ class UntaggedFunction : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1417,7 +1409,6 @@ class UntaggedField : public UntaggedObject {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&initializer_function_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1491,7 +1482,6 @@ class alignas(8) UntaggedScript : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1583,7 +1573,6 @@ class UntaggedLibrary : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1636,7 +1625,6 @@ class UntaggedNamespace : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&owner_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2191,7 +2179,6 @@ class UntaggedContext : public UntaggedObject {
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedContextScope : public UntaggedObject {
@@ -2267,7 +2254,6 @@ class UntaggedContextScope : public UntaggedObject {
 
   friend class Object;
   friend class UntaggedClosureData;
-  friend class SnapshotReader;
 };
 
 class UntaggedSentinel : public UntaggedObject {
@@ -2333,7 +2319,6 @@ class UntaggedICData : public UntaggedCallSiteData {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2428,7 +2413,6 @@ class UntaggedUnwindError : public UntaggedError {
 class UntaggedInstance : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
   friend class Object;
-  friend class SnapshotReader;
 
  public:
 #if defined(DART_COMPRESSED_POINTERS)
@@ -2457,7 +2441,6 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&importer_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2484,7 +2467,6 @@ class UntaggedTypeArguments : public UntaggedInstance {
   COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2503,7 +2485,6 @@ class UntaggedTypeParameters : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedAbstractType : public UntaggedInstance {
@@ -2715,7 +2696,6 @@ class UntaggedMint : public UntaggedInteger {
   friend class Api;
   friend class Class;
   friend class Integer;
-  friend class SnapshotReader;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -2726,7 +2706,6 @@ class UntaggedDouble : public UntaggedNumber {
   ALIGN8 double value_;
 
   friend class Api;
-  friend class SnapshotReader;
   friend class Class;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
@@ -2762,9 +2741,7 @@ class UntaggedOneByteString : public UntaggedString {
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
-  friend class ApiMessageReader;
   friend class RODataSerializationCluster;
-  friend class SnapshotReader;
   friend class String;
 };
 
@@ -2777,7 +2754,6 @@ class UntaggedTwoByteString : public UntaggedString {
   const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class RODataSerializationCluster;
-  friend class SnapshotReader;
   friend class String;
 };
 
@@ -2861,7 +2837,6 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
   friend class UntaggedObjectPool;
-  friend class SnapshotReader;
 };
 
 // All _*ArrayView/_ByteDataView classes share the same layout.
@@ -2925,7 +2900,6 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   friend class GCCompactor;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class SnapshotReader;
 };
 
 class UntaggedExternalOneByteString : public UntaggedString {
@@ -2971,7 +2945,6 @@ class UntaggedArray : public UntaggedInstance {
   friend class Deserializer;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
-  friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
   friend class UntaggedLinkedHashMap;
@@ -2988,8 +2961,6 @@ class UntaggedArray : public UntaggedInstance {
 
 class UntaggedImmutableArray : public UntaggedArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
-
-  friend class SnapshotReader;
 };
 
 class UntaggedGrowableObjectArray : public UntaggedInstance {
@@ -3002,7 +2973,6 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
   VISIT_TO(data)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  friend class SnapshotReader;
   friend class ReversePc;
 };
 
@@ -3026,14 +2996,10 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
 
 class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
-
-  friend class SnapshotReader;
 };
 
 class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
-
-  friend class SnapshotReader;
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3042,7 +3008,6 @@ class UntaggedFloat32x4 : public UntaggedInstance {
 
   ALIGN8 float value_[4];
 
-  friend class SnapshotReader;
   friend class Class;
 
  public:
@@ -3059,7 +3024,6 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
-  friend class SnapshotReader;
 
  public:
   int32_t x() const { return value_[0]; }
@@ -3075,7 +3039,6 @@ class UntaggedFloat64x2 : public UntaggedInstance {
 
   ALIGN8 double value_[2];
 
-  friend class SnapshotReader;
   friend class Class;
 
  public:
@@ -3264,7 +3227,6 @@ class UntaggedUserTag : public UntaggedInstance {
   // Isolate unique tag.
   uword tag_;
 
-  friend class SnapshotReader;
   friend class Object;
 
  public:
@@ -3277,8 +3239,6 @@ class UntaggedFutureOr : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
   VISIT_TO(type_arguments)
-
-  friend class SnapshotReader;
 };
 
 #undef WSR_COMPRESSED_POINTER_FIELD

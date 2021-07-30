@@ -12,6 +12,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/message.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_message_handler.h"
 #include "vm/port.h"
 #include "vm/service_isolate.h"
@@ -43,9 +44,9 @@ class IsolateLeaveScope {
 };
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
-  ApiMessageWriter writer;
-  std::unique_ptr<Message> msg =
-      writer.WriteCMessage(message, port_id, Message::kNormalPriority);
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg = WriteApiMessage(
+      zone.GetZone(), message, port_id, Message::kNormalPriority);
 
   if (msg == nullptr) {
     return false;

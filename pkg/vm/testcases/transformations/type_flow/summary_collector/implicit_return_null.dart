@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 class T {}
 
 empty1() {}
 void empty2() {}
 dynamic empty3() {} // ignore: missing_return
-Object empty4() {} // ignore: missing_return
+Object? empty4() {} // ignore: missing_return
 
 Object return1() {
   return new T();
@@ -186,7 +184,8 @@ try7(bool c) {
   if (c) {
     return new T();
   }
-  try {} on ArgumentError {} finally {
+  try {} on ArgumentError {
+  } finally {
     throw 'Error!';
   }
 }

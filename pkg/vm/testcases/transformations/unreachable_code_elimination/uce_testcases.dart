@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 const bool constTrue = const bool.fromEnvironment('test.define.isTrue');
 const bool constFalse = const bool.fromEnvironment('test.define.isFalse');
 const bool constTrue2 = !constFalse;
 const bool constFalse2 = const bool.fromEnvironment('test.define.notDefined');
 
-bool foo() => null;
+bool? foo() => null;
 
 void testSimpleConditions() {
   if (constTrue) {
@@ -27,10 +25,10 @@ void testSimpleConditions() {
 }
 
 void testAndConditions() {
-  if (constTrue && foo()) {
+  if (constTrue && foo()!) {
     print('1_yes');
   }
-  if (constFalse && foo()) {
+  if (constFalse && foo()!) {
     print('2_no');
   }
   if (constTrue && constFalse) {
@@ -42,10 +40,10 @@ void testAndConditions() {
 }
 
 void testOrConditions() {
-  if (constTrue || foo()) {
+  if (constTrue || foo()!) {
     print('1_yes');
   }
-  if (constFalse || foo()) {
+  if (constFalse || foo()!) {
     print('2_yes');
   }
   if (constFalse || constFalse2) {
@@ -63,54 +61,54 @@ void testNotConditions() {
   if (!constFalse) {
     print('2_yes');
   }
-  if (!(!(!constTrue && foo()) || foo())) {
+  if (!(!(!constTrue && foo()!) || foo()!)) {
     print('3_no');
   }
 }
 
 testConditionalExpressions() {
   print(!constFalse && constTrue ? '1_yes' : '2_no');
-  print(constFalse && foo() ? '3_no' : '4_yes ${foo()}');
+  print(constFalse && foo()! ? '3_no' : '4_yes ${foo()}');
 }
 
 void testAsserts() {
-  assert(foo());
-  assert(!foo(), "oops!");
+  assert(foo()!);
+  assert(!foo()!, "oops!");
 }
 
 class TestAssertInitializer {
-  TestAssertInitializer() : assert(foo()) {}
+  TestAssertInitializer() : assert(foo()!) {}
 }
 
 testRemovalOfStatementBodies() {
-  if (foo()) assert(foo());
-  while (foo()) assert(foo());
-  do assert(foo()); while (foo());
-  for (;;) assert(foo());
-  for (var i in [1, 2]) assert(foo());
+  if (foo()!) assert(foo()!);
+  while (foo()!) assert(foo()!);
+  do assert(foo()!); while (foo()!);
+  for (;;) assert(foo()!);
+  for (var i in [1, 2]) assert(foo()!);
   try {
-    assert(foo());
+    assert(foo()!);
   } finally {
-    assert(foo());
+    assert(foo()!);
   }
   try {
-    assert(foo());
+    assert(foo()!);
   } catch (e) {
-    assert(foo());
+    assert(foo()!);
   }
   try {
-    assert(foo());
+    assert(foo()!);
   } catch (e) {
-    assert(foo());
+    assert(foo()!);
     rethrow;
   }
   switch (42) {
     case 10:
-      assert(foo());
+      assert(foo()!);
   }
   switch (42) {
     default:
-      assert(foo());
+      assert(foo()!);
   }
 }
 

@@ -23,7 +23,6 @@ VM_SNAPSHOT_FILES = [
     'object.h',
     'raw_object.h',
     'snapshot.h',
-    'snapshot_ids.h',
     'symbols.h',
     # Source files.
     'clustered_snapshot.cc',
@@ -32,7 +31,6 @@ VM_SNAPSHOT_FILES = [
     'image_snapshot.cc',
     'object.cc',
     'raw_object.cc',
-    'raw_object_snapshot.cc',
     'snapshot.cc',
     'symbols.cc',
 ]

@@ -1,4 +1,4 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -6,33 +6,33 @@ import "dart:async" as asy;
 import "dart:async";
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A*
+  synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B*
+  synthetic constructor •() → self::B
     : super self::A::•()
     ;
 }
 static field dynamic usedObject;
-[@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;
+[@vm.inferred-type.metadata=!]late static field core::Function unknown;
 static method use(dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
-static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] dynamic x) → void {
+static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
 static method foo1_a2([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
-static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] dynamic x) → void {
+static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
 static method foo1_a4([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
-static method foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B] self::A* a2, [@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] FutureOr<self::A*>* a3, [@vm.inferred-type.metadata=#lib::B] FutureOr<self::A*>* a4) → void {
+static method foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future<self::A> a1, [@vm.inferred-type.metadata=#lib::B] self::A a2, [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] FutureOr<self::A>a3, [@vm.inferred-type.metadata=#lib::B] FutureOr<self::A>a4) → void {
   self::foo1_a1(a1);
   self::foo1_a2(a2);
   self::foo1_a3(a3);
@@ -50,7 +50,7 @@ static method foo2_a3(dynamic x) → void {
 static method foo2_a4(dynamic x) → void {
   self::use(x);
 }
-static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future<self::A*>* a1, [@vm.inferred-type.metadata=#lib::B?] self::A* a2, FutureOr<self::A*>* a3, FutureOr<self::A*>* a4) → void {
+static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future<self::A>? a1, [@vm.inferred-type.metadata=#lib::B?] self::A? a2, FutureOr<self::A>? a3, FutureOr<self::A>? a4) → void {
   self::foo2_a1(a1);
   self::foo2_a2(a2);
   self::foo2_a3(a3);
@@ -58,7 +58,7 @@ static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future
 }
 static method getDynamic() → dynamic
   return self::unknown();
-static method main(core::List<core::String*>* args) → dynamic {
-  self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•());
-  self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} self::A*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} FutureOr<self::A*>*);
+static method main(core::List<core::String> args) → dynamic {
+  self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future::value<self::B>(new self::B::•()), new self::B::•());
+  self::foo2(self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::A>?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::A>?, self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<self::A>?);
 }

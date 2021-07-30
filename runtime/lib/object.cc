@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"

@@ -141,6 +141,7 @@ class ObjectPointerVisitor;
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \
   RW(Class, error_class)                                                       \
+  RW(Class, expando_class)                                                     \
   RW(Class, weak_property_class)                                               \
   ARW_AR(Array, symbol_table)                                                  \
   RW(Array, canonical_types)                                                   \
@@ -535,7 +536,6 @@ class ObjectStore {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&slow_tts_stub_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;

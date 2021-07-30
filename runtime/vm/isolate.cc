@@ -31,6 +31,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -123,18 +124,14 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  if (ApiObjectConverter::CanConvert(obj.ptr())) {
-    return Message::New(dest_port, obj.ptr(), Message::kNormalPriority);
-  } else {
-    MessageWriter writer(false);
-    return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
-  }
+  return WriteMessage(/* can_send_any_object */ false, obj, dest_port,
+                      Message::kNormalPriority);
 }
 
-static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
+static std::unique_ptr<Message> SerializeMessage(Zone* zone,
+                                                 Dart_Port dest_port,
                                                  Dart_CObject* obj) {
-  ApiMessageWriter writer;
-  return writer.WriteCMessage(obj, dest_port, Message::kNormalPriority);
+  return WriteApiMessage(zone, obj, dest_port, Message::kNormalPriority);
 }
 
 void IsolateGroupSource::add_loaded_blob(
@@ -1008,9 +1005,8 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  MessageWriter writer(false);
-  PortMap::PostMessage(
-      writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
+                                    main_port(), Message::kOOBPriority));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1330,11 +1326,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
   // Parse the message.
   Object& msg_obj = Object::Handle(zone);
-  if (message->IsRaw()) {
-    msg_obj = message->raw_obj();
-    // We should only be sending RawObjects that can be converted to CObjects.
-    ASSERT(ApiObjectConverter::CanConvert(msg_obj.ptr()));
-  } else if (message->IsPersistentHandle()) {
+  if (message->IsPersistentHandle()) {
     // msg_array = [<message>, <object-in-message-to-rehash>]
     const auto& msg_array = Array::Handle(
         zone, Array::RawCast(message->persistent_handle()->ptr()));
@@ -1348,8 +1340,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-    MessageSnapshotReader reader(message.get(), thread);
-    msg_obj = reader.ReadObject();
+    msg_obj = ReadMessage(thread, message.get());
   }
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -2360,7 +2351,7 @@ bool Isolate::NotifyErrorListeners(const char* message,
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      PortMap::PostMessage(SerializeMessage(port_id, &arr));
+      PortMap::PostMessage(SerializeMessage(current_zone(), port_id, &arr));
     }
   }
   return listeners.Length() > 0;
@@ -3297,9 +3288,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     msg.SetAt(1, element);
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
-    MessageWriter writer(false);
-    std::unique_ptr<Message> message =
-        writer.WriteMessage(msg, main_port(), Message::kOOBPriority);
+    std::unique_ptr<Message> message = WriteMessage(
+        /* can_send_any_object */ false, msg, main_port(),
+        Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }
@@ -3543,9 +3534,9 @@ void Isolate::KillLocked(LibMsgId msg_id) {
   list_values[3] = &imm;
 
   {
-    ApiMessageWriter writer;
-    std::unique_ptr<Message> message =
-        writer.WriteCMessage(&kill_msg, main_port(), Message::kOOBPriority);
+    AllocOnlyStackZone zone;
+    std::unique_ptr<Message> message = WriteApiMessage(
+        zone.GetZone(), &kill_msg, main_port(), Message::kOOBPriority);
     ASSERT(message != nullptr);
 
     // Post the message at the given port.

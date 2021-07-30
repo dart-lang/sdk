@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 final bool kTrue = int.parse('1') == 1 ? true : false;
 final bool kFalse = int.parse('1') == 2 ? true : false;
 int get mint => 0xaabbccddaabbccdd;
@@ -17,7 +15,7 @@ void use(dynamic object) {
 class X {}
 
 void takePositional(
-    int unboxedSmi,
+    int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,
@@ -37,7 +35,7 @@ void takePositional(
 }
 
 void takeOptional(
-    [int unboxedSmi,
+    [int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,
@@ -57,7 +55,7 @@ void takeOptional(
 }
 
 void takeNamed(
-    {int unboxedSmi,
+    {int? unboxedSmi,
     dynamic unboxedInt,
     dynamic unboxedDouble,
     dynamic boxedNullableInt,

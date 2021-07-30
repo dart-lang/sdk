@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 abstract class A {
   void foo1(Object x) {}
   dynamic get foo2;
@@ -13,19 +11,19 @@ abstract class A {
 class B {
   void bar1(Object arg) {}
   dynamic get bar2 => null;
-  set bar3(int y) {}
-  int bar4;
+  set bar3(int? y) {}
+  int? bar4;
 }
 
 class C {
-  interfaceCalls(A aa, Object a2, Object a3, Object a4) {
+  interfaceCalls(A aa, Object a2, Object a3, Object? a4) {
     aa.foo1(new B());
     aa.foo3 = aa.foo2;
     a4 = aa.foo2(a2, a3, aa.foo1);
     return a4;
   }
 
-  dynamicCalls(dynamic aa, Object a2, Object a3, Object a4) {
+  dynamicCalls(dynamic aa, Object a2, Object a3, Object? a4) {
     aa.foo1(new B());
     aa.foo3 = aa.foo2;
     a4 = aa.foo2(a2, a3, aa.foo1);
@@ -34,7 +32,7 @@ class C {
 }
 
 class D extends B {
-  superCalls(Object a1, Object a2, Object a3, Object a4) {
+  superCalls(Object a1, Object a2, Object a3, Object? a4) {
     super.bar1(a1);
     super.bar3 = super.bar4;
     a4 = super.bar2(a2, a3, super.bar1);
