@@ -2,8 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: import_internal_library
+import 'dart:_internal';
+
+@patch
 class Class {
-  external factory Class.fact({bool defaultValue: true});
-  external const factory Class.constFact({bool defaultValue: true});
-  external const factory Class.redirect({bool defaultValue: true});
+  final bool defaultValue;
+
+  @patch
+  Class.generative({this.defaultValue: true});
+
+  @patch
+  const Class.constGenerative({this.defaultValue: true});
 }

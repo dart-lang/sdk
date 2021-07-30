@@ -46,6 +46,17 @@ class KernelConstantErrorReporter extends ErrorReporter {
 
   @override
   void reportInvalidExpression(InvalidExpression node) {
+    // TODO(johnniwinther): Improve the precision of this assertion. Do we
+    // for instance allow warnings only to have been reported in previous
+    // compilations.
+    assert(
+        // Either we have already reported an error
+        loader.hasSeenError ||
+            // or we have reported an error in a previous compilation.
+            loader.builders.values.any((builder) =>
+                builder.library.problemsAsJson?.isNotEmpty ?? false),
+        "No error reported before seeing: "
+        "${node.message}");
     // Assumed to be already reported.
   }
 }

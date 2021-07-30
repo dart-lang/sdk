@@ -1328,6 +1328,25 @@ const MessageCode messageConstEvalExtension = const MessageCode(
         r"""Extension operations can't be used in constant expressions.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalExternalConstructor =
+    messageConstEvalExternalConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalExternalConstructor = const MessageCode(
+    "ConstEvalExternalConstructor",
+    message:
+        r"""External constructors can't be evaluated in constant expressions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalExternalFactory = messageConstEvalExternalFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalExternalFactory = const MessageCode(
+    "ConstEvalExternalFactory",
+    message:
+        r"""External factory constructors can't be evaluated in constant expressions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

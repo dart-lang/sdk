@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class {
-  external factory Class.fact({bool defaultValue: true});
-  external const factory Class.constFact({bool defaultValue: true});
-  external const factory Class.redirect({bool defaultValue: true});
+  external Class.generative({bool defaultValue: true});
+  external const Class.constGenerative({bool defaultValue: true});
 }

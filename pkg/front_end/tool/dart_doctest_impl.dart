@@ -789,7 +789,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       LibraryBuilder libraryBuilder = userCode!.loader
           .read(libraryUri, -1, accessor: userCode!.loader.first);
 
-      userCode!.loader.seenMessages.clear();
+      userCode!.loader.resetSeenMessages();
 
       _dartDocTestLibraryBuilder = libraryBuilder;
       _dartDocTestCode = dartDocTestCode;

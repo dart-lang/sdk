@@ -18,7 +18,6 @@ class Class {
   @patch
   factory Class.constFact({bool defaultValue: true}) => throw 'unsupported';
 
-  /*@patch
-  const factory Class.redirect({bool defaultValue: true}) =
-      this._internal(defaultValue: defaultValue);*/
+  @patch
+  const factory Class.redirect({bool defaultValue: true}) = Class._internal;
 }

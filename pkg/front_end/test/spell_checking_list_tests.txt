@@ -702,6 +702,7 @@ ox
 pack
 paging
 paint
+parallax
 parameterized
 party
 pause

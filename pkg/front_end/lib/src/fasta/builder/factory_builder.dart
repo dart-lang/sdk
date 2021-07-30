@@ -160,6 +160,20 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     return _procedureInternal;
   }
 
+  bool _hasBuiltOutlines = false;
+
+  @override
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    if (_hasBuiltOutlines) return;
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+    _hasBuiltOutlines = true;
+  }
+
   @override
   VariableDeclaration? getTearOffParameter(int index) {
     if (_factoryTearOff != null) {
@@ -213,10 +227,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     }
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  void _finishPatch() {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin._procedure.fileUri = fileUri;
@@ -232,6 +243,12 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
     origin._procedure.function.parent = origin._procedure;
     origin._procedure.isRedirectingFactory =
         _procedureInternal.isRedirectingFactory;
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    _finishPatch();
     return 1;
   }
 }
@@ -347,16 +364,23 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     return _procedureInternal;
   }
 
+  bool _hasBuiltOutlines = false;
+
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    if (_hasBuiltOutlines) return;
+    if (isConst && isPatch) {
+      origin.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
+    }
     super.buildOutlineExpressions(
         library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
     RedirectingFactoryBody redirectingFactoryBody =
-        _procedure.function.body as RedirectingFactoryBody;
+        _procedureInternal.function.body as RedirectingFactoryBody;
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
     Member? target = redirectingFactoryBody.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
@@ -422,20 +446,19 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           typeArguments ?? [],
           _tearOffTypeParameters!));
     }
+    if (isConst && isPatch) {
+      _finishPatch();
+    }
+    _hasBuiltOutlines = true;
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
-    super.finishPatch();
+  void _finishPatch() {
+    super._finishPatch();
 
     SourceFactoryBuilder redirectingOrigin = origin;
     if (redirectingOrigin is RedirectingFactoryBuilder) {
       redirectingOrigin.typeArguments = typeArguments;
     }
-
-    return 1;
   }
 
   List<DartType>? getTypeArguments() {

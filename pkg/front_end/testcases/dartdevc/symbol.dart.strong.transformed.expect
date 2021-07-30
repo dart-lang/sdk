@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:_internal" as _in;
+
+static method main() → dynamic
+  return #C1;
+
+constants  {
+  #C1 = #a
+}

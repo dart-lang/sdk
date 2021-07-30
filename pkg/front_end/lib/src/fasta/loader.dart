@@ -81,6 +81,15 @@ abstract class Loader {
   final List<FormattedMessage> allComponentProblems = <FormattedMessage>[];
 
   final Set<String> seenMessages = new Set<String>();
+  bool _hasSeenError = false;
+
+  void resetSeenMessages() {
+    seenMessages.clear();
+    _hasSeenError = false;
+  }
+
+  /// Returns `true` if a compile time error has been reported.
+  bool get hasSeenError => _hasSeenError;
 
   LibraryBuilder? _coreLibrary;
   LibraryBuilder? typedDataLibrary;
@@ -362,6 +371,9 @@ fileUri: $fileUri
 severity: $severity
 """;
     if (!seenMessages.add(trace)) return null;
+    if (message.code.severity == Severity.error) {
+      _hasSeenError = true;
+    }
     if (message.code.severity == Severity.context) {
       internalProblem(
           templateInternalProblemContextSeverity
