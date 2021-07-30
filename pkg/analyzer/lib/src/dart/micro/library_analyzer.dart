@@ -332,7 +332,6 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     var nodeRegistry = NodeLintRegistry(_analysisOptions.enableTiming);
-    var visitors = <AstVisitor>[];
     final workspacePackage = _getPackage(currentUnit.unit);
     var context = LinterContextImpl(
         allUnits,
@@ -350,13 +349,6 @@ class LibraryAnalyzer {
 
     // Run lints that handle specific node types.
     unit.accept(LinterVisitor(nodeRegistry));
-
-    // Run visitor based lints.
-    if (visitors.isNotEmpty) {
-      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
-      unit.accept(visitor);
-    }
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {

@@ -17,9 +17,9 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   final NodeLintRegistry registry;
   final LintRuleExceptionHandler exceptionHandler;
 
-  LinterVisitor(this.registry,
-      [this.exceptionHandler =
-          ExceptionHandlingDelegatingAstVisitor.logException]);
+  LinterVisitor(this.registry, [LintRuleExceptionHandler? exceptionHandler])
+      : exceptionHandler =
+            exceptionHandler ?? LinterExceptionHandler().logException;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

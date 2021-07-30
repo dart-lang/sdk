@@ -5,13 +5,11 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -19,7 +17,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BooleanArrayTest);
-    defineReflectiveTests(ExceptionHandlingDelegatingAstVisitorTest);
     defineReflectiveTests(LineInfoTest);
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
@@ -113,23 +110,6 @@ class BooleanArrayTest {
     expect(BooleanArray.set(1, 0, true), 1);
     expect(BooleanArray.set(0, 30, false), 0);
     expect(BooleanArray.set(1 << 30, 30, true), 1 << 30);
-  }
-}
-
-@reflectiveTest
-class ExceptionHandlingDelegatingAstVisitorTest {
-  void test_handlerIsCalled() {
-    AstVisitor exceptionThrowingVisitor = _ExceptionThrowingVisitor();
-    bool handlerInvoked = false;
-    AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-        [exceptionThrowingVisitor], (AstNode node, AstVisitor visitor,
-            dynamic exception, StackTrace stackTrace) {
-      handlerInvoked = true;
-    });
-    astFactory
-        .nullLiteral(TokenFactory.tokenFromKeyword(Keyword.NULL))
-        .accept(visitor);
-    expect(handlerInvoked, isTrue);
   }
 }
 
@@ -2738,12 +2718,5 @@ class StringUtilitiesTest {
     expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");
     expect(StringUtilities.substringBeforeChar("abc", 0x63), "ab");
     expect(StringUtilities.substringBeforeChar("abc", 0x64), "abc");
-  }
-}
-
-class _ExceptionThrowingVisitor extends SimpleAstVisitor {
-  @override
-  visitNullLiteral(NullLiteral node) {
-    throw ArgumentError('');
   }
 }
