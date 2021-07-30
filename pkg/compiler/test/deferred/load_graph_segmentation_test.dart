@@ -42,6 +42,7 @@ void main() {
 
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     var backendStrategy = compiler.backendStrategy;
+    // ignore: deprecated_member_use_from_same_package
     var classes = backendStrategy.emitterTask.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
