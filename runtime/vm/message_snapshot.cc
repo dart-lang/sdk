@@ -1636,10 +1636,9 @@ class TypedDataMessageDeserializationCluster
       if (length == 0) {
         data->value.as_typed_data.values = NULL;
       } else {
-        const intptr_t length_in_bytes = length * element_size;
-        uint8_t* cdata = d->zone()->Alloc<uint8_t>(length_in_bytes);
-        data->value.as_typed_data.values = cdata;
-        d->ReadBytes(cdata, length_in_bytes);
+        data->value.as_typed_data.values =
+            const_cast<uint8_t*>(d->CurrentBufferAddress());
+        d->Advance(length * element_size);
       }
       d->AssignRef(data);
     }
