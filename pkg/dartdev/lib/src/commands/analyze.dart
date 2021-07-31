@@ -100,6 +100,7 @@ class AnalyzeCommand extends DartdevCommand {
       io.Directory(sdk.sdkPath),
       targets,
       commandName: 'analyze',
+      argResults: argResults,
     );
 
     server.onErrors.listen((FileAnalysisErrors fileErrors) {

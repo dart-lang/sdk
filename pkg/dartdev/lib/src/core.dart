@@ -18,6 +18,10 @@ import 'utils.dart';
 Logger log;
 bool isDiagnostics = false;
 
+/// When set, this function is executed from the [DartdevCommand] constructor to
+/// contribute additional flags.
+void Function(ArgParser argParser, String cmdName) flagContributor;
+
 abstract class DartdevCommand extends Command<int> {
   final String _name;
   final String _description;
@@ -29,7 +33,9 @@ abstract class DartdevCommand extends Command<int> {
   final bool hidden;
 
   DartdevCommand(this._name, this._description, this._verbose,
-      {this.hidden = false});
+      {this.hidden = false}) {
+    flagContributor?.call(argParser, _name);
+  }
 
   @override
   String get name => _name;
