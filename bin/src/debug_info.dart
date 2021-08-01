@@ -47,7 +47,9 @@ validateSize(AllInfo info, String debugLibName) {
   info.accept(tracker);
 
   // Validate that listed elements include elements of each library.
-  Set<Info> listed = new Set()..addAll(info.functions)..addAll(info.fields);
+  Set<Info> listed = new Set()
+    ..addAll(info.functions)
+    ..addAll(info.fields);
   // For our sanity we do some validation of dump-info invariants
   var diff1 = listed.difference(tracker.discovered);
   var diff2 = tracker.discovered.difference(listed);
@@ -302,7 +304,9 @@ verifyDeps(AllInfo info) {
   var entrypoint = info.program.entrypoint;
   var reachables = new Set.from(graph.preOrder(entrypoint));
 
-  var functionsAndFields = []..addAll(info.functions)..addAll(info.fields);
+  var functionsAndFields = []
+    ..addAll(info.functions)
+    ..addAll(info.fields);
   var unreachables =
       functionsAndFields.where((func) => !reachables.contains(func));
   if (unreachables.isNotEmpty) {
