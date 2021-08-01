@@ -21,8 +21,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart'
-    show ConstructorMember, Member;
+import 'package:analyzer/src/dart/element/member.dart' show Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -38,6 +37,7 @@ import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
+import 'package:analyzer/src/dart/resolver/instance_creation_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -253,6 +253,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   late final FunctionReferenceResolver _functionReferenceResolver;
 
+  late final InstanceCreationExpressionResolver
+      _instanceCreationExpressionResolver;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -373,6 +376,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
     _functionReferenceResolver =
         FunctionReferenceResolver(this, _isNonNullableByDefault);
+    _instanceCreationExpressionResolver =
+        InstanceCreationExpressionResolver(this);
   }
 
   /// Return the element representing the function containing the current node,
@@ -1677,15 +1682,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   void visitInstanceCreationExpression(
       covariant InstanceCreationExpressionImpl node) {
-    var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    node.constructorName.accept(this);
-    _inferArgumentTypesForInstanceCreate(node);
-    visitArgumentList(node.argumentList,
-        whyNotPromotedList: whyNotPromotedList);
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-    checkForArgumentTypesNotAssignableInList(
-        node.argumentList, whyNotPromotedList);
+    _instanceCreationExpressionResolver.resolve(node);
   }
 
   @override
@@ -2174,72 +2171,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       return type;
     }
     return typeProvider.futureOrType(type);
-  }
-
-  void _inferArgumentTypesForInstanceCreate(
-      covariant InstanceCreationExpressionImpl node) {
-    var constructorName = node.constructorName;
-
-    var typeName = constructorName.type;
-    var typeArguments = typeName.typeArguments;
-
-    var elementToInfer = inferenceHelper.constructorElementToInfer(
-      constructorName: constructorName,
-      definingLibrary: definingLibrary,
-    );
-
-    FunctionType? inferred;
-    // If the constructor is generic, we'll have a ConstructorMember that
-    // substitutes in type arguments (possibly `dynamic`) from earlier in
-    // resolution.
-    //
-    // Otherwise we'll have a ConstructorElement, and we can skip inference
-    // because there's nothing to infer in a non-generic type.
-    if (elementToInfer != null) {
-      // TODO(leafp): Currently, we may re-infer types here, since we
-      // sometimes resolve multiple times.  We should really check that we
-      // have not already inferred something.  However, the obvious ways to
-      // check this don't work, since we may have been instantiated
-      // to bounds in an earlier phase, and we *do* want to do inference
-      // in that case.
-
-      // Get back to the uninstantiated generic constructor.
-      // TODO(jmesserly): should we store this earlier in resolution?
-      // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element;
-      var constructorType = elementToInfer.asType;
-
-      inferred = inferenceHelper.inferArgumentTypesForGeneric(
-          node, constructorType, typeArguments,
-          isConst: node.isConst, errorNode: node.constructorName);
-
-      if (inferred != null) {
-        var arguments = node.argumentList;
-        InferenceContext.setType(arguments, inferred);
-        // Fix up the parameter elements based on inferred method.
-        arguments.correspondingStaticParameters =
-            resolveArgumentsToParameters(arguments, inferred.parameters, null);
-
-        constructorName.type.type = inferred.returnType;
-
-        // Update the static element as well. This is used in some cases, such
-        // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from(
-          rawElement,
-          inferred.returnType as InterfaceType,
-        );
-        constructorName.staticElement = constructorElement;
-      }
-    }
-
-    if (inferred == null) {
-      var constructorElement = constructorName.staticElement;
-      if (constructorElement != null) {
-        var type = constructorElement.type;
-        type = toLegacyTypeIfOptOut(type) as FunctionType;
-        InferenceContext.setType(node.argumentList, type);
-      }
-    }
   }
 
   /// Continues resolution of a [FunctionExpressionInvocation] that was created
