@@ -10,12 +10,12 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -42,7 +42,7 @@ class MethodInvocationResolver {
   final InheritanceManager3 _inheritance;
 
   /// The element for the library containing the compilation unit being visited.
-  final LibraryElement _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
 
   /// The URI of [_definingLibrary].
   final Uri _definingLibraryUri;
@@ -271,7 +271,7 @@ class MethodInvocationResolver {
   }) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
 
-    if (nameScope.shouldIgnoreUndefined2(prefix: prefix, name: name)) {
+    if (_definingLibrary.shouldIgnoreUndefined(prefix: prefix, name: name)) {
       return;
     }
 

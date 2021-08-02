@@ -35,6 +35,7 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -126,6 +127,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
+    ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
@@ -137,6 +139,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           baseResourceProvider,
           instrumentationService,
           httpClient,
+          processRunner,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
           enableBazelWatcher: enableBazelWatcher,
         ) {
@@ -184,10 +187,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       RefactoringWorkspace(driverMap.values, searchEngine);
 
   void addPriorityFile(String filePath) {
-    // When a pubspec is opened, trigger package name caching for completion.
-    if (!pubPackageService.isRunning &&
-        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
-      pubPackageService.beginPackageNamePreload();
+    // When pubspecs are opened, trigger pre-loading of pub package names and
+    // versions.
+    if (file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
+      pubPackageService.beginCachePreloads([filePath]);
     }
 
     final didAdd = priorityFiles.add(filePath);
@@ -849,6 +852,18 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void pubspecChanged(String pubspecPath) {
+    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
+        pubspecPath,
+        pubspecWasModified: true);
+  }
+
+  @override
+  void pubspecRemoved(String pubspecPath) {
+    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
   }
 
   @override

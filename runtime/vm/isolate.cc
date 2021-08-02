@@ -988,6 +988,8 @@ void IsolateGroup::ValidateConstants() {
   NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   HeapIterationScope iteration(thread);
   VerifyCanonicalVisitor check_canonical(thread);
   iteration.IterateObjects(&check_canonical);

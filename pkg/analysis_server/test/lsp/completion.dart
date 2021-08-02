@@ -8,6 +8,9 @@ import 'package:test/test.dart';
 import 'server_abstract.dart';
 
 mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
+  /// The last set of completion results fetched.
+  List<CompletionItem> completionResults = [];
+
   int sortTextSorter(CompletionItem item1, CompletionItem item2) =>
       (item1.sortText ?? item1.label).compareTo(item2.sortText ?? item2.label);
 
@@ -40,23 +43,24 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     if (openCloseFile) {
       await openFile(fileUri, withoutMarkers(content));
     }
-    final res = await getCompletion(fileUri, positionFromMarker(content));
+    completionResults =
+        await getCompletion(fileUri, positionFromMarker(content));
     if (openCloseFile) {
       await closeFile(fileUri);
     }
 
     // Sort the completions by sortText and filter to those we expect, so the ordering
     // can be compared.
-    final sortedResults = res
+    final sortedResults = completionResults
         .where((r) => expectCompletions.contains(r.label))
         .toList()
-          ..sort(sortTextSorter);
+      ..sort(sortTextSorter);
 
     expect(sortedResults.map((item) => item.label), equals(expectCompletions));
 
     // Check the edits apply correctly.
     if (applyEditsFor != null) {
-      var item = res.singleWhere((c) => c.label == applyEditsFor);
+      var item = completionResults.singleWhere((c) => c.label == applyEditsFor);
       final insertFormat = item.insertTextFormat;
 
       if (resolve) {

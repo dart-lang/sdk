@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -3886,7 +3887,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         typeProvider,
         typeSystem,
         variables,
-        definingLibrary,
+        definingLibrary as LibraryElementImpl,
         null,
         scope.thisOrAncestorOfType<CompilationUnit>(),
         warnOnWeakCode,

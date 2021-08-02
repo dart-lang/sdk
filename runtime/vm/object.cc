@@ -19122,8 +19122,9 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   Zone* zone = thread->zone();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
+  ASSERT(thread->isolate_group()
+             ->constant_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
   result ^= cls.LookupCanonicalInstance(zone, *this);
   return (result.ptr() == this->ptr());
 }
@@ -21100,7 +21101,9 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     object_store->set_canonical_types(table.Release());
@@ -21457,7 +21460,9 @@ bool FunctionType::CheckIsCanonical(Thread* thread) const {
   FunctionType& type = FunctionType::Handle(zone);
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalFunctionTypeSet table(zone,
                                    object_store->canonical_function_types());
     type ^= table.GetOrNull(CanonicalFunctionTypeKey(*this));
@@ -22008,7 +22013,9 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
   TypeParameter& type_parameter = TypeParameter::Handle(zone);
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalTypeParameterSet table(zone,
                                     object_store->canonical_type_parameters());
     type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
