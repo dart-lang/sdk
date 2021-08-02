@@ -268,7 +268,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   /// breaking change).
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
-      LibraryElement definingLibrary,
+      LibraryElementImpl definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
@@ -279,7 +279,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
             inheritanceManager,
             definingLibrary,
             source,
-            definingLibrary.typeSystem as TypeSystemImpl,
+            definingLibrary.typeSystem,
             typeProvider,
             errorListener,
             featureSet ??
@@ -291,7 +291,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   ResolverVisitor._(
       this.inheritance,
-      LibraryElement definingLibrary,
+      LibraryElementImpl definingLibrary,
       Source source,
       this.typeSystem,
       TypeProvider typeProvider,
@@ -2303,7 +2303,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 
   ResolverVisitorForMigration(
       InheritanceManager3 inheritanceManager,
-      LibraryElement definingLibrary,
+      LibraryElementImpl definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
@@ -2373,7 +2373,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
 
   /// The element for the library containing the compilation unit being visited.
-  final LibraryElement definingLibrary;
+  final LibraryElementImpl definingLibrary;
 
   /// The source representing the compilation unit being visited.
   final Source source;
@@ -3164,7 +3164,7 @@ class VariableResolverVisitor extends ScopedVisitor {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
-  VariableResolverVisitor(LibraryElement definingLibrary, Source source,
+  VariableResolverVisitor(LibraryElementImpl definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope? nameScope})
       : super(definingLibrary, source, typeProvider as TypeProviderImpl,
