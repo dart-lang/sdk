@@ -299,6 +299,7 @@ deemed
 deepest
 deeply
 def
+defaulting
 degrades
 degree
 del
@@ -821,6 +822,7 @@ offs
 ogham
 oked
 op
+opens
 opt
 optimizations
 opting
@@ -1037,6 +1039,7 @@ res
 residue
 resource
 respond
+restoring
 restriction
 resumed
 ret
@@ -1211,6 +1214,7 @@ synth
 t
 tagged
 tagger
+tagging
 tags
 tailor
 taking

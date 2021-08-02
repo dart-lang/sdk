@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
-part of dart2js.util;
+import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
 
 /// Indentation utility class. Should be used as a mixin in most cases.
 class Indentation {
@@ -48,7 +46,7 @@ class Indentation {
   /// upon return of [f] and returning its result.
   indentBlock(Function f) {
     indentMore();
-    var result = f();
+    dynamic result = f();
     indentLess();
     return result;
   }
@@ -135,5 +133,5 @@ abstract class Tagging<N> implements Indentation {
   }
 
   /// Converts a parameter value into a string.
-  String valueToString(var value) => value;
+  String valueToString(dynamic value) => value;
 }

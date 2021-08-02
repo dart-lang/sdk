@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/src/bounds_checks.dart' as ir;
-
+import 'package:kernel/text/debug_printer.dart';
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
@@ -27,7 +27,6 @@ import '../environment.dart';
 import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
 import '../ir/constants.dart';
-import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
