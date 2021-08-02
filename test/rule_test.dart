@@ -251,6 +251,8 @@ void testRule(String ruleName, File file,
     actual.sort();
     try {
       expect(actual, unorderedMatches(expected));
+      // TODO (asashour): to be removed after fixing
+      // https://github.com/dart-lang/linter/issues/909
       // ignore: avoid_catches_without_on_clauses
     } catch (_) {
       if (debug) {
