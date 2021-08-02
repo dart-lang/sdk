@@ -97,6 +97,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
+    // extension _ on Null {}
+    if (parent is ExtensionDeclaration) {
+      return;
+    }
+
     rule.reportLint(node.name);
   }
 }

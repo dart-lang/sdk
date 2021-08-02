@@ -135,3 +135,6 @@ class AsMembers {
 class MemberNamedNull {
   final Null = null; // OK
 }
+
+extension _ on Null { // OK
+}
