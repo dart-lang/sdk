@@ -210,10 +210,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   @override
   final TypeSystemImpl typeSystem;
 
-  /// The element representing the function containing the current node, or
-  /// `null` if the current node is not contained in a function.
-  ExecutableElement? _enclosingFunction;
-
   /// The helper for tracking if the current location has access to `this`.
   final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
 
@@ -1223,13 +1219,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement;
-
     flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
-    var returnType = _enclosingFunction!.type.returnType;
+    var returnType = node.declaredElement!.type.returnType;
     InferenceContext.setType(node.body, returnType);
 
     super.visitConstructorDeclaration(node);
@@ -1245,8 +1238,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     flowAnalysis!.executableDeclaration_exit(node.body, false);
     flowAnalysis!.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
-
-    _enclosingFunction = outerFunction;
   }
 
   @override
@@ -1447,9 +1438,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement;
-
     bool isLocal = node.parent is FunctionDeclarationStatement;
 
     if (isLocal) {
@@ -1464,7 +1452,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       isLocal,
     );
 
-    var functionType = _enclosingFunction!.type;
+    var functionType = node.declaredElement!.type;
     InferenceContext.setType(node.functionExpression, functionType);
 
     super.visitFunctionDeclaration(node);
@@ -1489,7 +1477,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     }
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
-    _enclosingFunction = outerFunction;
     node.accept(elementResolver);
     // Note: no need to call the typeAnalyzer since it does not override
     // visitFunctionDeclaration
@@ -1503,6 +1490,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
+    // Note: we have to update _enclosingFunction because we don't make use of
+    // super.visitFunctionExpression.
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
@@ -1712,13 +1701,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    _enclosingFunction = node.declaredElement;
-
     flowAnalysis!.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis!.executableDeclaration_enter(node, node.parameters, false);
 
-    DartType returnType = _enclosingFunction!.returnType;
+    DartType returnType = node.declaredElement!.returnType;
     InferenceContext.setType(node.body, returnType);
 
     super.visitMethodDeclaration(node);
@@ -1734,7 +1720,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     flowAnalysis!.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
 
-    _enclosingFunction = outerFunction;
     node.accept(elementResolver);
     // Note: no need to call the typeAnalyzer since it does not override
     // visitMethodDeclaration.
@@ -2418,6 +2403,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// visited, or `null` if we are not in the scope of an extension.
   ExtensionElement? enclosingExtension;
 
+  /// The element representing the function containing the current node, or
+  /// `null` if the current node is not contained in a function.
+  ExecutableElement? _enclosingFunction;
+
   /// Initialize a newly created visitor to resolve the nodes in a compilation
   /// unit.
   ///
@@ -2575,6 +2564,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var outerFunction = _enclosingFunction;
+    _enclosingFunction = node.declaredElement;
     Scope outerScope = nameScope;
     try {
       ConstructorElement element = node.declaredElement!;
@@ -2604,6 +2595,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
+      _enclosingFunction = outerFunction;
     }
   }
 
@@ -2782,6 +2774,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    var outerFunction = _enclosingFunction;
+    _enclosingFunction = node.declaredElement;
+
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -2793,6 +2788,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
+      _enclosingFunction = outerFunction;
     }
   }
 
@@ -2813,6 +2809,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       return;
     }
 
+    var outerFunction = _enclosingFunction;
+    _enclosingFunction = node.declaredElement;
     Scope outerScope = nameScope;
     try {
       ExecutableElement element = node.declaredElement!;
@@ -2823,6 +2821,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       super.visitFunctionExpression(node);
     } finally {
       nameScope = outerScope;
+      _enclosingFunction = outerFunction;
     }
   }
 
@@ -2949,6 +2948,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    var outerFunction = _enclosingFunction;
+    _enclosingFunction = node.declaredElement;
+
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -2960,6 +2962,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
+      _enclosingFunction = outerFunction;
     }
   }
 
@@ -3145,10 +3148,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 /// Instances of the class `VariableResolverVisitor` are used to resolve
 /// [SimpleIdentifier]s to local variables and formal parameters.
 class VariableResolverVisitor extends ScopedVisitor {
-  /// The method or function that we are currently visiting, or `null` if we are
-  /// not inside a method or function.
-  ExecutableElement? _enclosingFunction;
-
   /// The container with information about local variables.
   final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
 
@@ -3174,14 +3173,8 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    try {
-      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-      _enclosingFunction = node.declaredElement;
-      super.visitConstructorDeclaration(node);
-    } finally {
-      _enclosingFunction = outerFunction;
-    }
+    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -3189,28 +3182,16 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    try {
-      (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
-          _localVariableInfo;
-      _enclosingFunction = node.declaredElement;
-      super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingFunction = outerFunction;
-    }
+    (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
+        _localVariableInfo;
+    super.visitFunctionDeclaration(node);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      var outerFunction = _enclosingFunction;
-      try {
-        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-        _enclosingFunction = node.declaredElement;
-        super.visitFunctionExpression(node);
-      } finally {
-        _enclosingFunction = outerFunction;
-      }
+      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+      super.visitFunctionExpression(node);
     } else {
       super.visitFunctionExpression(node);
     }
@@ -3221,14 +3202,8 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var outerFunction = _enclosingFunction;
-    try {
-      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-      _enclosingFunction = node.declaredElement;
-      super.visitMethodDeclaration(node);
-    } finally {
-      _enclosingFunction = outerFunction;
-    }
+    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+    super.visitMethodDeclaration(node);
   }
 
   @override
