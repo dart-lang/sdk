@@ -338,8 +338,6 @@ int? _getIntValue(Expression expression, LinterContext? context,
   } else if (expression is SimpleIdentifier && context != null) {
     value = context.evaluateConstant(expression).value?.toIntValue();
   }
-  // todo(pq): remove once 1.8.0 is landed.
-  // ignore: avoid_returning_null
   if (value is! int) return null;
 
   return negated ? -value : value;
