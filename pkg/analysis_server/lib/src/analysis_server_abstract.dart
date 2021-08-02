@@ -19,12 +19,14 @@ import 'package:analysis_server/src/services/completion/dart/documentation_cache
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
@@ -152,14 +154,26 @@ abstract class AbstractAnalysisServer {
     ResourceProvider baseResourceProvider,
     this.instrumentationService,
     http.Client? httpClient,
+    ProcessRunner? processRunner,
     this.notificationManager, {
     this.requestStatistics,
     bool enableBazelWatcher = false,
   })  : resourceProvider = OverlayResourceProvider(baseResourceProvider),
         pubApi = PubApi(instrumentationService, httpClient,
             Platform.environment['PUB_HOSTED_URL']) {
-    pubPackageService =
-        PubPackageService(instrumentationService, baseResourceProvider, pubApi);
+    // We can only spawn processes (eg. to run pub commands) when backed by
+    // a real file system, otherwise we may try to run commands in folders that
+    // don't really exist. If processRunner was supplied, it's likely a mock
+    // from a test in which case the pub command should still be created.
+    if (baseResourceProvider is PhysicalResourceProvider) {
+      processRunner ??= ProcessRunner();
+    }
+    final pubCommand = processRunner != null
+        ? PubCommand(instrumentationService, processRunner)
+        : null;
+
+    pubPackageService = PubPackageService(
+        instrumentationService, baseResourceProvider, pubApi, pubCommand);
     performance = performanceDuringStartup;
 
     pluginManager = PluginManager(
