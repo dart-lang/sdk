@@ -56,6 +56,119 @@ void defineAnalysisError() {
       expect(error.contextMessages, hasLength(2));
     });
   });
+
+  group('sorting', () {
+    test('severity', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'a.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'WARNING',
+          'location': {
+            'file': 'a.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'ERROR',
+          'location': {
+            'file': 'a.dart',
+          }
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].isError, isTrue);
+      expect(errors[1].isWarning, isTrue);
+      expect(errors[2].isInfo, isTrue);
+    });
+
+    test('file', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'c.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'b.dart',
+          }
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {
+            'file': 'a.dart',
+          }
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].file, equals('a.dart'));
+      expect(errors[1].file, equals('b.dart'));
+      expect(errors[2].file, equals('c.dart'));
+    });
+
+    test('offset', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 8}
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 6}
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 4}
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].offset, equals(4));
+      expect(errors[1].offset, equals(6));
+      expect(errors[2].offset, equals(8));
+    });
+
+    test('message', () {
+      var errors = <AnalysisError>[
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 8},
+          'message': 'C'
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 6},
+          'message': 'B'
+        }),
+        AnalysisError({
+          'severity': 'INFO',
+          'location': {'file': 'a.dart', 'offset': 4},
+          'message': 'A'
+        })
+      ];
+
+      errors.sort();
+
+      expect(errors, hasLength(3));
+      expect(errors[0].message, equals('A'));
+      expect(errors[1].message, equals('B'));
+      expect(errors[2].message, equals('C'));
+    });
+  });
 }
 
 void defineAnalyze() {
