@@ -92,6 +92,7 @@ abstract class Node {
   const Node();
 
   R accept<R>(Visitor<R> v);
+  R accept1<R, A>(Visitor1<R, A> v, A arg);
   void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
@@ -1191,7 +1192,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 
   List<RedirectingFactory> _redirectingFactoriesInternal;
-  DirtifyingList<RedirectingFactory>? _redirectingFactoryConstructorsView;
+  DirtifyingList<RedirectingFactory>? _redirectingFactoriesView;
 
   /// Redirecting factory constructors declared in the class.
   ///
@@ -1200,7 +1201,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
     if (dirty) return _redirectingFactoriesInternal;
-    return _redirectingFactoryConstructorsView ??=
+    return _redirectingFactoriesView ??=
         new DirtifyingList(this, _redirectingFactoriesInternal);
   }
 
@@ -1211,7 +1212,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   void set redirectingFactoryConstructorsInternal(
       List<RedirectingFactory> redirectingFactoryConstructors) {
     _redirectingFactoriesInternal = redirectingFactoryConstructors;
-    _redirectingFactoryConstructorsView = null;
+    _redirectingFactoriesView = null;
   }
 
   Class(
@@ -10201,6 +10202,9 @@ abstract class Name extends Node {
   R accept<R>(Visitor<R> v) => v.visitName(this);
 
   @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitName(this, arg);
+
+  @override
   void visitChildren(Visitor v) {
     // DESIGN TODO: Should we visit the library as a library reference?
   }
@@ -11304,6 +11308,9 @@ class NamedType extends Node implements Comparable<NamedType> {
   R accept<R>(Visitor<R> v) => v.visitNamedType(this);
 
   @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitNamedType(this, arg);
+
+  @override
   void visitChildren(Visitor v) {
     type.accept(v);
   }
@@ -12059,6 +12066,9 @@ class Supertype extends Node {
 
   R accept<R>(Visitor<R> v) => v.visitSupertype(this);
 
+  @override
+  R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitSupertype(this, arg);
+
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
@@ -12112,31 +12122,46 @@ abstract class Constant extends Node {
   ///
   /// (Note that a constant can be seen as a DAG (directed acyclic graph) and
   ///  not a tree!)
-  visitChildren(Visitor v);
+  @override
+  void visitChildren(Visitor v);
 
   /// Calls the `visit*Constant()` method on the visitor [v].
+  @override
   R accept<R>(ConstantVisitor<R> v);
+
+  /// Calls the `visit*Constant()` method on the visitor [v].
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg);
 
   /// Calls the `visit*ConstantReference()` method on the visitor [v].
   R acceptReference<R>(Visitor<R> v);
 
+  /// Calls the `visit*ConstantReference()` method on the visitor [v].
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg);
+
   /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
   /// constants are not required to be canonicalized, but they have to be deeply
   /// comparable via hashCode/==!
+  @override
   int get hashCode;
+
+  @override
   bool operator ==(Object other);
 
+  @override
   String toString() => throw '$runtimeType';
 
   /// Returns a textual representation of the this constant.
   ///
   /// If [verbose] is `true`, qualified names will include the library name/uri.
+  @override
   String toText(AstTextStrategy strategy) {
     AstPrinter printer = new AstPrinter(strategy);
     printer.writeConstant(this);
     return printer.getText();
   }
 
+  @override
   void toTextInternal(AstPrinter printer);
 
   /// Gets the type of this constant.
@@ -12152,8 +12177,10 @@ abstract class PrimitiveConstant<T> extends Constant {
 
   PrimitiveConstant(this.value);
 
+  @override
   int get hashCode => value.hashCode;
 
+  @override
   bool operator ==(Object other) =>
       other is PrimitiveConstant<T> && other.value == value;
 
@@ -12166,10 +12193,24 @@ abstract class PrimitiveConstant<T> extends Constant {
 class NullConstant extends PrimitiveConstant<Null> {
   NullConstant() : super(null);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitNullConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitNullConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitNullConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) => const NullType();
 
   @override
@@ -12179,10 +12220,24 @@ class NullConstant extends PrimitiveConstant<Null> {
 class BoolConstant extends PrimitiveConstant<bool> {
   BoolConstant(bool value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitBoolConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitBoolConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
 
@@ -12194,10 +12249,24 @@ class BoolConstant extends PrimitiveConstant<bool> {
 class IntConstant extends PrimitiveConstant<int> {
   IntConstant(int value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitIntConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitIntConstantReference(this, arg);
+
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
 
@@ -12209,14 +12278,31 @@ class IntConstant extends PrimitiveConstant<int> {
 class DoubleConstant extends PrimitiveConstant<double> {
   DoubleConstant(double value) : super(value);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitDoubleConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitDoubleConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitDoubleConstantReference(this);
 
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitDoubleConstantReference(this, arg);
+
+  @override
   int get hashCode => value.isNaN ? 199 : super.hashCode;
+
+  @override
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.doubleRawType(context.nonNullable);
 
@@ -12230,9 +12316,22 @@ class StringConstant extends PrimitiveConstant<String> {
     assert(value != null);
   }
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitStringConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitStringConstantReference(this, arg);
 
   @override
   DartType getType(StaticTypeContext context) =>
@@ -12245,6 +12344,7 @@ class StringConstant extends PrimitiveConstant<String> {
     printer.write('"');
   }
 
+  @override
   String toString() => 'StringConstant(${toStringInternal()})';
 }
 
@@ -12254,22 +12354,37 @@ class SymbolConstant extends Constant {
 
   SymbolConstant(this.name, this.libraryReference);
 
-  visitChildren(Visitor v) {}
+  @override
+  void visitChildren(Visitor v) {}
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitSymbolConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitSymbolConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitSymbolConstantReference(this, arg);
 
   @override
   String toString() => 'SymbolConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => _Hash.hash2(name, libraryReference);
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SymbolConstant &&
           other.name == name &&
           other.libraryReference == libraryReference);
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.symbolRawType(context.nonNullable);
 
@@ -12291,7 +12406,8 @@ class MapConstant extends Constant {
 
   MapConstant(this.keyType, this.valueType, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     keyType.accept(v);
     valueType.accept(v);
     for (final ConstantMapEntry entry in entries) {
@@ -12300,8 +12416,19 @@ class MapConstant extends Constant {
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitMapConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitMapConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12326,6 +12453,7 @@ class MapConstant extends Constant {
   late final int hashCode = _Hash.combine2Finish(
       keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MapConstant &&
@@ -12333,6 +12461,7 @@ class MapConstant extends Constant {
           other.valueType == valueType &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.mapType(keyType, valueType, context.nonNullable);
 }
@@ -12373,15 +12502,27 @@ class ListConstant extends Constant {
 
   ListConstant(this.typeArgument, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     typeArgument.accept(v);
     for (final Constant constant in entries) {
       constant.acceptReference(v);
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitListConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitListConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12404,12 +12545,14 @@ class ListConstant extends Constant {
   late final int hashCode = _Hash.combineFinish(
       typeArgument.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ListConstant &&
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.listType(typeArgument, context.nonNullable);
 }
@@ -12420,15 +12563,27 @@ class SetConstant extends Constant {
 
   SetConstant(this.typeArgument, this.entries);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     typeArgument.accept(v);
     for (final Constant constant in entries) {
       constant.acceptReference(v);
     }
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitSetConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitSetConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12451,12 +12606,14 @@ class SetConstant extends Constant {
   late final int hashCode = _Hash.combineFinish(
       typeArgument.hashCode, _Hash.combineListHash(entries));
 
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is SetConstant &&
           other.typeArgument == typeArgument &&
           listEquals(other.entries, entries));
 
+  @override
   DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.setType(typeArgument, context.nonNullable);
 }
@@ -12482,7 +12639,17 @@ class InstanceConstant extends Constant {
   }
 
   R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitInstanceConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitInstanceConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12508,6 +12675,7 @@ class InstanceConstant extends Constant {
   late final int hashCode = _Hash.combine2Finish(classReference.hashCode,
       listHashCode(typeArguments), _Hash.combineMapHashUnordered(fieldValues));
 
+  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other is InstanceConstant &&
@@ -12516,6 +12684,7 @@ class InstanceConstant extends Constant {
             mapEquals(other.fieldValues, fieldValues));
   }
 
+  @override
   DartType getType(StaticTypeContext context) =>
       new InterfaceType(classNode, context.nonNullable, typeArguments);
 }
@@ -12526,14 +12695,26 @@ class InstantiationConstant extends Constant {
 
   InstantiationConstant(this.tearOffConstant, this.types);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     tearOffConstant.acceptReference(v);
     visitList(types, v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitInstantiationConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitInstantiationConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitInstantiationConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitInstantiationConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12544,15 +12725,18 @@ class InstantiationConstant extends Constant {
   @override
   String toString() => 'InstantiationConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => _Hash.combineFinish(
       tearOffConstant.hashCode, _Hash.combineListHash(types));
 
+  @override
   bool operator ==(Object other) {
     return other is InstantiationConstant &&
         other.tearOffConstant == tearOffConstant &&
         listEquals(other.types, types);
   }
 
+  @override
   DartType getType(StaticTypeContext context) {
     final FunctionType type = tearOffConstant.getType(context) as FunctionType;
     final Map<TypeParameter, DartType> mapping = <TypeParameter, DartType>{};
@@ -12586,13 +12770,25 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   FunctionNode get function => target.function;
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     target.acceptReference(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitStaticTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitStaticTearOffConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitStaticTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitStaticTearOffConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12602,13 +12798,16 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   @override
   String toString() => 'StaticTearOffConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => targetReference.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is StaticTearOffConstant &&
         other.targetReference == targetReference;
   }
 
+  @override
   FunctionType getType(StaticTypeContext context) {
     return target.function.computeFunctionType(context.nonNullable);
   }
@@ -12640,8 +12839,16 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   R accept<R>(ConstantVisitor<R> v) => v.visitConstructorTearOffConstant(this);
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOffConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitConstructorTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitConstructorTearOffConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12690,8 +12897,16 @@ class RedirectingFactoryTearOffConstant extends Constant
       v.visitRedirectingFactoryTearOffConstant(this);
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOffConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitRedirectingFactoryTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitRedirectingFactoryTearOffConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12723,15 +12938,27 @@ class TypedefTearOffConstant extends Constant {
 
   TypedefTearOffConstant(this.parameters, this.tearOffConstant, this.types);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     visitList(parameters, v);
     tearOffConstant.acceptReference(v);
     visitList(types, v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitTypedefTearOffConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOffConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypedefTearOffConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitTypedefTearOffConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12802,13 +13029,25 @@ class TypeLiteralConstant extends Constant {
 
   TypeLiteralConstant(this.type);
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     type.accept(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitTypeLiteralConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitTypeLiteralConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitTypeLiteralConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitTypeLiteralConstantReference(this, arg);
 
   @override
   void toTextInternal(AstPrinter printer) {
@@ -12818,8 +13057,10 @@ class TypeLiteralConstant extends Constant {
   @override
   String toString() => 'TypeLiteralConstant(${toStringInternal()})';
 
+  @override
   int get hashCode => type.hashCode;
 
+  @override
   bool operator ==(Object other) {
     return other is TypeLiteralConstant && other.type == type;
   }
@@ -12835,13 +13076,25 @@ class UnevaluatedConstant extends Constant {
     expression.parent = null;
   }
 
-  visitChildren(Visitor v) {
+  @override
+  void visitChildren(Visitor v) {
     expression.accept(v);
   }
 
+  @override
   R accept<R>(ConstantVisitor<R> v) => v.visitUnevaluatedConstant(this);
+
+  @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) =>
+      v.visitUnevaluatedConstant(this, arg);
+
+  @override
   R acceptReference<R>(Visitor<R> v) =>
       v.visitUnevaluatedConstantReference(this);
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) =>
+      v.visitUnevaluatedConstantReference(this, arg);
 
   DartType getType(StaticTypeContext context) =>
       expression.getStaticType(context);

@@ -1315,8 +1315,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     } else {
       bool sentinelInserted = false;
       if (nodeCache.containsKey(node)) {
-        bool isRecursiveFunctionCall =
-            node is InstanceInvocation ||
+        bool isRecursiveFunctionCall = node is InstanceInvocation ||
             node is FunctionInvocation ||
             node is LocalFunctionInvocation ||
             node is StaticInvocation;
@@ -4201,7 +4200,17 @@ class FunctionValue implements Constant {
   }
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
   R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -4261,7 +4270,17 @@ class _AbortDueToErrorConstant extends AbortConstant {
   }
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
   R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -4318,7 +4337,17 @@ class _AbortDueToInvalidExpressionConstant extends AbortConstant {
   }
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
   R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 
@@ -4375,7 +4404,17 @@ class _AbortDueToThrowConstant extends AbortConstant {
   }
 
   @override
+  R accept1<R, A>(ConstantVisitor1<R, A> v, A arg) {
+    throw new UnimplementedError();
+  }
+
+  @override
   R acceptReference<R>(Visitor<R> v) {
+    throw new UnimplementedError();
+  }
+
+  @override
+  R acceptReference1<R, A>(Visitor1<R, A> v, A arg) {
     throw new UnimplementedError();
   }
 

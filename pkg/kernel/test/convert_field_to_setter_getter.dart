@@ -40,13 +40,15 @@ main() {
   // Canonical names are now set: Verify that the field is marked as such,
   // canonical-name-wise.
   String getterCanonicalName = '${field.getterReference.canonicalName}';
-  if (field.getterReference.canonicalName!.parent!.name != "@getters") {
-    throw "Expected @getters parent, but had "
+  if (field.getterReference.canonicalName!.parent!.name !=
+      CanonicalName.gettersName) {
+    throw "Expected ${CanonicalName.gettersName} parent, but had "
         "${field.getterReference.canonicalName!.parent!.name}";
   }
   String setterCanonicalName = '${field.setterReference!.canonicalName}';
-  if (field.setterReference!.canonicalName!.parent!.name != "@setters") {
-    throw "Expected @setters parent, but had "
+  if (field.setterReference!.canonicalName!.parent!.name !=
+      CanonicalName.settersName) {
+    throw "Expected ${CanonicalName.settersName} parent, but had "
         "${field.setterReference!.canonicalName!.parent!.name}";
   }
 
