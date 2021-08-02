@@ -37,7 +37,7 @@ import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load/deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../elements/types.dart';

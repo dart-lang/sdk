@@ -15,7 +15,7 @@ import '../common/tasks.dart';
 import '../common/work.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
-import '../deferred_load.dart' show DeferredLoadTask;
+import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../environment.dart' as env;

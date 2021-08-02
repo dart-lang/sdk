@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../deferred_load.dart' show OutputUnit;
+import '../deferred_load/deferred_load.dart' show OutputUnit;
 import '../js/js.dart' as js;
 import '../util/util.dart';
 

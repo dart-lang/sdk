@@ -5,7 +5,7 @@
 library dart2js.js_emitter.runtime_type_generator;
 
 import '../common_elements.dart' show CommonElements;
-import '../deferred_load.dart' show OutputUnit, OutputUnitData;
+import '../deferred_load/deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;

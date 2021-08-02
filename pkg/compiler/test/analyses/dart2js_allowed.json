@@ -43,7 +43,7 @@
     "Dynamic invocation of 'toSet'.": 1,
     "Dynamic invocation of 'toList'.": 1
   },
-  "pkg/compiler/lib/src/deferred_load.dart": {
+  "pkg/compiler/lib/src/deferred_load/deferred_load.dart": {
     "Dynamic access of 'memberContext'.": 1,
     "Dynamic access of 'name'.": 1
   },

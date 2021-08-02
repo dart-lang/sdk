@@ -17,7 +17,7 @@ import '../common.dart';
 import '../common/names.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../deferred_load.dart';
+import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/indexed.dart';
