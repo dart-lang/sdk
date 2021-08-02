@@ -376,12 +376,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         InstanceCreationExpressionResolver(this);
   }
 
-  /// Return the element representing the function containing the current node,
-  /// or `null` if the current node is not contained in a function.
-  ///
-  /// @return the element representing the function containing the current node
-  ExecutableElement? get enclosingFunction => _enclosingFunction;
-
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
     if (flowAnalysis != null) {
@@ -2430,6 +2424,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
         ),
         nameScope = nameScope ?? LibraryScope(definingLibrary);
+
+  /// Return the element representing the function containing the current node,
+  /// or `null` if the current node is not contained in a function.
+  ///
+  /// @return the element representing the function containing the current node
+  ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
