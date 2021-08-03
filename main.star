@@ -1330,6 +1330,18 @@ dart_vm_nightly_builder(
     category = "vm|misc|compressed|aa",
     channels = ["try"],
 )
+dart_vm_nightly_builder(
+    "vm-kernel-win-debug-x64c",
+    category = "vm|misc|compressed|jw",
+    channels = ["try"],
+    dimensions = windows(),
+)
+dart_vm_nightly_builder(
+    "vm-kernel-precomp-win-debug-x64c",
+    category = "vm|misc|compressed|aw",
+    channels = ["try"],
+    dimensions = windows(),
+)
 dart_vm_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
