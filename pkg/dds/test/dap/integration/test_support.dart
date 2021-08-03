@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/src/dap/logging.dart';
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -43,25 +44,66 @@ int lineWith(File file, String searchText) =>
 class DapTestSession {
   DapTestServer server;
   DapTestClient client;
-  final _testFolders = <Directory>[];
+  final Directory _testDir =
+      Directory.systemTemp.createTempSync('dart-sdk-dap-test');
+  late final Directory testAppDir;
+  late final Directory testPackageDir;
+  var _packageConfig = PackageConfig.empty;
 
-  DapTestSession._(this.server, this.client);
+  DapTestSession._(this.server, this.client) {
+    testAppDir = _testDir.createTempSync('app');
+    testPackageDir = _testDir.createTempSync('packages');
+  }
+
+  /// Create a simple package named `foo` that has an empty `foo` function.
+  Future<Uri> createFooPackage() {
+    return createSimplePackage(
+      'foo',
+      '''
+foo() {
+  // Does nothing.
+}
+      ''',
+    );
+  }
+
+  /// Creates a simple package script and adds the package to
+  /// .dart_tool/package_config.json
+  Future<Uri> createSimplePackage(
+    String name,
+    String content,
+  ) async {
+    final dartToolDirectory =
+        Directory(path.join(testAppDir.path, '.dart_tool'))..createSync();
+    final packageConfigJsonFile =
+        File(path.join(dartToolDirectory.path, 'package_config.json'));
+    final packageConfigJsonUri = Uri.file(packageConfigJsonFile.path);
+
+    // Write the packages Dart implementation file.
+    final testPackageDirectory = Directory(path.join(testPackageDir.path, name))
+      ..createSync(recursive: true);
+    final testFile = File(path.join(testPackageDirectory.path, '$name.dart'));
+    testFile.writeAsStringSync(content);
+
+    // Add this new package to the PackageConfig.
+    final newPackage = Package(name, Uri.file('${testPackageDirectory.path}/'));
+    _packageConfig = PackageConfig([..._packageConfig.packages, newPackage]);
+
+    // Write the PackageConfig to disk.
+    final sink = packageConfigJsonFile.openWrite();
+    PackageConfig.writeString(_packageConfig, sink, packageConfigJsonUri);
+    await sink.close();
+
+    return Uri.parse('package:$name/$name.dart');
+  }
 
   /// Creates a file in a temporary folder to be used as an application for testing.
   ///
   /// The file will be deleted at the end of the test run.
   File createTestFile(String content) {
-    final testAppDir = Directory.systemTemp.createTempSync('dart-sdk-dap-test');
-    _testFolders.add(testAppDir);
     final testFile = File(path.join(testAppDir.path, 'test_file.dart'));
     testFile.writeAsStringSync(content);
     return testFile;
-  }
-
-  static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
-    final server = await _startServer(additionalArgs: additionalArgs);
-    final client = await DapTestClient.connect(server);
-    return DapTestSession._(server, client);
   }
 
   Future<void> tearDown() async {
@@ -69,9 +111,14 @@ class DapTestSession {
     await server.stop();
 
     // Clean up any temp folders created during the test runs.
-    _testFolders
-      ..forEach((dir) => dir.deleteSync(recursive: true))
-      ..clear();
+    _testDir.deleteSync(recursive: true);
+  }
+
+  static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
+    final server = await _startServer(additionalArgs: additionalArgs);
+    final client =
+        await DapTestClient.connect(server, captureVmServiceTraffic: true);
+    return DapTestSession._(server, client);
   }
 
   /// Starts a DAP server that can be shared across tests.

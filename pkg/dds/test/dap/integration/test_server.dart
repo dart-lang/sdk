@@ -31,8 +31,15 @@ class InProcessDapTestServer extends DapTestServer {
   StreamSink<List<int>> get sink => stdinController.sink;
   Stream<List<int>> get stream => stdoutController.stream;
 
-  InProcessDapTestServer._() {
-    _server = DapServer(stdinController.stream, stdoutController.sink);
+  InProcessDapTestServer._(List<String> args) {
+    _server = DapServer(
+      stdinController.stream,
+      stdoutController.sink,
+      // Simulate flags based on the args to aid testing.
+      enableDds: !args.contains('--no-dds'),
+      ipv6: args.contains('--ipv6'),
+      enableAuthCodes: !args.contains('--no-auth-codes'),
+    );
   }
 
   @override
@@ -44,7 +51,10 @@ class InProcessDapTestServer extends DapTestServer {
     Logger? logger,
     List<String>? additionalArgs,
   }) async {
-    return InProcessDapTestServer._();
+    return InProcessDapTestServer._([
+      ...?additionalArgs,
+      if (logger != null) '--verbose',
+    ]);
   }
 }
 
