@@ -285,6 +285,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // visibleForTemplate or visibleForTesting, so leave it alone for now.
       }
     }
+
+    // todo(pq): add validation to ensure `UseResult.unless(parameterDefined: 'p')` only targets members that declare a parameter `p`.
+
     var kinds = _targetKindsFor(element);
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {

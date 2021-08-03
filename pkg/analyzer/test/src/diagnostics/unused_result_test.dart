@@ -553,6 +553,21 @@ class C {
     ]);
   }
 
+  test_method_result_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'value')
+  int foo([int? value]) => value ?? 0;
+}
+
+void main() {
+  A().foo(3);
+}
+''');
+  }
+
   test_topLevelFunction_result_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -577,6 +592,19 @@ int foo() => 0;
 void main() {
   var x = foo()..toString(); // OK
   print(x);
+}
+''');
+  }
+
+  test_topLevelFunction_result_optionNamedParam_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo({int? value}) => value ?? 0;
+
+void main() {
+  foo(value: 3);
 }
 ''');
   }
@@ -651,6 +679,49 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_RESULT, 78, 3),
+    ]);
+  }
+
+  test_topLevelFunction_result_unassigned_parameterDefined() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo(3);
+}
+''');
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([int? value]) => value ?? 0;
+
+void main() {
+  foo();
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 133, 3),
+    ]);
+  }
+
+  test_topLevelFunction_result_unassigned_parameterUnDefined2() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@UseResult.unless(parameterDefined: 'value')
+int foo([String? msg, int? value]) => value ?? 0;
+
+void main() {
+  foo('none');
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 146, 3),
     ]);
   }
 
