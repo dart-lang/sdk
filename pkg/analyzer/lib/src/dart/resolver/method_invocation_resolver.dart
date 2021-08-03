@@ -282,19 +282,6 @@ class MethodInvocationResolver {
     );
   }
 
-  void _reportUndefinedMethod(
-      MethodInvocationImpl node,
-      String name,
-      ClassElement typeReference,
-      List<WhyNotPromotedGetter> whyNotPromotedList) {
-    _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.UNDEFINED_METHOD,
-      node.methodName,
-      [name, typeReference.displayName],
-    );
-  }
-
   void _reportUseOfVoidType(MethodInvocationImpl node, AstNode errorNode,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
@@ -779,7 +766,26 @@ class MethodInvocationResolver {
       return;
     }
 
-    _reportUndefinedMethod(node, name, receiver, whyNotPromotedList);
+    _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+    if (nameNode.name == 'new') {
+      // Attempting to invoke the unnamed constructor via `C.new(`.
+      if (_resolver.isConstructorTearoffsEnabled) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          nameNode,
+          [receiver.displayName],
+        );
+      } else {
+        // [ParserErrorCode.EXPERIMENT_NOT_ENABLED] is reported by the parser.
+        // Do not report extra errors.
+      }
+    } else {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_METHOD,
+        node.methodName,
+        [name, receiver.displayName],
+      );
+    }
   }
 
   /// If the given [type] is a type parameter, replace with its bound.

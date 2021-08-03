@@ -106,9 +106,11 @@ class ElementFactory {
   static ConstructorElementImpl constructorElement(
       ClassElement definingClass, String? name, bool isConst,
       [List<DartType> argumentTypes = const []]) {
-    ConstructorElementImpl constructor = name == null
-        ? ConstructorElementImpl("", -1)
-        : ConstructorElementImpl(name, 0);
+    var offset = name == null ? -1 : 0;
+    // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+    var constructor = name == null || name == 'new'
+        ? ConstructorElementImpl('', offset)
+        : ConstructorElementImpl(name, offset);
     if (name != null) {
       if (name.isEmpty) {
         constructor.nameEnd = definingClass.name.length;

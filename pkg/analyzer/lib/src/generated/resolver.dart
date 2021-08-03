@@ -376,6 +376,9 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         InstanceCreationExpressionResolver(this);
   }
 
+  bool get isConstructorTearoffsEnabled =>
+      _featureSet.isEnabled(Feature.constructor_tearoffs);
+
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
     if (flowAnalysis != null) {
