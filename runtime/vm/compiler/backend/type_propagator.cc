@@ -699,7 +699,7 @@ CompileType CompileType::Int() {
 }
 
 CompileType CompileType::Int32() {
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
   return FromCid(kSmiCid);
 #else
   return Int();

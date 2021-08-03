@@ -334,6 +334,10 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic target architecture detection failed.
 #endif
 
+#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#define HAS_SMI_63_BITS 1
+#endif
+
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
