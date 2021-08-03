@@ -16,6 +16,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
+import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/dev_compiler.dart';
 
@@ -51,7 +52,7 @@ import 'package:front_end/src/base/processed_options.dart'
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 
-import 'package:front_end/src/base/command_line_options.dart' show Flags;
+import 'package:front_end/src/base/command_line_options.dart';
 
 import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 
@@ -223,8 +224,35 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
-const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
-const String noVerifyCmd = '--no-verify';
+const Option<String> overwriteCurrentSdkVersion =
+    const Option('--overwrite-current-sdk-version', const StringValue());
+const Option<bool> noVerifyCmd =
+    const Option('--no-verify', const BoolValue(false));
+
+const List<Option> folderOptionsSpecification = [
+  Options.enableExperiment,
+  Options.forceLateLoweringSentinel,
+  overwriteCurrentSdkVersion,
+  Options.forceLateLowering,
+  Options.forceStaticFieldLowering,
+  Options.forceNoExplicitGetterCalls,
+  Options.forceConstructorTearOffLowering,
+  Options.nnbdAgnosticMode,
+  Options.noDefines,
+  noVerifyCmd,
+  Options.target,
+  Options.defines,
+];
+
+const Option<bool> fixNnbdReleaseVersion =
+    const Option('--fix-nnbd-release-version', const BoolValue(false));
+
+const List<Option> testOptionsSpecification = [
+  Options.nnbdAgnosticMode,
+  Options.nnbdStrongMode,
+  Options.nnbdWeakMode,
+  fixNnbdReleaseVersion,
+];
 
 final ExpectationSet staticExpectationSet =
     new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
@@ -440,74 +468,34 @@ class FastaContext extends ChainContext with MatchContext {
         File optionsFile =
             new File.fromUri(directory.uri.resolve('folder.options'));
         if (optionsFile.existsSync()) {
-          List<String> experimentalFlagsArguments = [];
-          String overwriteCurrentSdkVersionArgument = null;
-          for (String line in optionsFile.readAsStringSync().split('\n')) {
-            line = line.trim();
-            if (line.startsWith(experimentalFlagOptions)) {
-              experimentalFlagsArguments =
-                  line.substring(experimentalFlagOptions.length).split(',');
-            } else if (line.startsWith(overwriteCurrentSdkVersion)) {
-              overwriteCurrentSdkVersionArgument =
-                  line.substring(overwriteCurrentSdkVersion.length);
-            } else if (line.startsWith(Flags.forceLateLoweringSentinel)) {
-              forceLateLoweringSentinel = true;
-            } else if (line.startsWith('${Flags.forceLateLowering}=')) {
-              int mask = int.parse(
-                  line.substring('${Flags.forceLateLowering}='.length));
-              forceLateLowering = mask;
-            } else if (line.startsWith(Flags.forceLateLowering)) {
-              forceLateLowering = LateLowering.all;
-            } else if (line.startsWith(Flags.forceStaticFieldLowering)) {
-              forceStaticFieldLowering = true;
-            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
-              forceNoExplicitGetterCalls = true;
-            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
-              forceNoExplicitGetterCalls = true;
-            } else if (line.startsWith(Flags.forceConstructorTearOffLowering)) {
-              forceConstructorTearOffLowering = ConstructorTearOffLowering.all;
-            } else if (line.startsWith(Flags.nnbdAgnosticMode)) {
-              nnbdAgnosticMode = true;
-            } else if (line.startsWith(Flags.noDefines)) {
-              if (defines == null) {
-                throw "Specifying ${Flags.noDefines} several times "
-                    "is unsupported.";
-              }
-              if (defines.isNotEmpty) {
-                throw "Can't have no defines and specific defines "
-                    "at the same time.";
-              }
-              defines = null;
-            } else if (line.startsWith("-D")) {
-              if (defines == null) {
-                throw "Can't have no defines and specific defines "
-                    "at the same time.";
-              }
-              String define = line.substring(2); // removes "-D".
-              int index = define.indexOf('=');
-              String name;
-              String expression;
-              if (index != -1) {
-                name = define.substring(0, index);
-                expression = define.substring(index + 1);
-              } else {
-                name = define;
-                expression = define;
-              }
-              if (defines.containsKey(name)) {
-                throw "Defining '$name' several times is unsupported.";
-              }
-              defines[name] = expression;
-            } else if (line.startsWith(noVerifyCmd)) {
-              noVerify = true;
-            } else if (line.startsWith(Flags.target) &&
-                line.indexOf('=') == Flags.target.length) {
-              target = line.substring(Flags.target.length + 1);
-            } else if (line.isNotEmpty) {
-              throw new UnsupportedError("Unsupported test option '$line'");
+          List<String> arguments =
+              ParsedArguments.readOptionsFile(optionsFile.readAsStringSync());
+          ParsedArguments parsedArguments =
+              ParsedArguments.parse(arguments, folderOptionsSpecification);
+          List<String> experimentalFlagsArguments =
+              Options.enableExperiment.read(parsedArguments) ?? <String>[];
+          String overwriteCurrentSdkVersionArgument =
+              overwriteCurrentSdkVersion.read(parsedArguments);
+          forceLateLoweringSentinel =
+              Options.forceLateLoweringSentinel.read(parsedArguments);
+          forceLateLowering = Options.forceLateLowering.read(parsedArguments);
+          forceStaticFieldLowering =
+              Options.forceStaticFieldLowering.read(parsedArguments);
+          forceNoExplicitGetterCalls =
+              Options.forceNoExplicitGetterCalls.read(parsedArguments);
+          forceConstructorTearOffLowering =
+              Options.forceConstructorTearOffLowering.read(parsedArguments);
+          nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedArguments);
+          defines = parsedArguments.defines;
+          if (Options.noDefines.read(parsedArguments)) {
+            if (defines.isNotEmpty) {
+              throw "Can't have no defines and specific defines "
+                  "at the same time.";
             }
+            defines = null;
           }
-
+          noVerify = noVerifyCmd.read(parsedArguments);
+          target = Options.target.read(parsedArguments);
           folderOptions = new FolderOptions(
               parseExperimentalFlags(
                   parseExperimentalArguments(experimentalFlagsArguments),
@@ -590,56 +578,56 @@ class FastaContext extends ChainContext with MatchContext {
       Map<ExperimentalFlag, Version> experimentEnabledVersion;
       Map<ExperimentalFlag, Version> experimentReleasedVersion;
       if (optionsFile.existsSync()) {
-        for (String line in optionsFile.readAsStringSync().split('\n')) {
-          line = line.trim();
-          if (line.isEmpty) continue;
-          if (line.startsWith(Flags.nnbdAgnosticMode)) {
-            if (nnbdMode != null) {
-              throw new UnsupportedError(
-                  'Nnbd mode $nnbdMode already specified.');
-            }
-            nnbdMode = NnbdMode.Agnostic;
-          } else if (line.startsWith(Flags.nnbdStrongMode)) {
-            if (nnbdMode != null) {
-              throw new UnsupportedError(
-                  'Nnbd mode $nnbdMode already specified.');
-            }
-            nnbdMode = NnbdMode.Strong;
-          } else if (line.startsWith(Flags.nnbdWeakMode)) {
-            if (nnbdMode != null) {
-              throw new UnsupportedError(
-                  'Nnbd mode $nnbdMode already specified.');
-            }
-            nnbdMode = NnbdMode.Weak;
-          } else if (line == '--fix-nnbd-release-version') {
-            // Allow package:allowed_package to use nnbd features from version
-            // 2.9.
-            allowedExperimentalFlags = new AllowedExperimentalFlags(
-                sdkDefaultExperiments:
-                    defaultAllowedExperimentalFlags.sdkDefaultExperiments,
-                sdkLibraryExperiments:
-                    defaultAllowedExperimentalFlags.sdkLibraryExperiments,
-                packageExperiments: {
-                  ...defaultAllowedExperimentalFlags.packageExperiments,
-                  'allowed_package': {ExperimentalFlag.nonNullable}
-                });
-            experimentEnabledVersion = const {
-              ExperimentalFlag.nonNullable: const Version(2, 10)
-            };
-            experimentReleasedVersion = const {
-              ExperimentalFlag.nonNullable: const Version(2, 9)
-            };
-          } else {
-            Uri uri = description.uri.resolve(line);
-            if (uri.scheme != 'package') {
-              File f = new File.fromUri(uri);
-              if (!f.existsSync()) {
-                throw new UnsupportedError("No file found: $f ($line)");
-              }
-              uri = f.uri;
-            }
-            linkDependencies.add(uri);
+        List<String> arguments =
+            ParsedArguments.readOptionsFile(optionsFile.readAsStringSync());
+        ParsedArguments parsedArguments =
+            ParsedArguments.parse(arguments, testOptionsSpecification);
+        if (Options.nnbdAgnosticMode.read(parsedArguments)) {
+          nnbdMode = NnbdMode.Agnostic;
+        }
+        if (Options.nnbdStrongMode.read(parsedArguments)) {
+          if (nnbdMode != null) {
+            throw new UnsupportedError(
+                'Nnbd mode $nnbdMode already specified.');
           }
+          nnbdMode = NnbdMode.Strong;
+        }
+        if (Options.nnbdWeakMode.read(parsedArguments)) {
+          if (nnbdMode != null) {
+            throw new UnsupportedError(
+                'Nnbd mode $nnbdMode already specified.');
+          }
+          nnbdMode = NnbdMode.Weak;
+        }
+        if (fixNnbdReleaseVersion.read(parsedArguments)) {
+          // Allow package:allowed_package to use nnbd features from version
+          // 2.9.
+          allowedExperimentalFlags = new AllowedExperimentalFlags(
+              sdkDefaultExperiments:
+                  defaultAllowedExperimentalFlags.sdkDefaultExperiments,
+              sdkLibraryExperiments:
+                  defaultAllowedExperimentalFlags.sdkLibraryExperiments,
+              packageExperiments: {
+                ...defaultAllowedExperimentalFlags.packageExperiments,
+                'allowed_package': {ExperimentalFlag.nonNullable}
+              });
+          experimentEnabledVersion = const {
+            ExperimentalFlag.nonNullable: const Version(2, 10)
+          };
+          experimentReleasedVersion = const {
+            ExperimentalFlag.nonNullable: const Version(2, 9)
+          };
+        }
+        for (String argument in parsedArguments.arguments) {
+          Uri uri = description.uri.resolve(argument);
+          if (uri.scheme != 'package') {
+            File f = new File.fromUri(uri);
+            if (!f.existsSync()) {
+              throw new UnsupportedError("No file found: $f ($argument)");
+            }
+            uri = f.uri;
+          }
+          linkDependencies.add(uri);
         }
       }
       testOptions = new TestOptions(linkDependencies,

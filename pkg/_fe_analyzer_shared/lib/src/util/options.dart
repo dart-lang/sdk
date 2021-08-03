@@ -12,6 +12,8 @@ class CommandLineProblem {
 
   CommandLineProblem.deprecated(String message)
       : this(templateUnspecified.withArguments(message));
+
+  String toString() => message.message;
 }
 
 class ParsedArguments {
@@ -19,7 +21,16 @@ class ParsedArguments {
   final List<String> arguments = <String>[];
   final Map<String, String> defines = <String, String>{};
 
-  toString() => "ParsedArguments($options, $arguments)";
+  String toString() => "ParsedArguments($options, $arguments)";
+
+  /// Returns arguments stored as line separated text.
+  static List<String> readOptionsFile(String optionsFile) {
+    return optionsFile
+        .split('\n')
+        .map((String line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+  }
 
   /// Parses a list of command-line [arguments] into options and arguments.
   ///
@@ -53,9 +64,22 @@ class ParsedArguments {
   ///
   /// All other options require an option value, either on the form `--option
   /// value` or `--option=value`.
-  static ParsedArguments parse(
-      List<String> arguments, Map<String, ValueSpecification>? specification) {
-    specification ??= const <String, ValueSpecification>{};
+  static ParsedArguments parse(List<String> arguments, List<Option>? options) {
+    options ??= [];
+    Map<String, ValueSpecification>? specification = {};
+    void addSpec(String flag, ValueSpecification spec) {
+      if (specification.containsKey(flag)) {
+        throw new CommandLineProblem.deprecated("Duplicate option '${flag}'.");
+      }
+      specification[flag] = spec;
+    }
+
+    for (Option option in options) {
+      addSpec(option.flag, option.spec);
+      for (String alias in option.aliases) {
+        addSpec(alias, new AliasValue(option.flag));
+      }
+    }
     ParsedArguments result = new ParsedArguments();
     int index = arguments.indexOf("--");
     Iterable<String> nonOptions = const <String>[];
@@ -116,12 +140,12 @@ class ParsedArguments {
   }
 }
 
-abstract class ValueSpecification {
+abstract class ValueSpecification<T> {
   const ValueSpecification();
 
   String? get alias => null;
 
-  dynamic get defaultValue => null;
+  T? get defaultValue => null;
 
   bool get requiresValue => true;
 
@@ -129,7 +153,7 @@ abstract class ValueSpecification {
       String argument, String? value);
 }
 
-class AliasValue extends ValueSpecification {
+class AliasValue<T> extends ValueSpecification<T> {
   final String alias;
 
   const AliasValue(this.alias);
@@ -143,7 +167,7 @@ class AliasValue extends ValueSpecification {
   }
 }
 
-class UriValue extends ValueSpecification {
+class UriValue extends ValueSpecification<Uri?> {
   const UriValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
@@ -159,8 +183,10 @@ class UriValue extends ValueSpecification {
   }
 }
 
-class StringValue extends ValueSpecification {
-  const StringValue();
+class StringValue extends ValueSpecification<String?> {
+  final String? defaultValue;
+
+  const StringValue({this.defaultValue});
 
   void processValue(ParsedArguments result, String canonicalArgument,
       String argument, String? value) {
@@ -173,7 +199,7 @@ class StringValue extends ValueSpecification {
   }
 }
 
-class BoolValue extends ValueSpecification {
+class BoolValue extends ValueSpecification<bool> {
   final bool defaultValue;
 
   const BoolValue(this.defaultValue);
@@ -201,8 +227,13 @@ class BoolValue extends ValueSpecification {
   }
 }
 
-class IntValue extends ValueSpecification {
-  const IntValue();
+class IntValue extends ValueSpecification<int?> {
+  final int? defaultValue;
+  final int? noArgValue;
+
+  const IntValue({this.defaultValue, this.noArgValue});
+
+  bool get requiresValue => noArgValue == null;
 
   void processValue(ParsedArguments result, String canonicalArgument,
       String argument, String? value) {
@@ -211,7 +242,10 @@ class IntValue extends ValueSpecification {
           "Multiple values for '$argument': "
           "'${result.options[canonicalArgument]}' and '$value'.");
     }
-    int? parsedValue = int.tryParse(value!);
+    int? parsedValue = noArgValue;
+    if (value != null) {
+      parsedValue = int.tryParse(value);
+    }
     if (parsedValue == null) {
       throw new CommandLineProblem.deprecated(
           "Value for '$argument', '$value', isn't an int.");
@@ -220,7 +254,7 @@ class IntValue extends ValueSpecification {
   }
 }
 
-class DefineValue extends ValueSpecification {
+class DefineValue extends ValueSpecification<Map<String, String>> {
   const DefineValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
@@ -239,7 +273,7 @@ class DefineValue extends ValueSpecification {
   }
 }
 
-class StringListValue extends ValueSpecification {
+class StringListValue extends ValueSpecification<List<String>?> {
   const StringListValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
@@ -249,7 +283,7 @@ class StringListValue extends ValueSpecification {
   }
 }
 
-class UriListValue extends ValueSpecification {
+class UriListValue extends ValueSpecification<List<Uri>?> {
   const UriListValue();
 
   void processValue(ParsedArguments result, String canonicalArgument,
@@ -257,4 +291,21 @@ class UriListValue extends ValueSpecification {
     List<Uri> values = result.options[canonicalArgument] ??= <Uri>[];
     values.addAll(value!.split(",").map(resolveInputUri));
   }
+}
+
+class Option<T> {
+  final String flag;
+
+  final ValueSpecification<T?> spec;
+
+  final bool isDefines;
+
+  final List<String> aliases;
+
+  const Option(this.flag, this.spec,
+      {this.isDefines: false, this.aliases: const []});
+
+  T read(ParsedArguments parsedArguments) =>
+      (isDefines ? parsedArguments.defines : parsedArguments.options[flag])
+          as T;
 }

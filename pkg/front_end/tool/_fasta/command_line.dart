@@ -51,61 +51,47 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show
-        ConstructorTearOffLowering,
-        LateLowering,
-        Target,
-        TargetFlags,
-        getTarget,
-        targets;
+    show Target, TargetFlags, getTarget, targets;
 
 // Before adding new options here, you must:
 //  * Document the option.
 //  * Get an explicit approval from the front-end team.
-const Map<String, ValueSpecification> optionSpecification =
-    const <String, ValueSpecification>{
-  Flags.compileSdk: const UriValue(),
-  Flags.dumpIr: const BoolValue(false),
-  Flags.enableExperiment: const StringListValue(),
-  Flags.excludeSource: const BoolValue(false),
-  Flags.omitPlatform: const BoolValue(false),
-  Flags.fatal: const StringListValue(),
-  Flags.fatalSkip: const StringValue(),
-  Flags.forceLateLowering: const BoolValue(false),
-  Flags.forceStaticFieldLowering: const BoolValue(false),
-  Flags.forceNoExplicitGetterCalls: const BoolValue(false),
-  Flags.forceConstructorTearOffLowering: const BoolValue(false),
-  Flags.help: const BoolValue(false),
-  Flags.librariesJson: const UriValue(),
-  Flags.noDefines: const BoolValue(false),
-  Flags.output: const UriValue(),
-  Flags.packages: const UriValue(),
-  Flags.platform: const UriValue(),
-  Flags.sdk: const UriValue(),
-  Flags.singleRootBase: const UriValue(),
-  Flags.singleRootScheme: const StringValue(),
-  Flags.nnbdWeakMode: const BoolValue(false),
-  Flags.nnbdStrongMode: const BoolValue(false),
-  Flags.nnbdAgnosticMode: const BoolValue(false),
-  Flags.target: const StringValue(),
-  Flags.verbose: const BoolValue(false),
-  Flags.verbosity: const StringValue(),
-  Flags.verify: const BoolValue(false),
-  Flags.skipPlatformVerification: const BoolValue(false),
-  Flags.warnOnReachabilityCheck: const BoolValue(false),
-  Flags.linkDependencies: const UriListValue(),
-  Flags.noDeps: const BoolValue(false),
-  Flags.invocationModes: const StringValue(),
-  "-D": const DefineValue(),
-  "--define": const AliasValue("-D"),
-  "-h": const AliasValue(Flags.help),
-  "--out": const AliasValue(Flags.output),
-  "-o": const AliasValue(Flags.output),
-  "-t": const AliasValue(Flags.target),
-  "-v": const AliasValue(Flags.verbose),
-  "/?": const AliasValue(Flags.help),
-  "/h": const AliasValue(Flags.help),
-};
+const List<Option> optionSpecification = [
+  Options.compileSdk,
+  Options.dumpIr,
+  Options.enableExperiment,
+  Options.excludeSource,
+  Options.omitPlatform,
+  Options.fatal,
+  Options.fatalSkip,
+  Options.forceLateLowering,
+  Options.forceLateLoweringSentinel,
+  Options.forceStaticFieldLowering,
+  Options.forceNoExplicitGetterCalls,
+  Options.forceConstructorTearOffLowering,
+  Options.help,
+  Options.librariesJson,
+  Options.noDefines,
+  Options.output,
+  Options.packages,
+  Options.platform,
+  Options.sdk,
+  Options.singleRootBase,
+  Options.singleRootScheme,
+  Options.nnbdWeakMode,
+  Options.nnbdStrongMode,
+  Options.nnbdAgnosticMode,
+  Options.target,
+  Options.verbose,
+  Options.verbosity,
+  Options.verify,
+  Options.skipPlatformVerification,
+  Options.warnOnReachabilityCheck,
+  Options.linkDependencies,
+  Options.noDeps,
+  Options.invocationModes,
+  Options.defines,
+];
 
 void throwCommandLineProblem(String message) {
   throw new CommandLineProblem.deprecated(message);
@@ -113,45 +99,43 @@ void throwCommandLineProblem(String message) {
 
 ProcessedOptions analyzeCommandLine(String programName,
     ParsedArguments parsedArguments, bool areRestArgumentsInputs) {
-  final Map<String, dynamic> options = parsedArguments.options;
-
   final List<String> arguments = parsedArguments.arguments;
 
-  final bool help = options[Flags.help];
+  final bool help = Options.help.read(parsedArguments);
 
-  final bool verbose = options[Flags.verbose];
+  final bool verbose = Options.verbose.read(parsedArguments);
 
   if (help) {
     print(computeUsage(programName, verbose).message);
     exit(0);
   }
 
-  if (options.containsKey(Flags.compileSdk) &&
-      options.containsKey(Flags.platform)) {
+  if (parsedArguments.options.containsKey(Flags.compileSdk) &&
+      parsedArguments.options.containsKey(Flags.platform)) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.");
   }
 
-  final String targetName = options[Flags.target] ?? "vm";
+  final String targetName = Options.target.read(parsedArguments);
 
   Map<ExperimentalFlag, bool> explicitExperimentalFlags =
       parseExperimentalFlags(
-          parseExperimentalArguments(options[Flags.enableExperiment]),
+          parseExperimentalArguments(
+              Options.enableExperiment.read(parsedArguments)),
           onError: throwCommandLineProblem,
           onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
-      forceLateLoweringsForTesting: options[Flags.forceLateLowering]
-          ? LateLowering.all
-          : LateLowering.none,
+      forceLateLoweringsForTesting:
+          Options.forceLateLowering.read(parsedArguments),
       forceStaticFieldLoweringForTesting:
-          options[Flags.forceStaticFieldLowering],
+          Options.forceStaticFieldLowering.read(parsedArguments),
       forceNoExplicitGetterCallsForTesting:
-          options[Flags.forceNoExplicitGetterCalls],
+          Options.forceNoExplicitGetterCalls.read(parsedArguments),
       forceConstructorTearOffLoweringForTesting:
-          options[Flags.forceConstructorTearOffLowering]
-              ? ConstructorTearOffLowering.all
-              : ConstructorTearOffLowering.none,
+          Options.forceConstructorTearOffLowering.read(parsedArguments),
+      forceLateLoweringSentinelForTesting:
+          Options.forceLateLoweringSentinel.read(parsedArguments),
       enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 
@@ -162,53 +146,59 @@ ProcessedOptions analyzeCommandLine(String programName,
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
 
-  final bool noDefines = options[Flags.noDefines];
+  final bool noDefines = Options.noDefines.read(parsedArguments);
 
-  final bool noDeps = options[Flags.noDeps];
+  final bool noDeps = Options.noDeps.read(parsedArguments);
 
-  final bool verify = options[Flags.verify];
+  final bool verify = Options.verify.read(parsedArguments);
 
-  final bool skipPlatformVerification = options[Flags.skipPlatformVerification];
+  final bool skipPlatformVerification =
+      Options.skipPlatformVerification.read(parsedArguments);
 
-  final bool dumpIr = options[Flags.dumpIr];
+  final bool dumpIr = Options.dumpIr.read(parsedArguments);
 
-  final bool excludeSource = options[Flags.excludeSource];
+  final bool excludeSource = Options.excludeSource.read(parsedArguments);
 
-  final bool omitPlatform = options[Flags.omitPlatform];
+  final bool omitPlatform = Options.omitPlatform.read(parsedArguments);
 
-  final Uri packages = options[Flags.packages];
+  final Uri? packages = Options.packages.read(parsedArguments);
 
   final Set<String> fatal =
-      new Set<String>.from(options[Flags.fatal] ?? <String>[]);
+      new Set<String>.from(Options.fatal.read(parsedArguments) ?? <String>[]);
 
   final bool errorsAreFatal = fatal.contains("errors");
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
-  final int fatalSkip = int.tryParse(options[Flags.fatalSkip] ?? "0") ?? -1;
+  final int fatalSkip =
+      int.tryParse(Options.fatalSkip.read(parsedArguments) ?? "0") ?? -1;
 
-  final bool compileSdk = options.containsKey(Flags.compileSdk);
+  final bool compileSdk = Options.compileSdk.read(parsedArguments) != null;
 
-  final String? singleRootScheme = options[Flags.singleRootScheme];
-  final Uri singleRootBase = options[Flags.singleRootBase];
+  final String? singleRootScheme =
+      Options.singleRootScheme.read(parsedArguments);
+  final Uri? singleRootBase = Options.singleRootBase.read(parsedArguments);
 
-  final bool nnbdStrongMode = options[Flags.nnbdStrongMode];
+  final bool nnbdStrongMode = Options.nnbdStrongMode.read(parsedArguments);
 
-  final bool nnbdWeakMode = options[Flags.nnbdWeakMode];
+  final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedArguments);
 
-  final bool nnbdAgnosticMode = options[Flags.nnbdAgnosticMode];
+  final bool nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedArguments);
 
   final NnbdMode nnbdMode = nnbdAgnosticMode
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
-  final bool warnOnReachabilityCheck = options[Flags.warnOnReachabilityCheck];
+  final bool warnOnReachabilityCheck =
+      Options.warnOnReachabilityCheck.read(parsedArguments);
 
-  final List<Uri> linkDependencies = options[Flags.linkDependencies] ?? [];
+  final List<Uri> linkDependencies =
+      Options.linkDependencies.read(parsedArguments) ?? [];
 
-  final String invocationModes = options[Flags.invocationModes] ?? '';
+  final String invocationModes =
+      Options.invocationModes.read(parsedArguments) ?? '';
 
-  final String verbosity = options[Flags.verbosity] ?? Verbosity.defaultValue;
+  final String verbosity = Options.verbosity.read(parsedArguments);
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -237,7 +227,7 @@ ProcessedOptions analyzeCommandLine(String programName,
       // should have been handled elsewhere).
       '': fileSystem,
       singleRootScheme: new SingleRootFileSystem(
-          singleRootScheme, singleRootBase, fileSystem),
+          singleRootScheme, singleRootBase!, fileSystem),
     });
   }
 
@@ -273,14 +263,14 @@ ProcessedOptions analyzeCommandLine(String programName,
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.compileSdk}' option to compile_platform.");
     }
-    if (options.containsKey(Flags.output)) {
+    if (parsedArguments.options.containsKey(Flags.output)) {
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.output}' option to compile_platform.");
     }
 
     return new ProcessedOptions(
         options: compilerOptions
-          ..sdkSummary = options[Flags.platform]
+          ..sdkSummary = Options.platform.read(parsedArguments)
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
@@ -291,15 +281,16 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
-  final Uri output = options[Flags.output] ?? defaultOutput;
+  final Uri output = Options.output.read(parsedArguments) ?? defaultOutput;
 
-  final Uri sdk = options[Flags.sdk] ?? options[Flags.compileSdk];
+  final Uri? sdk = Options.sdk.read(parsedArguments) ??
+      Options.compileSdk.read(parsedArguments);
 
-  final Uri librariesJson = options[Flags.librariesJson];
+  final Uri? librariesJson = Options.librariesJson.read(parsedArguments);
 
-  final Uri platform = compileSdk
+  final Uri? platform = compileSdk
       ? null
-      : (options[Flags.platform] ??
+      : (Options.platform.read(parsedArguments) ??
           computePlatformBinariesLocation(forceBuildDir: true)
               .resolve(computePlatformDillName(target, nnbdMode, () {
             throwCommandLineProblem(
