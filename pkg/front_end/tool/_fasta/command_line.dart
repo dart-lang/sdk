@@ -98,44 +98,44 @@ void throwCommandLineProblem(String message) {
 }
 
 ProcessedOptions analyzeCommandLine(String programName,
-    ParsedArguments parsedArguments, bool areRestArgumentsInputs) {
-  final List<String> arguments = parsedArguments.arguments;
+    ParsedOptions parsedOptions, bool areRestArgumentsInputs) {
+  final List<String> arguments = parsedOptions.arguments;
 
-  final bool help = Options.help.read(parsedArguments);
+  final bool help = Options.help.read(parsedOptions);
 
-  final bool verbose = Options.verbose.read(parsedArguments);
+  final bool verbose = Options.verbose.read(parsedOptions);
 
   if (help) {
     print(computeUsage(programName, verbose).message);
     exit(0);
   }
 
-  if (parsedArguments.options.containsKey(Flags.compileSdk) &&
-      parsedArguments.options.containsKey(Flags.platform)) {
+  if (parsedOptions.options.containsKey(Flags.compileSdk) &&
+      parsedOptions.options.containsKey(Flags.platform)) {
     return throw new CommandLineProblem.deprecated(
         "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.");
   }
 
-  final String targetName = Options.target.read(parsedArguments);
+  final String targetName = Options.target.read(parsedOptions);
 
   Map<ExperimentalFlag, bool> explicitExperimentalFlags =
       parseExperimentalFlags(
           parseExperimentalArguments(
-              Options.enableExperiment.read(parsedArguments)),
+              Options.enableExperiment.read(parsedOptions)),
           onError: throwCommandLineProblem,
           onWarning: print);
 
   final TargetFlags flags = new TargetFlags(
       forceLateLoweringsForTesting:
-          Options.forceLateLowering.read(parsedArguments),
+          Options.forceLateLowering.read(parsedOptions),
       forceStaticFieldLoweringForTesting:
-          Options.forceStaticFieldLowering.read(parsedArguments),
+          Options.forceStaticFieldLowering.read(parsedOptions),
       forceNoExplicitGetterCallsForTesting:
-          Options.forceNoExplicitGetterCalls.read(parsedArguments),
+          Options.forceNoExplicitGetterCalls.read(parsedOptions),
       forceConstructorTearOffLoweringForTesting:
-          Options.forceConstructorTearOffLowering.read(parsedArguments),
+          Options.forceConstructorTearOffLowering.read(parsedOptions),
       forceLateLoweringSentinelForTesting:
-          Options.forceLateLoweringSentinel.read(parsedArguments),
+          Options.forceLateLoweringSentinel.read(parsedOptions),
       enableNullSafety: isExperimentEnabled(ExperimentalFlag.nonNullable,
           explicitExperimentalFlags: explicitExperimentalFlags));
 
@@ -146,59 +146,58 @@ ProcessedOptions analyzeCommandLine(String programName,
         "Valid targets are:\n  ${targets.keys.join("\n  ")}");
   }
 
-  final bool noDefines = Options.noDefines.read(parsedArguments);
+  final bool noDefines = Options.noDefines.read(parsedOptions);
 
-  final bool noDeps = Options.noDeps.read(parsedArguments);
+  final bool noDeps = Options.noDeps.read(parsedOptions);
 
-  final bool verify = Options.verify.read(parsedArguments);
+  final bool verify = Options.verify.read(parsedOptions);
 
   final bool skipPlatformVerification =
-      Options.skipPlatformVerification.read(parsedArguments);
+      Options.skipPlatformVerification.read(parsedOptions);
 
-  final bool dumpIr = Options.dumpIr.read(parsedArguments);
+  final bool dumpIr = Options.dumpIr.read(parsedOptions);
 
-  final bool excludeSource = Options.excludeSource.read(parsedArguments);
+  final bool excludeSource = Options.excludeSource.read(parsedOptions);
 
-  final bool omitPlatform = Options.omitPlatform.read(parsedArguments);
+  final bool omitPlatform = Options.omitPlatform.read(parsedOptions);
 
-  final Uri? packages = Options.packages.read(parsedArguments);
+  final Uri? packages = Options.packages.read(parsedOptions);
 
   final Set<String> fatal =
-      new Set<String>.from(Options.fatal.read(parsedArguments) ?? <String>[]);
+      new Set<String>.from(Options.fatal.read(parsedOptions) ?? <String>[]);
 
   final bool errorsAreFatal = fatal.contains("errors");
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
   final int fatalSkip =
-      int.tryParse(Options.fatalSkip.read(parsedArguments) ?? "0") ?? -1;
+      int.tryParse(Options.fatalSkip.read(parsedOptions) ?? "0") ?? -1;
 
-  final bool compileSdk = Options.compileSdk.read(parsedArguments) != null;
+  final bool compileSdk = Options.compileSdk.read(parsedOptions) != null;
 
-  final String? singleRootScheme =
-      Options.singleRootScheme.read(parsedArguments);
-  final Uri? singleRootBase = Options.singleRootBase.read(parsedArguments);
+  final String? singleRootScheme = Options.singleRootScheme.read(parsedOptions);
+  final Uri? singleRootBase = Options.singleRootBase.read(parsedOptions);
 
-  final bool nnbdStrongMode = Options.nnbdStrongMode.read(parsedArguments);
+  final bool nnbdStrongMode = Options.nnbdStrongMode.read(parsedOptions);
 
-  final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedArguments);
+  final bool nnbdWeakMode = Options.nnbdWeakMode.read(parsedOptions);
 
-  final bool nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedArguments);
+  final bool nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
 
   final NnbdMode nnbdMode = nnbdAgnosticMode
       ? NnbdMode.Agnostic
       : (nnbdStrongMode ? NnbdMode.Strong : NnbdMode.Weak);
 
   final bool warnOnReachabilityCheck =
-      Options.warnOnReachabilityCheck.read(parsedArguments);
+      Options.warnOnReachabilityCheck.read(parsedOptions);
 
   final List<Uri> linkDependencies =
-      Options.linkDependencies.read(parsedArguments) ?? [];
+      Options.linkDependencies.read(parsedOptions) ?? [];
 
   final String invocationModes =
-      Options.invocationModes.read(parsedArguments) ?? '';
+      Options.invocationModes.read(parsedOptions) ?? '';
 
-  final String verbosity = Options.verbosity.read(parsedArguments);
+  final String verbosity = Options.verbosity.read(parsedOptions);
 
   if (nnbdStrongMode && nnbdWeakMode) {
     return throw new CommandLineProblem.deprecated(
@@ -246,7 +245,7 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..verify = verify
     ..skipPlatformVerification = skipPlatformVerification
     ..explicitExperimentalFlags = explicitExperimentalFlags
-    ..environmentDefines = noDefines ? null : parsedArguments.defines
+    ..environmentDefines = noDefines ? null : parsedOptions.defines
     ..nnbdMode = nnbdMode
     ..additionalDills = linkDependencies
     ..emitDeps = !noDeps
@@ -263,14 +262,14 @@ ProcessedOptions analyzeCommandLine(String programName,
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.compileSdk}' option to compile_platform.");
     }
-    if (parsedArguments.options.containsKey(Flags.output)) {
+    if (parsedOptions.options.containsKey(Flags.output)) {
       return throw new CommandLineProblem.deprecated(
           "Cannot specify '${Flags.output}' option to compile_platform.");
     }
 
     return new ProcessedOptions(
         options: compilerOptions
-          ..sdkSummary = Options.platform.read(parsedArguments)
+          ..sdkSummary = Options.platform.read(parsedOptions)
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true,
         inputs: <Uri>[Uri.parse(arguments[0])],
@@ -281,16 +280,16 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final Uri defaultOutput = resolveInputUri("${arguments.first}.dill");
 
-  final Uri output = Options.output.read(parsedArguments) ?? defaultOutput;
+  final Uri output = Options.output.read(parsedOptions) ?? defaultOutput;
 
-  final Uri? sdk = Options.sdk.read(parsedArguments) ??
-      Options.compileSdk.read(parsedArguments);
+  final Uri? sdk =
+      Options.sdk.read(parsedOptions) ?? Options.compileSdk.read(parsedOptions);
 
-  final Uri? librariesJson = Options.librariesJson.read(parsedArguments);
+  final Uri? librariesJson = Options.librariesJson.read(parsedOptions);
 
   final Uri? platform = compileSdk
       ? null
-      : (Options.platform.read(parsedArguments) ??
+      : (Options.platform.read(parsedOptions) ??
           computePlatformBinariesLocation(forceBuildDir: true)
               .resolve(computePlatformDillName(target, nnbdMode, () {
             throwCommandLineProblem(
@@ -317,13 +316,13 @@ Future<T> withGlobalOptions<T>(
     List<String> arguments,
     bool areRestArgumentsInputs,
     Future<T> f(CompilerContext context, List<String> restArguments)) {
-  ParsedArguments? parsedArguments;
+  ParsedOptions? parsedOptions;
   ProcessedOptions options;
   CommandLineProblem? problem;
   try {
-    parsedArguments = ParsedArguments.parse(arguments, optionSpecification);
-    options = analyzeCommandLine(
-        programName, parsedArguments, areRestArgumentsInputs);
+    parsedOptions = ParsedOptions.parse(arguments, optionSpecification);
+    options =
+        analyzeCommandLine(programName, parsedOptions, areRestArgumentsInputs);
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions();
     problem = e;
@@ -344,7 +343,7 @@ Future<T> withGlobalOptions<T>(
       exit(1);
     }
 
-    return f(c, parsedArguments!.arguments);
+    return f(c, parsedOptions!.arguments);
   }, errorOnMissingInput: problem == null);
 }
 

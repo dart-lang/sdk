@@ -16,7 +16,7 @@ class CommandLineProblem {
   String toString() => message.message;
 }
 
-class ParsedArguments {
+class ParsedOptions {
   final Map<String, dynamic> options = <String, dynamic>{};
   final List<String> arguments = <String>[];
   final Map<String, String> defines = <String, String>{};
@@ -64,7 +64,7 @@ class ParsedArguments {
   ///
   /// All other options require an option value, either on the form `--option
   /// value` or `--option=value`.
-  static ParsedArguments parse(List<String> arguments, List<Option>? options) {
+  static ParsedOptions parse(List<String> arguments, List<Option>? options) {
     options ??= [];
     Map<String, ValueSpecification>? specification = {};
     void addSpec(String flag, ValueSpecification spec) {
@@ -80,7 +80,7 @@ class ParsedArguments {
         addSpec(alias, new AliasValue(option.flag));
       }
     }
-    ParsedArguments result = new ParsedArguments();
+    ParsedOptions result = new ParsedOptions();
     int index = arguments.indexOf("--");
     Iterable<String> nonOptions = const <String>[];
     Iterator<String> iterator = arguments.iterator;
@@ -149,7 +149,7 @@ abstract class ValueSpecification<T> {
 
   bool get requiresValue => true;
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value);
 }
 
@@ -161,7 +161,7 @@ class AliasValue<T> extends ValueSpecification<T> {
   bool get requiresValue =>
       throw new UnsupportedError("AliasValue.requiresValue");
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     throw new UnsupportedError("AliasValue.processValue");
   }
@@ -170,7 +170,7 @@ class AliasValue<T> extends ValueSpecification<T> {
 class UriValue extends ValueSpecification<Uri?> {
   const UriValue();
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
@@ -188,7 +188,7 @@ class StringValue extends ValueSpecification<String?> {
 
   const StringValue({this.defaultValue});
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
@@ -206,7 +206,7 @@ class BoolValue extends ValueSpecification<bool> {
 
   bool get requiresValue => false;
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
@@ -235,7 +235,7 @@ class IntValue extends ValueSpecification<int?> {
 
   bool get requiresValue => noArgValue == null;
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     if (result.options.containsKey(canonicalArgument)) {
       throw new CommandLineProblem.deprecated(
@@ -257,7 +257,7 @@ class IntValue extends ValueSpecification<int?> {
 class DefineValue extends ValueSpecification<Map<String, String>> {
   const DefineValue();
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     int index = value!.indexOf('=');
     String name;
@@ -276,7 +276,7 @@ class DefineValue extends ValueSpecification<Map<String, String>> {
 class StringListValue extends ValueSpecification<List<String>?> {
   const StringListValue();
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     List<String> values = result.options[canonicalArgument] ??= <String>[];
     values.addAll(value!.split(","));
@@ -286,7 +286,7 @@ class StringListValue extends ValueSpecification<List<String>?> {
 class UriListValue extends ValueSpecification<List<Uri>?> {
   const UriListValue();
 
-  void processValue(ParsedArguments result, String canonicalArgument,
+  void processValue(ParsedOptions result, String canonicalArgument,
       String argument, String? value) {
     List<Uri> values = result.options[canonicalArgument] ??= <Uri>[];
     values.addAll(value!.split(",").map(resolveInputUri));
@@ -305,7 +305,6 @@ class Option<T> {
   const Option(this.flag, this.spec,
       {this.isDefines: false, this.aliases: const []});
 
-  T read(ParsedArguments parsedArguments) =>
-      (isDefines ? parsedArguments.defines : parsedArguments.options[flag])
-          as T;
+  T read(ParsedOptions parsedOptions) =>
+      (isDefines ? parsedOptions.defines : parsedOptions.options[flag]) as T;
 }

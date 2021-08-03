@@ -469,33 +469,33 @@ class FastaContext extends ChainContext with MatchContext {
             new File.fromUri(directory.uri.resolve('folder.options'));
         if (optionsFile.existsSync()) {
           List<String> arguments =
-              ParsedArguments.readOptionsFile(optionsFile.readAsStringSync());
-          ParsedArguments parsedArguments =
-              ParsedArguments.parse(arguments, folderOptionsSpecification);
+              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
+          ParsedOptions parsedOptions =
+              ParsedOptions.parse(arguments, folderOptionsSpecification);
           List<String> experimentalFlagsArguments =
-              Options.enableExperiment.read(parsedArguments) ?? <String>[];
+              Options.enableExperiment.read(parsedOptions) ?? <String>[];
           String overwriteCurrentSdkVersionArgument =
-              overwriteCurrentSdkVersion.read(parsedArguments);
+              overwriteCurrentSdkVersion.read(parsedOptions);
           forceLateLoweringSentinel =
-              Options.forceLateLoweringSentinel.read(parsedArguments);
-          forceLateLowering = Options.forceLateLowering.read(parsedArguments);
+              Options.forceLateLoweringSentinel.read(parsedOptions);
+          forceLateLowering = Options.forceLateLowering.read(parsedOptions);
           forceStaticFieldLowering =
-              Options.forceStaticFieldLowering.read(parsedArguments);
+              Options.forceStaticFieldLowering.read(parsedOptions);
           forceNoExplicitGetterCalls =
-              Options.forceNoExplicitGetterCalls.read(parsedArguments);
+              Options.forceNoExplicitGetterCalls.read(parsedOptions);
           forceConstructorTearOffLowering =
-              Options.forceConstructorTearOffLowering.read(parsedArguments);
-          nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedArguments);
-          defines = parsedArguments.defines;
-          if (Options.noDefines.read(parsedArguments)) {
+              Options.forceConstructorTearOffLowering.read(parsedOptions);
+          nnbdAgnosticMode = Options.nnbdAgnosticMode.read(parsedOptions);
+          defines = parsedOptions.defines;
+          if (Options.noDefines.read(parsedOptions)) {
             if (defines.isNotEmpty) {
               throw "Can't have no defines and specific defines "
                   "at the same time.";
             }
             defines = null;
           }
-          noVerify = noVerifyCmd.read(parsedArguments);
-          target = Options.target.read(parsedArguments);
+          noVerify = noVerifyCmd.read(parsedOptions);
+          target = Options.target.read(parsedOptions);
           folderOptions = new FolderOptions(
               parseExperimentalFlags(
                   parseExperimentalArguments(experimentalFlagsArguments),
@@ -579,27 +579,27 @@ class FastaContext extends ChainContext with MatchContext {
       Map<ExperimentalFlag, Version> experimentReleasedVersion;
       if (optionsFile.existsSync()) {
         List<String> arguments =
-            ParsedArguments.readOptionsFile(optionsFile.readAsStringSync());
-        ParsedArguments parsedArguments =
-            ParsedArguments.parse(arguments, testOptionsSpecification);
-        if (Options.nnbdAgnosticMode.read(parsedArguments)) {
+            ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
+        ParsedOptions parsedOptions =
+            ParsedOptions.parse(arguments, testOptionsSpecification);
+        if (Options.nnbdAgnosticMode.read(parsedOptions)) {
           nnbdMode = NnbdMode.Agnostic;
         }
-        if (Options.nnbdStrongMode.read(parsedArguments)) {
+        if (Options.nnbdStrongMode.read(parsedOptions)) {
           if (nnbdMode != null) {
             throw new UnsupportedError(
                 'Nnbd mode $nnbdMode already specified.');
           }
           nnbdMode = NnbdMode.Strong;
         }
-        if (Options.nnbdWeakMode.read(parsedArguments)) {
+        if (Options.nnbdWeakMode.read(parsedOptions)) {
           if (nnbdMode != null) {
             throw new UnsupportedError(
                 'Nnbd mode $nnbdMode already specified.');
           }
           nnbdMode = NnbdMode.Weak;
         }
-        if (fixNnbdReleaseVersion.read(parsedArguments)) {
+        if (fixNnbdReleaseVersion.read(parsedOptions)) {
           // Allow package:allowed_package to use nnbd features from version
           // 2.9.
           allowedExperimentalFlags = new AllowedExperimentalFlags(
@@ -618,7 +618,7 @@ class FastaContext extends ChainContext with MatchContext {
             ExperimentalFlag.nonNullable: const Version(2, 9)
           };
         }
-        for (String argument in parsedArguments.arguments) {
+        for (String argument in parsedOptions.arguments) {
           Uri uri = description.uri.resolve(argument);
           if (uri.scheme != 'package') {
             File f = new File.fromUri(uri);
