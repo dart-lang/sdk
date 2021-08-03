@@ -338,6 +338,28 @@ class C {
     ]);
   }
 
+  test_error_duplicateConstructorDefault_bothNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.new();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorDefault_oneNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
+    ]);
+  }
+
   test_error_duplicateConstructorName() async {
     await assertErrorsInCode(r'''
 class C {

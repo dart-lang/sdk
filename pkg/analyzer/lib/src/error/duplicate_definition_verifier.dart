@@ -253,15 +253,18 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void _checkClassMembers(ClassElement element, List<ClassMember> members) {
-    Set<String> constructorNames = HashSet<String>();
-    Map<String, Element> instanceGetters = HashMap<String, Element>();
-    Map<String, Element> instanceSetters = HashMap<String, Element>();
-    Map<String, Element> staticGetters = HashMap<String, Element>();
-    Map<String, Element> staticSetters = HashMap<String, Element>();
+    var constructorNames = HashSet<String>();
+    var instanceGetters = HashMap<String, Element>();
+    var instanceSetters = HashMap<String, Element>();
+    var staticGetters = HashMap<String, Element>();
+    var staticSetters = HashMap<String, Element>();
 
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
         var name = member.name?.name ?? '';
+        if (name == 'new') {
+          name = '';
+        }
         if (!constructorNames.add(name)) {
           if (name.isEmpty) {
             _errorReporter.reportErrorForName(
