@@ -6,7 +6,7 @@ library dart2js.new_js_emitter.model;
 
 import '../common_elements.dart';
 import '../constants/values.dart' show ConstantValue;
-import '../deferred_load/deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;

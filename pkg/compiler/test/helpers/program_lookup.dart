@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/deferred_load/deferred_load.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';

@@ -9,7 +9,7 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
-import '../../deferred_load/deferred_load.dart'
+import '../../deferred_load/output_unit.dart'
     show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
