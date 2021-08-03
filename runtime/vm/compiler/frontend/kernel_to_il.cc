@@ -1486,7 +1486,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Box(kUnboxedFfiIntPtr);
     } break;
     case MethodRecognizer::kHas63BitSmis: {
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
       body += Constant(Bool::True());
 #else
       body += Constant(Bool::False());

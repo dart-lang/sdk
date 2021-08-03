@@ -3736,7 +3736,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedUint8:
     case kUnboxedUint16:
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
     case kUnboxedInt32:
     case kUnboxedUint32:
 #endif
