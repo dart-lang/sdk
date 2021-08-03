@@ -286,6 +286,7 @@ dartbug
 dartdoc
 dartfix
 dartlang
+dashes
 dc
 ddc
 ddk
@@ -577,6 +578,7 @@ inapplicable
 inc
 incomparable
 inconsistency
+increased
 incremented
 independently
 indexer
