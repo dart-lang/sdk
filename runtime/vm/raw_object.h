@@ -2725,10 +2725,6 @@ class UntaggedString : public UntaggedInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };
@@ -2743,6 +2739,8 @@ class UntaggedOneByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 class UntaggedTwoByteString : public UntaggedString {
@@ -2755,6 +2753,8 @@ class UntaggedTwoByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
