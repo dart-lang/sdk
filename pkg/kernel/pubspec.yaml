@@ -8,8 +8,6 @@ publish_to: none
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
 dev_dependencies:
   args: '>=0.13.4 <2.0.0'
   expect:

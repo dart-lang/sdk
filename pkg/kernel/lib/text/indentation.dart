@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/util/link.dart' show Link;
-
 /// Indentation utility class. Should be used as a mixin in most cases.
 class Indentation {
   /// The current indentation string.
@@ -54,19 +52,17 @@ class Indentation {
 
 abstract class Tagging<N> implements Indentation {
   StringBuffer sb = new StringBuffer();
-  Link<String> tagStack = const Link<String>();
+  List<String> tagStack = [];
 
   void pushTag(String tag) {
-    tagStack = tagStack.prepend(tag);
+    tagStack.add(tag);
     indentMore();
   }
 
   String popTag() {
     assert(!tagStack.isEmpty);
-    String tag = tagStack.head;
-    tagStack = tagStack.tail!;
     indentLess();
-    return tag;
+    return tagStack.removeLast();
   }
 
   /// Adds given string to result string.
