@@ -87,7 +87,7 @@ class AvoidOperatorEqualsOnMutableClasses extends LintRule
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
@@ -95,9 +95,7 @@ class AvoidOperatorEqualsOnMutableClasses extends LintRule
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
-
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {

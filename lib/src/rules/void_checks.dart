@@ -52,10 +52,9 @@ class VoidChecks extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.context) : typeSystem = context.typeSystem;
+  _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
     if (type.isVoid) return true;
