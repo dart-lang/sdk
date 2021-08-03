@@ -187,6 +187,11 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// and if all elements stored into the returned list are actually instance
   /// of [S],
   /// then the returned list can be used as a `List<T>`.
+  ///
+  /// Methods like [contains] and [remove]
+  /// which accept `Object?` as argument
+  /// will pass the argument directly to the this list's method
+  /// without any checks.
   static List<T> castFrom<S, T>(List<S> source) => CastList<S, T>(source);
 
   /// Copy a range of one list into another list.
@@ -254,13 +259,20 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// Returns a view of this list as a list of [R] instances.
   ///
   /// If this list contains only instances of [R], all read operations
-  /// will work correctly. If any operation tries to access an element
+  /// will work correctly. If any operation tries to read an element
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the list (e.g., by using [add] or [addAll])
   /// must be instance of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this list as well.
+  ///
+  /// Methods like [contains] and [remove]
+  /// which accept `Object?` as argument
+  /// will pass the argument directly to the this list's method
+  /// without any checks.
+  /// That means that you can do `listOfStrings.cast<int>().remove("a")`
+  /// successfully, even if it looks like it shouldn't have any effect.
   ///
   /// Typically implemented as `List.castFrom<E, R>(this)`.
   List<R> cast<R>();

@@ -106,6 +106,11 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// and if all elements added to the returned set are actually instance
   /// of [S],
   /// then the returned set can be used as a `Set<T>`.
+  ///
+  /// Methods like [contains], [remove] and [removeAll]
+  /// which accept one or more `Object?` as argument,
+  /// will pass the argument directly to the this set's method
+  /// without any checks.
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       CastSet<S, T>(source, newSet);
 
@@ -119,6 +124,13 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// must be instance of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this set as well.
+  ///
+  /// Methods like [contains], [remove] and [removeAll]
+  /// which accept one or more `Object?` as argument,
+  /// will pass the argument directly to the this set's method
+  /// without any checks.
+  /// That means that you can do `setOfStrings.cast<int>().remove("a")`
+  /// successfully, even if it looks like it shouldn't have any effect.
   Set<R> cast<R>();
 
   /// An iterator that iterates over the elements of this set.
