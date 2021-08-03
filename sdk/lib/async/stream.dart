@@ -1479,13 +1479,20 @@ abstract class Stream<T> {
 
   /// Creates a new stream with the same events as this stream.
   ///
-  /// Whenever more than [timeLimit] passes between two events from this stream,
-  /// the [onTimeout] function is called, which can emit further events on
+  /// When someone is listening on the returned stream and more than
+  /// [timeLimit] passes without any event being emitted by this stream,
+  /// the [onTimeout] function is called, which can then emit further events on
   /// the returned stream.
   ///
-  /// The countdown doesn't start until the returned stream is listened to.
-  /// The countdown is reset every time an event is forwarded from this stream,
-  /// or when this stream is paused and resumed.
+  /// The countdown starts when the returned stream is listened to,
+  /// and is restarted when an event from the this stream is emitted,
+  /// or when listening on the returned stream is paused and resumed.
+  /// The countdown is stopped when listening on the returned stream is
+  /// paused or cancelled.
+  /// No new countdown is started when a countdown completes
+  /// and the [onTimeout] function is called, even if events are emitted.
+  /// If the delay between events of this stream is multiple times
+  /// [timeLimit], at most one timeout will happen between events.
   ///
   /// The [onTimeout] function is called with one argument: an
   /// [EventSink] that allows putting events into the returned stream.
@@ -1493,10 +1500,10 @@ abstract class Stream<T> {
   /// Calling [EventSink.close] on the sink passed to [onTimeout] closes the
   /// returned stream, and no further events are processed.
   ///
-  /// If [onTimeout] is omitted, a timeout will just put a [TimeoutException]
+  /// If [onTimeout] is omitted, a timeout will emit a [TimeoutException]
   /// into the error channel of the returned stream.
-  /// If the call to [onTimeout] throws, the error is emitted on the returned
-  /// stream.
+  /// If the call to [onTimeout] throws, the error is emitted as an error
+  /// on the returned stream.
   ///
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
@@ -1519,8 +1526,6 @@ abstract class Stream<T> {
             new TimeoutException("No stream event", timeLimit), null);
       };
     } else {
-      // TODO(floitsch): the return type should be 'void', and the type
-      // should be inferred.
       var registeredOnTimeout =
           zone.registerUnaryCallback<void, EventSink<T>>(onTimeout);
       var wrapper = new _ControllerEventSinkWrapper<T>(null);
