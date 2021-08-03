@@ -2889,8 +2889,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // underlying type for type checks, so they operate virtually the same as
     // anonymous types. We represent package:js types with a corresponding type
     // object.
-    var jsName = isJSAnonymousType(c) ?
-        getLocalClassName(c) : _emitJsNameWithoutGlobal(c);
+    var jsName = isJSAnonymousType(c)
+        ? getLocalClassName(c)
+        : _emitJsNameWithoutGlobal(c);
     if (jsName != null) {
       typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
     }

@@ -895,6 +895,7 @@ class AssetFileSystemTestDriver extends TestDriver {
   Future<void> stop() async {
     server.stop();
     await super.stop();
+    (assetFileSystem as AssetFileSystem).close();
   }
 }
 

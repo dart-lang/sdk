@@ -83,6 +83,8 @@ class ExpressionCompilerWorker {
   final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
+  void Function() onDone;
+
   ExpressionCompilerWorker._(
     this._processedOptions,
     this._compilerOptions,
@@ -90,6 +92,7 @@ class ExpressionCompilerWorker {
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
+    this.onDone,
   );
 
   /// Create expression compiler worker from [args] and start it.
@@ -140,6 +143,7 @@ class ExpressionCompilerWorker {
     }
   }
 
+  /// Parse args and create the worker, hook cleanup code to run when done.
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
     Stream<Map<String, dynamic>> requestStream,
@@ -186,6 +190,9 @@ class ExpressionCompilerWorker {
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
+      onDone: () {
+        if (fileSystem is AssetFileSystem) fileSystem.close();
+      },
     );
   }
 
@@ -209,6 +216,7 @@ class ExpressionCompilerWorker {
     Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)
         sendResponse, // Defaults to write to stdout
+    void Function() onDone,
   }) async {
     var compilerOptions = CompilerOptions()
       ..compileSdk = false
@@ -241,7 +249,7 @@ class ExpressionCompilerWorker {
       throw Exception('Could not load SDK component: $sdkSummary');
     }
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        moduleFormat, sdkComponent, requestStream, sendResponse)
+        moduleFormat, sdkComponent, requestStream, sendResponse, onDone)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -281,10 +289,7 @@ class ExpressionCompilerWorker {
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
-  void close() {
-    var fileSystem = _processedOptions?.fileSystem;
-    if (fileSystem != null && fileSystem is AssetFileSystem) fileSystem.close();
-  }
+  void close() => onDone?.call();
 
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
