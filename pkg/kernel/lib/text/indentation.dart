@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
-part of dart2js.util;
-
 /// Indentation utility class. Should be used as a mixin in most cases.
 class Indentation {
   /// The current indentation string.
@@ -48,7 +44,7 @@ class Indentation {
   /// upon return of [f] and returning its result.
   indentBlock(Function f) {
     indentMore();
-    var result = f();
+    dynamic result = f();
     indentLess();
     return result;
   }
@@ -56,19 +52,17 @@ class Indentation {
 
 abstract class Tagging<N> implements Indentation {
   StringBuffer sb = new StringBuffer();
-  Link<String> tagStack = const Link<String>();
+  List<String> tagStack = [];
 
   void pushTag(String tag) {
-    tagStack = tagStack.prepend(tag);
+    tagStack.add(tag);
     indentMore();
   }
 
   String popTag() {
     assert(!tagStack.isEmpty);
-    String tag = tagStack.head;
-    tagStack = tagStack.tail!;
     indentLess();
-    return tag;
+    return tagStack.removeLast();
   }
 
   /// Adds given string to result string.
@@ -135,5 +129,5 @@ abstract class Tagging<N> implements Indentation {
   }
 
   /// Converts a parameter value into a string.
-  String valueToString(var value) => value;
+  String valueToString(dynamic value) => value;
 }

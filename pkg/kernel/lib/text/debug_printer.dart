@@ -8,14 +8,14 @@ library kernel.debug;
 
 import 'package:kernel/ast.dart';
 
-import '../util/util.dart' show Indentation, Tagging;
+import 'indentation.dart' show Indentation, Tagging;
 
 class DebugPrinter extends Visitor<void>
     with Indentation, Tagging<Node>, VisitorVoidMixin {
   @override
   StringBuffer sb = new StringBuffer();
 
-  void visitNodeWithChildren(Node node, String type, [Map params]) {
+  void visitNodeWithChildren(Node node, String type, [Map? params]) {
     openNode(node, type, params);
     node.visitChildren(this);
     closeNode();
@@ -102,7 +102,7 @@ class DebugPrinter extends Visitor<void>
 
   /// Pretty-prints given node tree into string.
   static String prettyPrint(Node node) {
-    var p = new DebugPrinter();
+    DebugPrinter p = new DebugPrinter();
     node.accept(p);
     return p.sb.toString();
   }

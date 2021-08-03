@@ -8,7 +8,7 @@ import '../../../compiler_new.dart';
 import '../../common.dart';
 import '../../common/codegen.dart';
 import '../../constants/values.dart';
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load/deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../io/source_information.dart';

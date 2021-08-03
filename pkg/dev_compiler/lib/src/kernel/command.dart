@@ -18,6 +18,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
+import 'package:kernel/text/debug_printer.dart';
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -88,7 +89,7 @@ Future<CompilerResult> _compile(List<String> args,
     ..addOption('packages', help: 'The package spec file to use.')
     // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'Emit API summary in a .js.txt file.',
+        help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
         defaultsTo: false,
         hide: true)
     ..addFlag('track-widget-creation',
@@ -413,6 +414,8 @@ Future<CompilerResult> _compile(List<String> args,
     var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
+    outFiles.add(File(outPaths.first.split('.')[0] + '.ast.xml')
+        .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)));
   }
 
   final importToSummary = Map<Library, Component>.identity();

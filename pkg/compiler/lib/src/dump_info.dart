@@ -19,7 +19,7 @@ import 'common.dart';
 import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
-import 'deferred_load.dart' show OutputUnit, deferredPartFileName;
+import 'deferred_load/deferred_load.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'

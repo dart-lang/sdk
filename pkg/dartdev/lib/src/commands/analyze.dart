@@ -127,14 +127,14 @@ class AnalyzeCommand extends DartdevCommand {
 
     progress?.finish(showTiming: true);
 
-    errors.sort();
-
     if (errors.isEmpty) {
       if (!machineFormat) {
         log.stdout('No issues found!');
       }
       return 0;
     }
+
+    errors.sort();
 
     if (machineFormat) {
       emitMachineFormat(log, errors);

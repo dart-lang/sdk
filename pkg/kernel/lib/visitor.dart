@@ -590,6 +590,42 @@ abstract class ConstantVisitor<R> {
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
 
+abstract class ConstantVisitor1<R, A> {
+  const ConstantVisitor1();
+
+  R defaultConstant(Constant node, A arg);
+
+  R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
+  R visitBoolConstant(BoolConstant node, A arg) => defaultConstant(node, arg);
+  R visitIntConstant(IntConstant node, A arg) => defaultConstant(node, arg);
+  R visitDoubleConstant(DoubleConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStringConstant(StringConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitSymbolConstant(SymbolConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
+  R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
+  R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  R visitInstanceConstant(InstanceConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitInstantiationConstant(InstantiationConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStaticTearOffConstant(StaticTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitUnevaluatedConstant(UnevaluatedConstant node, A arg) =>
+      defaultConstant(node, arg);
+}
+
 abstract class _ConstantCallback<R> {
   R defaultConstant(Constant node);
 
@@ -803,6 +839,21 @@ abstract class MemberReferenceVisitor<R> {
   }
 }
 
+abstract class MemberReferenceVisitor1<R, A> {
+  const MemberReferenceVisitor1();
+
+  R defaultMemberReference(Member node, A arg);
+
+  R visitFieldReference(Field node, A arg) => defaultMemberReference(node, arg);
+  R visitConstructorReference(Constructor node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitProcedureReference(Procedure node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) {
+    return defaultMemberReference(node, arg);
+  }
+}
+
 abstract class Visitor<R> extends TreeVisitor<R>
     implements
         DartTypeVisitor<R>,
@@ -913,6 +964,118 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);
   R visitNamedType(NamedType node) => defaultNode(node);
+}
+
+abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
+    implements
+        DartTypeVisitor1<R, A>,
+        ConstantVisitor1<R, A>,
+        MemberReferenceVisitor1<R, A> {
+  const Visitor1();
+
+  /// The catch-all case, except for references.
+  R defaultNode(Node node, A arg);
+  R defaultTreeNode(TreeNode node, A arg) => defaultNode(node, arg);
+
+  // DartTypes
+  R defaultDartType(DartType node, A arg) => defaultNode(node, arg);
+  R visitInvalidType(InvalidType node, A arg) => defaultDartType(node, arg);
+  R visitDynamicType(DynamicType node, A arg) => defaultDartType(node, arg);
+  R visitVoidType(VoidType node, A arg) => defaultDartType(node, arg);
+  R visitInterfaceType(InterfaceType node, A arg) => defaultDartType(node, arg);
+  R visitFutureOrType(FutureOrType node, A arg) => defaultDartType(node, arg);
+  R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
+  R visitTypeParameterType(TypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
+  R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
+  R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
+  R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
+  R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
+
+  // Constants
+  R defaultConstant(Constant node, A arg) => defaultNode(node, arg);
+  R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
+  R visitBoolConstant(BoolConstant node, A arg) => defaultConstant(node, arg);
+  R visitIntConstant(IntConstant node, A arg) => defaultConstant(node, arg);
+  R visitDoubleConstant(DoubleConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStringConstant(StringConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitSymbolConstant(SymbolConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
+  R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
+  R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  R visitInstanceConstant(InstanceConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitInstantiationConstant(InstantiationConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitUnevaluatedConstant(UnevaluatedConstant node, A arg) =>
+      defaultConstant(node, arg);
+
+  // Class references
+  R visitClassReference(Class node, A arg);
+
+  R visitTypedefReference(Typedef node, A arg);
+
+  R visitExtensionReference(Extension node, A arg);
+
+  // Constant references
+  R defaultConstantReference(Constant node, A arg);
+
+  R visitNullConstantReference(NullConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitBoolConstantReference(BoolConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitIntConstantReference(IntConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitDoubleConstantReference(DoubleConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitStringConstantReference(StringConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitSymbolConstantReference(SymbolConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitMapConstantReference(MapConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitListConstantReference(ListConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitSetConstantReference(SetConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitInstanceConstantReference(InstanceConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitInstantiationConstantReference(InstantiationConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitConstructorTearOffConstantReference(
+          ConstructorTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitRedirectingFactoryTearOffConstantReference(
+          RedirectingFactoryTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitStaticTearOffConstantReference(StaticTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitTypedefTearOffConstantReference(TypedefTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitTypeLiteralConstantReference(TypeLiteralConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitUnevaluatedConstantReference(UnevaluatedConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+
+  // Member references
+  R defaultMemberReference(Member node, A arg);
+
+  R visitFieldReference(Field node, A arg) => defaultMemberReference(node, arg);
+  R visitConstructorReference(Constructor node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitProcedureReference(Procedure node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) =>
+      defaultMemberReference(node, arg);
+
+  R visitName(Name node, A arg) => defaultNode(node, arg);
+  R visitSupertype(Supertype node, A arg) => defaultNode(node, arg);
+  R visitNamedType(NamedType node, A arg) => defaultNode(node, arg);
 }
 
 /// Visitor mixin that throws as its base case.

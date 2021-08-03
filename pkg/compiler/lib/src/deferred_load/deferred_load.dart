@@ -10,31 +10,31 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
-import '../compiler_new.dart' show OutputType;
-import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
-import 'common/tasks.dart' show CompilerTask;
-import 'common.dart';
-import 'common_elements.dart' show CommonElements, KElementEnvironment;
-import 'compiler.dart' show Compiler;
-import 'constants/values.dart'
+import '../../compiler_new.dart' show OutputType;
+import '../common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
+import '../common/tasks.dart' show CompilerTask;
+import '../common.dart';
+import '../common_elements.dart' show CommonElements, KElementEnvironment;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart'
     show
         ConstantValue,
         ConstructedConstantValue,
         DeferredGlobalConstantValue,
         InstantiationConstantValue;
-import 'elements/types.dart';
-import 'elements/entities.dart';
-import 'ir/util.dart';
-import 'kernel/kelements.dart' show KLocalFunction;
-import 'kernel/element_map.dart';
-import 'serialization/serialization.dart';
-import 'options.dart';
-import 'universe/use.dart';
-import 'universe/world_impact.dart'
+import '../elements/types.dart';
+import '../elements/entities.dart';
+import '../ir/util.dart';
+import '../kernel/kelements.dart' show KLocalFunction;
+import '../kernel/element_map.dart';
+import '../serialization/serialization.dart';
+import '../options.dart';
+import '../universe/use.dart';
+import '../universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
-import 'util/maplet.dart';
-import 'util/util.dart' show makeUnique;
-import 'world.dart' show KClosedWorld;
+import '../util/maplet.dart';
+import '../util/util.dart' show makeUnique;
+import '../world.dart' show KClosedWorld;
 
 /// A "hunk" of the program that will be loaded whenever one of its [imports]
 /// are loaded.

@@ -62,6 +62,7 @@ asgerf
 askesc
 aspect
 aspx
+asserting
 assigning
 assigns
 association
@@ -299,6 +300,7 @@ deemed
 deepest
 deeply
 def
+defaulting
 degrades
 degree
 del
@@ -388,12 +390,14 @@ enforce
 enforced
 enforces
 enforcing
+enters
 engineered
 enumerates
 env
 eof
 eq
 equation
+equivalences
 erased
 erasure
 es
@@ -580,6 +584,9 @@ indexing
 indirection
 individual
 inequality
+inequivalence
+inequivalences
+inequivalent
 influence
 informative
 infos
@@ -604,6 +611,7 @@ int64
 int8
 integrate
 intentionally
+interested
 interim
 interior
 interleaved
@@ -786,6 +794,7 @@ nj
 nk
 nnbd
 node's
+nominality
 nonimplementation
 norm
 normalization
@@ -821,6 +830,7 @@ offs
 ogham
 oked
 op
+opens
 opt
 optimizations
 opting
@@ -1037,6 +1047,7 @@ res
 residue
 resource
 respond
+restoring
 restriction
 resumed
 ret
@@ -1062,6 +1073,7 @@ rpc
 rs
 runnable
 s
+sand
 sanitizing
 saw
 say
@@ -1107,6 +1119,7 @@ sibling
 siblings
 sides
 sigmund
+signaling
 significant
 simplify
 singleton
@@ -1205,12 +1218,14 @@ svg
 sw
 swapped
 sweep
+symbolic
 synchronously
 syncs
 synth
 t
 tagged
 tagger
+tagging
 tags
 tailor
 taking
@@ -1413,6 +1428,7 @@ widgets
 wiki
 wikipedia
 wind
+wise
 wiser
 with1
 wn

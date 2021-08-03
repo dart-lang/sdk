@@ -293,23 +293,20 @@ class AnalysisError implements Comparable<AnalysisError> {
     return messages.map((message) => DiagnosticMessage(message)).toList();
   }
 
-  // TODO(jwren) add some tests to verify that the results are what we are
-  // expecting, 'other' is not always on the RHS of the subtraction in the
-  // implementation.
   @override
   int compareTo(AnalysisError other) {
-    // Sort in order of file path, error location, severity, and message.
+    // Sort in order of severity, file path, error location, and message.
+    final int diff = _severityLevel.index - other._severityLevel.index;
+    if (diff != 0) {
+      return diff;
+    }
+
     if (file != other.file) {
       return file.compareTo(other.file);
     }
 
     if (offset != other.offset) {
       return offset - other.offset;
-    }
-
-    final int diff = other._severityLevel.index - _severityLevel.index;
-    if (diff != 0) {
-      return diff;
     }
 
     return message.compareTo(other.message);

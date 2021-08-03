@@ -440,7 +440,7 @@ C c() => C.new(C.new());
   Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
-  C.new([C c]);
+  C.updated([C c]);
 }
 ''');
     addPackageDataFile('''
@@ -454,7 +454,7 @@ transforms:
     inClass: 'C'
   changes:
     - kind: 'rename'
-      newName: 'new'
+      newName: 'updated'
 ''');
     await resolveTestCode('''
 import '$importUri';
@@ -462,7 +462,7 @@ C c() => C(C());
 ''');
     await assertHasFix('''
 import '$importUri';
-C c() => C.new(C.new());
+C c() => C.updated(C.updated());
 ''');
   }
 }

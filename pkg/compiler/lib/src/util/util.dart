@@ -7,12 +7,10 @@
 library dart2js.util;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link;
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB;
 
 export 'maplet.dart';
 export 'setlet.dart';
-
-part 'indentation.dart';
 
 /// Helper functions for creating hash codes.
 class Hashing {

@@ -13,7 +13,7 @@ import '../common/tasks.dart';
 import '../common/work.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart';
-import '../deferred_load.dart' hide WorkItem;
+import '../deferred_load/deferred_load.dart' hide WorkItem;
 import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../enqueue.dart';

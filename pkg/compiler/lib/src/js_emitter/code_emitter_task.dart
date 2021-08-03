@@ -9,7 +9,7 @@ import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../deferred_load.dart' show OutputUnit;
+import '../deferred_load/deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/backend.dart' show CodegenInputs;

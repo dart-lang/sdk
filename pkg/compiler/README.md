@@ -351,11 +351,11 @@ functionality is publicly exposed.
     representation of JSInt31, JSArray, and other implementation-specific
     elements.
 
-* `lib/src/deferred_load.dart`: general analysis for deferred loading. This is
-  where we compute how to split the code in different JS chunks or fragments.
-  This is run after resolution, but at a time when no code is generated yet, so
-  the decisions made here are used later on by the emitter to dump code into
-  different files.
+* `lib/src/deferred_load/deferred_load.dart`: general analysis for deferred
+  loading. This is where we compute how to split the code in different JS chunks
+  or fragments.  This is run after resolution, but at a time when no code is
+  generated yet, so the decisions made here are used later on by the emitter to
+  dump code into different files.
 
 * `lib/src/dump_info.dart`: a special phase used to create a .info.json file.
   This file contains lots of information computed by dart2js including decisions
