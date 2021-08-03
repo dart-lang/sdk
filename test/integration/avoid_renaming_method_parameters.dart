@@ -37,12 +37,12 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'a.dart 29:6 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 31:12 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 32:9 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 34:7 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 35:6 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 36:6 [lint] Don\'t rename parameters of overridden methods.',
+            "a.dart 29:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
+            "a.dart 31:12 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
+            "a.dart 32:9 [lint] The parameter 'bb' should have the name 'b' to match the name used in the overridden method.",
+            "a.dart 34:7 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
+            "a.dart 35:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
+            "a.dart 36:6 [lint] The parameter 'aa' should have the name 'a' to match the name used in the overridden method.",
             '3 files analyzed, 6 issues found',
           ]));
       expect(exitCode, 1);

@@ -59,16 +59,20 @@ class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
       return;
     }
 
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-  final LinterContext context;
+  static const LintCode parameterCode = LintCode(
+      "avoid_renaming_method_parameters",
+      "The parameter '{0}' should have the name '{1}' to match the name used in the overridden method.",
+      correction: "Try renaming the parameter.");
 
-  _Visitor(this.rule, this.context);
+  final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -108,7 +112,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       var paramIdentifier = parameters[i].identifier;
       if (paramIdentifier != null &&
           paramIdentifier.name != parentParameters[i].name) {
-        rule.reportLint(parameters[i].identifier);
+        rule.reportLint(paramIdentifier,
+            arguments: [paramIdentifier.name, parentParameters[i].name],
+            errorCode: parameterCode);
       }
     }
   }
