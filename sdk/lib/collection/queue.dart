@@ -53,8 +53,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept one `Object?` as argument,
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this queue's method
   /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
@@ -70,8 +69,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// and they must be instances of [E] as well to be accepted by
   /// this queue as well.
   ///
-  /// Methods like [contains] and [remove]
-  /// which accept one `Object?` as argument,
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
   /// will pass the argument directly to the this queue's method
   /// without any checks.
   /// That means that you can do `queueOfStrings.cast<int>().remove("a")`
