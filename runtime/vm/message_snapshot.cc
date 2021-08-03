@@ -145,7 +145,7 @@ class BaseSerializer : public StackResource {
   void WriteWordWith32BitWrites(uword value) {
     stream_.WriteWordWith32BitWrites(value);
   }
-  void WriteBytes(const uint8_t* addr, intptr_t len) {
+  void WriteBytes(const void* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
   void WriteAscii(const String& str) {
@@ -344,7 +344,7 @@ class BaseDeserializer : public ValueObject {
   }
   intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
   uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
-  void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
+  void ReadBytes(void* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
   const char* ReadAscii() {
     intptr_t len = ReadUnsigned();
     const char* result = reinterpret_cast<const char*>(CurrentBufferAddress());
@@ -1572,8 +1572,7 @@ class TypedDataMessageDeserializationCluster
       d->AssignRef(data.ptr());
       const intptr_t length_in_bytes = length * element_size;
       NoSafepointScope no_safepoint;
-      uint8_t* cdata = reinterpret_cast<uint8_t*>(data.untag()->data());
-      d->ReadBytes(cdata, length_in_bytes);
+      d->ReadBytes(data.untag()->data(), length_in_bytes);
     }
   }
 
@@ -2064,6 +2063,60 @@ class TransferableTypedDataMessageDeserializationCluster
           reinterpret_cast<uint8_t*>(finalizable_data.data), length));
     }
   }
+};
+
+class Simd128MessageSerializationCluster : public MessageSerializationCluster {
+ public:
+  explicit Simd128MessageSerializationCluster(intptr_t cid)
+      : MessageSerializationCluster("Simd128",
+                                    MessagePhase::kBeforeTypes,
+                                    cid) {}
+  ~Simd128MessageSerializationCluster() {}
+
+  void Trace(MessageSerializer* s, Object* object) { objects_.Add(object); }
+
+  void WriteNodes(MessageSerializer* s) {
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      Object* vector = objects_[i];
+      s->AssignRef(vector);
+      ASSERT_EQUAL(Int32x4::value_offset(), Float32x4::value_offset());
+      ASSERT_EQUAL(Int32x4::value_offset(), Float64x2::value_offset());
+      s->WriteBytes(&(static_cast<Int32x4Ptr>(vector->ptr())->untag()->value_),
+                    sizeof(simd128_value_t));
+    }
+  }
+
+ private:
+  GrowableArray<Object*> objects_;
+};
+
+class Simd128MessageDeserializationCluster
+    : public MessageDeserializationCluster {
+ public:
+  explicit Simd128MessageDeserializationCluster(intptr_t cid)
+      : MessageDeserializationCluster("Simd128"), cid_(cid) {}
+  ~Simd128MessageDeserializationCluster() {}
+
+  void ReadNodes(MessageDeserializer* d) {
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      ASSERT_EQUAL(Int32x4::InstanceSize(), Float32x4::InstanceSize());
+      ASSERT_EQUAL(Int32x4::InstanceSize(), Float64x2::InstanceSize());
+      ObjectPtr vector =
+          Object::Allocate(cid_, Int32x4::InstanceSize(), Heap::kNew,
+                           Int32x4::ContainsCompressedPointers());
+      d->AssignRef(vector);
+      ASSERT_EQUAL(Int32x4::value_offset(), Float32x4::value_offset());
+      ASSERT_EQUAL(Int32x4::value_offset(), Float64x2::value_offset());
+      d->ReadBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
+                   sizeof(simd128_value_t));
+    }
+  }
+
+ private:
+  const intptr_t cid_;
 };
 
 class RegExpMessageSerializationCluster : public MessageSerializationCluster {
@@ -3233,6 +3286,10 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
       return new (Z) OneByteStringMessageSerializationCluster(Z, is_canonical);
     case kTwoByteStringCid:
       return new (Z) TwoByteStringMessageSerializationCluster(Z, is_canonical);
+    case kInt32x4Cid:
+    case kFloat32x4Cid:
+    case kFloat64x2Cid:
+      return new (Z) Simd128MessageSerializationCluster(cid);
     default:
       break;
   }
@@ -3321,6 +3378,11 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
       return new (Z) OneByteStringMessageDeserializationCluster(is_canonical);
     case kTwoByteStringCid:
       return new (Z) TwoByteStringMessageDeserializationCluster(is_canonical);
+    case kInt32x4Cid:
+    case kFloat32x4Cid:
+    case kFloat64x2Cid:
+      ASSERT(!is_canonical);
+      return new (Z) Simd128MessageDeserializationCluster(cid);
     default:
       break;
   }

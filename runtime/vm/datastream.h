@@ -85,7 +85,7 @@ class ReadStream : public ValueObject {
   };
 
   // Reads 'len' bytes from the stream.
-  void ReadBytes(uint8_t* addr, intptr_t len) {
+  void ReadBytes(void* addr, intptr_t len) {
     ASSERT((end_ - current_) >= len);
     if (len != 0) {
       memmove(addr, current_, len);
