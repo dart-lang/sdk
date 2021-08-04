@@ -107,7 +107,7 @@ class ElementFactory {
       ClassElement definingClass, String? name, bool isConst,
       [List<DartType> argumentTypes = const []]) {
     var offset = name == null ? -1 : 0;
-    // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+    // A constructor declared as `C.new` is unnamed, and is modeled as such.
     var constructor = name == null || name == 'new'
         ? ConstructorElementImpl('', offset)
         : ConstructorElementImpl(name, offset);
