@@ -78,7 +78,7 @@ class C extends core::Object {
   static factory fact() → self::C*
     return null;
   static factory fact2() → self::C*
-    let Never #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   static method staticFunction(core::int* i) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

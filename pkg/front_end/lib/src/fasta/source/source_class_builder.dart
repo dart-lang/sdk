@@ -39,7 +39,6 @@ import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
 import '../kernel/kernel_builder.dart' show compareProcedures;
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart'
     show Variance, computeTypeVariableBuilderVariance;
@@ -937,42 +936,44 @@ class SourceClassBuilder extends ClassBuilderImpl
                 _addRedirectingConstructor(
                     declaration, library, getterReference);
               }
+              Member? targetNode;
               if (targetBuilder is FunctionBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments ??
-                    new List<DartType>.filled(
-                        targetBuilder
-                            .member.enclosingClass!.typeParameters.length,
-                        const UnknownType());
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
+                targetNode = targetBuilder.member;
               } else if (targetBuilder is DillMemberBuilder) {
-                List<DartType> typeArguments = declaration.typeArguments ??
-                    new List<DartType>.filled(
-                        targetBuilder
-                            .member.enclosingClass!.typeParameters.length,
-                        const UnknownType());
-                declaration.setRedirectingFactoryBody(
-                    targetBuilder.member, typeArguments);
+                targetNode = targetBuilder.member;
               } else if (targetBuilder is AmbiguousBuilder) {
-                addProblem(
+                addProblemForRedirectingFactory(
+                    declaration,
                     templateDuplicatedDeclarationUse
                         .withArguments(redirectionTarget.fullNameForErrors),
                     redirectionTarget.charOffset,
                     noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
               } else {
-                addProblem(
+                addProblemForRedirectingFactory(
+                    declaration,
                     templateRedirectionTargetNotFound
                         .withArguments(redirectionTarget.fullNameForErrors),
                     redirectionTarget.charOffset,
                     noLength);
-                // CoreTypes aren't computed yet, and this is the outline
-                // phase. So we can't and shouldn't create a method body.
-                declaration.body = new RedirectingFactoryBody.unresolved(
-                    redirectionTarget.fullNameForErrors);
+              }
+              if (targetNode != null &&
+                  targetNode is Constructor &&
+                  targetNode.enclosingClass.isAbstract) {
+                addProblemForRedirectingFactory(
+                    declaration,
+                    templateAbstractRedirectedClassInstantiation
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                targetNode = null;
+              }
+              if (targetNode != null) {
+                List<DartType> typeArguments = declaration.typeArguments ??
+                    new List<DartType>.filled(
+                        targetNode.enclosingClass!.typeParameters.length,
+                        const UnknownType());
+                declaration.setRedirectingFactoryBody(
+                    targetNode, typeArguments);
               }
             }
           }

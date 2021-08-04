@@ -29,10 +29,7 @@ import '../fasta_codes.dart'
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
-    show
-        RedirectingFactoryBody,
-        getRedirectingFactoryBody,
-        isRedirectingFactory;
+    show RedirectingFactoryBody, isRedirectingFactory;
 
 List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
@@ -284,13 +281,11 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     bool hasBody = isRedirectingFactory(node) ||
         RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
     bool hasFlag = node.isRedirectingFactory;
-    if (hasBody != hasFlag) {
-      String hasBodyString = hasBody ? "has" : "doesn't have";
-      String hasFlagString = hasFlag ? "has" : "doesn't have";
+    if (hasFlag && !hasBody) {
       problem(
           node,
-          "Procedure '${node.name}' ${hasBodyString} a body "
-          "of a redirecting factory, but ${hasFlagString} the "
+          "Procedure '${node.name}' doesn't have a body "
+          "of a redirecting factory, but has the "
           "'isRedirectingFactory' bit set.");
     }
 
@@ -429,10 +424,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   void visitStaticInvocation(StaticInvocation node) {
     enterTreeNode(node);
     super.visitStaticInvocation(node);
-    RedirectingFactoryBody? body = getRedirectingFactoryBody(node.target);
-    if (body != null) {
-      problem(node, "Attempt to invoke redirecting factory.");
-    }
     exitTreeNode(node);
   }
 

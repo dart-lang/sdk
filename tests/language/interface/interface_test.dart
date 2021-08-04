@@ -9,7 +9,7 @@ abstract class Ai {
 
 abstract class Bi implements Ai {
   factory Bi() = InterfaceTest;
-  //      ^
+  //             ^
   // [cfe] Factory redirects to class 'InterfaceTest', which is abstract and can't be instantiated.
   //             ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR

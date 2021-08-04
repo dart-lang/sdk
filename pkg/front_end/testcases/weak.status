@@ -105,6 +105,7 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
+general/redirecting_factory: RuntimeError
 general/redirecting_factory_invocation_in_invalid: TypeCheckError
 general/spread_collection: RuntimeError
 general/type_parameter_type_named_int: RuntimeError # Expected

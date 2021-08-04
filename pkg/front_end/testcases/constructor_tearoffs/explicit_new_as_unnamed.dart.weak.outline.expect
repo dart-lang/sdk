@@ -86,7 +86,7 @@ class E4 extends core::Object {
   constructor _() → self::E4
     ;
   static factory •() → self::E4
-    let dynamic #redirecting_factory = self::E4::_ in invalid-expression;
+    return new self::E4::_();
 }
 static method main() → dynamic
   ;
