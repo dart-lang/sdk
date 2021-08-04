@@ -10,7 +10,7 @@ class A extends core::Object {
   constructor •() → self::A*
     : super core::Object::•() {}
   static factory foo() → self::A*
-    let () →* self::C* #redirecting_factory = self::C::bar in invalid-expression;
+    return self::C::bar();
   method m() → core::int* {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -28,7 +28,7 @@ class C extends self::A {
   constructor •() → self::C*
     : super self::A::•() {}
   static factory bar() → self::C*
-    let Never #redirecting_factory = self::D::• in invalid-expression;
+    return new self::D::•();
   method m() → core::int* {
     return 1;
   }

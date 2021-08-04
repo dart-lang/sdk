@@ -302,11 +302,18 @@ class DuplicateDefinitionVerifier {
           var staticMember = staticGetters[name] ?? staticSetters[name];
           if (staticMember != null) {
             if (staticMember is PropertyAccessorElement) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-                nameNode,
-                [name],
-              );
+              CompileTimeErrorCode errorCode;
+              if (staticMember.isSynthetic) {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+              } else if (staticMember.isGetter) {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+              } else {
+                errorCode = CompileTimeErrorCode
+                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+              }
+              _errorReporter.reportErrorForNode(errorCode, nameNode, [name]);
             } else {
               _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,

@@ -1247,13 +1247,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (redirectingFactoryBody != null) {
         // If the redirection target is itself a redirecting factory, it means
         // that it is unresolved.
-        assert(redirectingFactoryBody.isUnresolved);
-        String errorName = redirectingFactoryBody.unresolvedName!;
-        replacementNode = buildProblem(
-            fasta.templateMethodNotFound.withArguments(errorName),
-            fileOffset,
-            noLength,
-            suppressMessage: true);
+        assert(redirectingFactoryBody.isError);
+        String errorMessage = redirectingFactoryBody.errorMessage!;
+        replacementNode = new InvalidExpression(errorMessage)
+          ..fileOffset = fileOffset;
       } else {
         Substitution substitution = Substitution.fromPairs(
             initialTarget.function.typeParameters, arguments.types);
@@ -2373,10 +2370,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(forest.createStringLiteral(offsetForToken(token), value));
     } else {
       int count = 1 + interpolationCount * 2;
-      List<Object>? parts = const FixedNullableList<Object>().popNonNullable(
-          stack,
-          count,
-          /* dummyValue = */ 0);
+      List<Object>? parts = const FixedNullableList<Object>()
+          .popNonNullable(stack, count, /* dummyValue = */ 0);
       if (parts == null) {
         push(new ParserRecovery(endToken.charOffset));
         return;
@@ -6427,12 +6422,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(
-              typeParameter.name!,
-              builder.nullabilityBuilder,
-              /* arguments = */ null,
-              unresolved.fileUri,
-              unresolved.charOffset)
+          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
+              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

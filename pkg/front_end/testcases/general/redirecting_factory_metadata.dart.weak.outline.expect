@@ -8,7 +8,7 @@ class Foo extends core::Object {
     ;
   @self::forFactoryItself
   static factory •(dynamic p) → self::Foo*
-    let dynamic #redirecting_factory = self::Foo::named in invalid-expression;
+    return new self::Foo::named(p);
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

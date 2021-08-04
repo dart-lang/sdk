@@ -22,8 +22,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -338,14 +338,7 @@ class BulkFixProcessor {
       }
     }
 
-    int computeChangeHash() {
-      var hash = 0;
-      var edits = builder.sourceChange.edits;
-      for (var i = 0; i < edits.length; ++i) {
-        hash = JenkinsSmiHash.combine(hash, edits[i].hashCode);
-      }
-      return JenkinsSmiHash.finish(hash);
-    }
+    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     Future<void> generate(CorrectionProducer producer, String code) async {
       var oldHash = computeChangeHash();

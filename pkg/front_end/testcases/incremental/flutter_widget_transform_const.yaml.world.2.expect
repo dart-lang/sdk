@@ -50,7 +50,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
-      let dynamic #redirecting_factory = foo::Bar::_ in invalid-expression;
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   }
   class Baz extends fra::Widget /*hasConstConstructor*/  {
     static final field dynamic _redirecting# = <dynamic>[foo::Baz::_]/*isLegacy*/;
@@ -60,7 +60,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       return #C11;
     static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
-      let dynamic #redirecting_factory = foo::Baz::__ in invalid-expression;
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
   }
   class Boz extends fra::Widget /*hasConstConstructor*/  {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz

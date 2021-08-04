@@ -14,7 +14,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       : super dart.core::Object::•()
       ;
     static factory e4() → lib::C*
-      let dynamic #redirecting_factory = lib::C::• in invalid-expression;
+      return new lib::C::•();
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
     abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf

@@ -479,7 +479,7 @@ class TypeCheckingVisitor
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
     // Don't type check `node.expression`.
-    return const InvalidType();
+    return const NeverType.nonNullable();
   }
 
   @override

@@ -1,3 +1,7 @@
+## master
+
+* Add `@UseResult.unless`.
+
 ## 1.7.0
 
 * Restore `TargetKindExtension` and `get displayString`.

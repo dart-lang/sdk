@@ -106,7 +106,7 @@ class Class1 extends core::Object {
     : super core::Object::•()
     ;
   static factory •() → self::Class1
-    let dynamic #redirecting_factory = self::Class1::_ in invalid-expression;
+    return new self::Class1::_();
   get getter() → core::int
     return 0;
 }

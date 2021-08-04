@@ -1776,13 +1776,13 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},       {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 512},      {Dart_TypedData_kUint16, 512},
-          {Dart_TypedData_kInt32, 1024},     {Dart_TypedData_kUint32, 1024},
-          {Dart_TypedData_kInt64, 2048},     {Dart_TypedData_kUint64, 2048},
-          {Dart_TypedData_kFloat32, 1024},   {Dart_TypedData_kFloat64, 2048},
-          {Dart_TypedData_kInt32x4, 4096},   {Dart_TypedData_kFloat32x4, 4096},
-          {Dart_TypedData_kFloat64x2, 4096}, {Dart_TypedData_kInvalid, -1}};
+          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
+          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
+          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
+          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
+          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
+          {Dart_TypedData_kFloat64x2, 256}, {Dart_TypedData_kInvalid, -1}};
 
       int i = 0;
       while (expected[i].type != Dart_TypedData_kInvalid) {
@@ -1804,31 +1804,31 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},       {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 512},      {Dart_TypedData_kUint16, 512},
-          {Dart_TypedData_kInt32, 1024},     {Dart_TypedData_kUint32, 1024},
-          {Dart_TypedData_kInt64, 2048},     {Dart_TypedData_kUint64, 2048},
-          {Dart_TypedData_kFloat32, 1024},   {Dart_TypedData_kFloat64, 2048},
-          {Dart_TypedData_kInt32x4, 4096},   {Dart_TypedData_kFloat32x4, 4096},
-          {Dart_TypedData_kFloat64x2, 4096},
+          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
+          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
+          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
+          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
+          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
+          {Dart_TypedData_kFloat64x2, 256},
 
-          {Dart_TypedData_kInt8, 512},       {Dart_TypedData_kUint8, 512},
-          {Dart_TypedData_kInt8, 1024},      {Dart_TypedData_kUint8, 1024},
-          {Dart_TypedData_kInt8, 2048},      {Dart_TypedData_kUint8, 2048},
-          {Dart_TypedData_kInt8, 1024},      {Dart_TypedData_kUint8, 1024},
-          {Dart_TypedData_kInt8, 2048},      {Dart_TypedData_kUint8, 2048},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
-          {Dart_TypedData_kInt8, 4096},      {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 512},      {Dart_TypedData_kUint8, 512},
+          {Dart_TypedData_kInt8, 1024},     {Dart_TypedData_kUint8, 1024},
+          {Dart_TypedData_kInt8, 2048},     {Dart_TypedData_kUint8, 2048},
+          {Dart_TypedData_kInt8, 1024},     {Dart_TypedData_kUint8, 1024},
+          {Dart_TypedData_kInt8, 2048},     {Dart_TypedData_kUint8, 2048},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
+          {Dart_TypedData_kInt8, 4096},     {Dart_TypedData_kUint8, 4096},
 
-          {Dart_TypedData_kInt16, 256},      {Dart_TypedData_kUint16, 256},
-          {Dart_TypedData_kInt16, 1024},     {Dart_TypedData_kUint16, 1024},
-          {Dart_TypedData_kInt16, 2048},     {Dart_TypedData_kUint16, 2048},
-          {Dart_TypedData_kInt16, 1024},     {Dart_TypedData_kUint16, 1024},
-          {Dart_TypedData_kInt16, 2048},     {Dart_TypedData_kUint16, 2048},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
-          {Dart_TypedData_kInt16, 4096},     {Dart_TypedData_kUint16, 4096},
+          {Dart_TypedData_kInt16, 128},     {Dart_TypedData_kUint16, 128},
+          {Dart_TypedData_kInt16, 512},     {Dart_TypedData_kUint16, 512},
+          {Dart_TypedData_kInt16, 1024},    {Dart_TypedData_kUint16, 1024},
+          {Dart_TypedData_kInt16, 512},     {Dart_TypedData_kUint16, 512},
+          {Dart_TypedData_kInt16, 1024},    {Dart_TypedData_kUint16, 1024},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
+          {Dart_TypedData_kInt16, 2048},    {Dart_TypedData_kUint16, 2048},
 
           {Dart_TypedData_kInvalid, -1}};
 
@@ -1852,13 +1852,13 @@ VM_UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
         Dart_TypedData_Type type;
         int size;
       } expected[] = {
-          {Dart_TypedData_kInt8, 256},      {Dart_TypedData_kUint8, 256},
-          {Dart_TypedData_kInt16, 256},     {Dart_TypedData_kUint16, 256},
-          {Dart_TypedData_kInt32, 256},     {Dart_TypedData_kUint32, 256},
-          {Dart_TypedData_kInt64, 256},     {Dart_TypedData_kUint64, 256},
-          {Dart_TypedData_kFloat32, 256},   {Dart_TypedData_kFloat64, 256},
-          {Dart_TypedData_kInt32x4, 256},   {Dart_TypedData_kFloat32x4, 256},
-          {Dart_TypedData_kFloat64x2, 256}, {Dart_TypedData_kInvalid, -1}};
+          {Dart_TypedData_kInt8, 256},     {Dart_TypedData_kUint8, 256},
+          {Dart_TypedData_kInt16, 128},    {Dart_TypedData_kUint16, 128},
+          {Dart_TypedData_kInt32, 64},     {Dart_TypedData_kUint32, 64},
+          {Dart_TypedData_kInt64, 32},     {Dart_TypedData_kUint64, 32},
+          {Dart_TypedData_kFloat32, 64},   {Dart_TypedData_kFloat64, 32},
+          {Dart_TypedData_kInt32x4, 16},   {Dart_TypedData_kFloat32x4, 16},
+          {Dart_TypedData_kFloat64x2, 16}, {Dart_TypedData_kInvalid, -1}};
 
       int i = 0;
       while (expected[i].type != Dart_TypedData_kInvalid) {

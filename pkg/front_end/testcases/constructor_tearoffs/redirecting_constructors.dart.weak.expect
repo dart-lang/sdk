@@ -15,11 +15,11 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   static factory redirectingFactory() → self::A
-    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+    return new self::A::•();
   static factory redirectingFactoryChild() → self::A
-    let dynamic #redirecting_factory = self::B::• in invalid-expression;
+    return new self::B::•();
   static factory redirectingTwice() → self::A
-    let dynamic #redirecting_factory = self::A::redirectingFactory in invalid-expression;
+    return self::A::redirectingFactory();
 }
 class B extends self::A {
   synthetic constructor •() → self::B

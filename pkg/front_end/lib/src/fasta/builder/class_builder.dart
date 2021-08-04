@@ -44,6 +44,8 @@ import '../fasta_codes.dart';
 
 import '../kernel/kernel_helper.dart';
 
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../loader.dart';
 
 import '../modifier.dart';
@@ -921,7 +923,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         targetNode.computeFunctionType(library.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
@@ -946,7 +949,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         Loader loader = library.loader;
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
-          addProblem(
+          addProblemForRedirectingFactory(
+              factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument,
                   typeParameterBound,
@@ -957,7 +961,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         } else if (library.isNonNullableByDefault && loader is SourceLoader) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            addProblem(
+            addProblemForRedirectingFactory(
+                factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound,
                         library.isNonNullableByDefault),
@@ -1002,9 +1007,65 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
   }
 
+  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
+    // We use the [tortoise and hare algorithm]
+    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
+    // handle cycles.
+    Builder? tortoise = factory;
+    Builder? hare = factory.redirectionTarget.target;
+    if (hare == factory) {
+      return true;
+    }
+    while (tortoise != hare) {
+      // Hare moves 2 steps forward.
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      // Tortoise moves one step forward. No need to test type of tortoise
+      // as it follows hare which already checked types.
+      tortoise =
+          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
+    }
+    // Cycle found, but original factory doesn't belong to a cycle.
+    return false;
+  }
+
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length) {
+    addProblem(message, charOffset, length);
+    String text = library.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.body = new RedirectingFactoryBody.error(text);
+  }
+
   @override
   void checkRedirectingFactory(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(factory)) {
+      addProblemForRedirectingFactory(
+          factory,
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${factory.member.enclosingClass!.name}"
+                  "${factory.name == '' ? '' : '.${factory.name}'}"),
+          factory.charOffset,
+          noLength);
+      return;
+    }
+
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
@@ -1016,13 +1077,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // TODO(hillerstrom): It would be preferable to know whether a failure
     // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) return;
+    if (redirecteeType == null) {
+      return;
+    }
 
     // Check whether [redirecteeType] <: [factoryType].
     Loader loader = library.loader;
     if (!typeEnvironment.isSubtypeOf(
         redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateIncompatibleRedirecteeFunctionType.withArguments(
               redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
@@ -1030,7 +1094,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     } else if (library.isNonNullableByDefault && loader is SourceLoader) {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-        addProblem(
+        addProblemForRedirectingFactory(
+            factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryType, library.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,
