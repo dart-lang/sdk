@@ -134,6 +134,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expectedType == null || type == null) {
       return;
     }
+    if (expectedType.isVoid && !type.isDynamic && node is ReturnStatement) {
+      return;
+    }
     if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type)) {
       rule.reportLint(node);
     } else if (expectedType.isDartAsyncFutureOr &&

@@ -213,3 +213,7 @@ missing_parameter_for_argument() {
 void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {
   f = () {}; // OK
 }
+
+void bug2813() {
+  return 1; //OK this gives compiler error
+}
