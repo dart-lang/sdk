@@ -291,6 +291,11 @@ class Object {
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
 
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
   static ObjectPtr RawCast(ObjectPtr obj) { return obj; }
 
   virtual ~Object() {}
@@ -5808,8 +5813,6 @@ class CodeSourceMap : public Object {
 
 class CompressedStackMaps : public Object {
  public:
-  static const intptr_t kHashBits = 30;
-
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
@@ -7623,11 +7626,6 @@ class TypeParameters : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
@@ -7898,11 +7896,6 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -9136,11 +9129,6 @@ class Symbol : public AllStatic {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
@@ -9990,11 +9978,6 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Returns `true` if we use card marking for arrays of length [array_length].
   static bool UseCardMarkingForAllocation(const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
@@ -10544,11 +10527,6 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public TypedDataBase {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 
