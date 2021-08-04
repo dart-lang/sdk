@@ -1565,7 +1565,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the field
+   * 0: the name of the constructor and field
    */
   // #### Description
   //
@@ -1610,6 +1610,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the constructor and getter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static getter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the getter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER');
+
+  /**
+   * Parameters:
    * 0: the name of the constructor
    */
   static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD =
@@ -1620,6 +1633,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try renaming either the constructor or the method.",
           hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor and setter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static setter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the setter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time

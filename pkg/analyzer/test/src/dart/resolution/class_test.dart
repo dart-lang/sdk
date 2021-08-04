@@ -180,8 +180,8 @@ class C {
   static int get foo => 0;
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 14,
+          3),
     ]);
   }
 
@@ -212,8 +212,8 @@ class C {
   static void set foo(_) {}
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 14,
+          3),
     ]);
   }
 
