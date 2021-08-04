@@ -608,7 +608,6 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         "${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""}";
     debugPrint("===== $summaryName =====");
     assert(!member.isAbstract);
-    assert(!(member is Procedure && member.isRedirectingFactory));
 
     _protobufHandler?.beforeSummaryCreation(member);
 
@@ -2477,17 +2476,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     return new ConcreteType(resultClass.cls, null, constant);
   }
 
-  @override
-  Type visitStaticTearOffConstant(StaticTearOffConstant constant) {
-    final Procedure member = constant.target;
-    summaryCollector._entryPointsListener
-        .addRawCall(new DirectSelector(member));
-    summaryCollector._entryPointsListener.recordTearOff(member);
-    return _getStaticType(constant);
-  }
-
-  @override
-  Type visitConstructorTearOffConstant(ConstructorTearOffConstant constant) {
+  Type _visitTearOffConstant(TearOffConstant constant) {
     final Member member = constant.target;
     summaryCollector._entryPointsListener
         .addRawCall(new DirectSelector(member));
@@ -2498,6 +2487,19 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     summaryCollector._entryPointsListener.recordTearOff(member);
     return _getStaticType(constant);
   }
+
+  @override
+  Type visitStaticTearOffConstant(StaticTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
+
+  @override
+  Type visitConstructorTearOffConstant(ConstructorTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
+
+  @override
+  Type visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant constant) =>
+      _visitTearOffConstant(constant);
 
   @override
   Type visitInstantiationConstant(InstantiationConstant constant) {
