@@ -164,8 +164,8 @@ abstract class Map<K, V> {
   /// and if all entries added to the returned map have [K] keys and [V]] values,
   /// then the returned map can be used as a `Map<K2, V2>`.
   ///
-  /// Methods like [containsKey], [remove] and [operator[]]
-  /// which accept `Object?` as argument
+  /// Methods which accept `Object?` as argument,
+  /// like [containsKey], [remove] and [operator []],
   /// will pass the argument directly to the this map's method
   /// without any checks.
   static Map<K2, V2> castFrom<K, V, K2, V2>(Map<K, V> source) =>
@@ -199,8 +199,8 @@ abstract class Map<K, V> {
   /// Entries added to the map must be valid for both a `Map<K, V>` and a
   /// `Map<RK, RV>`.
   ///
-  /// Methods like [containsKey], [remove] and [operator[]]
-  /// which accept `Object?` as argument
+  /// Methods which accept `Object?` as argument,
+  /// like [containsKey], [remove] and [operator []],
   /// will pass the argument directly to the this map's method
   /// without any checks.
   /// That means that you can do `mapWithStringKeys.cast<int,int>().remove("a")`

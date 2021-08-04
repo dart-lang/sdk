@@ -6171,6 +6171,8 @@ class AllocateObjectInstr : public AllocationInstr {
       : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments) {
+    ASSERT(cls.IsZoneHandle());
+    ASSERT(!cls.IsNull());
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
       SetInputAt(kTypeArgumentsPos, type_arguments);

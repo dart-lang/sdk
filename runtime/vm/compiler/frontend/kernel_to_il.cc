@@ -3450,7 +3450,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   // Push receiver.
   if (target.IsGenerativeConstructor()) {
-    const Class& cls = Class::Handle(Z, target.Owner());
+    const Class& cls = Class::ZoneHandle(Z, target.Owner());
     if (cls.NumTypeArguments() > 0) {
       if (!function.IsGeneric()) {
         Type& cls_type = Type::Handle(Z, cls.DeclarationType());

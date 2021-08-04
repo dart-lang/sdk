@@ -101,37 +101,37 @@ class Options {
       ..addFlag("onlyTestsThatRequireGit",
           help: "Whether to only run tests that require git",
           defaultsTo: false);
-    var parsedArguments = parser.parse(args);
-    String outputPath = parsedArguments["output-directory"] ?? ".";
+    var parsedOptions = parser.parse(args);
+    String outputPath = parsedOptions["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
 
-    bool verbose = parsedArguments["verbose"];
+    bool verbose = parsedOptions["verbose"];
 
     String? filter;
-    if (parsedArguments.rest.length == 1) {
-      filter = parsedArguments.rest.single;
+    if (parsedOptions.rest.length == 1) {
+      filter = parsedOptions.rest.single;
       if (filter.startsWith("$suiteNamePrefix/")) {
         filter = filter.substring(suiteNamePrefix.length + 1);
       }
     }
-    String tasksString = parsedArguments["tasks"];
+    String tasksString = parsedOptions["tasks"];
     int? tasks = int.tryParse(tasksString);
     if (tasks == null || tasks < 1) {
       throw "--tasks (-j) has to be an integer >= 1";
     }
 
-    String shardsString = parsedArguments["shards"];
+    String shardsString = parsedOptions["shards"];
     int? shardCount = int.tryParse(shardsString);
     if (shardCount == null || shardCount < 1) {
       throw "--shards has to be an integer >= 1";
     }
-    String shardString = parsedArguments["shard"];
+    String shardString = parsedOptions["shard"];
     int? shard = int.tryParse(shardString);
     if (shard == null || shard < 1 || shard > shardCount) {
       throw "--shard has to be an integer >= 1 (and <= --shards)";
     }
-    bool skipTestsThatRequireGit = parsedArguments["skipTestsThatRequireGit"];
-    bool onlyTestsThatRequireGit = parsedArguments["onlyTestsThatRequireGit"];
+    bool skipTestsThatRequireGit = parsedOptions["skipTestsThatRequireGit"];
+    bool onlyTestsThatRequireGit = parsedOptions["onlyTestsThatRequireGit"];
     if (skipTestsThatRequireGit && onlyTestsThatRequireGit) {
       throw "Only one of --skipTestsThatRequireGit and "
           "--onlyTestsThatRequireGit can be provided.";
@@ -139,12 +139,12 @@ class Options {
 
     if (verbose) {
       print("NOTE: Created with options\n  "
-          "${parsedArguments["named-configuration"]},\n  "
+          "${parsedOptions["named-configuration"]},\n  "
           "${verbose},\n  "
-          "${parsedArguments["print"]},\n  "
+          "${parsedOptions["print"]},\n  "
           "${outputDirectory},\n  "
           "${filter},\n  "
-          "${parsedArguments['environment']},\n  "
+          "${parsedOptions['environment']},\n  "
           "shardCount: ${shardCount},\n  "
           "shard: ${shard - 1 /* make it 0-indexed */},\n  "
           "onlyTestsThatRequireGit: ${onlyTestsThatRequireGit},\n  "
@@ -153,12 +153,12 @@ class Options {
     }
 
     return Options(
-      parsedArguments["named-configuration"],
+      parsedOptions["named-configuration"],
       verbose,
-      parsedArguments["print"],
+      parsedOptions["print"],
       outputDirectory,
       filter,
-      parsedArguments['environment'],
+      parsedOptions['environment'],
       shardCount: shardCount,
       shard: shard - 1 /* make it 0-indexed */,
       onlyTestsThatRequireGit: onlyTestsThatRequireGit,

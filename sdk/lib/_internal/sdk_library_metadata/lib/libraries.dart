@@ -153,6 +153,11 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
   "_rti": const LibraryInfo("_internal/js_runtime/lib/rti.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
+  "_dart2js_runtime_metrics": const LibraryInfo(
+      "_internal/js_runtime/lib/dart2js_runtime_metrics.dart",
+      categories: "",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
   "_interceptors": const LibraryInfo(
       "_internal/js_runtime/lib/interceptors.dart",
       categories: "",

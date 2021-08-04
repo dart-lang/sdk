@@ -667,6 +667,8 @@ import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
+import 'undefined_referenced_parameter_test.dart'
+    as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
@@ -1158,6 +1160,7 @@ main() {
     undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
+    undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
     unignorable_ignore.main();

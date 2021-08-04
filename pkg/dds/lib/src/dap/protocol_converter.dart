@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:package_config/package_config_types.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -24,6 +25,11 @@ class ProtocolConverter {
   /// The parent debug adapter, used to access arguments and the VM Service for
   /// the debug session.
   final DartDebugAdapter _adapter;
+
+  /// Temporary PackageConfig used for resolving package: URIs.
+  /// TODO(dantup): Replace this implementation with one that calls the VM
+  ///   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
+  PackageConfig packageConfig = PackageConfig.empty;
 
   ProtocolConverter(this._adapter);
 
@@ -325,14 +331,16 @@ class ProtocolConverter {
 
     final scriptRef = location.script;
     final tokenPos = location.tokenPos;
-    final uri = scriptRef?.uri;
+    final scriptRefUri = scriptRef?.uri;
+    final uri = scriptRefUri != null ? Uri.parse(scriptRefUri) : null;
+    final uriIsPackage = uri?.isScheme('package') ?? false;
     final sourcePath = uri != null ? await convertVmUriToSourcePath(uri) : null;
     var canShowSource = sourcePath != null && File(sourcePath).existsSync();
 
     // Download the source if from a "dart:" uri.
     int? sourceReference;
     if (uri != null &&
-        (uri.startsWith('dart:') || uri.startsWith('org-dartlang-app:')) &&
+        (uri.isScheme('dart') || uri.isScheme('org-dartlang-app')) &&
         scriptRef != null) {
       sourceReference = thread.storeData(scriptRef);
       canShowSource = true;
@@ -351,7 +359,11 @@ class ProtocolConverter {
 
     final source = canShowSource
         ? dap.Source(
-            name: sourcePath != null ? convertToRelativePath(sourcePath) : uri,
+            name: uriIsPackage
+                ? uri!.toString()
+                : sourcePath != null
+                    ? convertToRelativePath(sourcePath)
+                    : uri?.toString() ?? '<unknown source>',
             path: sourcePath,
             sourceReference: sourceReference,
             origin: null,
@@ -374,18 +386,17 @@ class ProtocolConverter {
     );
   }
 
-  /// Converts the source path from the VM to a file path.
+  /// Converts the source URI from the VM to a file path.
   ///
   /// This is required so that when the user stops (or navigates via a stack
   /// frame) we open the same file on their local disk. If we downloaded the
   /// source from the VM, they would end up seeing two copies of files (and they
   /// would each have their own breakpoints) which can be confusing.
-  Future<String?> convertVmUriToSourcePath(String uri) async {
-    if (uri.startsWith('file://')) {
-      return Uri.parse(uri).toFilePath();
-    } else if (uri.startsWith('package:')) {
-      // TODO(dantup): Handle mapping package: uris ?
-      return null;
+  Future<String?> convertVmUriToSourcePath(Uri uri) async {
+    if (uri.isScheme('file')) {
+      return uri.toFilePath();
+    } else if (uri.isScheme('package')) {
+      return resolvePackageUri(uri);
     } else {
       return null;
     }
@@ -400,6 +411,19 @@ class ProtocolConverter {
         kind == 'Double' ||
         kind == 'Null' ||
         kind == 'Closure';
+  }
+
+  /// Resolves a `package: URI` to the real underlying source path.
+  ///
+  /// Returns `null` if no mapping was possible, for example if the package is
+  /// not in the package mapping file.
+  String? resolvePackageUri(Uri uri) {
+    // TODO(dantup): Replace this implementation with one that calls the VM
+    //   Service once https://github.com/dart-lang/sdk/issues/45530 is done.
+    // This implementation makes assumptions about the package file being used
+    // that might not be correct (for example if the user uses the --packages
+    // flag).
+    return packageConfig.resolve(uri)?.toFilePath();
   }
 
   /// Invokes the toString() method on a [vm.InstanceRef] and converts the

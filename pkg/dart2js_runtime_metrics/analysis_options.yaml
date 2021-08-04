@@ -1,0 +1,5 @@
+analyzer:
+  errors:
+    import_internal_library: ignore
+  strong-mode:
+    implicit-casts: false

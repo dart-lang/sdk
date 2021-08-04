@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-07-27T19:27:52.638315",
+  "generated": "2021-07-30T20:37:49.663747",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -205,6 +205,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "dart2js_runtime_metrics",
+      "rootUri": "../pkg/dart2js_runtime_metrics",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "dart2js_tools",
       "rootUri": "../pkg/dart2js_tools",
       "packageUri": "lib/",
@@ -244,7 +250,7 @@
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "dev_compiler",

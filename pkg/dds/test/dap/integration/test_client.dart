@@ -121,6 +121,7 @@ class DapTestClient {
     List<String>? args,
     String? cwd,
     bool? noDebug,
+    List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
@@ -132,6 +133,7 @@ class DapTestClient {
         program: program,
         cwd: cwd,
         args: args,
+        additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
@@ -388,8 +390,12 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// If [file] or [line] are provided, they will be checked against the stop
   /// location for the top stack frame.
-  Future<StoppedEventBody> expectStop(String reason,
-      {File? file, int? line, String? sourceName}) async {
+  Future<StoppedEventBody> expectStop(
+    String reason, {
+    File? file,
+    int? line,
+    String? sourceName,
+  }) async {
     final e = await event('stopped');
     final stop = StoppedEventBody.fromJson(e.body as Map<String, Object?>);
     expect(stop.reason, equals(reason));
@@ -400,10 +406,10 @@ extension DapTestClientExtension on DapTestClient {
     final frame = result.stackFrames[0];
 
     if (file != null) {
-      expect(frame.source!.path, equals(file.path));
+      expect(frame.source?.path, equals(file.path));
     }
     if (sourceName != null) {
-      expect(frame.source!.name, equals(sourceName));
+      expect(frame.source?.name, equals(sourceName));
     }
     if (line != null) {
       expect(frame.line, equals(line));

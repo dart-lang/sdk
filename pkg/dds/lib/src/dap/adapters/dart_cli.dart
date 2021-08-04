@@ -132,6 +132,15 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
       ...?args.args,
     ];
 
+    // Find the package_config file for this script.
+    // TODO(dantup): Remove this once
+    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
+    //   necessary.
+    final packageConfig = _findPackageConfigFile();
+    if (packageConfig != null) {
+      this.usePackageConfigFile(packageConfig);
+    }
+
     logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}');
     final process = await Process.start(
       vmPath,
@@ -144,6 +153,40 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     process.stdout.listen(_handleStdout);
     process.stderr.listen(_handleStderr);
     unawaited(process.exitCode.then(_handleExitCode));
+  }
+
+  /// Find the `package_config.json` file for the program being launched.
+  ///
+  /// TODO(dantup): Remove this once
+  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
+  ///   necessary.
+  File? _findPackageConfigFile() {
+    var possibleRoot = path.isAbsolute(args.program)
+        ? path.dirname(args.program)
+        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
+
+    File? packageConfig;
+    while (true) {
+      packageConfig =
+          File(path.join(possibleRoot, '.dart_tool', 'package_config.json'));
+
+      // If this packageconfig exists, use it.
+      if (packageConfig.existsSync()) {
+        break;
+      }
+
+      final parent = path.dirname(possibleRoot);
+
+      // If we can't go up anymore, the search failed.
+      if (parent == possibleRoot) {
+        packageConfig = null;
+        break;
+      }
+
+      possibleRoot = parent;
+    }
+
+    return packageConfig;
   }
 
   /// Called by [terminateRequest] to request that we gracefully shut down the

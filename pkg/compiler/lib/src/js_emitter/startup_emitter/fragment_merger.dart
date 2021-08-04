@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 import '../../common_elements.dart' show ElementEnvironment;
-import '../../deferred_load/deferred_load.dart'
+import '../../deferred_load/output_unit.dart'
     show ImportDescription, OutputUnit, OutputUnitData, deferredPartFileName;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;

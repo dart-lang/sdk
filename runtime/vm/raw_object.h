@@ -2725,10 +2725,6 @@ class UntaggedString : public UntaggedInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };
@@ -2743,6 +2739,8 @@ class UntaggedOneByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 class UntaggedTwoByteString : public UntaggedString {
@@ -2755,6 +2753,8 @@ class UntaggedTwoByteString : public UntaggedString {
 
   friend class RODataSerializationCluster;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
@@ -3024,6 +3024,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
+  friend class Simd128MessageSerializationCluster;
+  friend class Simd128MessageDeserializationCluster;
 
  public:
   int32_t x() const { return value_[0]; }

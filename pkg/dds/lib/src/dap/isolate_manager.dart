@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'adapters/dart.dart';
@@ -371,17 +372,37 @@ class IsolateManager {
     }
   }
 
-  bool _isExternalPackageLibrary(vm.LibraryRef library) =>
-      // TODO(dantup): This needs to check if it's _external_, eg.
-      //
-      // - is from the flutter SDK (flutter, flutter_test, ...)
-      // - is from pub/pubcache
-      //
-      // This is intended to match the users idea of "my code". For example
-      // they may wish to debug the current app being run, as well as any other
-      // projects that are references with path: dependencies (which are likely
-      // their own supporting projects).
-      false /*library.uri?.startsWith('package:') ?? false*/;
+  /// Checks whether this library is from an external package.
+  ///
+  /// This is used to support debugging "Just My Code" so Pub packages can be
+  /// marked as not-debuggable.
+  ///
+  /// A library is considered local if the path is within the 'cwd' or
+  /// 'additionalProjectPaths' in the launch arguments. An editor should include
+  /// the paths of all open workspace folders in 'additionalProjectPaths' to
+  /// support this feature correctly.
+  bool _isExternalPackageLibrary(vm.LibraryRef library) {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      return false;
+    }
+    final uri = Uri.parse(libraryUri);
+    if (!uri.isScheme('package')) {
+      return false;
+    }
+    final libraryPath = _adapter.resolvePackageUri(uri);
+    if (libraryPath == null) {
+      return false;
+    }
+
+    // Always compare paths case-insensitively to avoid any issues where APIs
+    // may have returned different casing (eg. Windows drive letters). It's
+    // almost certain a user wouldn't have a "local" package and an "external"
+    // package with paths differing only be case.
+    final libraryPathLower = libraryPath.toLowerCase();
+    return !_adapter.projectPaths.any((projectPath) =>
+        path.isWithin(projectPath.toLowerCase(), libraryPathLower));
+  }
 
   bool _isSdkLibrary(vm.LibraryRef library) =>
       library.uri?.startsWith('dart:') ?? false;

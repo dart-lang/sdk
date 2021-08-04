@@ -41,6 +41,7 @@ class DapCommand extends Command {
     argParser
       ..addFlag(
         argIpv6,
+        defaultsTo: false,
         help: 'Whether to bind DAP/VM Service/DDS to IPv6 addresses',
       )
       ..addFlag(

@@ -7,7 +7,7 @@ library dart2js.js_emitter.metadata_collector;
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
-import '../deferred_load/deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;

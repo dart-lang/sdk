@@ -1866,6 +1866,8 @@ met
 metadata
 method
 methods
+metric
+metrics
 microseconds
 microtask
 mid

@@ -200,15 +200,103 @@ void main(List<String> args) async {
 
     test(
         'does not step into external package code with debugExternalPackageLibraries=false',
-        () {
-      // TODO(dantup): Support for debugExternalPackageLibraries
-    }, skip: true);
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); // BREAKPOINT
+  foo(); // STEP
+}
+    ''');
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final stepLine = lineWith(testFile, '// STEP');
+
+      // Hit the initial breakpoint.
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: false,
+        ),
+      );
+
+      // Step in and expect stopping on the next line (don't go into the package).
+      await Future.wait([
+        client.expectStop('step', file: testFile, line: stepLine),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
 
     test(
         'steps into external package code with debugExternalPackageLibraries=true',
-        () {
-      // TODO(dantup): Support for debugExternalPackageLibraries
-    }, skip: true);
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); // BREAKPOINT
+  foo();
+}
+    ''');
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: true,
+        ),
+      );
+
+      // Step in and expect to go into the package.
+      await Future.wait([
+        client.expectStop('step', sourceName: '$otherPackageUri'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
+
+    test(
+        'steps into other-project package code with debugExternalPackageLibraries=false',
+        () async {
+      final client = dap.client;
+      final otherPackageUri = await dap.createFooPackage();
+      final testFile = dap.createTestFile('''
+import '$otherPackageUri';
+
+void main(List<String> args) async {
+  foo(); // BREAKPOINT
+  foo();
+}
+    ''');
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      // Hit the initial breakpoint.
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugExternalPackageLibraries: false,
+          // Include the packages folder as an additional project path so that
+          // it will be treated as local code.
+          additionalProjectPaths: [dap.testPackageDir.path],
+        ),
+      );
+
+      // Step in and expect stopping in the the other package.
+      await Future.wait([
+        client.expectStop('step', sourceName: '$otherPackageUri'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+    });
 
     test('allows changing debug settings during session', () async {
       final client = dap.client;

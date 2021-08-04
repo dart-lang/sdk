@@ -131,7 +131,9 @@ class Dart2jsTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      maybeEnableNative(importer);
+      maybeEnableNative(importer) ||
+      (importer.scheme == 'package' &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
@@ -235,6 +237,7 @@ class Dart2jsTarget extends Target {
 // compile-platform should just specify which libraries to compile instead.
 const _requiredLibraries = const <String, List<String>>{
   'dart2js': const <String>[
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
@@ -258,6 +261,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:web_sql',
   ],
   'dart2js_server': const <String>[
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',

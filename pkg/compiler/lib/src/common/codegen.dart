@@ -9,7 +9,7 @@ import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 import '../common.dart';
 import '../common_elements.dart';
 import '../constants/values.dart';
-import '../deferred_load/deferred_load.dart';
+import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
 import '../inferrer/abstract_value_domain.dart';

@@ -7,7 +7,7 @@ library dart2js.backend_strategy;
 import 'common.dart';
 import 'common/codegen.dart';
 import 'common/tasks.dart';
-import 'deferred_load/deferred_load.dart' show OutputUnitData;
+import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'enqueue.dart';
 import 'elements/entities.dart';
 import 'inferrer/types.dart';

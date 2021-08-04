@@ -388,6 +388,9 @@ abstract class CommonElements {
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionEntity get requiresPreambleMarker;
 
+  /// Holds the method "_rawStartupMetrics" in _js_helper.
+  FunctionEntity get rawStartupMetrics;
+
   FunctionEntity get loadLibraryWrapper;
 
   FunctionEntity get loadDeferredLibrary;
@@ -1664,6 +1667,11 @@ class CommonElementsImpl
   @override
   FunctionEntity get requiresPreambleMarker =>
       _requiresPreambleMarker ??= _findHelperFunction('requiresPreamble');
+
+  FunctionEntity _rawStartupMetrics;
+  @override
+  FunctionEntity get rawStartupMetrics =>
+      _rawStartupMetrics ??= _findHelperFunction('rawStartupMetrics');
 
   @override
   FunctionEntity get loadLibraryWrapper =>
