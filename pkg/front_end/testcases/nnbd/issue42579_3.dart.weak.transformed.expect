@@ -40,14 +40,14 @@ static method bar() → dynamic {
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
   foo(() => B()..y1[0]?.unknown());
-                        ^^^^^^^";
+                        ^^^^^^^" in #t2{core::Object}{<unresolved>}.unknown();
   } =>#t1);
   self::foo<core::Object?>(() → self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> => let final self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> #t3 = new self::B::•<core::List<core::Object?>, core::List<core::Object?>, dynamic>() in block {
     let final core::Object? #t4 = #t3.{self::B::y2}{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in #t4 == null ?{dynamic} null : invalid-expression "pkg/front_end/testcases/nnbd/issue42579_3.dart:17:25: Error: The method 'unknown' isn't defined for the class 'Object'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
   foo(() => B()..y2[0]?.unknown());
-                        ^^^^^^^";
+                        ^^^^^^^" in #t4{core::Object}{<unresolved>}.unknown();
   } =>#t3);
   self::foo<core::Object?>(() → self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> => let final self::B<core::List<core::Object?>, core::List<core::Object?>, dynamic> #t5 = new self::B::•<core::List<core::Object?>, core::List<core::Object?>, dynamic>() in block {
     let final dynamic #t6 = #t5.{self::B::y3}{dynamic} in #t6 == null ?{dynamic} null : #t6{dynamic}.unknown();

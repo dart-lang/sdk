@@ -855,7 +855,7 @@ static final field dynamic field1 = invalid-expression "pkg/front_end/testcases/
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
 final field1 = classA.method(); // Expect method not found.
-                      ^^^^^^";
+                      ^^^^^^" in self::classA{<unresolved>}.method();
 static final field dynamic field2 = self::Extension|method<self::A*>(self::classA);
 static final field dynamic field3 = self::Extension|method<self::A*>(self::classA);
 static final field dynamic field4 = self::Extension|method<self::B*>(self::classA as{TypeError} self::Class<self::B*>*);
@@ -900,7 +900,7 @@ static method test() → dynamic {
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   classA.method(); // Expect method not found.
-         ^^^^^^";
+         ^^^^^^" in classA{<unresolved>}.method();
   self::Extension|method<self::A*>(classA);
   self::Extension|method<self::A*>(classA);
   self::Extension|method<self::B*>(classA as{TypeError} self::Class<self::B*>*);
@@ -939,7 +939,7 @@ static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPa
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   classA.method();
-         ^^^^^^";
+         ^^^^^^" in classA{<unresolved>}.method();
   self::Extension|method<self::A*>(classA);
   self::Extension|method<self::A*>(classA);
   self::Extension|method<self::B*>(classA as{TypeError} self::Class<self::B*>*);

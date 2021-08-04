@@ -191,40 +191,40 @@ static method test1(self::E1 e1) → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:8:6: Error: The method 'ceil' isn't defined for the extension 'E1'.
 Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
   e1.ceil(); // Ok.
-     ^^^^";
+     ^^^^" in e1{<unresolved>}.ceil();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Getter not found: 'e2'.
   e2.floor(); // Ok.
   ^^"{dynamic}.floor();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:10:6: Error: The getter 'isEven' isn't defined for the extension 'E1'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
   e1.isEven; // Error.
-     ^^^^^^";
+     ^^^^^^" in e1{<unresolved>}.isEven;
 }
 static method ceil() → invalid-type {}
 static method test2(self::E2 e2) → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:16:6: Error: The method 'ceil' isn't defined for the extension 'E2'.
 Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
   e2.ceil(); // Error.
-     ^^^^";
+     ^^^^" in e2{<unresolved>}.ceil();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:17:6: Error: The method 'floor' isn't defined for the extension 'E2'.
 Try correcting the name to the name of an existing method, or defining a method name 'floor'.
   e2.floor(); // Ok.
-     ^^^^^";
+     ^^^^^" in e2{<unresolved>}.floor();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:18:6: Error: The getter 'isEven' isn't defined for the extension 'E2'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
   e2.isEven; // Error.
-     ^^^^^^";
+     ^^^^^^" in e2{<unresolved>}.isEven;
 }
 static method isEven() → invalid-type {}
 static method test3(self::E3 e3) → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:24:6: Error: The getter 'isOdd' isn't defined for the extension 'E3'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isOdd'.
   e3.isOdd; // Ok.
-     ^^^^^";
+     ^^^^^" in e3{<unresolved>}.isOdd;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:25:6: Error: The getter 'isEven' isn't defined for the extension 'E3'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
   e3.isEven; // Error.
-     ^^^^^^";
+     ^^^^^^" in e3{<unresolved>}.isEven;
 }
 static method floor() → invalid-type {
   core::int get;
@@ -238,19 +238,19 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:34:5: Error: The getter 'twice' isn't defined for the extension 'MyInt'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'twice'.
   m.twice; // OK, in the extension type.
-    ^^^^^";
+    ^^^^^" in m{<unresolved>}.twice;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:35:5: Error: The getter 'isEven' isn't defined for the extension 'MyInt'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'isEven'.
   m.isEven; // OK, a shown instance member.
-    ^^^^^^";
+    ^^^^^^" in m{<unresolved>}.isEven;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:36:5: Error: The method 'ceil' isn't defined for the extension 'MyInt'.
 Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
   m.ceil(); // OK, a shown instance member.
-    ^^^^";
+    ^^^^" in m{<unresolved>}.ceil();
   m.{core::Object::toString}(){() → core::String};
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:38:5: Error: The method 'floor' isn't defined for the extension 'MyInt'.
 Try correcting the name to the name of an existing method, or defining a method name 'floor'.
   m.floor(); // Error, hidden.
-    ^^^^^";
+    ^^^^^" in m{<unresolved>}.floor();
 }
 static method main() → dynamic {}

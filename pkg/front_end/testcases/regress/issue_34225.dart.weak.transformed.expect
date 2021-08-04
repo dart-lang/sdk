@@ -59,7 +59,7 @@ static method main() → dynamic {
  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
   c.C = 5;
-    ^";
+    ^" in c{<unresolved>}.C = 5;
   self::D* d = new self::D::•();
   d.{self::D::D} = 5;
 }

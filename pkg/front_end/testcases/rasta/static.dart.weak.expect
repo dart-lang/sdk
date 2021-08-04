@@ -257,19 +257,19 @@ static method main() → dynamic {
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:53:23: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticConstant();
-                      ^";
+                      ^" in (#C1){<unresolved>}.call();
     self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:54:27: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticConstant());
-                          ^");
+                          ^" in (#C1){<unresolved>}.call());
     invalid-expression "pkg/front_end/testcases/rasta/static.dart:55:20: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     Foo.staticField();
-                   ^";
+                   ^" in self::Foo::staticField{<unresolved>}.call();
     self::use(invalid-expression "pkg/front_end/testcases/rasta/static.dart:56:24: Error: The method 'call' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
     use(Foo.staticField());
-                       ^");
+                       ^" in self::Foo::staticField{<unresolved>}.call());
     self::Foo::staticFunction();
     self::use(self::Foo::staticFunction());
     self::Foo::staticGetter{dynamic}.call();

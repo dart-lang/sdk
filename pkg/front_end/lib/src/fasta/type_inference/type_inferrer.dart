@@ -2355,7 +2355,9 @@ class TypeInferrerImpl implements TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         String name = named[1].name;
-        Expression error = helper!.buildProblem(
+        Expression error = helper!.wrapInProblem(
+            _createDuplicateExpression(
+                named[0].fileOffset, named[0].value, named[1].value),
             templateDuplicatedNamedArgument.withArguments(name),
             named[1].fileOffset,
             name.length);
@@ -2373,7 +2375,9 @@ class TypeInferrerImpl implements TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           NamedExpression prevNamedExpression = seenNames[name]!;
-          prevNamedExpression.value = helper!.buildProblem(
+          prevNamedExpression.value = helper!.wrapInProblem(
+              _createDuplicateExpression(prevNamedExpression.fileOffset,
+                  prevNamedExpression.value, expression.value),
               templateDuplicatedNamedArgument.withArguments(name),
               expression.fileOffset,
               name.length)
@@ -4178,11 +4182,60 @@ class TypeInferrerImpl implements TypeInferrer {
     }
   }
 
+  /// Creates an expression the represents the invalid invocation of [name] on
+  /// [receiver] with [arguments].
+  ///
+  /// This is used to ensure that subexpressions of invalid invocations are part
+  /// of the AST using `helper.wrapInProblem`.
+  Expression _createInvalidInvocation(
+      int fileOffset, Expression receiver, Name name, Arguments arguments) {
+    return new DynamicInvocation(
+        DynamicAccessKind.Unresolved, receiver, name, arguments)
+      ..fileOffset = fileOffset;
+  }
+
+  /// Creates an expression the represents the invalid get of [name] on
+  /// [receiver].
+  ///
+  /// This is used to ensure that subexpressions of invalid gets are part
+  /// of the AST using `helper.wrapInProblem`.
+  Expression _createInvalidGet(int fileOffset, Expression receiver, Name name) {
+    return new DynamicGet(DynamicAccessKind.Unresolved, receiver, name)
+      ..fileOffset = fileOffset;
+  }
+
+  /// Creates an expression the represents the invalid set of [name] on
+  /// [receiver] with [value].
+  ///
+  /// This is used to ensure that subexpressions of invalid gets are part
+  /// of the AST using `helper.wrapInProblem`.
+  Expression _createInvalidSet(
+      int fileOffset, Expression receiver, Name name, Expression value) {
+    return new DynamicSet(DynamicAccessKind.Unresolved, receiver, name, value)
+      ..fileOffset = fileOffset;
+  }
+
+  /// Creates an expression the represents a duplicate expression occurring
+  /// for instance as the [first] and [second] occurrence of named arguments
+  /// with the same name.
+  ///
+  /// This is used to ensure that subexpressions of duplicate expressions are
+  /// part of the AST using `helper.wrapInProblem`.
+  Expression _createDuplicateExpression(
+      int fileOffset, Expression first, Expression second) {
+    return new BlockExpression(
+        new Block([new ExpressionStatement(first)..fileOffset = fileOffset])
+          ..fileOffset = fileOffset,
+        second)
+      ..fileOffset = fileOffset;
+  }
+
   Expression _reportMissingOrAmbiguousMember(
       int fileOffset,
       int length,
       DartType receiverType,
       Name name,
+      Expression wrappedExpression,
       List<ExtensionAccessCandidate>? extensionAccessCandidates,
       Template<Message Function(String, DartType, bool)> missingTemplate,
       Template<Message Function(String, DartType, bool)> ambiguousTemplate) {
@@ -4199,7 +4252,8 @@ class TypeInferrerImpl implements TypeInferrer {
           .toList();
       template = ambiguousTemplate;
     }
-    return helper!.buildProblem(
+    return helper!.wrapInProblem(
+        wrappedExpression,
         template.withArguments(name.text, resolveTypeParameter(receiverType),
             isNonNullableByDefault),
         fileOffset,
@@ -4219,7 +4273,8 @@ class TypeInferrerImpl implements TypeInferrer {
           .createMethodInvocation(fileOffset, receiver, name, arguments);
     } else if (implicitInvocationPropertyName != null) {
       assert(extensionAccessCandidates == null);
-      return helper!.buildProblem(
+      return helper!.wrapInProblem(
+          _createInvalidInvocation(fileOffset, receiver, name, arguments),
           templateInvokeNonFunction
               .withArguments(implicitInvocationPropertyName.text),
           fileOffset,
@@ -4230,6 +4285,7 @@ class TypeInferrerImpl implements TypeInferrer {
           isExpressionInvocation ? noLength : name.text.length,
           receiverType,
           name,
+          _createInvalidInvocation(fileOffset, receiver, name, arguments),
           extensionAccessCandidates,
           receiverType is ExtensionType
               ? templateUndefinedExtensionMethod
@@ -4256,6 +4312,7 @@ class TypeInferrerImpl implements TypeInferrer {
           propertyName.text.length,
           receiverType,
           propertyName,
+          _createInvalidGet(fileOffset, receiver, propertyName),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionProperty);
@@ -4284,6 +4341,7 @@ class TypeInferrerImpl implements TypeInferrer {
           propertyName.text.length,
           receiverType,
           propertyName,
+          _createInvalidSet(fileOffset, receiver, propertyName, value),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionProperty);
@@ -4307,6 +4365,8 @@ class TypeInferrerImpl implements TypeInferrer {
           noLength,
           receiverType,
           indexGetName,
+          _createInvalidInvocation(fileOffset, receiver, indexGetName,
+              new Arguments([index])..fileOffset = fileOffset),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionOperator);
@@ -4334,6 +4394,8 @@ class TypeInferrerImpl implements TypeInferrer {
           noLength,
           receiverType,
           indexSetName,
+          _createInvalidInvocation(fileOffset, receiver, indexSetName,
+              new Arguments([index, value])..fileOffset = fileOffset),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionOperator);
@@ -4359,6 +4421,8 @@ class TypeInferrerImpl implements TypeInferrer {
           binaryName.text.length,
           leftType,
           binaryName,
+          _createInvalidInvocation(fileOffset, left, binaryName,
+              new Arguments([right])..fileOffset = fileOffset),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionOperator);
@@ -4383,6 +4447,8 @@ class TypeInferrerImpl implements TypeInferrer {
           unaryName == unaryMinusName ? 1 : unaryName.text.length,
           expressionType,
           unaryName,
+          _createInvalidInvocation(fileOffset, expression, unaryName,
+              new Arguments([])..fileOffset = fileOffset),
           extensionAccessCandidates,
           templateMissing,
           templateAmbiguousExtensionOperator);

@@ -31,7 +31,7 @@ static method errors() → void {
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
     error.notAMethodOnObject();
-          ^^^^^^^^^^^^^^^^^^";
+          ^^^^^^^^^^^^^^^^^^" in error{<unresolved>}.notAMethodOnObject();
     self::_takesObject(error);
   }
   try {
@@ -41,12 +41,12 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
     error.notAMethodOnObject();
-          ^^^^^^^^^^^^^^^^^^";
+          ^^^^^^^^^^^^^^^^^^" in error{<unresolved>}.notAMethodOnObject();
     invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:13:16: Error: The method 'notAMethodOnStackTrace' isn't defined for the class 'StackTrace'.
  - 'StackTrace' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnStackTrace'.
     stackTrace.notAMethodOnStackTrace();
-               ^^^^^^^^^^^^^^^^^^^^^^";
+               ^^^^^^^^^^^^^^^^^^^^^^" in stackTrace{<unresolved>}.notAMethodOnStackTrace();
     self::_takesObject(error);
     self::_takesStackTrace(stackTrace);
   }

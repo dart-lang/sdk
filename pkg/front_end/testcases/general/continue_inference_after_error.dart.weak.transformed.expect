@@ -39,7 +39,7 @@ static method test() → dynamic {
  - 'C' is from 'pkg/front_end/testcases/general/continue_inference_after_error.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'missing'.
   lib(new C().missing());
-              ^^^^^^^" in null;
+              ^^^^^^^" in new self::C::•(){<unresolved>}.missing() in null;
 }
 static method main() → dynamic {}
 

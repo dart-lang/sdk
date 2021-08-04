@@ -104,7 +104,7 @@ static method main() → dynamic {
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'copyWith'.
  Cat cat4 = (cat as Object).copyWith(numberOfWhiskers: 4);
-                            ^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                            ^^^^^^^^" in (cat as{ForNonNullableByDefault} core::Object){<unresolved>}.copyWith(numberOfWhiskers: 4) as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
   self::Cat cat5 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith() as{ForNonNullableByDefault} self::Cat;
   self::Cat cat6 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfWhiskers: 4, numberOfHorns: 5) as{ForNonNullableByDefault} self::Cat;
   self::A a;

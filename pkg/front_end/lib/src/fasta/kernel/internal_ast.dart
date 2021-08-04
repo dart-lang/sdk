@@ -2547,6 +2547,14 @@ class IndexGet extends InternalExpression {
   String toString() {
     return "IndexGet(${toStringInternal()})";
   }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write(']');
+  }
 }
 
 /// Internal expression representing an index set expression.
@@ -2645,6 +2653,15 @@ class IndexSet extends InternalExpression {
   @override
   String toString() {
     return "IndexSet(${toStringInternal()})";
+  }
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(receiver);
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write('] = ');
+    printer.writeExpression(value);
   }
 }
 

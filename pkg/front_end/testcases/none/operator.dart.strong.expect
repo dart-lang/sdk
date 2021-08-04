@@ -84,7 +84,7 @@ static method add(core::num n, core::int i, core::double d, self::Class<core::St
   invalid-expression "pkg/front_end/testcases/none/operator.dart:48:10: Error: The operator '-' isn't defined for the class 'String'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
   string - 42;
-         ^";
+         ^" in string{<unresolved>}.-(42);
 }
 static method unaryMinus(core::num n, core::int i, core::double d, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic {
   core::print("InstanceInvocation");
@@ -104,7 +104,7 @@ static method unaryMinus(core::num n, core::int i, core::double d, self::Class<c
   invalid-expression "pkg/front_end/testcases/none/operator.dart:69:3: Error: The operator 'unary-' isn't defined for the class 'String'.
 Try correcting the operator to an existing operator, or defining a 'unary-' operator.
   -string;
-  ^";
+  ^" in string{<unresolved>}.unary-();
 }
 static method indexGet(core::List<core::int> list, core::Map<core::String, core::double> map, self::Class<core::String> c, dynamic dyn, Never never, core::String string) → dynamic {
   core::print("InstanceInvocation");

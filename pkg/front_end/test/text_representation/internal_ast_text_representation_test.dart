@@ -657,9 +657,18 @@ void _testStaticPostIncDec() {}
 
 void _testSuperPostIncDec() {}
 
-void _testIndexGet() {}
+void _testIndexGet() {
+  testExpression(new IndexGet(new IntLiteral(0), new IntLiteral(1)), '''
+0[1]''');
+}
 
-void _testIndexSet() {}
+void _testIndexSet() {
+  testExpression(
+      new IndexSet(new IntLiteral(0), new IntLiteral(1), new IntLiteral(2),
+          forEffect: false),
+      '''
+0[1] = 2''');
+}
 
 void _testSuperIndexSet() {}
 

@@ -98,7 +98,7 @@ static method test(self::Class c1, self::Class? c2, core::Invocation invocation,
   core::Type runtimeTypeVariable2 = c2.{core::Object::runtimeType}{core::Type};
   invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:44:17: Error: 'runtimeType' isn't a function or method and can't be invoked.
   c2.runtimeType(); // error
-                ^^^^^^^^^^^";
+                ^^^^^^^^^^^" in c2.{core::Object::runtimeType}{core::Type}{<unresolved>}.call();
   (self::CustomInvocation) → core::String noSuchMethodTearOff2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:47:10: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'String Function(CustomInvocation)'.
  - 'Invocation' is from 'dart:core'.
  - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.

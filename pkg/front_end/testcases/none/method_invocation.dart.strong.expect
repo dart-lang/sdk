@@ -205,7 +205,7 @@ Try calling using ?. instead.
  - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
   nonNullableClass1.unresolved();
-                    ^^^^^^^^^^";
+                    ^^^^^^^^^^" in nonNullableClass1{<unresolved>}.unresolved();
   core::print("DynamicInvocation (Inapplicable)");
   invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:105:27: Error: Too few positional arguments: 1 required, 0 given.
   nonNullableClass1.method();

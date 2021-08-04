@@ -467,19 +467,19 @@ To delegate a constructor to a super constructor, put the super call as an initi
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m++;
-           ^";
+           ^" in super.{self::A::m}{<unresolved>}.+(1);
     self::use(let final () →* void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m++);
-               ^" in #t23);
+               ^" in #t23{<unresolved>}.+(1) in #t23);
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n++;
-           ^";
+           ^" in super.{self::A::n}{<unresolved>}.+(1);
     self::use(let final () →* void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n++);
-               ^" in #t25);
+               ^" in #t25{<unresolved>}.+(1) in #t25);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(1));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
@@ -503,19 +503,19 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.m;
-    ^";
+    ^" in super.{self::A::m}{<unresolved>}.+(1);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.m);
-        ^");
+        ^" in super.{self::A::m}{<unresolved>}.+(1));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.n;
-    ^";
+    ^" in super.{self::A::n}{<unresolved>}.+(1);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.n);
-        ^");
+        ^" in super.{self::A::n}{<unresolved>}.+(1));
     super.{self::A::a}{dynamic}.call();
     self::use(super.{self::A::a}{dynamic}.call());
     super.{self::B::b}{dynamic}.call();
@@ -627,19 +627,19 @@ Try removing the extra positional arguments.
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m += 42;
-            ^";
+            ^" in super.{self::A::m}{<unresolved>}.+(42);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m += 42);
-                ^");
+                ^" in super.{self::A::m}{<unresolved>}.+(42));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n += 42;
-            ^";
+            ^" in super.{self::A::n}{<unresolved>}.+(42);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n += 42);
-                ^");
+                ^" in super.{self::A::n}{<unresolved>}.+(42));
     super.{self::A::a} = super.{self::A::a}{dynamic}.-(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.-(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.-(42);
@@ -663,19 +663,19 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     super.m -= 42;
-            ^";
+            ^" in super.{self::A::m}{<unresolved>}.-(42);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.m -= 42);
-                ^");
+                ^" in super.{self::A::m}{<unresolved>}.-(42));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     super.n -= 42;
-            ^";
+            ^" in super.{self::A::n}{<unresolved>}.-(42);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.n -= 42);
-                ^");
+                ^" in super.{self::A::n}{<unresolved>}.-(42));
   }
 }
 static method use(dynamic x) → dynamic {
