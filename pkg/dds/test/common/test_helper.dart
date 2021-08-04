@@ -24,7 +24,6 @@ Future<Process> spawnDartProcess(
     '--observe=0',
     if (pauseOnStart) '--pause-isolates-on-start',
     '--write-service-info=$serviceInfoUri',
-    '--sample-buffer-duration=1',
     ...Platform.executableArguments,
     Platform.script.resolve(script).toString(),
   ];
