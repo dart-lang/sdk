@@ -726,10 +726,10 @@ class ConstantsTransformer extends RemovingTransformer {
     Instantiation result =
         super.visitInstantiation(node, removalSentinel) as Instantiation;
     Expression expression = result.expression;
-    if (enableConstructorTearOff && expression is ConstantExpression) {
+    if (expression is ConstantExpression) {
       if (result.typeArguments.every(isInstantiated)) {
         return evaluateAndTransformWithContext(node, result);
-      } else {
+      } else if (enableConstructorTearOff) {
         Constant constant = expression.constant;
         if (constant is TypedefTearOffConstant) {
           Substitution substitution =
