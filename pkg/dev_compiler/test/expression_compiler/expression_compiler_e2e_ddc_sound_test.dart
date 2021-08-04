@@ -15,14 +15,8 @@ void main() async {
   var driver = await TestDriver.init();
 
   group('(Sound null safety)', () {
-    tearDownAll(() {
-      driver.finish();
-    });
-
-    group('(AMD module system)', () {
-      var setup = SetupCompilerOptions(
-          soundNullSafety: true, moduleFormat: ModuleFormat.amd);
-      runSharedTests(setup, driver);
+    tearDownAll(() async {
+      await driver.finish();
     });
 
     group('(DDC module system)', () {
