@@ -920,12 +920,21 @@ void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
     }
   }
 
-  // We only come here during hot reload, in which case we assume that none of
-  // the isolates is in the middle of sending messages.
   isolate_group()->ForEachIsolate(
       [&](Isolate* isolate) {
-        RELEASE_ASSERT(isolate->forward_table_new() == nullptr);
-        RELEASE_ASSERT(isolate->forward_table_old() == nullptr);
+        auto before_table = !before_object->IsSmiOrOldObject()
+                                ? isolate->forward_table_new()
+                                : isolate->forward_table_old();
+        if (before_table != nullptr) {
+          intptr_t entry = before_table->RemoveValueExclusive(before_object);
+          if (entry != 0) {
+            auto after_table = !after_object->IsSmiOrOldObject()
+                                   ? isolate->forward_table_new()
+                                   : isolate->forward_table_old();
+            ASSERT(after_table != nullptr);
+            after_table->SetValueExclusive(after_object, entry);
+          }
+        }
       },
       /*at_safepoint=*/true);
 }
