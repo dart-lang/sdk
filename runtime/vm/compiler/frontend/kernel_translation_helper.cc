@@ -2297,6 +2297,9 @@ void KernelReaderHelper::SkipExpression() {
     case kInvalidExpression:
       ReadPosition();
       SkipStringReference();
+      if (ReadTag() == kSomething) {
+        SkipExpression();  // read expression.
+      }
       return;
     case kVariableGet:
       ReadPosition();          // read position.

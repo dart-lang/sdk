@@ -36,7 +36,7 @@ class B extends self::A {
 }
 static field self::A* a;
 static field self::B* b;
-static field core::List<dynamic>* c1;
+static field core::List<invalid-type>* c1;
 static field core::List<dynamic>* c2;
 static field core::Map<dynamic, dynamic>* d;
 static field self::A* e;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -306,8 +308,8 @@ Future<void> doTestAwaitCatchError(Future f(), List<String> expectedStack,
 Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
   {
     final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'^#1      allYield3 \(.*/utils.dart:41(:3)?\)$',
       r'^#2      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -319,13 +321,13 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
-      r'^#2      noYields3 \(.*/utils.dart:53(:23)?\)$',
-      r'^#3      noYields2 \(.*/utils.dart:50(:9)?\)$',
-      r'^#4      noYields2 \(.*/utils.dart:49(:23)?\)$',
-      r'^#5      noYields \(.*/utils.dart:46(:9)?\)$',
-      r'^#6      noYields \(.*/utils.dart:45(:22)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'^#1      noYields3 \(.*/utils.dart:56(:3)?\)$',
+      r'^#2      noYields3 \(.*/utils.dart:55(:23)?\)$',
+      r'^#3      noYields2 \(.*/utils.dart:52(:9)?\)$',
+      r'^#4      noYields2 \(.*/utils.dart:51(:23)?\)$',
+      r'^#5      noYields \(.*/utils.dart:48(:9)?\)$',
+      r'^#6      noYields \(.*/utils.dart:47(:22)?\)$',
     ];
     final postfix = const <String>[
       r'^#9      doTestsNoCausalNoLazy ',
@@ -367,7 +369,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -379,7 +381,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -391,7 +393,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -403,8 +405,8 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
-      r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
+      r'^#0      throwSync \(.+/utils.dart:18(:3)?\)$',
+      r'^#1      asyncStarThrowSync \(.+/utils.dart:114(:11)?\)$',
       r'^#2      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -419,7 +421,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -434,7 +436,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -448,8 +450,8 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+      r'#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'#1      allYield3 \(.*/utils.dart:41(:3)?\)$',
       r'#2      _rootRunUnary ',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -461,7 +463,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -473,7 +475,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -485,7 +487,7 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^#1      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -498,8 +500,8 @@ Future<void> doTestsNoCausalNoLazy([String debugInfoFilename]) async {
 
   {
     final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      futureThen.<anonymous closure> \(.*/utils.dart:187(:5)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'^#1      futureThen.<anonymous closure> \(.*/utils.dart:189(:5)?\)$',
       r'^#2      _RootZone.runUnary \(.+\)$',
       // The rest are internal frames which we don't really care about.
       IGNORE_REMAINING_STACK,
@@ -515,12 +517,12 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // allYield
   {
     final allYieldExpected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'^#1      allYield3 \(.*/utils.dart:41(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
+      r'^#2      allYield2 \(.*/utils.dart:36(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#3      allYield \(.*/utils.dart:29(:3)?\)$',
+      r'^#3      allYield \(.*/utils.dart:31(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -564,10 +566,10 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // noYields
   {
     final noYieldsExpected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
-      r'^#2      noYields2 \(.*/utils.dart:50(:9)?\)$',
-      r'^#3      noYields \(.*/utils.dart:46(:9)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'^#1      noYields3 \(.*/utils.dart:56(:3)?\)$',
+      r'^#2      noYields2 \(.*/utils.dart:52(:9)?\)$',
+      r'^#3      noYields \(.*/utils.dart:48(:9)?\)$',
     ];
     await doTestAwait(
         noYields,
@@ -607,11 +609,11 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // mixedYields
   {
     final mixedYieldsExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#1      mixedYields2 \(.*/utils.dart:66(:3)?\)$',
+      r'^#1      mixedYields2 \(.*/utils.dart:68(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      mixedYields \(.*/utils.dart:61(:3)?\)$',
+      r'^#2      mixedYields \(.*/utils.dart:63(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -655,11 +657,11 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // syncSuffix
   {
     final syncSuffixExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#1      syncSuffix2 \(.*/utils.dart:82(:3)?\)$',
+      r'^#1      syncSuffix2 \(.*/utils.dart:84(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      syncSuffix \(.*/utils.dart:77(:3)?\)$',
+      r'^#2      syncSuffix \(.*/utils.dart:79(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -703,11 +705,11 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // nonAsyncNoStack
   {
     final nonAsyncNoStackExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#1      nonAsyncNoStack1 \(.*/utils.dart:95(:36)?\)$',
+      r'^#1      nonAsyncNoStack1 \(.*/utils.dart:97(:36)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      nonAsyncNoStack \(.*/utils.dart:93(:35)?\)$',
+      r'^#2      nonAsyncNoStack \(.*/utils.dart:95(:35)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -751,10 +753,10 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // awaitEveryAsyncStarThrowSync
   {
     final asyncStarThrowSyncExpected = const <String>[
-      r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
-      r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
+      r'^#0      throwSync \(.+/utils.dart:18(:3)?\)$',
+      r'^#1      asyncStarThrowSync \(.+/utils.dart:114(:11)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      awaitEveryAsyncStarThrowSync \(.+/utils.dart:104(:3)?\)$',
+      r'^#2      awaitEveryAsyncStarThrowSync \(.+/utils.dart:106(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -798,11 +800,11 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // awaitEveryAsyncStarThrowAsync
   {
     final asyncStarThrowAsyncExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
+      r'^#1      asyncStarThrowAsync \(.*/utils.dart:128(:5)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#2      awaitEveryAsyncStarThrowAsync \(.+/utils.dart:117(:3)?\)$',
+      r'^#2      awaitEveryAsyncStarThrowAsync \(.+/utils.dart:119(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -846,9 +848,9 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // listenAsyncStarThrowAsync
   {
     final listenAsyncStartExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
-      r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
+      r'^#1      asyncStarThrowAsync \(.*/utils.dart:128(:5)?\)$',
       r'^<asynchronous suspension>$',
       r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart(:0)?\)$',
       r'^<asynchronous suspension>$',
@@ -864,14 +866,14 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // customErrorZone
   {
     final customErrorZoneExpected = const <String>[
-      r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
-      r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+      r'#0      throwSync \(.*/utils.dart:18(:3)?\)$',
+      r'#1      allYield3 \(.*/utils.dart:41(:3)?\)$',
       r'<asynchronous suspension>$',
-      r'#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
+      r'#2      allYield2 \(.*/utils.dart:36(:3)?\)$',
       r'<asynchronous suspension>$',
-      r'#3      allYield \(.*/utils.dart:29(:3)?\)$',
+      r'#3      allYield \(.*/utils.dart:31(:3)?\)$',
       r'<asynchronous suspension>$',
-      r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:144(:5)?\)$',
+      r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:146(:5)?\)$',
       r'<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -885,7 +887,7 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // awaitTimeout
   {
     final awaitTimeoutExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
       r'^#1      Future.timeout.<anonymous closure> \(dart:async/future_impl.dart',
       r'^<asynchronous suspension>$',
@@ -933,7 +935,7 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // awaitWait
   {
     final awaitWaitExpected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
       r'^#1      Future.wait.<anonymous closure> \(dart:async/future.dart',
       r'^<asynchronous suspension>$',
@@ -981,7 +983,7 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // futureSyncWhenComplete
   {
     final expected = const <String>[
-      r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+      r'^#0      throwAsync \(.*/utils.dart:23(:3)?\)$',
       r'^<asynchronous suspension>$',
     ];
     await doTestAwait(
@@ -1025,7 +1027,7 @@ Future<void> doTestsLazy([String debugInfoFilename]) async {
   // futureThen
   {
     final expected = const <String>[
-      r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+      r'^#0      throwSync \(.*/utils.dart:18(:3)?\)$',
       r'^#1      futureThen.<anonymous closure> ',
       r'^<asynchronous suspension>$',
     ];

@@ -2020,6 +2020,9 @@ class EquivalenceStrategy {
     if (!checkInvalidExpression_message(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkInvalidExpression_expression(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkInvalidExpression_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5253,6 +5256,11 @@ class EquivalenceStrategy {
   bool checkInvalidExpression_message(EquivalenceVisitor visitor,
       InvalidExpression node, InvalidExpression other) {
     return visitor.checkValues(node.message, other.message, 'message');
+  }
+
+  bool checkInvalidExpression_expression(EquivalenceVisitor visitor,
+      InvalidExpression node, InvalidExpression other) {
+    return visitor.checkNodes(node.expression, other.expression, 'expression');
   }
 
   bool checkInvalidExpression_fileOffset(EquivalenceVisitor visitor,

@@ -18,6 +18,6 @@ static method test() → void {
  - 'Object' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '%' operator.
   print(predicate((v) => v % 2 == 1)(3));
-                           ^" =={core::Object::==}{(core::Object) → core::bool} 1)(3){(core::Object?) → core::bool});
+                           ^" in v{<unresolved>}.%(2) =={core::Object::==}{(core::Object) → core::bool} 1)(3){(core::Object?) → core::bool});
 }
 static method main() → void {}

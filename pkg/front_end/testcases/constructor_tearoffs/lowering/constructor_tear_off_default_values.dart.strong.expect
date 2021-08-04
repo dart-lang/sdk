@@ -43,7 +43,7 @@ static method testDefaultValues() → void {
   self::Class1 c1b = f1a(87){([core::int]) → self::Class1};
   self::expect(87, c1b.{self::Class1::field}{core::int});
   () → Null {
-    let final Never #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_default_values.dart:31:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_default_values.dart:31:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f1a(42, 87); // error
        ^" in f1a{<inapplicable>}.(42, 87);
@@ -60,7 +60,7 @@ Try removing the extra positional arguments.
   self::Class2 c2b = f2a(field: 87){({field: core::int}) → self::Class2};
   self::expect(87, c2b.{self::Class2::field}{core::int});
   () → Null {
-    let final Never #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_default_values.dart:47:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_default_values.dart:47:8: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     f2a(87); // error
        ^" in f2a{<inapplicable>}.(87);

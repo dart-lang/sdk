@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Verifies that AOT compiler doesn't crash when constant folding 'is'
 // test for a value which is a result of unreachable code
 // (result of inlined call of a method which doesn't return).

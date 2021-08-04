@@ -343,8 +343,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// a version that is too low for opting in to the experiment.
   bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
-              ExperimentalFlag.nonNullable, _packageUri ?? importUri) &&
-          !isOptOutTest(library.importUri);
+          ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   Version get enableNonNullableVersionInLibrary =>
       _enableNonNullableVersionInLibrary ??= loader.target
@@ -480,30 +479,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _computeIsNonNullableByDefault() =>
       enableNonNullableInLibrary &&
       languageVersion.version >= enableNonNullableVersionInLibrary;
-
-  static bool isOptOutTest(Uri uri) {
-    String path = uri.path;
-    for (String testDir in ['/tests/', '/generated_tests/']) {
-      int start = path.indexOf(testDir);
-      if (start == -1) continue;
-      String rest = path.substring(start + testDir.length);
-      return optOutTestPaths.any(rest.startsWith);
-    }
-    return false;
-  }
-
-  static const List<String> optOutTestPaths = [
-    'co19_2/',
-    'corelib_2/',
-    'web_2/',
-    'ffi_2',
-    'language_2/',
-    'lib_2/',
-    'samples_2/',
-    'service_2/',
-    'standalone_2/',
-    'vm/dart_2/', // in runtime/tests
-  ];
 
   LanguageVersion get languageVersion {
     assert(

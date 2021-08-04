@@ -24,7 +24,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-@let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/type_literal_as_metadata.dart:9:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@invalid-expression "pkg/front_end/testcases/general/type_literal_as_metadata.dart:9:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 @A
  ^" in self::A*
 class B extends core::Object {
@@ -43,8 +43,3 @@ class B extends core::Object {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: TypeLiteral @ org-dartlang-testcase:///type_literal_as_metadata.dart:9:2 -> TypeLiteralConstant(A*)
-Extra constant evaluation: evaluated: 2, effectively constant: 1

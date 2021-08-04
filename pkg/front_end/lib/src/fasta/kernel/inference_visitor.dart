@@ -119,7 +119,22 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitDynamicGet(
       DynamicGet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    // The node has already been inferred, for instance as part of a for-in
+    // loop, so just compute the result type.
+    DartType resultType;
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        resultType = const DynamicType();
+        break;
+      case DynamicAccessKind.Never:
+        resultType = NeverType.fromNullability(inferrer.library.nonNullable);
+        break;
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        resultType = const InvalidType();
+        break;
+    }
+    return new ExpressionInferenceResult(resultType, node);
   }
 
   @override
@@ -334,9 +349,13 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitInvalidExpression(
       InvalidExpression node, DartType typeContext) {
-    // TODO(johnniwinther): The inferred type should be an InvalidType. Using
-    // BottomType leads to cascading errors so we use DynamicType for now.
-    return new ExpressionInferenceResult(const DynamicType(), node);
+    if (node.expression != null) {
+      ExpressionInferenceResult result = inferrer.inferExpression(
+          node.expression!, typeContext, !inferrer.isTopLevel,
+          isVoidAllowed: true);
+      node.expression = result.expression..parent = node;
+    }
+    return new ExpressionInferenceResult(const InvalidType(), node);
   }
 
   @override

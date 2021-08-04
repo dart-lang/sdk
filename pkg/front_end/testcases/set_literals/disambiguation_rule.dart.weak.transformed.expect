@@ -73,39 +73,39 @@ static method main() → dynamic /* originally async */ {
         core::Iterable<core::int*>* i = block {
           final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
         } =>#t2;
-        col::LinkedHashSet<core::int*>* lhs = let final Never* #t3 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
+        col::LinkedHashSet<core::int*>* lhs = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:13:28: Error: The set literal type 'Set<dynamic>' isn't of expected type 'LinkedHashSet<int>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
   LinkedHashSet<int> lhs = {};
                            ^" in block {
-          final core::Set<dynamic>* #t4 = new col::_CompactLinkedHashSet::•<dynamic>();
-        } =>#t4;
-        col::LinkedHashMap<core::int*, core::bool*>* lhm = let final Never* #t5 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
+          final core::Set<dynamic>* #t3 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t3;
+        col::LinkedHashMap<core::int*, core::bool*>* lhm = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:14:34: Error: The map literal type 'Map<dynamic, dynamic>' isn't of expected type 'LinkedHashMap<int, bool>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
 Change the type of the map literal or the context in which it is used.
   LinkedHashMap<int, bool> lhm = {};
                                  ^" in <dynamic, dynamic>{};
-        [yield] let dynamic #t6 = asy::_awaitHelper(self::mapfun(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t4 = asy::_awaitHelper(self::mapfun(), :async_op_then, :async_op_error, :async_op) in null;
         core::Map<core::int*, core::bool*>* fm = _in::unsafeCast<core::Map<core::int*, core::bool*>*>(:result);
-        [yield] let dynamic #t7 = asy::_awaitHelper(self::setfun(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t5 = asy::_awaitHelper(self::setfun(), :async_op_then, :async_op_error, :async_op) in null;
         core::Set<core::int*>* fs = _in::unsafeCast<core::Set<core::int*>*>(:result);
-        [yield] let dynamic #t8 = asy::_awaitHelper(self::iterablefun(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t6 = asy::_awaitHelper(self::iterablefun(), :async_op_then, :async_op_error, :async_op) in null;
         core::Iterable<core::int*>* fi = _in::unsafeCast<core::Iterable<core::int*>*>(:result);
-        [yield] let dynamic #t9 = asy::_awaitHelper(self::lhsfun(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t7 = asy::_awaitHelper(self::lhsfun(), :async_op_then, :async_op_error, :async_op) in null;
         col::LinkedHashSet<core::int*>* flhs = _in::unsafeCast<col::LinkedHashSet<core::int*>*>(:result);
-        [yield] let dynamic #t10 = asy::_awaitHelper(self::lhmfun(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t8 = asy::_awaitHelper(self::lhmfun(), :async_op_then, :async_op_error, :async_op) in null;
         col::LinkedHashMap<core::int*, core::bool*>* flhm = _in::unsafeCast<col::LinkedHashMap<core::int*, core::bool*>*>(:result);
-        [yield] let dynamic #t11 = asy::_awaitHelper(self::mapfun2(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t9 = asy::_awaitHelper(self::mapfun2(), :async_op_then, :async_op_error, :async_op) in null;
         core::Map<core::int*, core::bool*>* fm2 = _in::unsafeCast<core::Map<core::int*, core::bool*>*>(:result);
-        [yield] let dynamic #t12 = asy::_awaitHelper(self::setfun2(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t10 = asy::_awaitHelper(self::setfun2(), :async_op_then, :async_op_error, :async_op) in null;
         core::Set<core::int*>* fs2 = _in::unsafeCast<core::Set<core::int*>*>(:result);
-        [yield] let dynamic #t13 = asy::_awaitHelper(self::iterablefun2(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t11 = asy::_awaitHelper(self::iterablefun2(), :async_op_then, :async_op_error, :async_op) in null;
         core::Iterable<core::int*>* fi2 = _in::unsafeCast<core::Iterable<core::int*>*>(:result);
-        [yield] let dynamic #t14 = asy::_awaitHelper(self::lhsfun2(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t12 = asy::_awaitHelper(self::lhsfun2(), :async_op_then, :async_op_error, :async_op) in null;
         col::LinkedHashSet<core::int*>* flhs2 = _in::unsafeCast<col::LinkedHashSet<core::int*>*>(:result);
-        [yield] let dynamic #t15 = asy::_awaitHelper(self::lhmfun2(), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t13 = asy::_awaitHelper(self::lhmfun2(), :async_op_then, :async_op_error, :async_op) in null;
         col::LinkedHashMap<core::int*, core::bool*>* flhm2 = _in::unsafeCast<col::LinkedHashMap<core::int*, core::bool*>*>(:result);
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -160,8 +160,8 @@ static method setfun() → asy::Future<core::Set<core::int*>*>* /* originally as
       #L3:
       {
         :return_value = block {
-          final core::Set<core::int*>* #t16 = new col::_CompactLinkedHashSet::•<core::int*>();
-        } =>#t16;
+          final core::Set<core::int*>* #t14 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t14;
         break #L3;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -189,8 +189,8 @@ static method iterablefun() → asy::Future<core::Iterable<core::int*>*>* /* ori
       #L4:
       {
         :return_value = block {
-          final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>();
-        } =>#t17;
+          final core::Set<core::int*>* #t15 = new col::_CompactLinkedHashSet::•<core::int*>();
+        } =>#t15;
         break #L4;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -217,15 +217,15 @@ static method lhsfun() → asy::Future<col::LinkedHashSet<core::int*>*>* /* orig
     try {
       #L5:
       {
-        :return_value = let final Never* #t18 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Future<Set<dynamic>>' isn't of expected type 'Future<LinkedHashSet<int>>'.
+        :return_value = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:32:46: Error: The set literal type 'Future<Set<dynamic>>' isn't of expected type 'Future<LinkedHashSet<int>>'.
  - 'Future' is from 'dart:async'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 Change the type of the set literal or the context in which it is used.
 Future<LinkedHashSet<int>> lhsfun() async => {};
                                              ^" in block {
-          final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>();
-        } =>#t19;
+          final core::Set<dynamic>* #t16 = new col::_CompactLinkedHashSet::•<dynamic>();
+        } =>#t16;
         break #L5;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -252,7 +252,7 @@ static method lhmfun() → asy::Future<col::LinkedHashMap<core::int*, core::bool
     try {
       #L6:
       {
-        :return_value = let final Never* #t20 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Future<Map<dynamic, dynamic>>' isn't of expected type 'Future<LinkedHashMap<int, bool>>'.
+        :return_value = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:33:52: Error: The map literal type 'Future<Map<dynamic, dynamic>>' isn't of expected type 'Future<LinkedHashMap<int, bool>>'.
  - 'Future' is from 'dart:async'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
@@ -277,22 +277,22 @@ static method mapfun2() → FutureOr<core::Map<core::int*, core::bool*>*>*
   return <core::int*, core::bool*>{};
 static method setfun2() → FutureOr<core::Set<core::int*>*>*
   return block {
-    final core::Set<core::int*>* #t21 = new col::_CompactLinkedHashSet::•<core::int*>();
-  } =>#t21;
+    final core::Set<core::int*>* #t17 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t17;
 static method iterablefun2() → FutureOr<core::Iterable<core::int*>*>*
   return block {
-    final core::Set<core::int*>* #t22 = new col::_CompactLinkedHashSet::•<core::int*>();
-  } =>#t22;
+    final core::Set<core::int*>* #t18 = new col::_CompactLinkedHashSet::•<core::int*>();
+  } =>#t18;
 static method lhsfun2() → FutureOr<col::LinkedHashSet<core::int*>*>*
-  return let final Never* #t23 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:38:43: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashSet<int>>'.
  - 'Set' is from 'dart:core'.
  - 'LinkedHashSet' is from 'dart:collection'.
 FutureOr<LinkedHashSet<int>> lhsfun2() => {};
                                           ^" in ( block {
-    final core::Set<dynamic>* #t24 = new col::_CompactLinkedHashSet::•<dynamic>();
-  } =>#t24) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
+    final core::Set<dynamic>* #t19 = new col::_CompactLinkedHashSet::•<dynamic>();
+  } =>#t19) as{TypeError} FutureOr<col::LinkedHashSet<core::int*>*>*;
 static method lhmfun2() → FutureOr<col::LinkedHashMap<core::int*, core::bool*>*>*
-  return let final Never* #t25 = invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
+  return invalid-expression "pkg/front_end/testcases/set_literals/disambiguation_rule.dart:39:49: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'FutureOr<LinkedHashMap<int, bool>>'.
  - 'Map' is from 'dart:core'.
  - 'LinkedHashMap' is from 'dart:collection'.
 FutureOr<LinkedHashMap<int, bool>> lhmfun2() => {};

@@ -467,6 +467,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     visitWithLocalScope(node);
   }
 
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
+  }
+
   visitBlockExpression(BlockExpression node) {
     int stackHeight = enterLocalScope();
     // Do not visit the block directly because the value expression needs to
@@ -965,6 +970,11 @@ class VerifyGetStaticType extends RecursiveVisitor {
   void visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     super.visitLet(node);
+  }
+
+  @override
+  void visitInvalidExpression(InvalidExpression node) {
+    return;
   }
 
   @override

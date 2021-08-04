@@ -30,9 +30,9 @@ static method errors() → void {
   final core::List<core::Object*>* list = <core::Object*>[];
   invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:22:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
   list.safeFirst();
-       ^^^^^^^^^";
+       ^^^^^^^^^" in self::SafeAccess|get#safeFirst<core::Object*>(list){<unresolved>}.call();
   final core::List<(core::int*) →* void>* list2 = <(core::int*) →* void>[];
-  let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
   list2.safeFirst();
                  ^" in self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2){<inapplicable>}.();
 }

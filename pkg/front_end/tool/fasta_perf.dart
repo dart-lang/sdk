@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// An entrypoint used to run portions of fasta and measure its performance.
 library front_end.tool.fasta_perf;
 
@@ -79,7 +77,7 @@ main(List<String> args) async {
 Uri sdkRoot = Uri.base.resolve("sdk/");
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
-UriTranslator uriResolver;
+late UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
@@ -155,6 +153,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
 Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
   helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
+    // ignore: unnecessary_null_comparison
     if (uri == null) return;
     if (files.containsKey(uri)) return;
     var contents = readBytesFromFileSync(uri);
@@ -173,9 +172,9 @@ Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
-    ..addAll(listener.imports.map((directive) => directive.uri))
-    ..addAll(listener.exports.map((directive) => directive.uri))
-    ..addAll(listener.parts);
+    ..addAll(listener.imports.map((directive) => directive.uri!))
+    ..addAll(listener.exports.map((directive) => directive.uri!))
+    ..addAll(listener.parts.map((uri) => uri!));
 }
 
 class DirectiveListenerWithNative extends DirectiveListener {
@@ -210,7 +209,7 @@ parseFull(Uri uri, List<int> source) {
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri)
-      : super(null, null, true, FeatureSet.latestLanguageVersion(), uri);
+      : super(null, uri, true, FeatureSet.latestLanguageVersion(), uri);
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]

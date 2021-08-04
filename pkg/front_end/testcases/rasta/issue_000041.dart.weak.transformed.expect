@@ -22,7 +22,7 @@ class C extends core::Object {
   method test() → dynamic {
     self::use(invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:9: Error: This couldn't be parsed.
     use(+super);
-        ^"{dynamic}.+(invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:10: Error: Can't use 'super' as an expression.
+        ^"{<invalid>}.+(invalid-expression "pkg/front_end/testcases/rasta/issue_000041.dart:7:10: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
     use(+super);
          ^^^^^"));

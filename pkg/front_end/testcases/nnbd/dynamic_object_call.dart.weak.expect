@@ -34,8 +34,8 @@ static method test() → dynamic {
   core::int v4 = c.{core::Object::hashCode}{core::int};
   dynamic v5 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:21:22: Error: 'hashCode' isn't a function or method and can't be invoked.
   var v5 = c.hashCode();
-                     ^^^^...";
-  dynamic v6 = c.{core::Object::noSuchMethod}(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
+                     ^^^^..." in c.{core::Object::hashCode}{core::int}{<unresolved>}.call();
+  dynamic v6 = c.{core::Object::noSuchMethod}(invalid-expression "pkg/front_end/testcases/nnbd/dynamic_object_call.dart:23:27: Error: The argument type 'String' can't be assigned to the parameter type 'Invocation'.
  - 'Invocation' is from 'dart:core'.
   var v6 = c.noSuchMethod(\"foo\");
                           ^" in "foo" as{TypeError,ForNonNullableByDefault} core::Invocation){(core::Invocation) → dynamic};

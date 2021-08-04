@@ -136,19 +136,19 @@ static method main() → dynamic {
  - 'C2' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'm'.
   c2.m + c2.c;
-     ^"{dynamic}.+(invalid-expression "pkg/front_end/testcases/regress/issue_34563.dart:23:13: Error: The getter 'c' isn't defined for the class 'C2'.
+     ^" in c2{<unresolved>}.m{dynamic}.+(invalid-expression "pkg/front_end/testcases/regress/issue_34563.dart:23:13: Error: The getter 'c' isn't defined for the class 'C2'.
  - 'C2' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
   c2.m + c2.c;
-            ^");
+            ^" in c2{<unresolved>}.c);
   self::C3* c3 = new self::C3::•();
   invalid-expression "pkg/front_end/testcases/regress/issue_34563.dart:25:6: Error: The getter 'm' isn't defined for the class 'C3'.
  - 'C3' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'm'.
   c3.m + c3.c;
-     ^"{dynamic}.+(invalid-expression "pkg/front_end/testcases/regress/issue_34563.dart:25:13: Error: The getter 'c' isn't defined for the class 'C3'.
+     ^" in c3{<unresolved>}.m{dynamic}.+(invalid-expression "pkg/front_end/testcases/regress/issue_34563.dart:25:13: Error: The getter 'c' isn't defined for the class 'C3'.
  - 'C3' is from 'pkg/front_end/testcases/regress/issue_34563.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'c'.
   c3.m + c3.c;
-            ^");
+            ^" in c3{<unresolved>}.c);
 }

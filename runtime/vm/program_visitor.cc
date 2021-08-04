@@ -467,7 +467,7 @@ class StackMapEntry : public ZoneAllocated {
     ASSERT(it.current_spill_slot_bit_count_ >= 0);
   }
 
-  static const intptr_t kHashBits = 30;
+  static constexpr intptr_t kHashBits = Object::kHashBits;
 
   uword Hash() {
     if (hash_ != 0) return hash_;
@@ -754,8 +754,7 @@ void ProgramVisitor::DedupPcDescriptors(Zone* zone,
         public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : Dedupper(zone),
-          pc_descriptor_(PcDescriptors::Handle(zone)) {
+        : Dedupper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
         AddVMBaseObjects();

@@ -37,6 +37,6 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → dynamic {
     dart.core::Object* o = 1;
-    invalid-expression "org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.\n - 'Object' is from 'dart:core'.\nTry using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.\n  o.onObject;\n    ^^^^^^^^";
+    invalid-expression "org-dartlang-test:///main.dart:5:5: Error: The property 'onObject' is defined in multiple extensions for 'Object' and neither is more specific.\n - 'Object' is from 'dart:core'.\nTry using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.\n  o.onObject;\n    ^^^^^^^^" in o{<unresolved>}.onObject;
   }
 }

@@ -3706,7 +3706,12 @@ class InvalidExpression extends Expression {
   // TODO(johnniwinther): Avoid using `null` as the empty string.
   String? message;
 
-  InvalidExpression(this.message);
+  /// The expression containing the error.
+  Expression? expression;
+
+  InvalidExpression(this.message, [this.expression]) {
+    expression?.parent = this;
+  }
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -3724,13 +3729,25 @@ class InvalidExpression extends Expression {
       v.visitInvalidExpression(this, arg);
 
   @override
-  void visitChildren(Visitor v) {}
+  void visitChildren(Visitor v) {
+    expression?.accept(v);
+  }
 
   @override
-  void transformChildren(Transformer v) {}
+  void transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = v.transform(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) {}
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    if (expression != null) {
+      expression = v.transformOrRemoveExpression(expression!);
+      expression?.parent = this;
+    }
+  }
 
   @override
   String toString() {
@@ -3741,6 +3758,10 @@ class InvalidExpression extends Expression {
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
     printer.write(message ?? '');
+    if (expression != null) {
+      printer.write(', ');
+      printer.writeExpression(expression!);
+    }
     printer.write('>');
   }
 }

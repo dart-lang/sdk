@@ -19,7 +19,7 @@ static method method2(() → FutureOr<void>f) → dynamic {
 }
 static method test() → dynamic {
   self::method(() → void {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue43174.dart:17:12: Error: Can't return a value from a void function.
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue43174.dart:17:12: Error: Can't return a value from a void function.
     return 42; // error
            ^" in 42;
   });

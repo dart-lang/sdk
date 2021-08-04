@@ -175,7 +175,6 @@ class ExpressionLifter extends Transformer {
     return expr;
   }
 
-  TreeNode visitInvalidExpression(InvalidExpression expr) => nullary(expr);
   TreeNode visitSuperPropertyGet(SuperPropertyGet expr) => nullary(expr);
   TreeNode visitStaticGet(StaticGet expr) => nullary(expr);
   TreeNode visitStaticTearOff(StaticTearOff expr) => nullary(expr);
@@ -231,6 +230,8 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
+  TreeNode visitInvalidExpression(InvalidExpression expr) => unary(expr);
   @override
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
   @override

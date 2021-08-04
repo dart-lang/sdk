@@ -6094,7 +6094,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage>? context, bool suppressMessage: false}) {
+      {List<LocatedMessage>? context,
+      bool suppressMessage: false,
+      Expression? expression}) {
     if (!suppressMessage) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
@@ -6102,9 +6104,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     String text = libraryBuilder.loader.target.context
         .format(message.withLocation(uri, charOffset, length), Severity.error)
         .plain;
-    InvalidExpression expression = new InvalidExpression(text)
-      ..fileOffset = charOffset;
-    return expression;
+    return new InvalidExpression(text, expression)..fileOffset = charOffset;
   }
 
   @override
@@ -6131,15 +6131,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (offset == -1) {
       offset = message.charOffset;
     }
-    return new Let(
-        new VariableDeclaration.forValue(
-            buildProblem(
-                message.messageObject, message.charOffset, message.length,
-                context: context),
-            type: NeverType.fromNullability(libraryBuilder.nonNullable))
-          ..fileOffset = offset,
-        expression)
-      ..fileOffset = offset;
+    return buildProblem(
+        message.messageObject, message.charOffset, message.length,
+        context: context, expression: expression);
   }
 
   Expression buildFallThroughError(int charOffset) {

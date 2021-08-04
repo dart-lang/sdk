@@ -32,7 +32,13 @@ class C extends core::Object {
 static method test() → void {
   self::C::m(a: invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.
   C.m(a: 1, a: 2, a: 3);
-                  ^");
+                  ^" in block {
+    invalid-expression "pkg/front_end/testcases/general/duplicated_named_args_3.dart:13:13: Error: Duplicated named argument 'a'.
+  C.m(a: 1, a: 2, a: 3);
+            ^" in block {
+      1;
+    } =>2;
+  } =>3);
 }
 static method main() → dynamic {}
 

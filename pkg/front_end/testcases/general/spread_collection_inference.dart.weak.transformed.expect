@@ -257,71 +257,71 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   dynamic map24ambiguous = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:96:28: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
   dynamic map24ambiguous = {...spread, ...mapSpread};
                            ^";
-  core::int* lhs30 = let final Never* #t34 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:98:36: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
+  core::int* lhs30 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:98:36: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
   int lhs30 = /*@ typeArgs=int* */ [...spread];
                                    ^" in ( block {
-    final core::List<core::int*>* #t35 = core::List::of<core::int*>(spread);
-  } =>#t35) as{TypeError} core::int*;
-  core::int* set30 = let final Never* #t36 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:100:36: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+    final core::List<core::int*>* #t34 = core::List::of<core::int*>(spread);
+  } =>#t34) as{TypeError} core::int*;
+  core::int* set30 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:100:36: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
   int set30 = /*@ typeArgs=int* */ {...spread, 42};
                                    ^" in ( block {
-    final core::Set<core::int*>* #t37 = col::LinkedHashSet::of<core::int*>(spread);
-    #t37.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
-  } =>#t37) as{TypeError} core::int*;
-  core::int* set30ambiguous = let final Never* #t38 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:103:7: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
+    final core::Set<core::int*>* #t35 = col::LinkedHashSet::of<core::int*>(spread);
+    #t35.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
+  } =>#t35) as{TypeError} core::int*;
+  core::int* set30ambiguous = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:103:7: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
       {...spread};
       ^" in ( block {
-    final core::Set<core::int*>* #t39 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t36 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator}{core::Iterator<core::int*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t40 = :sync-for-iterator.{core::Iterator::current}{core::int*};
+        final dynamic #t37 = :sync-for-iterator.{core::Iterator::current}{core::int*};
         {
-          final core::int* #t41 = #t40 as{TypeError} core::int*;
-          #t39.{core::Set::add}{Invariant}(#t41){(core::int*) →* core::bool*};
+          final core::int* #t38 = #t37 as{TypeError} core::int*;
+          #t36.{core::Set::add}{Invariant}(#t38){(core::int*) →* core::bool*};
         }
       }
     }
-  } =>#t39) as{TypeError} core::int*;
-  core::int* map30 = let final Never* #t42 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:106:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+  } =>#t36) as{TypeError} core::int*;
+  core::int* map30 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:106:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
  - 'Map' is from 'dart:core'.
       {...mapSpread, \"baz\": 42};
       ^" in ( block {
-    final core::Map<core::String*, core::int*>* #t43 = <core::String*, core::int*>{};
+    final core::Map<core::String*, core::int*>* #t39 = <core::String*, core::int*>{};
     {
       core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::String*, core::int*>* #t44 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
-        #t43.{core::Map::[]=}{Invariant}(#t44.{core::MapEntry::key}{core::String*}, #t44.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
+        final core::MapEntry<core::String*, core::int*>* #t40 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
+        #t39.{core::Map::[]=}{Invariant}(#t40.{core::MapEntry::key}{core::String*}, #t40.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
-    #t43.{core::Map::[]=}{Invariant}("baz", 42){(core::String*, core::int*) →* void};
-  } =>#t43) as{TypeError} core::int*;
-  core::int* map30ambiguous = let final Never* #t45 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:109:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
+    #t39.{core::Map::[]=}{Invariant}("baz", 42){(core::String*, core::int*) →* void};
+  } =>#t39) as{TypeError} core::int*;
+  core::int* map30ambiguous = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:109:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
  - 'Map' is from 'dart:core'.
       {...mapSpread};
       ^" in ( block {
-    final core::Map<core::String*, core::int*>* #t46 = <core::String*, core::int*>{};
+    final core::Map<core::String*, core::int*>* #t41 = <core::String*, core::int*>{};
     {
       core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = mapSpread.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::String*, core::int*>* #t47 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
-        #t46.{core::Map::[]=}{Invariant}(#t47.{core::MapEntry::key}{core::String*}, #t47.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
+        final core::MapEntry<core::String*, core::int*>* #t42 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
+        #t41.{core::Map::[]=}{Invariant}(#t42.{core::MapEntry::key}{core::String*}, #t42.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
-  } =>#t46) as{TypeError} core::int*;
+  } =>#t41) as{TypeError} core::int*;
   core::List<dynamic>* lhs40 = core::_GrowableList::_literal1<dynamic>(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:111:38: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
                                      ^");
   core::Set<dynamic>* set40 = block {
-    final core::Set<dynamic>* #t48 = new col::_CompactLinkedHashSet::•<dynamic>();
-    #t48.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:113:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+    final core::Set<dynamic>* #t43 = new col::_CompactLinkedHashSet::•<dynamic>();
+    #t43.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:113:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set40 = <dynamic>{...notSpreadInt};
                                     ^"){(dynamic) →* core::bool*};
-  } =>#t48;
+  } =>#t43;
   core::Map<dynamic, dynamic>* map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:115:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
   Map<dynamic, dynamic> map40 = <dynamic, dynamic>{...notSpreadInt};
                                                       ^": null};
@@ -329,11 +329,11 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
                                      ^");
   core::Set<dynamic>* set50 = block {
-    final core::Set<dynamic>* #t49 = new col::_CompactLinkedHashSet::•<dynamic>();
-    #t49.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:119:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+    final core::Set<dynamic>* #t44 = new col::_CompactLinkedHashSet::•<dynamic>();
+    #t44.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:119:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
                                     ^"){(dynamic) →* core::bool*};
-  } =>#t49;
+  } =>#t44;
   core::Map<dynamic, dynamic>* map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:121:55: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
   Map<dynamic, dynamic> map50 = <dynamic, dynamic>{...notSpreadFunction};
                                                       ^": null};
@@ -341,11 +341,11 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<String> lhs60 = <String>[...spread];
                                    ^");
   core::Set<core::String*>* set60 = block {
-    final core::Set<core::String*>* #t50 = new col::_CompactLinkedHashSet::•<core::String*>();
-    #t50.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:125:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+    final core::Set<core::String*>* #t45 = new col::_CompactLinkedHashSet::•<core::String*>();
+    #t45.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:125:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{...spread};
                                   ^"){(core::String*) →* core::bool*};
-  } =>#t50;
+  } =>#t45;
   core::Map<core::int*, core::int*>* map60 = <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:127:39: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
   Map<int, int> map60 = <int, int>{...mapSpread};
                                       ^": null};
@@ -356,140 +356,140 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   List<int> lhs70 = <int>[...null];
                              ^");
   core::Set<core::int*>* set70 = block {
-    final core::Set<core::int*>* #t51 = new col::_CompactLinkedHashSet::•<core::int*>();
-    #t51.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:29: Error: Can't spread a value with static type 'Null'.
+    final core::Set<core::int*>* #t46 = new col::_CompactLinkedHashSet::•<core::int*>();
+    #t46.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:133:29: Error: Can't spread a value with static type 'Null'.
   Set<int> set70 = <int>{...null};
                             ^"){(core::int*) →* core::bool*};
-  } =>#t51;
+  } =>#t46;
   core::Set<dynamic>* set71ambiguous = block {
-    final core::Set<dynamic>* #t52 = new col::_CompactLinkedHashSet::•<dynamic>();
-    #t52.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:137:8: Error: Can't spread a value with static type 'Null'.
+    final core::Set<dynamic>* #t47 = new col::_CompactLinkedHashSet::•<dynamic>();
+    #t47.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:137:8: Error: Can't spread a value with static type 'Null'.
     ...null,
        ^"){(dynamic) →* core::bool*};
     {
       core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t53 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t48 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final dynamic #t54 = #t53 as{TypeError} dynamic;
-          #t52.{core::Set::add}{Invariant}(#t54){(dynamic) →* core::bool*};
+          final dynamic #t49 = #t48 as{TypeError} dynamic;
+          #t47.{core::Set::add}{Invariant}(#t49){(dynamic) →* core::bool*};
         }
       }
     }
-  } =>#t52;
+  } =>#t47;
   core::Map<core::String*, core::int*>* map70 = <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:142:45: Error: Can't spread a value with static type 'Null'.
   Map<String, int> map70 = <String, int>{...null};
                                             ^": null};
   core::List<core::int*>* lhs80 = block {
-    final core::List<core::int*>* #t55 = core::_GrowableList::•<core::int*>(0);
-    final core::Iterable<core::int*>* #t56 = null;
-    if(!(#t56 == null))
-      #t55.{core::List::addAll}{Invariant}(#t56){(core::Iterable<core::int*>*) →* void};
-  } =>#t55;
+    final core::List<core::int*>* #t50 = core::_GrowableList::•<core::int*>(0);
+    final core::Iterable<core::int*>* #t51 = null;
+    if(!(#t51 == null))
+      #t50.{core::List::addAll}{Invariant}(#t51){(core::Iterable<core::int*>*) →* void};
+  } =>#t50;
   core::Set<core::int*>* set80 = block {
-    final core::Set<core::int*>* #t57 = new col::_CompactLinkedHashSet::•<core::int*>();
-    final core::Iterable<core::int*>* #t58 = null;
-    if(!(#t58 == null))
-      #t57.{core::Set::addAll}{Invariant}(#t58){(core::Iterable<core::int*>*) →* void};
-  } =>#t57;
+    final core::Set<core::int*>* #t52 = new col::_CompactLinkedHashSet::•<core::int*>();
+    final core::Iterable<core::int*>* #t53 = null;
+    if(!(#t53 == null))
+      #t52.{core::Set::addAll}{Invariant}(#t53){(core::Iterable<core::int*>*) →* void};
+  } =>#t52;
   core::Set<dynamic>* set81ambiguous = block {
-    final core::Set<dynamic>* #t59 = new col::_CompactLinkedHashSet::•<dynamic>();
-    final core::Iterable<dynamic>* #t60 = null;
-    if(!(#t60 == null)) {
-      core::Iterator<dynamic>* :sync-for-iterator = #t60.{core::Iterable::iterator}{core::Iterator<dynamic>*};
+    final core::Set<dynamic>* #t54 = new col::_CompactLinkedHashSet::•<dynamic>();
+    final core::Iterable<dynamic>* #t55 = null;
+    if(!(#t55 == null)) {
+      core::Iterator<dynamic>* :sync-for-iterator = #t55.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t61 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t56 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final dynamic #t62 = #t61 as{TypeError} dynamic;
-          #t59.{core::Set::add}{Invariant}(#t62){(dynamic) →* core::bool*};
+          final dynamic #t57 = #t56 as{TypeError} dynamic;
+          #t54.{core::Set::add}{Invariant}(#t57){(dynamic) →* core::bool*};
         }
       }
     }
     {
       core::Iterator<dynamic>* :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t63 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t58 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final dynamic #t64 = #t63 as{TypeError} dynamic;
-          #t59.{core::Set::add}{Invariant}(#t64){(dynamic) →* core::bool*};
+          final dynamic #t59 = #t58 as{TypeError} dynamic;
+          #t54.{core::Set::add}{Invariant}(#t59){(dynamic) →* core::bool*};
         }
       }
     }
-  } =>#t59;
+  } =>#t54;
   core::Map<core::String*, core::int*>* map80 = block {
-    final core::Map<core::String*, core::int*>* #t65 = <core::String*, core::int*>{};
-    final core::Map<core::String*, core::int*>* #t66 = null;
-    if(!(#t66 == null)) {
-      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t66.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
+    final core::Map<core::String*, core::int*>* #t60 = <core::String*, core::int*>{};
+    final core::Map<core::String*, core::int*>* #t61 = null;
+    if(!(#t61 == null)) {
+      core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = #t61.{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::String*, core::int*>* #t67 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
-        #t65.{core::Map::[]=}{Invariant}(#t67.{core::MapEntry::key}{core::String*}, #t67.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
+        final core::MapEntry<core::String*, core::int*>* #t62 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
+        #t60.{core::Map::[]=}{Invariant}(#t62.{core::MapEntry::key}{core::String*}, #t62.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
-  } =>#t65;
+  } =>#t60;
   core::Map<core::String*, core::int*>* map90 = block {
-    final core::Map<core::String*, core::int*>* #t68 = <core::String*, core::int*>{};
+    final core::Map<core::String*, core::int*>* #t63 = <core::String*, core::int*>{};
     {
       core::Iterator<core::MapEntry<core::String*, core::int*>>* :sync-for-iterator = self::bar<core::String*, core::int*>().{core::Map::entries}{core::Iterable<core::MapEntry<core::String*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::String*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<core::String*, core::int*>* #t69 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
-        #t68.{core::Map::[]=}{Invariant}(#t69.{core::MapEntry::key}{core::String*}, #t69.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
+        final core::MapEntry<core::String*, core::int*>* #t64 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::String*, core::int*>};
+        #t63.{core::Map::[]=}{Invariant}(#t64.{core::MapEntry::key}{core::String*}, #t64.{core::MapEntry::value}{core::int*}){(core::String*, core::int*) →* void};
       }
     }
-  } =>#t68;
+  } =>#t63;
   core::List<core::int*>* list100 = block {
-    final core::List<core::int*>* #t70 = core::_GrowableList::•<core::int*>(0);
+    final core::List<core::int*>* #t65 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<core::num*>* :sync-for-iterator = listNum.{core::Iterable::iterator}{core::Iterator<core::num*>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t71 = :sync-for-iterator.{core::Iterator::current}{core::num*};
+        final dynamic #t66 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t72 = #t71 as{TypeError} core::int*;
-          #t70.{core::List::add}{Invariant}(#t72){(core::int*) →* void};
+          final core::int* #t67 = #t66 as{TypeError} core::int*;
+          #t65.{core::List::add}{Invariant}(#t67){(core::int*) →* void};
         }
       }
     }
-  } =>#t70;
+  } =>#t65;
   core::Map<core::num*, core::int*>* map100 = block {
-    final core::Map<core::num*, core::int*>* #t73 = <core::num*, core::int*>{};
+    final core::Map<core::num*, core::int*>* #t68 = <core::num*, core::int*>{};
     {
       core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = mapIntNum.{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<dynamic, dynamic>* #t74 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
+        final core::MapEntry<dynamic, dynamic>* #t69 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {
-          final core::num* #t75 = #t74.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
-          final core::int* #t76 = #t74.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
-          #t73.{core::Map::[]=}{Invariant}(#t75, #t76){(core::num*, core::int*) →* void};
+          final core::num* #t70 = #t69.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
+          final core::int* #t71 = #t69.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
+          #t68.{core::Map::[]=}{Invariant}(#t70, #t71){(core::num*, core::int*) →* void};
         }
       }
     }
-  } =>#t73;
+  } =>#t68;
   core::List<core::int*>* list110 = block {
-    final core::List<core::int*>* #t77 = core::_GrowableList::•<core::int*>(0);
+    final core::List<core::int*>* #t72 = core::_GrowableList::•<core::int*>(0);
     {
       core::Iterator<dynamic>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t78 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        final dynamic #t73 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t79 = #t78 as{TypeError} core::int*;
-          #t77.{core::List::add}{Invariant}(#t79){(core::int*) →* void};
+          final core::int* #t74 = #t73 as{TypeError} core::int*;
+          #t72.{core::List::add}{Invariant}(#t74){(core::int*) →* void};
         }
       }
     }
-  } =>#t77;
+  } =>#t72;
   core::Map<core::num*, core::int*>* map110 = block {
-    final core::Map<core::num*, core::int*>* #t80 = <core::num*, core::int*>{};
+    final core::Map<core::num*, core::int*>* #t75 = <core::num*, core::int*>{};
     {
       core::Iterator<core::MapEntry<core::num*, core::int*>>* :sync-for-iterator = (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::num*, core::int*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::num*, core::int*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::MapEntry<dynamic, dynamic>* #t81 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
+        final core::MapEntry<dynamic, dynamic>* #t76 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::num*, core::int*>};
         {
-          final core::num* #t82 = #t81.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
-          final core::int* #t83 = #t81.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
-          #t80.{core::Map::[]=}{Invariant}(#t82, #t83){(core::num*, core::int*) →* void};
+          final core::num* #t77 = #t76.{core::MapEntry::key}{dynamic} as{TypeError} core::num*;
+          final core::int* #t78 = #t76.{core::MapEntry::value}{dynamic} as{TypeError} core::int*;
+          #t75.{core::Map::[]=}{Invariant}(#t77, #t78){(core::num*, core::int*) →* void};
         }
       }
     }
-  } =>#t80;
+  } =>#t75;
 }
 static method main() → dynamic {}

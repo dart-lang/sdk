@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// An entrypoint used to measure performance of the incremental compiler.
 ///
 /// Given an input a program and a .json file describing edits, this script will
@@ -100,8 +98,8 @@ Future benchmark(
     bool verbose,
     bool verboseCompilation,
     List<ChangeSet> changeSets,
-    String sdkSummary,
-    String sdkLibrarySpecification,
+    String? sdkSummary,
+    String? sdkLibrarySpecification,
     String cache) async {
   var overlayFs = new OverlayFileSystem();
   var compilerOptions = new CompilerOptions()
@@ -168,9 +166,10 @@ applyEdits(
       print('edit $edit');
     }
     var uri = edit.uri;
-    if (uri.scheme == 'package') uri = uriTranslator.translate(uri);
+    if (uri.scheme == 'package') uri = uriTranslator.translate(uri)!;
     generator.invalidate(uri);
-    OverlayFileSystemEntity entity = fs.entityForUri(uri);
+    OverlayFileSystemEntity entity =
+        fs.entityForUri(uri) as OverlayFileSystemEntity;
     var contents = await entity.readAsString();
     entity.writeAsStringSync(
         contents.replaceAll(edit.original, edit.replacement));
@@ -228,17 +227,17 @@ class OverlayFileSystem implements FileSystem {
 
 class OverlayFileSystemEntity implements FileSystemEntity {
   final Uri uri;
-  FileSystemEntity _delegate;
+  FileSystemEntity? _delegate;
   final OverlayFileSystem _fs;
 
   OverlayFileSystemEntity(this.uri, this._fs);
 
   Future<FileSystemEntity> get delegate async {
-    if (_delegate != null) return _delegate;
+    if (_delegate != null) return _delegate!;
     FileSystemEntity entity = _fs.memory.entityForUri(uri);
     if (await entity.exists()) {
       _delegate = entity;
-      return _delegate;
+      return _delegate!;
     }
     return _delegate = _fs.physical.entityForUri(uri.replace(scheme: 'file'));
   }

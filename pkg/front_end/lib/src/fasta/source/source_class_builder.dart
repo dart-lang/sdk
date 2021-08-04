@@ -218,16 +218,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
-    if (mixedInType != null) {
-      Class superclass = mixedInType.classNode;
-      if (superclass.name == 'Function' &&
-          superclass.enclosingLibrary == coreLibrary.library) {
-        library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
-        mixedInType = null;
-        mixedInTypeBuilder = null;
-        actualCls.isAnonymousMixin = false;
-        isMixinDeclaration = false;
-      }
+    if (_isFunction(mixedInType, coreLibrary)) {
+      library.addProblem(messageMixinFunction, charOffset, noLength, fileUri);
+      mixedInType = null;
+      mixedInTypeBuilder = null;
+      actualCls.isAnonymousMixin = false;
+      isMixinDeclaration = false;
     }
     if (mixedInType == null && mixedInTypeBuilder is! NamedTypeBuilder) {
       mixedInTypeBuilder = null;
@@ -244,9 +240,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         Supertype? supertype =
             interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
-          Class superclass = supertype.classNode;
-          if (superclass.name == 'Function' &&
-              superclass.enclosingLibrary == coreLibrary.library) {
+          if (_isFunction(supertype, coreLibrary)) {
             library.addProblem(
                 messageImplementFunction, charOffset, noLength, fileUri);
             continue;
@@ -290,6 +284,25 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     cls.procedures.sort(compareProcedures);
     return cls;
+  }
+
+  bool _isFunction(Supertype? supertype, LibraryBuilder coreLibrary) {
+    if (supertype != null) {
+      Class superclass = supertype.classNode;
+      if (superclass.name == 'Function' &&
+          // We use `superclass.parent` here instead of
+          // `superclass.enclosingLibrary` to handle platform compilation. If
+          // we are currently compiling the platform, the enclosing library of
+          // `Function` has not yet been set, so the accessing
+          // `enclosingLibrary` would result in a cast error. We assume that the
+          // SDK does not contain this error, which we otherwise not find. If we
+          // are _not_ compiling the platform, the `superclass.parent` has been
+          // set, if it is `Function` from `dart:core`.
+          superclass.parent == coreLibrary.library) {
+        return true;
+      }
+    }
+    return false;
   }
 
   TypeBuilder checkSupertype(TypeBuilder supertype) {

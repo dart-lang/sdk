@@ -406,13 +406,13 @@ class C extends self::B {
     self::use(super.{self::A::unary-}());
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:5: Error: This couldn't be parsed.
     +super;
-    ^"{dynamic}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
+    ^"{<invalid>}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
     +super;
      ^^^^^");
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:9: Error: This couldn't be parsed.
     use(+super);
-        ^"{dynamic}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
+        ^"{<invalid>}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
 To delegate a constructor to a super constructor, put the super call as an initializer.
     use(+super);
          ^^^^^"));
@@ -467,19 +467,19 @@ To delegate a constructor to a super constructor, put the super call as an initi
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m++;
-           ^";
+           ^" in super.{self::A::m}{<unresolved>}.+(1);
     self::use(let final () →* void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m++);
-               ^" in #t23);
+               ^" in #t23{<unresolved>}.+(1) in #t23);
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n++;
-           ^";
+           ^" in super.{self::A::n}{<unresolved>}.+(1);
     self::use(let final () →* void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n++);
-               ^" in #t25);
+               ^" in #t25{<unresolved>}.+(1) in #t25);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(1));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
@@ -503,19 +503,19 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.m;
-    ^";
+    ^" in super.{self::A::m}{<unresolved>}.+(1);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.m);
-        ^");
+        ^" in super.{self::A::m}{<unresolved>}.+(1));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     ++super.n;
-    ^";
+    ^" in super.{self::A::n}{<unresolved>}.+(1);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(++super.n);
-        ^");
+        ^" in super.{self::A::n}{<unresolved>}.+(1));
     super.{self::A::a}{dynamic}.call();
     self::use(super.{self::A::a}{dynamic}.call());
     super.{self::B::b}{dynamic}.call();
@@ -537,22 +537,22 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     super.{self::A::[]}(87){dynamic}.call();
     self::use(super.{self::A::[]}(87){dynamic}.call());
     super.{self::A::m}();
-    self::use(let final Never* #t33 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
     use(super.m());
               ^" in super.{self::A::m}());
-    let final Never* #t34 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     super.m(87);
            ^" in super.{self::A::m}(87);
-    self::use(let final Never* #t35 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     use(super.m(87));
                ^" in super.{self::A::m}(87));
-    let final Never* #t36 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     super.n(87);
            ^" in super.{self::A::n}(87);
-    self::use(let final Never* #t37 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
     use(super.n(87));
                ^" in super.{self::A::n}(87));
@@ -575,35 +575,35 @@ Try removing the extra positional arguments.
     super.{self::B::i} = 42;
     self::use(super.{self::B::i} = 42);
     super.{self::A::[]=}(87, 42);
-    self::use(let final core::int* #t38 = 87 in let final core::int* #t39 = 42 in let final void #t40 = super.{self::A::[]=}(#t38, #t39) in #t39);
+    self::use(let final core::int* #t33 = 87 in let final core::int* #t34 = 42 in let final void #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
     super.m = 42;
     self::use(super.m = 42);
     super.{self::A::n} = 42;
     self::use(super.{self::A::n} = 42);
     super.{self::A::a} == null ?{dynamic} super.{self::A::a} = 42 : null;
-    self::use(let final dynamic #t41 = super.{self::A::a} in #t41 == null ?{dynamic} super.{self::A::a} = 42 : #t41);
+    self::use(let final dynamic #t36 = super.{self::A::a} in #t36 == null ?{dynamic} super.{self::A::a} = 42 : #t36);
     super.{self::B::b} == null ?{dynamic} super.{self::A::b} = 42 : null;
-    self::use(let final dynamic #t42 = super.{self::B::b} in #t42 == null ?{dynamic} super.{self::A::b} = 42 : #t42);
+    self::use(let final dynamic #t37 = super.{self::B::b} in #t37 == null ?{dynamic} super.{self::A::b} = 42 : #t37);
     super.{self::A::c} == null ?{dynamic} super.{self::B::c} = 42 : null;
-    self::use(let final dynamic #t43 = super.{self::A::c} in #t43 == null ?{dynamic} super.{self::B::c} = 42 : #t43);
+    self::use(let final dynamic #t38 = super.{self::A::c} in #t38 == null ?{dynamic} super.{self::B::c} = 42 : #t38);
     super.{self::B::d} == null ?{dynamic} super.{self::A::d} = 42 : null;
-    self::use(let final dynamic #t44 = super.{self::B::d} in #t44 == null ?{dynamic} super.{self::A::d} = 42 : #t44);
+    self::use(let final dynamic #t39 = super.{self::B::d} in #t39 == null ?{dynamic} super.{self::A::d} = 42 : #t39);
     super.{self::A::e} == null ?{dynamic} super.e = 42 : null;
-    self::use(let final dynamic #t45 = super.{self::A::e} in #t45 == null ?{dynamic} super.e = 42 : #t45);
+    self::use(let final dynamic #t40 = super.{self::A::e} in #t40 == null ?{dynamic} super.e = 42 : #t40);
     super.{self::A::f} == null ?{dynamic} super.f = 42 : null;
-    self::use(let final dynamic #t46 = super.{self::A::f} in #t46 == null ?{dynamic} super.f = 42 : #t46);
+    self::use(let final dynamic #t41 = super.{self::A::f} in #t41 == null ?{dynamic} super.f = 42 : #t41);
     super.g == null ?{dynamic} super.{self::A::g} = 42 : null;
-    self::use(let final dynamic #t47 = super.g in #t47 == null ?{dynamic} super.{self::A::g} = 42 : #t47);
+    self::use(let final dynamic #t42 = super.g in #t42 == null ?{dynamic} super.{self::A::g} = 42 : #t42);
     super.{self::A::h} == null ?{dynamic} super.{self::A::h} = 42 : null;
-    self::use(let final dynamic #t48 = super.{self::A::h} in #t48 == null ?{dynamic} super.{self::A::h} = 42 : #t48);
+    self::use(let final dynamic #t43 = super.{self::A::h} in #t43 == null ?{dynamic} super.{self::A::h} = 42 : #t43);
     super.{self::A::i} == null ?{dynamic} super.{self::B::i} = 42 : null;
-    self::use(let final dynamic #t49 = super.{self::A::i} in #t49 == null ?{dynamic} super.{self::B::i} = 42 : #t49);
-    let final core::int* #t50 = 87 in super.{self::A::[]}(#t50) == null ?{dynamic} super.{self::A::[]=}(#t50, 42) : null;
-    self::use(let final core::int* #t51 = 87 in let final dynamic #t52 = super.{self::A::[]}(#t51) in #t52 == null ?{dynamic} let final core::int* #t53 = 42 in let final void #t54 = super.{self::A::[]=}(#t51, #t53) in #t53 : #t52);
+    self::use(let final dynamic #t44 = super.{self::A::i} in #t44 == null ?{dynamic} super.{self::B::i} = 42 : #t44);
+    let final core::int* #t45 = 87 in super.{self::A::[]}(#t45) == null ?{dynamic} super.{self::A::[]=}(#t45, 42) : null;
+    self::use(let final core::int* #t46 = 87 in let final dynamic #t47 = super.{self::A::[]}(#t46) in #t47 == null ?{dynamic} let final core::int* #t48 = 42 in let final void #t49 = super.{self::A::[]=}(#t46, #t48) in #t48 : #t47);
     super.{self::A::m} == null ?{core::Object*} super.m = 42 : null;
-    self::use(let final () →* void #t55 = super.{self::A::m} in #t55 == null ?{core::Object*} super.m = 42 : #t55);
+    self::use(let final () →* void #t50 = super.{self::A::m} in #t50 == null ?{core::Object*} super.m = 42 : #t50);
     super.{self::A::n} == null ?{core::Object*} super.{self::A::n} = 42 : null;
-    self::use(let final () →* void #t56 = super.{self::A::n} in #t56 == null ?{core::Object*} super.{self::A::n} = 42 : #t56);
+    self::use(let final () →* void #t51 = super.{self::A::n} in #t51 == null ?{core::Object*} super.{self::A::n} = 42 : #t51);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(42);
@@ -622,24 +622,24 @@ Try removing the extra positional arguments.
     self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.+(42));
     super.{self::B::i} = super.{self::A::i}{dynamic}.+(42);
     self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.+(42));
-    let final core::int* #t57 = 87 in super.{self::A::[]=}(#t57, super.{self::A::[]}(#t57){dynamic}.+(42));
-    self::use(let final core::int* #t58 = 87 in let final dynamic #t59 = super.{self::A::[]}(#t58){dynamic}.+(42) in let final void #t60 = super.{self::A::[]=}(#t58, #t59) in #t59);
+    let final core::int* #t52 = 87 in super.{self::A::[]=}(#t52, super.{self::A::[]}(#t52){dynamic}.+(42));
+    self::use(let final core::int* #t53 = 87 in let final dynamic #t54 = super.{self::A::[]}(#t53){dynamic}.+(42) in let final void #t55 = super.{self::A::[]=}(#t53, #t54) in #t54);
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.m += 42;
-            ^";
+            ^" in super.{self::A::m}{<unresolved>}.+(42);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.m += 42);
-                ^");
+                ^" in super.{self::A::m}{<unresolved>}.+(42));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     super.n += 42;
-            ^";
+            ^" in super.{self::A::n}{<unresolved>}.+(42);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
     use(super.n += 42);
-                ^");
+                ^" in super.{self::A::n}{<unresolved>}.+(42));
     super.{self::A::a} = super.{self::A::a}{dynamic}.-(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.-(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.-(42);
@@ -658,24 +658,24 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
     self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.-(42));
     super.{self::B::i} = super.{self::A::i}{dynamic}.-(42);
     self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.-(42));
-    let final core::int* #t61 = 87 in super.{self::A::[]=}(#t61, super.{self::A::[]}(#t61){dynamic}.-(42));
-    self::use(let final core::int* #t62 = 87 in let final dynamic #t63 = super.{self::A::[]}(#t62){dynamic}.-(42) in let final void #t64 = super.{self::A::[]=}(#t62, #t63) in #t63);
+    let final core::int* #t56 = 87 in super.{self::A::[]=}(#t56, super.{self::A::[]}(#t56){dynamic}.-(42));
+    self::use(let final core::int* #t57 = 87 in let final dynamic #t58 = super.{self::A::[]}(#t57){dynamic}.-(42) in let final void #t59 = super.{self::A::[]=}(#t57, #t58) in #t58);
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     super.m -= 42;
-            ^";
+            ^" in super.{self::A::m}{<unresolved>}.-(42);
     self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.m -= 42);
-                ^");
+                ^" in super.{self::A::m}{<unresolved>}.-(42));
     super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     super.n -= 42;
-            ^";
+            ^" in super.{self::A::n}{<unresolved>}.-(42);
     self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
 Try correcting the operator to an existing operator, or defining a '-' operator.
     use(super.n -= 42);
-                ^");
+                ^" in super.{self::A::n}{<unresolved>}.-(42));
   }
 }
 static method use(dynamic x) → dynamic {

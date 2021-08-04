@@ -128,16 +128,20 @@ class ExpressionTagger extends ExpressionVisitor<String>
   }
 }
 
-const TextSerializer<InvalidExpression> invalidExpressionSerializer =
-    const Wrapped<String?, InvalidExpression>(
-        unwrapInvalidExpression, wrapInvalidExpression, const DartString());
+TextSerializer<InvalidExpression> invalidExpressionSerializer =
+    new Wrapped<Tuple2<String?, Expression?>, InvalidExpression>(
+        unwrapInvalidExpression,
+        wrapInvalidExpression,
+        Tuple2Serializer<String?, Expression?>(
+            Optional(DartString()), Optional(expressionSerializer)));
 
-String? unwrapInvalidExpression(InvalidExpression expression) {
-  return expression.message;
+Tuple2<String?, Expression?> unwrapInvalidExpression(
+    InvalidExpression expression) {
+  return Tuple2(expression.message, expression.expression);
 }
 
-InvalidExpression wrapInvalidExpression(String? message) {
-  return new InvalidExpression(message);
+InvalidExpression wrapInvalidExpression(Tuple2<String?, Expression?> tuple) {
+  return new InvalidExpression(tuple.first, tuple.second);
 }
 
 TextSerializer<Not> notSerializer =
