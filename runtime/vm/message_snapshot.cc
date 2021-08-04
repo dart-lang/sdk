@@ -1631,7 +1631,7 @@ class TypedDataMessageDeserializationCluster
       Dart_CObject* data = d->Allocate(Dart_CObject_kTypedData);
       intptr_t length = d->ReadUnsigned();
       data->value.as_typed_data.type = type;
-      data->value.as_typed_data.length = length * element_size;
+      data->value.as_typed_data.length = length;
       if (length == 0) {
         data->value.as_typed_data.values = NULL;
       } else {
@@ -1741,7 +1741,6 @@ class ExternalTypedDataMessageDeserializationCluster
   }
 
   void ReadNodesApi(ApiMessageDeserializer* d) {
-    intptr_t element_size = ExternalTypedData::ElementSizeInBytes(cid_);
     Dart_TypedData_Type type;
     switch (cid_) {
       case kExternalTypedDataInt8ArrayCid:
@@ -1796,7 +1795,7 @@ class ExternalTypedDataMessageDeserializationCluster
       intptr_t length = d->ReadUnsigned();
       FinalizableData finalizable_data = d->finalizable_data()->Get();
       data->value.as_typed_data.type = type;
-      data->value.as_typed_data.length = length * element_size;
+      data->value.as_typed_data.length = length;
       data->value.as_typed_data.values =
           reinterpret_cast<uint8_t*>(finalizable_data.data);
       d->AssignRef(data);
@@ -1905,7 +1904,6 @@ class TypedDataViewMessageDeserializationCluster
   }
 
   void PostLoadApi(ApiMessageDeserializer* d) {
-    intptr_t element_size = TypedDataView::ElementSizeInBytes(cid_);
     Dart_TypedData_Type type;
     switch (cid_) {
       case kTypedDataInt8ArrayViewCid:
@@ -1959,21 +1957,9 @@ class TypedDataViewMessageDeserializationCluster
       if (view->typed_data->type == Dart_CObject_kTypedData) {
         view->type = Dart_CObject_kTypedData;
         view->value.as_typed_data.type = type;
-        //            view->typed_data->value.as_typed_data.type;
-        view->value.as_typed_data.length =
-            view->length->value.as_int32 * element_size;
+        view->value.as_typed_data.length = view->length->value.as_int32;
         view->value.as_typed_data.values =
             view->typed_data->value.as_typed_data.values +
-            view->offset_in_bytes->value.as_int32;
-      } else if (view->typed_data->type == Dart_CObject_kExternalTypedData) {
-        UNREACHABLE();  ///???
-        view->type = Dart_CObject_kTypedData;
-        view->value.as_typed_data.type = type;
-        //            view->typed_data->value.as_external_typed_data.type;
-        view->value.as_typed_data.length =
-            view->length->value.as_int32 * element_size;
-        view->value.as_typed_data.values =
-            view->typed_data->value.as_external_typed_data.data +
             view->offset_in_bytes->value.as_int32;
       } else {
         UNREACHABLE();
