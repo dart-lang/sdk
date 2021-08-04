@@ -30,7 +30,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field self::C* c = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000046.dart:6:13: Error: The constructor returns type 'Object' that isn't of expected type 'C'.
+  field self::C* c = invalid-expression "pkg/front_end/testcases/rasta/issue_000046.dart:6:13: Error: The constructor returns type 'Object' that isn't of expected type 'C'.
  - 'Object' is from 'dart:core'.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000046.dart'.
 Change the type of the object being constructed or the context in which it is used.

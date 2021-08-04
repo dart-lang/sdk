@@ -651,6 +651,9 @@ void ScopeBuilder::VisitExpression() {
     case kInvalidExpression:
       helper_.ReadPosition();
       helper_.SkipStringReference();
+      if (helper_.ReadTag() == kSomething) {
+        VisitExpression();  // read expression.
+      }
       return;
     case kVariableGet: {
       helper_.ReadPosition();  // read position.

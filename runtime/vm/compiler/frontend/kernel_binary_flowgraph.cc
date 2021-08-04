@@ -2007,6 +2007,11 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   TokenPosition pos = ReadPosition();
   if (position != NULL) *position = pos;
   const String& message = H.DartString(ReadStringReference());
+  Tag tag = ReadTag();  // read (first part of) expression.
+  if (tag == kSomething) {
+    SkipExpression();  // read (rest of) expression.
+  }
+
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
   H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());

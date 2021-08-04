@@ -478,7 +478,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
-    return const DynamicType();
+    // Don't type check `node.expression`.
+    return const InvalidType();
   }
 
   @override
@@ -1016,7 +1017,7 @@ class TypeCheckingVisitor
       if (asContainerArguments != null) {
         checkAssignable(
             node.expression, asContainerArguments[0], currentYieldType!);
-      } else {
+      } else if (type is! InvalidType && type is! NeverType) {
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {

@@ -37,23 +37,23 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   static method sTest() → () → void {
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:8:20: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:8:20: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
   static LegacyFoo sTest() {}
                    ^" in null;
   }
   method mTest() → () → void {
-    return let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:10:13: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:10:13: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
   LegacyFoo mTest() {}
             ^" in null;
   }
   get gTest() → () → void {
-    return let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:12:17: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+    return invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:12:17: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
   LegacyFoo get gTest {}
                 ^" in null;
   }
 }
 static method test() → () → void {
-  return let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:15:11: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
+  return invalid-expression "pkg/front_end/testcases/nnbd_mixed/issue41499b_lib.dart:15:11: Error: A non-null value must be returned since the return type 'void Function()' doesn't allow null.
 LegacyFoo test() {}
           ^" in null;
 }

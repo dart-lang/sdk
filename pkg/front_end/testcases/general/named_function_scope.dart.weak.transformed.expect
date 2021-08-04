@@ -129,18 +129,18 @@ static method test() → dynamic {
   }
   {
     self::V* v;
-    dynamic V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:31:9: Error: Can't declare 'V' because it was already used in this scope.
+    invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:31:9: Error: Can't declare 'V' because it was already used in this scope.
     var V;
         ^";
   }
   {
     self::V* v;
-    dynamic V = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
+    invalid-type V = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:36:9: Error: Can't declare 'V' because it was already used in this scope.
     var V = null;
         ^" in null;
   }
   {
-    () →* Null x = let final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
+    () →* Null x = let final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:15: Error: Can't declare 'T' because it was already used in this scope.
     var x = T T() {};
               ^" in let final () →* Null T = () → Null {} in T;
   }
@@ -150,7 +150,7 @@ static method test() → dynamic {
       ^";
   }
   {
-    <T extends core::Object* = dynamic>() →* Null x = let final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
+    <T extends core::Object* = dynamic>() →* Null x = let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: 'T' is already declared in this scope.
     var x = T<T>() {};
             ^" in let final <T extends core::Object* = dynamic>() →* Null T = <T extends core::Object* = dynamic>() → Null {} in T;
   }

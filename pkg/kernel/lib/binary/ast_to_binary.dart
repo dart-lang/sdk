@@ -1461,6 +1461,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.InvalidExpression);
     writeOffset(node.fileOffset);
     writeStringReference(node.message ?? '');
+    writeOptionalNode(node.expression);
   }
 
   @override

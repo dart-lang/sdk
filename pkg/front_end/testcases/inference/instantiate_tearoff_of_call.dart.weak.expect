@@ -11,7 +11,7 @@ import "dart:core" as core;
 
 static method test(<T extends core::Object* = dynamic>(T*) →* T* f) → void {
   (core::int*) →* core::int* func;
-  func = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+  func = invalid-expression "pkg/front_end/testcases/inference/instantiate_tearoff_of_call.dart:10:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
   func = f.call;
            ^" in f.call as{TypeError} (core::int*) →* core::int*;
 }

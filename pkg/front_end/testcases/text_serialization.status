@@ -29,8 +29,7 @@ general/await_in_non_async: RuntimeError
 general/bounded_implicit_instantiation: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
-general/call: TypeCheckError
-general/candidate_found: TypeCheckError
+general/call: RuntimeError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
@@ -87,13 +86,12 @@ general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
 general/issue44733: TypeCheckError
-general/issue45204: TypeCheckError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError
 general/mixin_covariant2: RuntimeError
 general/operator_method_not_found: RuntimeError
-general/optional: TypeCheckError
+general/optional: RuntimeError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
 general/override_check_accessor_basic: TypeCheckError # Issue #31620
 general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
@@ -130,17 +128,11 @@ inference/override_equals: RuntimeError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_new/infer_assign_to_property_custom: TypeCheckError
-inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
-nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
 nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
-nnbd/nullable_object_access: TypeCheckError
-nnbd/nullable_receiver: TypeCheckError
-nnbd/potentially_nullable_access: TypeCheckError
 nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/covariant_from_opt_in: TypeCheckError
 nnbd_mixed/hierarchy/conflict: TypeCheckError
@@ -149,20 +141,12 @@ nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
 nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
 nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
 nnbd_mixed/hierarchy/getter_setter: TypeCheckError
-nnbd_mixed/hierarchy/in_dill_out_in/in_out_in: TypeCheckError
-nnbd_mixed/hierarchy/in_out_dill_in/in_out_in: TypeCheckError
-nnbd_mixed/hierarchy/in_out_in: TypeCheckError
 nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
 nnbd_mixed/hierarchy/override: TypeCheckError
 nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
-none/equals: TypeCheckError
-none/method_invocation: TypeCheckError
-none/operator: TypeCheckError
-none/property_get: TypeCheckError
-none/property_set: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -212,8 +196,7 @@ regress/issue_29976: RuntimeError
 regress/issue_29982: RuntimeError
 regress/issue_30836: RuntimeError
 regress/issue_31180: TypeCheckError
-regress/issue_31299: TypeCheckError
-regress/issue_32972: TypeCheckError
+regress/issue_32972: RuntimeError
 regress/issue_33452: RuntimeError
 regress/issue_34225: RuntimeError
 regress/issue_34563: RuntimeError

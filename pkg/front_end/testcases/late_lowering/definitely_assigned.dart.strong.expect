@@ -95,13 +95,13 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   #local2#set(value){(T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  let final Never #t6 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable '#local2' definitely assigned.
   local2 = value; // error
   ^^^^^^^" in #local2#set(value){(T%) → dynamic};
-  let final Never #t7 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable '#local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  let final Never #t8 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable '#local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable '#local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 };
@@ -110,27 +110,27 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
     return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(T% #t9) → dynamic
+  function #local2#set(T% #t6) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t9;
+      return #local2 = #t6;
     }
   lowered final core::int? #local4;
   function #local4#get() → core::int
-    return let final core::int? #t10 = #local4 in #t10 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t10{core::int};
-  function #local4#set(core::int #t11) → dynamic
+    return let final core::int? #t7 = #local4 in #t7 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t7{core::int};
+  function #local4#set(core::int #t8) → dynamic
     if(#local4 == null)
-      return #local4 = #t11;
+      return #local4 = #t8;
     else
       throw new _in::LateError::localAI("local4");
   lowered final FutureOr<core::int>? #local6;
   function #local6#get() → FutureOr<core::int>
-    return let final FutureOr<core::int>? #t12 = #local6 in #t12 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t12{FutureOr<core::int>};
-  function #local6#set(FutureOr<core::int>#t13) → dynamic
+    return let final FutureOr<core::int>? #t9 = #local6 in #t9 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t9{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t10) → dynamic
     if(#local6 == null)
-      return #local6 = #t13;
+      return #local6 = #t10;
     else
       throw new _in::LateError::localAI("local6");
   if(b) {
@@ -141,27 +141,27 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   #local2#set(value){(T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  let final Never #t14 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable '#local2' definitely assigned.
   local2 = value; // error
   ^^^^^^^" in #local2#set(value){(T%) → dynamic};
-  let final Never #t15 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable '#local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  let final Never #t16 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable '#local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable '#local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 };
 static field () → Null fieldCompound = () → Null {
   lowered final core::int? #local4;
   function #local4#get() → core::int
-    return let final core::int? #t17 = #local4 in #t17 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t17{core::int};
-  function #local4#set(core::int #t18) → dynamic
+    return let final core::int? #t11 = #local4 in #t11 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t11{core::int};
+  function #local4#set(core::int #t12) → dynamic
     if(#local4 == null)
-      return #local4 = #t18;
+      return #local4 = #t12;
     else
       throw new _in::LateError::localAI("local4");
   #local4#set(0){(core::int) → dynamic};
-  let final Never #t19 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable '#local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 };
@@ -170,39 +170,39 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodDirect::T%
     return #local2#isSet ?{self::methodDirect::T%} #local2{self::methodDirect::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodDirect::T% #t20) → dynamic
+  function #local2#set(self::methodDirect::T% #t13) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t20;
+      return #local2 = #t13;
     }
   lowered final core::int? #local4;
   function #local4#get() → core::int
-    return let final core::int? #t21 = #local4 in #t21 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t21{core::int};
-  function #local4#set(core::int #t22) → dynamic
+    return let final core::int? #t14 = #local4 in #t14 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t14{core::int};
+  function #local4#set(core::int #t15) → dynamic
     if(#local4 == null)
-      return #local4 = #t22;
+      return #local4 = #t15;
     else
       throw new _in::LateError::localAI("local4");
   lowered final FutureOr<core::int>? #local6;
   function #local6#get() → FutureOr<core::int>
-    return let final FutureOr<core::int>? #t23 = #local6 in #t23 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t23{FutureOr<core::int>};
-  function #local6#set(FutureOr<core::int>#t24) → dynamic
+    return let final FutureOr<core::int>? #t16 = #local6 in #t16 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t16{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t17) → dynamic
     if(#local6 == null)
-      return #local6 = #t24;
+      return #local6 = #t17;
     else
       throw new _in::LateError::localAI("local6");
   #local2#set(value){(self::methodDirect::T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  let final Never #t25 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable '#local2' definitely assigned.
   local2 = value; // error
   ^^^^^^^" in #local2#set(value){(self::methodDirect::T%) → dynamic};
-  let final Never #t26 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable '#local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  let final Never #t27 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable '#local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable '#local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 }
@@ -211,27 +211,27 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodConditional::T%
     return #local2#isSet ?{self::methodConditional::T%} #local2{self::methodConditional::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodConditional::T% #t28) → dynamic
+  function #local2#set(self::methodConditional::T% #t18) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t28;
+      return #local2 = #t18;
     }
   lowered final core::int? #local4;
   function #local4#get() → core::int
-    return let final core::int? #t29 = #local4 in #t29 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t29{core::int};
-  function #local4#set(core::int #t30) → dynamic
+    return let final core::int? #t19 = #local4 in #t19 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t19{core::int};
+  function #local4#set(core::int #t20) → dynamic
     if(#local4 == null)
-      return #local4 = #t30;
+      return #local4 = #t20;
     else
       throw new _in::LateError::localAI("local4");
   lowered final FutureOr<core::int>? #local6;
   function #local6#get() → FutureOr<core::int>
-    return let final FutureOr<core::int>? #t31 = #local6 in #t31 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t31{FutureOr<core::int>};
-  function #local6#set(FutureOr<core::int>#t32) → dynamic
+    return let final FutureOr<core::int>? #t21 = #local6 in #t21 == null ?{FutureOr<core::int>} throw new _in::LateError::localNI("local6") : #t21{FutureOr<core::int>};
+  function #local6#set(FutureOr<core::int>#t22) → dynamic
     if(#local6 == null)
-      return #local6 = #t32;
+      return #local6 = #t22;
     else
       throw new _in::LateError::localAI("local6");
   if(b) {
@@ -242,27 +242,27 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   #local2#set(value){(self::methodConditional::T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  let final Never #t33 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable '#local2' definitely assigned.
   local2 = value; // error
   ^^^^^^^" in #local2#set(value){(self::methodConditional::T%) → dynamic};
-  let final Never #t34 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable '#local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  let final Never #t35 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable '#local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable '#local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 }
 static method methodCompound() → dynamic {
   lowered final core::int? #local4;
   function #local4#get() → core::int
-    return let final core::int? #t36 = #local4 in #t36 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t36{core::int};
-  function #local4#set(core::int #t37) → dynamic
+    return let final core::int? #t23 = #local4 in #t23 == null ?{core::int} throw new _in::LateError::localNI("local4") : #t23{core::int};
+  function #local4#set(core::int #t24) → dynamic
     if(#local4 == null)
-      return #local4 = #t37;
+      return #local4 = #t24;
     else
       throw new _in::LateError::localAI("local4");
   #local4#set(0){(core::int) → dynamic};
-  let final Never #t38 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable '#local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 }

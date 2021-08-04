@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/candidate_found.dart:16:11: Error: Too few positional arguments: 1 required, 0 given.
+//   new Fisk();
+//           ^
+// pkg/front_end/testcases/general/candidate_found.dart:6:3: Context: Found this candidate, but the arguments don't match.
+//   Fisk(int x) {}
+//   ^^^^
+//
+// pkg/front_end/testcases/general/candidate_found.dart:17:17: Error: Too few positional arguments: 1 required, 0 given.
+//   new Fisk.named();
+//                 ^
+// pkg/front_end/testcases/general/candidate_found.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   Fisk.named(int x) {}
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/candidate_found.dart:18:7: Error: Too few positional arguments: 1 required, 0 given.
+//   Fisk();
+//       ^
+// pkg/front_end/testcases/general/candidate_found.dart:6:3: Context: Found this candidate, but the arguments don't match.
+//   Fisk(int x) {}
+//   ^^^^
+//
+// pkg/front_end/testcases/general/candidate_found.dart:19:13: Error: Too few positional arguments: 1 required, 0 given.
+//   Fisk.named();
+//             ^
+// pkg/front_end/testcases/general/candidate_found.dart:8:3: Context: Found this candidate, but the arguments don't match.
+//   Fisk.named(int x) {}
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/candidate_found.dart:20:20: Error: Too few positional arguments: 1 required, 0 given.
+//   Fisk.staticMethod();
+//                    ^
+// pkg/front_end/testcases/general/candidate_found.dart:12:15: Context: Found this candidate, but the arguments don't match.
+//   static void staticMethod(int x) {}
+//               ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/candidate_found.dart:21:24: Error: Too few positional arguments: 1 required, 0 given.
+//   (null as Fisk).method();
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Fisk extends core::Object {
+  constructor •(core::int* x) → self::Fisk*
+    : super core::Object::•() {}
+  constructor named(core::int* x) → self::Fisk*
+    : super core::Object::•() {}
+  method method(core::int* x) → void {}
+  static method staticMethod(core::int* x) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:16:11: Error: Too few positional arguments: 1 required, 0 given.
+  new Fisk();
+          ^";
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:17:17: Error: Too few positional arguments: 1 required, 0 given.
+  new Fisk.named();
+                ^";
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:18:7: Error: Too few positional arguments: 1 required, 0 given.
+  Fisk();
+      ^";
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:19:13: Error: Too few positional arguments: 1 required, 0 given.
+  Fisk.named();
+            ^";
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:20:20: Error: Too few positional arguments: 1 required, 0 given.
+  Fisk.staticMethod();
+                   ^";
+  invalid-expression "pkg/front_end/testcases/general/candidate_found.dart:21:24: Error: Too few positional arguments: 1 required, 0 given.
+  (null as Fisk).method();
+                       ^" in null.{self::Fisk::method}{<inapplicable>}.(){() →* invalid-type};
+}
+static method main() → dynamic {}

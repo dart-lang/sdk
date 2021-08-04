@@ -52,9 +52,9 @@ static method error() → dynamic {
       #local#isSet = true;
       return #local = #t3;
     }
-  #local#set((let final Never #t4 = invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
+  #local#set(invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
   local += 0;
-  ^^^^^" in #local#get(){() → core::int}).{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
+  ^^^^^" in #local#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

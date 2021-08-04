@@ -334,9 +334,13 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitInvalidExpression(
       InvalidExpression node, DartType typeContext) {
-    // TODO(johnniwinther): The inferred type should be an InvalidType. Using
-    // BottomType leads to cascading errors so we use DynamicType for now.
-    return new ExpressionInferenceResult(const DynamicType(), node);
+    if (node.expression != null) {
+      ExpressionInferenceResult result = inferrer.inferExpression(
+          node.expression!, typeContext, !inferrer.isTopLevel,
+          isVoidAllowed: true);
+      node.expression = result.expression..parent = node;
+    }
+    return new ExpressionInferenceResult(const InvalidType(), node);
   }
 
   @override

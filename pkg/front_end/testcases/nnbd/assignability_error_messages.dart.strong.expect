@@ -203,12 +203,12 @@ static method fooContext(self::A x) → void {}
 static method barContext(core::List<self::A> x) → void {}
 static method bazContext(() → core::num f) → void {}
 static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::B?> m, core::List<self::B>? l2, core::Map<self::B, self::B>? m2) → self::A {
-  self::fooContext(let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:27:14: Error: The argument type 'B?' can't be assigned to the parameter type 'A' because 'B?' is nullable and 'A' isn't.
+  self::fooContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:27:14: Error: The argument type 'B?' can't be assigned to the parameter type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(x); // Error.
              ^" in x as{TypeError,ForNonNullableByDefault} self::A);
-  self::A a = let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:28:9: Error: A value of type 'B?' can't be assigned to a variable of type 'A' because 'B?' is nullable and 'A' isn't.
+  self::A a = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:28:9: Error: A value of type 'B?' can't be assigned to a variable of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a = x; // Error.
@@ -233,15 +233,15 @@ static method foo(self::B? x, core::List<self::B?> l, core::Map<self::B?, self::
   <self::A, self::A>{invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:32:13: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
   <A, A>{...m2}; // Error.
             ^": null};
-  for (final self::B? #t3 in l) {
-    self::A y = let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:10: Error: A value of type 'B?' can't be assigned to a variable of type 'A' because 'B?' is nullable and 'A' isn't.
+  for (final self::B? #t1 in l) {
+    self::A y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:33:10: Error: A value of type 'B?' can't be assigned to a variable of type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 Try changing the type of the variable.
   for (A y in l) {} // Error.
-         ^" in #t3 as{TypeError,ForNonNullableByDefault} self::A;
+         ^" in #t1 as{TypeError,ForNonNullableByDefault} self::A;
   }
-  for (self::A y in let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:34:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<B>?' is nullable and 'Iterable<dynamic>' isn't.
+  for (self::A y in invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:34:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>' because 'List<B>?' is nullable and 'Iterable<dynamic>' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
@@ -263,14 +263,14 @@ Try changing the type of the variable.
   }
   function local() → FutureOr<self::A> async {
     if(true) {
-      return let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:43:14: Error: A value of type 'B?' can't be returned from an async function with return type 'FutureOr<A>' because 'B?' is nullable and 'FutureOr<A>' isn't.
+      return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:43:14: Error: A value of type 'B?' can't be returned from an async function with return type 'FutureOr<A>' because 'B?' is nullable and 'FutureOr<A>' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return x; // Error.
              ^" in x as{TypeError,ForNonNullableByDefault} self::A;
     }
     else {
-      return let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:45:18: Error: A value of type 'Future<B?>' can't be returned from an async function with return type 'FutureOr<A>'.
+      return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:45:18: Error: A value of type 'Future<B?>' can't be returned from an async function with return type 'FutureOr<A>'.
  - 'Future' is from 'dart:async'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -278,20 +278,20 @@ Try changing the type of the variable.
                  ^" in asy::Future::value<self::B?>(x) as{TypeError,ForNonNullableByDefault} self::A;
     }
   }
-  return let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:49:10: Error: A value of type 'B?' can't be returned from a function with return type 'A' because 'B?' is nullable and 'A' isn't.
+  return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:49:10: Error: A value of type 'B?' can't be returned from a function with return type 'A' because 'B?' is nullable and 'A' isn't.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   return x; // Error.
          ^" in x as{TypeError,ForNonNullableByDefault} self::A;
 }
 static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, core::Map<core::List<self::B?>, core::List<self::B?>> m) → core::List<self::A> {
-  self::barContext(let final Never #t9 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:53:14: Error: The argument type 'List<B?>' can't be assigned to the parameter type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  self::barContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:53:14: Error: The argument type 'List<B?>' can't be assigned to the parameter type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   barContext(x); // Error.
              ^" in x as{TypeError,ForNonNullableByDefault} core::List<self::A>);
-  core::List<self::A> y = let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:54:15: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  core::List<self::A> y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:54:15: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -314,16 +314,16 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   <List<A>, List<A>>{...m}; // Error.
                         ^"};
-  for (final core::List<self::B?> #t11 in l) {
-    core::List<self::A> y = let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  for (final core::List<self::B?> #t2 in l) {
+    core::List<self::A> y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:57:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
 Try changing the type of the variable.
   for (List<A> y in l) {} // Error.
-               ^" in #t11 as{TypeError,ForNonNullableByDefault} core::List<self::A>;
+               ^" in #t2 as{TypeError,ForNonNullableByDefault} core::List<self::A>;
   }
-  return let final Never #t13 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:10: Error: A value of type 'List<B?>' can't be returned from a function with return type 'List<A>' because 'B?' is nullable and 'A' isn't.
+  return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:58:10: Error: A value of type 'List<B?>' can't be returned from a function with return type 'List<A>' because 'B?' is nullable and 'A' isn't.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
@@ -331,48 +331,48 @@ Try changing the type of the variable.
          ^" in x as{TypeError,ForNonNullableByDefault} core::List<self::A>;
 }
 static method baz(self::C c) → void {
-  self::bazContext(let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:62:14: Error: The argument type 'num? Function()' can't be assigned to the parameter type 'num Function()' because 'num?' is nullable and 'num' isn't.
+  self::bazContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:62:14: Error: The argument type 'num? Function()' can't be assigned to the parameter type 'num Function()' because 'num?' is nullable and 'num' isn't.
   bazContext(c);
-             ^" in (let final self::C #t15 = c in #t15 == null ?{() → core::num?} null : #t15.{self::C::call}{() → core::num?}) as{TypeError,ForNonNullableByDefault} () → core::num);
+             ^" in (let final self::C #t3 = c in #t3 == null ?{() → core::num?} null : #t3.{self::C::call}{() → core::num?}) as{TypeError,ForNonNullableByDefault} () → core::num);
 }
 static method boz(Null x) → self::A {
-  self::fooContext(let final Never #t16 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:66:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
+  self::fooContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:66:14: Error: The argument type 'Null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(x); // Error.
              ^" in x as{TypeError,ForNonNullableByDefault} self::A);
-  self::fooContext(let final Never #t17 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:67:14: Error: The value 'null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
+  self::fooContext(invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:67:14: Error: The value 'null' can't be assigned to the parameter type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   fooContext(null); // Error.
              ^" in null as{TypeError,ForNonNullableByDefault} self::A);
-  self::A a1 = let final Never #t18 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:68:10: Error: A value of type 'Null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
+  self::A a1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:68:10: Error: A value of type 'Null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a1 = x; // Error.
          ^" in x as{TypeError,ForNonNullableByDefault} self::A;
-  self::A a2 = let final Never #t19 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:69:10: Error: The value 'null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
+  self::A a2 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:69:10: Error: The value 'null' can't be assigned to a variable of type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
   A a2 = null; // Error.
          ^" in null as{TypeError,ForNonNullableByDefault} self::A;
   if(true) {
-    return let final Never #t20 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:71:12: Error: A value of type 'Null' can't be returned from a function with return type 'A' because 'A' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:71:12: Error: A value of type 'Null' can't be returned from a function with return type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return x; // Error.
            ^" in x as{TypeError,ForNonNullableByDefault} self::A;
   }
   else {
-    return let final Never #t21 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:73:12: Error: The value 'null' can't be returned from a function with return type 'A' because 'A' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:73:12: Error: The value 'null' can't be returned from a function with return type 'A' because 'A' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
     return null; // Error.
            ^" in null as{TypeError,ForNonNullableByDefault} self::A;
   }
   function local() → FutureOr<self::A> async {
     if(true) {
-      return let final Never #t22 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:77:14: Error: The value 'null' can't be returned from an async function with return type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
+      return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:77:14: Error: The value 'null' can't be returned from an async function with return type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return null; // Error.
              ^" in null as{TypeError,ForNonNullableByDefault} self::A;
     }
     else {
-      return let final Never #t23 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:79:18: Error: A value of type 'Future<Null>' can't be returned from an async function with return type 'FutureOr<A>'.
+      return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:79:18: Error: A value of type 'Future<Null>' can't be returned from an async function with return type 'FutureOr<A>'.
  - 'Future' is from 'dart:async'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return new Future<Null>.value(null); // Error.

@@ -228,10 +228,10 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 }
 static method floor() → invalid-type {
   core::int get;
-  function twice() → core::num
+  function twice() → core::double
     return 2.{core::num::*}(invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:29:24: Error: Expected identifier, but got 'this'.
   int get twice => 2 * this;
-                       ^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+                       ^^^^"){(core::num) → core::double};
 }
 static method test() → dynamic {
   self::MyInt m = 42;

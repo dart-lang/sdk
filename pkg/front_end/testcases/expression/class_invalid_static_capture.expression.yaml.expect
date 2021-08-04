@@ -7,6 +7,6 @@ Errors: {
               ^
 }
 static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return () → dynamic {
-    return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Getter not found: 'x'.\n() { return x + y; }\n            ^"{dynamic}.+(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:17: Error: Getter not found: 'y'.\n() { return x + y; }\n                ^");
+  return () → invalid-type {
+    return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Getter not found: 'x'.\n() { return x + y; }\n            ^"{<invalid>}.+(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:17: Error: Getter not found: 'y'.\n() { return x + y; }\n                ^");
   };

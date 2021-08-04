@@ -1407,6 +1407,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (node.message != null) {
       writeWord('"${escapeString(node.message!)}"');
     }
+    if (node.expression != null) {
+      writeSpaced('in');
+      writeNode(node.expression!);
+    }
   }
 
   void _writeDynamicAccessKind(DynamicAccessKind kind) {

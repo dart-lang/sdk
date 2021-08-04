@@ -66,12 +66,12 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     ^^^";
   invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Getter not found: 'et'.
   et.foo = 42; // Error.
-  ^^"{dynamic}.foo = 42;
+  ^^"{<invalid>}.foo = 42;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Getter not found: 'et'.
   et.bar = 42; // Error.
-  ^^"{dynamic}.bar = 42;
+  ^^"{<invalid>}.bar = 42;
   invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Getter not found: 'et'.
   et.baz = 42; // Ok.
-  ^^"{dynamic}.baz = 42;
+  ^^"{<invalid>}.baz = 42;
 }
 static method main() → dynamic {}

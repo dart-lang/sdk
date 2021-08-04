@@ -152,7 +152,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitInvalidExpression(InvalidExpression node) {
-    return new InvalidExpression(node.message);
+    return new InvalidExpression(
+        node.message, node.expression != null ? clone(node.expression!) : null);
   }
 
   visitVariableGet(VariableGet node) {
