@@ -16,7 +16,7 @@ import 'package:expect/expect.dart';
 class B extends A {}
 
 /// If the check `y is A` is generated as `y.$isA` then the issue is not
-/// exposed. We use `AssumeDynamic` to ensure that we generate as `y instanceof
+/// exposed. We use `assumeDynamic` to ensure that we generate as `y instanceof
 /// A` in JS.
 @pragma('dart2js:noInline')
 @pragma('dart2js:assumeDynamic')

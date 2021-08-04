@@ -50,7 +50,6 @@ import 'dart:_js_helper'
         JSName,
         Native,
         Returns,
-        ForceInline,
         findDispatchTagForInterceptorClass,
         setNativeSubclassDispatchRecord,
         makeLeafDispatchRecord,

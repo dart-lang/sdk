@@ -265,15 +265,15 @@ abstract class AnnotationsData {
   /// Serializes this [AnnotationsData] to [sink].
   void writeToDataSink(DataSink sink);
 
-  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')` annotation.
+  /// Returns `true` if [member] has an `@pragma('dart2js:assumeDynamic')`
+  /// annotation.
   bool hasAssumeDynamic(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')`, or
-  /// `@pragma('dart2js:noInline')` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noInline')` annotation.
   bool hasNoInline(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`, or
-  /// `@pragma('dart2js:tryInline')` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:tryInline')`
+  /// annotation.
   bool hasTryInline(MemberEntity member);
 
   /// Returns `true` if [member] has a `@pragma('dart2js:disableFinal')`
@@ -284,18 +284,19 @@ abstract class AnnotationsData {
   /// annotation.
   bool hasNoElision(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@NoThrows()` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noThrows')` annotation.
   bool hasNoThrows(MemberEntity member);
 
-  /// Returns `true` if [member] has a `@NoSideEffects()` annotation.
+  /// Returns `true` if [member] has a `@pragma('dart2js:noSideEffects')`
+  /// annotation.
   bool hasNoSideEffects(MemberEntity member);
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`, or
-  /// `@pragma('dart2js:noInline')` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:noInline')`
+  /// annotation.
   void forEachNoInline(void f(FunctionEntity function));
 
-  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`, or
-  /// `@pragma('dart2js:tryInline')` annotation.
+  /// Calls [f] for all functions with a `@pragma('dart2js:tryInline')`
+  /// annotation.
   void forEachTryInline(void f(FunctionEntity function));
 
   /// Calls [f] for all functions with a `@pragma('dart2js:noThrows')`
