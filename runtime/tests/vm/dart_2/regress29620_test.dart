@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for dartbug.com/29620: check that decision to deoptimize
 // and decisions which parts of the instruction to emit use the same
 // range information for instruction inputs.

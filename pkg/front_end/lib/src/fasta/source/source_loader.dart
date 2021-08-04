@@ -271,10 +271,9 @@ class SourceLoader extends Loader {
                     library.importUri,
                     library.packageLanguageVersion.version),
             enableNonNullable: target.isExperimentEnabledInLibraryByVersion(
-                    ExperimentalFlag.nonNullable,
-                    library.importUri,
-                    library.packageLanguageVersion.version) &&
-                !SourceLibraryBuilder.isOptOutTest(library.importUri)),
+                ExperimentalFlag.nonNullable,
+                library.importUri,
+                library.packageLanguageVersion.version)),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
       if (!suppressLexicalErrors) {

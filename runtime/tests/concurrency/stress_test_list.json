@@ -3528,7 +3528,6 @@
     "../vm/dart_2/unboxed_param_tear_off_test.dart",
     "../vm/dart_2/unboxed_param_test.dart",
     "../vm/dart_2/unboxed_retval_test.dart",
-    "../vm/dart_2/unsigned_shift_right_test.dart",
     "../vm/dart_2/wrap_around_in_range_analysis_test.dart",
     "../../../tests/corelib_2/apply2_test.dart",
     "../../../tests/corelib_2/apply3_test.dart",

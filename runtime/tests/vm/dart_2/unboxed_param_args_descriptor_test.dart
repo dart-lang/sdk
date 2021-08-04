@@ -4,6 +4,8 @@
 //
 // SharedObjects=ffi_test_functions
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 import 'dylib_utils.dart';

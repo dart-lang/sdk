@@ -6,6 +6,8 @@
 //
 // Tests proper object recognition in disassembler.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--no-background-compilation --optimization-counter-threshold=100
 
+// @dart = 2.9
+
 // Verify that runtime correctly materializes unboxed variables on the catch
 // entry in optimized code.
 

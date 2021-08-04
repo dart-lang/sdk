@@ -7,6 +7,8 @@
 // Tests the in-memory ELF loader, which loads an ELF image without an
 // underlying file.
 
+// @dart = 2.9
+
 main() {
   print("Test successful.");
 }
