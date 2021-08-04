@@ -2878,6 +2878,18 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * This hint is generated when an `@UnusedResult.unless` annotation
+   * references an undefined parameter.
+   *
+   * Parameters:
+   * 0: the name of the undefined parameter
+   * 1: the name of the targeted member
+   */
+  static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(
+      'UNDEFINED_REFERENCED_PARAMETER',
+      "The parameter '{0}' is not defined by '{1}'.");
+
+  /**
    * Parameters:
    * 0: the name of the library being imported
    * 1: the name in the show clause that isn't defined in the library
