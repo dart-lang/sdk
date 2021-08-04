@@ -103,9 +103,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         isSimpleGetter(getter) &&
         getterElement.metadata.isEmpty &&
         setterElement.metadata.isEmpty) {
-      rule
-        ..reportLint(getter.name)
-        ..reportLint(setter.name);
+      // Just flag the getter (https://github.com/dart-lang/linter/issues/2851)
+      rule.reportLint(getter.name);
     }
   }
 }

@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 class Box {
   var _contents;
   get contents => _contents; //LINT [7:8]
-  set contents(value) //LINT
+  set contents(value)
   {
     _contents = value;
   }
@@ -21,7 +21,7 @@ class Box2 {
   {
     return _contents;
   }
-  set contents(value) //LINT
+  set contents(value)
   {
     _contents = value;
   }
@@ -33,7 +33,7 @@ class Box3 {
   {
     return _contents;
   }
-  set contents(value) => _contents = value; //LINT
+  set contents(value) => _contents = value;
 }
 
 class Box4 {
