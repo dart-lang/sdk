@@ -1214,67 +1214,44 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Procedure initialTarget = target;
     Expression replacementNode;
 
-    RedirectionTarget? redirectionTarget =
+    RedirectionTarget redirectionTarget =
         getRedirectionTarget(initialTarget, this);
-    Member? resolvedTarget = redirectionTarget?.target;
-    if (redirectionTarget != null &&
-        redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
+    Member resolvedTarget = redirectionTarget.target;
+    if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
       return null;
     }
 
-    if (resolvedTarget == null) {
-      String name = constructorNameForDiagnostics(initialTarget.name.text,
-          className: initialTarget.enclosingClass!.name);
-      // TODO(dmitryas): Report this error earlier.
-      replacementNode = buildProblem(
-          fasta.templateCyclicRedirectingFactoryConstructors
-              .withArguments(name),
-          initialTarget.fileOffset,
-          name.length);
-    } else if (resolvedTarget is Constructor &&
-        resolvedTarget.enclosingClass.isAbstract) {
-      replacementNode = evaluateArgumentsBefore(
-          forest.createArguments(noLocation, arguments.positional,
-              types: arguments.types, named: arguments.named),
-          buildAbstractClassInstantiationError(
-              fasta.templateAbstractRedirectedClassInstantiation
-                  .withArguments(resolvedTarget.enclosingClass.name),
-              resolvedTarget.enclosingClass.name,
-              initialTarget.fileOffset));
+    RedirectingFactoryBody? redirectingFactoryBody =
+        getRedirectingFactoryBody(resolvedTarget);
+    if (redirectingFactoryBody != null) {
+      // If the redirection target is itself a redirecting factory, it means
+      // that it is unresolved.
+      assert(redirectingFactoryBody.isError);
+      String errorMessage = redirectingFactoryBody.errorMessage!;
+      replacementNode = new InvalidExpression(errorMessage)
+        ..fileOffset = fileOffset;
     } else {
-      RedirectingFactoryBody? redirectingFactoryBody =
-          getRedirectingFactoryBody(resolvedTarget);
-      if (redirectingFactoryBody != null) {
-        // If the redirection target is itself a redirecting factory, it means
-        // that it is unresolved.
-        assert(redirectingFactoryBody.isError);
-        String errorMessage = redirectingFactoryBody.errorMessage!;
-        replacementNode = new InvalidExpression(errorMessage)
-          ..fileOffset = fileOffset;
-      } else {
-        Substitution substitution = Substitution.fromPairs(
-            initialTarget.function.typeParameters, arguments.types);
-        for (int i = 0; i < redirectionTarget!.typeArguments.length; i++) {
-          DartType typeArgument =
-              substitution.substituteType(redirectionTarget.typeArguments[i]);
-          if (i < arguments.types.length) {
-            arguments.types[i] = typeArgument;
-          } else {
-            arguments.types.add(typeArgument);
-          }
+      Substitution substitution = Substitution.fromPairs(
+          initialTarget.function.typeParameters, arguments.types);
+      for (int i = 0; i < redirectionTarget.typeArguments.length; i++) {
+        DartType typeArgument =
+            substitution.substituteType(redirectionTarget.typeArguments[i]);
+        if (i < arguments.types.length) {
+          arguments.types[i] = typeArgument;
+        } else {
+          arguments.types.add(typeArgument);
         }
-        arguments.types.length = redirectionTarget.typeArguments.length;
-
-        replacementNode = buildStaticInvocation(
-            resolvedTarget,
-            forest.createArguments(noLocation, arguments.positional,
-                types: arguments.types,
-                named: arguments.named,
-                hasExplicitTypeArguments: hasExplicitTypeArguments(arguments)),
-            constness:
-                isConst ? Constness.explicitConst : Constness.explicitNew,
-            charOffset: fileOffset);
       }
+      arguments.types.length = redirectionTarget.typeArguments.length;
+
+      replacementNode = buildStaticInvocation(
+          resolvedTarget,
+          forest.createArguments(noLocation, arguments.positional,
+              types: arguments.types,
+              named: arguments.named,
+              hasExplicitTypeArguments: hasExplicitTypeArguments(arguments)),
+          constness: isConst ? Constness.explicitConst : Constness.explicitNew,
+          charOffset: fileOffset);
     }
     return replacementNode;
   }
