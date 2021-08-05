@@ -81,6 +81,7 @@ vars = {
   "boringssl_rev" : "1607f54fed72c6589d560254626909a64124f091",
   "browser-compat-data_tag": "v1.0.22",
   "browser_launcher_rev": "c6cc1025d6901926cf022e144ba109677e3548f1",
+  "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
   "charcode_rev": "84ea427711e24abf3b832923959caa7dd9a8514b",
   "chrome_rev" : "19997",
   "cli_util_rev" : "8c504de5deb08fe32ecf51f9662bb37d8c708e57",
@@ -329,6 +330,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_rev"),
+  Var("dart_root") + "/third_party/pkg/characters":
+      Var("dart_git") + "characters.git" + "@" + Var("characters_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
       Var("dart_git") + "charcode.git" + "@" + Var("charcode_rev"),
   Var("dart_root") + "/third_party/pkg/cli_util":
