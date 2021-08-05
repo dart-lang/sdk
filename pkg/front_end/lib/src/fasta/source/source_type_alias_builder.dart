@@ -278,7 +278,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   void buildTypedefTearOffs(
       SourceLibraryBuilder library, void Function(Procedure) f) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
+    DartType? targetType = typedef.type;
     if (declaration is ClassBuilder &&
+        targetType is InterfaceType &&
         typedef.typeParameters.isNotEmpty &&
         !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
       tearOffs = {};
@@ -296,7 +298,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               createTypedefTearOffProcedure(
                   name, constructorName, library, fileUri, charOffset);
           _tearOffDependencies![tearOff] = target;
-          InterfaceType targetType = typedef.type as InterfaceType;
+
           buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
               typedef.typeParameters, targetType.typeArguments, library);
           f(tearOff);

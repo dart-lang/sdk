@@ -27,6 +27,12 @@ NavigationCollector computeDartNavigation(
     unit.accept(visitor);
   } else {
     var node = _getNodeForRange(unit, offset, length);
+    // Take the outer-most node that shares this offset/length so that we get
+    // things like ConstructorName instead of SimpleIdentifier.
+    // https://github.com/dart-lang/sdk/issues/46725
+    if (node != null) {
+      node = _getOutermostNode(node);
+    }
     node?.accept(visitor);
   }
   return collector;
@@ -40,6 +46,19 @@ AstNode? _getNodeForRange(CompilationUnit unit, int offset, int length) {
     }
   }
   return node;
+}
+
+/// Gets the outer-most node with the same offset/length as node.
+AstNode _getOutermostNode(AstNode node) {
+  AstNode? current = node;
+  while (current != null &&
+      current.parent != null &&
+      current != current.parent &&
+      current.offset == current.parent!.offset &&
+      current.length == current.parent!.length) {
+    current = current.parent;
+  }
+  return current ?? node;
 }
 
 /// A Dart specific wrapper around [NavigationCollector].

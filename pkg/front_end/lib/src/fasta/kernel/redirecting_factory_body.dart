@@ -176,31 +176,27 @@ class RedirectionTarget {
   RedirectionTarget(this.target, this.typeArguments);
 }
 
-RedirectionTarget? getRedirectionTarget(Procedure member, EnsureLoaded helper) {
+RedirectionTarget getRedirectionTarget(Procedure factory, EnsureLoaded helper) {
   List<DartType> typeArguments = new List<DartType>.generate(
-      member.function.typeParameters.length, (int i) {
+      factory.function.typeParameters.length, (int i) {
     return new TypeParameterType.withDefaultNullabilityForLibrary(
-        member.function.typeParameters[i], member.enclosingLibrary);
+        factory.function.typeParameters[i], factory.enclosingLibrary);
   }, growable: true);
 
-  // We use the [tortoise and hare algorithm]
-  // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
-  // handle cycles.
-  Member tortoise = member;
-  RedirectingFactoryBody? tortoiseBody = getRedirectingFactoryBody(tortoise);
-  Member? hare = tortoiseBody?.target;
-  helper.ensureLoaded(hare);
-  RedirectingFactoryBody? hareBody = getRedirectingFactoryBody(hare);
-  while (tortoise != hare) {
-    if (tortoiseBody == null || tortoiseBody.isError) {
-      return new RedirectionTarget(tortoise, typeArguments);
+  // Cyclic factories are detected earlier, so we're guaranteed to
+  // reach either a non-redirecting factory or an error eventually.
+  Member target = factory;
+  for (;;) {
+    RedirectingFactoryBody? body = getRedirectingFactoryBody(target);
+    if (body == null || body.isError) {
+      return new RedirectionTarget(target, typeArguments);
     }
-    Member nextTortoise = tortoiseBody.target!;
-    helper.ensureLoaded(nextTortoise);
-    List<DartType>? nextTypeArguments = tortoiseBody.typeArguments;
+    Member nextMember = body.target!;
+    helper.ensureLoaded(nextMember);
+    List<DartType>? nextTypeArguments = body.typeArguments;
     if (nextTypeArguments != null) {
       Substitution sub = Substitution.fromPairs(
-          tortoise.function!.typeParameters, typeArguments);
+          target.function!.typeParameters, typeArguments);
       typeArguments =
           new List<DartType>.generate(nextTypeArguments.length, (int i) {
         return sub.substituteType(nextTypeArguments[i]);
@@ -208,13 +204,6 @@ RedirectionTarget? getRedirectionTarget(Procedure member, EnsureLoaded helper) {
     } else {
       typeArguments = <DartType>[];
     }
-
-    tortoise = nextTortoise;
-    tortoiseBody = getRedirectingFactoryBody(tortoise);
-    helper.ensureLoaded(hareBody?.target);
-    hare = getRedirectingFactoryBody(hareBody?.target)?.target;
-    helper.ensureLoaded(hare);
-    hareBody = getRedirectingFactoryBody(hare);
+    target = nextMember;
   }
-  return null;
 }

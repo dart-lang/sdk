@@ -233,7 +233,8 @@ class ImportOrganizer {
   ///
   /// Leading comments for the first directive in a file are considered library
   /// comments and not returned unless they contain blank lines, in which case
-  /// only the last part of the comment will be returned.
+  /// only the last part of the comment will be returned (unless it is a
+  /// language directive comment, in which case it will also be skipped).
   static Token? getLeadingComment(
       CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
     if (directive.beginToken.precedingComments == null) {
@@ -252,6 +253,11 @@ class ImportOrganizer {
       }
       comment = nextComment;
       nextComment = comment.next;
+    }
+
+    // Language version tokens should never be attached so skip over.
+    if (firstComment is LanguageVersionToken) {
+      firstComment = firstComment.next;
     }
 
     // Check if the comment is the first comment in the document

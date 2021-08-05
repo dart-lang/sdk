@@ -78,6 +78,76 @@ part 'no_such_part.dart';
     _assertOrganize(code);
   }
 
+  Future<void> test_languageVersion_afterLibraryComment() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+
+// @dart=2.10
+
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// Copyright
+
+// @dart=2.10
+
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
+  }
+
+  Future<void> test_languageVersion_asFirstComment() async {
+    await _computeUnitAndErrors(r'''
+// @dart=2.10
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// @dart=2.10
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
+  }
+
+  Future<void> test_languageVersion_beforeImportWithoutNewline() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+
+// @dart=2.10
+import 'dart:io';
+import 'dart:async';
+
+File f;
+Future a;
+''');
+    // validate change
+    _assertOrganize(r'''
+// Copyright
+
+// @dart=2.10
+import 'dart:async';
+import 'dart:io';
+
+File f;
+Future a;
+''');
+  }
+
   Future<void> test_remove_duplicateImports() async {
     await _computeUnitAndErrors(r'''
 import 'dart:async';
