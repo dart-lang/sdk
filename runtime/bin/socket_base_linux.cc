@@ -134,9 +134,7 @@ intptr_t SocketBase::RecvMsg(intptr_t fd,
     struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
     size_t control_message_count = 0;
     while (cmsg != nullptr) {
-      if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
-        control_message_count++;
-      }
+      control_message_count++;
       cmsg = CMSG_NXTHDR(&msg, cmsg);
     }
     SocketControlMessageList* control_messages_ =
