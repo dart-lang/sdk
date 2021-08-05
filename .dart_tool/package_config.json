@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-08-04T16:42:24.433381",
+  "generated": "2021-08-05T11:33:04.746536",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -256,7 +256,7 @@
       "name": "dds",
       "rootUri": "../pkg/dds",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "dev_compiler",

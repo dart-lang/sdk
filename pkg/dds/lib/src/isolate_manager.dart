@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dds/src/utils/mutex.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import 'client.dart';
@@ -139,32 +140,36 @@ class IsolateManager {
   }
 
   void _updateIsolateState(String id, String name, String eventKind) {
-    switch (eventKind) {
-      case ServiceEvents.isolateStart:
-        isolateStarted(id, name);
-        break;
-      case ServiceEvents.isolateExit:
-        isolateExited(id);
-        break;
-      default:
-        final isolate = isolates[id];
+    _mutex.runGuarded(
+      () {
         switch (eventKind) {
-          case ServiceEvents.pauseExit:
-            isolate!.pausedOnExit();
+          case ServiceEvents.isolateStart:
+            isolateStarted(id, name);
             break;
-          case ServiceEvents.pausePostRequest:
-            isolate!.pausedPostRequest();
-            break;
-          case ServiceEvents.pauseStart:
-            isolate!.pausedOnStart();
-            break;
-          case ServiceEvents.resume:
-            isolate!.resumed();
+          case ServiceEvents.isolateExit:
+            isolateExited(id);
             break;
           default:
-            break;
+            final isolate = isolates[id];
+            switch (eventKind) {
+              case ServiceEvents.pauseExit:
+                isolate!.pausedOnExit();
+                break;
+              case ServiceEvents.pausePostRequest:
+                isolate!.pausedPostRequest();
+                break;
+              case ServiceEvents.pauseStart:
+                isolate!.pausedOnStart();
+                break;
+              case ServiceEvents.resume:
+                isolate!.resumed();
+                break;
+              default:
+                break;
+            }
         }
-    }
+      },
+    );
   }
 
   /// Initializes the set of running isolates.
@@ -172,25 +177,30 @@ class IsolateManager {
     if (_initialized) {
       return;
     }
-    final vm = await dds.vmServiceClient.sendRequest('getVM');
-    final List<Map> isolateRefs = vm['isolates'].cast<Map<String, dynamic>>();
-    // Check the pause event for each isolate to determine whether or not the
-    // isolate is already paused.
-    for (final isolateRef in isolateRefs) {
-      final id = isolateRef['id'];
-      final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
-        'isolateId': id,
-      });
-      final name = isolate['name'];
-      if (isolate.containsKey('pauseEvent')) {
-        isolates[id] = _RunningIsolate(this, id, name);
-        final eventKind = isolate['pauseEvent']['kind'];
-        _updateIsolateState(id, name, eventKind);
-      } else {
-        // If the isolate doesn't have a pauseEvent, assume it's running.
-        isolateStarted(id, name);
-      }
-    }
+    await _mutex.runGuarded(
+      () async {
+        final vm = await dds.vmServiceClient.sendRequest('getVM');
+        final List<Map> isolateRefs =
+            vm['isolates'].cast<Map<String, dynamic>>();
+        // Check the pause event for each isolate to determine whether or not the
+        // isolate is already paused.
+        for (final isolateRef in isolateRefs) {
+          final id = isolateRef['id'];
+          final isolate = await dds.vmServiceClient.sendRequest('getIsolate', {
+            'isolateId': id,
+          });
+          final name = isolate['name'];
+          if (isolate.containsKey('pauseEvent')) {
+            isolates[id] = _RunningIsolate(this, id, name);
+            final eventKind = isolate['pauseEvent']['kind'];
+            _updateIsolateState(id, name, eventKind);
+          } else {
+            // If the isolate doesn't have a pauseEvent, assume it's running.
+            isolateStarted(id, name);
+          }
+        }
+      },
+    );
     _initialized = true;
   }
 
@@ -218,16 +228,20 @@ class IsolateManager {
     DartDevelopmentServiceClient client,
     json_rpc.Parameters parameters,
   ) async {
-    final isolateId = parameters['isolateId'].asString;
-    final isolate = isolates[isolateId];
-    if (isolate == null) {
-      return RPCResponses.collectedSentinel;
-    }
-    if (isolate.shouldResume(resumingClient: client)) {
-      isolate.clearResumeApprovals();
-      return await _sendResumeRequest(isolateId, parameters);
-    }
-    return RPCResponses.success;
+    return await _mutex.runGuarded(
+      () async {
+        final isolateId = parameters['isolateId'].asString;
+        final isolate = isolates[isolateId];
+        if (isolate == null) {
+          return RPCResponses.collectedSentinel;
+        }
+        if (isolate.shouldResume(resumingClient: client)) {
+          isolate.clearResumeApprovals();
+          return await _sendResumeRequest(isolateId, parameters);
+        }
+        return RPCResponses.success;
+      },
+    );
   }
 
   /// Forwards a `resume` request to the VM service.
@@ -248,5 +262,6 @@ class IsolateManager {
 
   bool _initialized = false;
   final DartDevelopmentServiceImpl dds;
+  final _mutex = Mutex();
   final Map<String, _RunningIsolate> isolates = {};
 }
