@@ -130,10 +130,10 @@ intptr_t SocketBase::RecvMsg(intptr_t fd,
     return read_bytes;
   }
 
-  if (control_messages != NULL) {
+  if (control_messages != nullptr) {
     struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
     size_t control_message_count = 0;
-    while (cmsg != NULL) {
+    while (cmsg != nullptr) {
       if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
         control_message_count++;
       }
@@ -143,7 +143,7 @@ intptr_t SocketBase::RecvMsg(intptr_t fd,
         new SocketControlMessageList(control_message_count);
 
     size_t control_message_index = 0;
-    for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL;
+    for (cmsg = CMSG_FIRSTHDR(&msg); cmsg != nullptr;
          cmsg = CMSG_NXTHDR(&msg, cmsg), control_message_index++) {
       void* data = CMSG_DATA(cmsg);
       size_t data_length = cmsg->cmsg_len - (reinterpret_cast<uint8_t*>(data) -
@@ -229,7 +229,7 @@ intptr_t SocketBase::SendMsg(intptr_t fd,
 
   struct msghdr msg;
   memset(&msg, 0, sizeof(msg));
-  if (addr != NULL) {
+  if (addr != nullptr) {
     msg.msg_name =
         reinterpret_cast<void*>(const_cast<struct sockaddr*>(&addr->addr));
     msg.msg_namelen = sizeof(addr->ss);
@@ -238,7 +238,7 @@ intptr_t SocketBase::SendMsg(intptr_t fd,
   msg.msg_iovlen = 1;
 
   uint8_t control_buffer[kMaxSocketMessageControlLength];
-  if (control_messages != NULL) {
+  if (control_messages != nullptr) {
     memset(control_buffer, 0, sizeof(control_buffer));
     msg.msg_control = control_buffer;
     msg.msg_controllen = sizeof(control_buffer);

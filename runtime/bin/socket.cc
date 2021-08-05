@@ -710,7 +710,7 @@ void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
     Dart_PropagateError(core_lib);
   }
   Dart_Handle int_type =
-      Dart_GetNonNullableType(core_lib, DartUtils::NewString("int"), 0, NULL);
+      Dart_GetNonNullableType(core_lib, DartUtils::NewString("int"), 0, nullptr);
   if (Dart_IsError(int_type)) {
     Dart_PropagateError(int_type);
   }
@@ -720,7 +720,7 @@ void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
     Dart_PropagateError(io_lib);
   }
   Dart_Handle control_message_type = Dart_GetNullableType(
-      io_lib, DartUtils::NewString("SocketControlMessage"), 0, NULL);
+      io_lib, DartUtils::NewString("SocketControlMessage"), 0, nullptr);
   if (Dart_IsError(control_message_type)) {
     Dart_PropagateError(control_message_type);
   }
