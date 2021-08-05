@@ -2274,7 +2274,10 @@ class FieldInvalidator {
       instance_ ^= value.ptr();
       if (!instance_.IsAssignableTo(type_, instantiator_type_arguments_,
                                     function_type_arguments_)) {
-        ASSERT(!FLAG_identity_reload);
+        // Even if doing an identity reload, type check can fail if hot reload
+        // happens while constructor is still running and field is not
+        // initialized yet, so it has a null value.
+        ASSERT(!FLAG_identity_reload || instance_.IsNull());
         field.set_needs_load_guard(true);
       } else {
         cache_.AddCheck(instance_cid_or_signature_, type_,
