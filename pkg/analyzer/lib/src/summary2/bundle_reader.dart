@@ -162,11 +162,8 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
-    if (element.isConst || element.isFactory) {
-      element.redirectedConstructor =
-          reader.readElement() as ConstructorElement?;
-      element.constantInitializers = reader._readNodeList();
-    }
+    element.redirectedConstructor = reader.readElement() as ConstructorElement?;
+    element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
   }
 }

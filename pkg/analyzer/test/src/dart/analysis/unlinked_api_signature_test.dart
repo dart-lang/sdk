@@ -117,7 +117,7 @@ class C {
   }
 
   test_class_constructor_initializer_empty() {
-    assertSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
   C.foo() : ;
 }
@@ -128,8 +128,9 @@ class C {
 ''');
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/46206
   test_class_constructor_initializer_notConst() {
-    assertSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
   final int f;
   C.foo() : f = 1;

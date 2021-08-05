@@ -13388,6 +13388,7 @@ library
             periodOffset: 13
             nameEnd: 19
           @25
+            redirectedConstructor: self::@class::C::@constructor::named
 ''');
   }
 
@@ -13467,6 +13468,7 @@ library
           named @21
             periodOffset: 20
             nameEnd: 26
+            redirectedConstructor: self::@class::C::@constructor::•
 ''');
   }
 
