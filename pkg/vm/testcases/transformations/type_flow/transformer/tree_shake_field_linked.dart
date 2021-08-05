@@ -2,11 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'main_lib.dart';
+import 'tree_shake_field.lib.dart';
+
+class Class implements Interface {
+  int? field1;
+  int? field2;
+  int? field3;
+}
+
+void method(Interface i) {
+  i.field2 = i.field1;
+  i.field3 = i.field3;
+}
 
 main() {
-  List list = [];
-  if (list.isNotEmpty) {
-    new Class().method(null as dynamic);
-  }
+  method(new Class());
 }
