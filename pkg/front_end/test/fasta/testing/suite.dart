@@ -149,8 +149,6 @@ import 'package:testing/testing.dart'
         StdioProcess;
 
 import 'package:vm/target/vm.dart' show VmTarget;
-import 'package:vm/transformations/type_flow/transformer.dart' as type_flow;
-import 'package:vm/transformations/pragma.dart' as type_flow;
 
 import '../../testing_utils.dart' show checkEnvironment;
 
@@ -856,11 +854,10 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         }
         return new Result<ComponentResult>(
             result, runResult.outcome, runResult.error);
-      case "aot":
       case "none":
       case "dart2js":
       case "dartdevc":
-        // TODO(johnniwinther): Support running vm aot, dart2js and/or dartdevc.
+        // TODO(johnniwinther): Support running dart2js and/or dartdevc.
         return pass(result);
       default:
         throw new ArgumentError(
@@ -1704,9 +1701,6 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "vm":
       target = new TestVmTarget(targetFlags);
       break;
-    case "aot":
-      target = new TestVmAotTarget(targetFlags);
-      break;
     case "none":
       target = new NoneTarget(targetFlags);
       break;
@@ -2046,22 +2040,6 @@ mixin TestTarget on Target {
 
 class TestVmTarget extends VmTarget with TestTarget {
   TestVmTarget(TargetFlags flags) : super(flags);
-}
-
-class TestVmAotTarget extends TestVmTarget {
-  TestVmAotTarget(TargetFlags flags) : super(flags);
-
-  @override
-  bool get hasGlobalTransformation => true;
-
-  @override
-  Component performGlobalTransformations(
-      KernelTarget kernelTarget, Component component) {
-    return type_flow.transformComponent(
-        this, kernelTarget.loader.coreTypes, component,
-        matcher: new type_flow.ConstantPragmaAnnotationParser(
-            kernelTarget.loader.coreTypes));
-  }
 }
 
 class EnsureNoErrors

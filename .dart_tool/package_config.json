@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-07-30T20:37:49.663747",
+  "generated": "2021-08-04T21:18:41.561058",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -147,6 +147,12 @@
     {
       "name": "build_integration",
       "rootUri": "../pkg/build_integration",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "characters",
+      "rootUri": "../third_party/pkg/characters",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
