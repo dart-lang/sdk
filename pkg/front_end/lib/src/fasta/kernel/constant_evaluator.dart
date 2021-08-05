@@ -3324,7 +3324,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // ignore: unnecessary_null_comparison
         assert(types != null);
 
-        List<DartType> typeArguments = convertTypes(types);
+        List<DartType> typeArguments = types;
         if (constant is TypedefTearOffConstant) {
           Substitution substitution =
               Substitution.fromPairs(constant.parameters, typeArguments);
@@ -3345,7 +3345,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 .toList();
           }
         }
-        return canonicalize(new InstantiationConstant(constant, typeArguments));
+        return canonicalize(
+            new InstantiationConstant(constant, convertTypes(typeArguments)));
       } else {
         // Probably unreachable.
         return createInvalidExpressionConstant(

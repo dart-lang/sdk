@@ -33,7 +33,7 @@ Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.d
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:15:31 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:17:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:18:13 -> InstantiationConstant(A.<int*>)
-Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:31 -> InstantiationConstant(A.<int>)
+Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:19:31 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:21:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:22:13 -> InstantiationConstant(A.<int*>)
 Evaluated: Instantiation @ org-dartlang-testcase:///inferred_non_proper_rename.dart:23:31 -> InstantiationConstant(A.<int*>)
