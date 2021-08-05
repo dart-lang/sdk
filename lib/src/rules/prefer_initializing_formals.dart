@@ -122,6 +122,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    // Skip factory constructors.
+    // https://github.com/dart-lang/linter/issues/2441
+    if (node.factoryKeyword != null) {
+      return;
+    }
+
     var parameters = _getParameters(node);
     var parametersUsedOnce = <Element?>{};
     var parametersUsedMoreThanOnce = <Element?>{};
