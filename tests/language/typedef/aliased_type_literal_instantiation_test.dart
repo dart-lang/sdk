@@ -23,9 +23,11 @@ typedef Extra<T, S> = C<T>;
 
 void main() {
   const Type co = C<Object?>;
+  const Type cd = C<dynamic>;
   const Type cn = C<num>;
   const Type ci = C<int>;
   const Type cco = C<C<Object?>>;
+  const Type ccd = C<C<dynamic>>;
   const Type cci = C<C<int>>;
   const Type s1 = Special;
   const Type d1 = Direct;
@@ -42,16 +44,16 @@ void main() {
   const Type e3 = Extra<int, bool>;
 
   Expect.identical(s1, ci);
-  Expect.identical(d1, co);
+  Expect.identical(d1, cd);
   Expect.identical(d2, co);
   Expect.identical(d3, ci);
   Expect.identical(b1, cn);
   Expect.identical(b2, cn);
   Expect.identical(b3, ci);
-  Expect.identical(w1, cco);
+  Expect.identical(w1, ccd);
   Expect.identical(w2, cco);
   Expect.identical(w3, cci);
-  Expect.identical(e1, co);
+  Expect.identical(e1, cd);
   Expect.identical(e2, co);
   Expect.identical(e3, ci);
 
