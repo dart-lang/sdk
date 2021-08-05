@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
 
@@ -234,7 +235,9 @@ class ImportOrganizer {
   /// Leading comments for the first directive in a file are considered library
   /// comments and not returned unless they contain blank lines, in which case
   /// only the last part of the comment will be returned (unless it is a
-  /// language directive comment, in which case it will also be skipped).
+  /// language directive comment, in which case it will also be skipped) or an
+  /// '// ignore:' comment which should always be treated as attached to the
+  /// import.
   static Token? getLeadingComment(
       CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
     if (directive.beginToken.precedingComments == null) {
@@ -260,22 +263,25 @@ class ImportOrganizer {
       firstComment = firstComment.next;
     }
 
-    // Check if the comment is the first comment in the document
-    if (firstComment != unit.beginToken.precedingComments) {
-      var previousDirectiveLine =
-          lineInfo.getLocation(directive.beginToken.previous!.end).lineNumber;
-
-      // Skip over any comments on the same line as the previous directive
-      // as they will be attached to the end of it.
-      var comment = firstComment;
-      while (comment != null &&
-          previousDirectiveLine ==
-              lineInfo.getLocation(comment.offset).lineNumber) {
-        comment = comment.next;
-      }
-      return comment;
+    // If the comment is the first comment in the document then whether we
+    // consider it the leading comment depends on whether it's an ignore comment
+    // or not.
+    if (firstComment != null &&
+        firstComment == unit.beginToken.precedingComments) {
+      return _isIgnoreComment(firstComment) ? firstComment : null;
     }
-    return null;
+
+    // Skip over any comments on the same line as the previous directive
+    // as they will be attached to the end of it.
+    var previousDirectiveLine =
+        lineInfo.getLocation(directive.beginToken.previous!.end).lineNumber;
+    comment = firstComment;
+    while (comment != null &&
+        previousDirectiveLine ==
+            lineInfo.getLocation(comment.offset).lineNumber) {
+      comment = comment.next;
+    }
+    return comment;
   }
 
   /// Gets the last comment token considered to be the trailing comment for this
@@ -295,6 +301,11 @@ class ImportOrganizer {
     }
     return null;
   }
+
+  /// Returns whether this token is a '// ignore:' comment (but not an
+  /// '// ignore_for_file:' comment).
+  static bool _isIgnoreComment(Token token) =>
+      IgnoreInfo.IGNORE_MATCHER.matchAsPrefix(token.lexeme) != null;
 }
 
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
