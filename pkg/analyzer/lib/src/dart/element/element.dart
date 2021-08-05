@@ -949,7 +949,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   static ConstructorElement? getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
     if (name == 'new') {
-      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
     }
     for (ConstructorElement element in constructors) {

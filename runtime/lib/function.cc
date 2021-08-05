@@ -48,7 +48,7 @@ static bool ClosureEqualsHelper(Zone* zone,
            Function::Handle(other_closure.function()).IsGeneric());
     return false;
   }
-  // Closures that are not implicit instance closures are unique.
+  // Closures that are not implicit closures (tear-offs) are unique.
   const auto& func_a = Function::Handle(zone, receiver.function());
   if (!func_a.IsImplicitClosureFunction()) {
     return false;

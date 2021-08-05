@@ -6,6 +6,4 @@
 
 library compiler_test_internals;
 
-export 'dart:_js_helper' show NoSideEffects, NoThrows, NoInline;
-
 export 'dart:_foreign_helper' show JS;

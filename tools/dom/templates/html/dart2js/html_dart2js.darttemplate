@@ -42,7 +42,7 @@ import 'dart:web_gl' show RenderingContext,RenderingContext2;
 import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Returns, ForceInline,
+    JSName, Native, Returns,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord, registerGlobalObject, applyExtension;
 import 'dart:_interceptors' show

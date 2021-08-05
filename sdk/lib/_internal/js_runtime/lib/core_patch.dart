@@ -17,7 +17,6 @@ import 'dart:_js_helper'
         JsLinkedHashMap,
         jsonEncodeNative,
         JSSyntaxRegExp,
-        NoInline,
         objectHashCode,
         patch,
         Primitives,

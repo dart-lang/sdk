@@ -9,7 +9,6 @@ library js_typed_interop_callable_object_test;
 
 import 'dart:html';
 
-import 'package:expect/expect.dart' show NoInline, AssumeDynamic;
 import 'package:js/js.dart';
 import 'package:expect/minitest.dart';
 

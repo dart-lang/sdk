@@ -173,7 +173,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name ?? node.returnType;
     var name = node.name?.name ?? '';
     if (name == 'new') {
-      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
       name = '';
     }
     var nameOffset = nameNode.offset;
