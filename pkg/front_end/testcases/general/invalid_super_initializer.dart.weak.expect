@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_super_initializer.dart:8:8: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//   B(): super()?.foo() {}
+//        ^
+//
+// pkg/front_end/testcases/general/invalid_super_initializer.dart:8:8: Error: Expected an initializer.
+//   B(): super()?.foo() {}
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → self::B
+    : final dynamic #t1 = let final invalid-type #t2 = invalid-expression "pkg/front_end/testcases/general/invalid_super_initializer.dart:8:8: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+  B(): super()?.foo() {}
+       ^" in #t2 == null ?{dynamic} null : #t2{dynamic}.foo() {}
+}
+static method bad() → dynamic {
+  new self::B::•();
+}
+static method main() → dynamic {}

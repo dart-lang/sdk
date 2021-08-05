@@ -11,8 +11,26 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveOperatorBulkTest);
     defineReflectiveTests(RemoveOperatorTest);
   });
+}
+
+@reflectiveTest
+class RemoveOperatorBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_adjacent_string_concatenation;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+var s = 'a' + 'b';
+var s1 = 'b' + 'c';
+''');
+    await assertHasFix('''
+var s = 'a' 'b';
+var s1 = 'b' 'c';
+''');
+  }
 }
 
 @reflectiveTest

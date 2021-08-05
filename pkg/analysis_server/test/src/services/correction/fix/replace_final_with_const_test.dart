@@ -11,8 +11,26 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceFinalWithConstBulkTest);
     defineReflectiveTests(ReplaceFinalWithConstTest);
   });
+}
+
+@reflectiveTest
+class ReplaceFinalWithConstBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_const_declarations;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+final int a = 1;
+final b = 1;
+''');
+    await assertHasFix('''
+const int a = 1;
+const b = 1;
+''');
+  }
 }
 
 @reflectiveTest

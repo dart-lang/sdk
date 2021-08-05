@@ -208,7 +208,7 @@ class TypeCheckingVisitor
     handleFunctionNode(node.function);
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  visitRedirectingFactory(RedirectingFactory node) {
     currentReturnType = null;
     currentYieldType = null;
   }
@@ -478,7 +478,8 @@ class TypeCheckingVisitor
 
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
-    return const DynamicType();
+    // Don't type check `node.expression`.
+    return const NeverType.nonNullable();
   }
 
   @override
@@ -521,8 +522,37 @@ class TypeCheckingVisitor
 
   @override
   DartType visitConstructorTearOff(ConstructorTearOff node) {
-    return node.constructorReference.asConstructor.function
-        .computeFunctionType(Nullability.nonNullable);
+    return node.function.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    return node.function.computeFunctionType(Nullability.nonNullable);
+  }
+
+  @override
+  DartType visitTypedefTearOff(TypedefTearOff node) {
+    DartType type = visitExpression(node.expression);
+    if (type is! FunctionType) {
+      fail(node, 'Not a function type: $type');
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
+    }
+    FunctionType functionType = type;
+    if (functionType.typeParameters.length != node.typeArguments.length) {
+      fail(node, 'Wrong number of type arguments');
+      return NeverType.fromNullability(currentLibrary!.nonNullable);
+    }
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(node.typeParameters);
+    FunctionType result = freshTypeParameters.substitute(_instantiateFunction(
+            functionType.typeParameters, node.typeArguments, node)
+        .substituteType(functionType.withoutTypeParameters)) as FunctionType;
+    return new FunctionType(result.positionalParameters, result.returnType,
+        result.declaredNullability,
+        namedParameters: result.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: result.requiredParameterCount,
+        typedefType: null);
   }
 
   @override
@@ -605,61 +635,6 @@ class TypeCheckingVisitor
       }
     }
     return instantiation.substituteType(function.returnType);
-  }
-
-  @override
-  DartType visitMethodInvocation(MethodInvocation node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      DartType receiver = visitExpression(node.receiver);
-      if (node.name.text == '==') {
-        visitExpression(node.arguments.positional.single);
-        return environment.coreTypes.boolLegacyRawType;
-      }
-      if (node.name.text == 'call' && receiver is FunctionType) {
-        return handleFunctionCall(node, receiver, node.arguments);
-      }
-      checkUnresolvedInvocation(receiver, node);
-      return handleDynamicCall(receiver, node.arguments);
-    } else if (target is Procedure &&
-        environment.isSpecialCasedBinaryOperator(target)) {
-      assert(node.arguments.positional.length == 1);
-      DartType receiver = visitExpression(node.receiver);
-      DartType argument = visitExpression(node.arguments.positional[0]);
-      return environment.getTypeOfSpecialCasedBinaryOperator(
-          receiver, argument);
-    } else {
-      return handleCall(node.arguments, target.getterType,
-          receiver: getReceiverType(node, node.receiver, target));
-    }
-  }
-
-  @override
-  DartType visitPropertyGet(PropertyGet node) {
-    Member? target = node.interfaceTarget;
-    if (target == null) {
-      final DartType receiver = visitExpression(node.receiver);
-      checkUnresolvedInvocation(receiver, node);
-      return const DynamicType();
-    } else {
-      Substitution receiver = getReceiverType(node, node.receiver, target);
-      return receiver.substituteType(target.getterType);
-    }
-  }
-
-  @override
-  DartType visitPropertySet(PropertySet node) {
-    Member? target = node.interfaceTarget;
-    DartType value = visitExpression(node.value);
-    if (target != null) {
-      Substitution receiver = getReceiverType(node, node.receiver, target);
-      checkAssignable(node.value, value,
-          receiver.substituteType(target.setterType, contravariant: true));
-    } else {
-      final DartType receiver = visitExpression(node.receiver);
-      checkUnresolvedInvocation(receiver, node);
-    }
-    return value;
   }
 
   @override
@@ -1042,7 +1017,7 @@ class TypeCheckingVisitor
       if (asContainerArguments != null) {
         checkAssignable(
             node.expression, asContainerArguments[0], currentYieldType!);
-      } else {
+      } else if (type is! InvalidType && type is! NeverType) {
         fail(node.expression, '$type is not an instance of $container');
       }
     } else {

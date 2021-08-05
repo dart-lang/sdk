@@ -13,7 +13,7 @@
 #include "bin/namespace.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
-#if !defined(HOST_OS_WINDOWS)
+#if !defined(DART_HOST_OS_WINDOWS)
 #include "platform/signal_blocker.h"
 #endif
 #include "platform/utils.h"
@@ -348,8 +348,8 @@ class BufferListBase {
   DISALLOW_COPY_AND_ASSIGN(BufferListBase);
 };
 
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_FUCHSIA) ||                    \
-    defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA) ||          \
+    defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
 class BufferList : public BufferListBase {
  public:
   BufferList() {}
@@ -366,13 +366,13 @@ class BufferList : public BufferListBase {
       ASSERT(free_size() > 0);
       ASSERT(free_size() <= kBufferSize);
       intptr_t block_size = dart::Utils::Minimum(free_size(), available);
-#if defined(HOST_OS_FUCHSIA)
+#if defined(DART_HOST_OS_FUCHSIA)
       intptr_t bytes = NO_RETRY_EXPECTED(
           read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
 #else
       intptr_t bytes = TEMP_FAILURE_RETRY(
           read(fd, reinterpret_cast<void*>(FreeSpaceAddress()), block_size));
-#endif  // defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_FUCHSIA)
       if (bytes < 0) {
         return false;
       }
@@ -386,7 +386,7 @@ class BufferList : public BufferListBase {
  private:
   DISALLOW_COPY_AND_ASSIGN(BufferList);
 };
-#endif  // defined(HOST_OS_ANDROID) ...
+#endif  // defined(DART_HOST_OS_ANDROID) ...
 
 }  // namespace bin
 }  // namespace dart

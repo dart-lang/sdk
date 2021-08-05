@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Declares classes which describe a call: selectors and arguments.
-library vm.transformations.type_flow.calls;
 
 import 'dart:core' hide Type;
 
@@ -28,10 +27,10 @@ abstract class Selector {
   Selector(this.callKind);
 
   /// Interface or concrete target, may be null.
-  Member get member;
+  Member? get member;
 
   /// Selector name.
-  Name get name => member.name;
+  Name get name => member!.name;
 
   bool get isSetter => (callKind == CallKind.PropertySet);
 
@@ -44,6 +43,7 @@ abstract class Selector {
 
   /// Static approximation of Dart return type.
   DartType get staticReturnType {
+    final member = this.member;
     if (member == null) {
       return const DynamicType();
     }
@@ -59,7 +59,6 @@ abstract class Selector {
       case CallKind.SetFieldInConstructor:
         return const NeverType.nonNullable();
     }
-    return null;
   }
 
   bool memberAgreesToCallKind(Member member) {
@@ -77,7 +76,6 @@ abstract class Selector {
       case CallKind.SetFieldInConstructor:
         return member is Field;
     }
-    return false;
   }
 
   String get _callKindPrefix {
@@ -92,7 +90,6 @@ abstract class Selector {
       case CallKind.FieldInitializer:
         return 'init ';
     }
-    return '';
   }
 }
 
@@ -167,7 +164,7 @@ class DynamicSelector extends Selector {
   DynamicSelector(CallKind callKind, this.name) : super(callKind);
 
   @override
-  Member get member => null;
+  Member? get member => null;
 
   @override
   int get hashCode => (super.hashCode ^ name.hashCode + 37) & kHashMask;
@@ -187,7 +184,8 @@ class Args<T extends TypeExpr> {
   final List<T> values;
   final List<String> names;
 
-  int _hashCode;
+  @override
+  late final int hashCode = _computeHashCode();
 
   Args(this.values, {this.names = const <String>[]}) {
     assert(isSorted(names));
@@ -203,9 +201,6 @@ class Args<T extends TypeExpr> {
   int get namedCount => names.length;
 
   T get receiver => values[0];
-
-  @override
-  int get hashCode => _hashCode ??= _computeHashCode();
 
   int _computeHashCode() {
     int hash = 1231;

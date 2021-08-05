@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
@@ -86,7 +84,7 @@ import 'member_covariance.dart';
 
 import 'forwarding_node.dart' show ForwardingNode;
 
-const DebugLogger debug =
+const DebugLogger? debug =
     const bool.fromEnvironment("debug.hierarchy") ? const DebugLogger() : null;
 
 class DebugLogger {
@@ -115,53 +113,59 @@ bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
 
 class Tuple {
   final Name name;
-  ClassMember _declaredMember;
-  ClassMember _declaredSetter;
-  ClassMember _mixedInMember;
-  ClassMember _mixedInSetter;
-  ClassMember _extendedMember;
-  ClassMember _extendedSetter;
-  List<ClassMember> _implementedMembers;
-  List<ClassMember> _implementedSetters;
+  ClassMember? _declaredMember;
+  ClassMember? _declaredSetter;
+  ClassMember? _mixedInMember;
+  ClassMember? _mixedInSetter;
+  ClassMember? _extendedMember;
+  ClassMember? _extendedSetter;
+  List<ClassMember>? _implementedMembers;
+  List<ClassMember>? _implementedSetters;
 
-  Tuple.declareMember(this._declaredMember)
-      : assert(!_declaredMember.forSetter),
-        this.name = _declaredMember.name;
+  Tuple.declareMember(ClassMember declaredMember)
+      : assert(!declaredMember.forSetter),
+        this._declaredMember = declaredMember,
+        this.name = declaredMember.name;
 
-  Tuple.mixInMember(this._mixedInMember)
-      : assert(!_mixedInMember.forSetter),
-        this.name = _mixedInMember.name;
+  Tuple.mixInMember(ClassMember mixedInMember)
+      : assert(!mixedInMember.forSetter),
+        this._mixedInMember = mixedInMember,
+        this.name = mixedInMember.name;
 
-  Tuple.extendMember(this._extendedMember)
-      : assert(!_extendedMember.forSetter),
-        this.name = _extendedMember.name;
+  Tuple.extendMember(ClassMember extendedMember)
+      : assert(!extendedMember.forSetter),
+        this._extendedMember = extendedMember,
+        this.name = extendedMember.name;
 
   Tuple.implementMember(ClassMember implementedMember)
       : assert(!implementedMember.forSetter),
         this.name = implementedMember.name,
         _implementedMembers = <ClassMember>[implementedMember];
 
-  Tuple.declareSetter(this._declaredSetter)
-      : assert(_declaredSetter.forSetter),
-        this.name = _declaredSetter.name;
+  Tuple.declareSetter(ClassMember declaredSetter)
+      : assert(declaredSetter.forSetter),
+        this._declaredSetter = declaredSetter,
+        this.name = declaredSetter.name;
 
-  Tuple.mixInSetter(this._mixedInSetter)
-      : assert(_mixedInSetter.forSetter),
-        this.name = _mixedInSetter.name;
+  Tuple.mixInSetter(ClassMember mixedInSetter)
+      : assert(mixedInSetter.forSetter),
+        this._mixedInSetter = mixedInSetter,
+        this.name = mixedInSetter.name;
 
-  Tuple.extendSetter(this._extendedSetter)
-      : assert(_extendedSetter.forSetter),
-        this.name = _extendedSetter.name;
+  Tuple.extendSetter(ClassMember extendedSetter)
+      : assert(extendedSetter.forSetter),
+        this._extendedSetter = extendedSetter,
+        this.name = extendedSetter.name;
 
   Tuple.implementSetter(ClassMember implementedSetter)
       : assert(implementedSetter.forSetter),
         this.name = implementedSetter.name,
         _implementedSetters = <ClassMember>[implementedSetter];
 
-  ClassMember get declaredMember => _declaredMember;
+  ClassMember? get declaredMember => _declaredMember;
 
-  void set declaredMember(ClassMember value) {
-    assert(!value.forSetter);
+  void set declaredMember(ClassMember? value) {
+    assert(!value!.forSetter);
     assert(
         _declaredMember == null,
         "Declared member already set to $_declaredMember, "
@@ -169,10 +173,10 @@ class Tuple {
     _declaredMember = value;
   }
 
-  ClassMember get declaredSetter => _declaredSetter;
+  ClassMember? get declaredSetter => _declaredSetter;
 
-  void set declaredSetter(ClassMember value) {
-    assert(value.forSetter);
+  void set declaredSetter(ClassMember? value) {
+    assert(value!.forSetter);
     assert(
         _declaredSetter == null,
         "Declared setter already set to $_declaredSetter, "
@@ -180,10 +184,10 @@ class Tuple {
     _declaredSetter = value;
   }
 
-  ClassMember get extendedMember => _extendedMember;
+  ClassMember? get extendedMember => _extendedMember;
 
-  void set extendedMember(ClassMember value) {
-    assert(!value.forSetter);
+  void set extendedMember(ClassMember? value) {
+    assert(!value!.forSetter);
     assert(
         _extendedMember == null,
         "Extended member already set to $_extendedMember, "
@@ -191,10 +195,10 @@ class Tuple {
     _extendedMember = value;
   }
 
-  ClassMember get extendedSetter => _extendedSetter;
+  ClassMember? get extendedSetter => _extendedSetter;
 
-  void set extendedSetter(ClassMember value) {
-    assert(value.forSetter);
+  void set extendedSetter(ClassMember? value) {
+    assert(value!.forSetter);
     assert(
         _extendedSetter == null,
         "Extended setter already set to $_extendedSetter, "
@@ -202,10 +206,10 @@ class Tuple {
     _extendedSetter = value;
   }
 
-  ClassMember get mixedInMember => _mixedInMember;
+  ClassMember? get mixedInMember => _mixedInMember;
 
-  void set mixedInMember(ClassMember value) {
-    assert(!value.forSetter);
+  void set mixedInMember(ClassMember? value) {
+    assert(!value!.forSetter);
     assert(
         _mixedInMember == null,
         "Mixed in member already set to $_mixedInMember, "
@@ -213,10 +217,10 @@ class Tuple {
     _mixedInMember = value;
   }
 
-  ClassMember get mixedInSetter => _mixedInSetter;
+  ClassMember? get mixedInSetter => _mixedInSetter;
 
-  void set mixedInSetter(ClassMember value) {
-    assert(value.forSetter);
+  void set mixedInSetter(ClassMember? value) {
+    assert(value!.forSetter);
     assert(
         _mixedInSetter == null,
         "Mixed in setter already set to $_mixedInSetter, "
@@ -224,20 +228,20 @@ class Tuple {
     _mixedInSetter = value;
   }
 
-  List<ClassMember> get implementedMembers => _implementedMembers;
+  List<ClassMember>? get implementedMembers => _implementedMembers;
 
   void addImplementedMember(ClassMember value) {
     assert(!value.forSetter);
     _implementedMembers ??= <ClassMember>[];
-    _implementedMembers.add(value);
+    _implementedMembers!.add(value);
   }
 
-  List<ClassMember> get implementedSetters => _implementedSetters;
+  List<ClassMember>? get implementedSetters => _implementedSetters;
 
   void addImplementedSetter(ClassMember value) {
     assert(value.forSetter);
     _implementedSetters ??= <ClassMember>[];
-    _implementedSetters.add(value);
+    _implementedSetters!.add(value);
   }
 
   @override
@@ -419,13 +423,13 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
   List<TypeParameter> bTypeParameters = b.typeParameters;
   int typeParameterCount = aTypeParameters.length;
   if (typeParameterCount != bTypeParameters.length) return false;
-  Substitution substitution;
+  Substitution? substitution;
   if (typeParameterCount != 0) {
-    List<DartType> types = new List<DartType>.filled(typeParameterCount, null);
-    for (int i = 0; i < typeParameterCount; i++) {
-      types[i] = new TypeParameterType.forAlphaRenaming(
-          bTypeParameters[i], aTypeParameters[i]);
-    }
+    List<DartType> types = new List<DartType>.generate(
+        typeParameterCount,
+        (int i) => new TypeParameterType.forAlphaRenaming(
+            bTypeParameters[i], aTypeParameters[i]),
+        growable: false);
     substitution = Substitution.fromPairs(bTypeParameters, types);
     for (int i = 0; i < typeParameterCount; i++) {
       DartType aBound = aTypeParameters[i].bound;
@@ -502,7 +506,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   final CoreTypes coreTypes;
 
-  Types types;
+  late Types types;
 
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
       : objectClass = objectClassBuilder.cls,
@@ -561,8 +565,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       Iterable<ClassMember> overriddenMembers) {
     ClassHierarchyNodeBuilder.inferFieldType(
         this,
-        declaredMember.classBuilder,
-        substitutions[declaredMember.classBuilder],
+        declaredMember.classBuilder as SourceClassBuilder,
         declaredMember,
         overriddenMembers);
   }
@@ -571,8 +574,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       Iterable<ClassMember> overriddenMembers) {
     ClassHierarchyNodeBuilder.inferGetterType(
         this,
-        declaredMember.classBuilder,
-        substitutions[declaredMember.classBuilder],
+        declaredMember.classBuilder as SourceClassBuilder,
         declaredMember,
         overriddenMembers);
   }
@@ -581,8 +583,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       Iterable<ClassMember> overriddenMembers) {
     ClassHierarchyNodeBuilder.inferSetterType(
         this,
-        declaredMember.classBuilder,
-        substitutions[declaredMember.classBuilder],
+        declaredMember.classBuilder as SourceClassBuilder,
         declaredMember,
         overriddenMembers);
   }
@@ -591,8 +592,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
       Iterable<ClassMember> overriddenMembers) {
     ClassHierarchyNodeBuilder.inferMethodType(
         this,
-        declaredMember.classBuilder,
-        substitutions[declaredMember.classBuilder],
+        declaredMember.classBuilder as SourceClassBuilder,
         declaredMember,
         overriddenMembers);
   }
@@ -603,8 +603,8 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         .build();
   }
 
-  ClassHierarchyNode getNodeFromTypeBuilder(TypeBuilder type) {
-    ClassBuilder cls = getClass(type);
+  ClassHierarchyNode? getNodeFromTypeBuilder(TypeBuilder type) {
+    ClassBuilder? cls = getClass(type);
     return cls == null ? null : getNodeFromClassBuilder(cls);
   }
 
@@ -613,7 +613,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  Supertype asSupertypeOf(InterfaceType subtype, Class supertype) {
+  Supertype? asSupertypeOf(InterfaceType subtype, Class supertype) {
     if (subtype.classNode == supertype) {
       return new Supertype(supertype, subtype.typeArguments);
     }
@@ -642,12 +642,12 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   InterfaceType getTypeAsInstanceOf(
       InterfaceType type, Class superclass, Library clientLibrary) {
     if (type.classNode == superclass) return type;
-    return asSupertypeOf(type, superclass)
+    return asSupertypeOf(type, superclass)!
         .asInterfaceType
         .withDeclaredNullability(type.nullability);
   }
 
-  List<DartType> getTypeArgumentsAsInstanceOf(
+  List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
@@ -679,6 +679,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
     for (int i = 0; i < nodes2.length; i++) {
       ClassHierarchyNode node = nodes2[i];
+      // ignore: unnecessary_null_comparison
       if (node == null) continue;
       if (node.classBuilder.cls.isAnonymousMixin) {
         // Never find unnamed mixin application in least upper bound.
@@ -717,13 +718,13 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         uniteNullabilities(type1.nullability, type2.nullability));
   }
 
-  Member getInterfaceMember(Class cls, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
     return getNodeFromClass(cls)
         .getInterfaceMember(name, setter)
         ?.getMember(this);
   }
 
-  ClassMember getInterfaceClassMember(Class cls, Name name,
+  ClassMember? getInterfaceClassMember(Class cls, Name name,
       {bool setter: false}) {
     return getNodeFromClass(cls).getInterfaceMember(name, setter);
   }
@@ -774,7 +775,7 @@ class ClassHierarchyNodeBuilder {
   bool get shouldModifyKernel =>
       classBuilder.library.loader == hierarchy.loader;
 
-  ClassMember checkInheritanceConflict(ClassMember a, ClassMember b) {
+  ClassMember? checkInheritanceConflict(ClassMember a, ClassMember b) {
     if (a.isStatic || a.isProperty != b.isProperty) {
       reportInheritanceConflict(a, b);
       return a;
@@ -784,17 +785,16 @@ class ClassHierarchyNodeBuilder {
 
   static void inferMethodType(
       ClassHierarchyBuilder hierarchy,
-      ClassBuilder classBuilder,
-      Map<Class, Substitution> substitutions,
+      SourceClassBuilder classBuilder,
       SourceProcedureBuilder declaredMember,
       Iterable<ClassMember> overriddenMembers) {
     assert(!declaredMember.isGetter && !declaredMember.isSetter);
     if (declaredMember.classBuilder == classBuilder &&
         (declaredMember.returnType == null ||
             declaredMember.formals != null &&
-                declaredMember.formals
+                declaredMember.formals!
                     .any((parameter) => parameter.type == null))) {
-      Procedure declaredProcedure = declaredMember.member;
+      Procedure declaredProcedure = declaredMember.member as Procedure;
       FunctionNode declaredFunction = declaredProcedure.function;
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
@@ -804,20 +804,21 @@ class ClassHierarchyNodeBuilder {
           declaredFunction.namedParameters;
       declaredNamed = declaredNamed.toList()..sort(compareNamedParameters);
 
-      DartType inferredReturnType;
-      Map<FormalParameterBuilder, DartType> inferredParameterTypes = {};
+      DartType? inferredReturnType;
+      Map<FormalParameterBuilder, DartType?> inferredParameterTypes = {};
 
       Set<ClassMember> overriddenMemberSet =
-          toSet(declaredMember.classBuilder, overriddenMembers);
+          toSet(classBuilder, overriddenMembers);
       CombinedClassMemberSignature combinedMemberSignature =
           new CombinedClassMemberSignature(
               hierarchy, classBuilder, overriddenMemberSet.toList(),
               forSetter: false);
-      FunctionType combinedMemberSignatureType = combinedMemberSignature
-          .getCombinedSignatureTypeInContext(declaredTypeParameters);
+      FunctionType? combinedMemberSignatureType = combinedMemberSignature
+              .getCombinedSignatureTypeInContext(declaredTypeParameters)
+          as FunctionType?;
 
       bool cantInferReturnType = false;
-      List<FormalParameterBuilder> cantInferParameterTypes;
+      List<FormalParameterBuilder>? cantInferParameterTypes;
 
       if (declaredMember.returnType == null) {
         if (combinedMemberSignatureType == null) {
@@ -829,12 +830,12 @@ class ClassHierarchyNodeBuilder {
       }
       if (declaredMember.formals != null) {
         for (int i = 0; i < declaredPositional.length; i++) {
-          FormalParameterBuilder declaredParameter = declaredMember.formals[i];
+          FormalParameterBuilder declaredParameter = declaredMember.formals![i];
           if (declaredParameter.type != null) {
             continue;
           }
 
-          DartType inferredParameterType;
+          DartType? inferredParameterType;
           if (combinedMemberSignatureType == null) {
             inferredParameterType = const InvalidType();
             cantInferParameterTypes ??= [];
@@ -847,16 +848,16 @@ class ClassHierarchyNodeBuilder {
           inferredParameterTypes[declaredParameter] = inferredParameterType;
         }
 
-        Map<String, DartType> namedParameterTypes;
+        Map<String, DartType>? namedParameterTypes;
         for (int i = declaredPositional.length;
-            i < declaredMember.formals.length;
+            i < declaredMember.formals!.length;
             i++) {
-          FormalParameterBuilder declaredParameter = declaredMember.formals[i];
+          FormalParameterBuilder declaredParameter = declaredMember.formals![i];
           if (declaredParameter.type != null) {
             continue;
           }
 
-          DartType inferredParameterType;
+          DartType? inferredParameterType;
           if (combinedMemberSignatureType == null) {
             inferredParameterType = const InvalidType();
             cantInferParameterTypes ??= [];
@@ -894,12 +895,12 @@ class ClassHierarchyNodeBuilder {
       }
       if (declaredMember.formals != null) {
         for (FormalParameterBuilder declaredParameter
-            in declaredMember.formals) {
+            in declaredMember.formals!) {
           if (declaredParameter.type == null) {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
                     const DynamicType();
-            declaredParameter.variable.type = inferredParameterType;
+            declaredParameter.variable!.type = inferredParameterType;
           }
         }
       }
@@ -910,7 +911,8 @@ class ClassHierarchyNodeBuilder {
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
     assert(!declaredMember.isGetter && !declaredMember.isSetter);
     // Trigger computation of method type.
-    Procedure declaredProcedure = declaredMember.getMember(hierarchy);
+    Procedure declaredProcedure =
+        declaredMember.getMember(hierarchy) as Procedure;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(hierarchy);
@@ -930,7 +932,7 @@ class ClassHierarchyNodeBuilder {
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
     // Trigger computation of the getter type.
-    Procedure declaredSetter = declaredMember.getMember(hierarchy);
+    Procedure declaredSetter = declaredMember.getMember(hierarchy) as Procedure;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(hierarchy);
@@ -940,14 +942,13 @@ class ClassHierarchyNodeBuilder {
 
   static void inferGetterType(
       ClassHierarchyBuilder hierarchy,
-      ClassBuilder classBuilder,
-      Map<Class, Substitution> substitutions,
+      SourceClassBuilder classBuilder,
       SourceProcedureBuilder declaredMember,
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isGetter);
     if (declaredMember.classBuilder == classBuilder &&
         declaredMember.returnType == null) {
-      DartType inferredType;
+      DartType? inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
 
       List<ClassMember> overriddenGetters = [];
@@ -960,12 +961,13 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      void inferFrom(List<ClassMember> members, {bool forSetter}) {
+      void inferFrom(List<ClassMember> members, {required bool forSetter}) {
+        // ignore: unnecessary_null_comparison
         assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(hierarchy, classBuilder, members,
                 forSetter: forSetter);
-        DartType combinedMemberSignatureType =
+        DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
@@ -995,21 +997,20 @@ class ClassHierarchyNodeBuilder {
         inferFrom(overriddenSetters, forSetter: true);
       }
 
-      inferredType ??= const DynamicType();
-      declaredMember.procedure.function.returnType = inferredType;
+      declaredMember.procedure.function.returnType =
+          inferredType ?? const DynamicType();
     }
   }
 
   static void inferSetterType(
       ClassHierarchyBuilder hierarchy,
-      ClassBuilder classBuilder,
-      Map<Class, Substitution> substitutions,
+      SourceClassBuilder classBuilder,
       SourceProcedureBuilder declaredMember,
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
-    FormalParameterBuilder parameter = declaredMember.formals.first;
+    FormalParameterBuilder parameter = declaredMember.formals!.first;
     if (declaredMember.classBuilder == classBuilder && parameter.type == null) {
-      DartType inferredType;
+      DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
 
@@ -1023,12 +1024,13 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      void inferFrom(List<ClassMember> members, {bool forSetter}) {
+      void inferFrom(List<ClassMember> members, {required bool forSetter}) {
+        // ignore: unnecessary_null_comparison
         assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(hierarchy, classBuilder, members,
                 forSetter: forSetter);
-        DartType combinedMemberSignatureType =
+        DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
@@ -1058,8 +1060,7 @@ class ClassHierarchyNodeBuilder {
         inferFrom(overriddenGetters, forSetter: false);
       }
 
-      inferredType ??= const DynamicType();
-      parameter.variable.type = inferredType;
+      parameter.variable!.type = inferredType ?? const DynamicType();
     }
   }
 
@@ -1067,10 +1068,10 @@ class ClassHierarchyNodeBuilder {
   /// nnbd-top-merge or legacy-top-merge depending on whether [classBuilder] is
   /// defined in an opt-in or opt-out library. If the types could not be merged
   /// `null` is returned and an error should be reported by the caller.
-  static DartType mergeTypeInLibrary(
+  static DartType? mergeTypeInLibrary(
       ClassHierarchyBuilder hierarchy,
       ClassBuilder classBuilder,
-      DartType inferredType,
+      DartType? inferredType,
       DartType inheritedType) {
     if (classBuilder.library.isNonNullableByDefault) {
       if (inferredType == null) {
@@ -1104,13 +1105,12 @@ class ClassHierarchyNodeBuilder {
   /// Infers the field type of [fieldBuilder] based on [overriddenMembers].
   static void inferFieldType(
       ClassHierarchyBuilder hierarchy,
-      ClassBuilder classBuilder,
-      Map<Class, Substitution> substitutions,
+      SourceClassBuilder classBuilder,
       SourceFieldBuilder fieldBuilder,
       Iterable<ClassMember> overriddenMembers) {
     if (fieldBuilder.classBuilder == classBuilder &&
         fieldBuilder.type == null) {
-      DartType inferredType;
+      DartType? inferredType;
 
       overriddenMembers = toSet(classBuilder, overriddenMembers);
       List<ClassMember> overriddenGetters = [];
@@ -1123,7 +1123,9 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      DartType inferFrom(List<ClassMember> members, {bool forSetter}) {
+      DartType? inferFrom(List<ClassMember> members,
+          {required bool forSetter}) {
+        // ignore: unnecessary_null_comparison
         assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(hierarchy, classBuilder, members,
@@ -1131,7 +1133,7 @@ class ClassHierarchyNodeBuilder {
         return combinedMemberSignature.combinedMemberSignatureType;
       }
 
-      DartType combinedMemberSignatureType;
+      DartType? combinedMemberSignatureType;
       if (fieldBuilder.isAssignable &&
           overriddenGetters.isNotEmpty &&
           overriddenSetters.isNotEmpty) {
@@ -1142,8 +1144,8 @@ class ClassHierarchyNodeBuilder {
         // combined member signature of said getter in the direct
         // superinterfaces. If the types are not the same then inference fails
         // with an error.
-        DartType getterType = inferFrom(overriddenGetters, forSetter: false);
-        DartType setterType = inferFrom(overriddenSetters, forSetter: true);
+        DartType? getterType = inferFrom(overriddenGetters, forSetter: false);
+        DartType? setterType = inferFrom(overriddenSetters, forSetter: true);
         if (getterType == setterType) {
           combinedMemberSignatureType = getterType;
         }
@@ -1175,7 +1177,6 @@ class ClassHierarchyNodeBuilder {
         inferredType = combinedMemberSignatureType;
       }
 
-      inferredType ??= const DynamicType();
       fieldBuilder.fieldType = inferredType;
     }
   }
@@ -1184,7 +1185,7 @@ class ClassHierarchyNodeBuilder {
   /// [overriddenMembers].
   void inferFieldSignature(ClassHierarchyBuilder hierarchy,
       ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
-    Field declaredField = declaredMember.getMember(hierarchy);
+    Field declaredField = declaredMember.getMember(hierarchy) as Field;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
       Covariance covariance = overriddenMember.getCovariance(hierarchy);
@@ -1264,13 +1265,14 @@ class ClassHierarchyNodeBuilder {
 
   ClassHierarchyNode build() {
     assert(!classBuilder.isPatch);
-    ClassHierarchyNode supernode;
+    ClassHierarchyNode? supernode;
     if (objectClass != classBuilder.origin) {
       supernode =
-          hierarchy.getNodeFromTypeBuilder(classBuilder.supertypeBuilder);
+          hierarchy.getNodeFromTypeBuilder(classBuilder.supertypeBuilder!);
       if (supernode == null) {
         supernode = hierarchy.getNodeFromClassBuilder(objectClass);
       }
+      // ignore: unnecessary_null_comparison
       assert(supernode != null);
     }
 
@@ -1286,12 +1288,13 @@ class ClassHierarchyNodeBuilder {
 
     Scope scope = classBuilder.scope;
 
-    for (MemberBuilder memberBuilder in scope.localMembers) {
+    for (Builder builder in scope.localMembers) {
+      MemberBuilder memberBuilder = builder as MemberBuilder;
       for (ClassMember classMember in memberBuilder.localMembers) {
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareMember(classMember);
         } else {
@@ -1302,7 +1305,7 @@ class ClassHierarchyNodeBuilder {
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareSetter(classMember);
         } else {
@@ -1316,7 +1319,7 @@ class ClassHierarchyNodeBuilder {
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareMember(classMember);
         } else {
@@ -1327,7 +1330,7 @@ class ClassHierarchyNodeBuilder {
         if (classMember.isAbstract) {
           hasInterfaces = true;
         }
-        Tuple tuple = memberMap[classMember.name];
+        Tuple? tuple = memberMap[classMember.name];
         if (tuple == null) {
           memberMap[classMember.name] = new Tuple.declareSetter(classMember);
         } else {
@@ -1337,31 +1340,32 @@ class ClassHierarchyNodeBuilder {
     }
 
     if (classBuilder.isMixinApplication) {
-      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
-      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration;
+      TypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder!;
+      TypeDeclarationBuilder mixin = mixedInTypeBuilder.declaration!;
       inferMixinApplication();
       while (mixin.isNamedMixinApplication) {
-        ClassBuilder named = mixin;
-        mixedInTypeBuilder = named.mixedInTypeBuilder;
-        mixin = mixedInTypeBuilder.declaration;
+        ClassBuilder named = mixin as ClassBuilder;
+        mixedInTypeBuilder = named.mixedInTypeBuilder!;
+        mixin = mixedInTypeBuilder.declaration!;
       }
       if (mixin is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = mixin;
-        NamedTypeBuilder namedBuilder = mixedInTypeBuilder;
+        NamedTypeBuilder namedBuilder = mixedInTypeBuilder as NamedTypeBuilder;
         mixin = aliasBuilder.unaliasDeclaration(namedBuilder.arguments,
             isUsedAsClass: true,
             usedAsClassCharOffset: namedBuilder.charOffset,
-            usedAsClassFileUri: namedBuilder.fileUri);
+            usedAsClassFileUri: namedBuilder.fileUri)!;
       }
       if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
 
-        for (MemberBuilder memberBuilder in scope.localMembers) {
+        for (Builder builder in scope.localMembers) {
+          MemberBuilder memberBuilder = builder as MemberBuilder;
           for (ClassMember classMember in memberBuilder.localMembers) {
             if (classMember.isAbstract) {
               hasInterfaces = true;
             }
-            Tuple tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInMember(classMember);
             } else {
@@ -1372,7 +1376,7 @@ class ClassHierarchyNodeBuilder {
             if (classMember.isAbstract) {
               hasInterfaces = true;
             }
-            Tuple tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
             } else {
@@ -1386,7 +1390,7 @@ class ClassHierarchyNodeBuilder {
             if (classMember.isAbstract) {
               hasInterfaces = true;
             }
-            Tuple tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInMember(classMember);
             } else {
@@ -1397,7 +1401,7 @@ class ClassHierarchyNodeBuilder {
             if (classMember.isAbstract) {
               hasInterfaces = true;
             }
-            Tuple tuple = memberMap[classMember.name];
+            Tuple? tuple = memberMap[classMember.name];
             if (tuple == null) {
               memberMap[classMember.name] = new Tuple.mixInSetter(classMember);
             } else {
@@ -1414,11 +1418,12 @@ class ClassHierarchyNodeBuilder {
 
     int maxInheritancePath;
 
-    void extend(Map<Name, ClassMember> superClassMembers) {
+    void extend(Map<Name, ClassMember>? superClassMembers) {
       if (superClassMembers == null) return;
-      for (Name name in superClassMembers.keys) {
-        ClassMember superClassMember = superClassMembers[name];
-        Tuple tuple = memberMap[name];
+      for (MapEntry<Name, ClassMember> entry in superClassMembers.entries) {
+        Name name = entry.key;
+        ClassMember superClassMember = entry.value;
+        Tuple? tuple = memberMap[name];
         if (tuple != null) {
           if (superClassMember.forSetter) {
             tuple.extendedSetter = superClassMember;
@@ -1435,11 +1440,12 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    void implement(Map<Name, ClassMember> superInterfaceMembers) {
+    void implement(Map<Name, ClassMember>? superInterfaceMembers) {
       if (superInterfaceMembers == null) return;
-      for (Name name in superInterfaceMembers.keys) {
-        ClassMember superInterfaceMember = superInterfaceMembers[name];
-        Tuple tuple = memberMap[name];
+      for (MapEntry<Name, ClassMember> entry in superInterfaceMembers.entries) {
+        Name name = entry.key;
+        ClassMember superInterfaceMember = entry.value;
+        Tuple? tuple = memberMap[name];
         if (tuple != null) {
           if (superInterfaceMember.forSetter) {
             tuple.addImplementedSetter(superInterfaceMember);
@@ -1460,15 +1466,15 @@ class ClassHierarchyNodeBuilder {
 
     if (supernode == null) {
       // This should be Object.
-      superclasses = new List<Supertype>.filled(0, null);
-      interfaces = new List<Supertype>.filled(0, null);
+      superclasses = new List<Supertype>.filled(0, dummySupertype);
+      interfaces = new List<Supertype>.filled(0, dummySupertype);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
 
-      superclasses =
-          new List<Supertype>.filled(supernode.superclasses.length + 1, null);
-      Supertype supertype = classBuilder.supertypeBuilder.buildSupertype(
+      superclasses = new List<Supertype>.filled(
+          supernode.superclasses.length + 1, dummySupertype);
+      Supertype? supertype = classBuilder.supertypeBuilder!.buildSupertype(
           classBuilder.library, classBuilder.charOffset, classBuilder.fileUri);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
@@ -1486,21 +1492,22 @@ class ClassHierarchyNodeBuilder {
         }
       }
 
-      List<TypeBuilder> directInterfaceBuilders =
+      List<TypeBuilder>? directInterfaceBuilders =
           ignoreFunction(classBuilder.interfaceBuilders);
       if (classBuilder.isMixinApplication) {
         if (directInterfaceBuilders == null) {
           directInterfaceBuilders = <TypeBuilder>[
-            classBuilder.mixedInTypeBuilder
+            classBuilder.mixedInTypeBuilder!
           ];
         } else {
           directInterfaceBuilders = <TypeBuilder>[
-            classBuilder.mixedInTypeBuilder
+            classBuilder.mixedInTypeBuilder!
           ]..addAll(directInterfaceBuilders);
         }
       }
 
       List<Supertype> superclassInterfaces = supernode.interfaces;
+      // ignore: unnecessary_null_comparison
       if (superclassInterfaces != null) {
         superclassInterfaces = substSupertypes(supertype, superclassInterfaces);
       }
@@ -1520,7 +1527,7 @@ class ClassHierarchyNodeBuilder {
 
       if (directInterfaceBuilders != null) {
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          ClassHierarchyNode interfaceNode =
+          ClassHierarchyNode? interfaceNode =
               hierarchy.getNodeFromTypeBuilder(directInterfaceBuilders[i]);
           if (interfaceNode != null) {
             hasInterfaces = true;
@@ -1533,6 +1540,7 @@ class ClassHierarchyNodeBuilder {
         }
 
         interfaces = <Supertype>[];
+        // ignore: unnecessary_null_comparison
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
@@ -1540,14 +1548,14 @@ class ClassHierarchyNodeBuilder {
         }
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
-          Supertype directInterface = directInterfaceBuilders[i].buildSupertype(
-              classBuilder.library,
-              classBuilder.charOffset,
-              classBuilder.fileUri);
+          Supertype? directInterface = directInterfaceBuilders[i]
+              .buildSupertype(classBuilder.library, classBuilder.charOffset,
+                  classBuilder.fileUri);
           if (directInterface != null) {
             addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
                 hierarchy.getNodeFromClass(directInterface.classNode);
+            // ignore: unnecessary_null_comparison
             if (interfaceNode != null) {
               if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
                 maxInheritancePath = interfaceNode.maxInheritancePath + 1;
@@ -1558,6 +1566,7 @@ class ClassHierarchyNodeBuilder {
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
               }
+              // ignore: unnecessary_null_comparison
               if (interfaceNode.interfaces != null) {
                 List<Supertype> types =
                     substSupertypes(directInterface, interfaceNode.interfaces);
@@ -1568,6 +1577,7 @@ class ClassHierarchyNodeBuilder {
             }
           }
         }
+        // ignore: unnecessary_null_comparison
       } else if (superclassInterfaces != null &&
           !classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
@@ -1583,6 +1593,7 @@ class ClassHierarchyNodeBuilder {
     for (Supertype superclass in superclasses) {
       recordSupertype(superclass);
     }
+    // ignore: unnecessary_null_comparison
     if (interfaces != null) {
       for (Supertype superinterface in interfaces) {
         recordSupertype(superinterface);
@@ -1601,13 +1612,13 @@ class ClassHierarchyNodeBuilder {
     /// static members. If no interfaces are implemented by this class or its
     /// superclasses this is identical to [classMemberMap] and we do not store
     /// it in the [ClassHierarchyNode].
-    Map<Name, ClassMember> interfaceMemberMap = {};
+    Map<Name, ClassMember>? interfaceMemberMap = {};
 
     /// Setters inherited from interfaces. This contains no static setters. If
     /// no interfaces are implemented by this class or its superclasses this is
     /// identical to [classSetterMap] and we do not store it in the
     /// [ClassHierarchyNode].
-    Map<Name, ClassMember> interfaceSetterMap = {};
+    Map<Name, ClassMember>? interfaceSetterMap = {};
 
     /// Map for members declared in this class to the members that they
     /// override. This is used for checking valid overrides and to ensure that
@@ -1629,9 +1640,9 @@ class ClassHierarchyNodeBuilder {
     /// In case this class is concrete, this holds the interface members
     /// without a corresponding class member. These are either reported as
     /// missing implementations or trigger insertion of noSuchMethod forwarders.
-    List<ClassMember> abstractMembers = [];
+    List<ClassMember>? abstractMembers = [];
 
-    ClassHierarchyNodeDataForTesting dataForTesting;
+    ClassHierarchyNodeDataForTesting? dataForTesting;
     if (retainDataForTesting) {
       dataForTesting = new ClassHierarchyNodeDataForTesting(
           abstractMembers,
@@ -1711,13 +1722,14 @@ class ClassHierarchyNodeBuilder {
     /// `Interface.method` by being a valid override of it.
     void registerInheritedImplements(
         ClassMember inheritedMember, Set<ClassMember> overrides,
-        {ClassMember aliasForTesting}) {
+        {required ClassMember aliasForTesting}) {
       if (classBuilder is SourceClassBuilder) {
         assert(
             inheritedMember.classBuilder != classBuilder,
             "Only inherited members can implement by inheritance: "
             "${inheritedMember}");
         inheritedImplementsMap[inheritedMember] = overrides;
+        // ignore: unnecessary_null_comparison
         if (dataForTesting != null && aliasForTesting != null) {
           dataForTesting.aliasMap[aliasForTesting] = inheritedMember;
         }
@@ -1758,17 +1770,17 @@ class ClassHierarchyNodeBuilder {
       /// Conflicts between [definingGetable] and [definingSetable] are reported
       /// afterwards.
 
-      ClassMember definingGetable;
-      ClassMember definingSetable;
+      ClassMember? definingGetable;
+      ClassMember? definingSetable;
 
-      ClassMember declaredGetable = tuple.declaredMember;
+      ClassMember? declaredGetable = tuple.declaredMember;
       if (declaredGetable != null) {
         /// class Class {
         ///   method() {}
         /// }
         definingGetable = declaredGetable;
       }
-      ClassMember declaredSetable = tuple.declaredSetter;
+      ClassMember? declaredSetable = tuple.declaredSetter;
       if (declaredSetable != null) {
         /// class Class {
         ///   set setter(value) {}
@@ -1776,11 +1788,12 @@ class ClassHierarchyNodeBuilder {
         definingSetable = declaredSetable;
       }
 
-      ClassMember mixedInGetable;
-      if (tuple.mixedInMember != null &&
-          !tuple.mixedInMember.isStatic &&
-          !tuple.mixedInMember.isDuplicate &&
-          !tuple.mixedInMember.isSynthesized) {
+      ClassMember? mixedInGetable;
+      ClassMember? tupleMixedInMember = tuple.mixedInMember;
+      if (tupleMixedInMember != null &&
+          !tupleMixedInMember.isStatic &&
+          !tupleMixedInMember.isDuplicate &&
+          !tupleMixedInMember.isSynthesized) {
         /// We treat
         ///
         ///   opt-in:
@@ -1827,7 +1840,7 @@ class ClassHierarchyNodeBuilder {
           ///   method() {}
           /// }
           /// class Class with Mixin {}
-          definingGetable = mixedInGetable = tuple.mixedInMember;
+          definingGetable = mixedInGetable = tupleMixedInMember;
         } else if (!definingGetable.isDuplicate) {
           // This case is currently unreachable from source code since classes
           // cannot both declare and mix in members. From dill, this can occur
@@ -1835,18 +1848,19 @@ class ClassHierarchyNodeBuilder {
           //
           // The case is handled for consistency.
           if (definingGetable.isStatic ||
-              definingGetable.isProperty != tuple.mixedInMember.isProperty) {
-            reportInheritanceConflict(definingGetable, tuple.mixedInMember);
+              definingGetable.isProperty != tupleMixedInMember.isProperty) {
+            reportInheritanceConflict(definingGetable, tupleMixedInMember);
           } else {
-            mixedInGetable = tuple.mixedInMember;
+            mixedInGetable = tupleMixedInMember;
           }
         }
       }
-      ClassMember mixedInSetable;
-      if (tuple.mixedInSetter != null &&
-          !tuple.mixedInSetter.isStatic &&
-          !tuple.mixedInSetter.isDuplicate &&
-          !tuple.mixedInSetter.isSynthesized) {
+      ClassMember? mixedInSetable;
+      ClassMember? tupleMixedInSetter = tuple.mixedInSetter;
+      if (tupleMixedInSetter != null &&
+          !tupleMixedInSetter.isStatic &&
+          !tupleMixedInSetter.isDuplicate &&
+          !tupleMixedInSetter.isSynthesized) {
         /// We treat
         ///
         ///   class Mixin {
@@ -1888,21 +1902,22 @@ class ClassHierarchyNodeBuilder {
           ///   set setter(value) {}
           /// }
           /// class Class with Mixin {}
-          definingSetable = mixedInSetable = tuple.mixedInSetter;
+          definingSetable = mixedInSetable = tupleMixedInSetter;
         } else if (!definingSetable.isDuplicate) {
           if (definingSetable.isStatic ||
-              definingSetable.isProperty != tuple.mixedInSetter.isProperty) {
-            reportInheritanceConflict(definingGetable, tuple.mixedInSetter);
+              definingSetable.isProperty != tupleMixedInSetter.isProperty) {
+            reportInheritanceConflict(definingSetable, tupleMixedInSetter);
           } else {
-            mixedInSetable = tuple.mixedInSetter;
+            mixedInSetable = tupleMixedInSetter;
           }
         }
       }
 
-      ClassMember extendedGetable;
-      if (tuple.extendedMember != null &&
-          !tuple.extendedMember.isStatic &&
-          !tuple.extendedMember.isDuplicate) {
+      ClassMember? extendedGetable;
+      ClassMember? tupleExtendedMember = tuple.extendedMember;
+      if (tupleExtendedMember != null &&
+          !tupleExtendedMember.isStatic &&
+          !tupleExtendedMember.isDuplicate) {
         /// We treat
         ///
         ///   class Super {
@@ -1922,10 +1937,10 @@ class ClassHierarchyNodeBuilder {
           ///   method() {}
           /// }
           /// class Class extends Super {}
-          definingGetable = extendedGetable = tuple.extendedMember;
+          definingGetable = extendedGetable = tupleExtendedMember;
         } else if (!definingGetable.isDuplicate) {
           if (definingGetable.isStatic ||
-              definingGetable.isProperty != tuple.extendedMember.isProperty) {
+              definingGetable.isProperty != tupleExtendedMember.isProperty) {
             ///   class Super {
             ///     method() {}
             ///   }
@@ -1941,16 +1956,17 @@ class ClassHierarchyNodeBuilder {
             ///   class Class extends Super {
             ///     get getter => 0;
             ///   }
-            reportInheritanceConflict(definingGetable, tuple.extendedMember);
+            reportInheritanceConflict(definingGetable, tupleExtendedMember);
           } else {
-            extendedGetable = tuple.extendedMember;
+            extendedGetable = tupleExtendedMember;
           }
         }
       }
-      ClassMember extendedSetable;
-      if (tuple.extendedSetter != null &&
-          !tuple.extendedSetter.isStatic &&
-          !tuple.extendedSetter.isDuplicate) {
+      ClassMember? extendedSetable;
+      ClassMember? tupleExtendedSetter = tuple.extendedSetter;
+      if (tupleExtendedSetter != null &&
+          !tupleExtendedSetter.isStatic &&
+          !tupleExtendedSetter.isDuplicate) {
         /// We treat
         ///
         ///   class Super {
@@ -1970,13 +1986,13 @@ class ClassHierarchyNodeBuilder {
           ///   set setter(value) {}
           /// }
           /// class Class extends Super {}
-          definingSetable = extendedSetable = tuple.extendedSetter;
+          definingSetable = extendedSetable = tupleExtendedSetter;
         } else if (!definingSetable.isDuplicate) {
           if (definingSetable.isStatic ||
-              definingSetable.isProperty != tuple.extendedSetter.isProperty) {
-            reportInheritanceConflict(definingSetable, tuple.extendedSetter);
+              definingSetable.isProperty != tupleExtendedSetter.isProperty) {
+            reportInheritanceConflict(definingSetable, tupleExtendedSetter);
           } else {
-            extendedSetable = tuple.extendedSetter;
+            extendedSetable = tupleExtendedSetter;
           }
         }
       }
@@ -1984,12 +2000,13 @@ class ClassHierarchyNodeBuilder {
       // TODO(johnniwinther): Remove extended and mixed in members/setters
       // from implemented members/setters. Mixin applications always implement
       // the mixin class leading to unnecessary interface members.
-      List<ClassMember> implementedGetables;
-      if (tuple.implementedMembers != null &&
+      List<ClassMember>? implementedGetables;
+      List<ClassMember>? tupleImplementedMembers = tuple.implementedMembers;
+      if (tupleImplementedMembers != null &&
           // Skip implemented members if we already have a duplicate.
           !(definingGetable != null && definingGetable.isDuplicate)) {
-        for (int i = 0; i < tuple.implementedMembers.length; i++) {
-          ClassMember implementedGetable = tuple.implementedMembers[i];
+        for (int i = 0; i < tupleImplementedMembers.length; i++) {
+          ClassMember? implementedGetable = tupleImplementedMembers[i];
           if (implementedGetable.isStatic || implementedGetable.isDuplicate) {
             /// We treat
             ///
@@ -2036,7 +2053,7 @@ class ClassHierarchyNodeBuilder {
           }
           if (implementedGetable == null) {
             // On the first skipped member we add all previous.
-            implementedGetables ??= tuple.implementedMembers.take(i).toList();
+            implementedGetables ??= tupleImplementedMembers.take(i).toList();
           } else if (implementedGetables != null) {
             // If already skipping members we add [implementedGetable]
             // explicitly.
@@ -2045,19 +2062,20 @@ class ClassHierarchyNodeBuilder {
         }
         if (implementedGetables == null) {
           // No members were skipped so we use the full list.
-          implementedGetables = tuple.implementedMembers;
+          implementedGetables = tupleImplementedMembers;
         } else if (implementedGetables.isEmpty) {
           // No members were included.
           implementedGetables = null;
         }
       }
 
-      List<ClassMember> implementedSetables;
-      if (tuple.implementedSetters != null &&
+      List<ClassMember>? implementedSetables;
+      List<ClassMember>? tupleImplementedSetters = tuple.implementedSetters;
+      if (tupleImplementedSetters != null &&
           // Skip implemented setters if we already have a duplicate.
           !(definingSetable != null && definingSetable.isDuplicate)) {
-        for (int i = 0; i < tuple.implementedSetters.length; i++) {
-          ClassMember implementedSetable = tuple.implementedSetters[i];
+        for (int i = 0; i < tupleImplementedSetters.length; i++) {
+          ClassMember? implementedSetable = tupleImplementedSetters[i];
           if (implementedSetable.isStatic || implementedSetable.isDuplicate) {
             /// We treat
             ///
@@ -2095,7 +2113,7 @@ class ClassHierarchyNodeBuilder {
           }
           if (implementedSetable == null) {
             // On the first skipped setter we add all previous.
-            implementedSetables ??= tuple.implementedSetters.take(i).toList();
+            implementedSetables ??= tupleImplementedSetters.take(i).toList();
           } else if (implementedSetables != null) {
             // If already skipping setters we add [implementedSetable]
             // explicitly.
@@ -2104,7 +2122,7 @@ class ClassHierarchyNodeBuilder {
         }
         if (implementedSetables == null) {
           // No setters were skipped so we use the full list.
-          implementedSetables = tuple.implementedSetters;
+          implementedSetables = tupleImplementedSetters;
         } else if (implementedSetables.isEmpty) {
           // No setters were included.
           implementedSetables = null;
@@ -2136,13 +2154,13 @@ class ClassHierarchyNodeBuilder {
 
       /// Declared methods, getters and setters registered in
       /// [registerDeclaredOverride].
-      ClassMember declaredMethod;
-      List<ClassMember> declaredProperties;
+      ClassMember? declaredMethod;
+      List<ClassMember>? declaredProperties;
 
       /// Declared methods, getters and setters registered in
       /// [registerDeclaredOverride].
-      ClassMember mixedInMethod;
-      List<ClassMember> mixedInProperties;
+      ClassMember? mixedInMethod;
+      List<ClassMember>? mixedInProperties;
 
       /// Registers that [declaredMember] overrides extended and implemented
       /// members.
@@ -2166,7 +2184,7 @@ class ClassHierarchyNodeBuilder {
       /// Here the parameter type of the setter `Class.property` must be
       /// inferred from the type of the getter `Super.property`.
       void registerDeclaredOverride(ClassMember declaredMember,
-          {ClassMember aliasForTesting}) {
+          {ClassMember? aliasForTesting}) {
         if (classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
           assert(
               declaredMember.isSourceDeclaration &&
@@ -2175,7 +2193,7 @@ class ClassHierarchyNodeBuilder {
           hasDeclaredMembers = true;
           if (declaredMember.isProperty) {
             declaredProperties ??= [];
-            declaredProperties.add(declaredMember);
+            declaredProperties!.add(declaredMember);
           } else {
             assert(
                 declaredMethod == null,
@@ -2213,14 +2231,14 @@ class ClassHierarchyNodeBuilder {
       /// inferred from the type of the getter `Super.property`, but should
       /// instead default to `dynamic`.
       void registerMixedInOverride(ClassMember mixedInMember,
-          {ClassMember aliasForTesting}) {
+          {ClassMember? aliasForTesting}) {
         assert(mixedInMember.classBuilder != classBuilder,
             "Only mixin members can override by application: ${mixedInMember}");
         if (classBuilder is SourceClassBuilder) {
           hasDeclaredMembers = true;
           if (mixedInMember.isProperty) {
             mixedInProperties ??= [];
-            mixedInProperties.add(mixedInMember);
+            mixedInProperties!.add(mixedInMember);
           } else {
             assert(
                 mixedInMethod == null,
@@ -2248,16 +2266,16 @@ class ClassHierarchyNodeBuilder {
       ///
       /// The computed class and interface members are added to [classMemberMap]
       /// and [interfaceMemberMap], respectively.
-      ClassMember computeMembers(
-          {ClassMember definingMember,
-          ClassMember declaredMember,
-          ClassMember mixedInMember,
-          ClassMember extendedMember,
-          List<ClassMember> implementedMembers,
-          Map<Name, ClassMember> classMemberMap,
-          Map<Name, ClassMember> interfaceMemberMap}) {
-        ClassMember classMember;
-        ClassMember interfaceMember;
+      ClassMember? computeMembers(
+          {required ClassMember definingMember,
+          required ClassMember? declaredMember,
+          required ClassMember? mixedInMember,
+          required ClassMember? extendedMember,
+          required List<ClassMember>? implementedMembers,
+          required Map<Name, ClassMember> classMemberMap,
+          required Map<Name, ClassMember>? interfaceMemberMap}) {
+        ClassMember? classMember;
+        ClassMember? interfaceMember;
 
         if (mixedInMember != null) {
           if (mixedInMember.isAbstract) {
@@ -2852,12 +2870,12 @@ class ClassHierarchyNodeBuilder {
           interfaceMember ??= classMember.interfaceMember;
         }
         if (interfaceMember != null) {
-          interfaceMemberMap[name] = interfaceMember;
+          interfaceMemberMap![name] = interfaceMember;
         }
         return interfaceMember;
       }
 
-      ClassMember interfaceGetable;
+      ClassMember? interfaceGetable;
       if (definingGetable != null) {
         interfaceGetable = computeMembers(
             definingMember: definingGetable,
@@ -2868,7 +2886,7 @@ class ClassHierarchyNodeBuilder {
             classMemberMap: classMemberMap,
             interfaceMemberMap: interfaceMemberMap);
       }
-      ClassMember interfaceSetable;
+      ClassMember? interfaceSetable;
       if (definingSetable != null) {
         interfaceSetable = computeMembers(
             definingMember: definingSetable,
@@ -2908,7 +2926,9 @@ class ClassHierarchyNodeBuilder {
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
           hierarchy.registerGetterSetterCheck(
-              classBuilder, interfaceGetable, interfaceSetable);
+              classBuilder as SourceClassBuilder,
+              interfaceGetable,
+              interfaceSetable);
         }
       }
       if (hasDeclaredMembers) {
@@ -2966,7 +2986,7 @@ class ClassHierarchyNodeBuilder {
             ///    class Class extends Super {
             ///      method() {}
             ///    }
-            declaredOverridesMap[declaredMethod] = getableOverrides;
+            declaredOverridesMap[declaredMethod!] = getableOverrides;
           }
           if (declaredProperties != null) {
             Set<ClassMember> overrides;
@@ -2990,7 +3010,7 @@ class ClassHierarchyNodeBuilder {
               overrides = {...getableOverrides, ...setableOverrides};
             }
             if (overrides.isNotEmpty) {
-              for (ClassMember declaredMember in declaredProperties) {
+              for (ClassMember declaredMember in declaredProperties!) {
                 declaredOverridesMap[declaredMember] = overrides;
               }
             }
@@ -3003,7 +3023,7 @@ class ClassHierarchyNodeBuilder {
             ///      method() {}
             ///    }
             ///    class Class = Super with Mixin;
-            mixinApplicationOverridesMap[mixedInMethod] = getableOverrides;
+            mixinApplicationOverridesMap[mixedInMethod!] = getableOverrides;
           }
           if (mixedInProperties != null) {
             Set<ClassMember> overrides;
@@ -3026,7 +3046,7 @@ class ClassHierarchyNodeBuilder {
               overrides = {...getableOverrides, ...setableOverrides};
             }
             if (overrides.isNotEmpty) {
-              for (ClassMember mixedInMember in mixedInProperties) {
+              for (ClassMember mixedInMember in mixedInProperties!) {
                 mixinApplicationOverridesMap[mixedInMember] = overrides;
               }
             }
@@ -3067,7 +3087,7 @@ class ClassHierarchyNodeBuilder {
         /// Declared members must be checked to validly override the the
         /// overridden members.
         hierarchy.registerOverrideCheck(
-            classBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
       });
 
       mixinApplicationOverridesMap.forEach(
@@ -3075,7 +3095,7 @@ class ClassHierarchyNodeBuilder {
         /// Declared mixed in members must be checked to validly override the
         /// overridden members.
         hierarchy.registerOverrideCheck(
-            classBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
       });
 
       inheritedImplementsMap.forEach(
@@ -3083,7 +3103,7 @@ class ClassHierarchyNodeBuilder {
         /// Concrete members must be checked to validly override the overridden
         /// members in concrete classes.
         hierarchy.registerOverrideCheck(
-            classBuilder, classMember, overriddenMembers);
+            classBuilder as SourceClassBuilder, classMember, overriddenMembers);
       });
     }
 
@@ -3100,18 +3120,19 @@ class ClassHierarchyNodeBuilder {
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       assert(
           classMemberMap.keys.every((Name name) =>
-              identical(classMemberMap[name], interfaceMemberMap[name])),
+              identical(classMemberMap[name], interfaceMemberMap?[name])),
           "Class/interface member mismatch. Class members: "
           "$classMemberMap, interface members: $interfaceMemberMap.");
       assert(
           classSetterMap.keys.every((Name name) =>
-              identical(classSetterMap[name], interfaceSetterMap[name])),
+              identical(classSetterMap[name], interfaceSetterMap?[name])),
           "Class/interface setter mismatch. Class setters: "
           "$classSetterMap, interface setters: $interfaceSetterMap.");
       interfaceMemberMap = null;
       interfaceSetterMap = null;
     }
 
+    // ignore: unnecessary_null_comparison
     if (abstractMembers != null && !classBuilder.isAbstract) {
       if (!hasNoSuchMethod) {
         reportMissingMembers(abstractMembers);
@@ -3143,9 +3164,9 @@ class ClassHierarchyNodeBuilder {
     } else {
       List<DartType> arguments = supertype.typeArguments;
       List<DartType> typeArguments =
-          new List<DartType>.filled(arguments.length, null);
+          new List<DartType>.filled(arguments.length, dummyDartType);
       List<TypeParameter> typeParameters =
-          new List<TypeParameter>.filled(arguments.length, null);
+          new List<TypeParameter>.filled(arguments.length, dummyTypeParameter);
       for (int i = 0; i < arguments.length; i++) {
         typeParameters[i] = supertypeTypeParameters[i];
         typeArguments[i] = arguments[i];
@@ -3170,7 +3191,7 @@ class ClassHierarchyNodeBuilder {
       map[typeVariables[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
-    List<Supertype> result;
+    List<Supertype>? result;
     for (int i = 0; i < supertypes.length; i++) {
       Supertype supertype = supertypes[i];
       Supertype substituted = substitution.substituteSupertype(supertype);
@@ -3189,15 +3210,17 @@ class ClassHierarchyNodeBuilder {
 
   void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
       Supertype type) {
+    // ignore: unnecessary_null_comparison
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
       type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
+    // ignore: unnecessary_null_comparison
     if (node == null) return null;
     int depth = node.depth;
     int myDepth = superclasses.length;
-    Supertype superclass = depth < myDepth ? superclasses[depth] : null;
+    Supertype? superclass = depth < myDepth ? superclasses[depth] : null;
     if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
       if (classBuilder.library.isNonNullableByDefault) {
@@ -3219,7 +3242,7 @@ class ClassHierarchyNodeBuilder {
       for (int i = 0; i < interfaces.length; i++) {
         // This is a quadratic algorithm, but normally, the number of
         // interfaces is really small.
-        Supertype interface = interfaces[i];
+        Supertype? interface = interfaces[i];
         if (interface.classNode == type.classNode) {
           // This is a potential conflict.
           if (classBuilder.library.isNonNullableByDefault) {
@@ -3248,7 +3271,7 @@ class ClassHierarchyNodeBuilder {
     for (ClassMember declaration in unfoldDeclarations(abstractMembers)) {
       if (isNameVisibleIn(declaration.name, classBuilder.library)) {
         String name = declaration.fullNameForErrors;
-        String className = declaration.classBuilder?.fullNameForErrors;
+        String className = declaration.classBuilder.fullNameForErrors;
         String displayName =
             declaration.isSetter ? "$className.$name=" : "$className.$name";
         contextMap[displayName] = templateMissingImplementationCause
@@ -3261,7 +3284,7 @@ class ClassHierarchyNodeBuilder {
     List<String> names = new List<String>.from(contextMap.keys)..sort();
     List<LocatedMessage> context = <LocatedMessage>[];
     for (int i = 0; i < names.length; i++) {
-      context.add(contextMap[names[i]]);
+      context.add(contextMap[names[i]]!);
     }
     classBuilder.addProblem(
         templateMissingImplementationNotAbstract.withArguments(
@@ -3277,7 +3300,7 @@ class ClassHierarchyNodeBuilder {
 
   void inferMixinApplication() {
     Class cls = classBuilder.cls;
-    Supertype mixedInType = cls.mixedInType;
+    Supertype? mixedInType = cls.mixedInType;
     if (mixedInType == null) return;
     List<DartType> typeArguments = mixedInType.typeArguments;
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) return;
@@ -3287,22 +3310,21 @@ class ClassHierarchyNodeBuilder {
             new TypeBuilderConstraintGatherer(hierarchy,
                 mixedInType.classNode.typeParameters, cls.enclosingLibrary))
         .infer(cls);
-    List<TypeBuilder> inferredArguments =
-        new List<TypeBuilder>.filled(typeArguments.length, null);
-    for (int i = 0; i < typeArguments.length; i++) {
-      inferredArguments[i] =
-          hierarchy.loader.computeTypeBuilder(typeArguments[i]);
-    }
-    NamedTypeBuilder mixedInTypeBuilder = classBuilder.mixedInTypeBuilder;
+    List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
+        typeArguments.length,
+        (int i) => hierarchy.loader.computeTypeBuilder(typeArguments[i]),
+        growable: false);
+    NamedTypeBuilder mixedInTypeBuilder =
+        classBuilder.mixedInTypeBuilder as NamedTypeBuilder;
     mixedInTypeBuilder.arguments = inferredArguments;
   }
 
   /// The class Function from dart:core is supposed to be ignored when used as
   /// an interface.
-  List<TypeBuilder> ignoreFunction(List<TypeBuilder> interfaces) {
+  List<TypeBuilder>? ignoreFunction(List<TypeBuilder>? interfaces) {
     if (interfaces == null) return null;
-    for (int i = 0; i < interfaces.length; i++) {
-      ClassBuilder classBuilder = getClass(interfaces[i]);
+    for (int i = 0; i < interfaces!.length; i++) {
+      ClassBuilder? classBuilder = getClass(interfaces[i]);
       if (classBuilder != null && classBuilder.cls == hierarchy.functionClass) {
         if (interfaces.length == 1) {
           return null;
@@ -3335,12 +3357,12 @@ class ClassHierarchyNode {
   /// from interfaces.
   ///
   /// This may be null, in which case [classMembers] is the interface members.
-  final Map<Name, ClassMember> interfaceMemberMap;
+  final Map<Name, ClassMember>? interfaceMemberMap;
 
   /// Similar to [interfaceMembers] but for setters.
   ///
   /// This may be null, in which case [classSetters] is the interface setters.
-  final Map<Name, ClassMember> interfaceSetterMap;
+  final Map<Name, ClassMember>? interfaceSetterMap;
 
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
@@ -3357,7 +3379,7 @@ class ClassHierarchyNode {
 
   final bool hasNoSuchMethod;
 
-  final ClassHierarchyNodeDataForTesting dataForTesting;
+  final ClassHierarchyNodeDataForTesting? dataForTesting;
 
   ClassHierarchyNode(
       this.classBuilder,
@@ -3374,18 +3396,17 @@ class ClassHierarchyNode {
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
       ClassHierarchyBuilder hierarchy) {
-    List<ClassHierarchyNode> result = new List<ClassHierarchyNode>.filled(
-        1 + superclasses.length + interfaces.length, null);
+    List<ClassHierarchyNode> result = [];
     for (int i = 0; i < superclasses.length; i++) {
       Supertype type = superclasses[i];
-      result[i] = hierarchy.getNodeFromClass(type.classNode);
+      result.add(hierarchy.getNodeFromClass(type.classNode));
     }
     for (int i = 0; i < interfaces.length; i++) {
       Supertype type = interfaces[i];
-      result[i + superclasses.length] =
-          hierarchy.getNodeFromClass(type.classNode);
+      result.add(hierarchy.getNodeFromClass(type.classNode));
     }
-    return result..last = this;
+    result.add(this);
+    return result;
   }
 
   String toString() {
@@ -3407,6 +3428,7 @@ class ClassHierarchyNode {
       sb.writeln();
       depth++;
     }
+    // ignore: unnecessary_null_comparison
     if (interfaces != null) {
       sb.write("  interfaces:");
       bool first = true;
@@ -3421,10 +3443,10 @@ class ClassHierarchyNode {
     printMemberMap(classMemberMap, sb, "classMembers");
     printMemberMap(classSetterMap, sb, "classSetters");
     if (interfaceMemberMap != null) {
-      printMemberMap(interfaceMemberMap, sb, "interfaceMembers");
+      printMemberMap(interfaceMemberMap!, sb, "interfaceMembers");
     }
     if (interfaceSetterMap != null) {
-      printMemberMap(interfaceSetterMap, sb, "interfaceSetters");
+      printMemberMap(interfaceSetterMap!, sb, "interfaceSetters");
     }
     return "$sb";
   }
@@ -3451,13 +3473,13 @@ class ClassHierarchyNode {
     printMembers(members, sb, heading);
   }
 
-  ClassMember getInterfaceMember(Name name, bool isSetter) {
+  ClassMember? getInterfaceMember(Name name, bool isSetter) {
     return isSetter
         ? (interfaceSetterMap ?? classSetterMap)[name]
         : (interfaceMemberMap ?? classMemberMap)[name];
   }
 
-  ClassMember findMember(Name name, List<ClassMember> declarations) {
+  ClassMember? findMember(Name name, List<ClassMember> declarations) {
     // TODO(ahe): Consider creating a map or scope. The obvious choice would be
     // to use scopes, but they don't handle private names correctly.
 
@@ -3481,7 +3503,7 @@ class ClassHierarchyNode {
     return null;
   }
 
-  ClassMember getDispatchTarget(Name name, bool isSetter) {
+  ClassMember? getDispatchTarget(Name name, bool isSetter) {
     return isSetter ? classSetterMap[name] : classMemberMap[name];
   }
 
@@ -3533,8 +3555,8 @@ class BuilderMixinInferrer extends MixinInferrer {
       this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
       : super(coreTypes, gatherer);
 
-  Supertype asInstantiationOf(Supertype type, Class superclass) {
-    List<DartType> arguments =
+  Supertype? asInstantiationOf(Supertype type, Class superclass) {
+    List<DartType>? arguments =
         gatherer.getTypeArgumentsAsInstanceOf(type.asInterfaceType, superclass);
     if (arguments == null) return null;
     return new Supertype(superclass, arguments);
@@ -3572,7 +3594,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
+  Member? getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     return null;
   }
 
@@ -3583,7 +3605,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  List<DartType> getTypeArgumentsAsInstanceOf(
+  List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     return hierarchy.getTypeArgumentsAsInstanceOf(type, superclass);
   }
@@ -3651,7 +3673,7 @@ class DelayedOverrideCheck implements DelayedCheck {
     ///    }
     ///
     bool declaredNeedsLegacyErasure =
-        needsLegacyErasure(_classBuilder.cls, declaredMember.enclosingClass);
+        needsLegacyErasure(_classBuilder.cls, declaredMember.enclosingClass!);
     void callback(Member interfaceMember, bool isSetter) {
       _classBuilder.checkOverride(
           hierarchy.types, declaredMember, interfaceMember, isSetter, callback,
@@ -3712,7 +3734,7 @@ class DelayedTypeComputation {
 }
 
 int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
-  return a.name.compareTo(b.name);
+  return a.name!.compareTo(b.name!);
 }
 
 void reportCantInferParameterType(
@@ -3849,11 +3871,11 @@ void reportCantInferFieldType(ClassBuilder cls, SourceFieldBuilder member,
       context: context);
 }
 
-ClassBuilder getClass(TypeBuilder type) {
-  Builder declaration = type.declaration;
+ClassBuilder? getClass(TypeBuilder type) {
+  Builder? declaration = type.declaration;
   if (declaration is TypeAliasBuilder) {
     TypeAliasBuilder aliasBuilder = declaration;
-    NamedTypeBuilder namedBuilder = type;
+    NamedTypeBuilder namedBuilder = type as NamedTypeBuilder;
     declaration = aliasBuilder.unaliasDeclaration(namedBuilder.arguments);
   }
   return declaration is ClassBuilder ? declaration : null;
@@ -3908,8 +3930,10 @@ abstract class SynthesizedMember extends ClassMember {
   final bool isProperty;
 
   SynthesizedMember(this.classBuilder, this.name,
-      {this.forSetter, this.isProperty})
+      {required this.forSetter, required this.isProperty})
+      // ignore: unnecessary_null_comparison
       : assert(forSetter != null),
+        // ignore: unnecessary_null_comparison
         assert(isProperty != null);
 
   @override
@@ -3980,7 +4004,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   ///      // Concrete forwarding stub calling [_superClassMember]:
   ///      method(covariant int i) => super.method(i);
   ///
-  final ClassMember _superClassMember;
+  final ClassMember? _superClassMember;
 
   /// The canonical member of the combined member signature if it is known by
   /// construction. The canonical member defines the type of combined member
@@ -4001,7 +4025,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   ///       //    method(covariant int i) => super.method(i);
   ///       method(int i);
   ///     }
-  final ClassMember _canonicalMember;
+  final ClassMember? _canonicalMember;
 
   /// The member in [declarations] that is mixed in, if any.
   ///
@@ -4046,22 +4070,22 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   ///    //   void method(covariant int i) => super.method(i);
   ///    class Class = Super with Mixin implements Interface;
   ///
-  final ClassMember _mixedInMember;
+  final ClassMember? _mixedInMember;
 
   /// If `true`, a stub should be inserted, if needed.
   final bool _shouldModifyKernel;
 
-  Member _member;
-  Covariance _covariance;
+  Member? _member;
+  Covariance? _covariance;
 
   SynthesizedInterfaceMember(
       ClassBuilder classBuilder, Name name, this.declarations,
-      {ClassMember superClassMember,
-      ClassMember canonicalMember,
-      ClassMember mixedInMember,
-      bool isProperty,
-      bool forSetter,
-      bool shouldModifyKernel})
+      {ClassMember? superClassMember,
+      ClassMember? canonicalMember,
+      ClassMember? mixedInMember,
+      required bool isProperty,
+      required bool forSetter,
+      required bool shouldModifyKernel})
       : this._superClassMember = superClassMember,
         this._canonicalMember = canonicalMember,
         this._mixedInMember = mixedInMember,
@@ -4077,8 +4101,8 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     }
     if (classBuilder.library is! SourceLibraryBuilder) {
       if (_canonicalMember != null) {
-        _member = _canonicalMember.getMember(hierarchy);
-        _covariance = _canonicalMember.getCovariance(hierarchy);
+        _member = _canonicalMember!.getMember(hierarchy);
+        _covariance = _canonicalMember!.getCovariance(hierarchy);
       } else {
         _member = declarations.first.getMember(hierarchy);
         _covariance = declarations.first.getCovariance(hierarchy);
@@ -4089,13 +4113,13 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     if (_canonicalMember != null) {
       combinedMemberSignature = new CombinedClassMemberSignature.internal(
           hierarchy,
-          classBuilder,
-          declarations.indexOf(_canonicalMember),
+          classBuilder as SourceClassBuilder,
+          declarations.indexOf(_canonicalMember!),
           declarations,
           forSetter: isSetter);
     } else {
       combinedMemberSignature = new CombinedClassMemberSignature(
-          hierarchy, classBuilder, declarations,
+          hierarchy, classBuilder as SourceClassBuilder, declarations,
           forSetter: isSetter);
 
       if (combinedMemberSignature.canonicalMember == null) {
@@ -4125,22 +4149,23 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     if (_shouldModifyKernel) {
       ProcedureKind kind = ProcedureKind.Method;
       Member canonicalMember =
-          combinedMemberSignature.canonicalMember.getMember(hierarchy);
-      if (combinedMemberSignature.canonicalMember.isProperty) {
+          combinedMemberSignature.canonicalMember!.getMember(hierarchy);
+      if (combinedMemberSignature.canonicalMember!.isProperty) {
         kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
       } else if (canonicalMember is Procedure &&
           canonicalMember.kind == ProcedureKind.Operator) {
         kind = ProcedureKind.Operator;
       }
 
-      Procedure stub = new ForwardingNode(
+      Procedure? stub = new ForwardingNode(
               combinedMemberSignature, kind, _superClassMember, _mixedInMember)
           .finalize();
       if (stub != null) {
         assert(classBuilder.cls == stub.enclosingClass);
         assert(stub != canonicalMember);
         classBuilder.cls.addProcedure(stub);
-        SourceLibraryBuilder library = classBuilder.library;
+        SourceLibraryBuilder library =
+            classBuilder.library as SourceLibraryBuilder;
         if (canonicalMember is Procedure) {
           library.forwardersOrigins..add(stub)..add(canonicalMember);
         }
@@ -4148,28 +4173,28 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
         assert(
             _covariance ==
-                new Covariance.fromMember(_member, forSetter: forSetter),
+                new Covariance.fromMember(_member!, forSetter: forSetter),
             "Unexpected covariance for combined members signature "
             "$_member. Found $_covariance, expected "
-            "${new Covariance.fromMember(_member, forSetter: forSetter)}.");
+            "${new Covariance.fromMember(_member!, forSetter: forSetter)}.");
         return;
       }
     }
 
-    _member = combinedMemberSignature.canonicalMember.getMember(hierarchy);
+    _member = combinedMemberSignature.canonicalMember!.getMember(hierarchy);
     _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
   }
 
   @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     _ensureMemberAndCovariance(hierarchy);
-    return _member;
+    return _member!;
   }
 
   @override
   Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
     _ensureMemberAndCovariance(hierarchy);
-    return _covariance;
+    return _covariance!;
   }
 
   @override
@@ -4241,15 +4266,17 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   final ClassMember inheritedClassMember;
   final ClassMember implementedInterfaceMember;
 
-  Member _member;
-  Covariance _covariance;
+  Member? _member;
+  Covariance? _covariance;
 
   InheritedClassMemberImplementsInterface(ClassBuilder classBuilder, Name name,
-      {this.inheritedClassMember,
-      this.implementedInterfaceMember,
-      bool isProperty,
-      bool forSetter})
+      {required this.inheritedClassMember,
+      required this.implementedInterfaceMember,
+      required bool isProperty,
+      required bool forSetter})
+      // ignore: unnecessary_null_comparison
       : assert(inheritedClassMember != null),
+        // ignore: unnecessary_null_comparison
         assert(implementedInterfaceMember != null),
         super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
 
@@ -4308,13 +4335,13 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   @override
   Member getMember(ClassHierarchyBuilder hierarchy) {
     _ensureMemberAndCovariance(hierarchy);
-    return _member;
+    return _member!;
   }
 
   @override
   Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
     _ensureMemberAndCovariance(hierarchy);
-    return _covariance;
+    return _covariance!;
   }
 
   @override

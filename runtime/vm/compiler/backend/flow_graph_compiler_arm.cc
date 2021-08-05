@@ -252,8 +252,14 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   ASSERT(!__ constant_pool_allowed());
   ASSERT(extracted_method.IsZoneHandle());
 
-  const Code& build_method_extractor = Code::ZoneHandle(
-      isolate_group()->object_store()->build_method_extractor_code());
+  const Code& build_method_extractor =
+      Code::ZoneHandle(extracted_method.IsGeneric()
+                           ? isolate_group()
+                                 ->object_store()
+                                 ->build_generic_method_extractor_code()
+                           : isolate_group()
+                                 ->object_store()
+                                 ->build_nongeneric_method_extractor_code());
 
   const intptr_t stub_index = __ object_pool_builder().AddObject(
       build_method_extractor, ObjectPool::Patchability::kNotPatchable);
@@ -712,7 +718,7 @@ void FlowGraphCompiler::EmitDispatchTableCall(
     } else {
       __ add(LR, DISPATCH_TABLE_REG,
              compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
-      if (!Utils::IsAbsoluteUint(12, offset)) {
+      if (!Utils::MagnitudeIsUint(12, offset)) {
         const intptr_t adjust = offset & -(1 << 12);
         __ AddImmediate(LR, LR, adjust);
         offset -= adjust;

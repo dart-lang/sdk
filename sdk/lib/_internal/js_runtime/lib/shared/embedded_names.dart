@@ -179,6 +179,9 @@ const DEFERRED_INITIALIZED = 'deferredInitialized';
 /// This embedded global is used for --experiment-new-rti.
 const RTI_UNIVERSE = 'typeUniverse';
 
+/// An embedded global used to collect and access startup metrics.
+const STARTUP_METRICS = 'sm';
+
 /// Names that are supported by [JS_GET_NAME].
 // TODO(herhut): Make entries lower case (as in fields) and find a better name.
 enum JsGetName {

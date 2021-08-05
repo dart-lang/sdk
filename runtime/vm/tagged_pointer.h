@@ -194,7 +194,7 @@ class ObjectPtr {
   uword heap_base() const {
     // TODO(rmacnak): Why does Windows have trouble linking GetClassId used
     // here?
-#if !defined(HOST_OS_WINDOWS)
+#if !defined(DART_HOST_OS_WINDOWS)
     ASSERT(IsHeapObject());
     ASSERT(!IsInstructions());
     ASSERT(!IsInstructionsSection());
@@ -394,7 +394,9 @@ DEFINE_TAGGED_POINTER(Bool, Instance)
 DEFINE_TAGGED_POINTER(Array, Instance)
 DEFINE_TAGGED_POINTER(ImmutableArray, Array)
 DEFINE_TAGGED_POINTER(GrowableObjectArray, Instance)
-DEFINE_TAGGED_POINTER(LinkedHashMap, Instance)
+DEFINE_TAGGED_POINTER(LinkedHashBase, Instance)
+DEFINE_TAGGED_POINTER(LinkedHashMap, LinkedHashBase)
+DEFINE_TAGGED_POINTER(LinkedHashSet, LinkedHashBase)
 DEFINE_TAGGED_POINTER(Float32x4, Instance)
 DEFINE_TAGGED_POINTER(Int32x4, Instance)
 DEFINE_TAGGED_POINTER(Float64x2, Instance)

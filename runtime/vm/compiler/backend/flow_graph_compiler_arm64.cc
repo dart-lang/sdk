@@ -243,8 +243,14 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   ASSERT(!__ constant_pool_allowed());
   ASSERT(extracted_method.IsZoneHandle());
 
-  const Code& build_method_extractor = Code::ZoneHandle(
-      isolate_group()->object_store()->build_method_extractor_code());
+  const Code& build_method_extractor =
+      Code::ZoneHandle(extracted_method.IsGeneric()
+                           ? isolate_group()
+                                 ->object_store()
+                                 ->build_generic_method_extractor_code()
+                           : isolate_group()
+                                 ->object_store()
+                                 ->build_nongeneric_method_extractor_code());
 
   const intptr_t stub_index = __ object_pool_builder().AddObject(
       build_method_extractor, ObjectPool::Patchability::kNotPatchable);

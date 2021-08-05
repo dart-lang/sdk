@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.redirecting_factory_body;
 
 import 'package:kernel/ast.dart';
@@ -33,48 +31,63 @@ const String letName = "#redirecting_factory";
 /// the redirection target in a factory method body.
 const String varNamePrefix = "#typeArg";
 
-class RedirectingFactoryBody extends ExpressionStatement {
-  RedirectingFactoryBody.internal(Expression value,
-      [List<DartType> typeArguments])
-      : super(new Let(new VariableDeclaration(letName, initializer: value),
-            encodeTypeArguments(typeArguments)));
+class RedirectingFactoryBody extends ReturnStatement {
+  RedirectingFactoryBody._internal(Expression value) : super(value);
 
-  RedirectingFactoryBody(Member target, [List<DartType> typeArguments])
-      : this.internal(new StaticGet(target), typeArguments);
+  RedirectingFactoryBody(
+      Member target, List<DartType> typeArguments, FunctionNode function)
+      : this._internal(_makeForwardingCall(target, typeArguments, function));
 
-  RedirectingFactoryBody.unresolved(String name)
-      : this.internal(new StringLiteral(name));
+  RedirectingFactoryBody.error(String errorMessage)
+      : this._internal(new InvalidExpression(errorMessage));
 
-  Member get target {
-    dynamic value = getValue(expression);
-    return value is StaticGet ? value.target : null;
-  }
-
-  String get unresolvedName {
-    dynamic value = getValue(expression);
-    return value is StringLiteral ? value.value : null;
-  }
-
-  bool get isUnresolved => unresolvedName != null;
-
-  List<DartType> get typeArguments {
-    if (expression is Let) {
-      Let bodyExpression = expression;
-      if (bodyExpression.variable.name == letName) {
-        return decodeTypeArguments(bodyExpression.body);
-      }
+  Member? get target {
+    final Expression? value = this.expression;
+    if (value is StaticInvocation) {
+      return value.target;
+    } else if (value is ConstructorInvocation) {
+      return value.target;
     }
     return null;
   }
 
-  static getValue(Expression expression) {
-    if (expression is Let) {
-      VariableDeclaration variable = expression.variable;
-      if (variable.name == letName) {
-        return variable.initializer;
-      }
+  String? get errorMessage {
+    final Expression? value = this.expression;
+    return value is InvalidExpression ? value.message : null;
+  }
+
+  bool get isError => errorMessage != null;
+
+  List<DartType>? get typeArguments {
+    final Expression? value = this.expression;
+    if (value is InvocationExpression) {
+      return value.arguments.types;
     }
     return null;
+  }
+
+  static Expression _makeForwardingCall(
+      Member target, List<DartType> typeArguments, FunctionNode function) {
+    final List<Expression> positional = function.positionalParameters
+        .map((v) => new VariableGet(v)..fileOffset = v.fileOffset)
+        .toList();
+    final List<NamedExpression> named = function.namedParameters
+        .map((v) => new NamedExpression(
+            v.name!, new VariableGet(v)..fileOffset = v.fileOffset)
+          ..fileOffset = v.fileOffset)
+        .toList();
+    final Arguments args =
+        new Arguments(positional, named: named, types: typeArguments);
+    if (target is Procedure) {
+      return new StaticInvocation(target, args)
+        ..fileOffset = function.fileOffset;
+    } else if (target is Constructor) {
+      return new ConstructorInvocation(target, args)
+        ..fileOffset = function.fileOffset;
+    } else {
+      throw 'Unexpected target for redirecting factory:'
+          ' ${target.runtimeType} $target';
+    }
   }
 
   static void restoreFromDill(Procedure factory) {
@@ -82,73 +95,56 @@ class RedirectingFactoryBody extends ExpressionStatement {
     // dill files. See `ClassBuilder.addRedirectingConstructor` in
     // [kernel_class_builder.dart](kernel_class_builder.dart).
     FunctionNode function = factory.function;
-    ExpressionStatement statement = function.body;
-    List<DartType> typeArguments;
-    if (statement.expression is Let) {
-      Let expression = statement.expression;
-      typeArguments = decodeTypeArguments(expression.body);
-    }
-    function.body = new RedirectingFactoryBody.internal(
-        getValue(statement.expression), typeArguments)
+    Expression value = (function.body as ReturnStatement).expression!;
+    function.body = new RedirectingFactoryBody._internal(value)
       ..parent = function;
   }
 
   static bool hasRedirectingFactoryBodyShape(Procedure factory) {
-    if (factory.function.body is! ExpressionStatement) return false;
-    Expression body = (factory.function.body as ExpressionStatement).expression;
-    if (body is Let &&
-        body.variable.name == letName &&
-        body.variable.type is DynamicType &&
-        body.variable.initializer is StaticGet) {
-      Expression currentArgument = body.body;
-      int argumentCount = 0;
-      while (currentArgument is! InvalidExpression) {
-        Expression argument = currentArgument;
-        if (argument is Let) {
-          String argumentName = "${varNamePrefix}${argumentCount}";
-          if (argument.variable.name != argumentName) {
-            return false;
-          }
-          if (argument.variable.initializer is! NullLiteral) {
-            return false;
-          }
-          currentArgument = argument.body;
-          ++argumentCount;
-        } else {
+    final FunctionNode function = factory.function;
+    final Statement? body = function.body;
+    if (body is! ReturnStatement) return false;
+    final Expression? value = body.expression;
+    if (body is InvalidExpression) {
+      return true;
+    } else if (value is StaticInvocation || value is ConstructorInvocation) {
+      // Verify that invocation forwards all arguments.
+      final Arguments args = (value as InvocationExpression).arguments;
+      if (args.positional.length != function.positionalParameters.length) {
+        return false;
+      }
+      int i = 0;
+      for (Expression arg in args.positional) {
+        if (arg is! VariableGet) {
           return false;
         }
+        if (arg.variable != function.positionalParameters[i]) {
+          return false;
+        }
+        ++i;
+      }
+      if (args.named.length != function.namedParameters.length) {
+        return false;
+      }
+      i = 0;
+      for (NamedExpression arg in args.named) {
+        final Expression value = arg.value;
+        if (value is! VariableGet) {
+          return false;
+        }
+        final VariableDeclaration param = function.namedParameters[i];
+        if (value.variable != param) {
+          return false;
+        }
+        if (arg.name != param.name) {
+          return false;
+        }
+        ++i;
       }
       return true;
     } else {
       return false;
     }
-  }
-
-  static Expression encodeTypeArguments(List<DartType> typeArguments) {
-    Expression result = new InvalidExpression(null);
-    if (typeArguments == null) {
-      return result;
-    }
-    for (int i = typeArguments.length - 1; i >= 0; i--) {
-      result = new Let(
-          new VariableDeclaration("$varNamePrefix$i",
-              type: typeArguments[i], initializer: new NullLiteral()),
-          result);
-    }
-    return result;
-  }
-
-  static List<DartType> decodeTypeArguments(Expression encoded) {
-    if (encoded is InvalidExpression) {
-      return null;
-    }
-    List<DartType> result = <DartType>[];
-    while (encoded is Let) {
-      Let head = encoded;
-      result.add(head.variable.type);
-      encoded = head.body;
-    }
-    return result;
   }
 
   @override
@@ -162,13 +158,15 @@ class RedirectingFactoryBody extends ExpressionStatement {
   }
 }
 
-bool isRedirectingFactory(Member member, {EnsureLoaded helper}) {
+bool isRedirectingFactory(Member? member, {EnsureLoaded? helper}) {
   assert(helper == null || helper.isLoaded(member));
   return member is Procedure && member.function.body is RedirectingFactoryBody;
 }
 
-RedirectingFactoryBody getRedirectingFactoryBody(Member member) {
-  return isRedirectingFactory(member) ? member.function.body : null;
+RedirectingFactoryBody? getRedirectingFactoryBody(Member? member) {
+  return isRedirectingFactory(member)
+      ? member!.function!.body as RedirectingFactoryBody
+      : null;
 }
 
 class RedirectionTarget {
@@ -178,38 +176,37 @@ class RedirectionTarget {
   RedirectionTarget(this.target, this.typeArguments);
 }
 
-RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper) {
-  List<DartType> typeArguments = <DartType>[]..length =
-      member.function.typeParameters.length;
-  for (int i = 0; i < typeArguments.length; i++) {
-    typeArguments[i] = new TypeParameterType.withDefaultNullabilityForLibrary(
+RedirectionTarget? getRedirectionTarget(Procedure member, EnsureLoaded helper) {
+  List<DartType> typeArguments = new List<DartType>.generate(
+      member.function.typeParameters.length, (int i) {
+    return new TypeParameterType.withDefaultNullabilityForLibrary(
         member.function.typeParameters[i], member.enclosingLibrary);
-  }
+  }, growable: true);
 
   // We use the [tortoise and hare algorithm]
   // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
   // handle cycles.
   Member tortoise = member;
-  RedirectingFactoryBody tortoiseBody = getRedirectingFactoryBody(tortoise);
-  Member hare = tortoiseBody?.target;
+  RedirectingFactoryBody? tortoiseBody = getRedirectingFactoryBody(tortoise);
+  Member? hare = tortoiseBody?.target;
   helper.ensureLoaded(hare);
-  RedirectingFactoryBody hareBody = getRedirectingFactoryBody(hare);
+  RedirectingFactoryBody? hareBody = getRedirectingFactoryBody(hare);
   while (tortoise != hare) {
-    if (tortoiseBody?.isUnresolved ?? true) {
+    if (tortoiseBody == null || tortoiseBody.isError) {
       return new RedirectionTarget(tortoise, typeArguments);
     }
-    Member nextTortoise = tortoiseBody.target;
+    Member nextTortoise = tortoiseBody.target!;
     helper.ensureLoaded(nextTortoise);
-    List<DartType> nextTypeArguments = tortoiseBody.typeArguments;
-    if (nextTypeArguments == null) {
-      nextTypeArguments = <DartType>[];
-    }
-
-    Substitution sub =
-        Substitution.fromPairs(tortoise.function.typeParameters, typeArguments);
-    typeArguments = <DartType>[]..length = nextTypeArguments.length;
-    for (int i = 0; i < typeArguments.length; i++) {
-      typeArguments[i] = sub.substituteType(nextTypeArguments[i]);
+    List<DartType>? nextTypeArguments = tortoiseBody.typeArguments;
+    if (nextTypeArguments != null) {
+      Substitution sub = Substitution.fromPairs(
+          tortoise.function!.typeParameters, typeArguments);
+      typeArguments =
+          new List<DartType>.generate(nextTypeArguments.length, (int i) {
+        return sub.substituteType(nextTypeArguments[i]);
+      }, growable: true);
+    } else {
+      typeArguments = <DartType>[];
     }
 
     tortoise = nextTortoise;

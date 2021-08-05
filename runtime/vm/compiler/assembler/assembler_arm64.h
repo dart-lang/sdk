@@ -557,22 +557,56 @@ class Assembler : public AssemblerBase {
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset, kEightBytes);
   }
+
+#if defined(USING_THREAD_SANITIZER)
+  void TsanLoadAcquire(Register addr);
+  void TsanStoreRelease(Register addr);
+#endif
+
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       ldar(dst, TMP2);
+#if defined(USING_THREAD_SANITIZER)
+      TsanLoadAcquire(TMP2);
+#endif
     } else {
       ldar(dst, address);
+#if defined(USING_THREAD_SANITIZER)
+      TsanLoadAcquire(address);
+#endif
     }
   }
+
   void LoadAcquireCompressed(Register dst,
                              Register address,
                              int32_t offset = 0) {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       ldar(dst, TMP2, kObjectBytes);
+#if defined(USING_THREAD_SANITIZER)
+      TsanLoadAcquire(TMP2);
+#endif
     } else {
       ldar(dst, address, kObjectBytes);
+#if defined(USING_THREAD_SANITIZER)
+      TsanLoadAcquire(address);
+#endif
+    }
+  }
+
+  void StoreRelease(Register dst, Register address, int32_t offset = 0) {
+    if (offset != 0) {
+      AddImmediate(TMP2, address, offset);
+      stlr(dst, TMP2);
+#if defined(USING_THREAD_SANITIZER)
+      TsanStoreRelease(TMP2);
+#endif
+    } else {
+      stlr(dst, address);
+#if defined(USING_THREAD_SANITIZER)
+      TsanStoreRelease(address);
+#endif
     }
   }
 

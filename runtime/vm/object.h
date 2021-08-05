@@ -215,11 +215,9 @@ class BaseTextBuffer;
 #define OBJECT_SERVICE_SUPPORT(object) protected: /* NOLINT */
 #endif                                            // !PRODUCT
 
-#define SNAPSHOT_READER_SUPPORT(object)                                        \
-  static object##Ptr ReadFrom(SnapshotReader* reader, intptr_t object_id,      \
-                              intptr_t tags, Snapshot::Kind,                   \
-                              bool as_reference);                              \
-  friend class SnapshotReader;
+#define SNAPSHOT_SUPPORT(object)                                               \
+  friend class object##MessageSerializationCluster;                            \
+  friend class object##MessageDeserializationCluster;
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public: /* NOLINT */                                                          \
@@ -243,7 +241,7 @@ class BaseTextBuffer;
     ASSERT(ptr() != null());                                                   \
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
-  SNAPSHOT_READER_SUPPORT(object)                                              \
+  SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
   friend class Thread;
 
@@ -268,7 +266,7 @@ class BaseTextBuffer;
     return const_cast<Untagged##object*>(ptr()->untag());                      \
   }                                                                            \
   static intptr_t NextFieldOffset() { return -kWordSize; }                     \
-  SNAPSHOT_READER_SUPPORT(rettype)                                             \
+  SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
   friend class Thread;
@@ -292,6 +290,11 @@ class Object {
  public:
   using UntaggedObjectType = UntaggedObject;
   using ObjectPtrType = ObjectPtr;
+
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
 
   static ObjectPtr RawCast(ObjectPtr obj) { return obj; }
 
@@ -620,6 +623,8 @@ class Object {
   };
 
  protected:
+  friend ObjectPtr AllocateObject(intptr_t, intptr_t);
+
   // Used for extracting the C++ vtable during bringup.
   Object() : ptr_(null_) {}
 
@@ -756,7 +761,9 @@ class Object {
 #undef STORE_NON_POINTER_ILLEGAL_TYPE
 
   // Allocate an object and copy the body of 'orig'.
-  static ObjectPtr Clone(const Object& orig, Heap::Space space);
+  static ObjectPtr Clone(const Object& orig,
+                         Heap::Space space,
+                         bool load_with_relaxed_atomics = false);
 
   // End of field mutator guards.
 
@@ -856,8 +863,8 @@ class Object {
   friend void ClassTable::Register(const Class& cls);
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
-  friend class SnapshotReader;
   friend class InstanceDeserializationCluster;
+  friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
   friend class ExternalOneByteString;
@@ -1171,7 +1178,13 @@ class Class : public Object {
   intptr_t NumTypeArguments() const;
 
   // Return true if this class declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
+  bool IsGeneric() const {
+    // If the declaration is not loaded, fall back onto NumTypeParameters.
+    if (!is_declaration_loaded()) {
+      return NumTypeParameters(Thread::Current()) > 0;
+    }
+    return type_parameters() != Object::null();
+  }
 
   // Returns a canonicalized vector of the type parameters instantiated
   // to bounds. If non-generic, the empty type arguments vector is returned.
@@ -1318,14 +1331,18 @@ class Class : public Object {
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(ClassPtr cls) {
-    NoSafepointScope no_safepoint;
-    return cls->untag()->id_ == kClosureCid;
+    return GetClassId(cls) == kClosureCid;
   }
 
   static bool IsInFullSnapshot(ClassPtr cls) {
     NoSafepointScope no_safepoint;
     return UntaggedLibrary::InFullSnapshotBit::decode(
         cls->untag()->library()->untag()->flags_);
+  }
+
+  static intptr_t GetClassId(ClassPtr cls) {
+    NoSafepointScope no_safepoint;
+    return cls->untag()->id_;
   }
 
   // Returns true if the type specified by cls, type_arguments, and nullability
@@ -1508,6 +1525,9 @@ class Class : public Object {
   uint16_t num_native_fields() const { return untag()->num_native_fields_; }
   void set_num_native_fields(uint16_t value) const {
     StoreNonPointer(&untag()->num_native_fields_, value);
+  }
+  static uint16_t NumNativeFieldsOf(ClassPtr clazz) {
+    return clazz->untag()->num_native_fields_;
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2044,7 +2064,7 @@ class ICData : public CallSiteData {
     return untag()->receivers_static_type();
   }
   bool is_tracking_exactness() const {
-    return TrackingExactnessBit::decode(untag()->state_bits_);
+    return untag()->state_bits_.Read<TrackingExactnessBit>();
   }
 #else
   bool is_tracking_exactness() const { return false; }
@@ -2116,14 +2136,8 @@ class ICData : public CallSiteData {
   RebindRule rebind_rule() const;
 
   void set_is_megamorphic(bool value) const {
-    // We don't have concurrent RW access to [state_bits_].
-    const uint32_t updated_bits =
-        MegamorphicBit::update(value, untag()->state_bits_);
-
-    // Though we ensure that once the state bits are updated, all other previous
-    // writes to the IC are visible as well.
-    StoreNonPointer<uint32_t, uint32_t, std::memory_order_release>(
-        &untag()->state_bits_, updated_bits);
+    untag()->state_bits_.UpdateBool<MegamorphicBit, std::memory_order_release>(
+        value);
   }
 
   // The length of the array. This includes all sentinel entries including
@@ -2342,13 +2356,11 @@ class ICData : public CallSiteData {
   }
 
   bool receiver_cannot_be_smi() const {
-    return ReceiverCannotBeSmiBit::decode(
-        LoadNonPointer(&untag()->state_bits_));
+    return untag()->state_bits_.Read<ReceiverCannotBeSmiBit>();
   }
 
   void set_receiver_cannot_be_smi(bool value) const {
-    set_state_bits(ReceiverCannotBeSmiBit::encode(value) |
-                   LoadNonPointer(&untag()->state_bits_));
+    untag()->state_bits_.UpdateBool<ReceiverCannotBeSmiBit>(value);
   }
 
  private:
@@ -2362,10 +2374,9 @@ class ICData : public CallSiteData {
   void set_entries(const Array& value) const;
   void set_owner(const Function& value) const;
   void set_rebind_rule(uint32_t rebind_rule) const;
-  void set_state_bits(uint32_t bits) const;
+  void clear_state_bits() const;
   void set_tracking_exactness(bool value) const {
-    StoreNonPointer(&untag()->state_bits_,
-                    TrackingExactnessBit::update(value, untag()->state_bits_));
+    untag()->state_bits_.UpdateBool<TrackingExactnessBit>(value);
   }
 
   // Does entry |index| contain the sentinel value?
@@ -2394,9 +2405,8 @@ class ICData : public CallSiteData {
   bool is_megamorphic() const {
     // Ensure any following load instructions do not get performed before this
     // one.
-    const uint32_t bits = LoadNonPointer<uint32_t, std::memory_order_acquire>(
-        &untag()->state_bits_);
-    return MegamorphicBit::decode(bits);
+    return untag()
+        ->state_bits_.Read<MegamorphicBit, std::memory_order_acquire>();
   }
 
   bool ValidateInterceptor(const Function& target) const;
@@ -2475,7 +2485,6 @@ class ICData : public CallSiteData {
   friend class VMDeserializationRoots;
   friend class ICDataTestTask;
   friend class VMSerializationRoots;
-  friend class SnapshotWriter;
 };
 
 // Often used constants for number of free function type parameters.
@@ -2595,8 +2604,8 @@ class Function : public Object {
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Return the signature of this function.
-  FunctionTypePtr signature() const { return untag()->signature(); }
-  void set_signature(const FunctionType& value) const;
+  PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
+  void SetSignature(const FunctionType& value) const;
   static intptr_t signature_offset() {
     return OFFSET_OF(UntaggedFunction, signature_);
   }
@@ -2645,7 +2654,7 @@ class Function : public Object {
   void set_native_name(const String& name) const;
 
   AbstractTypePtr result_type() const {
-    return untag()->signature()->untag()->result_type();
+    return signature()->untag()->result_type();
   }
 
   // The parameters, starting with NumImplicitParameters() parameters which are
@@ -2653,53 +2662,47 @@ class Function : public Object {
   // Note that type checks exclude implicit parameters.
   AbstractTypePtr ParameterTypeAt(intptr_t index) const;
   ArrayPtr parameter_types() const {
-    return untag()->signature()->untag()->parameter_types();
+    return signature()->untag()->parameter_types();
   }
 
-  // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters. If there are parameter flags (eg
-  // required) they're stored at the end of this array, so the size of this
-  // array isn't necessarily NumParameters(), but the first NumParameters()
-  // elements are the names.
+  // Outside of the AOT runtime, functions store the names for their positional
+  // parameters, and delegate storage of the names for named parameters to
+  // their signature. These methods handle fetching the name from and
+  // setting the name to the correct location.
   StringPtr ParameterNameAt(intptr_t index) const;
-  ArrayPtr parameter_names() const { return untag()->parameter_names(); }
-  void SetParameterNamesFrom(const FunctionType& signature) const;
+  // Only valid for positional parameter indexes, as this should be called
+  // explicitly on the signature for named parameters.
+  void SetParameterNameAt(intptr_t index, const String& value) const;
+  // Creates an appropriately sized array in the function to hold positional
+  // parameter names, using the positional parameter count in the signature.
+  // Uses same default space as Function::New.
+  void CreateNameArray(Heap::Space space = Heap::kOld) const;
 
-  // The required flags are stored at the end of the parameter_names. The flags
-  // are packed into SMIs, but omitted if they're 0.
+  // Delegates to the signature, which stores the named parameter flags.
   bool IsRequiredAt(intptr_t index) const;
 
   // The formal type parameters, their bounds, and defaults, are specified as an
   // object of type TypeParameters stored in the signature.
   TypeParametersPtr type_parameters() const {
-    return untag()->signature()->untag()->type_parameters();
+    return signature()->untag()->type_parameters();
   }
 
-  intptr_t NumTypeParameters() const {
-    return UntaggedFunction::PackedNumTypeParameters::decode(
-        untag()->packed_fields_);
-  }
-  void SetNumTypeParameters(intptr_t value) const;
-
+  // Returns the number of local type arguments for this function.
+  intptr_t NumTypeParameters() const;
   // Return the cumulative number of type arguments in all parent functions.
   intptr_t NumParentTypeArguments() const;
-
-  // Return the cumulative number of type arguments in all parent functions and
-  // own type arguments.
-  intptr_t NumTypeArguments() const {
-    return NumParentTypeArguments() + NumTypeParameters();
-  }
+  // Return the cumulative number of type arguments for this function, including
+  // type arguments for all parent functions.
+  intptr_t NumTypeArguments() const;
+  // Return whether this function declares local type arguments.
+  bool IsGeneric() const;
+  // Returns whether any parent function of this function is generic.
+  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Return the type parameter declared at index.
   TypeParameterPtr TypeParameterAt(
       intptr_t index,
       Nullability nullability = Nullability::kNonNullable) const;
-
-  // Return true if this function declares type parameters.
-  // Generic dispatchers only set the number without actual type parameters.
-  bool IsGeneric() const { return NumTypeParameters() > 0; }
-  // Return true if any parent function of this function is generic.
-  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
 
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
@@ -2885,13 +2888,14 @@ class Function : public Object {
 
   static const char* KindToCString(UntaggedFunction::Kind kind);
 
+  bool IsConstructor() const {
+    return kind() == UntaggedFunction::kConstructor;
+  }
   bool IsGenerativeConstructor() const {
-    return (kind() == UntaggedFunction::kConstructor) && !is_static();
+    return IsConstructor() && !is_static();
   }
   bool IsImplicitConstructor() const;
-  bool IsFactory() const {
-    return (kind() == UntaggedFunction::kConstructor) && is_static();
-  }
+  bool IsFactory() const { return IsConstructor() && is_static(); }
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
@@ -3000,41 +3004,25 @@ class Function : public Object {
     return OFFSET_OF(UntaggedFunction, packed_fields_);
   }
 
-  intptr_t num_fixed_parameters() const {
-    return UntaggedFunction::PackedNumFixedParameters::decode(
-        untag()->packed_fields_);
-  }
-  void set_num_fixed_parameters(intptr_t value) const;
-
-  bool HasOptionalParameters() const {
-    return UntaggedFunction::PackedNumOptionalParameters::decode(
-               untag()->packed_fields_) > 0;
-  }
-  bool HasOptionalNamedParameters() const {
-    return HasOptionalParameters() &&
-           UntaggedFunction::PackedHasNamedOptionalParameters::decode(
-               untag()->packed_fields_);
-  }
+  // Returns the number of required positional parameters.
+  intptr_t num_fixed_parameters() const;
+  // Returns the number of optional parameters, whether positional or named.
+  bool HasOptionalParameters() const;
+  // Returns whether the function has optional named parameters.
+  bool HasOptionalNamedParameters() const;
+  // Returns whether the fuction has required named parameters.
   bool HasRequiredNamedParameters() const;
-  bool HasOptionalPositionalParameters() const {
-    return HasOptionalParameters() && !HasOptionalNamedParameters();
-  }
-  intptr_t NumOptionalParameters() const {
-    return UntaggedFunction::PackedNumOptionalParameters::decode(
-        untag()->packed_fields_);
-  }
-  intptr_t NumOptionalPositionalParameters() const {
-    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
-  }
-  void SetNumOptionalParameters(intptr_t num_optional_parameters,
-                                bool are_optional_positional) const;
-
-  intptr_t NumOptionalNamedParameters() const {
-    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
-  }
-
+  // Returns whether the function has optional positional parameters.
+  bool HasOptionalPositionalParameters() const;
+  // Returns the number of optional parameters, or 0 if none.
+  intptr_t NumOptionalParameters() const;
+  // Returns the number of optional positional parameters, or 0 if none.
+  intptr_t NumOptionalPositionalParameters() const;
+  // Returns the number of optional named parameters, or 0 if none.
+  intptr_t NumOptionalNamedParameters() const;
+  // Returns the total number of both required and optional parameters.
   intptr_t NumParameters() const;
-
+  // Returns the number of implicit parameters, e.g., this for instance methods.
   intptr_t NumImplicitParameters() const;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -3116,7 +3104,7 @@ class Function : public Object {
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
            IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
-           IsUtf8Scan();
+           IsUtf8Scan() || IsGetNativeField();
   }
 
   bool CanBeInlined() const;
@@ -3448,6 +3436,11 @@ class Function : public Object {
     return kind == MethodRecognizer::kFfiGetAddress;
   }
 
+  bool IsGetNativeField() const {
+    const auto kind = recognized_kind();
+    return kind == MethodRecognizer::kGetNativeField;
+  }
+
   bool IsUtf8Scan() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kUtf8DecoderScan;
@@ -3563,6 +3556,7 @@ class Function : public Object {
   static FunctionPtr NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                 const String& name,
                                                 const Function& parent,
+                                                bool is_static,
                                                 TokenPosition token_pos,
                                                 const Object& owner);
 
@@ -3711,8 +3705,7 @@ class Function : public Object {
   V(IsExtensionMember, is_extension_member)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
-#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V)                                 \
-  V(Inlinable, is_inlinable)
+#define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
@@ -3734,11 +3727,11 @@ class Function : public Object {
   //              some functions known to be execute infrequently and functions
   //              which have been de-optimized too many times.
   bool is_optimizable() const {
-    return UntaggedFunction::PackedOptimizable::decode(untag()->packed_fields_);
+    return untag()->packed_fields_.Read<UntaggedFunction::PackedOptimizable>();
   }
   void set_is_optimizable(bool value) const {
-    set_packed_fields(UntaggedFunction::PackedOptimizable::update(
-        value, untag()->packed_fields_));
+    untag()->packed_fields_.UpdateBool<UntaggedFunction::PackedOptimizable>(
+        value);
   }
 
   enum KindTagBits {
@@ -3752,9 +3745,9 @@ class Function : public Object {
 // Single bit sized fields start here.
 #define DECLARE_BIT(name, _) k##name##Bit,
     FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
-    FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
+        FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(DECLARE_BIT)
 #undef DECLARE_BIT
-        kNumTagBits
+            kNumTagBits
   };
 
   COMPILE_ASSERT(MethodRecognizer::kNumRecognizedMethods <
@@ -3789,8 +3782,6 @@ class Function : public Object {
   DefaultTypeArgumentsKind DefaultTypeArgumentsKindFor(
       const TypeArguments& defaults) const;
 
-  void set_parameter_names(const Array& value) const;
-  void set_parameter_types(const Array& value) const;
   void set_ic_data_array(const Array& value) const;
   void set_name(const String& value) const;
   void set_kind(UntaggedFunction::Kind value) const;
@@ -3804,6 +3795,13 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ArrayPtr positional_parameter_names() const {
+    return untag()->positional_parameter_names();
+  }
+  void set_positional_parameter_names(const Array& value) const;
+#endif
+
   ObjectPtr data() const { return untag()->data<std::memory_order_acquire>(); }
   void set_data(const Object& value) const;
 
@@ -3811,7 +3809,6 @@ class Function : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Function, Object);
   friend class Class;
-  friend class SnapshotWriter;
   friend class Parser;  // For set_eval_script.
   // UntaggedFunction::VisitFunctionPointers accesses the private constructor of
   // Function.
@@ -3855,7 +3852,6 @@ class ClosureData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
   friend class Class;
   friend class Function;
-  friend class HeapProfiler;
   friend class Precompiler;  // To wrap parent functions in WSRs.
 };
 
@@ -3896,7 +3892,6 @@ class FfiTrampolineData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData, Object);
   friend class Class;
   friend class Function;
-  friend class HeapProfiler;
 };
 
 class Field : public Object {
@@ -4145,11 +4140,20 @@ class Field : public Object {
 
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
-        untag()->static_type_exactness_state_);
+        LoadNonPointer<int8_t, std::memory_order_relaxed>(
+            &untag()->static_type_exactness_state_));
   }
 
   void set_static_type_exactness_state(StaticTypeExactnessState state) const {
-    StoreNonPointer(&untag()->static_type_exactness_state_, state.Encode());
+    DEBUG_ASSERT(
+        IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+    set_static_type_exactness_state_unsafe(state);
+  }
+
+  void set_static_type_exactness_state_unsafe(
+      StaticTypeExactnessState state) const {
+    StoreNonPointer<int8_t, int8_t, std::memory_order_relaxed>(
+        &untag()->static_type_exactness_state_, state.Encode());
   }
 
   static intptr_t static_type_exactness_state_offset() {
@@ -4448,7 +4452,6 @@ class Field : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
-  friend class HeapProfiler;
   friend class UntaggedField;
   friend class FieldSerializationCluster;
   friend class FieldDeserializationCluster;
@@ -5810,8 +5813,6 @@ class CodeSourceMap : public Object {
 
 class CompressedStackMaps : public Object {
  public:
-  static const intptr_t kHashBits = 30;
-
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
@@ -6700,7 +6701,6 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class CodeTestHelper;
-  friend class SnapshotWriter;
   friend class StubCode;     // for set_object_pool
   friend class Precompiler;  // for set_object_pool
   friend class FunctionSerializationCluster;
@@ -6753,8 +6753,6 @@ class Context : public Object {
   static const intptr_t kControllerIndex = 1;
   // Expected context index of chained futures in recognized async functions.
   // These are used to unwind async stacks.
-  static const intptr_t kFutureTimeoutFutureIndex = 2;
-  static const intptr_t kFutureWaitFutureIndex = 2;
   static const intptr_t kIsSyncIndex = 2;
 
   struct ArrayTraits {
@@ -6953,8 +6951,6 @@ class MegamorphicCache : public CallSiteData {
 
   void EnsureContains(const Smi& class_id, const Object& target) const;
   ObjectPtr Lookup(const Smi& class_id) const;
-
-  void SwitchToBareInstructions();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedMegamorphicCache));
@@ -7429,6 +7425,8 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() { return sizeof(UntaggedInstance); }
 
+  static intptr_t NativeFieldsOffset() { return sizeof(UntaggedObject); }
+
  protected:
 #ifndef PRODUCT
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
@@ -7494,7 +7492,6 @@ class Instance : public Object {
   friend class Pointer;
   friend class DeferredObject;
   friend class RegExp;
-  friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
   friend class InstanceSerializationCluster;
@@ -7629,11 +7626,6 @@ class TypeParameters : public Object {
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
@@ -7904,11 +7896,6 @@ class TypeArguments : public Instance {
 // Subclasses of AbstractType are Type and TypeParameter.
 class AbstractType : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool IsFinalized() const;
   virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
@@ -8157,7 +8144,22 @@ class AbstractType : public Instance {
   }
   CodePtr type_test_stub() const { return untag()->type_test_stub(); }
 
+  // Sets the TTS to [stub].
+  //
+  // The update will ensure both fields (code as well as the cached entrypoint)
+  // are updated together.
+  //
+  // Can be used concurrently by multiple threads - the updates will be applied
+  // in undetermined order - but always consistently.
   void SetTypeTestingStub(const Code& stub) const;
+
+  // Sets the TTS to the [stub].
+  //
+  // The caller has to ensure no other thread can concurrently try to update the
+  // TTS. This should mainly be used when initializing newly allocated Type
+  // objects.
+  void InitializeTypeTestingStubNonAtomic(const Code& stub) const;
+
   void UpdateTypeTestingStubEntryPoint() const {
     StoreNonPointer(&untag()->type_test_stub_entry_point_,
                     Code::EntryPointOf(untag()->type_test_stub()));
@@ -8349,6 +8351,19 @@ class Type : public AbstractType {
 // of parameters, but includes the names of optional named parameters.
 class FunctionType : public AbstractType {
  public:
+  // Reexported so they can be used by the flow graph builders.
+  using PackedNumParentTypeArguments =
+      UntaggedFunctionType::PackedNumParentTypeArguments;
+  using PackedNumTypeParameters = UntaggedFunctionType::PackedNumTypeParameters;
+  using PackedHasNamedOptionalParameters =
+      UntaggedFunctionType::PackedHasNamedOptionalParameters;
+  using PackedNumImplicitParameters =
+      UntaggedFunctionType::PackedNumImplicitParameters;
+  using PackedNumFixedParameters =
+      UntaggedFunctionType::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      UntaggedFunctionType::PackedNumOptionalParameters;
+
   static intptr_t type_state_offset() {
     return OFFSET_OF(UntaggedFunctionType, type_state_);
   }
@@ -8401,71 +8416,105 @@ class FunctionType : public AbstractType {
 
   bool IsSubtypeOf(const FunctionType& other, Heap::Space space) const;
 
-  intptr_t NumParameters() const;
-
-  // Return the number of type arguments in enclosing signature.
+  static intptr_t NumParentTypeArgumentsOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_type_parameter_counts_.Read<PackedNumParentTypeArguments>();
+  }
+  // Return the number of type arguments in the enclosing signature.
   intptr_t NumParentTypeArguments() const {
-    return UntaggedFunctionType::PackedNumParentTypeArguments::decode(
-        untag()->packed_fields_);
+    return NumParentTypeArgumentsOf(ptr());
   }
   void SetNumParentTypeArguments(intptr_t value) const;
-
-  intptr_t NumTypeArguments() const {
-    return NumParentTypeArguments() + NumTypeParameters();
+  static intptr_t NumTypeParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_type_parameter_counts_.Read<PackedNumTypeParameters>();
   }
+  intptr_t NumTypeParameters() const { return NumTypeParametersOf(ptr()); }
+
+  static intptr_t NumTypeArgumentsOf(FunctionTypePtr ptr) {
+    return NumTypeParametersOf(ptr) + NumParentTypeArgumentsOf(ptr);
+  }
+  intptr_t NumTypeArguments() const { return NumTypeArgumentsOf(ptr()); }
 
   intptr_t num_implicit_parameters() const {
-    return UntaggedFunctionType::PackedNumImplicitParameters::decode(
-        untag()->packed_fields_);
+    return untag()
+        ->packed_parameter_counts_.Read<PackedNumImplicitParameters>();
   }
   void set_num_implicit_parameters(intptr_t value) const;
-  intptr_t num_fixed_parameters() const {
-    return UntaggedFunctionType::PackedNumFixedParameters::decode(
-        untag()->packed_fields_);
+
+  static intptr_t NumFixedParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedNumFixedParameters>();
   }
+  intptr_t num_fixed_parameters() const { return NumFixedParametersOf(ptr()); }
   void set_num_fixed_parameters(intptr_t value) const;
 
-  bool HasOptionalParameters() const {
-    return UntaggedFunctionType::PackedNumOptionalParameters::decode(
-               untag()->packed_fields_) > 0;
+  static bool HasOptionalParameters(FunctionTypePtr ptr) {
+    return ptr->untag()
+               ->packed_parameter_counts_.Read<PackedNumOptionalParameters>() >
+           0;
+  }
+  bool HasOptionalParameters() const { return HasOptionalParameters(ptr()); }
+
+  static bool HasOptionalNamedParameters(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedHasNamedOptionalParameters>();
   }
   bool HasOptionalNamedParameters() const {
-    return HasOptionalParameters() &&
-           UntaggedFunctionType::PackedHasNamedOptionalParameters::decode(
-               untag()->packed_fields_);
+    return HasOptionalNamedParameters(ptr());
+  }
+  bool HasRequiredNamedParameters() const;
+
+  static bool HasOptionalPositionalParameters(FunctionTypePtr ptr) {
+    return !HasOptionalNamedParameters(ptr) && HasOptionalParameters(ptr);
   }
   bool HasOptionalPositionalParameters() const {
-    return HasOptionalParameters() && !HasOptionalNamedParameters();
+    return HasOptionalPositionalParameters(ptr());
+  }
+
+  static intptr_t NumOptionalParametersOf(FunctionTypePtr ptr) {
+    return ptr->untag()
+        ->packed_parameter_counts_.Read<PackedNumOptionalParameters>();
   }
   intptr_t NumOptionalParameters() const {
-    return UntaggedFunctionType::PackedNumOptionalParameters::decode(
-        untag()->packed_fields_);
+    return NumOptionalParametersOf(ptr());
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
 
+  static intptr_t NumOptionalPositionalParametersOf(FunctionTypePtr ptr) {
+    return HasOptionalNamedParameters(ptr) ? 0 : NumOptionalParametersOf(ptr);
+  }
   intptr_t NumOptionalPositionalParameters() const {
-    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
+    return NumOptionalPositionalParametersOf(ptr());
   }
 
+  static intptr_t NumOptionalNamedParametersOf(FunctionTypePtr ptr) {
+    return HasOptionalNamedParameters(ptr) ? NumOptionalParametersOf(ptr) : 0;
+  }
   intptr_t NumOptionalNamedParameters() const {
-    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
-  }
-  uint32_t packed_fields() const { return untag()->packed_fields_; }
-  void set_packed_fields(uint32_t packed_fields) const;
-  static intptr_t packed_fields_offset() {
-    return OFFSET_OF(UntaggedFunctionType, packed_fields_);
+    return NumOptionalNamedParametersOf(ptr());
   }
 
-  // Reexported so they can be used by the flow graph builders.
-  using PackedNumParentTypeArguments =
-      UntaggedFunctionType::PackedNumParentTypeArguments;
-  using PackedHasNamedOptionalParameters =
-      UntaggedFunctionType::PackedHasNamedOptionalParameters;
-  using PackedNumFixedParameters =
-      UntaggedFunctionType::PackedNumFixedParameters;
-  using PackedNumOptionalParameters =
-      UntaggedFunctionType::PackedNumOptionalParameters;
+  static intptr_t NumParametersOf(FunctionTypePtr ptr) {
+    return NumFixedParametersOf(ptr) + NumOptionalParametersOf(ptr);
+  }
+  intptr_t NumParameters() const { return NumParametersOf(ptr()); }
+
+  uint32_t packed_parameter_counts() const {
+    return untag()->packed_parameter_counts_;
+  }
+  void set_packed_parameter_counts(uint32_t packed_parameter_counts) const;
+  static intptr_t packed_parameter_counts_offset() {
+    return OFFSET_OF(UntaggedFunctionType, packed_parameter_counts_);
+  }
+  uint16_t packed_type_parameter_counts() const {
+    return untag()->packed_type_parameter_counts_;
+  }
+  void set_packed_type_parameter_counts(uint16_t packed_parameter_counts) const;
+  static intptr_t packed_type_parameter_counts_offset() {
+    return OFFSET_OF(UntaggedFunctionType, packed_type_parameter_counts_);
+  }
 
   // Return the type parameter declared at index.
   TypeParameterPtr TypeParameterAt(
@@ -8485,20 +8534,24 @@ class FunctionType : public AbstractType {
   static intptr_t parameter_types_offset() {
     return OFFSET_OF(UntaggedFunctionType, parameter_types_);
   }
-  // Parameter names are valid for all valid parameter indices, and are not
-  // limited to named optional parameters. However, they are meaningless after
-  // canonicalization of the function type. Any particular signature may be
-  // selected as the canonical represent as the names are not part of the type.
+  // Parameter names are only stored for named parameters. If there are no named
+  // parameters, named_parameter_names() is null.
   // If there are parameter flags (eg required) they're stored at the end of
-  // this array, so the size of this array isn't necessarily NumParameters(),
-  // but the first NumParameters() elements are the names.
-  StringPtr ParameterNameAt(intptr_t index) const;
-  void SetParameterNameAt(intptr_t index, const String& value) const;
-  ArrayPtr parameter_names() const { return untag()->parameter_names(); }
-  void set_parameter_names(const Array& value) const;
-  static intptr_t parameter_names_offset() {
-    return OFFSET_OF(UntaggedFunctionType, parameter_names_);
+  // this array, so the size of this array isn't necessarily
+  // NumOptionalNamedParameters(), but the first NumOptionalNamedParameters()
+  // elements are the names.
+  ArrayPtr named_parameter_names() const {
+    return untag()->named_parameter_names();
   }
+  void set_named_parameter_names(const Array& value) const;
+  static intptr_t named_parameter_names_offset() {
+    return OFFSET_OF(UntaggedFunctionType, named_parameter_names_);
+  }
+  // The index for these operations is the absolute index of the parameter, not
+  // the index relative to the start of the named parameters (if any).
+  StringPtr ParameterNameAt(intptr_t index) const;
+  // Only valid for absolute indexes of named parameters.
+  void SetParameterNameAt(intptr_t index, const String& value) const;
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -8507,20 +8560,16 @@ class FunctionType : public AbstractType {
 
   // Sets up the signature's parameter name array, including appropriate space
   // for any possible parameter flags. This may be an overestimate if some
-  // parameters don't have flags, and so TruncateUnusedParameterFlags() should
+  // parameters don't have flags, and so FinalizeNameArray() should
   // be called after all parameter flags have been appropriately set.
   //
   // Assumes that the number of fixed and optional parameters for the signature
-  // has already been set.
-  void CreateNameArrayIncludingFlags(Heap::Space space) const;
+  // has already been set. Uses same default space as FunctionType::New.
+  void CreateNameArrayIncludingFlags(Heap::Space space = Heap::kOld) const;
 
   // Truncate the parameter names array to remove any unused flag slots. Make
   // sure to only do this after calling SetIsRequiredAt as necessary.
-  void TruncateUnusedParameterFlags() const;
-
-  // Finalize the name arrays by truncating the parameter name array and copying
-  // the names in the given function.
-  void FinalizeNameArrays(const Function& function) const;
+  void FinalizeNameArray() const;
 
   // Returns the length of the parameter names array that is required to store
   // all the names plus all their flags. This may be an overestimate if some
@@ -8532,13 +8581,9 @@ class FunctionType : public AbstractType {
   TypeParametersPtr type_parameters() const {
     return untag()->type_parameters();
   }
-  void set_type_parameters(const TypeParameters& value) const;
+  void SetTypeParameters(const TypeParameters& value) const;
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(UntaggedFunctionType, type_parameters_);
-  }
-  intptr_t NumTypeParameters(Thread* thread) const;
-  intptr_t NumTypeParameters() const {
-    return NumTypeParameters(Thread::Current());
   }
 
   // Returns true if this function type has the same number of type parameters
@@ -8549,7 +8594,10 @@ class FunctionType : public AbstractType {
                                       TrailPtr trail = nullptr) const;
 
   // Return true if this function type declares type parameters.
-  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
+  static bool IsGeneric(FunctionTypePtr ptr) {
+    return ptr->untag()->type_parameters() != TypeParameters::null();
+  }
+  bool IsGeneric() const { return IsGeneric(ptr()); }
 
   // Return true if any enclosing signature of this signature is generic.
   bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
@@ -8937,6 +8985,11 @@ class Smi : public Integer {
   static ClassPtr Class();
 
   static intptr_t Value(const SmiPtr raw_smi) { return RawSmiValue(raw_smi); }
+#if defined(DART_COMPRESSED_POINTERS)
+  static intptr_t Value(const CompressedSmiPtr raw_smi) {
+    return Smi::Value(static_cast<SmiPtr>(raw_smi.DecompressSmi()));
+  }
+#endif
 
   static intptr_t RawValue(intptr_t value) {
     return static_cast<intptr_t>(New(value));
@@ -9012,6 +9065,7 @@ class Mint : public Integer {
  protected:
   // Only Integer::NewXXX is allowed to call Mint::NewXXX directly.
   friend class Integer;
+  friend class MintMessageDeserializationCluster;
 
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
@@ -9064,14 +9118,17 @@ class Double : public Number {
   friend class Number;
 };
 
+// TODO(http://dartbug.com/46716): Recognize Symbol in the VM.
+class Symbol : public AllStatic {
+ public:
+  static bool IsSymbolCid(Thread* thread, classid_t class_id);
+
+  static uint32_t CanonicalizeHash(Thread* thread, const Instance& instance);
+};
+
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
@@ -9414,14 +9471,6 @@ class String : public Instance {
     ASSERT(hash_set == value);
   }
 
-  template <typename HandleType, typename ElementType, typename CallbackType>
-  static void ReadFromImpl(SnapshotReader* reader,
-                           String* str_obj,
-                           intptr_t len,
-                           intptr_t tags,
-                           CallbackType new_symbol,
-                           Snapshot::Kind kind);
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 
   friend class Class;
@@ -9591,20 +9640,14 @@ class OneByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
-  static OneByteStringPtr ReadFrom(SnapshotReader* reader,
-                                   intptr_t object_id,
-                                   intptr_t tags,
-                                   Snapshot::Kind kind,
-                                   bool as_reference);
-
   friend class Class;
   friend class ExternalOneByteString;
   friend class ImageWriter;
-  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
   friend class Symbols;
   friend class Utf8;
+  friend class OneByteStringMessageSerializationCluster;
 };
 
 class TwoByteString : public AllStatic {
@@ -9717,18 +9760,12 @@ class TwoByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
-  static TwoByteStringPtr ReadFrom(SnapshotReader* reader,
-                                   intptr_t object_id,
-                                   intptr_t tags,
-                                   Snapshot::Kind kind,
-                                   bool as_reference);
-
   friend class Class;
   friend class ImageWriter;
-  friend class SnapshotReader;
   friend class String;
   friend class StringHasher;
   friend class Symbols;
+  friend class TwoByteStringMessageSerializationCluster;
 };
 
 class ExternalOneByteString : public AllStatic {
@@ -9812,12 +9849,6 @@ class ExternalOneByteString : public AllStatic {
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
-  static ExternalOneByteStringPtr ReadFrom(SnapshotReader* reader,
-                                           intptr_t object_id,
-                                           intptr_t tags,
-                                           Snapshot::Kind kind,
-                                           bool as_reference);
-
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
@@ -9826,7 +9857,6 @@ class ExternalOneByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
   friend class Utf8;
 };
@@ -9908,12 +9938,6 @@ class ExternalTwoByteString : public AllStatic {
                        Dart_WeakPersistentHandle handle,
                        void* peer);
 
-  static ExternalTwoByteStringPtr ReadFrom(SnapshotReader* reader,
-                                           intptr_t object_id,
-                                           intptr_t tags,
-                                           Snapshot::Kind kind,
-                                           bool as_reference);
-
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
@@ -9922,7 +9946,6 @@ class ExternalTwoByteString : public AllStatic {
   friend class Class;
   friend class String;
   friend class StringHasher;
-  friend class SnapshotReader;
   friend class Symbols;
 };
 
@@ -9955,11 +9978,6 @@ class Bool : public Instance {
 
 class Array : public Instance {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   // Returns `true` if we use card marking for arrays of length [array_length].
   static bool UseCardMarkingForAllocation(const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
@@ -10158,6 +10176,7 @@ class Array : public Instance {
   friend class ImmutableArray;
   friend class Object;
   friend class String;
+  friend class MessageDeserializer;
 };
 
 class ImmutableArray : public AllStatic {
@@ -10167,12 +10186,6 @@ class ImmutableArray : public AllStatic {
   }
 
   static ImmutableArrayPtr New(intptr_t len, Heap::Space space = Heap::kNew);
-
-  static ImmutableArrayPtr ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind,
-                                    bool as_reference);
 
   static const ClassId kClassId = kImmutableArrayCid;
 
@@ -10514,11 +10527,6 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public TypedDataBase {
  public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
 
@@ -10788,17 +10796,21 @@ class ByteBuffer : public AllStatic {
 
   static InstancePtr Data(const Instance& view_obj) {
     ASSERT(!view_obj.IsNull());
-    return *reinterpret_cast<InstancePtr const*>(view_obj.untag() +
-                                                 kDataOffset);
+    return reinterpret_cast<CompressedInstancePtr*>(
+               reinterpret_cast<uword>(view_obj.untag()) + data_offset())
+        ->Decompress(view_obj.untag()->heap_base());
   }
 
-  static intptr_t NumberOfFields() { return kDataOffset; }
+  static intptr_t NumberOfFields() { return kNumFields; }
 
-  static intptr_t data_offset() { return kWordSize * kDataOffset; }
+  static intptr_t data_offset() {
+    return sizeof(UntaggedObject) + (kCompressedWordSize * kDataIndex);
+  }
 
  private:
   enum {
-    kDataOffset = 1,
+    kDataIndex = 0,
+    kNumFields = 1,
   };
 };
 
@@ -10827,8 +10839,6 @@ class Pointer : public Instance {
     return OFFSET_OF(UntaggedPointer, type_arguments_);
   }
 
-  static intptr_t NextFieldOffset() { return sizeof(UntaggedPointer); }
-
   static const intptr_t kNativeTypeArgPos = 0;
 
   // Fetches the NativeType type argument.
@@ -10838,7 +10848,7 @@ class Pointer : public Instance {
   }
 
  private:
-  HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Pointer, Instance);
 
   friend class Class;
 };
@@ -10872,11 +10882,50 @@ class DynamicLibrary : public Instance {
   friend class Class;
 };
 
+class LinkedHashBase : public Instance {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
+  }
+
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, type_arguments_);
+  }
+
+  static intptr_t index_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, index_);
+  }
+
+  static intptr_t data_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, data_);
+  }
+
+  static intptr_t hash_mask_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, hash_mask_);
+  }
+
+  static intptr_t used_data_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, used_data_);
+  }
+
+  static intptr_t deleted_keys_offset() {
+    return OFFSET_OF(UntaggedLinkedHashBase, deleted_keys_);
+  }
+
+ protected:
+  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
+  static const intptr_t kInitialIndexBits = 2;
+  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+
+  friend class Class;
+  friend class LinkedHashBaseDeserializationCluster;
+};
+
 // Corresponds to
 // - "new Map()",
 // - non-const map literals, and
 // - the default constructor of LinkedHashMap in dart:collection.
-class LinkedHashMap : public Instance {
+class LinkedHashMap : public LinkedHashBase {
  public:
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashMap));
@@ -10902,47 +10951,29 @@ class LinkedHashMap : public Instance {
     // as canonical. See for example tests/isolate/message3_test.dart.
     untag()->set_type_arguments(value.ptr());
   }
-  static intptr_t type_arguments_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, type_arguments_);
-  }
 
   TypedDataPtr index() const { return untag()->index(); }
   void SetIndex(const TypedData& value) const {
     ASSERT(!value.IsNull());
     untag()->set_index(value.ptr());
   }
-  static intptr_t index_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, index_);
-  }
 
   ArrayPtr data() const { return untag()->data(); }
   void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
-  static intptr_t data_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, data_);
-  }
 
   SmiPtr hash_mask() const { return untag()->hash_mask(); }
   void SetHashMask(intptr_t value) const {
     untag()->set_hash_mask(Smi::New(value));
-  }
-  static intptr_t hash_mask_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, hash_mask_);
   }
 
   SmiPtr used_data() const { return untag()->used_data(); }
   void SetUsedData(intptr_t value) const {
     untag()->set_used_data(Smi::New(value));
   }
-  static intptr_t used_data_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, used_data_);
-  }
 
   SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
   void SetDeletedKeys(intptr_t value) const {
     untag()->set_deleted_keys(Smi::New(value));
-  }
-  static intptr_t deleted_keys_offset() {
-    return OFFSET_OF(UntaggedLinkedHashMap, deleted_keys_);
   }
 
   intptr_t Length() const {
@@ -10994,11 +11025,7 @@ class LinkedHashMap : public Instance {
   };
 
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
-
-  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 2;
-  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, LinkedHashBase);
 
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
@@ -11006,6 +11033,113 @@ class LinkedHashMap : public Instance {
 
   friend class Class;
   friend class LinkedHashMapDeserializationCluster;
+};
+
+class LinkedHashSet : public LinkedHashBase {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLinkedHashSet));
+  }
+
+  // Allocates a set with some default capacity, just like "new Set()".
+  static LinkedHashSetPtr NewDefault(Heap::Space space = Heap::kNew);
+  static LinkedHashSetPtr New(const Array& data,
+                              const TypedData& index,
+                              intptr_t hash_mask,
+                              intptr_t used_data,
+                              intptr_t deleted_keys,
+                              Heap::Space space = Heap::kNew);
+
+  virtual TypeArgumentsPtr GetTypeArguments() const {
+    return untag()->type_arguments();
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
+    untag()->set_type_arguments(value.ptr());
+  }
+
+  TypedDataPtr index() const { return untag()->index(); }
+  void SetIndex(const TypedData& value) const {
+    ASSERT(!value.IsNull());
+    untag()->set_index(value.ptr());
+  }
+
+  ArrayPtr data() const { return untag()->data(); }
+  void SetData(const Array& value) const { untag()->set_data(value.ptr()); }
+
+  SmiPtr hash_mask() const { return untag()->hash_mask(); }
+  void SetHashMask(intptr_t value) const {
+    untag()->set_hash_mask(Smi::New(value));
+  }
+
+  SmiPtr used_data() const { return untag()->used_data(); }
+  void SetUsedData(intptr_t value) const {
+    untag()->set_used_data(Smi::New(value));
+  }
+
+  SmiPtr deleted_keys() const { return untag()->deleted_keys(); }
+  void SetDeletedKeys(intptr_t value) const {
+    untag()->set_deleted_keys(Smi::New(value));
+  }
+
+  intptr_t Length() const {
+    // The map may be uninitialized.
+    if (untag()->used_data() == Object::null()) return 0;
+    if (untag()->deleted_keys() == Object::null()) return 0;
+
+    intptr_t used = Smi::Value(untag()->used_data());
+    intptr_t deleted = Smi::Value(untag()->deleted_keys());
+    return used - deleted;
+  }
+
+  // This iterator differs somewhat from its Dart counterpart (_CompactIterator
+  // in runtime/lib/compact_hash.dart):
+  //  - There are no checks for concurrent modifications.
+  //  - Accessing a key or value before the first call to MoveNext and after
+  //    MoveNext returns false will result in crashes.
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const LinkedHashSet& set)
+        : data_(Array::Handle(set.data())),
+          scratch_(Object::Handle()),
+          offset_(-1),
+          length_(Smi::Value(set.used_data())) {}
+
+    bool MoveNext() {
+      while (true) {
+        offset_++;
+        if (offset_ >= length_) {
+          return false;
+        }
+        scratch_ = data_.At(offset_);
+        if (scratch_.ptr() != data_.ptr()) {
+          // Slot is not deleted (self-reference indicates deletion).
+          return true;
+        }
+      }
+    }
+
+    ObjectPtr CurrentKey() const { return data_.At(offset_); }
+
+   private:
+    const Array& data_;
+    Object& scratch_;
+    intptr_t offset_;
+    const intptr_t length_;
+  };
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet, LinkedHashBase);
+
+  // Allocate a set, but leave all fields set to null.
+  // Used during deserialization (since set might contain itself as key/value).
+  static LinkedHashSetPtr NewUninitialized(Heap::Space space = Heap::kNew);
+
+  friend class Class;
 };
 
 class Closure : public Instance {
@@ -11054,20 +11188,23 @@ class Closure : public Instance {
   static intptr_t function_offset() {
     return OFFSET_OF(UntaggedClosure, function_);
   }
-
-  FunctionTypePtr signature() const {
-    return untag()->function()->untag()->signature();
+  static FunctionPtr FunctionOf(ClosurePtr closure) {
+    return closure.untag()->function();
   }
 
   ContextPtr context() const { return untag()->context(); }
   static intptr_t context_offset() {
     return OFFSET_OF(UntaggedClosure, context_);
   }
+  static ContextPtr ContextOf(ClosurePtr closure) {
+    return closure.untag()->context();
+  }
 
-  bool IsGeneric(Thread* thread) const { return NumTypeParameters(thread) > 0; }
-  intptr_t NumTypeParameters(Thread* thread) const;
-  // No need for num_parent_type_arguments, as a closure is always closed
-  // over its parents type parameters (i.e., function_type_parameters() above).
+  // Returns whether the closure is generic, that is, it has a generic closure
+  // function and no delayed type arguments.
+  bool IsGeneric() const {
+    return delayed_type_arguments() == Object::empty_type_arguments().ptr();
+  }
 
   SmiPtr hash() const { return untag()->hash(); }
   static intptr_t hash_offset() { return OFFSET_OF(UntaggedClosure, hash_); }
@@ -11785,17 +11922,6 @@ void MegamorphicCache::SetEntry(const Array& array,
                                 const Object& target) {
   ASSERT(target.IsNull() || target.IsFunction() || target.IsSmi());
   array.SetAt((index * kEntryLength) + kClassIdIndex, class_id);
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    if (target.IsFunction()) {
-      const auto& function = Function::Cast(target);
-      const auto& entry_point = Smi::Handle(
-          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
-      array.SetAt((index * kEntryLength) + kTargetFunctionIndex, entry_point);
-      return;
-    }
-  }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 

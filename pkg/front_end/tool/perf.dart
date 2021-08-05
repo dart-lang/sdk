@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 /// An entrypoint used to run portions of analyzer and measure its performance.
 ///
 /// TODO(sigmund): rename to 'analyzer_perf.dart' in sync with changes to the
@@ -80,7 +78,7 @@ Stopwatch scanTimer = new Stopwatch();
 int inputSize = 0;
 
 /// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
+late SourceFactory sources;
 
 /// Path to the root of the built SDK that is being used to execute this script.
 final _sdkPath = _findSdkPath();
@@ -91,7 +89,7 @@ void collectSources(Source start, Set<Source> files) {
   var unit = parseDirectives(start);
   for (var directive in unit.directives) {
     if (directive is UriBasedDirective) {
-      var next = sources.resolveUri(start, directive.uri.stringValue);
+      var next = sources.resolveUri(start, directive.uri.stringValue)!;
       collectSources(next, files);
     }
   }
@@ -164,7 +162,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   var files = new Set<Source>();
   var loadTimer = new Stopwatch()..start();
   scanTimer = new Stopwatch();
-  collectSources(sources.forUri2(entryUri), files);
+  collectSources(sources.forUri2(entryUri)!, files);
 
   var libs = [
     'dart:async',
@@ -181,7 +179,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   ];
 
   for (var lib in libs) {
-    collectSources(sources.forUri(lib), files);
+    collectSources(sources.forUri(lib)!, files);
   }
 
   loadTimer.stop();
@@ -231,7 +229,7 @@ Token tokenize(Source source) {
   if (result.hasErrors) {
     // Ignore errors.
     while (token is ErrorToken) {
-      token = token.next;
+      token = token.next!;
     }
   }
   scanTimer.stop();

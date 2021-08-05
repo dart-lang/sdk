@@ -11,8 +11,30 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveInterpolationBracesBulkTest);
     defineReflectiveTests(RemoveInterpolationBracesTest);
   });
+}
+
+@reflectiveTest
+class RemoveInterpolationBracesBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_brace_in_string_interps;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode(r'''
+main() {
+  var v = 42;
+  print('v: ${ v}, ${ v}');
+}
+''');
+    await assertHasFix(r'''
+main() {
+  var v = 42;
+  print('v: $v, $v');
+}
+''');
+  }
 }
 
 @reflectiveTest

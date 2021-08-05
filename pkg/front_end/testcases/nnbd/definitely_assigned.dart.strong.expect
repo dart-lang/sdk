@@ -70,13 +70,13 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   local2 = value;
   local4 = 0;
   local6 = 0;
-  let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in local2 = value;
-  let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in local4 = 0;
-  let final Never #t3 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 };
@@ -92,20 +92,20 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   local2 = value;
   local4 = 0;
   local6 = 0;
-  let final Never #t4 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in local2 = value;
-  let final Never #t5 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in local4 = 0;
-  let final Never #t6 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 };
 static field () → Null fieldCompound = () → Null {
   late final core::int local4;
   local4 = 0;
-  let final Never #t7 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^" in local4 = local4.{core::num::+}(0){(core::num) → core::int};
 };
@@ -116,13 +116,13 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   local2 = value;
   local4 = 0;
   local6 = 0;
-  let final Never #t8 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in local2 = value;
-  let final Never #t9 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in local4 = 0;
-  let final Never #t10 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 }
@@ -138,20 +138,20 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   local2 = value;
   local4 = 0;
   local6 = 0;
-  let final Never #t11 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
   ^^^^^^" in local2 = value;
-  let final Never #t12 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
   ^^^^^^" in local4 = 0;
-  let final Never #t13 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
   ^^^^^^" in local6 = 0;
 }
 static method methodCompound() → dynamic {
   late final core::int local4;
   local4 = 0;
-  let final Never #t14 = invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/nnbd/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
   ^^^^^^" in local4 = local4.{core::num::+}(0){(core::num) → core::int};
 }

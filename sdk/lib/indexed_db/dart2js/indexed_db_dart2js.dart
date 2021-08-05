@@ -61,8 +61,6 @@
  * basic mechanism that stores data as a [Map],
  * and where both the keys and the values are strings.
  *
- * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- *
  * MDN provides [API
  * documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
  *
@@ -91,13 +89,11 @@ class _KeyRangeFactoryProvider {
   static KeyRange createKeyRange_only(/*Key*/ value) =>
       _only(_class(), _translateKey(value));
 
-  static KeyRange createKeyRange_lowerBound(
-          /*Key*/ bound,
+  static KeyRange createKeyRange_lowerBound(/*Key*/ bound,
           [bool open = false]) =>
       _lowerBound(_class(), _translateKey(bound), open);
 
-  static KeyRange createKeyRange_upperBound(
-          /*Key*/ bound,
+  static KeyRange createKeyRange_upperBound(/*Key*/ bound,
           [bool open = false]) =>
       _upperBound(_class(), _translateKey(bound), open);
 

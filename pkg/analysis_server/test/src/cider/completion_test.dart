@@ -35,7 +35,7 @@ class A {}
 
 int a = 0;
 
-main(int b) {
+void f(int b) {
   int c = 0;
   ^
 }
@@ -52,7 +52,7 @@ main(int b) {
 
   Future<void> test_compute_performance_operations() async {
     await _compute(r'''
-main() {
+void f() {
   ^
 }
 ''');
@@ -93,7 +93,7 @@ class A {
   String foobar;
 }
 
-main(A a) {
+void f(A a) {
   a.foo^
 }
 ''');
@@ -234,7 +234,7 @@ void foo(^a) {}
 
   Future<void> test_filterSort_byPattern_location_statement() async {
     await _compute(r'''
-main() {
+void f() {
   F^
   0;
 }
@@ -302,7 +302,7 @@ voif f() {
   Future<void> test_filterSort_preferLocal() async {
     await _compute(r'''
 var a = 0;
-main() {
+void f() {
   var b = 0;
   var v = ^;
 }
@@ -316,7 +316,7 @@ main() {
 
   Future<void> test_filterSort_sortByName() async {
     await _compute(r'''
-main() {
+void f() {
   var a = 0;
   var b = 0;
   var v = ^;
@@ -806,7 +806,7 @@ import 'a.dart';
   /// for completion we don't resolve unnecessary node.
   void _configureToCheckNotResolved({required Set<String> identifiers}) {
     _testResolvedUnit = (resolvedUnitResult) {
-      var unit = resolvedUnitResult.unit!;
+      var unit = resolvedUnitResult.unit;
       unit.accept(
         FunctionAstVisitor(
           simpleIdentifier: (node) {

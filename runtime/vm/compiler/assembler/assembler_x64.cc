@@ -1876,6 +1876,24 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
+#if defined(USING_THREAD_SANITIZER)
+void Assembler::TsanLoadAcquire(Address addr) {
+  PushRegisters(kVolatileRegisterSet);
+  leaq(CallingConventions::kArg1Reg, addr);
+  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
+  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  PopRegisters(kVolatileRegisterSet);
+}
+
+void Assembler::TsanStoreRelease(Address addr) {
+  PushRegisters(kVolatileRegisterSet);
+  leaq(CallingConventions::kArg1Reg, addr);
+  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
+  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+  PopRegisters(kVolatileRegisterSet);
+}
+#endif
+
 void Assembler::RestoreCodePointer() {
   movq(CODE_REG,
        Address(RBP, target::frame_layout.code_from_fp * target::kWordSize));

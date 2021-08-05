@@ -138,9 +138,9 @@ class BaseDependencyTest extends PubPackageResolutionTest {
 
   Future<List<CompilationUnit>> _resolveLibrary(String libraryPath) async {
     var session = contextFor(libraryPath).currentSession;
-    var resolvedLibrary = await session.getResolvedLibrary2(libraryPath);
+    var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
     resolvedLibrary as ResolvedLibraryResult;
-    return resolvedLibrary.units!.map((ru) => ru.unit!).toList();
+    return resolvedLibrary.units.map((ru) => ru.unit).toList();
   }
 }
 

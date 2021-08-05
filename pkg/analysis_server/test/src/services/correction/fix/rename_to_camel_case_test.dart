@@ -11,8 +11,40 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RenameToCamelCaseBulkTest);
     defineReflectiveTests(RenameToCamelCaseTest);
   });
+}
+
+@reflectiveTest
+class RenameToCamelCaseBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.non_constant_identifier_names;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+main() {
+  int my_integer_variable = 42;
+  int foo;
+  print(my_integer_variable);
+  print(foo);
+  [0, 1, 2].forEach((my_integer_variable) {
+    print(my_integer_variable);
+  });
+}
+''');
+    await assertHasFix('''
+main() {
+  int myIntegerVariable = 42;
+  int foo;
+  print(myIntegerVariable);
+  print(foo);
+  [0, 1, 2].forEach((myIntegerVariable) {
+    print(myIntegerVariable);
+  });
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -25,7 +57,7 @@ class RenameToCamelCaseTest extends FixProcessorLintTest {
 
   Future<void> test_localVariable() async {
     await resolveTestCode('''
-main() {
+void f() {
   int my_integer_variable = 42;
   int foo = 0;
   print(my_integer_variable);
@@ -33,7 +65,7 @@ main() {
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   int myIntegerVariable = 42;
   int foo = 0;
   print(myIntegerVariable);
@@ -44,14 +76,14 @@ main() {
 
   Future<void> test_parameter_closure() async {
     await resolveTestCode('''
-main() {
+void f() {
   [0, 1, 2].forEach((my_integer_variable) {
     print(my_integer_variable);
   });
 }
 ''');
     await assertHasFix('''
-main() {
+void f() {
   [0, 1, 2].forEach((myIntegerVariable) {
     print(myIntegerVariable);
   });
@@ -75,14 +107,14 @@ void f(int myIntegerVariable) {
   Future<void> test_parameter_method() async {
     await resolveTestCode('''
 class A {
-  main(int my_integer_variable) {
+  void f(int my_integer_variable) {
     print(my_integer_variable);
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  main(int myIntegerVariable) {
+  void f(int myIntegerVariable) {
     print(myIntegerVariable);
   }
 }

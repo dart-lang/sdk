@@ -62,7 +62,7 @@ class SignatureHelpHandler
       // signature help for that.
       final typeArgsSignature = _tryGetTypeArgsSignatureHelp(
         dartDocInfo,
-        unit.result.unit!,
+        unit.result.unit,
         offset,
         autoTriggered,
         formats,
@@ -72,7 +72,7 @@ class SignatureHelpHandler
       }
 
       final computer =
-          DartUnitSignatureComputer(dartDocInfo, unit.result.unit!, offset);
+          DartUnitSignatureComputer(dartDocInfo, unit.result.unit, offset);
       if (!computer.offsetIsValid) {
         return success(null); // No error, just no valid hover.
       }

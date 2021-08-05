@@ -9,7 +9,7 @@
 class B {}
 
 confuse(x) {
-  if (new DateTime.now() == 42) return confuse(x);
+  if (DateTime.now().millisecondsSinceEpoch == 42) return confuse(x);
   return x;
 }
 

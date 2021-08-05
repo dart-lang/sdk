@@ -74,8 +74,8 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
   Future<void> resolveTestFile() async {
     var path = convertPath(_testFile);
     result = await resolveFile(path);
-    findNode = FindNode(result.content!, result.unit!);
-    findElement = FindElement(result.unit!);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   void setUp() {

@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.dill_target;
-
-import 'package:front_end/src/fasta/builder/library_builder.dart'
-    show LibraryBuilder;
 
 import 'package:kernel/ast.dart' show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../builder/class_builder.dart';
+
+import '../builder/library_builder.dart' show LibraryBuilder;
 
 import '../problems.dart' show unsupported;
 
@@ -35,7 +32,7 @@ class DillTarget extends TargetImplementation {
 
   bool isLoaded = false;
 
-  DillLoader loader;
+  late final DillLoader loader;
 
   DillTarget(Ticker ticker, UriTranslator uriTranslator, Target backendTarget)
       : super(ticker, uriTranslator, backendTarget) {
@@ -67,14 +64,16 @@ class DillTarget extends TargetImplementation {
   DillLibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
-      Uri packageUri,
+      Uri? packageUri,
       LanguageVersion packageLanguageVersion,
-      LibraryBuilder origin,
-      Library referencesFrom,
-      bool referenceIsPartOwner) {
+      LibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner) {
     assert(origin == null);
     assert(referencesFrom == null);
-    DillLibraryBuilder libraryBuilder = libraryBuilders.remove(uri);
+    DillLibraryBuilder libraryBuilder =
+        libraryBuilders.remove(uri) as DillLibraryBuilder;
+    // ignore: unnecessary_null_comparison
     assert(libraryBuilder != null, "No library found for $uri.");
     return libraryBuilder;
   }

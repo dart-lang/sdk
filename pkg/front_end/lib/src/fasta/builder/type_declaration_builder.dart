@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
@@ -16,17 +14,24 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 abstract class TypeDeclarationBuilder implements ModifierBuilder {
+  @override
+  String get name;
+
   bool get isNamedMixinApplication;
 
-  void set parent(Builder value);
+  void set parent(Builder? value);
 
-  List<MetadataBuilder> get metadata;
+  List<MetadataBuilder>? get metadata;
 
   int get typeVariablesCount => 0;
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]);
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext});
+
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext});
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
@@ -36,7 +41,7 @@ abstract class TypeDeclarationBuilder implements ModifierBuilder {
 abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
     implements TypeDeclarationBuilder {
   @override
-  final List<MetadataBuilder> metadata;
+  final List<MetadataBuilder>? metadata;
 
   @override
   final int modifiers;
@@ -45,10 +50,10 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
   final String name;
 
   TypeDeclarationBuilderImpl(
-      this.metadata, this.modifiers, this.name, Builder parent, int charOffset,
-      [Uri fileUri])
+      this.metadata, this.modifiers, this.name, Builder? parent, int charOffset)
+      // ignore: unnecessary_null_comparison
       : assert(modifiers != null),
-        super(parent, charOffset, fileUri);
+        super(parent, charOffset);
 
   @override
   bool get isNamedMixinApplication => false;
@@ -61,4 +66,12 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
 
   @override
   int get typeVariablesCount => 0;
+
+  @override
+  DartType buildTypeLiteralType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
+    return buildType(library, nullabilityBuilder, arguments,
+        nonInstanceContext: nonInstanceContext);
+  }
 }

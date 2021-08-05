@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
@@ -105,6 +107,9 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// yet been made.
   DartDevelopmentService? _dds;
 
+  /// Whether to use IPv6 for DAP/Debugger services.
+  final bool ipv6;
+
   /// Whether to enable DDS for launched applications.
   final bool enableDds;
 
@@ -119,8 +124,20 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// have been called.
   late final bool isAttach;
 
+  /// A list of all possible project paths that should be considered the users
+  /// own code.
+  ///
+  /// This is made up of the folder containing the 'program' being executed, the
+  /// 'cwd' and any 'additionalProjectPaths' from the launch arguments.
+  late final List<String> projectPaths = [
+    args.cwd,
+    path.dirname(args.program),
+    ...?args.additionalProjectPaths,
+  ].whereNotNull().toList();
+
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
+    this.ipv6 = false,
     this.enableDds = true,
     this.enableAuthCodes = true,
     this.logger,
@@ -134,6 +151,9 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// race conditions (for example if an isolate unpauses before we have
   /// processed its initial paused state).
   Future<void> get debuggerInitialized => _debuggerInitializedCompleter.future;
+
+  bool get evaluateToStringInDebugViews =>
+      args.evaluateToStringInDebugViews ?? false;
 
   /// [attachRequest] is called by the client when it wants us to to attach to
   /// an existing app. This will only be called once (and only one of this or
@@ -194,8 +214,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       logger?.call('Starting a DDS instance for $uri');
       final dds = await DartDevelopmentService.startDartDevelopmentService(
         uri,
-        // TODO(dantup): Allow this to be disabled?
-        enableAuthCodes: true,
+        enableAuthCodes: enableAuthCodes,
+        ipv6: ipv6,
       );
       _dds = dds;
       uri = dds.wsUri!;
@@ -314,6 +334,15 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         sendResponse(protocols?.toJson());
         break;
 
+      /// Used to toggle debug settings such as whether SDK/Packages are
+      /// debuggable while the session is in progress.
+      case 'updateDebugOptions':
+        if (args != null) {
+          await _updateDebugOptions(args.args);
+        }
+        sendResponse(null);
+        break;
+
       default:
         await super.customRequest(request, args, sendResponse);
     }
@@ -417,7 +446,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       final resultString = await _converter.convertVmInstanceRefToDisplayString(
         thread,
         result,
-        allowCallingToString: true,
+        allowCallingToString: evaluateToStringInDebugViews,
       );
       // TODO(dantup): We may need to store `expression` with this data
       // to allow building nested evaluateNames.
@@ -516,6 +545,12 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
   }
+
+  /// Resolves a `package: URI` to the real underlying source path.
+  ///
+  /// Returns `null` if no mapping was possible, for example if the package is
+  /// not in the package mapping file.
+  String? resolvePackageUri(Uri uri) => _converter.resolvePackageUri(uri);
 
   /// [scopesRequest] is called by the client to request all of the variables
   /// scopes available for a given stack frame.
@@ -699,7 +734,10 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       // The VM doesn't support fetching an arbitrary slice of frames, only a
       // maximum limit, so if the client asks for frames 20-30 we must send a
       // request for the first 30 and trim them ourselves.
-      final limit = startFrame + numFrames;
+
+      // DAP says if numFrames is 0 or missing (which we swap to 0 above) we
+      // should return all.
+      final limit = numFrames == 0 ? null : startFrame + numFrames;
       final stack = await vmService?.getStack(thread.isolate.id!, limit: limit);
       final frames = stack?.frames;
 
@@ -804,6 +842,18 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse(ThreadsResponseBody(threads: threads));
   }
 
+  /// Sets the package config file to use for `package: URI` resolution.
+  ///
+  /// TODO(dantup): Remove this once
+  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
+  ///   necessary.
+  void usePackageConfigFile(File packageConfig) {
+    _converter.packageConfig = PackageConfig.parseString(
+      packageConfig.readAsStringSync(),
+      Uri.file(packageConfig.path),
+    );
+  }
+
   /// [variablesRequest] is called by the client to request child variables for
   /// a given variables variablesReference.
   ///
@@ -841,7 +891,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
             thread,
             variable.value,
             name: variable.name,
-            allowCallingToString: index <= maxToStringsPerEvaluation,
+            allowCallingToString: evaluateToStringInDebugViews &&
+                index <= maxToStringsPerEvaluation,
           );
         }
 
@@ -867,6 +918,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
+          allowCallingToString: evaluateToStringInDebugViews,
           startItem: childStart,
           numItems: childCount,
         ));
@@ -968,8 +1020,15 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       if (ref == null || ref.kind == vm.InstanceKind.kNull) {
         return null;
       }
-      // TODO(dantup): This should handle truncation and complex types.
-      return ref.valueAsString;
+      return _converter.convertVmInstanceRefToDisplayString(
+        thread,
+        ref,
+        // Always allow calling toString() here as the user expects the full
+        // string they logged regardless of the evaluateToStringInDebugViews
+        // setting.
+        allowCallingToString: true,
+        includeQuotesAroundString: false,
+      );
     }
 
     var loggerName = await asString(record.loggerName);
@@ -983,13 +1042,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     final prefix = '[$loggerName] ';
 
     if (message != null) {
-      sendPrefixedOutput('stdout', prefix, '$message\n');
+      sendPrefixedOutput('console', prefix, '$message\n');
     }
     if (error != null) {
-      sendPrefixedOutput('stderr', prefix, '$error\n');
+      sendPrefixedOutput('console', prefix, '$error\n');
     }
     if (stack != null) {
-      sendPrefixedOutput('stderr', prefix, '$stack\n');
+      sendPrefixedOutput('console', prefix, '$stack\n');
     }
   }
 
@@ -1005,7 +1064,29 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.
     final debug = !(args.noDebug ?? false);
-    _isolateManager.setDebugEnabled(debug);
+    _isolateManager.debug = debug;
+    _isolateManager.debugSdkLibraries = args.debugSdkLibraries ?? true;
+    _isolateManager.debugExternalPackageLibraries =
+        args.debugExternalPackageLibraries ?? true;
+  }
+
+  /// Updates the current debug options for the session.
+  ///
+  /// Clients may not know about all debug options, so anything not included
+  /// in the map will not be updated by this method.
+  Future<void> _updateDebugOptions(Map<String, Object?> args) async {
+    // TODO(dantup): Document this - it's a public API we expect to be used
+    //   by editors that can support it (although it will require custom
+    //   code as it's there's no DAP standard for this, or the settings it
+    //   toggles).
+    if (args.containsKey('debugSdkLibraries')) {
+      _isolateManager.debugSdkLibraries = args['debugSdkLibraries'] as bool;
+    }
+    if (args.containsKey('debugExternalPackageLibraries')) {
+      _isolateManager.debugExternalPackageLibraries =
+          args['debugExternalPackageLibraries'] as bool;
+    }
+    await _isolateManager.applyDebugOptions();
   }
 
   /// A wrapper around the same name function from package:vm_service that
@@ -1057,6 +1138,14 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   final List<String>? vmAdditionalArgs;
   final bool? enableAsserts;
 
+  /// Paths that should be considered the users local code.
+  ///
+  /// These paths will generally be all of the open folders in the users editor
+  /// and are used to determine whether a library is "external" or not to
+  /// support debugging "just my code" where SDK/Pub package code will be marked
+  /// as not-debuggable.
+  final List<String>? additionalProjectPaths;
+
   /// Whether SDK libraries should be marked as debuggable.
   ///
   /// Treated as `false` if null, which means "step in" will not step into SDK
@@ -1105,6 +1194,7 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
     this.vmServicePort,
     this.vmAdditionalArgs,
     this.enableAsserts,
+    this.additionalProjectPaths,
     this.debugSdkLibraries,
     this.debugExternalPackageLibraries,
     this.evaluateGettersInDebugViews,
@@ -1120,6 +1210,8 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
         vmServicePort = obj['vmServicePort'] as int?,
         vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         enableAsserts = obj['enableAsserts'] as bool?,
+        additionalProjectPaths =
+            (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
         debugExternalPackageLibraries =
             obj['debugExternalPackageLibraries'] as bool?,
@@ -1140,6 +1232,8 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,
+        if (additionalProjectPaths != null)
+          'additionalProjectPaths': additionalProjectPaths,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
         if (debugExternalPackageLibraries != null)
           'debugExternalPackageLibraries': debugExternalPackageLibraries,

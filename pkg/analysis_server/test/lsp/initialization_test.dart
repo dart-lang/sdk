@@ -26,7 +26,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     Method method,
   ) {
     return TextDocumentRegistrationOptions.fromJson(
-        registrationFor(registrations, method)?.registerOptions);
+        registrationFor(registrations, method)?.registerOptions
+            as Map<String, Object?>);
   }
 
   Future<void> test_bazelWorkspace() async {
@@ -64,14 +65,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       ),
     );
 
-    final initResult = InitializeResult.fromJson(initResponse.result);
+    final initResult =
+        InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
     // Check Dart-only registration.
     final dartRegistration =
         registrationForDart(registrations, Method.textDocument_completion);
     final dartOptions = CompletionRegistrationOptions.fromJson(
-        dartRegistration.registerOptions);
+        dartRegistration.registerOptions as Map<String, Object?>);
     expect(dartOptions.documentSelector, hasLength(1));
     expect(dartOptions.documentSelector![0].language, dartLanguageId);
     expect(dartOptions.triggerCharacters, isNotEmpty);
@@ -81,7 +83,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         r.method == Method.textDocument_completion.toJson() &&
         r != dartRegistration);
     final nonDartOptions = CompletionRegistrationOptions.fromJson(
-        nonDartRegistration.registerOptions);
+        nonDartRegistration.registerOptions as Map<String, Object?>);
     final otherLanguages = nonDartOptions.documentSelector!
         .map((selector) => selector.language)
         .toList();
@@ -109,7 +111,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Because we support dynamic registration for synchronization, we won't send
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
-    final initResult = InitializeResult.fromJson(initResponse.result);
+    final initResult =
+        InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.serverInfo!.name, 'Dart SDK LSP Analysis Server');
     expect(initResult.serverInfo!.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
@@ -123,7 +126,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         registrationOptionsFor(registrations, Method.textDocument_didChange);
     final rename = FileOperationRegistrationOptions.fromJson(
         registrationFor(registrations, Method.workspace_willRenameFiles)
-            ?.registerOptions);
+            ?.registerOptions as Map<String, Object?>);
     expect(registrationOptionsFor(registrations, Method.textDocument_didOpen),
         isNotNull);
     expect(registrationOptionsFor(registrations, Method.textDocument_didClose),
@@ -164,7 +167,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final initResponse = await initialize();
     await pumpEventQueue();
 
-    final initResult = InitializeResult.fromJson(initResponse.result);
+    final initResult =
+        InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
     // When dynamic registration is not supported, we will always statically
     // request text document open/close and incremental updates.
@@ -229,7 +233,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       ),
     );
 
-    final initResult = InitializeResult.fromJson(initResponse.result);
+    final initResult =
+        InitializeResult.fromJson(initResponse.result as Map<String, Object?>);
     expect(initResult.capabilities, isNotNull);
 
     // Ensure no static registrations. This list should include all server equivilents
@@ -289,9 +294,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         ..interestingFiles = ['*.foo'];
       pluginManager.pluginsChangedController.add(null);
     });
-    final unregistrations =
-        UnregistrationParams.fromJson(unregisterRequest.params)
-            .unregisterations;
+    final unregistrations = UnregistrationParams.fromJson(
+            unregisterRequest.params as Map<String, Object?>)
+        .unregisterations;
 
     // folding method should have been unregistered as the server now supports
     // *.foo files for it as well.
@@ -321,7 +326,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         .firstWhere((r) => r.method == Method.client_unregisterCapability)
         .then((request) {
       respondTo(request, null);
-      return UnregistrationParams.fromJson(request.params).unregisterations;
+      return UnregistrationParams.fromJson(
+              request.params as Map<String, Object?>)
+          .unregisterations;
     });
 
     final request = await expectRequest(Method.client_registerCapability, () {
@@ -332,7 +339,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     });
 
     final registrations =
-        RegistrationParams.fromJson(request.params).registrations;
+        RegistrationParams.fromJson(request.params as Map<String, Object?>)
+            .registrations;
 
     final documentFilterSql =
         DocumentFilter(scheme: 'file', pattern: '**/*.sql');
@@ -343,7 +351,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       contains(isA<Registration>()
           .having((r) => r.method, 'method', 'textDocument/foldingRange')
           .having(
-            (r) => TextDocumentRegistrationOptions.fromJson(r.registerOptions)
+            (r) => TextDocumentRegistrationOptions.fromJson(
+                    r.registerOptions as Map<String, Object?>)
                 .documentSelector,
             'registerOptions.documentSelector',
             containsAll([documentFilterSql, documentFilterDart]),
@@ -483,7 +492,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(response.result, isNotNull);
     expect(InitializeResult.canParse(response.result, nullLspJsonReporter),
         isTrue);
-    final result = InitializeResult.fromJson(response.result);
+    final result =
+        InitializeResult.fromJson(response.result as Map<String, Object?>);
     expect(result.capabilities, isNotNull);
     // Check some basic capabilities that are unlikely to change.
     expect(result.capabilities.textDocumentSync, isNotNull);

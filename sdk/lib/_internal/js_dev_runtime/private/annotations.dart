@@ -59,17 +59,6 @@ class _Undefined {
 /// of a variable with null
 const nullCheck = _NullCheck();
 
-/// Tells the optimizing compiler that the annotated method cannot throw.
-/// Requires @NoInline() to function correctly.
-class NoThrows {
-  const NoThrows();
-}
-
-/// Tells the optimizing compiler to not inline the annotated method.
-class NoInline {
-  const NoInline();
-}
-
 /// Marks a class as native and defines its JavaScript name(s).
 class Native {
   final String name;

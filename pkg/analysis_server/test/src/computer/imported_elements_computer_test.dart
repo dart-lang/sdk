@@ -471,9 +471,9 @@ bool randomBool() {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
     newFile(sourcePath, content: content);
     var result =
-        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
     var computer = ImportedElementsComputer(
-        result.unit!, content.indexOf(selection), selection.length);
+        result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();
   }
 }

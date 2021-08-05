@@ -40,8 +40,7 @@ import 'dart:_js_helper'
         throwConcurrentModificationError,
         lookupAndCacheInterceptor,
         StringMatch,
-        firstMatchAfter,
-        NoInline;
+        firstMatchAfter;
 
 import 'dart:_foreign_helper'
     show

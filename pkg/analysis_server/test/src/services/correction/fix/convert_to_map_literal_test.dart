@@ -11,8 +11,26 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToMapLiteralBulkTest);
     defineReflectiveTests(ConvertToMapLiteralTest);
   });
+}
+
+@reflectiveTest
+class ConvertToMapLiteralBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_collection_literals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+Map m = Map();
+var m2 = Map<String, int>();
+''');
+    await assertHasFix('''
+Map m = {};
+var m2 = <String, int>{};
+''');
+  }
 }
 
 @reflectiveTest

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Verifies that Transferable (external old space) objects are promptly gc'ed.
 // The test will run out of ia32 3GB heap allocation if objects are not gc'ed.
 

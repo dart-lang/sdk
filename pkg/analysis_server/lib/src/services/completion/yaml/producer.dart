@@ -176,9 +176,11 @@ abstract class Producer {
   const Producer();
 
   /// A utility method used to create a suggestion for the [identifier].
-  CompletionSuggestion identifier(String identifier, {int relevance = 1000}) =>
+  CompletionSuggestion identifier(String identifier,
+          {int relevance = 1000, String? docComplete}) =>
       CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, relevance,
-          identifier, identifier.length, 0, false, false);
+          identifier, identifier.length, 0, false, false,
+          docComplete: docComplete);
 
   /// A utility method used to create a suggestion for the package [packageName].
   CompletionSuggestion packageName(String packageName,

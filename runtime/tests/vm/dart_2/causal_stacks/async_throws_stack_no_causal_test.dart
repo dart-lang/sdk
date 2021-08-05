@@ -4,6 +4,8 @@
 //
 // VMOptions=--no-lazy-async-stacks
 
+// @dart = 2.9
+
 import 'dart:async';
 
 import 'utils.dart';

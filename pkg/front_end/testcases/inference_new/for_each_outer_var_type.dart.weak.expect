@@ -61,24 +61,24 @@ static method test() → dynamic async {
     b = #t4 as{TypeError} self::B*;
   }
   for (final self::A* #t5 in iterable) {
-    i = let final Never* #t6 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+    i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i in iterable) {}
          ^" in #t5 as{TypeError} core::int*;
   }
-  await for (final self::A* #t7 in stream) {
-    i = let final Never* #t8 = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:16: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+  await for (final self::A* #t6 in stream) {
+    i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:16: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   await for (i in stream) {}
-               ^" in #t7 as{TypeError} core::int*;
+               ^" in #t6 as{TypeError} core::int*;
   }
-  for (final self::A* #t9 in self::f<core::Iterable<self::A*>*>()) {
-    a = #t9;
+  for (final self::A* #t7 in self::f<core::Iterable<self::A*>*>()) {
+    a = #t7;
   }
-  await for (final self::A* #t10 in self::f<asy::Stream<self::A*>*>()) {
-    a = #t10;
+  await for (final self::A* #t8 in self::f<asy::Stream<self::A*>*>()) {
+    a = #t8;
   }
 }
 static method main() → dynamic {}

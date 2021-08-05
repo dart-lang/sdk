@@ -10,7 +10,7 @@
 import "package:expect/expect.dart";
 
 class C<T> {
-  final T value;
+  final T x;
   C(this.x);
   C.named(this.x);
 }
@@ -55,7 +55,7 @@ void main() {
   Expect.identical(e2, co);
   Expect.identical(e3, ci);
 
-  (<T>() {
+  (<T extends num>() {
     // Using a non-constant type.
     Expect.equals(Direct<T>, ci);
     Expect.equals(Bounded<T>, ci);

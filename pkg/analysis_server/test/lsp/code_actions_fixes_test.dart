@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -349,6 +351,111 @@ ProcessInfo b;
 
     final codeActions = await getCodeActions(otherFileUri.toString());
     expect(codeActions, isEmpty);
+  }
+
+  Future<void> test_plugin() async {
+    // This code should get a fix to replace 'foo' with 'bar'.'
+    const content = '[[foo]]';
+    const expectedContent = 'bar';
+
+    final pluginResult = plugin.EditGetFixesResult([
+      plugin.AnalysisErrorFixes(
+        plugin.AnalysisError(
+          plugin.AnalysisErrorSeverity.ERROR,
+          plugin.AnalysisErrorType.HINT,
+          plugin.Location(mainFilePath, 0, 3, 0, 0),
+          "Do not use 'foo'",
+          'do_not_use_foo',
+        ),
+        fixes: [
+          plugin.PrioritizedSourceChange(
+            0,
+            plugin.SourceChange(
+              "Change 'foo' to 'bar'",
+              edits: [
+                plugin.SourceFileEdit(mainFilePath, 0,
+                    edits: [plugin.SourceEdit(0, 3, 'bar')])
+              ],
+              id: 'fooToBar',
+            ),
+          )
+        ],
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final assist = findEditAction(codeActions,
+        CodeActionKind('quickfix.fooToBar'), "Change 'foo' to 'bar'")!;
+
+    final edit = assist.edit!;
+    expect(edit.changes, isNotNull);
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+    applyChanges(contents, edit.changes!);
+    expect(contents[mainFilePath], equals(expectedContent));
+  }
+
+  Future<void> test_plugin_sortsWithServer() async {
+    // Produces a server fix for removing unused import with a default
+    // priority of 50.
+    const content = '''
+[[import]] 'dart:convert';
+''';
+
+    // Provide two plugin results that should sort either side of the server fix.
+    final pluginResult = plugin.EditGetFixesResult([
+      plugin.AnalysisErrorFixes(
+        plugin.AnalysisError(
+          plugin.AnalysisErrorSeverity.ERROR,
+          plugin.AnalysisErrorType.HINT,
+          plugin.Location(mainFilePath, 0, 3, 0, 0),
+          'Dummy error',
+          'dummy',
+        ),
+        fixes: [
+          plugin.PrioritizedSourceChange(10, plugin.SourceChange('Low')),
+          plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
+        ],
+      )
+    ]);
+    configureTestPlugin(
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
+    );
+
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeActionTitles = codeActions.map((action) =>
+        action.map((command) => command.title, (action) => action.title));
+
+    expect(
+      codeActionTitles,
+      containsAllInOrder([
+        'High',
+        'Remove unused import',
+        'Low',
+      ]),
+    );
   }
 }
 

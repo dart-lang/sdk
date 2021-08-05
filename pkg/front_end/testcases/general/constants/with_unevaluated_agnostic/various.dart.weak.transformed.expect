@@ -91,7 +91,7 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
-    : this self::Class::•(let final Never #t1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
                                  ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
@@ -232,7 +232,7 @@ constants  {
   #C38 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A*>{(self::A{}) as{ForNonNullableByDefault} self::A*}
   #C39 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
   #C40 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)
-  #C41 = tearoff self::procedure
+  #C41 = static-tearoff self::procedure
   #C42 = self::ConstClassWithF {foo:#C41}
   #C43 = eval const core::bool::fromEnvironment(#C1)
   #C44 = eval !const core::bool::fromEnvironment(#C1)
@@ -272,7 +272,7 @@ Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:127:35 -> BoolConstant(false)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:128:33 -> BoolConstant(true)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///various.dart:130:33 -> NullConstant(null)
-Extra constant evaluation: evaluated: 66, effectively constant: 24
+Extra constant evaluation: evaluated: 62, effectively constant: 24
 
 
 Constructor coverage from constants:

@@ -70,12 +70,12 @@ typedef struct _Dart_CObject {
     } as_array;
     struct {
       Dart_TypedData_Type type;
-      intptr_t length;
+      intptr_t length; /* in elements, not bytes */
       uint8_t* values;
     } as_typed_data;
     struct {
       Dart_TypedData_Type type;
-      intptr_t length;
+      intptr_t length; /* in elements, not bytes */
       uint8_t* data;
       void* peer;
       Dart_HandleFinalizer callback;

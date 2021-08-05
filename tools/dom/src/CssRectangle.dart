@@ -182,8 +182,8 @@ abstract class CssRect implements Rectangle<num> {
    *
    * This is equivalent to the `height` function in jQuery and the calculated
    * `height` CSS value, converted to a dimensionless num in pixels. Unlike
-   * [getBoundingClientRect], `height` will return the same numerical width if
-   * the element is hidden or not.
+   * [Element.getBoundingClientRect], `height` will return the same numerical
+   * height if the element is hidden or not.
    */
   num get height;
 
@@ -192,8 +192,8 @@ abstract class CssRect implements Rectangle<num> {
    *
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels. Unlike
-   * [getBoundingClientRect], `width` will return the same numerical width if
-   * the element is hidden or not.
+   * [Element.getBoundingClientRect], `width` will return the same numerical
+   * width if the element is hidden or not.
    */
   num get width;
 

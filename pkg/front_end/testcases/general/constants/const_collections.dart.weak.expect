@@ -515,6 +515,7 @@ Constructor coverage from constants:
 org-dartlang-testcase:///const_collections.dart:
 - CustomIterable. (from org-dartlang-testcase:///const_collections.dart:79:9)
 - IterableBase. (from org-dartlang-sdk:///sdk/lib/collection/iterable.dart:219:9)
-- WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
+- Iterable. (from org-dartlang-sdk:///sdk/lib/core/iterable.dart:87:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- WithEquals. (from org-dartlang-testcase:///const_collections.dart:72:9)
 - CustomMap. (from org-dartlang-testcase:///const_collections.dart:84:9)

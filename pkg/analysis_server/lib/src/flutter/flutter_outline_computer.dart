@@ -31,7 +31,7 @@ class FlutterOutlineComputer {
 
     // Create outlines for widgets.
     var visitor = _FlutterOutlineBuilder(this);
-    resolvedUnit.unit!.accept(visitor);
+    resolvedUnit.unit.accept(visitor);
 
     // Associate Flutter outlines with Dart outlines.
     for (var outline in visitor.outlines) {
@@ -66,7 +66,7 @@ class FlutterOutlineComputer {
 
     var name = parameter.displayName;
 
-    var label = resolvedUnit.content!.substring(argument.offset, argument.end);
+    var label = resolvedUnit.content.substring(argument.offset, argument.end);
     if (label.contains('\n')) {
       label = '…';
     }

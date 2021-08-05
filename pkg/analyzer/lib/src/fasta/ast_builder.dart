@@ -148,7 +148,7 @@ class AstBuilder extends StackListener {
 
   final FeatureSet _featureSet;
 
-  AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
+  AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri? uri])
       : errorReporter = FastaErrorReporter(errorReporter),

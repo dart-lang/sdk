@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 
 MicroContextObjects createMicroContextObjects({
@@ -182,33 +181,18 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   }
 
   @override
-  FileResult getFile(String path) {
-    var fileContext = analysisContext.fileResolver.getFileContext(
-      path: path,
-      performance: OperationPerformanceImpl('<default>'),
-    );
-    return FileResultImpl(
-      this,
-      path,
-      fileContext.file.uri,
-      fileContext.file.lineInfo,
-      false,
-    );
-  }
-
-  @override
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uriStr) async {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uriStr) async {
     var element = analysisContext.fileResolver.getLibraryByUri(uriStr: uriStr);
     return LibraryElementResultImpl(element);
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) async {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) async {
     return analysisContext.fileResolver.resolveLibrary(path: path);
   }
 
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) async {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) async {
     return analysisContext.fileResolver.resolve(path: path);
   }
 

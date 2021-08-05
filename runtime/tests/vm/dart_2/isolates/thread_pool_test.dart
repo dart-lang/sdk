@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // SharedObjects=ffi_test_functions
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit --disable-heap-verification
+// VMOptions=--enable-isolate-groups --disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';

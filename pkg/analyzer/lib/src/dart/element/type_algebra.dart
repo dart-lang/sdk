@@ -444,9 +444,13 @@ abstract class _TypeSubstitutor
 
     var returnType = type.returnType.accept(inner);
 
-    var aliasArguments = type.aliasArguments;
-    var newAliasArguments =
-        aliasArguments != null ? _mapList(aliasArguments) : null;
+    var alias = type.alias;
+    var newAlias = alias != null
+        ? InstantiatedTypeAliasElementImpl(
+            element: alias.element,
+            typeArguments: _mapList(alias.typeArguments),
+          )
+        : null;
 
     if (useCounter == before) return type;
 
@@ -455,8 +459,7 @@ abstract class _TypeSubstitutor
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: type.nullabilitySuffix,
-      aliasElement: type.aliasElement,
-      aliasArguments: newAliasArguments,
+      alias: newAlias,
     );
   }
 

@@ -18,6 +18,7 @@ class TargetFlags {
   final bool forceLateLoweringSentinelForTesting;
   final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
+  final int forceConstructorTearOffLoweringForTesting;
   final bool enableNullSafety;
 
   const TargetFlags(
@@ -26,6 +27,8 @@ class TargetFlags {
       this.forceLateLoweringSentinelForTesting = false,
       this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
+      this.forceConstructorTearOffLoweringForTesting =
+          ConstructorTearOffLowering.none,
       this.enableNullSafety = false});
 
   bool operator ==(other) {
@@ -71,7 +74,7 @@ Target? getTarget(String name, TargetFlags flags) {
 }
 
 abstract class DiagnosticReporter<M, C> {
-  void report(M message, int charOffset, int length, Uri fileUri,
+  void report(M message, int charOffset, int length, Uri? fileUri,
       {List<C> context});
 }
 
@@ -250,11 +253,11 @@ abstract class Target {
       List<Library> libraries,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier});
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -267,7 +270,7 @@ abstract class Target {
       Procedure procedure,
       // TODO(askesc): Consider how to generally pass compiler options to
       // transformations.
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       {void Function(String msg)? logger}) {}
 
   /// Whether a platform library may define a restricted type, such as `bool`,
@@ -344,6 +347,46 @@ abstract class Target {
     return enabledLateLowerings & mask != 0;
   }
 
+  /// Bit mask of [ConstructorTearOffLowering] values for the constructor tear
+  /// off lowerings that should be performed by the CFE.
+  ///
+  /// For the selected lowerings, constructor tear offs are encoded using
+  /// synthesized top level functions.
+  int get enabledConstructorTearOffLowerings;
+
+  /// Returns `true` if lowering of generative constructor tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isConstructorTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.constructors) !=
+      0;
+
+  /// Returns `true` if lowering of non-redirecting factory tear offs is
+  /// enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isFactoryTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.factories) !=
+      0;
+
+  /// Returns `true` if lowering of redirecting factory tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isRedirectingFactoryTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.redirectingFactories) !=
+      0;
+
+  /// Returns `true` if lowering of typedef tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isTypedefTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.typedefs) !=
+      0;
+
   /// Returns `true` if the CFE should lower a late local variable given it
   /// [hasInitializer], [isFinal], and its type [isPotentiallyNullable].
   ///
@@ -382,8 +425,6 @@ abstract class Target {
   /// If `false`, calls to getters and fields are encoded as method invocations
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
-
-  bool get supportsNewMethodInvocationEncoding;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
@@ -452,7 +493,8 @@ class NoneTarget extends Target {
       !flags.forceNoExplicitGetterCallsForTesting;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
+  int get enabledConstructorTearOffLowerings =>
+      flags.forceConstructorTearOffLoweringForTesting;
 
   @override
   String get name => 'none';
@@ -466,7 +508,7 @@ class NoneTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
       {void Function(String msg)? logger,
@@ -602,4 +644,22 @@ class LateLowering {
       }
     }
   }
+}
+
+class ConstructorTearOffLowering {
+  /// Create static functions to use as tear offs of generative constructors.
+  static const int constructors = 1 << 0;
+
+  /// Create static functions to use as tear offs of non-redirecting factories.
+  static const int factories = 1 << 1;
+
+  /// Create static functions to use as tear offs of redirecting factories.
+  static const int redirectingFactories = 1 << 2;
+
+  /// Create top level functions to use as tear offs of typedefs that are not
+  /// proper renames.
+  static const int typedefs = 1 << 3;
+
+  static const int none = 0;
+  static const int all = (1 << 4) - 1;
 }

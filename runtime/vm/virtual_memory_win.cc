@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
 #include "vm/virtual_memory.h"
 
@@ -62,10 +62,7 @@ void VirtualMemory::Init() {
                             PAGE_READWRITE, nullptr);
     if (address == nullptr) {
       int error = GetLastError();
-      const int kBufferSize = 1024;
-      char error_buf[kBufferSize];
-      FATAL2("Failed to reserve region for compressed heap: %d (%s)", error,
-             Utils::StrError(error, error_buf, kBufferSize));
+      FATAL("Failed to reserve region for compressed heap: %d", error);
     }
     VirtualMemoryCompressedHeap::Init(address);
   }
@@ -74,8 +71,9 @@ void VirtualMemory::Init() {
 
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
-  VirtualFree(VirtualMemoryCompressedHeap::Cleanup(), kCompressedHeapSize,
-              MEM_RELEASE);
+  void* heap_base = VirtualMemoryCompressedHeap::GetRegion();
+  VirtualFree(heap_base, kCompressedHeapSize, MEM_RELEASE);
+  VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
@@ -191,4 +189,4 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)

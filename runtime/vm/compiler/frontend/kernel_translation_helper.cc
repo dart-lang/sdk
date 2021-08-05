@@ -735,26 +735,25 @@ void TranslationHelper::SetupFieldAccessorFunction(
   intptr_t parameter_count = (is_method ? 1 : 0) + (is_setter ? 1 : 0);
 
   const FunctionType& signature = FunctionType::Handle(Z, function.signature());
-  function.SetNumOptionalParameters(0, false);
-  function.set_num_fixed_parameters(parameter_count);
+  signature.SetNumOptionalParameters(0, false);
+  signature.set_num_fixed_parameters(parameter_count);
   if (parameter_count > 0) {
     signature.set_parameter_types(
         Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
   }
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  function.CreateNameArray();
 
   intptr_t pos = 0;
   if (is_method) {
     signature.SetParameterTypeAt(pos, GetDeclarationType(klass));
-    signature.SetParameterNameAt(pos, Symbols::This());
+    function.SetParameterNameAt(pos, Symbols::This());
     pos++;
   }
   if (is_setter) {
     signature.SetParameterTypeAt(pos, field_type);
-    signature.SetParameterNameAt(pos, Symbols::Value());
+    function.SetParameterNameAt(pos, Symbols::Value());
     pos++;
   }
-  signature.FinalizeNameArrays(function);
 }
 
 void TranslationHelper::ReportError(const char* format, ...) {
@@ -2298,6 +2297,9 @@ void KernelReaderHelper::SkipExpression() {
     case kInvalidExpression:
       ReadPosition();
       SkipStringReference();
+      if (ReadTag() == kSomething) {
+        SkipExpression();  // read expression.
+      }
       return;
     case kVariableGet:
       ReadPosition();          // read position.
@@ -3182,16 +3184,14 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 
   signature.set_parameter_types(Array::Handle(
       Z, Array::New(kImplicitClosureParam + all_count, Heap::kOld)));
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  signature.CreateNameArrayIncludingFlags();
 
   intptr_t pos = 0;
   signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-  signature.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
   ++pos;
   for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
     BuildTypeInternal();  // read ith positional parameter.
     signature.SetParameterTypeAt(pos, result_);
-    signature.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
   }
 
   if (!simple) {
@@ -3209,7 +3209,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       }
     }
   }
-  signature.TruncateUnusedParameterFlags();
+  signature.FinalizeNameArray();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
@@ -3392,6 +3392,10 @@ void TypeTranslator::LoadAndSetupTypeParameters(
   ASSERT(parameterized_class.IsNull() != parameterized_signature.IsNull());
   ASSERT(type_parameter_count >= 0);
   if (type_parameter_count == 0) {
+    ASSERT(parameterized_class.IsNull() ||
+           parameterized_class.type_parameters() == TypeParameters::null());
+    ASSERT(parameterized_signature.IsNull() ||
+           parameterized_signature.type_parameters() == TypeParameters::null());
     return;
   }
 
@@ -3415,10 +3419,7 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     parameterized_class.set_type_parameters(type_parameters);
   } else {
     ASSERT(parameterized_signature.type_parameters() == TypeParameters::null());
-    parameterized_signature.set_type_parameters(type_parameters);
-    if (!function.IsNull()) {
-      function.SetNumTypeParameters(type_parameter_count);
-    }
+    parameterized_signature.SetTypeParameters(type_parameters);
   }
 
   const Library& lib = Library::Handle(Z, active_class->klass->library());
@@ -3658,12 +3659,12 @@ void TypeTranslator::SetupFunctionParameters(
   intptr_t named_parameter_count =
       total_parameter_count - positional_parameter_count;
 
-  function.set_num_fixed_parameters(extra_parameters +
-                                    required_parameter_count);
+  signature.set_num_fixed_parameters(extra_parameters +
+                                     required_parameter_count);
   if (named_parameter_count > 0) {
-    function.SetNumOptionalParameters(named_parameter_count, false);
+    signature.SetNumOptionalParameters(named_parameter_count, false);
   } else {
-    function.SetNumOptionalParameters(
+    signature.SetNumOptionalParameters(
         positional_parameter_count - required_parameter_count, true);
   }
   intptr_t parameter_count = extra_parameters + total_parameter_count;
@@ -3672,19 +3673,20 @@ void TypeTranslator::SetupFunctionParameters(
   if (parameter_count > 0) {
     signature.set_parameter_types(
         Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-    signature.CreateNameArrayIncludingFlags(Heap::kOld);
+    function.CreateNameArray();
+    signature.CreateNameArrayIncludingFlags();
     if (is_method) {
       ASSERT(!klass.IsNull());
       signature.SetParameterTypeAt(pos, H.GetDeclarationType(klass));
-      signature.SetParameterNameAt(pos, Symbols::This());
+      function.SetParameterNameAt(pos, Symbols::This());
       pos++;
     } else if (is_closure) {
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      signature.SetParameterNameAt(pos, Symbols::ClosureParameter());
+      function.SetParameterNameAt(pos, Symbols::ClosureParameter());
       pos++;
     } else if (is_factory) {
       signature.SetParameterTypeAt(pos, AbstractType::dynamic_type());
-      signature.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
+      function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
       pos++;
     }
   } else {
@@ -3705,8 +3707,7 @@ void TypeTranslator::SetupFunctionParameters(
     }
 
     signature.SetParameterTypeAt(pos, type);
-    signature.SetParameterNameAt(pos,
-                                 H.DartIdentifier(lib, helper.name_index_));
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
   }
 
   intptr_t named_parameter_count_check =
@@ -3729,7 +3730,7 @@ void TypeTranslator::SetupFunctionParameters(
       signature.SetIsRequiredAt(pos);
     }
   }
-  signature.FinalizeNameArrays(function);
+  signature.FinalizeNameArray();
 
   function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
 

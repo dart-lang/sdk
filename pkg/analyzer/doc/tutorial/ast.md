@@ -55,7 +55,7 @@ the AST:
 
 ```dart
 void processFile(AnalysisSession session, String path) {
-  var result = session.getParsedUnit2(path);
+  var result = session.getParsedUnit(path);
   if (result is ParsedUnitResult) {
     CompilationUnit unit = result.unit;
   }
@@ -67,7 +67,7 @@ method to access it:
 
 ```dart
 void processFile(AnalysisSession session, String path) async {
-  var result = await session.getResolvedUnit2(path);
+  var result = await session.getResolvedUnit(path);
   if (result is ResolvedUnitResult) {
     CompilationUnit unit = result.unit;
   }

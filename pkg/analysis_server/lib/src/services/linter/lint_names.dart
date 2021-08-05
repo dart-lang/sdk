@@ -36,6 +36,8 @@ class LintNames {
   static const String avoid_unused_constructor_parameters =
       'avoid_unused_constructor_parameters';
   static const String await_only_futures = 'await_only_futures';
+  static const String avoid_unnecessary_containers =
+      'avoid_unnecessary_containers';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
@@ -60,6 +62,8 @@ class LintNames {
   static const String prefer_const_constructors_in_immutables =
       'prefer_const_constructors_in_immutables';
   static const String prefer_const_declarations = 'prefer_const_declarations';
+  static const String prefer_const_literals_to_create_immutables =
+      'prefer_const_literals_to_create_immutables';
   static const String prefer_contains = 'prefer_contains';
   static const String prefer_equal_for_default_values =
       'prefer_equal_for_default_values';
@@ -68,6 +72,7 @@ class LintNames {
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
+  static const String prefer_final_parameters = 'prefer_final_parameters';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';
   static const String prefer_generic_function_type_aliases =
@@ -75,6 +80,8 @@ class LintNames {
   static const String prefer_if_elements_to_conditional_expressions =
       'prefer_if_elements_to_conditional_expressions';
   static const String prefer_if_null_operators = 'prefer_if_null_operators';
+  static const String prefer_initializing_formals =
+      'prefer_initializing_formals';
   static const String prefer_inlined_adds = 'prefer_inlined_adds';
   static const String prefer_int_literals = 'prefer_int_literals';
   static const String prefer_interpolation_to_compose_strings =
@@ -90,6 +97,8 @@ class LintNames {
   static const String prefer_spread_collections = 'prefer_spread_collections';
   static const String prefer_typing_uninitialized_variables =
       'prefer_typing_uninitialized_variables';
+  static const String prefer_void_to_null = 'prefer_void_to_null';
+  static const String sized_box_for_whitespace = 'sized_box_for_whitespace';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String sort_child_properties_last = 'sort_child_properties_last';
   static const String sort_constructors_first = 'sort_constructors_first';
@@ -108,6 +117,7 @@ class LintNames {
       'unnecessary_nullable_for_final_variable_declarations';
   static const String unnecessary_overrides = 'unnecessary_overrides';
   static const String unnecessary_parenthesis = 'unnecessary_parenthesis';
+  static const String unnecessary_string_escapes = 'unnecessary_string_escapes';
   static const String unnecessary_string_interpolations =
       'unnecessary_string_interpolations';
   static const String unnecessary_this = 'unnecessary_this';
@@ -115,5 +125,7 @@ class LintNames {
       'use_full_hex_values_for_flutter_colors';
   static const String use_function_type_syntax_for_parameters =
       'use_function_type_syntax_for_parameters';
+  static const String use_key_in_widget_constructors =
+      'use_key_in_widget_constructors';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }

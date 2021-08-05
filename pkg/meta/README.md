@@ -9,7 +9,7 @@ The annotations in this package are defined in two libraries.
 
 The library in `meta.dart` defines annotations that can be used by static
 analysis tools to provide a more complete analysis of the code that uses them.
-Within the SDK, these tools include the command-line analyzer (`dartanalyzer`)
+Within the SDK, these tools include the command-line analyzer (`dart analyze`)
 and the analysis server that is used to power many of the Dart-enabled
 development tools.
 

@@ -8,8 +8,6 @@
 
 class A {
   factory A.foo() = B;
-  //      ^
-  // [cfe] Cyclic definition of factory 'A.foo'.
 }
 
 class B implements A {
@@ -18,9 +16,13 @@ class B implements A {
 
 class C implements B {
   factory C.bar() = C.foo;
+  //      ^
+  // [cfe] Cyclic definition of factory 'C.bar'.
   //                ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   factory C.foo() = C.bar();
+  //      ^
+  // [cfe] Cyclic definition of factory 'C.foo'.
   //                ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_CONSTRUCTOR_REDIRECT
   //                  ^^^

@@ -1,4 +1,33 @@
-## 1.8.0-dev
+## 2.1.0-dev
+* Changed `AnalysisResult.path` to be non-nullable.
+* Changed `ParsedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedLibraryResult.element` to be non-nullable.
+* Changed `ResolvedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedUnitResult.content` to be non-nullable.
+* Changed `ResolvedUnitResult.unit` to be non-nullable.
+* Deprecated and renamed `AnalysisSession.getXyz2()` into `getXyz()`.
+* Changed `AnalysisDriver.results` to `Stream<Object>`.
+  It used to always produce `ResolvedUnitResult`s, but sometimes its
+  `content` and `unit` were `null`, when the result actually had only errors.
+  Now it produces either `ResolvedUnitResult`, or `ErrorsResult`, or
+  some other results that might be added in the future.
+* Added `DartType.alias` with information about instantiated type alias.
+  The type alias element and arguments are present or absent together.
+* Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
+
+## 2.0.0
+* Removed deprecated `Scope.lookup2()`.
+* Removed deprecated setters in API of AST.
+* Removed deprecated `FunctionTypeAliasElement`.
+* Updated `LineInfo.getLocation()` to return `CharacterLocation`.
+* Removed deprecated `LineInfo_Location`.
+* Removed deprecated methods from `AnalysisSession`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
+* Changed `DartObject.type` from `ParameterizedType?` to `DartType?`.
+* Changed `FunctionType` to implement `DartType`, not `ParameterizedType`.
+* Removed `FunctionType.element` and `FunctionType.typeArguments`.
 * Added `StringInterpolation.firstString` and `lastString`, to express
   explicitly  that there are always (possibly empty) strings as the first
   and the last elements of an interpolation.
@@ -9,6 +38,7 @@
 * `FieldElement.isFinal` is `true` only when the field is not synthetic.
 * Synthetic getters and setters now use `-1` as `nameOffset`.
 * Fixed bug that `defaultValueCode` is `null` for field formal parameters.
+* Updated `LibraryElement.name` so that it is non-nullable.
 
 ## 1.7.0
 * Require `meta: ^1.4.0`.

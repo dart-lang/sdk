@@ -27,7 +27,7 @@ class Histogram {
 
   int get totalCount => _counts.values.fold(0, (a, b) => a + b);
 
-  Histogram({SortOrder order, bool showBar, bool showAll, int minCount})
+  Histogram({SortOrder? order, bool? showBar, bool? showAll, int? minCount})
       : _order = order ?? SortOrder.descending,
         _showBar = showBar ?? true,
         _showAll = showAll ?? false,
@@ -35,7 +35,7 @@ class Histogram {
 
   void add(Object item) {
     _counts.putIfAbsent(item, () => 0);
-    _counts[item]++;
+    _counts[item] = _counts[item]! + 1;
   }
 
   void printCounts(String label) {
@@ -46,10 +46,10 @@ class Histogram {
     var keys = _counts.keys.toList();
     switch (_order) {
       case SortOrder.ascending:
-        keys.sort((a, b) => _counts[a].compareTo(_counts[b]));
+        keys.sort((a, b) => _counts[a]!.compareTo(_counts[b]!));
         break;
       case SortOrder.descending:
-        keys.sort((a, b) => _counts[b].compareTo(_counts[a]));
+        keys.sort((a, b) => _counts[b]!.compareTo(_counts[a]!));
         break;
       case SortOrder.alphabetical:
         keys.sort();
@@ -68,7 +68,7 @@ class Histogram {
     var shown = 0;
     var skipped = 0;
     for (var object in keys) {
-      var count = _counts[object];
+      var count = _counts[object]!;
       var countString = count.toString().padLeft(7);
       var percent = 100 * count / total;
       var percentString = percent.toStringAsFixed(3).padLeft(7);
@@ -86,14 +86,25 @@ class Histogram {
       }
     }
 
-    if (skipped > 0) print('And $skipped more less than 0.1%...');
+    if (skipped > 0) print('And $skipped more...');
 
     // If we're counting numeric keys, show other statistics too.
     if (_order == SortOrder.numeric && keys.isNotEmpty) {
       var sum = keys.fold<int>(
-          0, (result, key) => result + (key as int) * _counts[key]);
+          0, (result, key) => result + (key as int) * _counts[key]!);
       var average = sum / total;
-      var median = _counts[keys[keys.length ~/ 2]];
+
+      // Find the median key where half the total count is below it.
+      var count = 0;
+      var median = -1;
+      for (var key in keys) {
+        count += _counts[key]!;
+        if (count >= total ~/ 2) {
+          median = key as int;
+          break;
+        }
+      }
+
       print('Sum $sum, average ${average.toStringAsFixed(3)}, median $median');
     }
   }

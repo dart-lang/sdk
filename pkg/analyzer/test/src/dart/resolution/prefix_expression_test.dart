@@ -12,13 +12,140 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PrefixExpressionResolutionTest);
-    defineReflectiveTests(PrefixExpressionResolutionWithNullSafetyTest);
+    defineReflectiveTests(PrefixExpressionResolutionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class PrefixExpressionResolutionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with PrefixExpressionResolutionTestCases {
+  test_bang_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool get foo => true;
+}
+
+void f(A? a) {
+  !a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          55, 6),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('!a'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: null,
+      element: boolElement.getMethod('!'),
+      type: 'bool',
+    );
+  }
+
+  test_minus_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  -a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50, 1),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('-a'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: null,
+      element: intElement.getMethod('unary-'),
+      type: 'int',
+    );
+  }
+
+  test_plusPlus_depromote() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  Object operator +(int _) => this;
+}
+
+void f(Object x) {
+  if (x is A) {
+    ++x;
+  }
+}
+''');
+
+    assertPrefixExpression(
+      findNode.prefix('++x'),
+      readElement: findElement.parameter('x'),
+      readType: 'A',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Object',
+      element: findElement.method('+'),
+      type: 'Object',
+    );
+
+    if (hasAssignmentLeftResolution) {
+      assertType(findNode.simple('x;'), 'A');
+    }
+  }
+
+  test_plusPlus_nullShorting() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+
+void f(A? a) {
+  ++a?.foo;
+}
+''');
+
+    assertPrefixExpression(
+      findNode.prefix('++a'),
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      element: numElement.getMethod('+'),
+      type: 'int?',
+    );
+  }
+
+  test_tilde_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  ~a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          50, 1),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('~a'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: null,
+      element: intElement.getMethod('~'),
+      type: 'int',
+    );
+  }
+}
+
+mixin PrefixExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bang_bool_context() async {
     await assertNoErrorsInCode(r'''
 T f<T>() {
@@ -637,130 +764,6 @@ void f(int x) {
 }
 
 @reflectiveTest
-class PrefixExpressionResolutionWithNullSafetyTest
-    extends PrefixExpressionResolutionTest with WithNullSafetyMixin {
-  test_bang_no_nullShorting() async {
-    await assertErrorsInCode(r'''
-class A {
-  bool get foo => true;
-}
-
-void f(A? a) {
-  !a?.foo;
-}
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
-          55, 6),
-    ]);
-
-    assertPrefixExpression(
-      findNode.prefix('!a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: boolElement.getMethod('!'),
-      type: 'bool',
-    );
-  }
-
-  test_minus_no_nullShorting() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get foo => 0;
-}
-
-void f(A? a) {
-  -a?.foo;
-}
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
-
-    assertPrefixExpression(
-      findNode.prefix('-a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: intElement.getMethod('unary-'),
-      type: 'int',
-    );
-  }
-
-  test_plusPlus_depromote() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  Object operator +(int _) => this;
-}
-
-void f(Object x) {
-  if (x is A) {
-    ++x;
-  }
-}
-''');
-
-    assertPrefixExpression(
-      findNode.prefix('++x'),
-      readElement: findElement.parameter('x'),
-      readType: 'A',
-      writeElement: findElement.parameter('x'),
-      writeType: 'Object',
-      element: findElement.method('+'),
-      type: 'Object',
-    );
-
-    if (hasAssignmentLeftResolution) {
-      assertType(findNode.simple('x;'), 'A');
-    }
-  }
-
-  test_plusPlus_nullShorting() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int foo = 0;
-}
-
-void f(A? a) {
-  ++a?.foo;
-}
-''');
-
-    assertPrefixExpression(
-      findNode.prefix('++a'),
-      readElement: findElement.getter('foo'),
-      readType: 'int',
-      writeElement: findElement.setter('foo'),
-      writeType: 'int',
-      element: numElement.getMethod('+'),
-      type: 'int?',
-    );
-  }
-
-  test_tilde_no_nullShorting() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get foo => 0;
-}
-
-void f(A? a) {
-  ~a?.foo;
-}
-''', [
-      error(CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
-          50, 1),
-    ]);
-
-    assertPrefixExpression(
-      findNode.prefix('~a'),
-      readElement: null,
-      readType: null,
-      writeElement: null,
-      writeType: null,
-      element: intElement.getMethod('~'),
-      type: 'int',
-    );
-  }
-}
+class PrefixExpressionResolutionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with PrefixExpressionResolutionTestCases, WithoutNullSafetyMixin {}

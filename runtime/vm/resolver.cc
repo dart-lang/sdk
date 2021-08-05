@@ -121,6 +121,21 @@ static FunctionPtr ResolveDynamicForReceiverClassWithCustomLookup(
       zone, ResolveDynamicAnyArgsWithCustomLookup(
                 zone, receiver_class, function_name, allow_add, lookup));
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (!function.IsNull() && function.signature() == FunctionType::null()) {
+    // FfiTrampolines are the only functions that can still be called
+    // dynamically without going through a dynamic invocation forwarder.
+    RELEASE_ASSERT(!Function::IsDynamicInvocationForwarderName(function_name) &&
+                   !function.IsFfiTrampoline());
+    // The signature for this function was dropped in the precompiler, which
+    // means it is not a possible target for a dynamic call in the program.
+    // That means we're resolving an UnlinkedCall for an InstanceCall to
+    // a known interface. Since there's no overloading in Dart, the type checker
+    // has already checked the validity of the arguments at compile time.
+    return function.ptr();
+  }
+#endif
+
   if (function.IsNull() || !function.AreValidArguments(args_desc, NULL)) {
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.

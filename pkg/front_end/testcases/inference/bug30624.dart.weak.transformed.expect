@@ -44,7 +44,7 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = null
-  #C2 = tearoff self::C::_default
+  #C2 = static-tearoff self::C::_default
 }
 
 Extra constant evaluation status:

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.text_serializer_test;
 
 import 'package:kernel/ast.dart';
@@ -27,7 +25,9 @@ Expression readExpression(String input) {
   TextIterator stream = new TextIterator(input, 0);
   stream.moveNext();
   Expression result = expressionSerializer.readFrom(
-      stream, new DeserializationState(null, new CanonicalName.root()));
+      stream,
+      new DeserializationState(
+          new DeserializationEnvironment(null), new CanonicalName.root()));
   if (stream.moveNext()) {
     throw StateError("extra cruft in basic literal");
   }
@@ -36,8 +36,8 @@ Expression readExpression(String input) {
 
 String writeExpression(Expression expression) {
   StringBuffer buffer = new StringBuffer();
-  expressionSerializer.writeTo(
-      buffer, expression, new SerializationState(null));
+  expressionSerializer.writeTo(buffer, expression,
+      new SerializationState(new SerializationEnvironment(null)));
   return buffer.toString();
 }
 
@@ -45,11 +45,7 @@ class TestRunner {
   final List<String> failures = [];
 
   void run() {
-    test('(get-prop (int 0) (public "hashCode"))');
     test('(get-super (public "hashCode"))');
-    test('(invoke-method (int 0) (public "foo") () ((int 1) (int 2)) ())');
-    test('(invoke-method (int 0) (public "foo") ((dynamic) (void)) '
-        '((int 1) (int 2)) ("others" (list (dynamic) ((int 3) (int 4)))))');
     test('(let "x^0" () (dynamic) (int 0) () (null))');
     test('(let "x^0" () (dynamic) _ () (null))');
     test('(let "x^0" ((const)) (dynamic) (int 0) () (null))');
@@ -67,7 +63,7 @@ class TestRunner {
     test('(bool true)');
     test('(bool false)');
     test('(null)');
-    test(r'''(invalid "You can't touch this")''');
+    test(r'''(invalid "You can't touch this" (null))''');
     test('(not (bool true))');
     test('(&& (bool true) (bool false))');
     test('(|| (&& (bool true) (not (bool true))) (bool true))');

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library kernel.round_trip;
 
 import 'dart:io';
@@ -30,7 +28,7 @@ void main(List<String> args) async {
   }
 }
 
-void testRoundTrip(List<int> bytes, List<int> sdkBytes) async {
+Future<void> testRoundTrip(List<int> bytes, List<int>? sdkBytes) async {
   var component = new Component();
   if (sdkBytes != null) {
     var sdk = new Component(nameRoot: component.root);

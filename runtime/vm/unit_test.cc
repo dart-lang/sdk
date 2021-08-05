@@ -415,50 +415,50 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
                                      bool finalize_classes,
                                      bool allow_compile_errors) {
 #ifndef PRODUCT
-    if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
-      Dart_Handle result = LoadIsolateReloadTestLib();
-      EXPECT_VALID(result);
-    }
+  if (strstr(script, IsolateReloadTestLibUri()) != NULL) {
+    Dart_Handle result = LoadIsolateReloadTestLib();
+    EXPECT_VALID(result);
+  }
 #endif  // ifndef PRODUCT
-    Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
-    Dart_Handle result =
-        LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
-                              finalize_classes, true, allow_compile_errors);
-    delete[] sourcefiles;
-    return result;
+  Dart_SourceFile* sourcefiles = NULL;
+  intptr_t num_sources = BuildSourceFilesArray(&sourcefiles, script, lib_url);
+  Dart_Handle result =
+      LoadTestScriptWithDFE(num_sources, sourcefiles, resolver,
+                            finalize_classes, true, allow_compile_errors);
+  delete[] sourcefiles;
+  return result;
 }
 
 Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri,
                                       const char* script,
                                       Dart_NativeEntryResolver resolver) {
-    const char* prefixed_lib_uri =
-        OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
-    Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
-    const uint8_t* kernel_buffer = NULL;
-    intptr_t kernel_buffer_size = 0;
-    int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
-    char* error = TestCase::CompileTestScriptWithDFE(
-        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
-        &kernel_buffer_size, true);
-    if ((kernel_buffer == NULL) && (error != NULL)) {
-      return Dart_NewApiError(error);
-    }
-    Dart_Handle lib =
-        Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
-    EXPECT_VALID(lib);
+  const char* prefixed_lib_uri =
+      OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
+  Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
+  const uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+  char* error = TestCase::CompileTestScriptWithDFE(
+      sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_buffer,
+      &kernel_buffer_size, true);
+  if ((kernel_buffer == NULL) && (error != NULL)) {
+    return Dart_NewApiError(error);
+  }
+  Dart_Handle lib =
+      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+  EXPECT_VALID(lib);
 
-    // Ensure kernel buffer isn't leaked after test is run.
-    AddToKernelBuffers(kernel_buffer);
+  // Ensure kernel buffer isn't leaked after test is run.
+  AddToKernelBuffers(kernel_buffer);
 
-    // TODO(32618): Kernel doesn't correctly represent the root library.
-    lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
-    EXPECT_VALID(lib);
-    Dart_Handle result = Dart_SetRootLibrary(lib);
-    EXPECT_VALID(result);
+  // TODO(32618): Kernel doesn't correctly represent the root library.
+  lib = Dart_LookupLibrary(Dart_NewStringFromCString(sourcefiles[0].uri));
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_SetRootLibrary(lib);
+  EXPECT_VALID(result);
 
-    Dart_SetNativeResolver(lib, resolver, NULL);
-    return lib;
+  Dart_SetNativeResolver(lib, resolver, NULL);
+  return lib;
 }
 
 Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
@@ -584,19 +584,19 @@ Dart_Handle TestCase::TriggerReload(const uint8_t* kernel_buffer,
 }
 
 Dart_Handle TestCase::ReloadTestScript(const char* script) {
-    Dart_SourceFile* sourcefiles = NULL;
-    intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
-    Dart_KernelCompilationResult compilation_result =
-        KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
-    delete[] sourcefiles;
-    if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-      Dart_Handle result = Dart_NewApiError(compilation_result.error);
-      free(compilation_result.error);
-      if (compilation_result.kernel != NULL) {
-        free(const_cast<uint8_t*>(compilation_result.kernel));
-      }
-      return result;
+  Dart_SourceFile* sourcefiles = NULL;
+  intptr_t num_files = BuildSourceFilesArray(&sourcefiles, script);
+  Dart_KernelCompilationResult compilation_result =
+      KernelIsolate::UpdateInMemorySources(num_files, sourcefiles);
+  delete[] sourcefiles;
+  if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
+    Dart_Handle result = Dart_NewApiError(compilation_result.error);
+    free(compilation_result.error);
+    if (compilation_result.kernel != NULL) {
+      free(const_cast<uint8_t*>(compilation_result.kernel));
     }
+    return result;
+  }
 
   return TriggerReload(/* kernel_buffer= */ NULL, /* kernel_buffer_size= */ 0);
 }
@@ -727,7 +727,10 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   return result.IsCode();
 }
 
-void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
+void ElideJSONSubstring(const char* prefix,
+                        const char* in,
+                        char* out,
+                        const char* postfix) {
   const char* pos = strstr(in, prefix);
   while (pos != NULL) {
     // Copy up to pos into the output buffer.
@@ -735,8 +738,9 @@ void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
       *out++ = *in++;
     }
 
-    // Skip to the close quote.
-    in += strcspn(in, "\"");
+    // Skip to the closing postfix.
+    in += strlen(prefix);
+    in += strcspn(in, postfix);
     pos = strstr(in, prefix);
   }
   // Copy the remainder of in to out.
@@ -744,6 +748,11 @@ void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
     *out++ = *in++;
   }
   *out = '\0';
+}
+
+void StripTokenPositions(char* buffer) {
+  ElideJSONSubstring(",\"tokenPos\":", buffer, buffer, ",");
+  ElideJSONSubstring(",\"endTokenPos\":", buffer, buffer, "}");
 }
 
 }  // namespace dart

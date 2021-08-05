@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.48.0';
+const String vmServiceVersion = '3.49.0';
 
 /// @optional
 const String optional = 'optional';
@@ -44,7 +44,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 
   if (json is List) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
-  } else if (json is Map) {
+  } else if (json is Map<String, dynamic>) {
     String? type = json['type'];
 
     // Not a Response type.
@@ -53,7 +53,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       if (expectedTypes.length == 1) {
         type = expectedTypes.first;
       } else {
-        return null;
+        return Response.parse(json);
       }
     } else if (_isNullInstance(json) &&
         (!expectedTypes.contains('InstanceRef'))) {
@@ -157,6 +157,7 @@ Map<String, Function> _typeFactories = {
   'Null': NullVal.parse,
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
+  'Parameter': Parameter.parse,
   'PortList': PortList.parse,
   'ProfileFunction': ProfileFunction.parse,
   'ProtocolList': ProtocolList.parse,
@@ -183,6 +184,7 @@ Map<String, Function> _typeFactories = {
   'Timestamp': Timestamp.parse,
   '@TypeArguments': TypeArgumentsRef.parse,
   'TypeArguments': TypeArguments.parse,
+  'TypeParameters': TypeParameters.parse,
   'UnresolvedSourceLocation': UnresolvedSourceLocation.parse,
   'Version': Version.parse,
   '@VM': VMRef.parse,
@@ -824,8 +826,7 @@ abstract class VmServiceInterface {
   /// returned.
   Future<SourceReport> getSourceReport(
     String isolateId,
-    /*List<SourceReportKind>*/
-    List<String> reports, {
+    /*List<SourceReportKind>*/ List<String> reports, {
     String? scriptId,
     int? tokenPos,
     int? endTokenPos,
@@ -1150,7 +1151,7 @@ abstract class VmServiceInterface {
   /// Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted,
   /// PauseException, PausePostRequest, Resume, BreakpointAdded,
   /// BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
-  /// Profiler | UserTagChanged
+  /// Profiler | CpuSamples, UserTagChanged
   /// GC | GC
   /// Extension | Extension
   /// Timeline | TimelineEvents, TimelineStreamsSubscriptionUpdate
@@ -1691,7 +1692,7 @@ class VmService implements VmServiceInterface {
   // PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, BreakpointUpdated, Inspect, None
   Stream<Event> get onDebugEvent => _getEventController('Debug').stream;
 
-  // UserTagChanged
+  // CpuSamples, UserTagChanged
   Stream<Event> get onProfilerEvent => _getEventController('Profiler').stream;
 
   // GC
@@ -1923,8 +1924,7 @@ class VmService implements VmServiceInterface {
   @override
   Future<SourceReport> getSourceReport(
     String isolateId,
-    /*List<SourceReportKind>*/
-    List<String> reports, {
+    /*List<SourceReportKind>*/ List<String> reports, {
     String? scriptId,
     int? tokenPos,
     int? endTokenPos,
@@ -2196,7 +2196,7 @@ class VmService implements VmServiceInterface {
       request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
-      String type = result['type'];
+      String? type = result['type'];
       if (type == 'Sentinel') {
         request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
@@ -2504,6 +2504,9 @@ class EventKind {
 
   /// Notification that the UserTag for an isolate has been changed.
   static const String kUserTagChanged = 'UserTagChanged';
+
+  /// A block of recently collected CPU samples.
+  static const String kCpuSamples = 'CpuSamples';
 }
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
@@ -2583,6 +2586,9 @@ class InstanceKind {
 
   /// An instance of the Dart class TypeRef.
   static const String kTypeRef = 'TypeRef';
+
+  /// An instance of the Dart class FunctionType.
+  static const String kFunctionType = 'FunctionType';
 
   /// An instance of the Dart class BoundedType.
   static const String kBoundedType = 'BoundedType';
@@ -2929,11 +2935,18 @@ class ClassRef extends ObjRef {
   /// The library which contains this class.
   LibraryRef? library;
 
+  /// The type parameters for the class.
+  ///
+  /// Provided if the class is generic.
+  @optional
+  List<InstanceRef>? typeParameters;
+
   ClassRef({
     required this.name,
     required this.library,
     required String id,
     this.location,
+    this.typeParameters,
   }) : super(
           id: id,
         );
@@ -2944,6 +2957,11 @@ class ClassRef extends ObjRef {
         as SourceLocation?;
     library = createServiceObject(json['library'], const ['LibraryRef'])
         as LibraryRef?;
+    typeParameters = json['typeParameters'] == null
+        ? null
+        : List<InstanceRef>.from(
+            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
+                as List);
   }
 
   @override
@@ -2958,6 +2976,8 @@ class ClassRef extends ObjRef {
       'library': library?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
+    _setIfNotNull(json, 'typeParameters',
+        typeParameters?.map((f) => f.toJson()).toList());
     return json;
   }
 
@@ -2983,6 +3003,12 @@ class Class extends Obj implements ClassRef {
 
   /// The library which contains this class.
   LibraryRef? library;
+
+  /// The type parameters for the class.
+  ///
+  /// Provided if the class is generic.
+  @optional
+  List<InstanceRef>? typeParameters;
 
   /// The error which occurred during class finalization, if it exists.
   @optional
@@ -3040,6 +3066,7 @@ class Class extends Obj implements ClassRef {
     required this.subclasses,
     required String id,
     this.location,
+    this.typeParameters,
     this.error,
     this.superClass,
     this.superType,
@@ -3054,6 +3081,11 @@ class Class extends Obj implements ClassRef {
         as SourceLocation?;
     library = createServiceObject(json['library'], const ['LibraryRef'])
         as LibraryRef?;
+    typeParameters = json['typeParameters'] == null
+        ? null
+        : List<InstanceRef>.from(
+            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
+                as List);
     error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
     isAbstract = json['abstract'] ?? false;
     isConst = json['const'] ?? false;
@@ -3097,6 +3129,8 @@ class Class extends Obj implements ClassRef {
       'subclasses': subclasses?.map((f) => f.toJson()).toList(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
+    _setIfNotNull(json, 'typeParameters',
+        typeParameters?.map((f) => f.toJson()).toList());
     _setIfNotNull(json, 'error', error?.toJson());
     _setIfNotNull(json, 'super', superClass?.toJson());
     _setIfNotNull(json, 'superType', superType?.toJson());
@@ -3901,6 +3935,10 @@ class Event extends Response {
   @optional
   String? previousTag;
 
+  /// A CPU profile containing recent samples.
+  @optional
+  CpuSamples? cpuSamples;
+
   /// Binary data associated with the event.
   ///
   /// This is provided for the event kinds:
@@ -3935,6 +3973,7 @@ class Event extends Response {
     this.last,
     this.updatedTag,
     this.previousTag,
+    this.cpuSamples,
     this.data,
   });
 
@@ -3979,6 +4018,8 @@ class Event extends Response {
     last = json['last'];
     updatedTag = json['updatedTag'];
     previousTag = json['previousTag'];
+    cpuSamples = createServiceObject(json['cpuSamples'], const ['CpuSamples'])
+        as CpuSamples?;
     data = json['data'];
   }
 
@@ -4020,6 +4061,7 @@ class Event extends Response {
     _setIfNotNull(json, 'last', last);
     _setIfNotNull(json, 'updatedTag', updatedTag);
     _setIfNotNull(json, 'previousTag', previousTag);
+    _setIfNotNull(json, 'cpuSamples', cpuSamples?.toJson());
     _setIfNotNull(json, 'data', data);
     return json;
   }
@@ -4307,8 +4349,7 @@ class Frame extends Response {
   List<BoundVariable>? vars;
 
   @optional
-  /*FrameKind*/
-  String? kind;
+  /*FrameKind*/ String? kind;
 
   Frame({
     required this.index,
@@ -4374,6 +4415,9 @@ class FuncRef extends ObjRef {
   /// Is this function const?
   bool? isConst;
 
+  /// Is this function implicitly defined (e.g., implicit getter/setter)?
+  bool? implicit;
+
   /// The location of this function in the source code.
   @optional
   SourceLocation? location;
@@ -4383,6 +4427,7 @@ class FuncRef extends ObjRef {
     required this.owner,
     required this.isStatic,
     required this.isConst,
+    required this.implicit,
     required String id,
     this.location,
   }) : super(
@@ -4395,6 +4440,7 @@ class FuncRef extends ObjRef {
         json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']) as dynamic;
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
+    implicit = json['implicit'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -4411,6 +4457,7 @@ class FuncRef extends ObjRef {
       'owner': owner?.toJson(),
       'static': isStatic,
       'const': isConst,
+      'implicit': implicit,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -4422,7 +4469,7 @@ class FuncRef extends ObjRef {
 
   String toString() => '[FuncRef ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}]';
+      'isConst: ${isConst}, implicit: ${implicit}]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -4444,9 +4491,15 @@ class Func extends Obj implements FuncRef {
   /// Is this function const?
   bool? isConst;
 
+  /// Is this function implicitly defined (e.g., implicit getter/setter)?
+  bool? implicit;
+
   /// The location of this function in the source code.
   @optional
   SourceLocation? location;
+
+  /// The signature of the function.
+  InstanceRef? signature;
 
   /// The compiled code associated with this function.
   @optional
@@ -4457,6 +4510,8 @@ class Func extends Obj implements FuncRef {
     required this.owner,
     required this.isStatic,
     required this.isConst,
+    required this.implicit,
+    required this.signature,
     required String id,
     this.location,
     this.code,
@@ -4470,8 +4525,11 @@ class Func extends Obj implements FuncRef {
         json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']) as dynamic;
     isStatic = json['static'] ?? false;
     isConst = json['const'] ?? false;
+    implicit = json['implicit'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
+    signature = createServiceObject(json['signature'], const ['InstanceRef'])
+        as InstanceRef?;
     code = createServiceObject(json['code'], const ['CodeRef']) as CodeRef?;
   }
 
@@ -4487,6 +4545,8 @@ class Func extends Obj implements FuncRef {
       'owner': owner?.toJson(),
       'static': isStatic,
       'const': isConst,
+      'implicit': implicit,
+      'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
     _setIfNotNull(json, 'code', code?.toJson());
@@ -4499,7 +4559,7 @@ class Func extends Obj implements FuncRef {
 
   String toString() => '[Func ' //
       'id: ${id}, name: ${name}, owner: ${owner}, isStatic: ${isStatic}, ' //
-      'isConst: ${isConst}]';
+      'isConst: ${isConst}, implicit: ${implicit}, signature: ${signature}]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -4578,12 +4638,33 @@ class InstanceRef extends ObjRef {
   @optional
   ClassRef? typeClass;
 
-  /// The parameterized class of a type parameter:
+  /// The parameterized class of a type parameter.
   ///
   /// Provided for instance kinds:
   ///  - TypeParameter
   @optional
   ClassRef? parameterizedClass;
+
+  /// The return type of a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  InstanceRef? returnType;
+
+  /// The list of parameter types for a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  List<Parameter>? parameters;
+
+  /// The type parameters for a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  List<InstanceRef>? typeParameters;
 
   /// The pattern of a RegExp instance.
   ///
@@ -4640,6 +4721,9 @@ class InstanceRef extends ObjRef {
     this.name,
     this.typeClass,
     this.parameterizedClass,
+    this.returnType,
+    this.parameters,
+    this.typeParameters,
     this.pattern,
     this.closureFunction,
     this.closureContext,
@@ -4664,6 +4748,18 @@ class InstanceRef extends ObjRef {
     parameterizedClass =
         createServiceObject(json['parameterizedClass'], const ['ClassRef'])
             as ClassRef?;
+    returnType = createServiceObject(json['returnType'], const ['InstanceRef'])
+        as InstanceRef?;
+    parameters = json['parameters'] == null
+        ? null
+        : List<Parameter>.from(
+            createServiceObject(json['parameters'], const ['Parameter'])!
+                as List);
+    typeParameters = json['typeParameters'] == null
+        ? null
+        : List<InstanceRef>.from(
+            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
+                as List);
     pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
         as InstanceRef?;
     closureFunction =
@@ -4697,6 +4793,11 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
     _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
+    _setIfNotNull(json, 'returnType', returnType?.toJson());
+    _setIfNotNull(
+        json, 'parameters', parameters?.map((f) => f.toJson()).toList());
+    _setIfNotNull(json, 'typeParameters',
+        typeParameters?.map((f) => f.toJson()).toList());
     _setIfNotNull(json, 'pattern', pattern?.toJson());
     _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
     _setIfNotNull(json, 'closureContext', closureContext?.toJson());
@@ -4842,6 +4943,27 @@ class Instance extends Obj implements InstanceRef {
   ///  - TypeParameter
   @optional
   ClassRef? parameterizedClass;
+
+  /// The return type of a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  InstanceRef? returnType;
+
+  /// The list of parameter types for a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  List<Parameter>? parameters;
+
+  /// The type parameters for a function.
+  ///
+  /// Provided for instance kinds:
+  ///  - FunctionType
+  @optional
+  List<InstanceRef>? typeParameters;
 
   /// The fields of this Instance.
   @optional
@@ -5010,6 +5132,9 @@ class Instance extends Obj implements InstanceRef {
     this.name,
     this.typeClass,
     this.parameterizedClass,
+    this.returnType,
+    this.parameters,
+    this.typeParameters,
     this.fields,
     this.elements,
     this.associations,
@@ -5050,6 +5175,18 @@ class Instance extends Obj implements InstanceRef {
     parameterizedClass =
         createServiceObject(json['parameterizedClass'], const ['ClassRef'])
             as ClassRef?;
+    returnType = createServiceObject(json['returnType'], const ['InstanceRef'])
+        as InstanceRef?;
+    parameters = json['parameters'] == null
+        ? null
+        : List<Parameter>.from(
+            createServiceObject(json['parameters'], const ['Parameter'])!
+                as List);
+    typeParameters = json['typeParameters'] == null
+        ? null
+        : List<InstanceRef>.from(
+            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
+                as List);
     fields = json['fields'] == null
         ? null
         : List<BoundField>.from(
@@ -5117,6 +5254,11 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'name', name);
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
     _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
+    _setIfNotNull(json, 'returnType', returnType?.toJson());
+    _setIfNotNull(
+        json, 'parameters', parameters?.map((f) => f.toJson()).toList());
+    _setIfNotNull(json, 'typeParameters',
+        typeParameters?.map((f) => f.toJson()).toList());
     _setIfNotNull(json, 'fields', fields?.map((f) => f.toJson()).toList());
     _setIfNotNull(json, 'elements', elements?.map((f) => f.toJson()).toList());
     _setIfNotNull(
@@ -5447,18 +5589,19 @@ class IsolateGroupRef extends Response {
       'id: ${id}, number: ${number}, name: ${name}, isSystemIsolateGroup: ${isSystemIsolateGroup}]';
 }
 
-/// An `Isolate` object provides information about one isolate in the VM.
+/// An `IsolateGroup` object provides information about an isolate group in the
+/// VM.
 class IsolateGroup extends Response implements IsolateGroupRef {
   static IsolateGroup? parse(Map<String, dynamic>? json) =>
       json == null ? null : IsolateGroup._fromJson(json);
 
-  /// The id which is passed to the getIsolate RPC to reload this isolate.
+  /// The id which is passed to the getIsolateGroup RPC to reload this isolate.
   String? id;
 
   /// A numeric id for this isolate, represented as a string. Unique.
   String? number;
 
-  /// A name identifying this isolate. Not guaranteed to be unique.
+  /// A name identifying this isolate group. Not guaranteed to be unique.
   String? name;
 
   /// Specifies whether the isolate group was spawned by the VM or embedder for
@@ -6326,6 +6469,58 @@ class Obj extends Response implements ObjRef {
   bool operator ==(Object other) => other is Obj && id == other.id;
 
   String toString() => '[Obj id: ${id}]';
+}
+
+/// A `Parameter` is a representation of a function parameter.
+///
+/// See [Instance].
+class Parameter {
+  static Parameter? parse(Map<String, dynamic>? json) =>
+      json == null ? null : Parameter._fromJson(json);
+
+  /// The type of the parameter.
+  InstanceRef? parameterType;
+
+  /// Represents whether or not this parameter is fixed or optional.
+  bool? fixed;
+
+  /// The name of a named optional parameter.
+  @optional
+  String? name;
+
+  /// Whether or not this named optional parameter is marked as required.
+  @optional
+  bool? required;
+
+  Parameter({
+    required this.parameterType,
+    required this.fixed,
+    this.name,
+    this.required,
+  });
+
+  Parameter._fromJson(Map<String, dynamic> json) {
+    parameterType =
+        createServiceObject(json['parameterType'], const ['InstanceRef'])
+            as InstanceRef?;
+    fixed = json['fixed'] ?? false;
+    name = json['name'];
+    required = json['required'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json.addAll({
+      'parameterType': parameterType?.toJson(),
+      'fixed': fixed,
+    });
+    _setIfNotNull(json, 'name', name);
+    _setIfNotNull(json, 'required', required);
+    return json;
+  }
+
+  String toString() =>
+      '[Parameter parameterType: ${parameterType}, fixed: ${fixed}]';
 }
 
 /// A `PortList` contains a list of ports associated with some isolate.
@@ -7551,6 +7746,49 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
 
   String toString() =>
       '[TypeArguments id: ${id}, name: ${name}, types: ${types}]';
+}
+
+/// A `TypeParameters` object represents the type argument vector for some
+/// uninstantiated generic type.
+class TypeParameters {
+  static TypeParameters? parse(Map<String, dynamic>? json) =>
+      json == null ? null : TypeParameters._fromJson(json);
+
+  /// The names of the type parameters.
+  List<String>? names;
+
+  /// The bounds set on each type parameter.
+  TypeArgumentsRef? bounds;
+
+  /// The default types for each type parameter.
+  TypeArgumentsRef? defaults;
+
+  TypeParameters({
+    required this.names,
+    required this.bounds,
+    required this.defaults,
+  });
+
+  TypeParameters._fromJson(Map<String, dynamic> json) {
+    names = List<String>.from(json['names']);
+    bounds = createServiceObject(json['bounds'], const ['TypeArgumentsRef'])
+        as TypeArgumentsRef?;
+    defaults = createServiceObject(json['defaults'], const ['TypeArgumentsRef'])
+        as TypeArgumentsRef?;
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json.addAll({
+      'names': names?.map((f) => f).toList(),
+      'bounds': bounds?.toJson(),
+      'defaults': defaults?.toJson(),
+    });
+    return json;
+  }
+
+  String toString() =>
+      '[TypeParameters names: ${names}, bounds: ${bounds}, defaults: ${defaults}]';
 }
 
 /// The `UnresolvedSourceLocation` class is used to refer to an unresolved

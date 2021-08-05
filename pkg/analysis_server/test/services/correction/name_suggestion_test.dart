@@ -18,7 +18,7 @@ void main() {
 class VariableNameSuggestionTest extends AbstractSingleUnitTest {
   Future<void> test_forExpression_cast() async {
     await resolveTestCode('''
-main() {
+void f() {
   var sortedNodes;
   var res = sortedNodes as String;
 }
@@ -32,7 +32,7 @@ main() {
   Future<void> test_forExpression_expectedType() async {
     await resolveTestCode('''
 class TreeNode {}
-main() {
+void f() {
   TreeNode? node = null;
 }
 ''');
@@ -46,7 +46,7 @@ main() {
 
   Future<void> test_forExpression_expectedType_double() async {
     await resolveTestCode('''
-main() {
+void f() {
   double res = 0.0;
 }
 ''');
@@ -66,7 +66,7 @@ main() {
 
   Future<void> test_forExpression_expectedType_int() async {
     await resolveTestCode('''
-main() {
+void f() {
   int res = 0;
 }
 ''');
@@ -86,7 +86,7 @@ main() {
 
   Future<void> test_forExpression_expectedType_String() async {
     await resolveTestCode('''
-main() {
+void f() {
   String res = 'abc';
 }
 ''');
@@ -121,7 +121,7 @@ class A {
 
   Future<void> test_forExpression_indexExpression_endsWithE() async {
     await resolveTestCode('''
-main() {
+void f() {
   var topNodes = [0, 1, 2];
   print(topNodes[0]);
 }
@@ -136,7 +136,7 @@ main() {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'dart:math' as p;
-main(p) {
+void f(p) {
   new NoSuchClass();
   new p.NoSuchClass();
   new NoSuchClass.named();
@@ -164,7 +164,7 @@ main(p) {
   Future<void> test_forExpression_invocationArgument_named() async {
     await resolveTestCode('''
 foo({a, b, c}) {}
-main() {
+void f() {
   foo(a: 111, c: 333, b: 222);
 }
 ''');
@@ -189,7 +189,7 @@ main() {
   Future<void> test_forExpression_invocationArgument_optional() async {
     await resolveTestCode('''
 foo(a, [b = 2, c = 3]) {}
-main() {
+void f() {
   foo(111, 222, 333);
 }
 ''');
@@ -214,7 +214,7 @@ main() {
   Future<void> test_forExpression_invocationArgument_positional() async {
     await resolveTestCode('''
 foo(a, b) {}
-main() {
+void f() {
   foo(111, 222);
 }
 ''');
@@ -233,7 +233,7 @@ main() {
 
   Future<void> test_forExpression_methodInvocation() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var res = p.getSortedNodes();
 }
 ''');
@@ -245,7 +245,7 @@ main(p) {
 
   Future<void> test_forExpression_methodInvocation_noPrefix() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var res = p.sortedNodes();
 }
 ''');
@@ -257,7 +257,7 @@ main(p) {
 
   Future<void> test_forExpression_name_get() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var res = p.get();
 }
 ''');
@@ -269,7 +269,7 @@ main(p) {
 
   Future<void> test_forExpression_prefixedIdentifier() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var res = p.sortedNodes;
 }
 ''');
@@ -282,7 +282,7 @@ main(p) {
 
   Future<void> test_forExpression_privateName() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p._name;
   p._computeSuffix();
 }
@@ -300,7 +300,7 @@ main(p) {
 
   Future<void> test_forExpression_propertyAccess() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var res = p.q.sortedNodes;
 }
 ''');
@@ -312,7 +312,7 @@ main(p) {
 
   Future<void> test_forExpression_simpleName() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   var sortedNodes = null;
   var res = sortedNodes;
 }
@@ -326,7 +326,7 @@ main(p) {
   Future<void> test_forExpression_unqualifiedInvocation() async {
     await resolveTestCode('''
 getSortedNodes() => [];
-main(p) {
+void f(p) {
   var res = getSortedNodes();
 }
 ''');

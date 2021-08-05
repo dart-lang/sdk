@@ -38,6 +38,7 @@ main() {
   testPromotedVariables(1, 1.0, 1);
   testTypeVariables<int, double, int>(1, 1.0, 1);
   testPromotedTypeVariables<Object>(1, 1.0, 1);
+  testComplex<int, double, num, Object, num>(1, 1.0, 1, 1, 1);
   const TestConst<int, double, num>(1, 1.0, 1);
 }
 
@@ -1000,6 +1001,50 @@ void testPromotedTypeVariables<T>(T i, T d, T n) {
     n.clamp(n, never).expectStaticType<Exactly<num>>();
     never.clamp(i, i).expectStaticType<Exactly<Never>>();
   }
+}
+
+/// Creative combinations of types.
+void testComplex<I extends int, D extends double, N extends num,
+    O extends Object, NN extends N>(I i, D d, N n, O o, NN nn) {
+  O p = 1 as O;
+  if (p is! N) throw "promote to O&N";
+  if (p is! NN) throw "promote to O&N&NN";
+
+  checkIntersectionType<O, N>(p, p, p);
+  checkIntersectionType<N, NN>(p, p, p);
+
+  var result01 = p + p;
+  result01.expectStaticType<Exactly<num>>();
+
+  var clamp01 = p.clamp(p, p);
+  clamp01.expectStaticType<Exactly<num>>();
+
+  // Having different unrelated subtypes of int.
+  // Return the first operand's type.
+  N ni = n;
+  if (ni is! int) throw "promote ni to N&int";
+  (i + ni).expectStaticType<Exactly<int>>();
+  (i - ni).expectStaticType<Exactly<int>>();
+  (i * ni).expectStaticType<Exactly<int>>();
+  (i % ni).expectStaticType<Exactly<int>>();
+  i.remainder(ni).expectStaticType<Exactly<int>>();
+
+  // Use LUB for clamp.
+  i.clamp(ni, ni).expectStaticType<Exactly<int>>();
+  i.clamp(ni, i).expectStaticType<Exactly<int>>();
+
+  // Having different unrelated subtypes of double.
+  N nd = 1.0 as N;
+  if (nd is! double) throw "promote nd to N&double";
+  (d + nd).expectStaticType<Exactly<double>>();
+  (d - nd).expectStaticType<Exactly<double>>();
+  (d * nd).expectStaticType<Exactly<double>>();
+  (d % nd).expectStaticType<Exactly<double>>();
+  d.remainder(nd).expectStaticType<Exactly<double>>();
+
+  (d.clamp(nd, nd)).expectStaticType<Exactly<double>>();
+  (d.clamp(nd, d)).expectStaticType<Exactly<double>>();
+  (nd.clamp(d, d)).expectStaticType<Exactly<double>>();
 }
 
 /// Perform constant operations and check that they are still valid.

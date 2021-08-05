@@ -5,7 +5,7 @@
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/security_context.h"
 
@@ -162,15 +162,13 @@ static ssl_verify_result_t CertificateVerificationCallback(SSL* ssl,
   ScopedCFMutableArrayRef trusted_certs(CFArrayCreateMutable(NULL, 0, NULL));
   ASSERT(store != NULL);
 
-  if (store->objs != NULL) {
-    for (uintptr_t i = 0; i < sk_X509_OBJECT_num(store->objs); ++i) {
-      X509* ca = sk_X509_OBJECT_value(store->objs, i)->data.x509;
-      ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
-      if (cert == NULL) {
-        return ssl_verify_invalid;
-      }
-      CFArrayAppendValue(trusted_certs.get(), cert.release());
+  for (const X509_OBJECT* obj : X509_STORE_get0_objects(store)) {
+    X509* ca = X509_OBJECT_get0_X509(obj);
+    ScopedSecCertificateRef cert(CreateSecCertificateFromX509(ca));
+    if (cert == NULL) {
+      return ssl_verify_invalid;
     }
+    CFArrayAppendValue(trusted_certs.get(), cert.release());
   }
 
   // Generate a policy for validating chains for SSL.
@@ -347,6 +345,6 @@ void SSLCertContext::TrustBuiltinRoots() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

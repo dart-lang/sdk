@@ -51,7 +51,7 @@ import 'dart:ffi';
 
 class A extends Struct {
   @Double()
-  double foo;
+  external double foo;
 }
 ''');
   }

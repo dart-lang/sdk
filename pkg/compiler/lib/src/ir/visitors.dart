@@ -212,15 +212,15 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
   }
 
   @override
-  ConstantValue visitTearOffConstant(ir.TearOffConstant node) {
-    FunctionEntity function = elementMap.getMethod(node.procedure);
-    DartType type = elementMap.getFunctionType(node.procedure.function);
+  ConstantValue visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
+    ir.Procedure member = node.target;
+    FunctionEntity function = elementMap.getMethod(member);
+    DartType type = elementMap.getFunctionType(member.function);
     return new FunctionConstantValue(function, type);
   }
 
   @override
-  ConstantValue visitPartialInstantiationConstant(
-      ir.PartialInstantiationConstant node) {
+  ConstantValue visitInstantiationConstant(ir.InstantiationConstant node) {
     List<DartType> typeArguments = [];
     for (ir.DartType type in node.types) {
       typeArguments.add(elementMap.getDartType(type));

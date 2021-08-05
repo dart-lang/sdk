@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests elimination of null checks.
-// This test requires non-nullable experiment.
-
-// @dart = 2.10
 
 class A {
   String? nonNullable;

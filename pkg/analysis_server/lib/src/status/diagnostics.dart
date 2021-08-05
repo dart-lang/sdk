@@ -246,7 +246,7 @@ class AstPage extends DiagnosticPageWithNav {
     var result = await driver.getResult2(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
-      result.unit!.accept(writer);
+      result.unit.accept(writer);
     } else {
       p(
           'An AST could not be produced for the file '
@@ -666,7 +666,7 @@ abstract class DiagnosticPage extends Page {
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
-        <a href="https://dart.dev/tools/dartanalyzer" target="_blank">Docs</a>
+        <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
     </div>
@@ -836,7 +836,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
     var result = await driver.getResult2(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
-      compilationUnitElement = result.unit?.declaredElement;
+      compilationUnitElement = result.unit.declaredElement;
     }
     if (compilationUnitElement != null) {
       var writer = ElementWriter(buf);

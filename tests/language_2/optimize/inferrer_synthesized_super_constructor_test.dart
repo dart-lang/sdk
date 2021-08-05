@@ -4,10 +4,9 @@
 
 // @dart = 2.9
 
-import '../compiler_annotations.dart';
-
 class A {
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   A([a]) {
     () => 42;
     if (a != null) throw 'Test failed';

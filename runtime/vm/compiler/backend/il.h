@@ -24,6 +24,7 @@
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/native_entry.h"
@@ -478,7 +479,6 @@ struct InstrAttrs {
   M(Constraint, kNoGC)                                                         \
   M(StringToCharCode, kNoGC)                                                   \
   M(OneByteStringFromCharCode, kNoGC)                                          \
-  M(StringInterpolate, _)                                                      \
   M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, kNoGC)                                                \
   M(TruncDivMod, kNoGC)                                                        \
@@ -5850,41 +5850,6 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(StringToCharCodeInstr);
 };
 
-class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
- public:
-  StringInterpolateInstr(Value* value,
-                         const InstructionSource& source,
-                         intptr_t deopt_id)
-      : TemplateDefinition(source, deopt_id),
-        token_pos_(source.token_pos),
-        function_(Function::ZoneHandle()) {
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-  virtual TokenPosition token_pos() const { return token_pos_; }
-
-  virtual CompileType ComputeType() const;
-  // Issues a static call to Dart code which calls toString on objects.
-  virtual bool HasUnknownSideEffects() const { return true; }
-  virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const {
-    return !CompilerState::Current().is_aot();
-  }
-
-  const Function& CallFunction() const;
-
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
-
-  DECLARE_INSTRUCTION(StringInterpolate)
-
- private:
-  const TokenPosition token_pos_;
-  Function& function_;
-
-  DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
-};
-
 // Scanning instruction to compute the result size and decoding parameters
 // for the UTF-8 decoder. Equivalent to:
 //
@@ -6206,6 +6171,8 @@ class AllocateObjectInstr : public AllocationInstr {
       : AllocationInstr(source, deopt_id),
         cls_(cls),
         type_arguments_(type_arguments) {
+    ASSERT(cls.IsZoneHandle());
+    ASSERT(!cls.IsNull());
     ASSERT((cls.NumTypeArguments() > 0) == (type_arguments != nullptr));
     if (type_arguments != nullptr) {
       SetInputAt(kTypeArgumentsPos, type_arguments);

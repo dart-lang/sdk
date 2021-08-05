@@ -115,21 +115,40 @@ class ExpressionLifter extends Transformer {
     return result;
   }
 
+  // Wraps VariableGet in an unsafeCast if `type` isn't dynamic.
+  Expression unsafeCastVariableGet(
+      VariableDeclaration variable, DartType type) {
+    if (type != const DynamicType()) {
+      return StaticInvocation(
+          continuationRewriter.helper.unsafeCast,
+          Arguments(<Expression>[VariableGet(variable)],
+              types: <DartType>[type]));
+    }
+    return VariableGet(variable);
+  }
+
   // Name an expression by emitting an assignment to a temporary variable.
   Expression name(Expression expr) {
-    // Allocate as dynamic as temps might be reused with different types.
-    VariableDeclaration temp =
-        allocateTemporary(nameIndex, const DynamicType());
-    statements.add(ExpressionStatement(VariableSet(temp, expr)));
-    // Type annotate the get via an unsafe cast since all temps are allocated
-    // as dynamic.
     DartType type = expr.getStaticType(_staticTypeContext);
-    return StaticInvocation(continuationRewriter.helper.unsafeCast,
-        Arguments(<Expression>[VariableGet(temp)], types: <DartType>[type]));
+    VariableDeclaration temp = allocateTemporary(nameIndex, type);
+    statements.add(ExpressionStatement(VariableSet(temp, expr)));
+    // Wrap in unsafeCast to make sure we pass type information even if we later
+    // have to re-type the temporary variable to dynamic.
+    return unsafeCastVariableGet(temp, type);
   }
 
   VariableDeclaration allocateTemporary(int index,
       [DartType type = const DynamicType()]) {
+    if (variables.length > index) {
+      // Re-type temporary to dynamic if we detect reuse with different type.
+      // Note: We should make sure all uses use `unsafeCast(...)` to pass their
+      // type information on, as that is lost otherwise.
+      if (variables[index].type != const DynamicType() &&
+          variables[index].type != type) {
+        variables[index].type = const DynamicType();
+      }
+      return variables[index];
+    }
     for (var i = variables.length; i <= index; i++) {
       variables.add(VariableDeclaration(":async_temporary_${i}", type: type));
     }
@@ -156,7 +175,6 @@ class ExpressionLifter extends Transformer {
     return expr;
   }
 
-  TreeNode visitInvalidExpression(InvalidExpression expr) => nullary(expr);
   TreeNode visitSuperPropertyGet(SuperPropertyGet expr) => nullary(expr);
   TreeNode visitStaticGet(StaticGet expr) => nullary(expr);
   TreeNode visitStaticTearOff(StaticTearOff expr) => nullary(expr);
@@ -212,6 +230,8 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
+  TreeNode visitInvalidExpression(InvalidExpression expr) => unary(expr);
   @override
   TreeNode visitVariableSet(VariableSet expr) => unary(expr);
   @override
@@ -384,10 +404,9 @@ class ExpressionLifter extends Transformer {
     // so any statements it emits occur after in the accumulated list (that is,
     // so they occur before in the corresponding block).
     var rightBody = blockOf(rightStatements);
-    var result = allocateTemporary(
-        nameIndex,
-        _staticTypeContext.typeEnvironment.coreTypes
-            .boolRawType(_staticTypeContext.nonNullable));
+    final type = _staticTypeContext.typeEnvironment.coreTypes
+        .boolRawType(_staticTypeContext.nonNullable);
+    final result = allocateTemporary(nameIndex, type);
     final objectEquals = continuationRewriter.helper.coreTypes.objectEquals;
     rightBody.addStatement(new ExpressionStatement(new VariableSet(
         result,
@@ -402,7 +421,8 @@ class ExpressionLifter extends Transformer {
       then = new EmptyStatement();
       otherwise = rightBody;
     }
-    statements.add(new IfStatement(new VariableGet(result), then, otherwise));
+    statements.add(
+        new IfStatement(unsafeCastVariableGet(result, type), then, otherwise));
 
     final test = new EqualsCall(expr.left, new BoolLiteral(true),
         interfaceTarget: objectEquals,
@@ -414,7 +434,7 @@ class ExpressionLifter extends Transformer {
 
     ++nameIndex;
     seenAwait = seenAwait || rightAwait;
-    return new VariableGet(result);
+    return unsafeCastVariableGet(result, type);
   }
 
   TreeNode visitConditionalExpression(ConditionalExpression expr) {
@@ -455,15 +475,15 @@ class ExpressionLifter extends Transformer {
       });
     }
 
-    // If then or otherwise has emitted statements we will produce a temporary t
-    // and emit:
+    // If `then` or `otherwise` has emitted statements we will produce a
+    // temporary t and emit:
     //
     // if ([condition]) {
     //   t = [left];
     // } else {
     //   t = [right];
     // }
-    var result = allocateTemporary(nameIndex, expr.staticType);
+    final result = allocateTemporary(nameIndex, expr.staticType);
     var thenBody = blockOf(thenStatements);
     var otherwiseBody = blockOf(otherwiseStatements);
     thenBody.addStatement(
@@ -478,7 +498,7 @@ class ExpressionLifter extends Transformer {
 
     ++nameIndex;
     seenAwait = seenAwait || thenAwait || otherwiseAwait;
-    return new VariableGet(result);
+    return unsafeCastVariableGet(result, expr.staticType);
   }
 
   // Others.

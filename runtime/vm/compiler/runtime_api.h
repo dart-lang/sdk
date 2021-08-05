@@ -419,6 +419,9 @@ bool WillAllocateNewOrRememberedContext(intptr_t num_context_variables);
 
 bool WillAllocateNewOrRememberedArray(intptr_t length);
 
+#define FINAL_CLASS()                                                          \
+  static word NextFieldOffset() { return -kWordSize; }
+
 //
 // Target specific offsets and constants.
 //
@@ -461,7 +464,7 @@ class ObjectPool : public AllStatic {
   static word element_offset(intptr_t index);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Class : public AllStatic {
@@ -480,7 +483,7 @@ class Class : public AllStatic {
 
   static word InstanceSize();
 
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
   // Return class id of the given class on the target.
   static classid_t GetId(const dart::Class& handle);
@@ -508,8 +511,8 @@ class Class : public AllStatic {
 class Instance : public AllStatic {
  public:
   // Returns the offset to the first field of [UntaggedInstance].
-  // Returns the offset to the first field of [UntaggedInstance].
   static word first_field_offset();
+  static word native_fields_array_offset();
   static word DataOffsetFor(intptr_t cid);
   static word ElementSizeFor(intptr_t cid);
   static word InstanceSize();
@@ -526,7 +529,7 @@ class Function : public AllStatic {
   static word signature_offset();
   static word usage_counter_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class CallSiteData : public AllStatic {
@@ -550,7 +553,7 @@ class ICData : public AllStatic {
   static word NumArgsTestedShift();
   static word NumArgsTestedMask();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class MegamorphicCache : public AllStatic {
@@ -559,7 +562,7 @@ class MegamorphicCache : public AllStatic {
   static word mask_offset();
   static word buckets_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class SingleTargetCache : public AllStatic {
@@ -569,7 +572,7 @@ class SingleTargetCache : public AllStatic {
   static word entry_point_offset();
   static word target_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Array : public AllStatic {
@@ -583,7 +586,7 @@ class Array : public AllStatic {
   static intptr_t index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
   static const word kMaxElements;
   static const word kMaxNewSpaceElements;
@@ -595,7 +598,7 @@ class GrowableObjectArray : public AllStatic {
   static word type_arguments_offset();
   static word length_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class PointerBase : public AllStatic {
@@ -607,7 +610,7 @@ class TypedDataBase : public PointerBase {
  public:
   static word length_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypedData : public AllStatic {
@@ -616,14 +619,14 @@ class TypedData : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word lengthInBytes);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ExternalTypedData : public AllStatic {
  public:
   static word data_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypedDataView : public AllStatic {
@@ -631,10 +634,10 @@ class TypedDataView : public AllStatic {
   static word offset_in_bytes_offset();
   static word data_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
-class LinkedHashMap : public AllStatic {
+class LinkedHashBase : public AllStatic {
  public:
   static word index_offset();
   static word data_offset();
@@ -643,14 +646,23 @@ class LinkedHashMap : public AllStatic {
   static word deleted_keys_offset();
   static word type_arguments_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+};
+
+class LinkedHashMap : public LinkedHashBase {
+ public:
+  FINAL_CLASS();
+};
+
+class LinkedHashSet : public LinkedHashBase {
+ public:
+  FINAL_CLASS();
 };
 
 class FutureOr : public AllStatic {
  public:
   static word type_arguments_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ArgumentsDescriptor : public AllStatic {
@@ -674,14 +686,14 @@ class Pointer : public PointerBase {
  public:
   static word type_arguments_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class AbstractType : public AllStatic {
  public:
   static word type_test_stub_entry_point_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Type : public AllStatic {
@@ -692,27 +704,28 @@ class Type : public AllStatic {
   static word type_class_id_offset();
   static word nullability_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class FunctionType : public AllStatic {
  public:
   static word hash_offset();
   static word type_state_offset();
-  static word packed_fields_offset();
-  static word parameter_names_offset();
+  static word packed_parameter_counts_offset();
+  static word packed_type_parameter_counts_offset();
+  static word named_parameter_names_offset();
   static word parameter_types_offset();
   static word type_parameters_offset();
   static word nullability_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypeRef : public AllStatic {
  public:
   static word type_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Nullability : public AllStatic {
@@ -726,14 +739,14 @@ class Double : public AllStatic {
  public:
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Mint : public AllStatic {
  public:
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class String : public AllStatic {
@@ -743,8 +756,8 @@ class String : public AllStatic {
   static word hash_offset();
   static word length_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
   static word InstanceSize(word payload_size);
+  FINAL_CLASS();
 };
 
 class OneByteString : public AllStatic {
@@ -752,7 +765,7 @@ class OneByteString : public AllStatic {
   static word data_offset();
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
  private:
   static word element_offset(intptr_t index);
@@ -763,7 +776,7 @@ class TwoByteString : public AllStatic {
   static word data_offset();
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
  private:
   static word element_offset(intptr_t index);
@@ -773,77 +786,77 @@ class ExternalOneByteString : public AllStatic {
  public:
   static word external_data_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ExternalTwoByteString : public AllStatic {
  public:
   static word external_data_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Int32x4 : public AllStatic {
  public:
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Float32x4 : public AllStatic {
  public:
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Float64x2 : public AllStatic {
  public:
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class DynamicLibrary : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class PatchClass : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class FfiTrampolineData : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Script : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Library : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Namespace : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class KernelProgramInfo : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class PcDescriptors : public AllStatic {
@@ -851,7 +864,7 @@ class PcDescriptors : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class CodeSourceMap : public AllStatic {
@@ -859,7 +872,7 @@ class CodeSourceMap : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class CompressedStackMaps : public AllStatic {
@@ -867,13 +880,13 @@ class CompressedStackMaps : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class LocalVarDescriptors : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ExceptionHandlers : public AllStatic {
@@ -881,7 +894,7 @@ class ExceptionHandlers : public AllStatic {
   static word element_offset(intptr_t index);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ContextScope : public AllStatic {
@@ -889,31 +902,31 @@ class ContextScope : public AllStatic {
   static word element_offset(intptr_t index);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Sentinel : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class UnlinkedCall : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ApiError : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class LanguageError : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class UnhandledException : public AllStatic {
@@ -921,19 +934,19 @@ class UnhandledException : public AllStatic {
   static word exception_offset();
   static word stacktrace_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class UnwindError : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Bool : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypeParameter : public AllStatic {
@@ -941,7 +954,7 @@ class TypeParameter : public AllStatic {
   static word bound_offset();
   static word flags_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
   static word parameterized_class_id_offset();
   static word index_offset();
   static word nullability_offset();
@@ -950,37 +963,37 @@ class TypeParameter : public AllStatic {
 class LibraryPrefix : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Capability : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ReceivePort : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class SendPort : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TransferableTypedData : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class StackTrace : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Integer : public AllStatic {
@@ -992,7 +1005,7 @@ class Integer : public AllStatic {
 class Smi : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class WeakProperty : public AllStatic {
@@ -1000,13 +1013,13 @@ class WeakProperty : public AllStatic {
   static word key_offset();
   static word value_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class MirrorReference : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Number : public AllStatic {
@@ -1031,7 +1044,7 @@ class MonomorphicSmiableCall : public AllStatic {
   static word entrypoint_offset();
   static word target_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Thread : public AllStatic {
@@ -1217,7 +1230,7 @@ class InstructionsSection : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class InstructionsTable : public AllStatic {
@@ -1225,7 +1238,7 @@ class InstructionsTable : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(intptr_t length);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
  private:
   static word element_offset(intptr_t index);
@@ -1243,7 +1256,7 @@ class Instructions : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word payload_size);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Code : public AllStatic {
@@ -1259,7 +1272,7 @@ class Code : public AllStatic {
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(intptr_t length);
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
  private:
   static word element_offset(intptr_t index);
@@ -1268,7 +1281,7 @@ class Code : public AllStatic {
 class WeakSerializationReference : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class SubtypeTestCache : public AllStatic {
@@ -1285,13 +1298,13 @@ class SubtypeTestCache : public AllStatic {
   static const word kInstanceDelayedFunctionTypeArguments;
   static const word kTestResult;
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class LoadingUnit : public AllStatic {
  public:
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Context : public AllStatic {
@@ -1302,7 +1315,7 @@ class Context : public AllStatic {
   static word variable_offset(intptr_t index);
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Closure : public AllStatic {
@@ -1315,14 +1328,14 @@ class Closure : public AllStatic {
   static word instantiator_type_arguments_offset();
   static word hash_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class ClosureData : public AllStatic {
  public:
   static word default_type_arguments_kind_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class OldPage : public AllStatic {
@@ -1358,14 +1371,14 @@ class RegExp : public AllStatic {
  public:
   static word function_offset(classid_t cid, bool sticky);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class UserTag : public AllStatic {
  public:
   static word tag_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class Symbols : public AllStatic {
@@ -1386,7 +1399,7 @@ class Field : public AllStatic {
   static word initializer_function_offset();
   static word host_offset_or_field_id_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypeParameters : public AllStatic {
@@ -1396,7 +1409,7 @@ class TypeParameters : public AllStatic {
   static word bounds_offset();
   static word defaults_offset();
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 };
 
 class TypeArguments : public AllStatic {
@@ -1408,7 +1421,7 @@ class TypeArguments : public AllStatic {
   static word types_offset();
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
-  static word NextFieldOffset();
+  FINAL_CLASS();
 
   static const word kMaxElements;
 };
@@ -1418,7 +1431,7 @@ class FreeListElement : public AllStatic {
   class FakeInstance : public AllStatic {
    public:
     static word InstanceSize();
-    static word NextFieldOffset();
+    FINAL_CLASS();
   };
 };
 
@@ -1427,7 +1440,7 @@ class ForwardingCorpse : public AllStatic {
   class FakeInstance : public AllStatic {
    public:
     static word InstanceSize();
-    static word NextFieldOffset();
+    FINAL_CLASS();
   };
 };
 

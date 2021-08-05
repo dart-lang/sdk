@@ -440,6 +440,8 @@ class NewWorldTest {
     }
 
     int worldNum = 0;
+    // TODO: When needed, we can do this for warnings too.
+    List<Set<String>> worldErrors = [];
     for (YamlMap world in worlds) {
       worldNum++;
       print("----------------");
@@ -891,6 +893,18 @@ class NewWorldTest {
       }
       List<int> incrementalSerializationBytes = serializationResult.output;
 
+      worldErrors.add(formattedErrors.toSet());
+      assert(worldErrors.length == worldNum);
+      if (world["expectSameErrorsAsWorld"] != null) {
+        int expectSameErrorsAsWorld = world["expectSameErrorsAsWorld"];
+        checkErrorsAndWarnings(
+          worldErrors[expectSameErrorsAsWorld - 1],
+          formattedErrors,
+          {},
+          {},
+        );
+      }
+
       Set<String> prevFormattedErrors = formattedErrors.toSet();
       Set<String> prevFormattedWarnings = formattedWarnings.toSet();
 
@@ -986,7 +1000,9 @@ class NewWorldTest {
         }
       }
 
-      if (!noFullComponent && incrementalSerialization == true) {
+      if (!noFullComponent &&
+          (incrementalSerialization == true ||
+              world["compareWithFromScratch"] == true)) {
         // Do compile from scratch and compare.
         clearPrevErrorsEtc();
         TestIncrementalCompiler compilerFromScratch;
@@ -1022,9 +1038,12 @@ class NewWorldTest {
         await util.throwOnInsufficientUriToSource(component3);
         print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
-        util.postProcess(component3);
+        List<int> thisWholeComponent = util.postProcess(component3);
         print("*****\n\ncomponent3:\n"
             "${componentToStringSdkFiltered(component3)}\n\n\n");
+        if (world["compareWithFromScratch"] == true) {
+          checkIsEqual(newestWholeComponentData, thisWholeComponent);
+        }
         checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
             prevFormattedWarnings, formattedWarnings);
 

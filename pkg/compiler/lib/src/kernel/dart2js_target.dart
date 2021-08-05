@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
@@ -78,9 +80,7 @@ class Dart2jsTarget extends Target {
   @override
   final String name;
 
-  final CompilerOptions options;
-
-  Map<String, ir.Class> _nativeClasses;
+  final CompilerOptions? options;
 
   Dart2jsTarget(this.name, this.flags, {this.options});
 
@@ -89,7 +89,7 @@ class Dart2jsTarget extends Target {
 
   @override
   int get enabledLateLowerings =>
-      (options != null && options.experimentLateInstanceVariables)
+      (options != null && options!.experimentLateInstanceVariables)
           ? LateLowering.none
           : _enabledLateLowerings;
 
@@ -105,10 +105,10 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  bool get supportsNewMethodInvocationEncoding => true;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
 
   @override
-  List<String> get extraRequiredLibraries => _requiredLibraries[name];
+  List<String> get extraRequiredLibraries => _requiredLibraries[name]!;
 
   @override
   List<String> get extraIndexedLibraries => const [
@@ -131,7 +131,9 @@ class Dart2jsTarget extends Target {
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      maybeEnableNative(importer);
+      maybeEnableNative(importer) ||
+      (importer.scheme == 'package' &&
+          importer.path.startsWith('dart2js_runtime_metrics/'));
 
   @override
   bool enableNative(Uri uri) => maybeEnableNative(uri);
@@ -148,12 +150,12 @@ class Dart2jsTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<ir.Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
-    _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
+    var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
@@ -162,7 +164,7 @@ class Dart2jsTarget extends Target {
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              _nativeClasses)
+              nativeClasses)
           .visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
@@ -189,7 +191,7 @@ class Dart2jsTarget extends Target {
     }
     return new ir.StaticInvocation(
         coreTypes.index
-            .getTopLevelMember('dart:core', '_createInvocationMirror'),
+            .getTopLevelProcedure('dart:core', '_createInvocationMirror'),
         new ir.Arguments(<ir.Expression>[
           new ir.StringLiteral(name)..fileOffset = offset,
           new ir.ListLiteral(
@@ -235,6 +237,7 @@ class Dart2jsTarget extends Target {
 // compile-platform should just specify which libraries to compile instead.
 const _requiredLibraries = const <String, List<String>>{
   'dart2js': const <String>[
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
@@ -258,6 +261,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:web_sql',
   ],
   'dart2js_server': const <String>[
+    'dart:_dart2js_runtime_metrics',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
@@ -279,7 +283,7 @@ class Dart2jsConstantsBackend extends ConstantsBackend {
   @override
   final bool supportsUnevaluatedConstants;
 
-  const Dart2jsConstantsBackend({this.supportsUnevaluatedConstants});
+  const Dart2jsConstantsBackend({required this.supportsUnevaluatedConstants});
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;

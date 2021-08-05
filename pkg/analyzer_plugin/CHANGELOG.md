@@ -1,3 +1,7 @@
+## 0.7.0
+
+- Support verison `2.x` of the `analyzer` package
+
 ## 0.6.0
 - Bug fixes to the protocol.
 

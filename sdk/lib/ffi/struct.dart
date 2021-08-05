@@ -27,7 +27,7 @@ abstract class _Compound extends NativeType {
 /// field in memory.
 ///
 /// All field declarations in a [Struct] subclass declaration must either have
-/// type [int] or [float] and be annotated with a [NativeType] representing the
+/// type [int] or [double] and be annotated with a [NativeType] representing the
 /// native type, or must be of type [Pointer]. For example:
 ///
 /// ```c

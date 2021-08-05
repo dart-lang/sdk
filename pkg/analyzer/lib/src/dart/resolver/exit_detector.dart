@@ -551,6 +551,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitTypeLiteral(TypeLiteral node) => _nodeExits(node.typeName);
+
+  @override
   bool visitTypeName(TypeName node) => false;
 
   @override

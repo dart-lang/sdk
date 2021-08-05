@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
 
 /// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
@@ -25,9 +24,6 @@ class AnalysisSessionImpl implements AnalysisSession {
 
   /// The URI converter used to convert between URI's and file paths.
   UriConverter? _uriConverter;
-
-  /// The cache of libraries for URIs.
-  final Map<String, LibraryElement> _uriToLibraryCache = {};
 
   ClassHierarchy classHierarchy = ClassHierarchy();
   InheritanceManager3 inheritanceManager = InheritanceManager3();
@@ -58,73 +54,56 @@ class AnalysisSessionImpl implements AnalysisSession {
   @deprecated
   driver.AnalysisDriver getDriver() => _driver;
 
-  @Deprecated('Use getErrors2() instead')
   @override
-  Future<ErrorsResult> getErrors(String path) {
-    _checkConsistency();
-    return _driver.getErrors(path);
-  }
-
-  @override
-  Future<SomeErrorsResult> getErrors2(String path) {
+  Future<SomeErrorsResult> getErrors(String path) {
     _checkConsistency();
     return _driver.getErrors2(path);
   }
 
-  @Deprecated('Use getFile2() instead')
+  @Deprecated('Use getErrors() instead')
   @override
-  FileResult getFile(String path) {
-    _checkConsistency();
-    return _driver.getFileSync(path);
+  Future<SomeErrorsResult> getErrors2(String path) {
+    return getErrors(path);
   }
 
   @override
-  SomeFileResult getFile2(String path) {
+  SomeFileResult getFile(String path) {
     _checkConsistency();
     return _driver.getFileSync2(path);
   }
 
-  @Deprecated('Use getLibraryByUri2() instead')
+  @Deprecated('Use getFile() instead')
   @override
-  Future<LibraryElement> getLibraryByUri(String uri) async {
-    _checkConsistency();
-    var libraryElement = _uriToLibraryCache[uri];
-    if (libraryElement == null) {
-      libraryElement = await _driver.getLibraryByUri(uri);
-      _uriToLibraryCache[uri] = libraryElement;
-    }
-    return libraryElement;
+  SomeFileResult getFile2(String path) {
+    return getFile(path);
   }
 
   @override
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+  Future<SomeLibraryElementResult> getLibraryByUri(String uri) {
     _checkConsistency();
     return _driver.getLibraryByUri2(uri);
   }
 
-  @Deprecated('Use getParsedLibrary2() instead')
+  @Deprecated('Use getLibraryByUri() instead')
   @override
-  ParsedLibraryResult getParsedLibrary(String path) {
-    _checkConsistency();
-    return _driver.getParsedLibrary(path);
+  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
+    return getLibraryByUri(uri);
   }
 
   @override
-  SomeParsedLibraryResult getParsedLibrary2(String path) {
+  SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
     return _driver.getParsedLibrary2(path);
   }
 
-  @Deprecated('Use getParsedLibraryByElement2() instead')
+  @Deprecated('Use getParsedLibrary() instead')
   @override
-  ParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
-    _checkConsistency();
-    _checkElementOfThisSession(element);
-    return _driver.getParsedLibraryByUri(element.source.uri);
+  SomeParsedLibraryResult getParsedLibrary2(String path) {
+    return getParsedLibrary(path);
   }
 
   @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     _checkConsistency();
 
     if (element.session != this) {
@@ -134,43 +113,38 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getParsedLibraryByUri2(element.source.uri);
   }
 
-  @Deprecated('Use getParsedUnit2() instead')
+  @Deprecated('Use getParsedLibraryByElement() instead')
   @override
-  ParsedUnitResult getParsedUnit(String path) {
-    _checkConsistency();
-    return _driver.parseFileSync(path);
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    return getParsedLibraryByElement(element);
   }
 
   @override
-  SomeParsedUnitResult getParsedUnit2(String path) {
+  SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync2(path);
   }
 
-  @Deprecated('Use getResolvedLibrary2() instead')
+  @Deprecated('Use getParsedUnit() instead')
   @override
-  Future<ResolvedLibraryResult> getResolvedLibrary(String path) {
-    _checkConsistency();
-    return _driver.getResolvedLibrary(path);
+  SomeParsedUnitResult getParsedUnit2(String path) {
+    return getParsedUnit(path);
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+  Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
     return _driver.getResolvedLibrary2(path);
   }
 
-  @Deprecated('Use getResolvedLibraryByElement2() instead')
+  @Deprecated('Use getResolvedLibrary() instead')
   @override
-  Future<ResolvedLibraryResult> getResolvedLibraryByElement(
-      LibraryElement element) {
-    _checkConsistency();
-    _checkElementOfThisSession(element);
-    return _driver.getResolvedLibraryByUri(element.source.uri);
+  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
+    return getResolvedLibrary(path);
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
   ) {
     _checkConsistency();
@@ -184,44 +158,36 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getResolvedLibraryByUri2(element.source.uri);
   }
 
-  @Deprecated('Use getResolvedUnit2() instead')
+  @Deprecated('Use getResolvedLibraryByElement() instead')
   @override
-  Future<ResolvedUnitResult> getResolvedUnit(String path) {
-    _checkConsistency();
-    return _driver.getResult(path);
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement element,
+  ) {
+    return getResolvedLibraryByElement(element);
   }
 
   @override
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult2(path);
   }
 
-  @Deprecated('Use getFile2() instead')
+  @Deprecated('Use getResolvedUnit() instead')
   @override
-  Future<SourceKind?> getSourceKind(String path) {
-    _checkConsistency();
-    return _driver.getSourceKind(path);
-  }
-
-  @Deprecated('Use getUnitElement2() instead')
-  @override
-  Future<UnitElementResult> getUnitElement(String path) {
-    _checkConsistency();
-    return _driver.getUnitElement(path);
+  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
+    return getResolvedUnit(path);
   }
 
   @override
-  Future<SomeUnitElementResult> getUnitElement2(String path) {
+  Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement2(path);
   }
 
-  @Deprecated('This method is not used and will be removed')
+  @Deprecated('Use getUnitElement() instead')
   @override
-  Future<String> getUnitElementSignature(String path) {
-    _checkConsistency();
-    return _driver.getUnitElementSignature(path);
+  Future<SomeUnitElementResult> getUnitElement2(String path) {
+    return getUnitElement(path);
   }
 
   /// Check to see that results from this session will be consistent, and throw
@@ -229,15 +195,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw InconsistentAnalysisException();
-    }
-  }
-
-  void _checkElementOfThisSession(Element element) {
-    if (element.session != this) {
-      var elementStr = element.getDisplayString(withNullability: true);
-      throw ArgumentError(
-          '(${element.runtimeType}) $elementStr was not produced by '
-          'this session.');
     }
   }
 }

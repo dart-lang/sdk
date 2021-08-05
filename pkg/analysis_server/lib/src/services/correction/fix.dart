@@ -5,107 +5,26 @@
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-/// Return true if this [errorCode] is likely to have a fix associated with it.
-bool hasFix(ErrorCode errorCode) =>
-    errorCode == CompileTimeErrorCode.CAST_TO_NON_TYPE ||
-    errorCode == CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
-    errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE ||
-    errorCode == CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
-    errorCode == CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION ||
-    errorCode == CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
-    errorCode ==
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
-    errorCode ==
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
-    errorCode ==
-        CompileTimeErrorCode
-            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
-    errorCode ==
-        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
-    errorCode ==
-        CompileTimeErrorCode
-            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
-    errorCode == CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT ||
-    errorCode == CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
-    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED ||
-    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
-    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
-    errorCode ==
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER ||
-    errorCode ==
-        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
-    errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE ||
-    errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
-    errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
-    errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN ||
-    errorCode ==
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_GETTER ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_METHOD ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_SETTER ||
-    errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
-    errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED ||
-    errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE ||
-    errorCode == HintCode.DEAD_CODE ||
-    errorCode == HintCode.DIVISION_OPTIMIZATION ||
-    errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL ||
-    errorCode == HintCode.TYPE_CHECK_IS_NULL ||
-    errorCode == HintCode.UNNECESSARY_CAST ||
-    errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
-    errorCode == HintCode.UNUSED_CATCH_STACK ||
-    errorCode == HintCode.UNUSED_IMPORT ||
-    errorCode == ParserErrorCode.EXPECTED_TOKEN ||
-    errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
-    errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||
-    errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
-    (errorCode is LintCode &&
-        (errorCode.name == LintNames.always_require_non_null_named_parameters ||
-            errorCode.name == LintNames.annotate_overrides ||
-            errorCode.name == LintNames.avoid_annotating_with_dynamic ||
-            errorCode.name == LintNames.avoid_empty_else ||
-            errorCode.name == LintNames.avoid_init_to_null ||
-            errorCode.name == LintNames.avoid_redundant_argument_values ||
-            errorCode.name == LintNames.avoid_return_types_on_setters ||
-            errorCode.name == LintNames.avoid_types_on_closure_parameters ||
-            errorCode.name == LintNames.await_only_futures ||
-            errorCode.name == LintNames.empty_catches ||
-            errorCode.name == LintNames.empty_constructor_bodies ||
-            errorCode.name == LintNames.empty_statements ||
-            errorCode.name == LintNames.no_duplicate_case_values ||
-            errorCode.name == LintNames.non_constant_identifier_names ||
-            errorCode.name == LintNames.null_closures ||
-            errorCode.name == LintNames.prefer_collection_literals ||
-            errorCode.name == LintNames.prefer_conditional_assignment ||
-            errorCode.name == LintNames.prefer_const_constructors ||
-            errorCode.name ==
-                LintNames.prefer_const_constructors_in_immutables ||
-            errorCode.name == LintNames.prefer_const_declarations ||
-            errorCode.name == LintNames.prefer_equal_for_default_values ||
-            errorCode.name == LintNames.prefer_final_fields ||
-            errorCode.name == LintNames.prefer_final_locals ||
-            errorCode.name == LintNames.prefer_is_not_empty ||
-            errorCode.name == LintNames.type_init_formals ||
-            errorCode.name == LintNames.unawaited_futures ||
-            errorCode.name == LintNames.unnecessary_brace_in_string_interps ||
-            errorCode.name == LintNames.unnecessary_const ||
-            errorCode.name == LintNames.unnecessary_lambdas ||
-            errorCode.name == LintNames.unnecessary_new ||
-            errorCode.name == LintNames.unnecessary_overrides ||
-            errorCode.name == LintNames.unnecessary_this ||
-            errorCode.name == LintNames.use_rethrow_when_possible));
+/// Return `true` if this [errorCode] is likely to have a fix associated with
+/// it.
+bool hasFix(ErrorCode errorCode) {
+  if (errorCode is LintCode) {
+    var lintName = errorCode.name;
+    return FixProcessor.lintProducerMap.containsKey(lintName);
+  }
+  // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
+  //  this function, or handle error codes associated with non-dart files.
+  return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
+      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+}
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
 /// options file.
@@ -179,6 +98,10 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
+      'dart.fix.add.keyToConstructors',
+      DartFixKindPriority.DEFAULT,
+      "Add 'key' to constructors");
   static const ADD_LATE = FixKind(
       'dart.fix.add.late', DartFixKindPriority.DEFAULT, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
@@ -311,6 +234,10 @@ class DartFixKind {
       'dart.fix.convert.toIfNull.multi',
       DartFixKindPriority.IN_FILE,
       "Convert to '??'s everywhere in file");
+  static const CONVERT_TO_INITIALIZING_FORMAL = FixKind(
+      'dart.fix.convert.toInitializingFormal',
+      DartFixKindPriority.DEFAULT,
+      'Convert to an initializing formal parameter');
   static const CONVERT_TO_INT_LITERAL = FixKind('dart.fix.convert.toIntLiteral',
       DartFixKindPriority.DEFAULT, 'Convert to an int literal');
   static const CONVERT_TO_INT_LITERAL_MULTI = FixKind(
@@ -679,6 +606,14 @@ class DartFixKind {
       'dart.fix.remove.unnecessaryNew.multi',
       DartFixKindPriority.IN_FILE,
       'Remove unnecessary new keywords everywhere in file');
+  static const REMOVE_UNNECESSARY_CONTAINER = FixKind(
+      'dart.fix.remove.unnecessaryContainer',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary 'Container'");
+  static const REMOVE_UNNECESSARY_CONTAINER_MULTI = FixKind(
+      'dart.fix.remove.unnecessaryContainer.multi',
+      DartFixKindPriority.IN_FILE,
+      "Remove unnecessary 'Container's in file");
   static const REMOVE_UNNECESSARY_PARENTHESES = FixKind(
       'dart.fix.remove.unnecessaryParentheses',
       DartFixKindPriority.DEFAULT,
@@ -687,6 +622,14 @@ class DartFixKind {
       'dart.fix.remove.unnecessaryParentheses.multi',
       DartFixKindPriority.IN_FILE,
       'Remove all unnecessary parentheses in file');
+  static const REMOVE_UNNECESSARY_STRING_ESCAPE = FixKind(
+      'dart.fix.remove.unnecessaryStringEscape',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary '\\' in string");
+  static const REMOVE_UNNECESSARY_STRING_ESCAPE_MULTI = FixKind(
+      'dart.fix.remove.unnecessaryStringEscape.multi',
+      DartFixKindPriority.DEFAULT,
+      "Remove unnecessary '\\' in strings in file");
   static const REMOVE_UNNECESSARY_STRING_INTERPOLATION = FixKind(
       'dart.fix.remove.unnecessaryStringInterpolation',
       DartFixKindPriority.DEFAULT,
@@ -789,10 +732,24 @@ class DartFixKind {
       'dart.fix.replace.finalWithVar.multi',
       DartFixKindPriority.IN_FILE,
       "Replace 'final' with 'var' where possible in file");
+  static const REPLACE_NULL_WITH_VOID = FixKind('dart.fix.replace.nullWithVoid',
+      DartFixKindPriority.DEFAULT, "Replace 'Null' with 'void'");
+  static const REPLACE_NULL_WITH_VOID_MULTI = FixKind(
+      'dart.fix.replace.nullWithVoid.multi',
+      DartFixKindPriority.DEFAULT,
+      "Replace 'Null' with 'void' everywhere in file");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
       "Return 'Future' from 'async' function");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
+      'dart.fix.replace.containerWithSizedBox',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox'");
+  static const REPLACE_CONTAINER_WITH_SIZED_BOX_MULTI = FixKind(
+      'dart.fix.replace.containerWithSizedBox.multi',
+      DartFixKindPriority.DEFAULT,
+      "Replace with 'SizedBox' everywhere in file");
   static const REPLACE_VAR_WITH_DYNAMIC = FixKind(
       'dart.fix.replace.varWithDynamic',
       DartFixKindPriority.DEFAULT,

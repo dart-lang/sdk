@@ -28,7 +28,7 @@ void callerA2(A aa) {
   aa.foo();
 }
 
-void callerA3({A aa}) {
+void callerA3({required A aa}) {
   aa.foo();
 }
 
@@ -44,7 +44,7 @@ void callerE2(x) {
   x.toString();
 }
 
-A dd;
+late A dd;
 E ee = new E();
 
 main(List<String> args) {

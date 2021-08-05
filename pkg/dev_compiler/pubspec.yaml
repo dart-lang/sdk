@@ -3,7 +3,7 @@ name: dev_compiler
 publish_to: none
 
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   _fe_analyzer_shared:
@@ -11,10 +11,12 @@ dependencies:
   _js_interop_checks:
     path: ../_js_interop_checks
   args: any
+  async: any
   bazel_worker: any
   build_integration:
     path: ../build_integration
   cli_util: any
+  collection: ^1.15.0
   front_end:
     path: ../front_end
   kernel:
@@ -22,13 +24,12 @@ dependencies:
   meta:
     path: ../meta
   path: any
+  pedantic: ^1.11.0
   source_maps: any
   source_span: any
-  vm:
-    path: ../vm
 
 dev_dependencies:
-  browser_launcher: ^0.1.9
+  browser_launcher: ^1.0.0
   expect:
     path: ../expect
   http_multi_server:
@@ -38,7 +39,6 @@ dev_dependencies:
   modular_test:
     path: ../modular_test
   package_config: any
-  pedantic: ^1.11.0
   sourcemap_testing:
     path: ../sourcemap_testing
   stack_trace: any
@@ -47,5 +47,7 @@ dev_dependencies:
   test: any
   testing:
     path: ../testing
-  webkit_inspection_protocol: ^0.7.4
+  vm:
+    path: ../vm
+  webkit_inspection_protocol: ^1.0.0
 

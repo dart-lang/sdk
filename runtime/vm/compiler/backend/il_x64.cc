@@ -409,7 +409,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(kCalleeSaveRegistersSet);
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1310,7 +1310,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // NativeReturnInstr::EmitNativeCode.
   __ EnterFrame(0);
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1387,11 +1387,14 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Load the code object.
   __ movq(RAX, compiler::Address(
                    THR, compiler::target::Thread::callback_code_offset()));
-  __ movq(RAX, compiler::FieldAddress(
-                   RAX, compiler::target::GrowableObjectArray::data_offset()));
-  __ movq(CODE_REG, compiler::FieldAddress(
-                        RAX, compiler::target::Array::data_offset() +
-                                 callback_id_ * compiler::target::kWordSize));
+  __ LoadCompressed(
+      RAX, compiler::FieldAddress(
+               RAX, compiler::target::GrowableObjectArray::data_offset()));
+  __ LoadCompressed(
+      CODE_REG,
+      compiler::FieldAddress(
+          RAX, compiler::target::Array::data_offset() +
+                   callback_id_ * compiler::target::kCompressedWordSize));
 
   // Put the code object in the reserved slot.
   __ movq(compiler::Address(FPREG,
@@ -1486,31 +1489,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movzxb(result, compiler::FieldAddress(str, OneByteString::data_offset()));
   __ SmiTag(result);
   __ Bind(&done);
-}
-
-LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_out(0, Location::RegisterLocation(RAX));
-  return summary;
-}
-
-void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register array = locs()->in(0).reg();
-  __ pushq(array);
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
-                               locs(), ICData::Handle(), ICData::kStatic);
-  ASSERT(locs()->out(0).reg() == RAX);
 }
 
 LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
@@ -2412,7 +2390,8 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // At this point temp is known to be type arguments offset in words.
-  __ movq(temp, compiler::FieldAddress(value_reg, temp, TIMES_8, 0));
+  __ movq(temp, compiler::FieldAddress(value_reg, temp,
+                                       TIMES_COMPRESSED_WORD_SIZE, 0));
   __ CompareObject(temp, TypeArguments::ZoneHandle(
                              compiler->zone(),
                              AbstractType::Handle(field().type()).arguments()));

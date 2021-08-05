@@ -4,6 +4,8 @@
 //
 // VMOptions=--deterministic --optimization-counter-threshold=10 --unbox-numeric-fields
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 const magicDouble = 42.0;

@@ -418,7 +418,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
             AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().ptr()));
-        scope_->InsertParameterAt(i, variable);
+        bool added = scope_->InsertParameterAt(i, variable);
+        ASSERT(added);
       }
       break;
     }
@@ -603,13 +604,11 @@ void ScopeBuilder::VisitFunctionNode() {
     LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
     ASSERT(future != nullptr);
     future->set_is_chained_future();
-    future->set_expected_context_index(Context::kFutureTimeoutFutureIndex);
   } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
              depth_.function_ == 1) {
     LocalVariable* future = scope_->LookupVariable(Symbols::_future(), true);
     ASSERT(future != nullptr);
     future->set_is_chained_future();
-    future->set_expected_context_index(Context::kFutureWaitFutureIndex);
   }
 }
 
@@ -652,6 +651,9 @@ void ScopeBuilder::VisitExpression() {
     case kInvalidExpression:
       helper_.ReadPosition();
       helper_.SkipStringReference();
+      if (helper_.ReadTag() == kSomething) {
+        VisitExpression();  // read expression.
+      }
       return;
     case kVariableGet: {
       helper_.ReadPosition();  // read position.
@@ -1453,9 +1455,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
 
 void ScopeBuilder::VisitTypeParameterType() {
   Function& function = Function::Handle(Z, parsed_function_->function().ptr());
-  while (function.IsClosureFunction()) {
-    function = function.parent_function();
-  }
 
   helper_.ReadNullability();  // read nullability.
 
@@ -1466,19 +1465,25 @@ void ScopeBuilder::VisitTypeParameterType() {
 
   intptr_t index = helper_.ReadUInt();  // read index for parameter.
 
-  if (function.IsFactory()) {
-    // The type argument vector is passed as the very first argument to the
-    // factory constructor function.
-    HandleSpecialLoad(&result_->type_arguments_variable,
-                      Symbols::TypeArgumentsParameter());
-  } else {
-    // If the type parameter is a parameter to this or an enclosing function, we
-    // can read it directly from the function type arguments vector later.
-    // Otherwise, the type arguments vector we need is stored on the instance
-    // object, so we need to capture 'this'.
-    Class& parent_class = Class::Handle(Z, function.Owner());
-    if (index < parent_class.NumTypeParameters()) {
-      HandleLoadReceiver();
+  if (!function.IsImplicitStaticClosureFunction()) {
+    while (function.IsClosureFunction()) {
+      function = function.parent_function();
+    }
+
+    if (function.IsFactory()) {
+      // The type argument vector is passed as the very first argument to the
+      // factory constructor function.
+      HandleSpecialLoad(&result_->type_arguments_variable,
+                        Symbols::TypeArgumentsParameter());
+    } else {
+      // If the type parameter is a parameter to this or an enclosing function,
+      // we can read it directly from the function type arguments vector later.
+      // Otherwise, the type arguments vector we need is stored on the instance
+      // object, so we need to capture 'this'.
+      Class& parent_class = Class::Handle(Z, function.Owner());
+      if (index < parent_class.NumTypeParameters()) {
+        HandleLoadReceiver();
+      }
     }
   }
 

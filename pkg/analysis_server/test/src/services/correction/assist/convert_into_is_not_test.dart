@@ -21,12 +21,12 @@ class ConvertIntoIsNotTest extends AssistProcessorTest {
 
   Future<void> test_childOfIs_left() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String);
 }
 ''');
     await assertHasAssistAt('p is', '''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');
@@ -34,12 +34,12 @@ main(p) {
 
   Future<void> test_childOfIs_right() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String);
 }
 ''');
     await assertHasAssistAt('String)', '''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');
@@ -47,12 +47,12 @@ main(p) {
 
   Future<void> test_is() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String);
 }
 ''');
     await assertHasAssistAt('is String', '''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');
@@ -60,7 +60,7 @@ main(p) {
 
   Future<void> test_is_alreadyIsNot() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');
@@ -69,12 +69,12 @@ main(p) {
 
   Future<void> test_is_higherPrecedencePrefix() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !!(p is String);
 }
 ''');
     await assertHasAssistAt('is String', '''
-main(p) {
+void f(p) {
   !(p is! String);
 }
 ''');
@@ -82,7 +82,7 @@ main(p) {
 
   Future<void> test_is_noEnclosingParenthesis() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p is String;
 }
 ''');
@@ -91,7 +91,7 @@ main(p) {
 
   Future<void> test_is_noPrefix() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   (p is String);
 }
 ''');
@@ -100,12 +100,12 @@ main(p) {
 
   Future<void> test_is_not_higherPrecedencePrefix() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !!(p is String);
 }
 ''');
     await assertHasAssistAt('!(p', '''
-main(p) {
+void f(p) {
   !(p is! String);
 }
 ''');
@@ -113,7 +113,7 @@ main(p) {
 
   Future<void> test_is_notIsExpression() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   123 + 456;
 }
 ''');
@@ -123,7 +123,7 @@ main(p) {
   Future<void> test_is_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-main(p) {
+void f(p) {
   ++(p is String);
 }
 ''');
@@ -132,12 +132,12 @@ main(p) {
 
   Future<void> test_not() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String);
 }
 ''');
     await assertHasAssistAt('!(p', '''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');
@@ -145,7 +145,7 @@ main(p) {
 
   Future<void> test_not_alreadyIsNot() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is! String);
 }
 ''');
@@ -154,7 +154,7 @@ main(p) {
 
   Future<void> test_not_noEnclosingParenthesis() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !p;
 }
 ''');
@@ -163,7 +163,7 @@ main(p) {
 
   Future<void> test_not_notIsExpression() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p == null);
 }
 ''');
@@ -173,7 +173,7 @@ main(p) {
   Future<void> test_not_notTheNotOperator() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
-main(p) {
+void f(p) {
   ++(p is String);
 }
 ''');
@@ -182,12 +182,12 @@ main(p) {
 
   Future<void> test_parentheses() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   !(p is String);
 }
 ''');
     await assertHasAssistAt('(p is', '''
-main(p) {
+void f(p) {
   p is! String;
 }
 ''');

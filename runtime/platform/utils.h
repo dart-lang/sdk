@@ -190,38 +190,60 @@ class Utils {
                                               int64_t* magic,
                                               int64_t* shift);
 
-  // Computes a hash value for the given string.
-  static uint32_t StringHash(const char* data, int length);
+  // Computes a hash value for the given series of bytes.
+  static uint32_t StringHash(const void* data, int length);
 
   // Computes a hash value for the given word.
   static uint32_t WordHash(intptr_t key);
 
   // Check whether an N-bit two's-complement representation can hold value.
   template <typename T>
-  static inline bool IsInt(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    T limit = static_cast<T>(1) << (N - 1);
+  static inline bool IsInt(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
+    if constexpr (std::is_signed<T>::value) {
+      if (N >= value_size_in_bits) return true;  // Trivially fits.
+    } else {
+      if (N > value_size_in_bits) return true;  // Trivially fits.
+      if (N == value_size_in_bits) {
+        return static_cast<typename std::make_signed<T>::type>(value) >= 0;
+      }
+    }
+    const T limit = static_cast<T>(1) << (N - 1);
     return (-limit <= value) && (value < limit);
   }
 
   template <typename T>
-  static inline bool IsUint(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    const auto limit =
-        (static_cast<typename std::make_unsigned<T>::type>(1) << N) - 1;
-    return (0 <= value) &&
-           (static_cast<typename std::make_unsigned<T>::type>(value) <= limit);
+  static inline bool IsUint(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    constexpr intptr_t value_size_in_bits = kBitsPerByte * sizeof(T);
+    if constexpr (std::is_signed<T>::value) {
+      if (value < 0) return false;  // Not an unsigned value.
+      if (N >= value_size_in_bits - 1) {
+        return true;  // N can fit the magnitude bits.
+      }
+    } else {
+      if (N >= value_size_in_bits) return true;  // Trivially fits.
+    }
+    const T limit = (static_cast<T>(1) << N) - 1;
+    return value <= limit;
   }
 
-  // Check whether the magnitude of value fits in N bits, i.e., whether an
-  // (N+1)-bit sign-magnitude representation can hold value.
+  // Check whether the magnitude of value fits in N bits. This differs from
+  // IsInt(N + 1, value) only in that this returns false for the minimum value
+  // of a N+1 bit two's complement value.
+  //
+  // Primarily used for testing whether a two's complement value can be used in
+  // a place where the sign is replaced with a marker that says whether the
+  // magnitude is added or subtracted, e.g., the U bit (bit 23) in some ARM7
+  // instructions.
   template <typename T>
-  static inline bool IsAbsoluteUint(int N, T value) {
-    ASSERT((0 < N) &&
-           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    if (value < 0) value = -value;
+  static inline bool MagnitudeIsUint(intptr_t N, T value) {
+    ASSERT(N >= 1);
+    if constexpr (std::is_signed<T>::value) {
+      using Unsigned = typename std::make_unsigned<T>::type;
+      if (value < 0) return IsUint<Unsigned>(N, -value);
+    }
     return IsUint(N, value);
   }
 
@@ -395,34 +417,26 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
-  static constexpr uword NBitMaskUnsafe(uint32_t n) {
-    static_assert((sizeof(uword) * kBitsPerByte) == kBitsPerWord,
-                  "Unexpected uword size");
-    return n == kBitsPerWord ? std::numeric_limits<uword>::max()
-                             : (static_cast<uword>(1) << n) - 1;
-  }
-
   // The lowest n bits are 1, the others are 0.
-  static uword NBitMask(uint32_t n) {
-    ASSERT(n <= kBitsPerWord);
-    return NBitMaskUnsafe(n);
-  }
-
-  static word SignedNBitMask(uint32_t n) {
-    uword mask = NBitMask(n);
-    return bit_cast<word>(mask);
+  template <typename T = uword>
+  static constexpr T NBitMask(size_t n) {
+    using Unsigned = typename std::make_unsigned<T>::type;
+    constexpr size_t kBitsPerT = sizeof(T) * kBitsPerByte;
+    assert(n <= sizeof(T) * kBitsPerT);
+    return static_cast<T>(n == kBitsPerT ? std::numeric_limits<Unsigned>::max()
+                                         : (static_cast<Unsigned>(1) << n) - 1);
   }
 
   template <typename T = uword>
-  static T Bit(uint32_t n) {
+  static constexpr T Bit(size_t n) {
     ASSERT(n < sizeof(T) * kBitsPerByte);
     T bit = 1;
     return bit << n;
   }
 
   template <typename T>
-  DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
-    ASSERT(position < static_cast<intptr_t>(sizeof(T) * kBitsPerByte));
+  static constexpr bool TestBit(T mask, size_t position) {
+    ASSERT(position < sizeof(T) * kBitsPerByte);
     return ((mask >> position) & 1) != 0;
   }
 
@@ -469,15 +483,15 @@ class Utils {
 
 }  // namespace dart
 
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 #include "platform/utils_android.h"
-#elif defined(HOST_OS_FUCHSIA)
+#elif defined(DART_HOST_OS_FUCHSIA)
 #include "platform/utils_fuchsia.h"
-#elif defined(HOST_OS_LINUX)
+#elif defined(DART_HOST_OS_LINUX)
 #include "platform/utils_linux.h"
-#elif defined(HOST_OS_MACOS)
+#elif defined(DART_HOST_OS_MACOS)
 #include "platform/utils_macos.h"
-#elif defined(HOST_OS_WINDOWS)
+#elif defined(DART_HOST_OS_WINDOWS)
 #include "platform/utils_win.h"
 #else
 #error Unknown target os.

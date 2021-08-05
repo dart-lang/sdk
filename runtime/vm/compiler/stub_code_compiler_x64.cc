@@ -121,7 +121,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
   __ movq(Address(RSP, retval_offset),
           RAX);  // Set retval in target::NativeArguments.
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   ASSERT(target::NativeArguments::StructSize() >
          CallingConventions::kRegisterTransferLimit);
   __ movq(CallingConventions::kArg1Reg, RSP);
@@ -359,9 +359,10 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Load the target from the thread.
   __ movq(TMP, compiler::Address(
                    THR, compiler::target::Thread::callback_code_offset()));
-  __ movq(TMP, compiler::FieldAddress(
-                   TMP, compiler::target::GrowableObjectArray::data_offset()));
-  __ movq(
+  __ LoadCompressed(
+      TMP, compiler::FieldAddress(
+               TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ LoadCompressed(
       TMP,
       __ ElementAddressForRegIndex(
           /*external=*/false,
@@ -403,7 +404,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Code& closure_allocation_stub,
-    const Code& context_allocation_stub) {
+    const Code& context_allocation_stub,
+    bool generic) {
   const intptr_t kReceiverOffsetInWords =
       target::frame_layout.param_end_from_fp + 1;
 
@@ -471,12 +473,15 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
       FieldAddress(AllocateClosureABI::kResultReg,
                    target::Closure::instantiator_type_arguments_offset()),
       AllocateClosureABI::kScratchReg);
-  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-  __ StoreCompressedIntoObjectNoBarrier(
-      AllocateClosureABI::kResultReg,
-      FieldAddress(AllocateClosureABI::kResultReg,
-                   target::Closure::delayed_type_arguments_offset()),
-      AllocateClosureABI::kScratchReg);
+  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
+  if (generic) {
+    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+    __ StoreCompressedIntoObjectNoBarrier(
+        AllocateClosureABI::kResultReg,
+        FieldAddress(AllocateClosureABI::kResultReg,
+                     target::Closure::delayed_type_arguments_offset()),
+        AllocateClosureABI::kScratchReg);
+  }
 
   __ LeaveStubFrame();
   // No-op if the two are the same.
@@ -721,13 +726,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ movq(CODE_REG,
           Address(THR, target::Thread::fix_callers_target_code_offset()));
   __ EnterStubFrame();
-  __ pushq(RBX);           // Preserve cache (guarded CID as Smi).
-  __ pushq(RDX);           // Preserve receiver.
   __ pushq(Immediate(0));  // Result slot.
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ popq(CODE_REG);  // Get Code object.
+  __ pushq(RDX);           // Preserve receiver.
+  __ pushq(RBX);           // Old cache value (also 2nd return value).
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ popq(RBX);       // Get target cache object.
   __ popq(RDX);       // Restore receiver.
-  __ popq(RBX);       // Restore cache (guarded CID as Smi).
+  __ popq(CODE_REG);  // Get target Code object.
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                           CodeEntryKind::kMonomorphic)));
   __ LeaveStubFrame();
@@ -3251,21 +3256,16 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address = FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE,
-                                           base + target::kCompressedWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ jmp(target_address);
-  } else {
-    __ LoadCompressed(RAX, target_address);
-    __ movq(R10, FieldAddress(
-                     RBX, target::CallSiteData::arguments_descriptor_offset()));
-    __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  __ LoadCompressed(RAX, FieldAddress(RDI, RCX, TIMES_COMPRESSED_WORD_SIZE,
+                                      base + target::kCompressedWordSize));
+  __ movq(R10, FieldAddress(
+                   RBX, target::CallSiteData::arguments_descriptor_offset()));
+  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ LoadCompressed(CODE_REG,
                       FieldAddress(RAX, target::Function::code_offset()));
-    __ jmp(RCX);
   }
+  __ jmp(RCX);
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3312,23 +3312,21 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   const intptr_t entry_length =
       target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
       target::kCompressedWordSize;
-  __ OBJ(add)(R13, Immediate(entry_length));  // Next entry.
+  __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
-#if defined(DART_COMPRESSED_POINTERS)
-  __ LoadCompressed(CODE_REG, Address(R13, code_offset));
-  __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-#else
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ movq(CODE_REG, Address(R13, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(RCX, Address(R13, entry_offset));
+    __ jmp(FieldAddress(RCX, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kCompressedWordSize;
+    __ LoadCompressed(CODE_REG, Address(R13, code_offset));
+    __ jmp(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ jmp(Address(R13, entry_offset));
-#endif
 
   __ Bind(&miss);
   __ LoadIsolate(RAX);

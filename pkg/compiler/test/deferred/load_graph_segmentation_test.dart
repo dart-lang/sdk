@@ -10,7 +10,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/deferred_load.dart';
+import 'package:compiler/src/deferred_load/output_unit.dart';
 import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
@@ -42,6 +42,7 @@ void main() {
 
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     var backendStrategy = compiler.backendStrategy;
+    // ignore: deprecated_member_use_from_same_package
     var classes = backendStrategy.emitterTask.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");

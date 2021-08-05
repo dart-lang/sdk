@@ -7,9 +7,9 @@ import 'dart:collection';
 class Element {}
 
 class InheritedElement extends Element {
-  final Map<Element, Object> _dependents = <Element, Object>{};
+  final Map<Element, Object?> _dependents = <Element, Object?>{};
 
-  void setDependencies(Element dependent, Object value) {
+  void setDependencies(Element dependent, Object? value) {
     _dependents[dependent] = value;
   }
 }

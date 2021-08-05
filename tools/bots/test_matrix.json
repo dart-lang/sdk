@@ -633,8 +633,6 @@
         "csp": true,
         "timeout": 240,
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -662,8 +660,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -715,11 +711,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-weak-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -728,8 +720,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -739,22 +729,14 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-weak",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-weak"
       }
     },
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dart2js-hostasserts-strong-max-fragments-(linux|win)-x64-(d8|chrome)": {
@@ -763,8 +745,6 @@
         "timeout": 240,
         "builder-tag": "dart2js-strong",
         "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=out/ReleaseX64/",
           "--merge-fragments-threshold=3",
           "--simple-load-ids"
         ]
@@ -774,11 +754,7 @@
       "options": {
         "host-checked": true,
         "timeout": 240,
-        "builder-tag": "dart2js-strong",
-        "dart2js-options": [
-          "--libraries-spec=sdk/lib/libraries.json",
-          "--platform-binaries=xcodebuild/ReleaseX64/"
-        ]
+        "builder-tag": "dart2js-strong"
       }
     },
     "dartkp-android-(debug|product|release)-arm_x64": {
@@ -1521,7 +1497,8 @@
         "vm-kernel-precomp-linux-debug-x64",
         "vm-kernel-precomp-linux-debug-x64c",
         "vm-kernel-precomp-linux-debug-simarm64",
-        "vm-kernel-precomp-linux-debug-simarm64c"
+        "vm-kernel-precomp-linux-debug-simarm64c",
+        "vm-kernel-precomp-win-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
@@ -1751,11 +1728,44 @@
       },
       "steps": [
         {
-          "name": "build dart",
+          "name": "build dart ia32",
           "script": "tools/build.py",
           "arguments": [
             "--mode=all",
-            "--arch=all",
+            "--arch=ia32",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=x64",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=simarm",
+            "--no-clang",
+            "--no-goma",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart simarm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=all",
+            "--arch=simarm64",
             "--no-clang",
             "--no-goma",
             "runtime"
@@ -3481,13 +3491,9 @@
           "name": "validate SDK API docs",
           "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
           "arguments": [
-            "--exclude",
-            "dart:ffi,dart:html,dart:web_sql,dart:web_audio,dart:svg,dart:indexed_db",
             "--sdk-docs",
             "--no-generate-docs"
-          ],
-          "comments1": "TODO(devoncarew): add --errors=unresolved-doc-reference above to fail on unresolved doc references",
-          "comments2": "ambiguous-doc-reference, ambiguous-reexport, broken-link, deprecated, no-library-level-docs, unknown-directive, unknown-macro"
+          ]
         },
         {
           "name": "validate SDK API data-driven fixes",

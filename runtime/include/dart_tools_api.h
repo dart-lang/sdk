@@ -371,6 +371,20 @@ DART_EXPORT bool Dart_IsReloading();
  */
 DART_EXPORT int64_t Dart_TimelineGetMicros();
 
+/**
+ * Returns a raw timestamp in from the monotonic clock.
+ *
+ * \return A raw timestamp from the monotonic clock.
+ */
+DART_EXPORT int64_t Dart_TimelineGetTicks();
+
+/**
+ * Returns the frequency of the monotonic clock.
+ *
+ * \return The frequency of the monotonic clock.
+ */
+DART_EXPORT int64_t Dart_TimelineGetTicksFrequency();
+
 /** Timeline stream for Dart API calls */
 #define DART_TIMELINE_STREAM_API (1 << 0)
 /** Timeline stream for compiler events */
@@ -542,7 +556,7 @@ DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag);
  * \return The UserTag's label. NULL if the user_tag is invalid. The caller is
  *   responsible for freeing the returned label.
  */
-DART_WARN_UNUSED_RESULT DART_EXPORT char* Dart_GetUserTagLabel(
+DART_EXPORT DART_WARN_UNUSED_RESULT char* Dart_GetUserTagLabel(
     Dart_Handle user_tag);
 
 #endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

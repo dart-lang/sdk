@@ -30,6 +30,7 @@
 #include "vm/malloc_hooks.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
@@ -1018,9 +1019,9 @@ void Service::SendEvent(const char* stream_id,
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
 
-    ApiMessageWriter writer;
-    std::unique_ptr<Message> msg = writer.WriteCMessage(
-        &message, ServiceIsolate::Port(), Message::kNormalPriority);
+    std::unique_ptr<Message> msg =
+        WriteApiMessage(thread->zone(), &message, ServiceIsolate::Port(),
+                        Message::kNormalPriority);
     if (msg == nullptr) {
       result = false;
     } else {
@@ -1188,9 +1189,10 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  ApiMessageWriter writer;
-  std::unique_ptr<Message> msg = writer.WriteCMessage(
-      &list_cobj, ServiceIsolate::Port(), Message::kNormalPriority);
+  AllocOnlyStackZone zone;
+  std::unique_ptr<Message> msg =
+      WriteApiMessage(zone.GetZone(), &list_cobj, ServiceIsolate::Port(),
+                      Message::kNormalPriority);
   if (msg != nullptr) {
     PortMap::PostMessage(std::move(msg));
   }
@@ -2017,8 +2019,7 @@ static ObjectPtr LookupHeapObjectMessage(Thread* thread,
   if (message->IsRaw()) {
     return message->raw_obj();
   } else {
-    MessageSnapshotReader reader(message, thread);
-    return reader.ReadObject();
+    return ReadMessage(thread, message);
   }
 }
 
@@ -2136,15 +2137,16 @@ static void PrintInboundReferences(Thread* thread,
       jselement.AddProperty("source", source);
       if (source.IsArray()) {
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
       } else {
         if (source.IsInstance()) {
           source_class = source.clazz();
           parent_field_map = source_class.OffsetToFieldMap();
-          intptr_t offset = slot_offset.Value();
-          if (offset > 0 && offset < parent_field_map.Length()) {
-            field ^= parent_field_map.At(offset);
+          intptr_t index = slot_offset.Value() >> kCompressedWordSizeLog2;
+          if (index > 0 && index < parent_field_map.Length()) {
+            field ^= parent_field_map.At(index);
             if (!field.IsNull()) {
               jselement.AddProperty("parentField", field);
               continue;
@@ -2152,7 +2154,7 @@ static void PrintInboundReferences(Thread* thread,
           }
         }
         const char* field_name = offsets_table.FieldNameForOffset(
-            source.GetClassId(), slot_offset.Value() * kWordSize);
+            source.GetClassId(), slot_offset.Value());
         if (field_name != nullptr) {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
           // TODO(vm-service): Adjust RPC type to allow returning a field name
@@ -2161,8 +2163,8 @@ static void PrintInboundReferences(Thread* thread,
           // jselement.AddProperty("_parentFieldName", field_name);
         } else if (source.IsContext()) {
           intptr_t element_index =
-              slot_offset.Value() -
-              (Context::variable_offset(0) >> kWordSizeLog2);
+              (slot_offset.Value() - Context::variable_offset(0)) /
+              Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
@@ -2254,13 +2256,15 @@ static void PrintRetainingPath(Thread* thread,
       slot_offset ^= path.At((i * 2) - 1);
       if (element.IsArray() || element.IsGrowableObjectArray()) {
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
       } else if (element.IsLinkedHashMap()) {
         map = static_cast<LinkedHashMapPtr>(path.At(i * 2));
         map_data = map.data();
         intptr_t element_index =
-            slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
+            (slot_offset.Value() - Array::element_offset(0)) /
+            Array::kBytesPerElement;
         LinkedHashMap::Iterator iterator(map);
         while (iterator.MoveNext()) {
           if (iterator.CurrentKey() == map_data.At(element_index) ||
@@ -2278,9 +2282,9 @@ static void PrintRetainingPath(Thread* thread,
         if (element.IsInstance()) {
           element_class = element.clazz();
           element_field_map = element_class.OffsetToFieldMap();
-          intptr_t offset = slot_offset.Value();
-          if ((offset > 0) && (offset < element_field_map.Length())) {
-            field ^= element_field_map.At(offset);
+          intptr_t index = slot_offset.Value() >> kCompressedWordSizeLog2;
+          if ((index > 0) && (index < element_field_map.Length())) {
+            field ^= element_field_map.At(index);
             if (!field.IsNull()) {
               name ^= field.name();
               jselement.AddProperty("parentField", name.ToCString());
@@ -2289,13 +2293,13 @@ static void PrintRetainingPath(Thread* thread,
           }
         }
         const char* field_name = offsets_table.FieldNameForOffset(
-            element.GetClassId(), slot_offset.Value() * kWordSize);
+            element.GetClassId(), slot_offset.Value());
         if (field_name != nullptr) {
           jselement.AddProperty("parentField", field_name);
         } else if (element.IsContext()) {
           intptr_t element_index =
-              slot_offset.Value() -
-              (Context::variable_offset(0) >> kWordSizeLog2);
+              (slot_offset.Value() - Context::variable_offset(0)) /
+              Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
@@ -4238,7 +4242,7 @@ static void RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   PrintSuccess(js);
 }
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
 struct VMMapping {
   char path[256];
   size_t size;
@@ -4404,7 +4408,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 
   // On Android, malloc is better labeled by /proc/self/smaps.
-#if !defined(HOST_OS_ANDROID)
+#if !defined(DART_HOST_OS_ANDROID)
   intptr_t used, capacity;
   const char* implementation;
   if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
@@ -4432,7 +4436,7 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 #endif
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.
@@ -5208,7 +5212,12 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   }
   {
     JSONArray internals(&map, "Map");
-    DEFINE_ADD_VALUE_F_CID(LinkedHashMap)
+    CLASS_LIST_MAPS(DEFINE_ADD_VALUE_F_CID)
+  }
+
+  {
+    JSONArray internals(&map, "Set");
+    CLASS_LIST_SETS(DEFINE_ADD_VALUE_F_CID)
   }
 #define DEFINE_ADD_MAP_KEY(clazz)                                              \
   {                                                                            \

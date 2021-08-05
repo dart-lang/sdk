@@ -497,7 +497,7 @@ $context
 
     var expression = findNode.variableDeclaration('x =').initializer!;
 
-    var file = getFile(result.path!);
+    var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
       result.libraryElement as LibraryElementImpl,

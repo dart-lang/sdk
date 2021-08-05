@@ -211,19 +211,48 @@ class DwarfWriteStream : public ValueObject {
   virtual void u8(uint64_t value) = 0;
   virtual void string(const char* cstr) = 0;  // NOLINT
 
-  // Returns the position (if any) to fix up in SetSize().
-  virtual intptr_t ReserveSize(const char* prefix, intptr_t* start) = 0;
-  virtual void SetSize(intptr_t position,
-                       const char* prefix,
-                       intptr_t start) = 0;
+  class EncodedPosition : public ValueObject {
+   public:
+    explicit EncodedPosition(intptr_t position)
+        : type_(Type::kPosition), position_(position) {}
+    explicit EncodedPosition(const char* symbol)
+        : type_(Type::kSymbol), symbol_(symbol) {}
+
+    enum class Type {
+      kPosition,
+      kSymbol,
+    };
+
+    bool IsPosition() const { return type_ == Type::kPosition; }
+    intptr_t position() const {
+      ASSERT(IsPosition());
+      return position_;
+    }
+    bool IsSymbol() const { return type_ == Type::kSymbol; }
+    const char* symbol() const {
+      ASSERT(IsSymbol());
+      return symbol_;
+    }
+
+   private:
+    const Type type_;
+    union {
+      intptr_t position_;
+      const char* symbol_;
+    };
+
+    DISALLOW_COPY_AND_ASSIGN(EncodedPosition);
+  };
+
+  // Prefixes the content added by body with its length. Returns an
+  // appropriately encoded representation of the start of the content added by
+  // the body (including the length prefix).
+  //
+  // symbol_prefix is used when a local symbol is created for the length.
+  virtual EncodedPosition WritePrefixedLength(const char* symbol_prefix,
+                                              std::function<void()> body) = 0;
 
   virtual void OffsetFromSymbol(const char* symbol, intptr_t offset) = 0;
-  // Returns the difference between the relocated address at offset1 from
-  // symbol1 and the relocated address at offset2 from symbol2.
-  virtual void DistanceBetweenSymbolOffsets(const char* symbol1,
-                                            intptr_t offset1,
-                                            const char* symbol2,
-                                            intptr_t offset2) = 0;
 
   virtual void InitializeAbstractOrigins(intptr_t size) = 0;
   virtual void RegisterAbstractOrigin(intptr_t index) = 0;
@@ -297,6 +326,13 @@ class Dwarf : public ZoneAllocated {
   static const intptr_t DW_LNE_end_sequence = 0x01;
   static const intptr_t DW_LNE_set_address = 0x02;
 
+ public:
+  // Public because they're also used in constructing .eh_frame ELF sections.
+  static const intptr_t DW_CFA_offset = 0x80;
+  static const intptr_t DW_CFA_val_offset = 0x14;
+  static const intptr_t DW_CFA_def_cfa = 0x0c;
+
+ private:
   enum {
     kCompilationUnit = 1,
     kAbstractFunction,

@@ -45,7 +45,7 @@ main() {
     // Direct call through field.
     Expect.isTrue(generated1.contains(r'this._fun.call$1(zzz)'));
     // No stub.
-    Expect.isFalse(generated1.contains(r'_fun$1:'));
+    Expect.isFalse(generated1.contains(r'_fun$1(arg0) {'));
     // No call to stub.
     Expect.isFalse(generated1.contains(r'_fun$1('));
 
@@ -55,7 +55,8 @@ main() {
     // Call through stub.
     Expect.isTrue(generated2.contains(r'this._fun$1(zzz)'));
     // Stub is generated.
-    Expect.isTrue(generated2.contains(r'_fun$1:'));
+    print(generated2);
+    Expect.isTrue(generated2.contains(r'_fun$1(arg0) {'));
     // Call through getter (inside stub).
     Expect.isTrue(generated2.contains(r'get$_fun().call$1'));
   }

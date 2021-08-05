@@ -20,7 +20,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     ;
   method foo() → core::int {
     core::int x;
-    return let final Never #t1 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
+    return invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Error: Non-nullable variable 'x' must be assigned before it can be used.
     return x;
            ^" in x;
   }
@@ -34,7 +34,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
 }
 static method foo() → core::int {
   core::int x;
-  return let final Never #t2 = invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
+  return invalid-expression "pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Error: Non-nullable variable 'x' must be assigned before it can be used.
   return x;
          ^" in x;
 }

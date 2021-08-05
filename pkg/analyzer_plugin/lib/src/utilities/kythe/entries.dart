@@ -19,7 +19,7 @@ class DartEntryRequestImpl implements DartEntryRequest {
   DartEntryRequestImpl(this.resourceProvider, this.result);
 
   @override
-  String get path => result.path!;
+  String get path => result.path;
 }
 
 /// A concrete implementation of [EntryCollector].

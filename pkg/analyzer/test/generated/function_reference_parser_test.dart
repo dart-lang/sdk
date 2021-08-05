@@ -300,6 +300,59 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
             as MethodInvocation);
   }
 
+  void test_functionReference_after_indexExpression() {
+    // Note: this is not legal Dart, but it's important that we do error
+    // recovery and don't crash the parser.
+    var functionReference =
+        parseExpression('x[0]<a, b>', featureSet: constructorTearoffs)
+            as FunctionReference;
+    expect(functionReference.function, TypeMatcher<IndexExpression>());
+    var typeArgs = functionReference.typeArguments!.arguments;
+    expect(typeArgs, hasLength(2));
+    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+  }
+
+  void test_functionReference_after_indexExpression_bang() {
+    // Note: this is not legal Dart, but it's important that we do error
+    // recovery and don't crash the parser.
+    var functionReference =
+        parseExpression('x[0]!<a, b>', featureSet: constructorTearoffs)
+            as FunctionReference;
+    expect(functionReference.function, TypeMatcher<PostfixExpression>());
+    var typeArgs = functionReference.typeArguments!.arguments;
+    expect(typeArgs, hasLength(2));
+    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+  }
+
+  void test_functionReference_after_indexExpression_functionCall() {
+    // Note: this is not legal Dart, but it's important that we do error
+    // recovery and don't crash the parser.
+    var functionReference =
+        parseExpression('x[0]()<a, b>', featureSet: constructorTearoffs)
+            as FunctionReference;
+    expect(functionReference.function,
+        TypeMatcher<FunctionExpressionInvocation>());
+    var typeArgs = functionReference.typeArguments!.arguments;
+    expect(typeArgs, hasLength(2));
+    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+  }
+
+  void test_functionReference_after_indexExpression_nullAware() {
+    // Note: this is not legal Dart, but it's important that we do error
+    // recovery and don't crash the parser.
+    var functionReference =
+        parseExpression('x?[0]<a, b>', featureSet: constructorTearoffs)
+            as FunctionReference;
+    expect(functionReference.function, TypeMatcher<IndexExpression>());
+    var typeArgs = functionReference.typeArguments!.arguments;
+    expect(typeArgs, hasLength(2));
+    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+  }
+
   void test_methodTearoff() {
     var functionReference =
         parseExpression('f().m<a, b>', featureSet: constructorTearoffs)
@@ -307,6 +360,21 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     var function = functionReference.function as PropertyAccess;
     var target = function.target as MethodInvocation;
     expect(target.methodName.name, 'f');
+    expect(function.propertyName.name, 'm');
+    var typeArgs = functionReference.typeArguments!.arguments;
+    expect(typeArgs, hasLength(2));
+    expect(((typeArgs[0] as TypeName).name as SimpleIdentifier).name, 'a');
+    expect(((typeArgs[1] as TypeName).name as SimpleIdentifier).name, 'b');
+  }
+
+  void test_methodTearoff_cascaded() {
+    var cascadeExpression =
+        parseExpression('f()..m<a, b>', featureSet: constructorTearoffs)
+            as CascadeExpression;
+    var functionReference =
+        cascadeExpression.cascadeSections[0] as FunctionReference;
+    var function = functionReference.function as PropertyAccess;
+    expect(function.target, isNull);
     expect(function.propertyName.name, 'm');
     var typeArgs = functionReference.typeArguments!.arguments;
     expect(typeArgs, hasLength(2));

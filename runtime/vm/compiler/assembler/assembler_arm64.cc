@@ -250,6 +250,22 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc, lr_state());
 }
 
+#if defined(USING_THREAD_SANITIZER)
+void Assembler::TsanLoadAcquire(Register addr) {
+  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
+  ASSERT(kTsanLoadAcquireRuntimeEntry.is_leaf());
+  CallRuntime(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+}
+
+void Assembler::TsanStoreRelease(Register addr) {
+  EnterCallRuntimeFrame(/*frame_size=*/0, /*is_leaf=*/true);
+  ASSERT(kTsanStoreReleaseRuntimeEntry.is_leaf());
+  CallRuntime(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+  LeaveCallRuntimeFrame(/*is_leaf=*/true);
+}
+#endif
+
 static int CountLeadingZeros(uint64_t value, int width) {
   if (width == 64) return Utils::CountLeadingZeros64(value);
   if (width == 32) return Utils::CountLeadingZeros32(value);
@@ -991,7 +1007,7 @@ void Assembler::LoadCompressedFromOffset(Register dest,
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+    ldr(dest, Address(TMP2, 0, Address::Offset, kObjectBytes),
         kUnsignedFourBytes);  // Zero-extension.
   }
   add(dest, dest, Operand(HEAP_BITS, LSL, 32));
@@ -1024,7 +1040,7 @@ void Assembler::LoadCompressedSmiFromOffset(Register dest,
   } else {
     ASSERT(base != TMP2);
     AddImmediate(TMP2, base, offset);
-    ldr(dest, Address(base, 0, Address::Offset, kObjectBytes),
+    ldr(dest, Address(TMP2, 0, Address::Offset, kObjectBytes),
         kUnsignedFourBytes);  // Zero-extension.
   }
 #endif

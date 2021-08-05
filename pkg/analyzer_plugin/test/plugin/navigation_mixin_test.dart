@@ -80,8 +80,8 @@ class _TestNavigationContributor implements NavigationContributor {
   void computeNavigation(
       NavigationRequest request, NavigationCollector collector) {
     for (var i = 0; i < regionCount; i++) {
-      collector.addRegion(
-          i, 5, ElementKind.METHOD, Location('a', 5, 5, 1, 5, 1, 10));
+      collector.addRegion(i, 5, ElementKind.METHOD,
+          Location('a', 5, 5, 1, 5, endLine: 1, endColumn: 10));
     }
   }
 }

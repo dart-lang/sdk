@@ -14,7 +14,7 @@ import "../static_type_helper.dart";
 void use(Type type) {}
 
 class C<T> {
-  final T value;
+  final T x;
   C(this.x);
   C.named(this.x);
 }
@@ -37,7 +37,7 @@ void main() {
   // or if instantiated with a constant type.
   const List<Object> constructors = [
     Special.new,
-    Spceial.named,
+    Special.named,
     Direct.new,
     Direct.named,
     Bounded.new,
@@ -64,12 +64,12 @@ void main() {
       Wrapping.new,
       Wrapping.named,
     ],
-    const <C<int, int> Function(C<int>)>[
+    const <C<int> Function(int)>[
       Extra.new,
       Extra.named,
     ]
   ];
-  Expect.notNull(constructors); // Use variable.
+  Expect.isNotNull(constructors); // Use variable.
 
   // The static type is as expected.
 
@@ -83,8 +83,8 @@ void main() {
   Bounded.new.expectStaticType<Exactly<C<T> Function<T extends num>(T)>>();
   Bounded.named.expectStaticType<Exactly<C<T> Function<T extends num>(T)>>();
 
-  Wrapping.new.expectStaticType<Exactly<C<C<T>> Function<T>(T)>>();
-  Wrapping.named.expectStaticType<Exactly<C<C<T>> Function<T>(T)>>();
+  Wrapping.new.expectStaticType<Exactly<C<C<T>> Function<T>(C<T>)>>();
+  Wrapping.named.expectStaticType<Exactly<C<C<T>> Function<T>(C<T>)>>();
 
   Extra.new.expectStaticType<Exactly<C<T> Function<T, S>(T)>>();
   Extra.named.expectStaticType<Exactly<C<T> Function<T, S>(T)>>();
@@ -105,24 +105,24 @@ void main() {
   Extra<int, String>.named.expectStaticType<Exactly<C<int> Function(int)>>();
 
   // Implicitly instantiated.
-  contextType<C<int> Function(int)>(
-      Direct<int>.new..expectStaticType<Exactly<C<int> Function(int)>>());
-  contextType<C<int> Function(int)>(
-      Direct<int>.named..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Direct.new..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Direct.named..expectStaticType<Exactly<C<int> Function(int)>>());
 
-  contextType<C<int> Function(int)>(
-      Bounded<int>.new..expectStaticType<Exactly<C<int> Function(int)>>());
-  contextType<C<int> Function(int)>(
-      Bounded<int>.named..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Bounded.new..expectStaticType<Exactly<C<int> Function(int)>>());
+  context<C<int> Function(int)>(
+      Bounded.named..expectStaticType<Exactly<C<int> Function(int)>>());
 
-  contextType<C<C<int>> Function(C<int>)>(Wrapping<int>.new
+  context<C<C<int>> Function(C<int>)>(Wrapping.new
     ..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
-  contextType<C<C<int>> Function(C<int>)>(Wrapping<int>.named
+  context<C<C<int>> Function(C<int>)>(Wrapping.named
     ..expectStaticType<Exactly<C<C<int>> Function(C<int>)>>());
 
-  contextType<C<int, String> Function(int)>(Extra<int, String>.new
+  context<C<int> Function(int)>(Extra.new
     ..expectStaticType<Exactly<C<int> Function(int)>>());
-  contextType<C<int, String> Function(int)>(Extra<int, String>.named
+  context<C<int> Function(int)>(Extra.named
     ..expectStaticType<Exactly<C<int> Function(int)>>());
 
   // Uninstantiated tear-offs always canonicalize.
@@ -176,56 +176,56 @@ void main() {
 
   // Implicit instantiation.
   Expect.identical(
-    contextType<C<int> Function(int)>(Direct.new),
+    context<C<int> Function(int)>(Direct.new),
     C<int>.new,
   );
   Expect.identical(
-    contextType<C<int> Function(int)>(Direct.named),
+    context<C<int> Function(int)>(Direct.named),
     C<int>.named,
   );
   Expect.identical(
-    contextType<C<int> Function(int)>(Bounded.new),
+    context<C<int> Function(int)>(Bounded.new),
     C<int>.new,
   );
   Expect.identical(
-    contextType<C<int> Function(int)>(Bounded.named),
+    context<C<int> Function(int)>(Bounded.named),
     C<int>.named,
   );
   Expect.identical(
-    contextType<C<C<int>> Function(C<int>)>(Wrapping.new),
+    context<C<C<int>> Function(C<int>)>(Wrapping.new),
     C<C<int>>.new,
   );
   Expect.identical(
-    contextType<C<C<int>> Function(C<int>)>(Wrapping.named),
+    context<C<C<int>> Function(C<int>)>(Wrapping.named),
     C<C<int>>.named,
   );
   Expect.identical(
-    contextType<D<int, String> Function()>(Swapped.new),
+    context<D<int, String> Function()>(Swapped.new),
     D<int, String>.new,
   );
   Expect.identical(
-    contextType<D<int, String> Function()>(Swapped.named),
+    context<D<int, String> Function()>(Swapped.named),
     D<int, String>.named,
   );
 
   (<T extends num>() {
-    // Non-constant type instantiation prevents canonicalization and equality.
-    // Also not constant.
-    Expect.notEquals(Direct<T>.new, Direct<T>.new);
-    Expect.notEquals(Direct<T>.named, Direct<T>.named);
-    Expect.notEquals(Bounded<T>.new, Bounded<T>.new);
-    Expect.notEquals(Bounded<T>.named, Bounded<T>.named);
-    Expect.notEquals(Wrapping<T>.new, Wrapping<T>.new);
-    Expect.notEquals(Wrapping<T>.named, Wrapping<T>.named);
-    Expect.notEquals(Extra<T, String>.new, Extra<T, String>.new);
-    Expect.notEquals(Extra<T, String>.named, Extra<T, String>.named);
+    // Non-constant type instantiation implies non-constant expressions.
+    // Canonicalization is unspecified, but equality holds.
+    Expect.equals(Direct<T>.new, Direct<T>.new);
+    Expect.equals(Direct<T>.named, Direct<T>.named);
+    Expect.equals(Bounded<T>.new, Bounded<T>.new);
+    Expect.equals(Bounded<T>.named, Bounded<T>.named);
+    Expect.equals(Wrapping<T>.new, Wrapping<T>.new);
+    Expect.equals(Wrapping<T>.named, Wrapping<T>.named);
+    Expect.equals(Extra<T, String>.new, Extra<T, String>.new);
+    Expect.equals(Extra<T, String>.named, Extra<T, String>.named);
     // Also if the non-constant type doesn't occur in the expansion.
-    Expect.notEquals(Extra<int, T>.new, Extra<int, T>.new);
-    Expect.notEquals(Extra<int, T>.named, Extra<int, T>.named);
+    Expect.equals(Extra<int, T>.new, Extra<int, T>.new);
+    Expect.equals(Extra<int, T>.named, Extra<int, T>.named);
 
-    Expect.notEquals(Swapped<T, int>.new, Swapped<T, int>.new);
-    Expect.notEquals(Swapped<T, int>.named, Swapped<T, int>.named);
-    Expect.notEquals(Swapped<int, T>.new, Swapped<int, T>.new);
-    Expect.notEquals(Swapped<int, T>.named, Swapped<int, T>.named);
+    Expect.equals(Swapped<T, int>.new, Swapped<T, int>.new);
+    Expect.equals(Swapped<T, int>.named, Swapped<T, int>.named);
+    Expect.equals(Swapped<int, T>.new, Swapped<int, T>.new);
+    Expect.equals(Swapped<int, T>.named, Swapped<int, T>.named);
   }<int>());
 }

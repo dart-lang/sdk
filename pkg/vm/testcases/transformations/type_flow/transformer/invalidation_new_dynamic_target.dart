@@ -27,7 +27,7 @@ use_bar(dynamic x) => x.bar();
 
 use_bazz(dynamic x) => x.bazz();
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

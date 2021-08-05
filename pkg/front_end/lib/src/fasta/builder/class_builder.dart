@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.class_builder;
 
 import 'package:kernel/ast.dart'
@@ -21,6 +19,7 @@ import 'package:kernel/ast.dart'
         NullType,
         Nullability,
         Supertype,
+        TreeNode,
         TypeParameter,
         getAsTypeArguments;
 
@@ -43,7 +42,9 @@ import '../dill/dill_member_builder.dart';
 
 import '../fasta_codes.dart';
 
-import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
+import '../kernel/kernel_helper.dart';
+
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart';
 
@@ -75,7 +76,7 @@ import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'never_type_declaration_builder.dart';
 import 'nullability_builder.dart';
-import 'procedure_builder.dart';
+import 'factory_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
@@ -84,29 +85,30 @@ import 'void_type_declaration_builder.dart';
 
 abstract class ClassBuilder implements DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
-  List<TypeVariableBuilder> typeVariables;
+  List<TypeVariableBuilder>? get typeVariables;
 
   /// The type in the `extends` clause of a class declaration.
   ///
   /// Currently this also holds the synthesized super class for a mixin
   /// declaration.
-  TypeBuilder supertypeBuilder;
+  abstract TypeBuilder? supertypeBuilder;
 
   /// The type in the `implements` clause of a class or mixin declaration.
-  List<TypeBuilder> interfaceBuilders;
+  abstract List<TypeBuilder>? interfaceBuilders;
 
   /// The types in the `on` clause of an extension or mixin declaration.
-  List<TypeBuilder> onTypes;
+  List<TypeBuilder>? get onTypes;
 
   ConstructorScope get constructors;
 
   ConstructorScopeBuilder get constructorScopeBuilder;
 
-  Map<String, ConstructorRedirection> redirectingConstructors;
+  abstract ClassBuilder? actualOrigin;
 
-  ClassBuilder actualOrigin;
+  @override
+  Uri get fileUri;
 
-  ClassBuilder get patchForTesting;
+  ClassBuilder? get patchForTesting;
 
   bool get isAbstract;
 
@@ -118,20 +120,19 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   bool get isAnonymousMixinApplication;
 
-  TypeBuilder get mixedInTypeBuilder;
+  abstract TypeBuilder? mixedInTypeBuilder;
 
-  void set mixedInTypeBuilder(TypeBuilder mixin);
-
-  List<ConstructorReferenceBuilder> get constructorReferences;
-
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers);
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
   bool checkConstructorCyclic(String source, String target);
 
-  MemberBuilder findConstructorOrFactory(
+  MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void forEach(void f(String name, Builder builder));
@@ -143,16 +144,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
       void Function(String name, ConstructorBuilder constructorBuilder)
           callback);
 
-  /// Find the first member of this class with [name]. This method isn't
-  /// suitable for scope lookups as it will throw an error if the name isn't
-  /// declared. The [scope] should be used for that. This method is used to
-  /// find a member that is known to exist and it will pick the first
-  /// declaration if the name is ambiguous.
-  ///
-  /// For example, this method is convenient for use when building synthetic
-  /// members, such as those of an enum.
-  MemberBuilder firstMemberNamed(String name);
-
   /// The [Class] built by this builder.
   ///
   /// For a patch class the origin class is returned.
@@ -163,7 +154,10 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   Class get actualCls;
 
-  bool isNullClass;
+  abstract bool isNullClass;
+
+  @override
+  InterfaceType get thisType;
 
   InterfaceType get legacyRawType;
 
@@ -174,13 +168,14 @@ abstract class ClassBuilder implements DeclarationBuilder {
   InterfaceType rawType(Nullability nullability);
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]);
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext});
 
-  Supertype buildSupertype(LibraryBuilder library, List<TypeBuilder> arguments);
+  Supertype buildSupertype(
+      LibraryBuilder library, List<TypeBuilder>? arguments);
 
   Supertype buildMixedInType(
-      LibraryBuilder library, List<TypeBuilder> arguments);
+      LibraryBuilder library, List<TypeBuilder>? arguments);
 
   void checkSupertypes(CoreTypes coreTypes);
 
@@ -194,7 +189,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
-  FunctionType computeRedirecteeType(
+  FunctionType? computeRedirecteeType(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment);
 
   String computeRedirecteeName(ConstructorReferenceBuilder redirectionTarget);
@@ -236,14 +231,14 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// If this class builder is a patch, interface members declared in this
   /// patch are searched before searching the interface members in the origin
   /// class.
-  Member lookupInstanceMember(ClassHierarchy hierarchy, Name name,
+  Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter: false, bool isSuper: false});
 
   /// Looks up the constructor by [name] on the the class built by this class
   /// builder.
   ///
   /// If [isSuper] is `true`, constructors in the superclass are searched.
-  Constructor lookupConstructor(Name name, {bool isSuper: false});
+  Constructor? lookupConstructor(Name name, {bool isSuper: false});
 
   /// Calls [f] for each constructor declared in this class.
   ///
@@ -256,16 +251,16 @@ abstract class ClassBuilder implements DeclarationBuilder {
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     implements ClassBuilder {
   @override
-  List<TypeVariableBuilder> typeVariables;
+  List<TypeVariableBuilder>? typeVariables;
 
   @override
-  TypeBuilder supertypeBuilder;
+  TypeBuilder? supertypeBuilder;
 
   @override
-  List<TypeBuilder> interfaceBuilders;
+  List<TypeBuilder>? interfaceBuilders;
 
   @override
-  List<TypeBuilder> onTypes;
+  List<TypeBuilder>? onTypes;
 
   @override
   final ConstructorScope constructors;
@@ -273,26 +268,25 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   final ConstructorScopeBuilder constructorScopeBuilder;
 
-  @override
-  Map<String, ConstructorRedirection> redirectingConstructors;
+  Map<String, ConstructorRedirection>? _redirectingConstructors;
 
   @override
-  ClassBuilder actualOrigin;
+  ClassBuilder? actualOrigin;
 
   @override
-  ClassBuilder get patchForTesting => _patchBuilder;
+  ClassBuilder? get patchForTesting => _patchBuilder;
 
   @override
   bool isNullClass = false;
 
-  InterfaceType _legacyRawType;
-  InterfaceType _nullableRawType;
-  InterfaceType _nonNullableRawType;
-  InterfaceType _thisType;
-  ClassBuilder _patchBuilder;
+  InterfaceType? _legacyRawType;
+  InterfaceType? _nullableRawType;
+  InterfaceType? _nonNullableRawType;
+  InterfaceType? _thisType;
+  ClassBuilder? _patchBuilder;
 
   ClassBuilderImpl(
-      List<MetadataBuilder> metadata,
+      List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
       this.typeVariables,
@@ -330,18 +324,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   bool get declaresConstConstructor =>
       (modifiers & declaresConstConstructorMask) != 0;
 
-  @override
-  List<ConstructorReferenceBuilder> get constructorReferences => null;
-
   void forEachConstructor(void Function(String, MemberBuilder) f,
       {bool includeInjectedConstructors: false}) {
     if (isPatch) {
-      actualOrigin.forEachConstructor(f,
+      actualOrigin!.forEachConstructor(f,
           includeInjectedConstructors: includeInjectedConstructors);
     } else {
       constructors.forEach(f);
-      if (includeInjectedConstructors && _patchBuilder != null) {
-        _patchBuilder.constructors
+      if (includeInjectedConstructors) {
+        _patchBuilder?.constructors
             .forEach((String name, MemberBuilder builder) {
           if (!builder.isPatch) {
             f(name, builder);
@@ -352,19 +343,22 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration;
-      member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
+      MemberBuilder member = declaration as MemberBuilder;
+      member.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
     }
 
     MetadataBuilder.buildAnnotations(
         isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
     if (typeVariables != null) {
-      for (int i = 0; i < typeVariables.length; i++) {
-        typeVariables[i].buildOutlineExpressions(
+      for (int i = 0; i < typeVariables!.length; i++) {
+        typeVariables![i].buildOutlineExpressions(
             library, this, null, coreTypes, delayedActionPerformers);
       }
     }
@@ -376,22 +370,22 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
   bool checkConstructorCyclic(String source, String target) {
-    ConstructorRedirection redirect = new ConstructorRedirection(target);
-    redirectingConstructors ??= <String, ConstructorRedirection>{};
-    redirectingConstructors[source] = redirect;
+    ConstructorRedirection? redirect = new ConstructorRedirection(target);
+    _redirectingConstructors ??= <String, ConstructorRedirection>{};
+    _redirectingConstructors![source] = redirect;
     while (redirect != null) {
       if (redirect.cycleReported) return false;
       if (redirect.target == source) {
         redirect.cycleReported = true;
         return true;
       }
-      redirect = redirectingConstructors[redirect.target];
+      redirect = _redirectingConstructors![redirect.target];
     }
     return false;
   }
 
   @override
-  Builder findStaticBuilder(
+  Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
     if (accessingLibrary.nameOriginBuilder.origin !=
@@ -399,7 +393,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         name.startsWith("_")) {
       return null;
     }
-    Builder declaration = isSetter
+    Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
     if (declaration == null && isPatch) {
@@ -411,14 +405,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  MemberBuilder findConstructorOrFactory(
+  MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder.origin !=
             library.nameOriginBuilder.origin &&
         name.startsWith("_")) {
       return null;
     }
-    MemberBuilder declaration = constructors.lookup(name, charOffset, uri);
+    MemberBuilder? declaration =
+        constructors.lookup(name == 'new' ? '' : name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
@@ -447,7 +442,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // and from the patch don't intersect.
     assert(
         _patchBuilder == null ||
-            _patchBuilder.scope.localMembers
+            _patchBuilder!.scope.localMembers
                 .where((b) => b is FieldBuilder)
                 .map((b) => (b as FieldBuilder).name)
                 .toSet()
@@ -457,7 +452,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                     .toSet())
                 .isEmpty,
         "Detected an attempt to patch a field.");
-    _patchBuilder?.scope?.forEach(callbackFilteringFieldBuilders);
+    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
     scope.forEach(callbackFilteringFieldBuilders);
   }
 
@@ -476,14 +471,14 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // Constructors can be patched, so iterate first over constructors in the
     // patch, and then over constructors in the original declaration skipping
     // those with the names that are in the patch.
-    _patchBuilder?.constructors?.forEach(callbackFilteringFieldBuilders);
+    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
     constructors.forEach(callbackFilteringFieldBuilders);
   }
 
   @override
-  Builder lookupLocalMember(String name,
+  Builder? lookupLocalMember(String name,
       {bool setter: false, bool required: false}) {
-    Builder builder = scope.lookupLocalMember(name, setter: setter);
+    Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (builder == null && isPatch) {
       builder = origin.scope.lookupLocalMember(name, setter: setter);
     }
@@ -497,11 +492,19 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return builder;
   }
 
-  @override
-  MemberBuilder firstMemberNamed(String name) {
-    Builder declaration = lookupLocalMember(name, required: true);
+  /// Find the first member of this class with [name]. This method isn't
+  /// suitable for scope lookups as it will throw an error if the name isn't
+  /// declared. The [scope] should be used for that. This method is used to
+  /// find a member that is known to exist and it will pick the first
+  /// declaration if the name is ambiguous.
+  ///
+  /// For example, this method is convenient for use when building synthetic
+  /// members, such as those of an enum.
+  MemberBuilder? firstMemberNamed(String name) {
+    MemberBuilder declaration =
+        lookupLocalMember(name, required: true) as MemberBuilder;
     while (declaration.next != null) {
-      declaration = declaration.next;
+      declaration = declaration.next as MemberBuilder;
     }
     return declaration;
   }
@@ -552,17 +555,17 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+      Nullability nullability, List<DartType>? arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     if (isNullClass) {
       return const NullType();
     }
     if (name == "FutureOr") {
-      LibraryBuilder parentLibrary = parent;
+      LibraryBuilder parentLibrary = parent as LibraryBuilder;
       if (parentLibrary.importUri.scheme == "dart" &&
           parentLibrary.importUri.path == "async") {
         assert(arguments != null && arguments.length == 1);
-        return new FutureOrType(arguments.single, nullability);
+        return new FutureOrType(arguments!.single, nullability);
       }
     }
     return arguments == null
@@ -575,18 +578,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      LibraryBuilder library, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
 
     if (arguments == null && typeVariables != null) {
-      List<DartType> result =
-          new List<DartType>.filled(typeVariables.length, null, growable: true);
-      for (int i = 0; i < result.length; ++i) {
-        result[i] = typeVariables[i].defaultType.build(library);
-      }
+      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
+          (int i) => typeVariables![i].defaultType!.build(library),
+          growable: true);
       if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
       }
@@ -604,28 +605,27 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           null);
     }
 
-    assert(arguments.length == typeVariablesCount);
-    List<DartType> result =
-        new List<DartType>.filled(arguments.length, null, growable: true);
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = arguments[i].build(library);
-    }
+    assert(arguments!.length == typeVariablesCount);
+    List<DartType> result = new List<DartType>.generate(
+        arguments!.length, (int i) => arguments[i].build(library),
+        growable: true);
     return result;
   }
 
   @override
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     return buildTypesWithBuiltArguments(
         library,
         nullabilityBuilder.build(library),
-        buildTypeArguments(library, arguments, notInstanceContext));
+        buildTypeArguments(library, arguments,
+            nonInstanceContext: nonInstanceContext));
   }
 
   @override
   Supertype buildSupertype(
-      LibraryBuilder library, List<TypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     Class cls = isPatch ? origin.cls : this.cls;
     List<DartType> typeArguments = buildTypeArguments(library, arguments);
     if (!library.isNonNullableByDefault) {
@@ -638,7 +638,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   Supertype buildMixedInType(
-      LibraryBuilder library, List<TypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
     Class cls = isPatch ? origin.cls : this.cls;
     if (arguments != null) {
       return new Supertype(cls, buildTypeArguments(library, arguments));
@@ -660,7 +660,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     // supertypes.
 
     void fail(NamedTypeBuilder target, Message message,
-        TypeAliasBuilder aliasBuilder) {
+        TypeAliasBuilder? aliasBuilder) {
       int nameOffset = target.nameOffset;
       int nameLength = target.nameLength;
       // TODO(eernst): nameOffset not fully implemented; use backup.
@@ -679,16 +679,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
 
     // Extract and check superclass (if it exists).
-    ClassBuilder superClass;
-    TypeBuilder superClassType = supertypeBuilder;
+    ClassBuilder? superClass;
+    TypeBuilder? superClassType = supertypeBuilder;
     if (superClassType is NamedTypeBuilder) {
-      TypeDeclarationBuilder decl = superClassType.declaration;
-      TypeAliasBuilder aliasBuilder; // Non-null if a type alias is use.
+      TypeDeclarationBuilder? decl = superClassType.declaration;
+      TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is use.
       if (decl is TypeAliasBuilder) {
         aliasBuilder = decl;
         decl = aliasBuilder.unaliasDeclaration(superClassType.arguments,
             isUsedAsClass: true,
-            usedAsClassCharOffset: supertypeBuilder.charOffset,
+            usedAsClassCharOffset: superClassType.charOffset,
             usedAsClassFileUri: superClassType.fileUri);
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
@@ -704,15 +704,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (interfaceBuilders == null) return;
 
     // Validate interfaces.
-    Map<ClassBuilder, int> problems;
-    Map<ClassBuilder, int> problemsOffsets;
+    Map<ClassBuilder, int>? problems;
+    Map<ClassBuilder, int>? problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
-    for (TypeBuilder type in interfaceBuilders) {
+    for (TypeBuilder type in interfaceBuilders!) {
       if (type is NamedTypeBuilder) {
-        int charOffset = type.charOffset;
-        TypeDeclarationBuilder typeDeclaration = type.declaration;
-        TypeDeclarationBuilder decl;
-        TypeAliasBuilder aliasBuilder; // Non-null if a type alias is used.
+        int? charOffset = type.charOffset;
+        TypeDeclarationBuilder? typeDeclaration = type.declaration;
+        TypeDeclarationBuilder? decl;
+        TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is used.
         if (typeDeclaration is TypeAliasBuilder) {
           aliasBuilder = typeDeclaration;
           decl = aliasBuilder.unaliasDeclaration(type.arguments,
@@ -735,11 +735,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             addProblem(messageImplementsFutureOr, this.charOffset, noLength);
           } else if (implemented.contains(interface)) {
             // Aggregate repetitions.
-            problems ??= new Map<ClassBuilder, int>();
+            problems ??= <ClassBuilder, int>{};
             problems[interface] ??= 0;
-            problems[interface] += 1;
-            problemsOffsets ??= new Map<ClassBuilder, int>();
-            problemsOffsets[interface] ??= charOffset;
+            problems[interface] = problems[interface]! + 1;
+            problemsOffsets ??= <ClassBuilder, int>{};
+            problemsOffsets[interface] ??= charOffset ?? TreeNode.noOffset;
           } else {
             implemented.add(interface);
           }
@@ -759,7 +759,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         addProblem(
             templateImplementsRepeated.withArguments(
                 interface.name, repetitions),
-            problemsOffsets[interface],
+            problemsOffsets![interface]!,
             noLength);
       });
     }
@@ -770,12 +770,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       callback(Member interfaceMember, bool isSetter)) {
     // When a parameter is covariant we have to check that we also
     // override the same member in all parents.
-    for (Supertype supertype in interfaceMember.enclosingClass.supers) {
-      Member m = types.hierarchy.getInterfaceMember(
+    for (Supertype supertype in interfaceMember.enclosingClass!.supers) {
+      Member? member = types.hierarchy.getInterfaceMember(
           supertype.classNode, interfaceMember.name,
           setter: isSetter);
-      if (m != null) {
-        callback(m, isSetter);
+      if (member != null) {
+        callback(member, isSetter);
       }
     }
   }
@@ -783,15 +783,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass) {
-    Member noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
+    Member? noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
   @override
   String get fullNameForErrors {
     return isMixinApplication && !isNamedMixinApplication
-        ? "${supertypeBuilder.fullNameForErrors} with "
-            "${mixedInTypeBuilder.fullNameForErrors}"
+        ? "${supertypeBuilder!.fullNameForErrors} with "
+            "${mixedInTypeBuilder!.fullNameForErrors}"
         : name;
   }
 
@@ -800,12 +800,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     TypeEnvironment typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
     // A mixin declaration can only be applied to a class that implements all
     // the declaration's superclass constraints.
-    InterfaceType supertype = cls.supertype.asInterfaceType;
-    Substitution substitution = Substitution.fromSupertype(cls.mixedInType);
-    for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
+    InterfaceType supertype = cls.supertype!.asInterfaceType;
+    Substitution substitution = Substitution.fromSupertype(cls.mixedInType!);
+    for (Supertype constraint in cls.mixedInClass!.superclassConstraints()) {
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
+      InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
           supertype, requiredInterface.classNode, library.library);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
@@ -818,7 +818,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,
                 requiredInterface,
-                cls.mixedInType.asInterfaceType,
+                cls.mixedInType!.asInterfaceType,
                 library.isNonNullableByDefault),
             cls.fileOffset,
             noLength,
@@ -834,20 +834,21 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       _patchBuilder = patch;
       // TODO(ahe): Complain if `patch.supertype` isn't null.
       scope.forEachLocalMember((String name, Builder member) {
-        Builder memberPatch =
+        Builder? memberPatch =
             patch.scope.lookupLocalMember(name, setter: false);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
       scope.forEachLocalSetter((String name, Builder member) {
-        Builder memberPatch = patch.scope.lookupLocalMember(name, setter: true);
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: true);
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
       constructors.local.forEach((String name, Builder member) {
-        Builder memberPatch = patch.constructors.local[name];
+        Builder? memberPatch = patch.constructors.local[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
@@ -862,8 +863,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         ]);
       } else if (typeVariables != null) {
         int count = 0;
-        for (TypeVariableBuilder t in patch.typeVariables) {
-          typeVariables[count++].applyPatch(t);
+        for (TypeVariableBuilder t in patch.typeVariables!) {
+          typeVariables![count++].applyPatch(t);
         }
       }
     } else {
@@ -876,16 +877,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  FunctionType computeRedirecteeType(
+  FunctionType? computeRedirecteeType(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
     ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
-    FunctionNode target;
-    if (redirectionTarget.target == null) return null;
-    if (redirectionTarget.target is FunctionBuilder) {
-      FunctionBuilder targetBuilder = redirectionTarget.target;
-      target = targetBuilder.function;
-    } else if (redirectionTarget.target is DillConstructorBuilder) {
-      DillConstructorBuilder targetBuilder = redirectionTarget.target;
+    Builder? targetBuilder = redirectionTarget.target;
+    FunctionNode targetNode;
+    if (targetBuilder == null) return null;
+    if (targetBuilder is FunctionBuilder) {
+      targetNode = targetBuilder.function;
+    } else if (targetBuilder is DillConstructorBuilder) {
       // It seems that the [redirectionTarget.target] is an instance of
       // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
       // e.g.
@@ -895,9 +895,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       //   }
       //   class B implements A {}
       //
-      target = targetBuilder.constructor.function;
-    } else if (redirectionTarget.target is DillFactoryBuilder) {
-      DillFactoryBuilder targetBuilder = redirectionTarget.target;
+      targetNode = targetBuilder.constructor.function;
+    } else if (targetBuilder is DillFactoryBuilder) {
       // It seems that the [redirectionTarget.target] is an instance of
       // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
       // e.g.
@@ -907,8 +906,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       //   }
       //   class B implements A {}
       //
-      target = targetBuilder.procedure.function;
-    } else if (redirectionTarget.target is AmbiguousBuilder) {
+      targetNode = targetBuilder.procedure.function;
+    } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.
       // TODO(http://dartbug.com/35294): Unfortunate error; see also
@@ -919,13 +918,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           charOffset, fileUri);
     }
 
-    List<DartType> typeArguments =
-        getRedirectingFactoryBody(factory.procedure).typeArguments;
+    List<DartType>? typeArguments = factory.getTypeArguments();
     FunctionType targetFunctionType =
-        target.computeFunctionType(library.nonNullable);
+        targetNode.computeFunctionType(library.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
@@ -935,7 +934,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // Compute the substitution of the target class type parameters if
     // [redirectionTarget] has any type arguments.
-    Substitution substitution;
+    Substitution? substitution;
     bool hasProblem = false;
     if (typeArguments != null && typeArguments.length > 0) {
       substitution = Substitution.fromPairs(
@@ -950,7 +949,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         Loader loader = library.loader;
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
-          addProblem(
+          addProblemForRedirectingFactory(
+              factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument,
                   typeParameterBound,
@@ -961,7 +961,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         } else if (library.isNonNullableByDefault && loader is SourceLoader) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            addProblem(
+            addProblemForRedirectingFactory(
+                factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound,
                         library.isNonNullableByDefault),
@@ -1000,33 +1001,92 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   String computeRedirecteeName(ConstructorReferenceBuilder redirectionTarget) {
     String targetName = redirectionTarget.fullNameForErrors;
     if (targetName == "") {
-      return redirectionTarget.target.parent.fullNameForErrors;
+      return redirectionTarget.target!.parent!.fullNameForErrors;
     } else {
       return targetName;
     }
   }
 
+  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
+    // We use the [tortoise and hare algorithm]
+    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
+    // handle cycles.
+    Builder? tortoise = factory;
+    Builder? hare = factory.redirectionTarget.target;
+    if (hare == factory) {
+      return true;
+    }
+    while (tortoise != hare) {
+      // Hare moves 2 steps forward.
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      // Tortoise moves one step forward. No need to test type of tortoise
+      // as it follows hare which already checked types.
+      tortoise =
+          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
+    }
+    // Cycle found, but original factory doesn't belong to a cycle.
+    return false;
+  }
+
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length) {
+    addProblem(message, charOffset, length);
+    String text = library.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.body = new RedirectingFactoryBody.error(text);
+  }
+
   @override
   void checkRedirectingFactory(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(factory)) {
+      addProblemForRedirectingFactory(
+          factory,
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${factory.member.enclosingClass!.name}"
+                  "${factory.name == '' ? '' : '.${factory.name}'}"),
+          factory.charOffset,
+          noLength);
+      return;
+    }
+
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
-    FunctionType factoryType = factory.procedure.function
+    FunctionType factoryType = factory.function
         .computeThisFunctionType(library.nonNullable)
         .withoutTypeParameters;
-    FunctionType redirecteeType =
+    FunctionType? redirecteeType =
         computeRedirecteeType(factory, typeEnvironment);
 
     // TODO(hillerstrom): It would be preferable to know whether a failure
     // happened during [_computeRedirecteeType].
-    if (redirecteeType == null) return;
+    if (redirecteeType == null) {
+      return;
+    }
 
     // Check whether [redirecteeType] <: [factoryType].
     Loader loader = library.loader;
     if (!typeEnvironment.isSubtypeOf(
         redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
-      addProblem(
+      addProblemForRedirectingFactory(
+          factory,
           templateIncompatibleRedirecteeFunctionType.withArguments(
               redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
@@ -1034,7 +1094,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     } else if (library.isNonNullableByDefault && loader is SourceLoader) {
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-        addProblem(
+        addProblemForRedirectingFactory(
+            factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryType, library.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,
@@ -1046,28 +1107,26 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Map<String, MemberBuilder> constructors = this.constructors.local;
-    Iterable<String> names = constructors.keys;
-    for (String name in names) {
-      Builder constructor = constructors[name];
+    for (Builder? constructor in constructors.values) {
       do {
         if (constructor is RedirectingFactoryBuilder) {
           checkRedirectingFactory(constructor, typeEnvironment);
         }
-        constructor = constructor.next;
+        constructor = constructor!.next;
       } while (constructor != null);
     }
   }
 
   @override
   Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
-    Supertype supertype = cls.supertype;
+    Supertype? supertype = cls.supertype;
     Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
     List<DartType> arguments;
     List<TypeParameter> variables;
-    Class classNode;
+    Class? classNode;
 
     while (classNode != superclass) {
-      classNode = supertype.classNode;
+      classNode = supertype!.classNode;
       arguments = supertype.typeArguments;
       variables = classNode.typeParameters;
       supertype = classNode.supertype;
@@ -1077,6 +1136,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         for (int i = 0; i < variables.length; i++) {
           DartType argument =
               i < arguments.length ? arguments[i] : const DynamicType();
+          // ignore: unnecessary_null_comparison
           if (substitutionMap != null) {
             // TODO(ahe): Investigate if requiring the caller to use
             // `substituteDeep` from `package:kernel/type_algebra.dart` instead
@@ -1093,9 +1153,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Member lookupInstanceMember(ClassHierarchy hierarchy, Name name,
+  Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter: false, bool isSuper: false}) {
-    Class instanceClass = cls;
+    Class? instanceClass = cls;
     if (isPatch) {
       assert(identical(instanceClass, origin.cls),
           "Found ${origin.cls} expected $instanceClass");
@@ -1103,7 +1163,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         // The super class is only correctly found through the origin class.
         instanceClass = origin.cls;
       } else {
-        Member member =
+        Member? member =
             hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
         if (member?.parent == instanceClass) {
           // Only if the member is found in the patch can we use it.
@@ -1119,7 +1179,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       instanceClass = instanceClass.superclass;
       if (instanceClass == null) return null;
     }
-    Member target = isSuper
+    Member? target = isSuper
         ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
         : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
     if (isSuper && target == null) {
@@ -1134,31 +1194,37 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Constructor lookupConstructor(Name name, {bool isSuper: false}) {
-    Class instanceClass = cls;
+  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
+    Class? instanceClass = cls;
     if (isSuper) {
       instanceClass = instanceClass.superclass;
     }
     if (instanceClass != null) {
       for (Constructor constructor in instanceClass.constructors) {
-        if (constructor.name == name) return constructor;
+        if (constructor.name == name) {
+          return constructor;
+        }
       }
     }
 
     /// Performs a similar lookup to [lookupConstructor], but using a slower
     /// implementation.
-    Constructor lookupConstructorWithPatches(Name name, bool isSuper) {
-      ClassBuilder builder = this.origin;
+    Constructor? lookupConstructorWithPatches(Name name, bool isSuper) {
+      ClassBuilder? builder = this.origin;
 
-      ClassBuilder getSuperclass(ClassBuilder builder) {
+      ClassBuilder? getSuperclass(ClassBuilder builder) {
         // This way of computing the superclass is slower than using the kernel
         // objects directly.
-        Object supertype = builder.supertypeBuilder;
+        TypeBuilder? supertype = builder.supertypeBuilder;
         if (supertype is NamedTypeBuilder) {
-          Object builder = supertype.declaration;
+          TypeDeclarationBuilder? builder = supertype.declaration;
           if (builder is ClassBuilder) return builder;
           if (builder is TypeAliasBuilder) {
-            TypeDeclarationBuilder declarationBuilder =
+            TypeDeclarationBuilder? declarationBuilder =
                 builder.unaliasDeclaration(supertype.arguments,
                     isUsedAsClass: true,
                     usedAsClassCharOffset: supertype.charOffset,

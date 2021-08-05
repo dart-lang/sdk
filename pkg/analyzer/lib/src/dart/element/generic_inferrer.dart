@@ -175,6 +175,7 @@ class GenericInferrer {
 
     // Check the inferred types against all of the constraints.
     var knownTypes = <TypeParameterElement, DartType>{};
+    var hasErrorReported = false;
     for (int i = 0; i < typeFormals.length; i++) {
       TypeParameterElement parameter = typeFormals[i];
       var constraints = _constraints[parameter]!;
@@ -204,6 +205,7 @@ class GenericInferrer {
 
       if (!success) {
         if (failAtError) return null;
+        hasErrorReported = true;
         errorReporter?.reportErrorForNode(
             CompileTimeErrorCode.COULD_NOT_INFER,
             errorNode!,
@@ -220,6 +222,7 @@ class GenericInferrer {
           !genericMetadataIsEnabled &&
           errorReporter != null) {
         if (failAtError) return null;
+        hasErrorReported = true;
         var typeFormals = inferred.typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
         errorReporter.reportErrorForNode(
@@ -255,6 +258,7 @@ class GenericInferrer {
     for (int i = 0; i < hasError.length; i++) {
       if (hasError[i]) {
         if (failAtError) return null;
+        hasErrorReported = true;
         TypeParameterElement typeParam = typeFormals[i];
         var typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
             .substituteType(typeParam.bound ?? typeProvider.objectType);
@@ -267,6 +271,15 @@ class GenericInferrer {
               "to the generic.\n\n'"
         ]);
       }
+    }
+
+    if (!hasErrorReported) {
+      _checkArgumentsNotMatchingBounds(
+        errorNode: errorNode,
+        errorReporter: errorReporter,
+        typeParameters: typeFormals,
+        typeArguments: result,
+      );
     }
 
     _nonNullifyTypes(result);
@@ -303,6 +316,41 @@ class GenericInferrer {
     }
 
     return success;
+  }
+
+  /// Check that inferred [typeArguments] satisfy the [typeParameters] bounds.
+  void _checkArgumentsNotMatchingBounds({
+    required AstNode? errorNode,
+    required ErrorReporter? errorReporter,
+    required List<TypeParameterElement> typeParameters,
+    required List<DartType> typeArguments,
+  }) {
+    for (int i = 0; i < typeParameters.length; i++) {
+      var parameter = typeParameters[i];
+      var argument = typeArguments[i];
+
+      var rawBound = parameter.bound;
+      if (rawBound == null) {
+        continue;
+      }
+      rawBound = _typeSystem.toLegacyTypeIfOptOut(rawBound);
+
+      var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+      var bound = substitution.substituteType(rawBound);
+      if (!_typeSystem.isSubtypeOf(argument, bound)) {
+        errorReporter?.reportErrorForNode(
+          CompileTimeErrorCode.COULD_NOT_INFER,
+          errorNode!,
+          [
+            parameter.name,
+            "\n'${_typeStr(argument)}' doesn't conform to "
+                "the bound '${_typeStr(bound)}'"
+                ", instantiated from '${_typeStr(rawBound)}'"
+                " using type arguments ${typeArguments.map(_typeStr).toList()}.",
+          ],
+        );
+      }
+    }
   }
 
   /// Choose the bound that was implied by the return type, if any.
@@ -535,7 +583,7 @@ class GenericInferrer {
           if (typeElement != null && typeElement.hasOptionalTypeArgs) {
             return;
           }
-          var typeAliasElement = type.aliasElement;
+          var typeAliasElement = type.alias?.element;
           if (typeAliasElement != null &&
               typeAliasElement.hasOptionalTypeArgs) {
             return;

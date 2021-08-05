@@ -67,7 +67,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   Future<void> startService() async {
     bool started = false;
-    final completer = Completer<void>();
+    DartDevelopmentServiceException? error;
     // TODO(bkonyi): throw if we've already shutdown.
     // Establish the connection to the VM service.
     _vmServiceSocket = webSocketBuilder(remoteVmServiceWsUri);
@@ -76,18 +76,25 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     unawaited(
       vmServiceClient.listen().then(
         (_) {
-          shutdown();
-          if (!started && !completer.isCompleted) {
-            completer
-                .completeError(DartDevelopmentServiceException.failedToStart());
+          if (started) {
+            shutdown();
+          } else {
+            // If we fail to connect to the service or the connection is
+            // terminated while we're starting up, we'll need to cleanup later
+            // once DDS has finished initializing to make sure all ports are
+            // closed before throwing the exception.
+            error = DartDevelopmentServiceException.failedToStart();
           }
         },
         onError: (e, st) {
-          shutdown();
-          if (!completer.isCompleted) {
-            completer.completeError(
-              DartDevelopmentServiceException.connectionIssue(e.toString()),
-              st,
+          if (started) {
+            shutdown();
+          } else {
+            // If we encounter an error while we're starting up, we'll need to
+            // cleanup later once DDS has finished initializing to make sure
+            // all ports are closed before throwing the exception.
+            error = DartDevelopmentServiceException.connectionIssue(
+              e.toString(),
             );
           }
         },
@@ -104,13 +111,15 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       // Once we have a connection to the VM service, we're ready to spawn the intermediary.
       await _startDDSServer();
       started = true;
-      completer.complete();
     } on StateError {
       /* Ignore json-rpc state errors */
-    } catch (e, st) {
-      completer.completeError(e, st);
     }
-    return completer.future;
+
+    // Check if we encountered any errors during startup, cleanup, and throw.
+    if (error != null) {
+      await shutdown();
+      throw error!;
+    }
   }
 
   Future<void> _startDDSServer() async {

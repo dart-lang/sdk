@@ -47,7 +47,7 @@ class MultiRootFileSystem implements FileSystem {
 class MultiRootFileSystemEntity implements FileSystemEntity {
   final MultiRootFileSystem multiRootFileSystem;
   final Uri uri;
-  FileSystemEntity _delegate;
+  FileSystemEntity? _delegate;
   Future<FileSystemEntity> get delegate async =>
       _delegate ??= await _resolveEntity();
 

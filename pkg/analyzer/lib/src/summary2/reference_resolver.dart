@@ -14,10 +14,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
 /// Recursive visitor of [LinkedNode]s that resolves explicit type annotations
@@ -33,8 +31,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final Linker linker;
   final TypeSystemImpl _typeSystem;
   final NodesToBuildType nodesToBuildType;
-  final LinkedElementFactory elementFactory;
-  final Reference unitReference;
 
   /// Indicates whether the library is opted into NNBD.
   final bool isNNBD;
@@ -44,12 +40,14 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   ReferenceResolver(
     this.linker,
     this.nodesToBuildType,
-    this.elementFactory,
     LibraryElementImpl libraryElement,
-    this.unitReference,
-    this.isNNBD,
-    this.scope,
-  ) : _typeSystem = libraryElement.typeSystem;
+  )   : _typeSystem = libraryElement.typeSystem,
+        scope = libraryElement.scope,
+        isNNBD = libraryElement.isNonNullableByDefault;
+
+  void enterScopeClassElement(ClassElementImpl element) {
+    scope = TypeParameterScope(scope, element.typeParameters);
+  }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -59,9 +57,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ClassElementImpl;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -108,7 +103,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ConstructorElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -164,7 +158,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as FieldFormalParameterElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -186,7 +179,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(outerScope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -214,9 +206,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
-
-    var function = element.aliasedElement as GenericFunctionTypeElementImpl;
-    function.parameters; // create elements
     node.parameters.accept(this);
 
     nodesToBuildType.addDeclaration(node);
@@ -229,7 +218,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ParameterElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
@@ -293,7 +281,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as ExecutableElementImpl;
-    element.parameters; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
     LinkingNodeContext(node, scope);
@@ -311,9 +298,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
 
     var element = node.declaredElement as MixinElementImpl;
-    element.accessors; // create elements
-    element.constructors; // create elements
-    element.methods; // create elements
 
     scope = TypeParameterScope(scope, element.typeParameters);
 

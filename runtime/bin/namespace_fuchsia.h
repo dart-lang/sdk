@@ -6,7 +6,7 @@
 #define RUNTIME_BIN_NAMESPACE_FUCHSIA_H_
 
 #include "platform/globals.h"
-#if !defined(HOST_OS_FUCHSIA)
+#if !defined(DART_HOST_OS_FUCHSIA)
 #error "This header file should only be included when targeting Fuchsia."
 #endif
 

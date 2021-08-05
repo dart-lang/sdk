@@ -21,9 +21,9 @@ import 'package:kernel/src/tool/find_referenced_libraries.dart'
     show duplicateLibrariesReachable;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:meta/meta.dart';
-import 'package:vm/http_filesystem.dart';
 
 import '../compiler/js_names.dart';
+import 'asset_file_system.dart';
 import 'command.dart';
 
 /// The service that handles expression compilation requests from
@@ -83,6 +83,8 @@ class ExpressionCompilerWorker {
   final ModuleFormat _moduleFormat;
   final Component _sdkComponent;
 
+  void Function() onDone;
+
   ExpressionCompilerWorker._(
     this._processedOptions,
     this._compilerOptions,
@@ -90,6 +92,7 @@ class ExpressionCompilerWorker {
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
+    this.onDone,
   );
 
   /// Create expression compiler worker from [args] and start it.
@@ -113,27 +116,34 @@ class ExpressionCompilerWorker {
   /// receive port corresponding to [sendPort].
   static Future<void> createAndStart(List<String> args,
       {SendPort sendPort}) async {
+    ExpressionCompilerWorker worker;
     if (sendPort != null) {
       var receivePort = ReceivePort();
       sendPort.send(receivePort.sendPort);
       try {
-        var worker = await createFromArgs(args,
+        worker = await createFromArgs(args,
             requestStream: receivePort.cast<Map<String, dynamic>>(),
             sendResponse: sendPort.send);
-        await worker.start();
+        await worker.run();
       } catch (e, s) {
         sendPort
             .send({'exception': '$e', 'stackTrace': '$s', 'succeeded': false});
         rethrow;
       } finally {
         receivePort.close();
+        worker?.close();
       }
     } else {
-      var worker = await createFromArgs(args);
-      await worker.start();
+      try {
+        worker = await createFromArgs(args);
+        await worker.run();
+      } finally {
+        worker?.close();
+      }
     }
   }
 
+  /// Parse args and create the worker, hook cleanup code to run when done.
   static Future<ExpressionCompilerWorker> createFromArgs(
     List<String> args, {
     Stream<Map<String, dynamic>> requestStream,
@@ -180,6 +190,9 @@ class ExpressionCompilerWorker {
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
+      onDone: () {
+        if (fileSystem is AssetFileSystem) fileSystem.close();
+      },
     );
   }
 
@@ -203,6 +216,7 @@ class ExpressionCompilerWorker {
     Stream<Map<String, dynamic>> requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)
         sendResponse, // Defaults to write to stdout
+    void Function() onDone,
   }) async {
     var compilerOptions = CompilerOptions()
       ..compileSdk = false
@@ -235,7 +249,7 @@ class ExpressionCompilerWorker {
       throw Exception('Could not load SDK component: $sdkSummary');
     }
     return ExpressionCompilerWorker._(processedOptions, compilerOptions,
-        moduleFormat, sdkComponent, requestStream, sendResponse)
+        moduleFormat, sdkComponent, requestStream, sendResponse, onDone)
       .._updateCache(sdkComponent, dartSdkModule, true);
   }
 
@@ -243,7 +257,7 @@ class ExpressionCompilerWorker {
   ///
   /// Completes when the [requestStream] closes and we finish handling the
   /// requests.
-  Future<void> start() async {
+  Future<void> run() async {
     await for (var request in requestStream) {
       try {
         var command = request['command'] as String;
@@ -275,6 +289,8 @@ class ExpressionCompilerWorker {
     _processedOptions.ticker.logMs('Stopped expression compiler worker.');
   }
 
+  void close() => onDone?.call();
+
   /// Handles a `CompileExpression` request.
   Future<Map<String, dynamic>> _compileExpression(
       CompileExpressionRequest request) async {
@@ -304,7 +320,8 @@ class ExpressionCompilerWorker {
     // Note that this doesn't actually re-load it if it's already fully loaded.
     if (!await _loadAndUpdateComponent(
         _fullModules[moduleName], moduleName, false)) {
-      throw ArgumentError('Failed to load full dill for module $moduleName');
+      throw ArgumentError('Failed to load full dill for module $moduleName: '
+          '${_fullModules[moduleName]}');
     }
 
     var originalComponent = _moduleCache.componentForModuleName[moduleName];
@@ -565,29 +582,6 @@ class ExpressionCompilerWorker {
     var printer = BinaryPrinter(byteSink);
     printer.writeComponentFile(component);
     return true;
-  }
-}
-
-/// A wrapper around asset server that redirects file read requests
-/// to http get requests to the asset server.
-class AssetFileSystem extends HttpAwareFileSystem {
-  final String server;
-  final String port;
-
-  AssetFileSystem(FileSystem original, this.server, this.port)
-      : super(original);
-
-  Uri resourceUri(Uri uri) =>
-      Uri.parse('http://$server:$port/getResource?uri=${uri.toString()}');
-
-  @override
-  FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme == 'file') {
-      return super.entityForUri(uri);
-    }
-
-    // Pass the uri to the asset server in the debugger.
-    return HttpFileSystemEntity(this, resourceUri(uri));
   }
 }
 

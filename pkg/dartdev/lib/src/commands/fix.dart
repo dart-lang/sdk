@@ -93,6 +93,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       io.Directory(sdk.sdkPath),
       [dir],
       commandName: 'fix',
+      argResults: argResults,
     );
 
     await server.start();

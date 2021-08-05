@@ -46,7 +46,7 @@ void main() {
   test_locate_CompilationUnit() async {
     await resolveTestCode('// only comment');
 
-    var unitElement = result.unit!.declaredElement!;
+    var unitElement = result.unit.declaredElement!;
 
     var element = ElementLocator.locate(result.unit);
     expect(element, same(unitElement));

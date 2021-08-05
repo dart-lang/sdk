@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,10 +19,10 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 /// * type representing the first type parameter of its enclosing function
 class Metadata {
   final String string;
-  final Reference _memberRef;
+  final Reference? _memberRef;
   final DartType type;
 
-  Member get member => _memberRef?.asMember;
+  Member? get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
       : this(
@@ -36,7 +34,7 @@ class Metadata {
   Metadata(this.string, this._memberRef, this.type);
 }
 
-Member getMemberForMetadata(TreeNode node) {
+Member? getMemberForMetadata(TreeNode node) {
   final parent = node.parent;
   if (parent == null) return null;
   if (parent is Member) return parent;
@@ -67,7 +65,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
     sink.writeByteList(utf8.encode(metadata.string));
     sink.writeStringReference(metadata.string);
     sink.writeNullAllowedCanonicalNameReference(
-        metadata.member?.reference?.canonicalName);
+        metadata.member?.reference.canonicalName);
     sink.writeDartType(metadata.type);
   }
 
@@ -116,7 +114,7 @@ class Visitor extends RecursiveVisitor {
 /// [shouldAnnotate] predicate.
 void annotate(Component p, NodePredicate shouldAnnotate) {
   globalDebuggingNames = new NameSystem();
-  final repository = p.metadata[TestMetadataRepository.kTag];
+  final repository = p.metadata[TestMetadataRepository.kTag]!;
   p.accept(new Visitor(shouldAnnotate, (node) {
     repository.mapping[node] = new Metadata.forNode(node);
   }));
@@ -126,7 +124,7 @@ void annotate(Component p, NodePredicate shouldAnnotate) {
 /// component matching [shouldAnnotate] predicate has correct metadata.
 void validate(Component p, NodePredicate shouldAnnotate) {
   globalDebuggingNames = new NameSystem();
-  final repository = p.metadata[TestMetadataRepository.kTag];
+  final repository = p.metadata[TestMetadataRepository.kTag]!;
   p.accept(new Visitor(shouldAnnotate, (node) {
     final m = repository.mapping[node];
     final expected = new Metadata.forNode(node);
@@ -168,7 +166,7 @@ main() async {
     final component = fromBinary(platformBinary);
     annotate(component, shouldAnnotate);
     validate(component, shouldAnnotate);
-    expect(component.metadata[TestMetadataRepository.kTag].mapping.length,
+    expect(component.metadata[TestMetadataRepository.kTag]!.mapping.length,
         greaterThan(0));
 
     final annotatedComponentBinary = binaryTransformer(toBinary(component));
@@ -176,7 +174,7 @@ main() async {
     validate(annotatedComponentFromBinary, shouldAnnotate);
     expect(
         annotatedComponentFromBinary
-            .metadata[TestMetadataRepository.kTag].mapping.length,
+            .metadata[TestMetadataRepository.kTag]!.mapping.length,
         greaterThan(0));
   }
 

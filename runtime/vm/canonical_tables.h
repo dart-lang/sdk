@@ -131,7 +131,8 @@ class SymbolTraits {
     return concat.ToSymbol();
   }
 };
-typedef UnorderedHashSet<SymbolTraits> CanonicalStringSet;
+
+typedef UnorderedHashSet<SymbolTraits, AcqRelStorageTraits> CanonicalStringSet;
 
 class CanonicalTypeKey {
  public:

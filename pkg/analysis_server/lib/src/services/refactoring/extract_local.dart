@@ -61,12 +61,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     utils = CorrectionUtils(resolveResult);
   }
 
-  String get file => resolveResult.path!;
+  String get file => resolveResult.path;
 
   @override
   String get refactoringName => 'Extract Local Variable';
 
-  CompilationUnit get unit => resolveResult.unit!;
+  CompilationUnit get unit => resolveResult.unit;
 
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
@@ -231,7 +231,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       return RefactoringStatus.fatal(
           'The selection offset must be greater than zero.');
     }
-    if (selectionOffset + selectionLength >= resolveResult.content!.length) {
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
       return RefactoringStatus.fatal(
           'The selection end offset must be less then the length of the file.');
     }

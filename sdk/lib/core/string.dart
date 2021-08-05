@@ -314,6 +314,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// string.substring(1);    // 'artlang'
   /// string.substring(1, 4); // 'art'
   /// ```
+  ///
+  /// Both [start] and [end] must be non-negative and no greater than [length], and
+  /// [end], if provided, must be greater than or equal to [start].
   String substring(int start, [int? end]);
 
   /// The string without any leading and trailing whitespace.

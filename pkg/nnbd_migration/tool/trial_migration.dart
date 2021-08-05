@@ -67,12 +67,12 @@ void main(List<String> args) async {
       files.addAll(localFiles);
       var session = context.currentSession;
       LineInfo getLineInfo(String path) =>
-          (session.getFile2(path) as FileResult).lineInfo;
+          (session.getFile(path) as FileResult).lineInfo;
       var migration =
           NullabilityMigration(listener, getLineInfo, permissive: true);
       for (var file in localFiles) {
         var resolvedUnit =
-            await session.getResolvedUnit2(file) as ResolvedUnitResult;
+            await session.getResolvedUnit(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.prepareInput(resolvedUnit);
         } else {
@@ -81,14 +81,14 @@ void main(List<String> args) async {
       }
       for (var file in localFiles) {
         var resolvedUnit =
-            await session.getResolvedUnit2(file) as ResolvedUnitResult;
+            await session.getResolvedUnit(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.processInput(resolvedUnit);
         }
       }
       for (var file in localFiles) {
         var resolvedUnit =
-            await session.getResolvedUnit2(file) as ResolvedUnitResult;
+            await session.getResolvedUnit(file) as ResolvedUnitResult;
         if (!resolvedUnit.errors.any((e) => e.severity == Severity.error)) {
           migration.finalizeInput(resolvedUnit);
         }

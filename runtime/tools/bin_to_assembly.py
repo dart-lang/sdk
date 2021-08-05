@@ -26,6 +26,7 @@ def Main():
     parser.add_option("--target_os", action="store", type="string")
     parser.add_option("--size_symbol_name", action="store", type="string")
     parser.add_option("--target_arch", action="store", type="string")
+    parser.add_option("--incbin", action="store_true", default=False)
 
     (options, args) = parser.parse_args()
     if not options.output:
@@ -86,9 +87,15 @@ def Main():
                     output_file.write("byte %d\n" % (byte if isinstance(byte, int) else ord(byte)))
                     size += 1
             else:
+                incbin = options.incbin
                 for byte in input_file.read():
-                    output_file.write(".byte %d\n" % (byte if isinstance(byte, int) else ord(byte)))
                     size += 1
+                    if not incbin:
+                        output_file.write(
+                            ".byte %d\n" %
+                            (byte if isinstance(byte, int) else ord(byte)))
+                if incbin:
+                    output_file.write(".incbin \"%s\"\n" % options.input)
 
         if options.target_os not in ["mac", "ios", "win"]:
             output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))

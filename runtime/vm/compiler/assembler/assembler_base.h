@@ -193,7 +193,7 @@ enum OperandSize {
   // 64-bit ARM specific constants.
   kQWord,
 
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
   kObjectBytes = kEightBytes,
 #else
   kObjectBytes = kFourBytes,

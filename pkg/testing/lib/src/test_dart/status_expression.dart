@@ -64,7 +64,9 @@ class Tokenizer {
     if (!testRegexp.hasMatch(expression)) {
       throw new FormatException("Syntax error in '$expression'");
     }
-    for (Match match in regexp.allMatches(expression)) tokens.add(match[0]);
+    for (Match match in regexp.allMatches(expression)) {
+      tokens.add(match[0]!);
+    }
     return tokens;
   }
 }
@@ -179,8 +181,8 @@ class SetConstant implements SetExpression {
 // An iterator that allows peeking at the current token.
 class Scanner {
   List<String> tokens;
-  Iterator tokenIterator;
-  String current;
+  late Iterator tokenIterator;
+  String? current;
 
   Scanner(this.tokens) {
     tokenIterator = tokens.iterator;
@@ -241,11 +243,11 @@ class ExpressionParser {
       scanner.advance();
       return value;
     }
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
+    if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
       throw new FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
-    SetExpression value = new SetConstant(scanner.current);
+    SetExpression value = new SetConstant(scanner.current!);
     scanner.advance();
     return value;
   }
@@ -290,21 +292,21 @@ class ExpressionParser {
           "Expected \$ in expression, got ${scanner.current}");
     }
     scanner.advance();
-    if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
+    if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
       throw new FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
-    TermVariable left = new TermVariable(scanner.current);
+    TermVariable left = new TermVariable(scanner.current!);
     scanner.advance();
     if (scanner.current == Token.EQUALS ||
         scanner.current == Token.NOT_EQUALS) {
       bool negate = scanner.current == Token.NOT_EQUALS;
       scanner.advance();
-      if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
+      if (!new RegExp(r"^\w+$").hasMatch(scanner.current!)) {
         throw new FormatException(
             "Expected value in expression, got ${scanner.current}");
       }
-      TermConstant right = new TermConstant(scanner.current);
+      TermConstant right = new TermConstant(scanner.current!);
       scanner.advance();
       return new Comparison(left, right, negate);
     } else {

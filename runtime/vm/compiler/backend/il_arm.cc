@@ -779,8 +779,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
-      Utils::SignedNBitMask(kNumberOfFpuRegisters) &
-      ~(Utils::SignedNBitMask(kAbiPreservedFpuRegCount)
+      Utils::NBitMask<intptr_t>(kNumberOfFpuRegisters) &
+      ~(Utils::NBitMask<intptr_t>(kAbiPreservedFpuRegCount)
         << kAbiFirstPreservedFpuReg) &
       ~(1 << FpuTMP);
 
@@ -1544,7 +1544,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PopNativeCalleeSavedRegisters();
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1580,7 +1580,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save a space for the code object.
   __ PushImmediate(0);
 
-#if defined(TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
+#if defined(DART_TARGET_OS_FUCHSIA) && defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
 
@@ -1727,31 +1727,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(result);
 }
 
-LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
-}
-
-void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
-  __ Push(array);
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
-                               locs(), ICData::Handle(), ICData::kStatic);
-  ASSERT(locs()->out(0).reg() == R0);
-}
-
 LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
                                                     bool opt) const {
   const intptr_t kNumInputs = 5;
@@ -1880,7 +1855,7 @@ static bool CanBeImmediateIndex(Value* value,
   const intptr_t base_offset =
       (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   const int64_t offset = index * scale + base_offset;
-  if (!Utils::IsAbsoluteUint(12, offset)) {
+  if (!Utils::MagnitudeIsUint(12, offset)) {
     return false;
   }
   if (compiler::Address::CanHoldImmediateOffset(is_load, cid, offset)) {

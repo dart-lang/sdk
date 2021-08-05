@@ -57,7 +57,7 @@ static method test() → void {
           else {
             :async_temporary_0 = #t1;
           }
-          :return_value = :async_temporary_0;
+          :return_value = _in::unsafeCast<core::int*>(:async_temporary_0);
           break #L1;
         }
         asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

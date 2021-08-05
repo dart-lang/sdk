@@ -56,6 +56,7 @@ class ElementHolder {
 /// 3. Resolve all [TypeName]s - set elements and types.
 /// 4. Resolve all [GenericFunctionType]s - set their types.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
+  LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
   final CompilationUnitElementImpl _unitElement;
   final bool _isNonNullableByDefault;
@@ -102,13 +103,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     );
 
     var typeNameResolver = TypeNameResolver(
-      libraryElement.typeSystem,
+      libraryElement,
       typeProvider,
       isNonNullableByDefault,
       errorReporter,
     );
 
     return ResolutionVisitor._(
+      libraryElement,
       typeProvider,
       unitElement,
       isNonNullableByDefault,
@@ -122,6 +124,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   ResolutionVisitor._(
+    this._libraryElement,
     this._typeProvider,
     this._unitElement,
     this._isNonNullableByDefault,
@@ -1211,7 +1214,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
-    if (!_nameScope.shouldIgnoreUndefined(name)) {
+    if (!_libraryElement.shouldIgnoreUndefinedIdentifier(name)) {
       _errorReporter.reportErrorForNode(errorCode, name, [name.name]);
     }
   }

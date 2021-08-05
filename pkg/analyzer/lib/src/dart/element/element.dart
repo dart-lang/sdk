@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -201,6 +203,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfGetter(getterName).where(
           (PropertyAccessorElement getter) =>
               !getter.isAbstract &&
+              !getter.isStatic &&
               getter.isAccessibleIn(library) &&
               getter.enclosingElement != this));
 
@@ -220,6 +223,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
               !method.isAbstract &&
+              !method.isStatic &&
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
@@ -229,6 +233,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       _first(_implementationsOfSetter(setterName).where(
           (PropertyAccessorElement setter) =>
               !setter.isAbstract &&
+              !setter.isStatic &&
               setter.isAccessibleIn(library) &&
               setter.enclosingElement != this));
 
@@ -237,6 +242,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
           String methodName, LibraryElement library) =>
       _first(_implementationsOfMethod(methodName).where(
           (MethodElement method) =>
+              !method.isStatic &&
               method.isAccessibleIn(library) &&
               method.enclosingElement != this));
 
@@ -606,6 +612,42 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   bool get isDartCoreObject => !isMixin && supertype == null;
 
+  bool get isEnumLike {
+    // Must be a concrete class.
+    if (isAbstract || isMixin) {
+      return false;
+    }
+
+    // With only private non-factory constructors.
+    for (var constructor in constructors) {
+      if (constructor.isPublic || constructor.isFactory) {
+        return false;
+      }
+    }
+
+    // With 2+ static const fields with the type of this class.
+    var numberOfElements = 0;
+    for (var field in fields) {
+      if (field.isStatic && field.isConst && field.type == thisType) {
+        numberOfElements++;
+      }
+    }
+    if (numberOfElements < 2) {
+      return false;
+    }
+
+    // No subclasses in the library.
+    for (var unit in library.units) {
+      for (var class_ in unit.classes) {
+        if (class_.supertype?.element == this) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
@@ -906,6 +948,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   static ConstructorElement? getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
     for (ConstructorElement element in constructors) {
       if (element.name == name) {
         return element;
@@ -921,6 +967,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// The source that corresponds to this compilation unit.
   @override
   late Source source;
+
+  /// The content of the [source] for which this element model was built.
+  /// Might be `null` if we don't have it (for example in google3 summaries).
+  String? sourceContent;
 
   @override
   LineInfo? lineInfo;
@@ -953,12 +1003,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the mixins contained in this compilation unit.
   List<ClassElement> _mixins = const [];
-
-  /// A list containing all of the function type aliases contained in this
-  /// compilation unit.
-  @Deprecated('Use typeAliases instead')
-  List<FunctionTypeAliasElement> _functionTypeAliases =
-      _Sentinel.functionTypeAliasElement;
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
@@ -1054,16 +1098,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       (function as FunctionElementImpl).enclosingElement = this;
     }
     _functions = functions;
-  }
-
-  @Deprecated('Use typeAliases instead')
-  @override
-  List<FunctionTypeAliasElement> get functionTypeAliases {
-    if (!identical(_functionTypeAliases, _Sentinel.functionTypeAliasElement)) {
-      return _functionTypeAliases;
-    }
-    return _functionTypeAliases =
-        typeAliases.whereType<FunctionTypeAliasElement>().toList();
   }
 
   @override
@@ -1375,13 +1409,16 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, HasMacroGenerationData {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
+
+  @override
+  MacroGenerationData? macro;
 
   @override
   int? periodOffset;
@@ -1861,6 +1898,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isOverride => _isDartCoreGetter(_OVERRIDE_VARIABLE_NAME);
 
+  /// Return `true` if this is an annotation of the form
+  /// `@pragma("vm:entry-point")`.
+  bool get isPragmaVmEntryPoint {
+    if (_isConstructor(libraryName: 'dart.core', className: 'pragma')) {
+      var value = computeConstantValue();
+      var nameValue = value?.getField('name');
+      return nameValue?.toStringValue() == 'vm:entry-point';
+    }
+    return false;
+  }
+
   @override
   bool get isProtected => _isPackageMetaGetter(_PROTECTED_VARIABLE_NAME);
 
@@ -2006,9 +2054,6 @@ abstract class ElementImpl implements Element {
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? _codeLength;
-
-  /// The language version for the library.
-  LibraryLanguageVersion? _languageVersion;
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
@@ -2214,6 +2259,20 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isOverride) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if this element has an annotation of the form
+  /// `@pragma("vm:entry-point")`.
+  bool get hasPragmaVmEntryPoint {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation is ElementAnnotationImpl &&
+          annotation.isPragmaVmEntryPoint) {
         return true;
       }
     }
@@ -2701,8 +2760,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get hasStaticMember => true;
 
   @override
-  List<InterfaceType> get interfaces =>
-      <InterfaceType>[library.typeProvider.enumType];
+  List<InterfaceType> get interfaces {
+    var enumType = library.typeProvider.enumType;
+    return enumType != null ? <InterfaceType>[enumType] : const [];
+  }
 
   @override
   bool get isAbstract => false;
@@ -2927,7 +2988,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 
@@ -2979,7 +3039,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  String get identifier => exportedLibrary!.name ?? 'unknown';
+  String get identifier => exportedLibrary!.name;
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
@@ -3298,42 +3358,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
 }
 
-@Deprecated('Use TypeAliasElement instead')
-class FunctionTypeAliasElementImpl extends TypeAliasElementImpl
-    implements FunctionTypeAliasElement {
-  FunctionTypeAliasElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
-
-  @Deprecated('Use aliasedElement instead')
-  @override
-  GenericFunctionTypeElementImpl get function {
-    return aliasedElement as GenericFunctionTypeElementImpl;
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    visitor.visitFunctionTypeAliasElement(this);
-    return visitor.visitTypeAliasElement(this);
-  }
-
-  @Deprecated('Use TypeAliasElement instead')
-  @override
-  FunctionType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var type = super.instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-    if (type is FunctionType) {
-      return type;
-    } else {
-      return _errorFunctionType(nullabilitySuffix);
-    }
-  }
-}
-
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3451,6 +3475,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
+}
+
+/// This interface is implemented by [Element]s that can be added by macros.
+abstract class HasMacroGenerationData {
+  /// If this element was added by a macro, the code of a declaration that
+  /// was produced by the macro.
+  MacroGenerationData? macro;
 }
 
 /// A concrete implementation of a [HideElementCombinator].
@@ -3592,6 +3623,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   final AnalysisSession session;
+
+  /// The language version for the library.
+  LibraryLanguageVersion? _languageVersion;
 
   bool hasTypeProviderSystemSet = false;
 
@@ -3877,6 +3911,9 @@ class LibraryElementImpl extends _ExistingElementImpl
   }
 
   @override
+  String get name => super.name!;
+
+  @override
   List<CompilationUnitElement> get parts => _parts;
 
   /// Set the compilation units that are included in this library using a `part`
@@ -3973,6 +4010,64 @@ class LibraryElementImpl extends _ExistingElementImpl
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
+  /// Indicates whether it is unnecessary to report an undefined identifier
+  /// error for an identifier reference with the given [name] and optional
+  /// [prefix].
+  ///
+  /// This method is intended to reduce spurious errors in circumstances where
+  /// an undefined identifier occurs as the result of a missing (most likely
+  /// code generated) file.  It will only return `true` in a circumstance where
+  /// the current library is guaranteed to have at least one other error (due to
+  /// a missing part or import), so there is no risk that ignoring the undefined
+  /// identifier would cause an invalid program to be treated as valid.
+  bool shouldIgnoreUndefined({
+    required String? prefix,
+    required String name,
+  }) {
+    for (var importElement in imports) {
+      if (importElement.prefix?.name == prefix &&
+          importElement.importedLibrary?.isSynthetic != false) {
+        var showCombinators = importElement.combinators
+            .whereType<ShowElementCombinator>()
+            .toList();
+        if (prefix != null && showCombinators.isEmpty) {
+          return true;
+        }
+        for (var combinator in showCombinators) {
+          if (combinator.shownNames.contains(name)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in parts) {
+        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) identifier [node].
+  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
+    if (node is PrefixedIdentifier) {
+      return shouldIgnoreUndefined(
+        prefix: node.prefix.name,
+        name: node.identifier.name,
+      );
+    }
+
+    return shouldIgnoreUndefined(
+      prefix: null,
+      name: (node as SimpleIdentifier).name,
+    );
+  }
+
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
     if (isNonNullableByDefault) return element;
@@ -4064,8 +4159,36 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
+/// Information about a macro-produced [Element].
+class MacroGenerationData {
+  /// The sequential id of this macro-produced element, for an element created
+  /// for a declaration that was macro-generated later this value is greater.
+  ///
+  /// This is different from [ElementImpl.id], which is also incrementing,
+  /// but shows the order in which elements were built from declarations,
+  /// not the order of declarations, and we process all field declarations
+  /// before method declarations.
+  final int id;
+
+  /// The code that was produced by the macro. It is used to compose full
+  /// code of a unit to display to the user, so that new declarations are
+  /// added to the unit or existing classes.
+  ///
+  /// When a class is generated, its code might have some members, or might
+  /// be empty, and new elements might be macro-generated into it.
+  final String code;
+
+  /// When we build elements from macro-produced code, we remember informative
+  /// data, such as offsets - to store it into bytes. This field is set to
+  /// an empty list when reading from bytes.
+  final Uint8List informative;
+
+  MacroGenerationData(this.id, this.code, this.informative);
+}
+
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+class MethodElementImpl extends ExecutableElementImpl
+    implements MethodElement, HasMacroGenerationData {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4074,6 +4197,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
+
+  @override
+  MacroGenerationData? macro;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
@@ -4878,10 +5004,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, HasMacroGenerationData {
   /// The variable associated with this accessor.
   @override
   late PropertyInducingElement variable;
+
+  @override
+  MacroGenerationData? macro;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -5052,7 +5181,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
       parameters: const <ParameterElement>[],
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 }
@@ -5119,7 +5247,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 }
@@ -5440,23 +5567,29 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         parameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
         element: type.element,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
@@ -5780,9 +5913,6 @@ class _Sentinel {
       List.unmodifiable([]);
   static final List<ExportElement> exportElement = List.unmodifiable([]);
   static final List<FieldElement> fieldElement = List.unmodifiable([]);
-  @Deprecated('Use TypeAliasElement instead')
-  static final List<FunctionTypeAliasElement> functionTypeAliasElement =
-      List.unmodifiable([]);
   static final List<ImportElement> importElement = List.unmodifiable([]);
   static final List<MethodElement> methodElement = List.unmodifiable([]);
   static final List<PropertyAccessorElement> propertyAccessorElement =

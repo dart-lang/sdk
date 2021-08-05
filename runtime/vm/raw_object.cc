@@ -396,30 +396,30 @@ void UntaggedObject::VisitPointersPrecise(IsolateGroup* isolate_group,
   uword next_field_offset = isolate_group->GetClassForHeapWalkAt(class_id)
                                 ->untag()
                                 ->host_next_field_offset_in_words_
-                            << kWordSizeLog2;
+                            << kCompressedWordSizeLog2;
   ASSERT(next_field_offset > 0);
   uword obj_addr = UntaggedObject::ToAddr(this);
   uword from = obj_addr + sizeof(UntaggedObject);
-  uword to = obj_addr + next_field_offset - kWordSize;
-  const auto first = reinterpret_cast<ObjectPtr*>(from);
-  const auto last = reinterpret_cast<ObjectPtr*>(to);
+  uword to = obj_addr + next_field_offset - kCompressedWordSize;
+  const auto first = reinterpret_cast<CompressedObjectPtr*>(from);
+  const auto last = reinterpret_cast<CompressedObjectPtr*>(to);
 
 #if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
   const auto unboxed_fields_bitmap =
       visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
 
   if (!unboxed_fields_bitmap.IsEmpty()) {
-    intptr_t bit = sizeof(UntaggedObject) / kWordSize;
-    for (ObjectPtr* current = first; current <= last; current++) {
+    intptr_t bit = sizeof(UntaggedObject) / kCompressedWordSize;
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
       if (!unboxed_fields_bitmap.Get(bit++)) {
-        visitor->VisitPointer(current);
+        visitor->VisitCompressedPointers(heap_base(), current, current);
       }
     }
   } else {
-    visitor->VisitPointers(first, last);
+    visitor->VisitCompressedPointers(heap_base(), first, last);
   }
 #else
-  visitor->VisitPointers(first, last);
+  visitor->VisitCompressedPointers(heap_base(), first, last);
 #endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
@@ -562,6 +562,7 @@ COMPRESSED_VISITOR(ExternalOneByteString)
 COMPRESSED_VISITOR(ExternalTwoByteString)
 COMPRESSED_VISITOR(GrowableObjectArray)
 COMPRESSED_VISITOR(LinkedHashMap)
+COMPRESSED_VISITOR(LinkedHashSet)
 COMPRESSED_VISITOR(ExternalTypedData)
 TYPED_DATA_VIEW_VISITOR(TypedDataView)
 COMPRESSED_VISITOR(ReceivePort)

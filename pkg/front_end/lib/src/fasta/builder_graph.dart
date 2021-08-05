@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.builder_graph;
 
 import 'package:kernel/kernel.dart' show LibraryDependency, LibraryPart;
@@ -30,7 +28,7 @@ class BuilderGraph implements Graph<Uri> {
   Iterable<Uri> get vertices => builders.keys;
 
   Iterable<Uri> neighborsOf(Uri vertex) sync* {
-    LibraryBuilder library = builders[vertex];
+    LibraryBuilder? library = builders[vertex];
     if (library == null) {
       throw "Library not found: $vertex";
     }
@@ -38,7 +36,7 @@ class BuilderGraph implements Graph<Uri> {
       for (Import import in library.imports) {
         // 'imported' can be null for fake imports, such as dart-ext:.
         if (import.imported != null) {
-          Uri uri = import.imported.importUri;
+          Uri uri = import.imported!.importUri;
           if (builders.containsKey(uri)) {
             yield uri;
           }
@@ -50,7 +48,7 @@ class BuilderGraph implements Graph<Uri> {
           yield uri;
         }
       }
-      for (SourceLibraryBuilder part in library.parts) {
+      for (LibraryBuilder part in library.parts) {
         Uri uri = part.importUri;
         if (builders.containsKey(uri)) {
           yield uri;

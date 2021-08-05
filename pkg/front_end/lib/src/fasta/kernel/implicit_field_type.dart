@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
@@ -28,7 +26,7 @@ abstract class ImplicitFieldType extends DartType {
   ImplicitFieldType._();
 
   factory ImplicitFieldType(
-          SourceFieldBuilder fieldBuilder, Token initializerToken) =
+          SourceFieldBuilder fieldBuilder, Token? initializerToken) =
       _ImplicitFieldTypeRoot;
 
   @override
@@ -50,7 +48,7 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  visitChildren(Visitor<Object> v) {
+  visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 
@@ -79,7 +77,7 @@ abstract class ImplicitFieldType extends DartType {
   bool operator ==(Object other) => equals(other, null);
 
   @override
-  bool equals(Object other, Assumptions assumptions) {
+  bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is ImplicitFieldType && fieldBuilder == other.fieldBuilder;
   }
@@ -94,8 +92,8 @@ abstract class ImplicitFieldType extends DartType {
 
 class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   final SourceFieldBuilder fieldBuilder;
-  List<ImplicitFieldType> _overriddenFields;
-  Token initializerToken;
+  List<ImplicitFieldType>? _overriddenFields;
+  Token? initializerToken;
   bool isStarted = false;
 
   _ImplicitFieldTypeRoot(this.fieldBuilder, this.initializerToken) : super._();
@@ -115,9 +113,9 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       return fieldBuilder.fieldType = const InvalidType();
     }
     isStarted = true;
-    DartType inferredType;
+    DartType? inferredType;
     if (_overriddenFields != null) {
-      for (ImplicitFieldType overridden in _overriddenFields) {
+      for (ImplicitFieldType overridden in _overriddenFields!) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
           overriddenType = legacyErasure(overriddenType);
@@ -128,14 +126,14 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
           inferredType = const InvalidType();
         }
       }
-      return inferredType;
+      return inferredType!;
     } else if (initializerToken != null) {
-      InterfaceType enclosingClassThisType = fieldBuilder.classBuilder == null
+      InterfaceType? enclosingClassThisType = fieldBuilder.classBuilder == null
           ? null
           : fieldBuilder.library.loader.typeInferenceEngine.coreTypes
-              .thisInterfaceType(fieldBuilder.classBuilder.cls,
+              .thisInterfaceType(fieldBuilder.classBuilder!.cls,
                   fieldBuilder.library.library.nonNullable);
-      TypeInferrerImpl typeInferrer = fieldBuilder
+      TypeInferrer typeInferrer = fieldBuilder
           .library.loader.typeInferenceEngine
           .createTopLevelTypeInferrer(
               fieldBuilder.fileUri,
@@ -150,7 +148,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       bodyBuilder.inFieldInitializer = true;
       bodyBuilder.inLateFieldInitializer = fieldBuilder.isLate;
       Expression initializer =
-          bodyBuilder.parseFieldInitializer(initializerToken);
+          bodyBuilder.parseFieldInitializer(initializerToken!);
       initializerToken = null;
 
       ExpressionInferenceResult result = typeInferrer.inferExpression(
@@ -164,20 +162,19 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
   }
 
   void addOverride(ImplicitFieldType other) {
-    _overriddenFields ??= [];
-    _overriddenFields.add(other);
+    (_overriddenFields ??= []).add(other);
   }
 
   DartType checkInferred(DartType type) {
     if (_overriddenFields != null) {
-      for (ImplicitFieldType overridden in _overriddenFields) {
+      for (ImplicitFieldType overridden in _overriddenFields!) {
         DartType overriddenType = overridden.inferType();
         if (!fieldBuilder.library.isNonNullableByDefault) {
           overriddenType = legacyErasure(overriddenType);
         }
         if (type != overriddenType) {
           String name = fieldBuilder.fullNameForErrors;
-          fieldBuilder.classBuilder.addProblem(
+          fieldBuilder.classBuilder!.addProblem(
               templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
               fieldBuilder.charOffset,
               name.length,

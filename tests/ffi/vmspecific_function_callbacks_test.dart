@@ -5,7 +5,7 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups
 // VMOptions=--no-enable-isolate-groups
 // VMOptions=--stacktrace-every=100
 // VMOptions=--write-protect-code --no-dual-map-code

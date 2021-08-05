@@ -13,7 +13,7 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff self::main
+  #C1 = static-tearoff self::main
 }
 
 Extra constant evaluation status:

@@ -9,12 +9,14 @@ import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
+import '../js_backend/runtime_types.dart'
+    show RuntimeTypesChecks;
 import '../js_model/js_strategy.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
@@ -26,14 +28,13 @@ import 'startup_emitter/fragment_merger.dart';
 import 'metadata_collector.dart' show MetadataCollector;
 import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
-import 'type_test_registry.dart' show TypeTestRegistry;
 
 /// Generates the code for all used classes in the program. Static fields (even
 /// in classes) are ignored, since they can be treated as non-class elements.
 ///
 /// The code for the containing (used) methods must exist in the `universe`.
 class CodeEmitterTask extends CompilerTask {
-  TypeTestRegistry typeTestRegistry;
+  RuntimeTypesChecks _rtiChecks;
   NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
   Emitter _emitter;
@@ -77,11 +78,7 @@ class CodeEmitterTask extends CompilerTask {
   void _finalizeRti(CodegenInputs codegen, CodegenWorld codegenWorld) {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
-    typeTestRegistry.computeRequiredTypeChecks(
-        _backendStrategy.rtiChecksBuilder, codegenWorld);
-    // Compute the classes needed by RTI.
-    typeTestRegistry.computeRtiNeededClasses(
-        codegen.rtiSubstitutions, _backendStrategy.generatedCode.keys);
+    _rtiChecks = _backendStrategy.rtiChecksBuilder.computeRequiredChecks(codegenWorld, options);
   }
 
   /// Creates the [Emitter] for this task.
@@ -104,8 +101,6 @@ class CodeEmitterTask extends CompilerTask {
           _generateSourceMap);
       metadataCollector = new MetadataCollector(
           _compiler.reporter, _emitter, codegen.rtiRecipeEncoder);
-      typeTestRegistry = new TypeTestRegistry(
-          _compiler.options, closedWorld.elementEnvironment);
     });
   }
 
@@ -130,7 +125,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.nativeData,
           closedWorld.rtiNeed,
           closedWorld.interceptorData,
-          typeTestRegistry.rtiChecks,
+          _rtiChecks,
           codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,
@@ -142,7 +137,7 @@ class CodeEmitterTask extends CompilerTask {
           inferredData,
           _backendStrategy.sourceInformationStrategy,
           closedWorld.sorter,
-          typeTestRegistry.rtiNeededClasses,
+          _rtiChecks.requiredClasses,
           closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder, codegenWorld);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.

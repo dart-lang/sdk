@@ -699,7 +699,7 @@ CompileType CompileType::Int() {
 }
 
 CompileType CompileType::Int32() {
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
   return FromCid(kSmiCid);
 #else
   return Int();
@@ -1501,11 +1501,6 @@ CompileType OneByteStringFromCharCodeInstr::ComputeType() const {
 
 CompileType StringToCharCodeInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
-}
-
-CompileType StringInterpolateInstr::ComputeType() const {
-  // TODO(srdjan): Do better and determine if it is a one or two byte string.
-  return CompileType::String();
 }
 
 CompileType LoadStaticFieldInstr::ComputeType() const {

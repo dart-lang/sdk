@@ -120,7 +120,7 @@ class StatementCompletionProcessor {
 
   String get eol => utils.endOfLine;
 
-  String get file => statementContext.resolveResult.path!;
+  String get file => statementContext.resolveResult.path;
 
   LineInfo get lineInfo => statementContext.resolveResult.lineInfo;
 
@@ -128,7 +128,7 @@ class StatementCompletionProcessor {
 
   Source get source => unitElement.source;
 
-  CompilationUnit get unit => statementContext.resolveResult.unit!;
+  CompilationUnit get unit => statementContext.resolveResult.unit;
 
   CompilationUnitElement get unitElement => unit.declaredElement!;
 

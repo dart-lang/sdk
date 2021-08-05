@@ -1,26 +1,16 @@
-library #lib;
+library #lib /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 class TestAssertInitializer extends core::Object {
-  constructor •() → self::TestAssertInitializer*
+  constructor •() → self::TestAssertInitializer
     : super core::Object::•() {}
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-static const field core::bool* constTrue = #C1;
-static const field core::bool* constFalse = #C2;
-static const field core::bool* constTrue2 = #C1;
-static const field core::bool* constFalse2 = #C2;
-static method foo() → core::bool*
+static const field core::bool constTrue = #C1;
+static const field core::bool constFalse = #C2;
+static const field core::bool constTrue2 = #C1;
+static const field core::bool constFalse2 = #C2;
+static method foo() → core::bool?
   return null;
 static method testSimpleConditions() → void {
   {
@@ -31,7 +21,7 @@ static method testSimpleConditions() → void {
   }
 }
 static method testAndConditions() → void {
-  if((#C1) && self::foo()) {
+  if((#C1) && self::foo()!) {
     core::print("1_yes");
   }
 }
@@ -39,7 +29,7 @@ static method testOrConditions() → void {
   {
     core::print("1_yes");
   }
-  if((#C2) || self::foo()) {
+  if((#C2) || self::foo()!) {
     core::print("2_yes");
   }
   {
@@ -57,25 +47,25 @@ static method testConditionalExpressions() → dynamic {
 }
 static method testAsserts() → void {}
 static method testRemovalOfStatementBodies() → dynamic {
-  if(self::foo()) {
+  if(self::foo()!) {
   }
-  while (self::foo()) {
+  while (self::foo()!) {
   }
   do {
   }
-  while (self::foo())
+  while (self::foo()!)
   for (; ; ) {
   }
   {
-    core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal2<core::int*>(1, 2).{core::Iterable::iterator}{core::Iterator<core::int*>*};
+    core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal2<core::int>(1, 2).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::int* i = :sync-for-iterator.{core::Iterator::current}{core::int*};
+      core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
     }
   }
   {}
   try {
   }
-  on dynamic catch(final dynamic e) {
+  on core::Object catch(final core::Object e) {
   }
   {}
   switch(42) {
@@ -89,7 +79,7 @@ static method testRemovalOfStatementBodies() → dynamic {
       {}
   }
 }
-static method main(core::List<core::String*>* args) → dynamic {
+static method main(core::List<core::String> args) → dynamic {
   self::testSimpleConditions();
   self::testAndConditions();
   self::testOrConditions();

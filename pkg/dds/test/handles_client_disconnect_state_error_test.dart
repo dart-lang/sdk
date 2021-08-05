@@ -9,7 +9,6 @@ import 'package:dds/src/dds_impl.dart';
 import 'package:dds/src/rpc_error_codes.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:pedantic/pedantic.dart';
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -40,19 +39,6 @@ class StreamCancelDisconnectPeer extends FakePeer {
     }
     return completer.future;
   }
-}
-
-class FakeWebSocketSink extends Fake implements WebSocketSink {
-  @override
-  Future close([int? closeCode, String? closeReason]) {
-    // Do nothing.
-    return Future.value();
-  }
-}
-
-class FakeWebSocketChannel extends Fake implements WebSocketChannel {
-  @override
-  WebSocketSink get sink => FakeWebSocketSink();
 }
 
 void main() {

@@ -717,9 +717,9 @@ abstract class Future<T> {
 /// unless the same future is awaited (or otherwise handled) elsewhere too.
 /// Because of that, `unawaited` should only be used for futures that
 /// are *expected* to complete with a value.
-/// You can use [FutureExtension.ignore] if you also don't want to know
+/// You can use [FutureExtensions.ignore] if you also don't want to know
 /// about errors from this future.
-@Since("2.15")
+@Since("2.14")
 void unawaited(Future<void> future) {}
 
 /// Convenience methods on futures.
@@ -809,7 +809,7 @@ extension FutureExtensions<T> on Future<T> {
   /// If you merely want to silence the ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
   /// use the [unawaited] function instead.
   /// That will ensure that an unexpected error is still reported.
-  @Since("2.15")
+  @Since("2.14")
   void ignore() {
     var self = this;
     if (self is _Future<T>) {

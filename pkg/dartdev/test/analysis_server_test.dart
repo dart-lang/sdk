@@ -25,14 +25,14 @@ void main() {
 
     test('can start', () async {
       AnalysisServer server = AnalysisServer(io.Directory(sdk.sdkPath), [p.dir],
-          commandName: 'testing');
+          commandName: 'testing', argResults: null);
       await server.start();
       await server.shutdown();
     });
 
     test('can send message', () async {
       AnalysisServer server = AnalysisServer(io.Directory(sdk.sdkPath), [p.dir],
-          commandName: 'testing');
+          commandName: 'testing', argResults: null);
       await server.start();
 
       final response = await server.getVersion();

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
@@ -52,8 +50,8 @@ class TestConfig {
   final String marker;
   final String name;
   final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
-  final AllowedExperimentalFlags allowedExperimentalFlags;
-  final Uri librariesSpecificationUri;
+  final AllowedExperimentalFlags? allowedExperimentalFlags;
+  final Uri? librariesSpecificationUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
   final bool compileSdk;
@@ -89,7 +87,7 @@ abstract class DataComputer<T> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {bool? verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///
@@ -99,7 +97,7 @@ abstract class DataComputer<T> {
       InternalCompilerResult compilerResult,
       Class cls,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {bool? verbose}) {}
 
   /// Function that computes a data mapping for [extension].
   ///
@@ -109,7 +107,7 @@ abstract class DataComputer<T> {
       InternalCompilerResult compilerResult,
       Extension extension,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {bool? verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
@@ -119,7 +117,7 @@ abstract class DataComputer<T> {
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose}) {}
+      {bool? verbose}) {}
 
   /// Returns `true` if this data computer supports tests with compile-time
   /// errors.
@@ -129,7 +127,7 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(TestConfig config, InternalCompilerResult compiler, Id id,
+  T? computeErrorData(TestConfig config, InternalCompilerResult compiler, Id id,
           List<FormattedMessage> errors) =>
       null;
 
@@ -155,11 +153,11 @@ class CfeCompiledData<T> extends CompiledData<T> {
   int getOffsetFromId(Id id, Uri uri) {
     if (id is NodeId) return id.value;
     if (id is MemberId) {
-      Library library = lookupLibrary(compilerResult.component, uri);
-      Member member;
-      int offset;
+      Library library = lookupLibrary(compilerResult.component!, uri)!;
+      Member? member;
+      int offset = -1;
       if (id.className != null) {
-        Class cls = lookupClass(library, id.className, required: false);
+        Class? cls = lookupClass(library, id.className!, required: false);
         if (cls != null) {
           member = lookupClassMember(cls, id.memberName, required: false);
           if (member != null) {
@@ -180,23 +178,23 @@ class CfeCompiledData<T> extends CompiledData<T> {
       }
       return offset;
     } else if (id is ClassId) {
-      Library library = lookupLibrary(compilerResult.component, uri);
-      Extension extension =
+      Library library = lookupLibrary(compilerResult.component!, uri)!;
+      Extension? extension =
           lookupExtension(library, id.className, required: false);
       if (extension != null) {
         return extension.fileOffset;
       }
-      Class cls = lookupClass(library, id.className, required: false);
+      Class? cls = lookupClass(library, id.className, required: false);
       return cls?.fileOffset ?? 0;
     }
-    return null;
+    return 0;
   }
 
   @override
   void reportError(Uri uri, int offset, String message,
       {bool succinct: false}) {
     printMessageInLocation(
-        compilerResult.component.uriToSource, uri, offset, message,
+        compilerResult.component!.uriToSource, uri, offset, message,
         succinct: succinct);
   }
 }
@@ -210,7 +208,7 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T> {
   @override
   void report(Uri uri, int offset, String message) {
     printMessageInLocation(
-        compilerResult.component.uriToSource, uri, offset, message);
+        compilerResult.component!.uriToSource, uri, offset, message);
   }
 
   @override
@@ -229,12 +227,12 @@ RunTestFunction<T> runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   retainDataForTesting = true;
   return (TestData testData,
-      {bool testAfterFailures,
-      bool verbose,
-      bool succinct,
-      bool printCode,
-      Map<String, List<String>> skipMap,
-      Uri nullUri}) {
+      {required bool testAfterFailures,
+      required bool verbose,
+      required bool succinct,
+      required bool printCode,
+      Map<String, List<String>>? skipMap,
+      required Uri nullUri}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         verbose: verbose,
@@ -251,15 +249,15 @@ RunTestFunction<T> runTestFor<T>(
 /// Returns `true` if an error was encountered.
 Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs,
-    {bool testAfterFailures,
-    bool verbose,
-    bool succinct,
-    bool printCode,
+    {required bool testAfterFailures,
+    required bool verbose,
+    required bool succinct,
+    required bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
-    void onFailure(String message),
-    Map<String, List<String>> skipMap,
-    Uri nullUri}) async {
+    required void onFailure(String message),
+    Map<String, List<String>>? skipMap,
+    required Uri nullUri}) async {
   for (TestConfig config in testedConfigs) {
     if (!testData.expectedMaps.containsKey(config.marker)) {
       throw new ArgumentError("Unexpected test marker '${config.marker}'. "
@@ -289,16 +287,16 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
 /// Returns `true` if an error was encountered.
 Future<TestResult<T>> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
-    {bool fatalErrors,
-    bool verbose,
-    bool succinct,
-    bool printCode,
+    {required bool fatalErrors,
+    required bool verbose,
+    required bool succinct,
+    required bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
-    void onFailure(String message),
-    Uri nullUri}) async {
+    required void onFailure(String message),
+    required Uri nullUri}) async {
   MemberAnnotations<IdValue> memberAnnotations =
-      testData.expectedMaps[config.marker];
+      testData.expectedMaps[config.marker]!;
   Iterable<Id> globalIds = memberAnnotations.globalData.keys;
   CompilerOptions options = new CompilerOptions();
   List<FormattedMessage> errors = [];
@@ -326,13 +324,13 @@ Future<TestResult<T>> runTestForConfig<T>(
       testData.memorySourceFiles,
       options: options,
       retainDataForTesting: true,
-      requireMain: false);
+      requireMain: false) as InternalCompilerResult;
 
-  Component component = compilerResult.component;
+  Component component = compilerResult.component!;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
-  Map<Id, ActualData<T>> actualMapForUri(Uri uri) {
+  Map<Id, ActualData<T>> actualMapForUri(Uri? uri) {
     return actualMaps.putIfAbsent(uri ?? nullUri, () => <Id, ActualData<T>>{});
   }
 
@@ -351,13 +349,14 @@ Future<TestResult<T>> runTestForConfig<T>(
     }
 
     errorMap.forEach((Uri uri, Map<int, List<FormattedMessage>> map) {
-      map.forEach((int offset, List<DiagnosticMessage> list) {
+      map.forEach((int offset, List<FormattedMessage> list) {
+        // ignore: unnecessary_null_comparison
         if (offset == null || offset < 0) {
           // Position errors without offset in the begin of the file.
           offset = 0;
         }
         NodeId id = new NodeId(offset, IdKind.error);
-        T data =
+        T? data =
             dataComputer.computeErrorData(config, compilerResult, id, list);
         if (data != null) {
           Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
@@ -370,7 +369,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
     Uri uri = node is Library
         ? node.fileUri
-        : (node is Member ? node.fileUri : node.location.file);
+        : (node is Member ? node.fileUri : node.location!.file);
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
@@ -382,7 +381,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       }
     }
     if (member.enclosingClass != null) {
-      if (member.enclosingClass.isEnum) {
+      if (member.enclosingClass!.isEnum) {
         if (member is Constructor ||
             member.isInstanceMember ||
             member.name.text == 'values') {
@@ -444,9 +443,9 @@ Future<TestResult<T>> runTestForConfig<T>(
   ];
 
   Class getGlobalClass(String className) {
-    Class cls;
+    Class? cls;
     for (Uri uri in globalLibraries) {
-      Library library = lookupLibrary(component, uri);
+      Library? library = lookupLibrary(component, uri);
       if (library != null) {
         cls ??= lookupClass(library, className);
       }
@@ -459,9 +458,9 @@ Future<TestResult<T>> runTestForConfig<T>(
   }
 
   Member getGlobalMember(String memberName) {
-    Member member;
+    Member? member;
     for (Uri uri in globalLibraries) {
-      Library library = lookupLibrary(component, uri);
+      Library? library = lookupLibrary(component, uri);
       if (library != null) {
         member ??= lookupLibraryMember(library, memberName);
       }
@@ -475,9 +474,9 @@ Future<TestResult<T>> runTestForConfig<T>(
 
   for (Id id in globalIds) {
     if (id is MemberId) {
-      Member member;
+      Member? member;
       if (id.className != null) {
-        Class cls = getGlobalClass(id.className);
+        Class? cls = getGlobalClass(id.className!);
         member = lookupClassMember(cls, id.memberName);
         if (member == null) {
           throw "Global member '${id.memberName}' not found in class $cls.";
@@ -502,15 +501,16 @@ Future<TestResult<T>> runTestForConfig<T>(
 }
 
 void printMessageInLocation(
-    Map<Uri, Source> uriToSource, Uri uri, int offset, String message,
+    Map<Uri, Source> uriToSource, Uri? uri, int offset, String message,
     {bool succinct: false}) {
   if (uri == null) {
     print("(null uri)@$offset: $message");
   } else {
-    Source source = uriToSource[uri];
+    Source? source = uriToSource[uri];
     if (source == null) {
       print('$uri@$offset: $message');
     } else {
+      // ignore: unnecessary_null_comparison
       if (offset != null && offset >= 1) {
         Location location = source.getLocation(uri, offset);
         print('$location: $message');

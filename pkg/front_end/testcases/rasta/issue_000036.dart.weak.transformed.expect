@@ -18,4 +18,4 @@ static method main() → dynamic
   return invalid-expression "pkg/front_end/testcases/rasta/issue_000036.dart:5:14: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
 main() => a. - 5;
-             ^"{dynamic}.-(5);
+             ^"{<invalid>}.-(5);

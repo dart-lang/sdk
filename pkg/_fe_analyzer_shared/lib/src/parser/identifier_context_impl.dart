@@ -1145,6 +1145,8 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
     const List<String> followingValues = const [
       '<',
       '>',
+      '>>',
+      '>>>',
       ';',
       '}',
       'extends',

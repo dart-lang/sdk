@@ -17,7 +17,7 @@ class B extends A {
 var a = new A();
 // Note: it doesn't matter that some of these refer to 'x'.
 var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
-var c1 = /*@typeArgs=dynamic*/ [
+var c1 = /*@typeArgs=invalid-type*/ [
   /*error:UNDEFINED_IDENTIFIER*/ x
 ]; // list literals
 var c2 = /*@typeArgs=dynamic*/ const [];
@@ -37,7 +37,7 @@ test1() {
   a = new B(3);
   b = /*error:INVALID_ASSIGNMENT*/ "hi";
   b = new B(3);
-  c1 = /*@typeArgs=dynamic*/ [];
+  c1 = /*@typeArgs=invalid-type*/ [];
   c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
   c2 = /*@typeArgs=dynamic*/ [];
   c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};

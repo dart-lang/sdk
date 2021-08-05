@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-06-15T06:05:26.285605",
+  "generated": "2021-07-30T20:37:49.663747",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -64,7 +64,7 @@
       "name": "_js_interop_checks",
       "rootUri": "../pkg/_js_interop_checks",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "analysis_server",
@@ -142,19 +142,19 @@
       "name": "browser_launcher",
       "rootUri": "../third_party/pkg/browser_launcher",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.12"
     },
     {
       "name": "build_integration",
       "rootUri": "../pkg/build_integration",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.12"
     },
     {
       "name": "charcode",
       "rootUri": "../third_party/pkg/charcode",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "cli_util",
@@ -205,6 +205,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "dart2js_runtime_metrics",
+      "rootUri": "../pkg/dart2js_runtime_metrics",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "dart2js_tools",
       "rootUri": "../pkg/dart2js_tools",
       "packageUri": "lib/",
@@ -250,7 +256,7 @@
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "devtools_shared",
@@ -350,12 +356,6 @@
     {
       "name": "http_parser",
       "rootUri": "../third_party/pkg/http_parser",
-      "packageUri": "lib/",
-      "languageVersion": "2.12"
-    },
-    {
-      "name": "http_retry",
-      "rootUri": "../third_party/pkg/http_retry",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -569,7 +569,7 @@
       "name": "scrape",
       "rootUri": "../pkg/scrape",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.13"
     },
     {
       "name": "sdk_library_metadata",
@@ -731,13 +731,13 @@
       "name": "testing",
       "rootUri": "../pkg/testing",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "typed_data",
       "rootUri": "../third_party/pkg/typed_data",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "usage",
@@ -755,7 +755,7 @@
       "name": "vm",
       "rootUri": "../pkg/vm",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.12"
     },
     {
       "name": "vm_service",
@@ -797,7 +797,7 @@
       "name": "webkit_inspection_protocol",
       "rootUri": "../third_party/pkg/webkit_inspection_protocol",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.12"
     },
     {
       "name": "yaml",

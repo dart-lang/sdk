@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -23,7 +21,7 @@ void testClassHierarchyOnComponent(Component component, {bool verbose: false}) {
   BasicClassHierarchy basic = new BasicClassHierarchy(component);
   CoreTypes coreTypes = new CoreTypes(component);
   ClosedWorldClassHierarchy classHierarchy =
-      new ClassHierarchy(component, coreTypes);
+      new ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   int total = classHierarchy.numberOfClasses;
   int progress = 0;
   for (var class1 in classHierarchy.classes) {
@@ -60,18 +58,18 @@ void testClassHierarchyOnComponent(Component component, {bool verbose: false}) {
   progress = 0;
   for (var classNode in classHierarchy.classes) {
     Iterable<Name> candidateNames = <Iterable<Name>>[
-      basic.gettersAndCalls[classNode].keys,
-      basic.setters[classNode].keys,
+      basic.gettersAndCalls[classNode]!.keys,
+      basic.setters[classNode]!.keys,
       pickRandom(nameList, 100)
     ].expand((x) => x);
     for (Name name in candidateNames) {
-      Member expectedGetter =
+      Member? expectedGetter =
           basic.getDispatchTarget(classNode, name, setter: false);
-      Member expectedSetter =
+      Member? expectedSetter =
           basic.getDispatchTarget(classNode, name, setter: true);
-      Member actualGetter =
+      Member? actualGetter =
           classHierarchy.getDispatchTarget(classNode, name, setter: false);
-      Member actualSetter =
+      Member? actualSetter =
           classHierarchy.getDispatchTarget(classNode, name, setter: true);
       if (actualGetter != expectedGetter) {
         fail('lookupGetter($classNode, $name) returned '
@@ -90,18 +88,18 @@ void testClassHierarchyOnComponent(Component component, {bool verbose: false}) {
   progress = 0;
   for (var classNode in classHierarchy.classes) {
     Iterable<Name> candidateNames = [
-      basic.interfaceGettersAndCalls[classNode].keys,
-      basic.interfaceSetters[classNode].keys,
+      basic.interfaceGettersAndCalls[classNode]!.keys,
+      basic.interfaceSetters[classNode]!.keys,
       pickRandom(nameList, 100)
     ].expand((x) => x);
     for (Name name in candidateNames) {
-      Member expectedGetter =
+      Member? expectedGetter =
           basic.getInterfaceMember(classNode, name, setter: false);
-      Member expectedSetter =
+      Member? expectedSetter =
           basic.getInterfaceMember(classNode, name, setter: true);
-      Member actualGetter =
+      Member? actualGetter =
           classHierarchy.getInterfaceMember(classNode, name, setter: false);
-      Member actualSetter =
+      Member? actualSetter =
           classHierarchy.getInterfaceMember(classNode, name, setter: true);
       if (actualGetter != expectedGetter) {
         fail('getInterfaceMember($classNode, $name) returned '

@@ -14,6 +14,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 final _manager = _RefactorManager();
 
@@ -24,7 +26,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
   String get commandName => 'Perform Refactor';
 
   @override
-  Future<ErrorOr<void>> handle(List<dynamic>? arguments,
+  Future<ErrorOr<void>> handle(List<Object?>? arguments,
       ProgressReporter reporter, CancellationToken cancellationToken) async {
     if (arguments == null ||
         arguments.length != 6 ||
@@ -43,12 +45,12 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    String kind = arguments[0];
-    String path = arguments[1];
-    int? docVersion = arguments[2];
-    int offset = arguments[3];
-    int length = arguments[4];
-    Map<String, dynamic>? options = arguments[5];
+    final kind = arguments[0] as String;
+    final path = arguments[1] as String;
+    final docVersion = arguments[2] as int?;
+    final offset = arguments[3] as int;
+    final length = arguments[4] as int;
+    final options = arguments[5] as Map<String, Object?>?;
 
     final result = await requireResolvedUnit(path);
     return result.mapResult((result) async {
@@ -82,6 +84,10 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
           if (cancellationToken.isCancellationRequested ||
               cancelableToken.isCancellationRequested) {
             return error(ErrorCodes.RequestCancelled, 'Request was cancelled');
+          }
+
+          if (change.edits.isEmpty) {
+            return success(null);
           }
 
           // If the file changed while we were validating and preparing the change,
@@ -168,6 +174,32 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         final refactor =
             InlineMethodRefactoring(server.searchEngine, result, offset);
         return success(refactor);
+
+      case RefactoringKind.CONVERT_GETTER_TO_METHOD:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            final refactor = ConvertGetterToMethodRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
+
+      case RefactoringKind.CONVERT_METHOD_TO_GETTER:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            final refactor = ConvertMethodToGetterRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
 
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,

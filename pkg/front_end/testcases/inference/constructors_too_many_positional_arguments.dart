@@ -8,7 +8,7 @@ library test;
 class A<T> {}
 
 test() {
-  var /*@type=dynamic*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
+  var /*@type=invalid-type*/ a = new A /*error:EXTRA_POSITIONAL_ARGUMENTS*/ (42);
 }
 
 main() {}

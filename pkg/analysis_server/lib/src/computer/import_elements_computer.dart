@@ -32,12 +32,6 @@ class ImportElementsComputer {
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
     var unit = libraryResult.unit;
-    var path = libraryResult.path;
-    if (unit == null || path == null) {
-      // We should never reach this point because the libraryResult should be
-      // valid.
-      return SourceChange('');
-    }
     var filteredImportedElements =
         _filterImportedElements(importedElementsList);
     var libraryElement = libraryResult.libraryElement;
@@ -50,7 +44,7 @@ class ImportElementsComputer {
     }
 
     var builder = ChangeBuilder(session: libraryResult.session);
-    await builder.addDartFileEdit(path, (builder) {
+    await builder.addDartFileEdit(libraryResult.path, (builder) {
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);
@@ -280,11 +274,6 @@ class ImportElementsComputer {
   /// Partially copied from DartFileEditBuilderImpl.
   _InsertionDescription _getInsertionDescription(String importUri) {
     var unit = libraryResult.unit;
-    if (unit == null) {
-      // We should never reach this point because the libraryResult should be
-      // valid.
-      return _InsertionDescription(0, after: 2);
-    }
     LibraryDirective? libraryDirective;
     var importDirectives = <ImportDirective>[];
     var otherDirectives = <Directive>[];

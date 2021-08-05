@@ -14,7 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class FieldInitializerInStructTest extends PubPackageResolutionTest {
+class FieldInitializerInStructTest extends PubPackageResolutionTest
+    with WithoutNullSafetyMixin {
   test_fieldInitializer() async {
     await assertErrorsInCode('''
 import 'dart:ffi';
@@ -43,7 +44,7 @@ class C extends Union {
     await assertNoErrorsInCode('''
 import 'dart:ffi';
 class C extends Struct {
-  @Int32() int? f;
+  @Int32() int f;
   C() : super();
 }
 ''');

@@ -155,7 +155,7 @@ void SafepointHandler::LevelHandler::NotifyThreadsToGetToSafepointLevel(
       if (!Thread::IsAtSafepoint(level_, state)) {
         // Send OOB message to get it to safepoint.
         if (current->IsMutatorThread()) {
-          current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
+          current->ScheduleInterrupts(Thread::kVMInterrupt);
         }
         MonitorLocker sl(&parked_lock_);
         num_threads_not_parked_++;

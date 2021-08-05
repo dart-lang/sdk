@@ -217,7 +217,7 @@ abstract class CommonElements {
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool hasProtoKey: false, bool onlyStringKeys: false});
+      {bool onlyStringKeys: false});
 
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType);
 
@@ -362,7 +362,6 @@ abstract class CommonElements {
 
   ClassEntity get constantMapClass;
   ClassEntity get constantStringMapClass;
-  ClassEntity get constantProtoMapClass;
   ClassEntity get generalConstantMapClass;
 
   ClassEntity get annotationCreatesClass;
@@ -388,6 +387,9 @@ abstract class CommonElements {
 
   /// Holds the method "requiresPreamble" in _js_helper.
   FunctionEntity get requiresPreambleMarker;
+
+  /// Holds the method "_rawStartupMetrics" in _js_helper.
+  FunctionEntity get rawStartupMetrics;
 
   FunctionEntity get loadLibraryWrapper;
 
@@ -645,6 +647,10 @@ abstract class JCommonElements implements CommonElements {
   ClassEntity get jsBuiltinEnum;
 
   bool isForeign(MemberEntity element);
+
+  /// Returns `true` if [member] is the `createSentinel` function defined in
+  /// dart:_internal.
+  bool isCreateSentinel(MemberEntity element);
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.
@@ -1033,10 +1039,9 @@ class CommonElementsImpl
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
-      {bool hasProtoKey: false, bool onlyStringKeys: false}) {
-    ClassEntity classElement = onlyStringKeys
-        ? (hasProtoKey ? constantProtoMapClass : constantStringMapClass)
-        : generalConstantMapClass;
+      {bool onlyStringKeys: false}) {
+    ClassEntity classElement =
+        onlyStringKeys ? constantStringMapClass : generalConstantMapClass;
     if (dartTypes.treatAsRawType(sourceType)) {
       return _env.getRawType(classElement);
     } else {
@@ -1615,9 +1620,6 @@ class CommonElementsImpl
   ClassEntity get constantStringMapClass =>
       _findHelperClass(constant_system.JavaScriptMapConstant.DART_STRING_CLASS);
   @override
-  ClassEntity get constantProtoMapClass =>
-      _findHelperClass(constant_system.JavaScriptMapConstant.DART_PROTO_CLASS);
-  @override
   ClassEntity get generalConstantMapClass => _findHelperClass(
       constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
 
@@ -1665,6 +1667,11 @@ class CommonElementsImpl
   @override
   FunctionEntity get requiresPreambleMarker =>
       _requiresPreambleMarker ??= _findHelperFunction('requiresPreamble');
+
+  FunctionEntity _rawStartupMetrics;
+  @override
+  FunctionEntity get rawStartupMetrics =>
+      _rawStartupMetrics ??= _findHelperFunction('rawStartupMetrics');
 
   @override
   FunctionEntity get loadLibraryWrapper =>
@@ -2144,6 +2151,14 @@ class CommonElementsImpl
   bool isForeignHelper(MemberEntity member) {
     return member.library == foreignLibrary ||
         isCreateInvocationMirrorHelper(member);
+  }
+
+  @override
+  bool isCreateSentinel(MemberEntity member) {
+    return member.isTopLevel &&
+        member.isFunction &&
+        member.library == internalLibrary &&
+        member.name == 'createSentinel';
   }
 
   @override

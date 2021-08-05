@@ -49,6 +49,15 @@ final diagnosticTagsForErrorCode = <String, List<lsp.DiagnosticTag>>{
   ],
 };
 
+/// Pattern for docComplete text on completion items that can be upgraded to
+/// the "detail" field so that it can be shown more prominently by clients.
+///
+/// This is typically used for labels like _latest compatible_ and _latest_ in
+/// the pubspec version items. These go into docComplete so that they appear
+/// reasonably for non-LSP clients where there is no equivalent of the detail
+/// field.
+final _upgradableDocCompletePattern = RegExp(r'^_([\w ]{0,20})_$');
+
 lsp.Either2<String, lsp.MarkupContent> asStringOrMarkupContent(
     Set<lsp.MarkupKind>? preferredFormats, String content) {
   return preferredFormats == null
@@ -707,6 +716,7 @@ lsp.Diagnostic pluginToDiagnostic(
   server.LineInfo Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
+  required bool clientSupportsCodeDescription,
 }) {
   List<lsp.DiagnosticRelatedInformation>? relatedInformation;
   final contextMessages = error.contextMessages;
@@ -724,6 +734,7 @@ lsp.Diagnostic pluginToDiagnostic(
   }
 
   var lineInfo = getLineInfo(error.location.file);
+  var documentationUrl = error.url;
   return lsp.Diagnostic(
     range: toRange(lineInfo, error.location.offset, error.location.length),
     severity: pluginToDiagnosticSeverity(error.severity),
@@ -732,6 +743,11 @@ lsp.Diagnostic pluginToDiagnostic(
     message: message,
     tags: getDiagnosticTags(supportedTags, error),
     relatedInformation: relatedInformation,
+    // Only include codeDescription if the client explicitly supports it
+    // (a minor optimization to avoid unnecessary payload/(de)serialisation).
+    codeDescription: clientSupportsCodeDescription && documentationUrl != null
+        ? CodeDescription(href: documentationUrl)
+        : null,
   );
 }
 
@@ -859,19 +875,30 @@ lsp.ClosingLabel toClosingLabel(
         range: toRange(lineInfo, label.offset, label.length),
         label: label.label);
 
-lsp.CodeActionKind toCodeActionKind(String? id, lsp.CodeActionKind fallback) {
+/// Converts [id] to a [CodeActionKind] using [fallbackOrPrefix] as a fallback
+/// or a prefix if the ID is not already a fix/refactor.
+lsp.CodeActionKind toCodeActionKind(
+    String? id, lsp.CodeActionKind fallbackOrPrefix) {
   if (id == null) {
-    return fallback;
+    return fallbackOrPrefix;
   }
   // Dart fixes and assists start with "dart.assist." and "dart.fix." but in LSP
   // we want to use the predefined prefixes for CodeActions.
-  final newId = id
+  var newId = id
       .replaceAll('dart.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll(
           'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
       .replaceAll(
           'analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString());
+
+  // If the ID does not start with either of the kinds above, prefix it as
+  // it will be an unqualified ID from a plugin.
+  if (!newId.startsWith(lsp.CodeActionKind.Refactor.toString()) &&
+      !newId.startsWith(lsp.CodeActionKind.QuickFix.toString())) {
+    newId = '$fallbackOrPrefix.$newId';
+  }
+
   return lsp.CodeActionKind(newId);
 }
 
@@ -949,7 +976,21 @@ lsp.CompletionItem toCompletionItem(
   final insertText = insertTextInfo.first;
   final insertTextFormat = insertTextInfo.last;
   final isMultilineCompletion = insertText.contains('\n');
-  final cleanedDoc = cleanDartdoc(suggestion.docComplete);
+
+  var cleanedDoc = cleanDartdoc(suggestion.docComplete);
+  var detail = getCompletionDetail(suggestion, completionKind,
+      supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
+
+  // To improve the display of some items (like pubspec version numbers),
+  // short labels in the format `_foo_` in docComplete are "upgraded" to the
+  // detail field.
+  final labelMatch = cleanedDoc != null
+      ? _upgradableDocCompletePattern.firstMatch(cleanedDoc)
+      : null;
+  if (labelMatch != null) {
+    cleanedDoc = null;
+    detail = labelMatch.group(1);
+  }
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place
@@ -964,8 +1005,7 @@ lsp.CompletionItem toCompletionItem(
     commitCharacters:
         includeCommitCharacters ? dartCompletionCommitCharacters : null,
     data: resolutionData,
-    detail: getCompletionDetail(suggestion, completionKind,
-        supportsCompletionDeprecatedFlag || supportsDeprecatedTag),
+    detail: detail,
     documentation: cleanedDoc != null
         ? asStringOrMarkupContent(formats, cleanedDoc)
         : null,
@@ -1006,10 +1046,15 @@ lsp.Diagnostic toDiagnostic(
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
-}) =>
-    pluginToDiagnostic((_) => result.lineInfo,
-        server.newAnalysisError_fromEngine(result, error),
-        supportedTags: supportedTags);
+  required bool clientSupportsCodeDescription,
+}) {
+  return pluginToDiagnostic(
+    (_) => result.lineInfo,
+    server.newAnalysisError_fromEngine(result, error),
+    supportedTags: supportedTags,
+    clientSupportsCodeDescription: clientSupportsCodeDescription,
+  );
+}
 
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) {
   final location = element.location;
@@ -1154,8 +1199,8 @@ lsp.Position toPosition(server.CharacterLocation location) {
 }
 
 lsp.Range toRange(server.LineInfo lineInfo, int offset, int length) {
-  final start = lineInfo.getLocation(offset) as server.CharacterLocation;
-  final end = lineInfo.getLocation(offset + length) as server.CharacterLocation;
+  final start = lineInfo.getLocation(offset);
+  final end = lineInfo.getLocation(offset + length);
 
   return lsp.Range(
     start: toPosition(start),

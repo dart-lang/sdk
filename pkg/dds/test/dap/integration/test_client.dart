@@ -10,7 +10,6 @@ import 'package:dds/src/dap/adapters/dart.dart';
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:dds/src/dap/protocol_stream.dart';
-import 'package:dds/src/dap/protocol_stream_transformers.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
@@ -22,19 +21,17 @@ import 'test_server.dart';
 /// Methods on this class should map directly to protocol methods. Additional
 /// helpers are available in [DapTestClientExtension].
 class DapTestClient {
-  final Socket _socket;
   final ByteStreamServerChannel _channel;
   late final StreamSubscription<String> _subscription;
 
   final Logger? _logger;
   final bool captureVmServiceTraffic;
-  final _requestWarningDuration = const Duration(seconds: 2);
+  final _requestWarningDuration = const Duration(seconds: 5);
   final Map<int, _OutgoingRequest> _pendingRequests = {};
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
 
   DapTestClient._(
-    this._socket,
     this._channel,
     this._logger, {
     this.captureVmServiceTraffic = false,
@@ -56,21 +53,6 @@ class DapTestClient {
   /// Returns a stream of [OutputEventBody] events.
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
-
-  /// Collects all output events until the program terminates.
-  Future<List<OutputEventBody>> collectOutput(
-      {File? file, Future<Response> Function()? launch}) async {
-    final outputEventsFuture = outputEvents.toList();
-
-    // Launch script and wait for termination.
-    await Future.wait([
-      event('terminated'),
-      initialize(),
-      launch?.call() ?? this.launch(file!.path),
-    ], eagerError: true);
-
-    return outputEventsFuture;
-  }
 
   /// Sends a continue request for the given thread.
   ///
@@ -139,6 +121,7 @@ class DapTestClient {
     List<String>? args,
     String? cwd,
     bool? noDebug,
+    List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
@@ -150,6 +133,7 @@ class DapTestClient {
         program: program,
         cwd: cwd,
         args: args,
+        additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
@@ -210,6 +194,19 @@ class DapTestClient {
       sendRequest(StackTraceArguments(
           threadId: threadId, startFrame: startFrame, levels: numFrames));
 
+  /// Initializes the debug adapter and launches [file] or calls the custom
+  /// [launch] method.
+  Future<void> start({
+    File? file,
+    Future<Response> Function()? launch,
+  }) {
+    // Launch script and wait for termination.
+    return Future.wait([
+      initialize(),
+      launch?.call() ?? this.launch(file!.path),
+    ], eagerError: true);
+  }
+
   /// Sends a stepIn request for the given thread.
   ///
   /// Returns a Future that completes when the server returns a corresponding
@@ -226,7 +223,6 @@ class DapTestClient {
 
   Future<void> stop() async {
     _channel.close();
-    await _socket.close();
     await _subscription.cancel();
   }
 
@@ -305,16 +301,12 @@ class DapTestClient {
   /// Creates a [DapTestClient] that connects the server listening on
   /// [host]:[port].
   static Future<DapTestClient> connect(
-    int port, {
-    String host = 'localhost',
+    DapTestServer server, {
     bool captureVmServiceTraffic = false,
     Logger? logger,
   }) async {
-    final socket = await Socket.connect(host, port);
-    final channel = ByteStreamServerChannel(
-        socket.transform(Uint8ListTransformer()), socket, logger);
-
-    return DapTestClient._(socket, channel, logger,
+    final channel = ByteStreamServerChannel(server.stream, server.sink, logger);
+    return DapTestClient._(channel, logger,
         captureVmServiceTraffic: captureVmServiceTraffic);
   }
 }
@@ -398,8 +390,12 @@ extension DapTestClientExtension on DapTestClient {
   ///
   /// If [file] or [line] are provided, they will be checked against the stop
   /// location for the top stack frame.
-  Future<StoppedEventBody> expectStop(String reason,
-      {File? file, int? line, String? sourceName}) async {
+  Future<StoppedEventBody> expectStop(
+    String reason, {
+    File? file,
+    int? line,
+    String? sourceName,
+  }) async {
     final e = await event('stopped');
     final stop = StoppedEventBody.fromJson(e.body as Map<String, Object?>);
     expect(stop.reason, equals(reason));
@@ -410,10 +406,10 @@ extension DapTestClientExtension on DapTestClient {
     final frame = result.stackFrames[0];
 
     if (file != null) {
-      expect(frame.source!.path, equals(file.path));
+      expect(frame.source?.path, equals(file.path));
     }
     if (sourceName != null) {
-      expect(frame.source!.name, equals(sourceName));
+      expect(frame.source?.name, equals(sourceName));
     }
     if (line != null) {
       expect(frame.line, equals(line));
@@ -439,6 +435,21 @@ extension DapTestClientExtension on DapTestClient {
     expect(response.success, isTrue);
     expect(response.command, equals('threads'));
     return ThreadsResponseBody.fromJson(response.body as Map<String, Object?>);
+  }
+
+  /// Collects all output events until the program terminates.
+  ///
+  /// These results include all events in the order they are recieved, including
+  /// console, stdout and stderr.
+  Future<List<OutputEventBody>> collectOutput({
+    File? file,
+    Future<Response> Function()? launch,
+  }) async {
+    final outputEventsFuture = outputEvents.toList();
+
+    await start(file: file, launch: launch);
+
+    return outputEventsFuture;
   }
 
   /// A helper that fetches scopes for a frame, checks for one with the name

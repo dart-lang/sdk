@@ -219,7 +219,7 @@ static void TestAliasingViaRedefinition(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
@@ -383,7 +383,7 @@ static void TestAliasingViaStore(
   const Library& lib =
       Library::Handle(LoadTestScript(script_chars, NoopNativeLookup));
 
-  const Class& cls = Class::Handle(
+  const Class& cls = Class::ZoneHandle(
       lib.LookupLocalClass(String::Handle(Symbols::New(thread, "K"))));
   const Error& err = Error::Handle(cls.EnsureIsFinalized(thread));
   EXPECT(err.IsNull());
@@ -1189,13 +1189,14 @@ main() {
  49:     ParallelMove rdx <- rcx, rax <- rax
  50:     StoreIndexed(v24, v53, v580)
  51:     ParallelMove rax <- rcx
- 52:     v54 <- StringInterpolate:44(v24) T{String}
+         PushArgument(v24)
+ 52:     v54 <- StaticCall:44(_StringBase._interpolate, v24) T{String}
  53:     ParallelMove rax <- rax
  54:     Return:48(v54)
 */
 
   CreateArrayInstr* create_array = nullptr;
-  StringInterpolateInstr* string_interpolate = nullptr;
+  StaticCallInstr* string_interpolate = nullptr;
 
   ILMatcher cursor(flow_graph, entry, /*trace=*/true,
                    ParallelMovesHandling::kSkip);
@@ -1225,11 +1226,12 @@ main() {
       kMatchAndMoveStoreIndexed,
       kMatchAndMoveBox,
       kMatchAndMoveStoreIndexed,
-      {kMatchAndMoveStringInterpolate, &string_interpolate},
+      kMatchAndMovePushArgument,
+      {kMatchAndMoveStaticCall, &string_interpolate},
       kMatchReturn,
   }));
 
-  EXPECT(string_interpolate->value()->definition() == create_array);
+  EXPECT(string_interpolate->ArgumentAt(0) == create_array);
 }
 
 #if !defined(TARGET_ARCH_IA32)

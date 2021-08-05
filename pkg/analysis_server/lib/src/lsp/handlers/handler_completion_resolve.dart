@@ -111,7 +111,7 @@ class CompletionResolveHandler
 
         analyzer.LibraryElement requestedLibraryElement;
         {
-          final result = await session.getLibraryByUri2(library.uriStr);
+          final result = await session.getLibraryByUri(library.uriStr);
           if (result is LibraryElementResult) {
             requestedLibraryElement = result.element;
           } else {

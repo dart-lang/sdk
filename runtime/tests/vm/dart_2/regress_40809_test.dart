@@ -5,6 +5,8 @@
 // Test that ensure that we correctly handle this reference from within the
 // try/catch even if it is captured.
 
+// @dart = 2.9
+
 import 'package:expect/expect.dart';
 
 var f;

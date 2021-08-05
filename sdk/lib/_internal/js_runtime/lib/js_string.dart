@@ -149,14 +149,11 @@ class JSString extends Interceptor implements String, JSIndexable {
     return pattern.matchAsPrefix(this, index) != null;
   }
 
-  String substring(int startIndex, [int? endIndex]) {
-    checkInt(startIndex);
-    if (endIndex == null) endIndex = length;
-    checkInt(endIndex);
-    if (startIndex < 0) throw new RangeError.value(startIndex);
-    if (startIndex > endIndex) throw new RangeError.value(startIndex);
-    if (endIndex > length) throw new RangeError.value(endIndex);
-    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+  @pragma('dart2js:noInline')
+  String substring(int start, [int? end]) {
+    checkInt(start);
+    end = RangeError.checkValidRange(start, end, this.length);
+    return JS('String', r'#.substring(#, #)', this, start, end);
   }
 
   String toLowerCase() {

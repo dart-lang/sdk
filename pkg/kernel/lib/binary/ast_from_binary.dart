@@ -365,10 +365,16 @@ class BinaryBuilder {
         return _readSetConstant();
       case ConstantTag.InstanceConstant:
         return _readInstanceConstant();
-      case ConstantTag.PartialInstantiationConstant:
-        return _readPartialInstantiationConstant();
-      case ConstantTag.TearOffConstant:
-        return _readTearOffConstant();
+      case ConstantTag.InstantiationConstant:
+        return _readInstantiationConstant();
+      case ConstantTag.TypedefTearOffConstant:
+        return _readTypedefTearOffConstant();
+      case ConstantTag.StaticTearOffConstant:
+        return _readStaticTearOffConstant();
+      case ConstantTag.ConstructorTearOffConstant:
+        return _readConstructorTearOffConstant();
+      case ConstantTag.RedirectingFactoryTearOffConstant:
+        return _readRedirectingFactoryTearOffConstant();
       case ConstantTag.TypeLiteralConstant:
         return _readTypeLiteralConstant();
       case ConstantTag.UnevaluatedConstant:
@@ -441,16 +447,34 @@ class BinaryBuilder {
     return new InstanceConstant(classReference, typeArguments, fieldValues);
   }
 
-  Constant _readPartialInstantiationConstant() {
+  Constant _readInstantiationConstant() {
+    final Constant tearOffConstant = readConstantReference();
+    final List<DartType> types = readDartTypeList();
+    return new InstantiationConstant(tearOffConstant, types);
+  }
+
+  Constant _readTypedefTearOffConstant() {
+    final List<TypeParameter> parameters = readAndPushTypeParameterList();
     final TearOffConstant tearOffConstant =
         readConstantReference() as TearOffConstant;
     final List<DartType> types = readDartTypeList();
-    return new PartialInstantiationConstant(tearOffConstant, types);
+    typeParameterStack.length -= parameters.length;
+    return new TypedefTearOffConstant(parameters, tearOffConstant, types);
   }
 
-  Constant _readTearOffConstant() {
+  Constant _readStaticTearOffConstant() {
     final Reference reference = readNonNullCanonicalNameReference().reference;
-    return new TearOffConstant.byReference(reference);
+    return new StaticTearOffConstant.byReference(reference);
+  }
+
+  Constant _readConstructorTearOffConstant() {
+    final Reference reference = readNonNullCanonicalNameReference().reference;
+    return new ConstructorTearOffConstant.byReference(reference);
+  }
+
+  Constant _readRedirectingFactoryTearOffConstant() {
+    final Reference reference = readNonNullCanonicalNameReference().reference;
+    return new RedirectingFactoryTearOffConstant.byReference(reference);
   }
 
   Constant _readTypeLiteralConstant() {
@@ -1461,7 +1485,7 @@ class BinaryBuilder {
     node.fieldsInternal = _readFieldList(node);
     _readConstructorList(node);
     node.proceduresInternal = _readProcedureList(node, procedureOffsets);
-    _readRedirectingFactoryConstructorList(node);
+    _readRedirectingFactoryList(node);
   }
 
   void _readConstructorList(Class node) {
@@ -1477,17 +1501,17 @@ class BinaryBuilder {
     }
   }
 
-  void _readRedirectingFactoryConstructorList(Class node) {
+  void _readRedirectingFactoryList(Class node) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
       node.redirectingFactoryConstructorsInternal =
-          emptyListOfRedirectingFactoryConstructor;
+          emptyListOfRedirectingFactory;
     } else {
       node.redirectingFactoryConstructorsInternal =
-          new List<RedirectingFactoryConstructor>.generate(length,
-              (int index) => readRedirectingFactoryConstructor()..parent = node,
+          new List<RedirectingFactory>.generate(
+              length, (int index) => readRedirectingFactory()..parent = node,
               growable: useGrowableLists);
     }
   }
@@ -1673,13 +1697,12 @@ class BinaryBuilder {
     return node;
   }
 
-  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+  RedirectingFactory readRedirectingFactory() {
     int tag = readByte();
-    assert(tag == Tag.RedirectingFactoryConstructor);
+    assert(tag == Tag.RedirectingFactory);
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    RedirectingFactoryConstructor? node =
-        reference.node as RedirectingFactoryConstructor?;
+    RedirectingFactory? node = reference.node as RedirectingFactory?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1688,39 +1711,34 @@ class BinaryBuilder {
     int fileEndOffset = readOffset();
     int flags = readByte();
     Name name = readName();
-    if (node == null) {
-      node = new RedirectingFactoryConstructor(null,
-          reference: reference, name: name, fileUri: fileUri);
-    }
-    List<Expression> annotations = readAnnotationList(node);
     assert(() {
       debugPath.add(name.text);
       return true;
     }());
+    List<Expression> annotations = readAnnotationList();
     Reference targetReference = readNonNullMemberReference();
     List<DartType> typeArguments = readDartTypeList();
-    int typeParameterStackHeight = typeParameterStack.length;
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
-    readUInt30(); // Total parameter count.
-    int requiredParameterCount = readUInt30();
-    int variableStackHeight = variableStack.length;
-    List<VariableDeclaration> positional = readAndPushVariableDeclarationList();
-    List<VariableDeclaration> named = readAndPushVariableDeclarationList();
-    variableStack.length = variableStackHeight;
-    typeParameterStack.length = typeParameterStackHeight;
-    debugPath.removeLast();
+    FunctionNode function = readFunctionNode(outerEndOffset: fileEndOffset);
+    if (node == null) {
+      node = new RedirectingFactory(targetReference,
+          reference: reference,
+          name: name,
+          fileUri: fileUri,
+          function: function,
+          typeArguments: typeArguments);
+    } else {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.targetReference = targetReference;
+      node.typeArguments.addAll(typeArguments);
+      node.function = function..parent = node;
+    }
     node.fileOffset = fileOffset;
     node.fileEndOffset = fileEndOffset;
     node.flags = flags;
-    node.name = name;
-    node.fileUri = fileUri;
     node.annotations = annotations;
-    node.targetReference = targetReference;
-    node.typeArguments.addAll(typeArguments);
-    node.typeParameters = typeParameters;
-    node.requiredParameterCount = requiredParameterCount;
-    node.positionalParameters = positional;
-    node.namedParameters = named;
+    setParents(annotations, node);
+    debugPath.removeLast();
     return node;
   }
 
@@ -1942,16 +1960,12 @@ class BinaryBuilder {
         return _readVariableSet();
       case Tag.SpecializedVariableSet:
         return _readSpecializedVariableSet(tagByte);
-      case Tag.PropertyGet:
-        return _readPropertyGet();
       case Tag.InstanceGet:
         return _readInstanceGet();
       case Tag.InstanceTearOff:
         return _readInstanceTearOff();
       case Tag.DynamicGet:
         return _readDynamicGet();
-      case Tag.PropertySet:
-        return _readPropertySet();
       case Tag.InstanceSet:
         return _readInstanceSet();
       case Tag.DynamicSet:
@@ -1968,8 +1982,10 @@ class BinaryBuilder {
         return _readStaticSet();
       case Tag.ConstructorTearOff:
         return _readConstructorTearOff();
-      case Tag.MethodInvocation:
-        return _readMethodInvocation();
+      case Tag.TypedefTearOff:
+        return _readTypedefTearOff();
+      case Tag.RedirectingFactoryTearOff:
+        return _readRedirectingFactoryTearOff();
       case Tag.InstanceInvocation:
         return _readInstanceInvocation();
       case Tag.InstanceGetterInvocation:
@@ -2087,7 +2103,8 @@ class BinaryBuilder {
 
   Expression _readInvalidExpression() {
     int offset = readOffset();
-    return new InvalidExpression(readStringOrNullIfEmpty())
+    return new InvalidExpression(
+        readStringOrNullIfEmpty(), readExpressionOption())
       ..fileOffset = offset;
   }
 
@@ -2120,13 +2137,6 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
-  Expression _readPropertyGet() {
-    int offset = readOffset();
-    return new PropertyGet.byReference(
-        readExpression(), readName(), readNullableInstanceMemberReference())
-      ..fileOffset = offset;
-  }
-
   Expression _readInstanceGet() {
     InstanceAccessKind kind = InstanceAccessKind.values[readByte()];
     int offset = readOffset();
@@ -2149,13 +2159,6 @@ class BinaryBuilder {
     DynamicAccessKind kind = DynamicAccessKind.values[readByte()];
     int offset = readOffset();
     return new DynamicGet(kind, readExpression(), readName())
-      ..fileOffset = offset;
-  }
-
-  Expression _readPropertySet() {
-    int offset = readOffset();
-    return new PropertySet.byReference(readExpression(), readName(),
-        readExpression(), readNullableInstanceMemberReference())
       ..fileOffset = offset;
   }
 
@@ -2204,6 +2207,21 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
+  Expression _readTypedefTearOff() {
+    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    Expression expression = readExpression();
+    List<DartType> typeArguments = readDartTypeList();
+    typeParameterStack.length -= typeParameters.length;
+    return new TypedefTearOff(typeParameters, expression, typeArguments);
+  }
+
+  Expression _readRedirectingFactoryTearOff() {
+    int offset = readOffset();
+    Reference constructorReference = readNonNullMemberReference();
+    return new RedirectingFactoryTearOff.byReference(constructorReference)
+      ..fileOffset = offset;
+  }
+
   Expression _readStaticTearOff() {
     int offset = readOffset();
     return new StaticTearOff.byReference(readNonNullMemberReference())
@@ -2215,15 +2233,6 @@ class BinaryBuilder {
     return new StaticSet.byReference(
         readNonNullMemberReference(), readExpression())
       ..fileOffset = offset;
-  }
-
-  Expression _readMethodInvocation() {
-    int flags = readByte();
-    int offset = readOffset();
-    return new MethodInvocation.byReference(readExpression(), readName(),
-        readArguments(), readNullableInstanceMemberReference())
-      ..fileOffset = offset
-      ..flags = flags;
   }
 
   Expression _readInstanceInvocation() {
@@ -3345,10 +3354,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+  RedirectingFactory readRedirectingFactory() {
     final int nodeOffset = _byteOffset;
-    final RedirectingFactoryConstructor result =
-        super.readRedirectingFactoryConstructor();
+    final RedirectingFactory result = super.readRedirectingFactory();
     return _associateMetadata(result, nodeOffset);
   }
 

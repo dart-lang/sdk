@@ -21,7 +21,7 @@ import 'dart:ffi';
 
 class C extends Struct {
   @Array(8)
-  Array<Uint8> a0;
+  external Array<Uint8> a0;
 }
 ''');
   }
@@ -31,10 +31,10 @@ class C extends Struct {
 import 'dart:ffi';
 
 class C extends Struct {
-  Array<Uint8> a0;
+  external Array<Uint8> a0;
 }
 ''', [
-      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 47, 12),
+      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 56, 12),
     ]);
   }
 }

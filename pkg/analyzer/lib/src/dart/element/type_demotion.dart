@@ -38,8 +38,7 @@ class DemotionNonNullificationVisitor extends ReplacementVisitor {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
-          aliasElement: type.aliasElement,
-          aliasArguments: type.aliasArguments,
+          alias: type.alias,
         );
       }
     }

@@ -12,7 +12,6 @@ import 'dart:_js_helper'
         getRuntimeType,
         LinkedMap,
         JSSyntaxRegExp,
-        NoInline,
         notNull,
         nullCheck,
         Primitives,
@@ -95,10 +94,15 @@ class Function {
   @patch
   static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]) {
+    // Whether positionalArguments needs to be copied to ensure
+    // dcall doesn't modify the original list of positional arguments
+    // (currently only true when named arguments are provided too).
+    var needsCopy = namedArguments != null && namedArguments.isNotEmpty;
     if (positionalArguments == null) {
       positionalArguments = [];
-    } else if (JS<bool>('!', '!Array.isArray(#)', positionalArguments)) {
-      // dcall expects the positionalArguments as a JS array.
+    } else if (needsCopy ||
+        // dcall expects the positionalArguments as a JS array.
+        JS<bool>('!', '!Array.isArray(#)', positionalArguments)) {
       positionalArguments = List.of(positionalArguments);
     }
 
@@ -898,7 +902,6 @@ class _Uri {
 @patch
 class StackTrace {
   @patch
-  @NoInline()
   static StackTrace get current {
     return dart.stackTrace(JS('', 'Error()'));
   }

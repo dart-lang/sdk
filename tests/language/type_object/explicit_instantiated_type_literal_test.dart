@@ -18,8 +18,8 @@ class C<T extends num> {}
 Type type<T>() => T;
 
 void main() {
-  C.expectStaticType<Type>();
-  C<int>.expectStaticType<Type>();
+  (C).expectStaticType<Exactly<Type>>();
+  (C<int>).expectStaticType<Exactly<Type>>();
 
   Expect.identical(C<num>, C);
   Expect.identical(C<int>, C<int>);
@@ -30,8 +30,8 @@ void main() {
   Expect.identical(C<dynamic>, C<dynamic>);
   Expect.equals(C<dynamic>, type<C<dynamic>>());
 
-  prefix.C.expectStaticType<Type>();
-  prefix.C<int>.expectStaticType<Type>();
+  (prefix.C).expectStaticType<Exactly<Type>>();
+  (prefix.C<int>).expectStaticType<Exactly<Type>>();
 
   Expect.identical(prefix.C<num>, prefix.C);
   Expect.identical(prefix.C<int>, prefix.C<int>);

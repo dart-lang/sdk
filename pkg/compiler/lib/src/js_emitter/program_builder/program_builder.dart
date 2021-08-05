@@ -9,7 +9,7 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show JCommonElements, JElementEnvironment;
-import '../../deferred_load.dart'
+import '../../deferred_load/output_unit.dart'
     show deferredPartFileName, OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -201,7 +201,7 @@ class ProgramBuilder {
       if (superclass != null) {
         c.setSuperclass(_classes[superclass]);
         assert(
-            c.superclass != null,
+            c.onlyForConstructor || c.superclass != null,
             failedAt(
                 cls,
                 "No Class for has been created for superclass "
@@ -294,8 +294,8 @@ class ProgramBuilder {
   }
 
   js.Statement _buildInvokeMain() {
-    return MainCallStubGenerator.generateInvokeMain(
-        _commonElements, _task.emitter, _mainFunction);
+    return MainCallStubGenerator.generateInvokeMain(_commonElements,
+        _task.emitter, _mainFunction, _backendUsage.requiresStartupMetrics);
   }
 
   DeferredFragment _buildDeferredFragment(LibrariesMap librariesMap) {

@@ -1527,7 +1527,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       InternetAddress addr, NetworkInterface? interface) {
     // On Mac OS using the interface index for joining IPv4 multicast groups
     // is not supported. Here the IP address of the interface is needed.
-    if (Platform.isMacOS && addr.type == InternetAddressType.IPv4) {
+    if ((Platform.isMacOS || Platform.isIOS) &&
+        addr.type == InternetAddressType.IPv4) {
       if (interface != null) {
         for (int i = 0; i < interface.addresses.length; i++) {
           if (interface.addresses[i].type == InternetAddressType.IPv4) {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -10,6 +12,10 @@ import 'internal.dart';
 
 final bool isDebugMode = Platform.script.path.contains('Debug');
 final bool isSimulator = Platform.script.path.contains('SIM');
+final bool isArtificialReloadMode = Platform.executableArguments.any((arg) => [
+      '--hot-reload-rollback-test-mode',
+      '--hot-reload-test-mode'
+    ].contains(arg));
 
 // Implements recursive summation:
 //   sum(n) => n == 0 ? 0

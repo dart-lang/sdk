@@ -31,6 +31,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -123,18 +124,14 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  if (ApiObjectConverter::CanConvert(obj.ptr())) {
-    return Message::New(dest_port, obj.ptr(), Message::kNormalPriority);
-  } else {
-    MessageWriter writer(false);
-    return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
-  }
+  return WriteMessage(/* can_send_any_object */ false, obj, dest_port,
+                      Message::kNormalPriority);
 }
 
-static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
+static std::unique_ptr<Message> SerializeMessage(Zone* zone,
+                                                 Dart_Port dest_port,
                                                  Dart_CObject* obj) {
-  ApiMessageWriter writer;
-  return writer.WriteCMessage(obj, dest_port, Message::kNormalPriority);
+  return WriteApiMessage(zone, obj, dest_port, Message::kNormalPriority);
 }
 
 void IsolateGroupSource::add_loaded_blob(
@@ -359,7 +356,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #if !defined(DART_PRECOMPILED_RUNTIME)
       background_compiler_(new BackgroundCompiler(this)),
 #endif
-      symbols_lock_(new SafepointRwLock()),
+      symbols_mutex_(NOT_IN_PRODUCT("IsolateGroup::symbols_mutex_")),
       type_canonicalization_mutex_(
           NOT_IN_PRODUCT("IsolateGroup::type_canonicalization_mutex_")),
       type_arguments_canonicalization_mutex_(NOT_IN_PRODUCT(
@@ -785,8 +782,6 @@ void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
   // rpc method returns.
-  // TODO(dartbug.com/36097): Once the heap moves from Isolate to IsolateGroup
-  // this code needs to be adjusted to not double-count memory.
   jsobj.AddProperty("type", "MemoryUsage");
   jsobj.AddProperty64("heapUsage", used * kWordSize);
   jsobj.AddProperty64("heapCapacity", capacity * kWordSize);
@@ -865,19 +860,6 @@ void IsolateGroup::Cleanup() {
 
 bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
   return Isolate::IsSystemIsolate(isolate);
-}
-
-NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
-    : ThreadStackResource(thread) {
-  if (thread->isolate() != nullptr) {
-    thread->DeferOOBMessageInterrupts();
-  }
-}
-
-NoOOBMessageScope::~NoOOBMessageScope() {
-  if (thread()->isolate() != nullptr) {
-    thread()->RestoreOOBMessageInterrupts();
-  }
 }
 
 Bequest::~Bequest() {
@@ -1006,6 +988,8 @@ void IsolateGroup::ValidateConstants() {
   NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
   heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
+  SafepointMutexLocker ml(
+      thread->isolate_group()->constant_canonicalization_mutex());
   HeapIterationScope iteration(thread);
   VerifyCanonicalVisitor check_canonical(thread);
   iteration.IterateObjects(&check_canonical);
@@ -1023,9 +1007,8 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  MessageWriter writer(false);
-  PortMap::PostMessage(
-      writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
+                                    main_port(), Message::kOOBPriority));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1345,11 +1328,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
   // Parse the message.
   Object& msg_obj = Object::Handle(zone);
-  if (message->IsRaw()) {
-    msg_obj = message->raw_obj();
-    // We should only be sending RawObjects that can be converted to CObjects.
-    ASSERT(ApiObjectConverter::CanConvert(msg_obj.ptr()));
-  } else if (message->IsPersistentHandle()) {
+  if (message->IsPersistentHandle()) {
     // msg_array = [<message>, <object-in-message-to-rehash>]
     const auto& msg_array = Array::Handle(
         zone, Array::RawCast(message->persistent_handle()->ptr()));
@@ -1363,8 +1342,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-    MessageSnapshotReader reader(message.get(), thread);
-    msg_obj = reader.ReadObject();
+    msg_obj = ReadMessage(thread, message.get());
   }
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
@@ -2375,7 +2353,7 @@ bool Isolate::NotifyErrorListeners(const char* message,
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      PortMap::PostMessage(SerializeMessage(port_id, &arr));
+      PortMap::PostMessage(SerializeMessage(current_zone(), port_id, &arr));
     }
   }
   return listeners.Length() > 0;
@@ -2397,6 +2375,25 @@ void Isolate::Run() {
   message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
+
+#if !defined(PRODUCT)
+void Isolate::set_current_sample_block(SampleBlock* current) {
+  ASSERT(current_sample_block_lock_.IsOwnedByCurrentThread());
+  if (current != nullptr) {
+    current->set_is_allocation_block(false);
+    current->set_owner(this);
+  }
+  current_sample_block_ = current;
+}
+
+void Isolate::set_current_allocation_sample_block(SampleBlock* current) {
+  if (current != nullptr) {
+    current->set_is_allocation_block(true);
+    current->set_owner(this);
+  }
+  current_allocation_sample_block_ = current;
+}
+#endif  // !defined(PRODUCT)
 
 // static
 void Isolate::NotifyLowMemory() {
@@ -2531,11 +2528,12 @@ void Isolate::Shutdown() {
 }
 
 void Isolate::LowLevelCleanup(Isolate* isolate) {
-#if !defined(DART_PECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (KernelIsolate::IsKernelIsolate(isolate)) {
     KernelIsolate::SetKernelIsolate(nullptr);
+  }
 #endif
-  } else if (ServiceIsolate::IsServiceIsolate(isolate)) {
+  if (ServiceIsolate::IsServiceIsolate(isolate)) {
     ServiceIsolate::SetServiceIsolate(nullptr);
   }
 
@@ -2552,6 +2550,26 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   Thread::ExitIsolate();
+
+#if !defined(PRODUCT)
+  // Cleanup profiler state.
+  SampleBlock* cpu_block = isolate->current_sample_block();
+  if (cpu_block != nullptr) {
+    cpu_block->release_block();
+  }
+  SampleBlock* allocation_block = isolate->current_allocation_sample_block();
+  if (allocation_block != nullptr) {
+    allocation_block->release_block();
+  }
+
+  // Process the previously assigned sample blocks if we're using the
+  // profiler's sample buffer. Some tests create their own SampleBlockBuffer
+  // and handle block processing themselves.
+  if ((cpu_block != nullptr || allocation_block != nullptr) &&
+      Profiler::sample_block_buffer() != nullptr) {
+    Profiler::sample_block_buffer()->ProcessCompletedBlocks();
+  }
+#endif  // !defined(PRODUCT)
 
   // Now it's safe to delete the isolate.
   delete isolate;
@@ -2600,7 +2618,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       Dart::thread_pool()->Run<ShutdownGroupTask>(isolate_group);
     }
   } else {
-    if (IsolateGroup::AreIsolateGroupsEnabled()) {
+    if (FLAG_enable_isolate_groups) {
       // TODO(dartbug.com/36097): An isolate just died. A significant amount of
       // memory might have become unreachable. We should evaluate how to best
       // inform the GC about this situation.
@@ -2773,7 +2791,7 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
-  if (thread->IsMutatorThread() && !IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
     single_current_mutator->Call();
     return;
   }
@@ -3272,9 +3290,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     msg.SetAt(1, element);
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
-    MessageWriter writer(false);
-    std::unique_ptr<Message> message =
-        writer.WriteMessage(msg, main_port(), Message::kOOBPriority);
+    std::unique_ptr<Message> message = WriteMessage(
+        /* can_send_any_object */ false, msg, main_port(),
+        Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }
@@ -3518,9 +3536,9 @@ void Isolate::KillLocked(LibMsgId msg_id) {
   list_values[3] = &imm;
 
   {
-    ApiMessageWriter writer;
-    std::unique_ptr<Message> message =
-        writer.WriteCMessage(&kill_msg, main_port(), Message::kOOBPriority);
+    AllocOnlyStackZone zone;
+    std::unique_ptr<Message> message = WriteApiMessage(
+        zone.GetZone(), &kill_msg, main_port(), Message::kOOBPriority);
     ASSERT(message != nullptr);
 
     // Post the message at the given port.

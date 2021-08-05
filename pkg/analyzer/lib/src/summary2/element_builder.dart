@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -38,12 +37,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   })  : _libraryBuilder = libraryBuilder,
         _unitElement = unitElement,
         _enclosingContext = _EnclosingContext(unitReference, unitElement);
-
-  bool get _isNonFunctionTypeAliasesEnabled {
-    return _libraryElement.featureSet.isEnabled(
-      Feature.nonfunction_type_aliases,
-    );
-  }
 
   LibraryElementImpl get _libraryElement => _libraryBuilder.element;
 
@@ -81,16 +74,32 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _libraryElement.imports = _imports;
     _libraryElement.hasExtUri = _hasExtUri;
 
-    var firstDirective = unit.directives.firstOrNull;
-    if (firstDirective != null) {
-      _libraryElement.documentationComment = getCommentNodeRawText(
-        firstDirective.documentationComment,
-      );
-      var firstDirectiveMetadata = firstDirective.element?.metadata;
-      if (firstDirectiveMetadata != null) {
-        _libraryElement.metadata = firstDirectiveMetadata;
+    if (_isFirstLibraryDirective) {
+      _isFirstLibraryDirective = false;
+      var firstDirective = unit.directives.firstOrNull;
+      if (firstDirective != null) {
+        _libraryElement.documentationComment = getCommentNodeRawText(
+          firstDirective.documentationComment,
+        );
+        var firstDirectiveMetadata = firstDirective.element?.metadata;
+        if (firstDirectiveMetadata != null) {
+          _libraryElement.metadata = firstDirectiveMetadata;
+        }
       }
     }
+  }
+
+  /// Build elements for [members] and add into the [element].
+  void buildMacroClassMembers(
+    ClassElementImpl element,
+    List<ClassMember> members,
+  ) {
+    var holder = _buildClassMembers(element, members);
+
+    element.accessors.addAll(holder.propertyAccessors);
+    element.constructors.addAll(holder.constructors);
+    element.fields.addAll(holder.properties.whereType<FieldElementImpl>());
+    element.methods.addAll(holder.methods);
   }
 
   @override
@@ -163,6 +172,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var nameNode = node.name ?? node.returnType;
     var name = node.name?.name ?? '';
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
     var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
@@ -445,8 +458,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    // ignore: deprecated_member_use_from_same_package
-    var element = FunctionTypeAliasElementImpl(name, nameNode.offset);
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.isFunctionTypeAliasBased = true;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -549,15 +561,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameNode = node.name;
     var name = nameNode.name;
 
-    TypeAliasElementImpl element;
-    var aliasedType = node.type;
-    if (aliasedType is GenericFunctionType ||
-        !_isNonFunctionTypeAliasesEnabled) {
-      // ignore: deprecated_member_use_from_same_package
-      element = FunctionTypeAliasElementImpl(name, nameNode.offset);
-    } else {
-      element = TypeAliasElementImpl(name, nameNode.offset);
-    }
+    var element = TypeAliasElementImpl(name, nameNode.offset);
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -626,6 +630,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (_isFirstLibraryDirective) {
       _isFirstLibraryDirective = false;
       node.element = _libraryElement;
+      _libraryElement.documentationComment = getCommentNodeRawText(
+        node.documentationComment,
+      );
       _libraryElement.metadata = _buildAnnotations(node.metadata);
     }
   }
@@ -878,7 +885,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, NodeList<ClassMember> members) {
+      ElementImpl element, List<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -894,29 +901,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
-
-    var constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      var containerRef = element.reference!.getChild('@constructor');
-      constructors = [
-        ConstructorElementImpl('', -1)
-          ..isSynthetic = true
-          ..reference = containerRef.getChild(''),
-      ];
-    }
-    element.constructors = constructors;
-
-    // We have all fields and constructors.
-    // Now we can resolve field formal parameters.
-    for (var constructor in constructors) {
-      for (var parameter in constructor.parameters) {
-        if (parameter is FieldFormalParameterElementImpl) {
-          parameter.field = element.getField(parameter.name);
-        }
-      }
-    }
   }
 
   void _buildExecutableElementChildren({

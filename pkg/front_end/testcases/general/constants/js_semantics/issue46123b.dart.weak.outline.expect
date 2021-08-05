@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "package:js/js.dart" as js;
+import "dart:core" as core;
+
+import "package:js/js.dart";
+
+@js::JS::•()
+@js::anonymous
+class ParallaxOptions extends core::Object /*hasConstConstructor*/  {
+  external const constructor •() → self::ParallaxOptions
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue46123b.dart:7:2 -> InstanceConstant(const JS{JS.name: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///issue46123b.dart:8:2 -> InstanceConstant(const _Anonymous{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

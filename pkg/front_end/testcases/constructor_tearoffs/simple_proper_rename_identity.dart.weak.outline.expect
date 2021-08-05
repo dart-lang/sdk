@@ -1,0 +1,46 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef B1<T extends core::Object? = dynamic> = self::A1<T%>;
+typedef B2<T extends core::num> = self::A2<T>;
+typedef B3<T extends core::List<core::Object?>, S extends Null> = self::A3<T, S%>;
+typedef B4<T extends core::int> = self::A4<T>;
+typedef B5<unrelated T extends core::List<core::Object?>, unrelated S extends Null> = self::A5<core::List<dynamic>, Never?>;
+class A1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A1<self::A1::T%>
+    ;
+}
+class A2<T extends core::num> extends core::Object {
+  synthetic constructor •() → self::A2<self::A2::T>
+    ;
+}
+class A3<T extends core::List<dynamic>, S extends Never?> extends core::Object {
+  synthetic constructor •() → self::A3<self::A3::T, self::A3::S%>
+    ;
+}
+class A4<T extends core::num> extends core::Object {
+  synthetic constructor •() → self::A4<self::A4::T>
+    ;
+}
+class A5<T extends core::List<dynamic>, S extends Never?> extends core::Object {
+  synthetic constructor •() → self::A5<self::A5::T, self::A5::S%>
+    ;
+}
+class StaticIdentityTest extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic a, dynamic b) → self::StaticIdentityTest
+    : assert(core::identical(a, b)), super core::Object::•()
+    ;
+}
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method test3() → dynamic
+  ;
+static method test4() → dynamic
+  ;
+static method test5() → dynamic
+  ;
+static method main() → dynamic
+  ;

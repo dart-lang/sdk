@@ -179,7 +179,6 @@ testEmptyMapLiteralTyped() => <String, int>{};
 /*member: testEmptyMapLiteralConstant:
 type=[
  inst:ConstantMap<dynamic,dynamic>,
- inst:ConstantProtoMap<dynamic,dynamic>,
  inst:ConstantStringMap<dynamic,dynamic>,
  inst:GeneralConstantMap<dynamic,dynamic>]
 */

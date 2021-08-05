@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // Regression test for https://github.com/dart-lang/sdk/issues/40462
 // VMOptions=--deoptimize_every=140 --optimization_level=3 --use-slow-path --old_gen_heap_size=128
 

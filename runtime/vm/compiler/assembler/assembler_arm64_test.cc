@@ -4737,8 +4737,8 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ mov(THR, R2);
   __ ldr(HEAP_BITS, Address(THR, Thread::write_barrier_mask_offset()));
   __ LslImmediate(HEAP_BITS, HEAP_BITS, 32);
-  __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
-                     R0);
+  __ StoreCompressedIntoObject(
+      R1, FieldAddress(R1, GrowableObjectArray::data_offset()), R0);
   RESTORES_LR_FROM_FRAME(__ Pop(LR));
   __ Pop(HEAP_BITS);
   __ Pop(THR);
@@ -4854,6 +4854,54 @@ ASSEMBLER_TEST_RUN(CompareImmediate32Negative, test) {
   EXPECT_EQ(0,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -511));
 }
+
+#if !defined(USING_THREAD_SANITIZER)
+// can't call (tsan) runtime methods
+
+ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
+  __ SetupDartSP();
+  __ Push(R1);
+  __ LoadImmediate(R1, 0);
+  __ Push(R1);
+  __ mov(R1, R0);
+  __ LoadImmediate(R0, 0);
+  __ StoreRelease(R1, SP, 0);
+  __ LoadAcquire(R0, SP, 0);
+  __ Pop(R1);
+  __ Pop(R1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
+  typedef intptr_t (*StoreReleaseLoadAcquire)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(123, EXECUTE_TEST_CODE_INTPTR_INTPTR(StoreReleaseLoadAcquire,
+                                                 test->entry(), 123));
+}
+
+ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
+  __ SetupDartSP();
+  __ Push(R1);
+  __ LoadImmediate(R1, 0);
+  __ Push(R1);
+  __ mov(R1, R0);
+  __ LoadImmediate(R0, 0);
+  __ sub(SP, SP, Operand(1024 * target::kWordSize));
+  __ StoreRelease(R1, SP, 1024);
+  __ LoadAcquire(R0, SP, 1024);
+  __ add(SP, SP, Operand(1024 * target::kWordSize));
+  __ Pop(R1);
+  __ Pop(R1);
+  __ RestoreCSP();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
+  typedef intptr_t (*StoreReleaseLoadAcquire1024)(intptr_t) DART_UNUSED;
+  EXPECT_EQ(123, EXECUTE_TEST_CODE_INTPTR_INTPTR(StoreReleaseLoadAcquire1024,
+                                                 test->entry(), 123));
+}
+#endif
 
 }  // namespace compiler
 }  // namespace dart

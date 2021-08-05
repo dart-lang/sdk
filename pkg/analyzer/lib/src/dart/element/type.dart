@@ -109,33 +109,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     required List<ParameterElement> parameters,
     required DartType returnType,
     required NullabilitySuffix nullabilitySuffix,
-    Element? element,
-    TypeAliasElement? aliasElement,
-    List<DartType>? aliasArguments,
+    InstantiatedTypeAliasElement? alias,
   })  : typeFormals = typeFormals,
         parameters = _sortNamedParameters(parameters),
         returnType = returnType,
         nullabilitySuffix = nullabilitySuffix,
-        super(element,
-            aliasElement: aliasElement, aliasArguments: aliasArguments);
-
-  @Deprecated('Use aliasElement instead')
-  @override
-  FunctionTypedElement? get element {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    // TODO(scheglov) Can we just construct it with the right element?
-    var aliasedElement = aliasElement?.aliasedElement;
-    if (aliasedElement is GenericFunctionTypeElement) {
-      return aliasedElement;
-    }
-
-    var element = super.element;
-    if (element is FunctionTypedElement) {
-      return element;
-    }
-
-    return null;
-  }
+        super(null, alias: alias);
 
   @override
   int get hashCode {
@@ -204,13 +183,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       types.add(type);
     });
     return types;
-  }
-
-  @Deprecated('Use aliasArguments instead')
-  @override
-  List<DartType> get typeArguments {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44629
-    return aliasArguments ?? const <DartType>[];
   }
 
   @override
@@ -324,8 +296,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
-      aliasElement: aliasElement,
-      aliasArguments: aliasArguments,
+      alias: alias,
     );
   }
 
@@ -637,6 +608,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 }
 
+class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
+  @override
+  final TypeAliasElement element;
+
+  @override
+  final List<DartType> typeArguments;
+
+  InstantiatedTypeAliasElementImpl({
+    required this.element,
+    required this.typeArguments,
+  });
+}
+
 /// A concrete implementation of an [InterfaceType].
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
@@ -658,12 +642,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required ClassElement element,
     required this.typeArguments,
     required this.nullabilitySuffix,
-    TypeAliasElement? aliasElement,
-    List<DartType>? aliasArguments,
+    InstantiatedTypeAliasElement? alias,
   }) : super(
           element,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: alias,
         );
 
   @override
@@ -1642,19 +1624,26 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// representing the declared type of elements in the element model.
 abstract class TypeImpl implements DartType {
   @override
-  final List<DartType>? aliasArguments;
-
-  @override
-  final TypeAliasElement? aliasElement;
+  InstantiatedTypeAliasElement? alias;
 
   /// The element representing the declaration of this type, or `null` if the
   /// type has not, or cannot, be associated with an element.
   final Element? _element;
 
   /// Initialize a newly created type to be declared by the given [element].
-  TypeImpl(this._element, {this.aliasElement, this.aliasArguments})
-      : assert(aliasElement == null && aliasArguments == null ||
-            aliasElement != null && aliasArguments != null);
+  TypeImpl(this._element, {this.alias});
+
+  @Deprecated('Use alias instead')
+  @override
+  List<DartType>? get aliasArguments {
+    return alias?.typeArguments;
+  }
+
+  @Deprecated('Use alias instead')
+  @override
+  TypeAliasElement? get aliasElement {
+    return alias?.element;
+  }
 
   @deprecated
   @override
@@ -1801,12 +1790,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     required TypeParameterElement element,
     required this.nullabilitySuffix,
     this.promotedBound,
-    TypeAliasElement? aliasElement,
-    List<DartType>? aliasArguments,
+    InstantiatedTypeAliasElement? alias,
   }) : super(
           element,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: alias,
         );
 
   @override

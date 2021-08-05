@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable-asserts
 
+// @dart = 2.9
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';

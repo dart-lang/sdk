@@ -497,7 +497,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
 
 ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
   // WARNING: This MUST be big enough for the serialised JSON string.
-  const int kBufferSize = 1024;
+  const int kBufferSize = 2048;
   char buffer[kBufferSize];
   const char* kScript =
       "helper0() {}\n"
@@ -537,6 +537,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
+      "\"implicit\":false,"
       "\"_intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
@@ -617,7 +618,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"_intrinsic\":false,"
+      "\"static\":false,\"const\":false,\"implicit\":false,\"_intrinsic\":"
+      "false,"
       "\"_native\":false,"
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -649,7 +651,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"_intrinsic\":false,"
+      "\"static\":false,\"const\":false,\"implicit\":false,\"_intrinsic\":"
+      "false,"
       "\"_native\":false,"
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
@@ -705,7 +708,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
       "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
       "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},\"_"
-      "kind\":\"RegularFunction\",\"static\":true,\"const\":false,\"_"
+      "kind\":\"RegularFunction\",\"static\":true,\"const\":false,\"implicit\":"
+      "false,\"_"
       "intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"

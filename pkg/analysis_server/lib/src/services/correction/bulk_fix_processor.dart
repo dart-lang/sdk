@@ -22,8 +22,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -168,13 +168,30 @@ class BulkFixProcessor {
     for (var context in contexts) {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path)) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
           continue;
         }
-        var library = await context.currentSession.getResolvedLibrary2(path);
+        var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library);
         }
+      }
+    }
+
+    return builder;
+  }
+
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (library is ResolvedLibraryResult) {
+        await _fixErrorsInLibrary(library);
       }
     }
 
@@ -268,7 +285,7 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-    for (var unitResult in result.units!) {
+    for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
@@ -321,21 +338,14 @@ class BulkFixProcessor {
       }
     }
 
-    int computeChangeHash() {
-      var hash = 0;
-      var edits = builder.sourceChange.edits;
-      for (var i = 0; i < edits.length; ++i) {
-        hash = JenkinsSmiHash.combine(hash, edits[i].hashCode);
-      }
-      return JenkinsSmiHash.finish(hash);
-    }
+    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     Future<void> generate(CorrectionProducer producer, String code) async {
       var oldHash = computeChangeHash();
       await compute(producer);
       var newHash = computeChangeHash();
       if (newHash != oldHash) {
-        changeMap.add(result.path!, code);
+        changeMap.add(result.path, code);
       }
     }
 
@@ -400,7 +410,7 @@ class BulkFixProcessor {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
-      var dartFileName = result.path!;
+      var dartFileName = result.path;
       var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {

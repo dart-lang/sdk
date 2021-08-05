@@ -18,6 +18,7 @@
 #include "vm/clustered_snapshot.h"
 #include "vm/dart_api_impl.h"
 #include "vm/datastream.h"
+#include "vm/message_snapshot.h"
 #include "vm/stack_frame.h"
 #include "vm/timer.h"
 
@@ -256,8 +257,8 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 // Measure compile of all kernel Service(CFE) functions.
 //
 BENCHMARK(KernelServiceCompileAll) {
-  if (FLAG_sound_null_safety == kNullSafetyOptionStrong) {
-    // TODO(bkonyi): remove this check when we build the CFE in strong mode.
+  // kernel_service.dill is built with sound null safety.
+  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
     return;
   }
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
@@ -517,13 +518,12 @@ BENCHMARK(SerializeNull) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(true);
-    std::unique_ptr<Message> message = writer.WriteMessage(
-        null_object, ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message =
+        WriteMessage(/* can_send_any_object */ true, null_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message.get(), thread);
-    reader.ReadObject();
+    ReadMessage(thread, message.get());
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -540,13 +540,12 @@ BENCHMARK(SerializeSmi) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(true);
     std::unique_ptr<Message> message =
-        writer.WriteMessage(smi_object, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* can_send_any_object */ true, smi_object, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message.get(), thread);
-    reader.ReadObject();
+    ReadMessage(thread, message.get());
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -565,13 +564,12 @@ BENCHMARK(SimpleMessage) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(true);
-    std::unique_ptr<Message> message = writer.WriteMessage(
-        array_object, ILLEGAL_PORT, Message::kNormalPriority);
+    std::unique_ptr<Message> message = WriteMessage(
+        /* can_send_any_object */ true, array_object, ILLEGAL_PORT,
+        Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message.get(), thread);
-    reader.ReadObject();
+    ReadMessage(thread, message.get());
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -599,13 +597,12 @@ BENCHMARK(LargeMap) {
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
     StackZone zone(thread);
-    MessageWriter writer(true);
     std::unique_ptr<Message> message =
-        writer.WriteMessage(map, ILLEGAL_PORT, Message::kNormalPriority);
+        WriteMessage(/* can_send_any_object */ true, map, ILLEGAL_PORT,
+                     Message::kNormalPriority);
 
     // Read object back from the snapshot.
-    MessageSnapshotReader reader(message.get(), thread);
-    reader.ReadObject();
+    ReadMessage(thread, message.get());
   }
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();

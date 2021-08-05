@@ -781,13 +781,8 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc);
 
-  BitmapBuilder* stack_bitmap() {
-    if (stack_bitmap_ == NULL) {
-      stack_bitmap_ = new BitmapBuilder();
-    }
-    return stack_bitmap_;
-  }
-  void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
+  const BitmapBuilder& stack_bitmap() { return EnsureStackBitmap(); }
+  void SetStackBit(intptr_t index) { EnsureStackBitmap().Set(index, true); }
 
   bool always_calls() const {
     return contains_call_ == kCall || contains_call_ == kCallCalleeSafe;
@@ -820,6 +815,13 @@ class LocationSummary : public ZoneAllocated {
 #endif
 
  private:
+  BitmapBuilder& EnsureStackBitmap() {
+    if (stack_bitmap_ == NULL) {
+      stack_bitmap_ = new BitmapBuilder();
+    }
+    return *stack_bitmap_;
+  }
+
   const intptr_t num_inputs_;
   Location* input_locations_;
   const intptr_t num_temps_;

@@ -46,7 +46,7 @@ class C2 extends core::Object {
   constructor •() → self::C2*
     : self::C2::f = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:6:27: Error: This couldn't be parsed.
 class C2 { int f; C2() : f; }
-                          ^" as{TypeError,ForDynamic} core::int*, super core::Object::•()
+                          ^", super core::Object::•()
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

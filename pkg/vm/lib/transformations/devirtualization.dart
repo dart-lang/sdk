@@ -16,7 +16,8 @@ import '../metadata/direct_call.dart';
 Component transformComponent(CoreTypes coreTypes, Component component) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   ClosedWorldClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes,
-      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+          onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
+      as ClosedWorldClassHierarchy;
   final hierarchySubtypes = hierarchy.computeSubtypesInformation();
   new CHADevirtualization(coreTypes, component, hierarchy, hierarchySubtypes)
       .visitComponent(component);
@@ -32,14 +33,14 @@ abstract class Devirtualization extends RecursiveVisitor {
   static const _trace = const bool.fromEnvironment('trace.devirtualization');
 
   final DirectCallMetadataRepository _metadata;
-  Set<Name> _objectMemberNames;
+  final Set<Name> _objectMemberNames;
 
   Devirtualization(
       CoreTypes coreTypes, Component component, ClassHierarchy hierarchy)
-      : _metadata = new DirectCallMetadataRepository() {
-    _objectMemberNames = new Set<Name>.from(hierarchy
-        .getInterfaceMembers(coreTypes.objectClass)
-        .map((Member m) => m.name));
+      : _metadata = new DirectCallMetadataRepository(),
+        _objectMemberNames = new Set<Name>.from(hierarchy
+            .getInterfaceMembers(coreTypes.objectClass)
+            .map((Member m) => m.name)) {
     component.addMetadataRepository(_metadata);
   }
 
@@ -49,7 +50,7 @@ abstract class Devirtualization extends RecursiveVisitor {
       (member is Field) || ((member is Procedure) && member.isGetter);
 
   bool isLegalTargetForMethodInvocation(Member target, Arguments arguments) {
-    final FunctionNode func = target.function;
+    final FunctionNode func = target.function!;
 
     final positionalArgs = arguments.positional.length;
     if ((positionalArgs < func.requiredParameterCount) ||
@@ -82,10 +83,10 @@ abstract class Devirtualization extends RecursiveVisitor {
       directCall.checkReceiverForNull &&
       _objectMemberNames.contains(directCall.target.name);
 
-  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
+  DirectCallMetadata? getDirectCall(TreeNode node, Member? interfaceTarget,
       {bool setter = false});
 
-  makeDirectCall(TreeNode node, Member target, DirectCallMetadata directCall) {
+  makeDirectCall(TreeNode node, Member? target, DirectCallMetadata directCall) {
     if (_trace) {
       print("[devirt] Resolving ${target} to ${directCall.target}"
           " at ${node.location}");
@@ -102,12 +103,12 @@ abstract class Devirtualization extends RecursiveVisitor {
   }
 
   void _handleMethodInvocation(
-      TreeNode node, Member target, Arguments arguments) {
+      TreeNode node, Member? target, Arguments arguments) {
     if (target != null && !isMethod(target)) {
       return;
     }
 
-    final DirectCallMetadata directCall = getDirectCall(node, target);
+    final DirectCallMetadata? directCall = getDirectCall(node, target);
 
     // TODO(alexmarkov): Convert _isLegalTargetForMethodInvocation()
     // check into an assertion once front-end implements all override checks.
@@ -136,18 +137,18 @@ abstract class Devirtualization extends RecursiveVisitor {
     super.visitEqualsCall(node);
 
     final target = node.interfaceTarget;
-    final DirectCallMetadata directCall = getDirectCall(node, target);
+    final DirectCallMetadata? directCall = getDirectCall(node, target);
     if (directCall != null && !directCall.checkReceiverForNull) {
       makeDirectCall(node, target, directCall);
     }
   }
 
-  void _handlePropertyGet(TreeNode node, Member target) {
+  void _handlePropertyGet(TreeNode node, Member? target) {
     if (target != null && !isFieldOrGetter(target)) {
       return;
     }
 
-    final DirectCallMetadata directCall = getDirectCall(node, target);
+    final DirectCallMetadata? directCall = getDirectCall(node, target);
 
     if ((directCall != null) &&
         isFieldOrGetter(directCall.target) &&
@@ -168,8 +169,8 @@ abstract class Devirtualization extends RecursiveVisitor {
     _handlePropertyGet(node, null);
   }
 
-  void _handlePropertySet(TreeNode node, Member target) {
-    final DirectCallMetadata directCall =
+  void _handlePropertySet(TreeNode node, Member? target) {
+    final DirectCallMetadata? directCall =
         getDirectCall(node, target, setter: true);
     if (directCall != null) {
       makeDirectCall(node, target, directCall);
@@ -198,12 +199,12 @@ class CHADevirtualization extends Devirtualization {
       : super(coreTypes, component, hierarchy);
 
   @override
-  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
+  DirectCallMetadata? getDirectCall(TreeNode node, Member? interfaceTarget,
       {bool setter = false}) {
     if (interfaceTarget == null) {
       return null;
     }
-    Member singleTarget = _hierarchySubtype
+    Member? singleTarget = _hierarchySubtype
         .getSingleTargetForInterfaceInvocation(interfaceTarget, setter: setter);
     if (singleTarget == null) {
       return null;

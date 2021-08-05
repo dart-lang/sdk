@@ -78,8 +78,8 @@ abstract class SimpleEditCommandHandler
     // sent - and may have failed to apply - was related to this command
     // execution).
     // We need to fromJson to convert the JSON map to the real types.
-    final editResponseResult =
-        ApplyWorkspaceEditResponse.fromJson(editResponse.result);
+    final editResponseResult = ApplyWorkspaceEditResponse.fromJson(
+        editResponse.result as Map<String, Object?>);
     if (editResponseResult.applied) {
       return success(null);
     } else {

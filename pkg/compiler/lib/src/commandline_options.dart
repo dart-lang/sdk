@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.cmdline.options;
 
 /// Commandline flags used in `dart2js.dart` and/or `apiimpl.dart`.
@@ -137,6 +139,9 @@ class Flags {
   static const String conditionalDirectives = '--conditional-directives';
 
   static const String cfeInvocationModes = '--cfe-invocation-modes';
+
+  /// Flag to stop after splitting the program.
+  static const String stopAfterProgramSplit = '--stop-after-program-split';
 
   // The syntax-only level of support for generic methods is included in the
   // 1.50 milestone for Dart. It is not experimental, but also not permanent:

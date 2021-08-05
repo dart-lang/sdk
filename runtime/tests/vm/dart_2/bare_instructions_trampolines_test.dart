@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--always-generate-trampolines-for-testing --use-bare-instructions
 
 // We use a reasonable sized test and run it with the above options.

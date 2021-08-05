@@ -493,10 +493,22 @@ class LibraryReader {
       offset: resolutionOffset,
     );
 
-    InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
-        .applyTo(libraryElement);
+    _declareDartCoreDynamicNever();
+
+    InformativeDataApplier(_elementFactory).applyTo(
+      _unitsInformativeBytes,
+      libraryElement,
+    );
 
     return libraryElement;
+  }
+
+  /// These elements are implicitly declared in `dart:core`.
+  void _declareDartCoreDynamicNever() {
+    if (_reference.name == 'dart:core') {
+      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
+      _reference.getChild('Never').element = NeverElementImpl.instance;
+    }
   }
 
   ClassElementImpl _readClassElement(
@@ -580,6 +592,7 @@ class LibraryReader {
       element.setLinkedData(reference, linkedData);
       ConstructorElementFlags.read(_reader, element);
       element.parameters = _readParameters(element, reference);
+      _readMacro(element, element);
       return element;
     });
   }
@@ -840,6 +853,20 @@ class LibraryReader {
     return LibraryLanguageVersion(package: package, override: override);
   }
 
+  void _readMacro(Element element, HasMacroGenerationData hasMacro) {
+    if (_reader.readBool()) {
+      hasMacro.macro = MacroGenerationData(
+        _reader.readUInt30(),
+        _reader.readStringUtf8(),
+        Uint8List(0),
+      );
+      InformativeDataApplier(_elementFactory).applyToDeclaration(
+        element,
+        _reader.readUint8List(),
+      );
+    }
+  }
+
   List<MethodElementImpl> _readMethods(
     CompilationUnitElementImpl unitElement,
     ElementImpl enclosingElement,
@@ -863,6 +890,7 @@ class LibraryReader {
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
       element.typeInferenceError = _readTopLevelInferenceError();
+      _readMacro(element, element);
       return element;
     });
   }
@@ -989,6 +1017,7 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
 
     element.parameters = _readParameters(element, reference);
+    _readMacro(element, element);
     return element;
   }
 
@@ -1135,9 +1164,8 @@ class LibraryReader {
 
     TypeAliasElementImpl element;
     if (isFunctionTypeAliasBased) {
-      element =
-          // ignore: deprecated_member_use_from_same_package
-          FunctionTypeAliasElementImpl(name, -1);
+      element = TypeAliasElementImpl(name, -1);
+      element.isFunctionTypeAliasBased = true;
     } else {
       element = TypeAliasElementImpl(name, -1);
     }
@@ -1208,6 +1236,7 @@ class LibraryReader {
 
     unitElement.uri = _reader.readOptionalStringReference();
     unitElement.isSynthetic = _reader.readBool();
+    unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
@@ -1525,23 +1554,29 @@ class ResolutionReader {
           parameters: type.parameters,
           returnType: type.returnType,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is InterfaceType) {
         return InterfaceTypeImpl(
           element: type.element,
           typeArguments: type.typeArguments,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is TypeParameterType) {
         return TypeParameterTypeImpl(
           element: type.element,
           nullabilitySuffix: type.nullabilitySuffix,
-          aliasElement: aliasElement,
-          aliasArguments: aliasArguments,
+          alias: InstantiatedTypeAliasElementImpl(
+            element: aliasElement,
+            typeArguments: aliasArguments,
+          ),
         );
       } else if (type is VoidType) {
         // TODO(scheglov) add support for `void` aliasing

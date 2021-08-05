@@ -13,10 +13,7 @@ class Foo<T> {
   Foo.create() {}
 }
 
-class Bar<
-    T
-            extends num
-    > extends Foo<T> {
+class Bar<T extends num> extends Foo<T> {
   factory Bar() {
     return new Bar<T>.create();
   }
@@ -26,6 +23,4 @@ class Bar<
 
 main() {
   new Foo<String>();
-  //  ^
-  // [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'Bar'.
 }

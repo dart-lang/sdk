@@ -43,6 +43,35 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
+    if (node is SimpleFormalParameter) {
+      await builder.addDartFileEdit(file, (builder) {
+        final keyword = node.keyword;
+        if (keyword != null && keyword.keyword == Keyword.VAR) {
+          builder.addSimpleReplacement(range.token(keyword), 'final');
+        } else {
+          final type = node.type;
+          if (type != null) {
+            builder.addSimpleInsertion(type.offset, 'final ');
+            return;
+          }
+          final identifier = node.identifier;
+          if (identifier != null) {
+            builder.addSimpleInsertion(identifier.offset, 'final ');
+          } else {
+            builder.addSimpleInsertion(node.offset, 'final ');
+          }
+        }
+      });
+      return;
+    }
+
+    if (node is SimpleIdentifier && parent is SimpleFormalParameter) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(node.offset, 'final ');
+      });
+      return;
+    }
+
     VariableDeclarationList list;
     if (node is SimpleIdentifier &&
         parent is VariableDeclaration &&

@@ -62,7 +62,7 @@ abstract class DartObject {
   ///
   /// This method can return a representation of the type, even if this object
   /// would return `false` from [hasKnownValue].
-  ParameterizedType? get type;
+  DartType? get type;
 
   /// Return a representation of the value of the field with the given [name].
   ///

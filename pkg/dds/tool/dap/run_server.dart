@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -11,7 +12,7 @@ Future<void> main(List<String> arguments) async {
   // TODO(dantup): "dap_tool" is a placeholder and will likely eventually be a
   // "dart" command.
   final runner = CommandRunner('dap_tool', 'Dart DAP Tool')
-    ..addCommand(DapCommand());
+    ..addCommand(DapCommand(stdin, stdout.nonBlocking));
 
   try {
     await runner.run(arguments);
@@ -22,11 +23,13 @@ Future<void> main(List<String> arguments) async {
 }
 
 class DapCommand extends Command {
-  static const argHost = 'host';
-  static const argPort = 'port';
+  static const argIpv6 = 'ipv6';
   static const argDds = 'dds';
   static const argAuthCodes = 'auth-codes';
   static const argVerbose = 'verbose';
+
+  final Stream<List<int>> _inputStream;
+  final StreamSink<List<int>> _outputSink;
 
   @override
   final String description = 'Start a DAP debug server.';
@@ -34,18 +37,12 @@ class DapCommand extends Command {
   @override
   final String name = 'dap';
 
-  DapCommand() {
+  DapCommand(this._inputStream, this._outputSink) {
     argParser
-      ..addOption(
-        argHost,
-        defaultsTo: 'localhost',
-        help: 'The hostname/IP to bind the server to',
-      )
-      ..addOption(
-        argPort,
-        abbr: 'p',
-        defaultsTo: DapServer.defaultPort.toString(),
-        help: 'The port to bind the server to',
+      ..addFlag(
+        argIpv6,
+        defaultsTo: false,
+        help: 'Whether to bind DAP/VM Service/DDS to IPv6 addresses',
       )
       ..addFlag(
         argDds,
@@ -56,25 +53,21 @@ class DapCommand extends Command {
         argAuthCodes,
         defaultsTo: true,
         help: 'Whether to enable authentication codes for VM Services',
-      )
-      ..addFlag(
-        argVerbose,
-        abbr: 'v',
-        help: 'Whether to print diagnostic output to stdout',
       );
   }
 
   Future<void> run() async {
     final args = argResults!;
-    final port = int.parse(args[argPort]);
-    final host = args[argHost];
+    final ipv6 = args[argIpv6] as bool;
 
-    await DapServer.create(
-      host: host,
-      port: port,
-      enableDdds: args[argDds],
+    final server = DapServer(
+      _inputStream,
+      _outputSink,
+      ipv6: ipv6,
+      enableDds: args[argDds],
       enableAuthCodes: args[argAuthCodes],
-      logger: args[argVerbose] ? print : null,
     );
+
+    await server.channel.closed;
   }
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,6 +11,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceCreationTest);
+    defineReflectiveTests(InstanceCreationWithoutConstructorTearoffsTest);
   });
 }
 
@@ -425,5 +427,76 @@ void f() {
       expectedConstructorMember: true,
       expectedSubstitution: {'T': 'String'},
     );
+  }
+
+  test_unnamed_declaredNew() async {
+    await assertNoErrorsInCode('''
+class A {
+  A.new(int a);
+}
+
+void f() {
+  A(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A(0)');
+    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+  }
+
+  test_unnamedViaNew_declaredNew() async {
+    await assertNoErrorsInCode('''
+class A {
+  A.new(int a);
+}
+
+void f() {
+  A.new(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A.new(0)');
+    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+  }
+
+  test_unnamedViaNew_declaredUnnamed() async {
+    await assertNoErrorsInCode('''
+class A {
+  A(int a);
+}
+
+void f() {
+  A.new(0);
+}
+
+''');
+
+    var creation = findNode.instanceCreation('A.new(0)');
+    assertInstanceCreation(creation, findElement.class_('A'), 'A');
+  }
+}
+
+@reflectiveTest
+class InstanceCreationWithoutConstructorTearoffsTest
+    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+  test_unnamedViaNew() async {
+    await assertErrorsInCode('''
+class A {
+  A(int a);
+}
+
+void f() {
+  A.new(0);
+}
+
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3),
+    ]);
+
+    // Resolution should continue even though the experiment is not enabled.
+    var creation = findNode.instanceCreation('A.new(0)');
+    assertInstanceCreation(creation, findElement.class_('A'), 'A');
   }
 }

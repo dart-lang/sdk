@@ -110,6 +110,7 @@ import 'const_with_type_parameters_test.dart' as const_with_type_parameters;
 import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
 import 'could_not_infer_test.dart' as could_not_infer;
+import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
@@ -192,6 +193,7 @@ import 'ffi_array_multi_non_positive_input_test.dart'
     as ffi_array_multi_non_positive_input_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
+import 'ffi_native_test.dart' as ffi_native_test;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -211,6 +213,8 @@ import 'field_initializer_redirecting_constructor_test.dart'
     as field_initializer_redirecting_constructor;
 import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
+import 'field_must_be_external_in_struct_test.dart'
+    as field_must_be_external_in_struct;
 import 'final_initialized_in_delcaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
 import 'final_not_initialized_constructor_test.dart'
@@ -663,6 +667,8 @@ import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
+import 'undefined_referenced_parameter_test.dart'
+    as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
@@ -783,6 +789,7 @@ main() {
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
     could_not_infer.main();
+    creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_list_constructor.main();
@@ -840,6 +847,7 @@ main() {
     extra_size_annotation_carray.main();
     ffi_array_multi_non_positive_input_test.main();
     ffi_leaf_call_must_not_use_handle.main();
+    ffi_native_test.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
@@ -851,6 +859,7 @@ main() {
     field_initializer_outside_constructor.main();
     field_initializer_redirecting_constructor.main();
     field_initializing_formal_not_assignable.main();
+    field_must_be_external_in_struct.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
     for_in_of_invalid_element_type.main();
@@ -1151,6 +1160,7 @@ main() {
     undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
+    undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
     unignorable_ignore.main();

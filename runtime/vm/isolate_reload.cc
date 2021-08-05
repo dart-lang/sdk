@@ -95,12 +95,6 @@ static bool HasNoTasks(Heap* heap) {
   return heap->old_space()->tasks() == 0;
 }
 
-// TODO(dartbug.com/36097): Once classes are split up into a read-only
-// descriptor which can be shared across isolates, we can make this function
-// take descriptors instead of the isolate-specific [Class] objects.
-//
-// (The information we access from [from]/[to] *must* be the same across
-// isolates.)
 InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
     Zone* zone,
     SharedClassTable* shared_class_table,
@@ -1867,9 +1861,13 @@ void ProgramReloadContext::DiscardSavedClassTable(bool is_rollback) {
       saved_class_table_.load(std::memory_order_relaxed);
   ClassPtr* local_saved_tlc_class_table =
       saved_tlc_class_table_.load(std::memory_order_relaxed);
-  IG->class_table()->ResetAfterHotReload(
-      local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
-      saved_num_tlc_cids_, is_rollback);
+  {
+    auto thread = Thread::Current();
+    SafepointWriteRwLocker sl(thread, thread->isolate_group()->program_lock());
+    IG->class_table()->ResetAfterHotReload(
+        local_saved_class_table, local_saved_tlc_class_table, saved_num_cids_,
+        saved_num_tlc_cids_, is_rollback);
+  }
   saved_class_table_.store(nullptr, std::memory_order_release);
   saved_tlc_class_table_.store(nullptr, std::memory_order_release);
 }
@@ -2115,6 +2113,7 @@ class FieldInvalidator {
         type_(AbstractType::Handle(zone)),
         cache_(SubtypeTestCache::Handle(zone)),
         entries_(Array::Handle(zone)),
+        closure_function_(Function::Handle(zone)),
         instantiator_type_arguments_(TypeArguments::Handle(zone)),
         function_type_arguments_(TypeArguments::Handle(zone)),
         instance_cid_or_signature_(Object::Handle(zone)),
@@ -2143,7 +2142,8 @@ class FieldInvalidator {
         // At that point it doesn't have the field table setup yet.
         if (field_table->IsReadyToUse()) {
           value_ = field_table->At(field_id);
-          if (value_.ptr() != Object::sentinel().ptr()) {
+          if ((value_.ptr() != Object::sentinel().ptr()) &&
+              (value_.ptr() != Object::transition_sentinel().ptr())) {
             CheckValueType(null_safety, value_, field);
           }
         }
@@ -2217,13 +2217,12 @@ class FieldInvalidator {
     cls_ = value.clazz();
     const intptr_t cid = cls_.id();
     if (cid == kClosureCid) {
-      instance_cid_or_signature_ = Closure::Cast(value).signature();
-      instance_type_arguments_ =
-          Closure::Cast(value).instantiator_type_arguments();
-      parent_function_type_arguments_ =
-          Closure::Cast(value).function_type_arguments();
-      delayed_function_type_arguments_ =
-          Closure::Cast(value).delayed_type_arguments();
+      const auto& closure = Closure::Cast(value);
+      closure_function_ = closure.function();
+      instance_cid_or_signature_ = closure_function_.signature();
+      instance_type_arguments_ = closure.instantiator_type_arguments();
+      parent_function_type_arguments_ = closure.function_type_arguments();
+      delayed_function_type_arguments_ = closure.delayed_type_arguments();
     } else {
       instance_cid_or_signature_ = Smi::New(cid);
       if (cls_.NumTypeArguments() > 0) {
@@ -2295,6 +2294,7 @@ class FieldInvalidator {
   AbstractType& type_;
   SubtypeTestCache& cache_;
   Array& entries_;
+  Function& closure_function_;
   TypeArguments& instantiator_type_arguments_;
   TypeArguments& function_type_arguments_;
   Object& instance_cid_or_signature_;

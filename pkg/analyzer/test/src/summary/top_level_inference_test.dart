@@ -6116,7 +6116,7 @@ library
 
     var path = convertPath(testFilePath);
     var analysisSession = contextFor(path).currentSession;
-    var result = await analysisSession.getUnitElement2(path);
+    var result = await analysisSession.getUnitElement(path);
     result as UnitElementResult;
     return result.element.library;
   }

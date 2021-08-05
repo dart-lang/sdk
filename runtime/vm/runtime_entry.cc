@@ -4,6 +4,7 @@
 
 #include "vm/runtime_entry.h"
 
+#include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
@@ -757,8 +758,9 @@ static void UpdateTypeTestCache(
   auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
   if (instance_class.IsClosureClass()) {
     const auto& closure = Closure::Cast(instance);
-    const auto& closure_function = Function::Handle(zone, closure.function());
-    instance_class_id_or_signature = closure_function.signature();
+    const auto& function = Function::Handle(zone, closure.function());
+    instance_class_id_or_signature = function.signature();
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
     instance_type_arguments = closure.instantiator_type_arguments();
     instance_parent_function_type_arguments = closure.function_type_arguments();
     instance_delayed_type_arguments = closure.delayed_type_arguments();
@@ -827,7 +829,7 @@ static void UpdateTypeTestCache(
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
         OS::PrintErr("%s\n", buffer.buffer());
       }
-      if (!IsolateGroup::AreIsolateGroupsEnabled()) {
+      if (!FLAG_enable_isolate_groups) {
         FATAL("Duplicate subtype test cache entry");
       }
       if (old_result.ptr() != result.ptr()) {
@@ -1190,7 +1192,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(zone, target_function.EnsureHasCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(IsolateGroup::AreIsolateGroupsEnabled() ||
+  ASSERT(FLAG_enable_isolate_groups ||
          target_code.ptr() != CodePatcher::GetStaticCallTargetAt(
                                   caller_frame->pc(), caller_code));
   if (target_code.ptr() !=
@@ -1613,6 +1615,7 @@ static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
 enum class MissHandler {
   kInlineCacheMiss,
   kSwitchableCallMiss,
+  kFixCallersTargetMonomorphic,
 };
 
 // Handles updating of type feedback and possible patching of instance calls.
@@ -2132,12 +2135,21 @@ void PatchableCallHandler::ReturnJIT(const Code& stub,
                                      const Function& target) {
   // In JIT we can have two different miss handlers to which we return slightly
   // differently.
-  if (miss_handler_ == MissHandler::kSwitchableCallMiss) {
-    arguments_.SetArgAt(0, stub);  // Second return value.
-    arguments_.SetReturn(data);
-  } else {
-    ASSERT(miss_handler_ == MissHandler::kInlineCacheMiss);
-    arguments_.SetReturn(target);
+  switch (miss_handler_) {
+    case MissHandler::kSwitchableCallMiss: {
+      arguments_.SetArgAt(0, stub);  // Second return value.
+      arguments_.SetReturn(data);
+      break;
+    }
+    case MissHandler::kFixCallersTargetMonomorphic: {
+      arguments_.SetArgAt(1, data);  // Second return value.
+      arguments_.SetReturn(stub);
+      break;
+    }
+    case MissHandler::kInlineCacheMiss: {
+      arguments_.SetReturn(target);
+      break;
+    }
   }
 }
 
@@ -2954,8 +2966,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   // With isolate groups enabled, it is possible that the target code
   // has been deactivated just now(as a result of re-optimizatin for example),
   // which will result in another run through FixCallersTarget.
-  ASSERT(!current_target_code.IsDisabled() ||
-         IsolateGroup::AreIsolateGroupsEnabled());
+  ASSERT(!current_target_code.IsDisabled() || FLAG_enable_isolate_groups);
   arguments.SetReturn(current_target_code);
 #else
   UNREACHABLE();
@@ -2964,49 +2975,25 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 
 // The caller must be a monomorphic call from unoptimized code.
 // Patch call to point to new target.
-DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 0) {
+DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 2) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
-                              StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != NULL);
-  while (frame->IsStubFrame() || frame->IsExitFrame()) {
-    frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
-  }
-  if (frame->IsEntryFrame()) {
-    // Since function's current code is always unpatched, the entry frame always
-    // calls to unpatched code.
-    UNREACHABLE();
-  }
-  ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
-  RELEASE_ASSERT(!caller_code.is_optimized());
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& switchable_call_data =
+      Array::CheckedHandle(zone, arguments.ArgAt(1));
 
-  Object& cache = Object::Handle(zone);
-  const Code& old_target_code = Code::Handle(
-      zone, CodePatcher::GetInstanceCallAt(frame->pc(), caller_code, &cache));
-  const Function& target_function =
-      Function::Handle(zone, old_target_code.function());
-  const Code& current_target_code =
-      Code::Handle(zone, target_function.EnsureHasCode());
-  CodePatcher::PatchInstanceCallAt(frame->pc(), caller_code, cache,
-                                   current_target_code);
-  if (FLAG_trace_patching) {
-    OS::PrintErr(
-        "FixCallersTargetMonomorphic: caller %#" Px
-        " "
-        "target '%s' -> %#" Px " (%s)\n",
-        frame->pc(), target_function.ToFullyQualifiedCString(),
-        current_target_code.EntryPoint(),
-        current_target_code.is_optimized() ? "optimized" : "unoptimized");
-  }
-  // With isolate groups enabled, it is possible that the target code
-  // has been deactivated just now(as a result of re-optimizatin for example),
-  // which will result in another run through FixCallersTarget.
-  ASSERT(!current_target_code.IsDisabled() ||
-         IsolateGroup::AreIsolateGroupsEnabled());
-  arguments.SetReturn(current_target_code);
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  const auto& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
+  const auto& caller_function =
+      Function::Handle(zone, caller_frame->LookupDartFunction());
+
+  GrowableArray<const Instance*> caller_arguments(1);
+  caller_arguments.Add(&receiver);
+  PatchableCallHandler handler(
+      thread, caller_arguments, MissHandler::kFixCallersTargetMonomorphic,
+      arguments, caller_frame, caller_code, caller_function);
+  handler.ResolveSwitchAndReturn(switchable_call_data);
 #else
   UNREACHABLE();
 #endif
@@ -3608,7 +3595,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
   return thread;
 }
 
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 #pragma intrinsic(_ReturnAddress)
 #endif
 
@@ -3619,7 +3606,7 @@ static Thread* GetThreadForNativeCallback(uword callback_id,
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   void* return_address = _ReturnAddress();
 #else
   void* return_address = __builtin_return_address(0);
@@ -3679,10 +3666,29 @@ extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope) {
   TRACE_RUNTIME_CALL("AllocateHandle returning %p", return_value);
   return return_value;
 }
+
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
     AllocateHandle,
     1,
     false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&DLRT_AllocateHandle));
+
+#if defined(USING_THREAD_SANITIZER)
+#define TSAN_ACQUIRE reinterpret_cast<RuntimeFunction>(&__tsan_acquire)
+#define TSAN_RELEASE reinterpret_cast<RuntimeFunction>(&__tsan_release)
+#else
+#define TSAN_ACQUIRE nullptr
+#define TSAN_RELEASE nullptr
+#endif
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanLoadAcquire,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+                              TSAN_ACQUIRE);
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(TsanStoreRelease,
+                              /*argument_count=*/1,
+                              /*is_float=*/false,
+                              TSAN_RELEASE);
 
 }  // namespace dart

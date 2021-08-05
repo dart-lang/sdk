@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
@@ -18,6 +16,7 @@ import '../fasta_codes.dart'
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 
+import 'builder.dart';
 import 'class_builder.dart';
 import 'declaration_builder.dart';
 import 'library_builder.dart';
@@ -29,26 +28,34 @@ import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
 class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
-  TypeBuilder bound;
+  /// Sentinel value used to indicate that the variable has no name. This is
+  /// used for error recovery.
+  static const String noNameSentinel = 'no name sentinel';
 
-  TypeBuilder defaultType;
+  TypeBuilder? bound;
+
+  TypeBuilder? defaultType;
 
   final TypeParameter actualParameter;
 
-  TypeVariableBuilder actualOrigin;
+  TypeVariableBuilder? actualOrigin;
 
   final bool isExtensionTypeParameter;
 
-  TypeVariableBuilder(String name, SourceLibraryBuilder compilationUnit,
-      int charOffset, Uri fileUri,
+  @override
+  final Uri? fileUri;
+
+  TypeVariableBuilder(
+      String name, Builder? compilationUnit, int charOffset, this.fileUri,
       {this.bound,
       this.isExtensionTypeParameter: false,
-      int variableVariance,
-      List<MetadataBuilder> metadata})
-      : actualParameter = new TypeParameter(name, null)
-          ..fileOffset = charOffset
-          ..variance = variableVariance,
-        super(metadata, 0, name, compilationUnit, charOffset, fileUri);
+      int? variableVariance,
+      List<MetadataBuilder>? metadata})
+      : actualParameter =
+            new TypeParameter(name == noNameSentinel ? null : name, null)
+              ..fileOffset = charOffset
+              ..variance = variableVariance,
+        super(metadata, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
       TypeParameter parameter, LibraryBuilder compilationUnit)
@@ -56,7 +63,9 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         this.isExtensionTypeParameter = false,
-        super(null, 0, parameter.name, compilationUnit, parameter.fileOffset);
+        fileUri = compilationUnit.fileUri,
+        super(null, 0, parameter.name ?? '', compilationUnit,
+            parameter.fileOffset);
 
   bool get isTypeVariable => true;
 
@@ -66,7 +75,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     buffer.write(name);
     if (bound != null) {
       buffer.write(" extends ");
-      bound.printOn(buffer);
+      bound!.printOn(buffer);
     }
     return buffer;
   }
@@ -85,11 +94,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   }
 
   DartType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
-      [bool notInstanceContext]) {
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
+      {bool? nonInstanceContext}) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
-      Uri fileUri = null; // TODO(ahe): Provide these.
+      Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
@@ -112,14 +121,15 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     } else {
       nullability = nullabilityBuilder.build(library);
     }
-    DartType type = buildTypesWithBuiltArguments(library, nullability, null);
+    TypeParameterType type =
+        buildTypesWithBuiltArguments(library, nullability, null);
     if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
-        library.registerPendingNullability(fileUri, charOffset, type);
+        library.registerPendingNullability(fileUri!, charOffset, type);
       } else {
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
-                name, library?.importUri),
+                name, library.importUri),
             charOffset,
             name.length,
             fileUri);
@@ -128,11 +138,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     return type;
   }
 
-  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
-      Nullability nullability, List<DartType> arguments) {
+  TypeParameterType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType>? arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
-      Uri fileUri = null; // TODO(ahe): Provide these.
+      Uri? fileUri = null; // TODO(ahe): Provide these.
       library.addProblem(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
           charOffset,
@@ -151,9 +161,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
-    // TODO(jensj): Provide correct notInstanceContext.
     DartType objectType =
-        object.buildType(library, library.nullableBuilder, null, null);
+        object.buildType(library, library.nullableBuilder, null);
     if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
       parameter.bound = bound?.build(library) ?? objectType;
     }
@@ -181,19 +190,19 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
     // An alternative is to use the offset of the node the cloned type variable
     // is declared on.
-    return new TypeVariableBuilder(name, parent, charOffset, fileUri,
+    return new TypeVariableBuilder(name, parent!, charOffset, fileUri,
         bound: bound?.clone(newTypes, contextLibrary, contextDeclaration),
         variableVariance: variance);
   }
 
   void buildOutlineExpressions(
-      LibraryBuilder libraryBuilder,
-      DeclarationBuilder classOrExtensionBuilder,
-      MemberBuilder memberBuilder,
+      SourceLibraryBuilder libraryBuilder,
+      DeclarationBuilder? classOrExtensionBuilder,
+      MemberBuilder? memberBuilder,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
-        classOrExtensionBuilder, memberBuilder, fileUri);
+        classOrExtensionBuilder, memberBuilder, fileUri!);
   }
 
   @override
@@ -204,14 +213,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   @override
   int get hashCode => parameter.hashCode;
 
-  static List<TypeParameter> typeParametersFromBuilders(
-      List<TypeVariableBuilder> builders) {
+  static List<TypeParameter>? typeParametersFromBuilders(
+      List<TypeVariableBuilder>? builders) {
     if (builders == null) return null;
-    List<TypeParameter> result =
-        new List<TypeParameter>.filled(builders.length, null, growable: true);
-    for (int i = 0; i < builders.length; i++) {
-      result[i] = builders[i].parameter;
-    }
-    return result;
+    return new List<TypeParameter>.generate(
+        builders.length, (int i) => builders[i].parameter,
+        growable: true);
   }
 }

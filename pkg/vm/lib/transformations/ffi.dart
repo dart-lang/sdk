@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 // This file contains logic which is shared between the ffi_definition and
 // ffi_use_site transformers.
 
@@ -292,7 +290,9 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  Library? currentLibrary;
+  Library? _currentLibrary;
+  Library get currentLibrary => _currentLibrary!;
+
   IndexedLibrary? currentLibraryIndex;
 
   FfiTransformer(this.index, this.coreTypes, this.hierarchy,
@@ -459,11 +459,11 @@ class FfiTransformer extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
-    assert(currentLibrary == null);
-    currentLibrary = node;
+    assert(_currentLibrary == null);
+    _currentLibrary = node;
     currentLibraryIndex = referenceFromIndex?.lookupLibrary(node);
     final result = super.visitLibrary(node);
-    currentLibrary = null;
+    _currentLibrary = null;
     return result;
   }
 

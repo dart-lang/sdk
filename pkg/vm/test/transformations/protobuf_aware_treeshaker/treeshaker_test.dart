@@ -36,7 +36,7 @@ Future<void> shakeAndRun(Uri source) async {
       .expand(
         (lib) => lib.classes.where((klass) =>
             klass.superclass != null &&
-            klass.superclass.name == "GeneratedMessage"),
+            klass.superclass!.name == "GeneratedMessage"),
       )
       .toList();
 

@@ -330,7 +330,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       }
       server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
       if (resolvedUnit.state == ResultState.VALID) {
-        if (offset < 0 || offset > resolvedUnit.content!.length) {
+        if (offset < 0 || offset > resolvedUnit.content.length) {
           server.sendResponse(Response.invalidParameter(
               request,
               'params.offset',
@@ -339,7 +339,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           return;
         }
 
-        recordRequest(performance, file, resolvedUnit.content!, offset);
+        recordRequest(performance, file, resolvedUnit.content, offset);
       }
       var declarationsTracker = server.declarationsTracker;
       if (declarationsTracker == null) {

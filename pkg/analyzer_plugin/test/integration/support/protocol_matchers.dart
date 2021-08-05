@@ -591,15 +591,16 @@ final Matcher isLinkedEditSuggestionKind = MatchesEnum(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
-///   "endLine": int
-///   "endColumn": int
+///   "endLine": optional int
+///   "endColumn": optional int
 /// }
 final Matcher isLocation = LazyMatcher(() => MatchesJsonObject('Location', {
       'file': isFilePath,
       'offset': isInt,
       'length': isInt,
       'startLine': isInt,
-      'startColumn': isInt,
+      'startColumn': isInt
+    }, optionalFields: {
       'endLine': isInt,
       'endColumn': isInt
     }));

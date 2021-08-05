@@ -1,14 +1,18 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// @dart = 2.9
+
 // Test correct source positions in stack trace with optimized functions.
+
 import "package:expect/expect.dart";
 
 // (1) Test normal exception.
 foo(x) => bar(x);
 
 bar(x) {
-  if (x == null) throw 42; // throw at position 11:18
+  if (x == null) throw 42; // throw at position 15:18
   return x + 1;
 }
 
@@ -22,7 +26,7 @@ test1() {
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
     RegExp regex =
-        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:15");
     Expect.isTrue(regex.hasMatch(s), "B");
   }
 
@@ -36,7 +40,7 @@ test1() {
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
     RegExp regex =
-        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:15");
     Expect.isTrue(regex.hasMatch(s), "D");
   }
 }

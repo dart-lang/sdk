@@ -64,7 +64,7 @@ class ExpectedResult {
 class SearchTest extends PubPackageResolutionTest {
   AnalysisDriver get driver => driverFor(testFilePath);
 
-  CompilationUnitElement get resultUnitElement => result.unit!.declaredElement!;
+  CompilationUnitElement get resultUnitElement => result.unit.declaredElement!;
 
   String get testUriStr => 'package:test/test.dart';
 
@@ -378,7 +378,7 @@ class A {
     var element = findElement.unnamedConstructor('A');
 
     var otherUnitResult = await driver.getResult2(other) as ResolvedUnitResult;
-    CompilationUnit otherUnit = otherUnitResult.unit!;
+    CompilationUnit otherUnit = otherUnitResult.unit;
     Element main = otherUnit.declaredElement!.functions[0];
     var expected = [
       ExpectedResult(main, SearchResultKind.REFERENCE,

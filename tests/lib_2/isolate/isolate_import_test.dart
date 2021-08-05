@@ -4,15 +4,15 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups
 // VMOptions=--no-enable-isolate-groups
 
 library IsolateImportNegativeTest;
 
 // Omitting the following import is an error:
-/* // //# 01: runtime error, compile-time error
+/* //# 01: compile-time error
 import 'dart:isolate';
-*/ // //# 01: continued
+*/ //# 01: continued
 import 'package:async_helper/async_helper.dart';
 
 void entry(msg) {}

@@ -81,7 +81,7 @@ namespace dart {
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x00fc4650)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x0df019c5)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xea1eac09)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xea1eafca)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x97728b46)             \
   V(_Double, _add, DoubleAdd, 0xea666327)                                      \
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
@@ -148,16 +148,16 @@ namespace dart {
   V(_Int32x4, _withFlagY, Int32x4WithFlagY, 0xa8cf9ba6)                        \
   V(_Int32x4, _withFlagZ, Int32x4WithFlagZ, 0xa8058854)                        \
   V(_Int32x4, _withFlagW, Int32x4WithFlagW, 0xb333f958)                        \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x882671dc)               \
-  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0xa2be9418)               \
-  V(_HashVMBase, get:_data, LinkedHashMap_getData, 0x780e14ad)                 \
-  V(_HashVMBase, set:_data, LinkedHashMap_setData, 0xb6a5c369)                 \
-  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 0x470893ed)         \
-  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 0xb3c887a9)         \
-  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 0x4f0ec79c)         \
-  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 0xbbcebb58)         \
-  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x510dc4a0)   \
-  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0xbdcdb85c)   \
+  V(_HashVMBase, get:_index, LinkedHashBase_getIndex, 0x882671dc)              \
+  V(_HashVMBase, set:_index, LinkedHashBase_setIndex, 0xa2be9418)              \
+  V(_HashVMBase, get:_data, LinkedHashBase_getData, 0x780e14ad)                \
+  V(_HashVMBase, set:_data, LinkedHashBase_setData, 0xb6a5c369)                \
+  V(_HashVMBase, get:_usedData, LinkedHashBase_getUsedData, 0x470893ed)        \
+  V(_HashVMBase, set:_usedData, LinkedHashBase_setUsedData, 0xb3c887a9)        \
+  V(_HashVMBase, get:_hashMask, LinkedHashBase_getHashMask, 0x4f0ec79c)        \
+  V(_HashVMBase, set:_hashMask, LinkedHashBase_setHashMask, 0xbbcebb58)        \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashBase_getDeletedKeys, 0x510dc4a0)  \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashBase_setDeletedKeys, 0xbdcdb85c)  \
   V(_WeakProperty, get:key, WeakProperty_getKey, 0xde00e462)                   \
   V(_WeakProperty, set:key, WeakProperty_setKey, 0x963a095f)                   \
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
@@ -197,6 +197,7 @@ namespace dart {
   V(::, _storePointer, FfiStorePointer, 0xea6b7751)                            \
   V(::, _fromAddress, FfiFromAddress, 0xfd8cb1cc)                              \
   V(Pointer, get:address, FfiGetAddress, 0x7cde87be)                           \
+  V(::, getNativeField, GetNativeField, 0x95b4ec94)                            \
   V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \

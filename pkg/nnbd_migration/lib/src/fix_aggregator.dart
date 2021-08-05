@@ -911,6 +911,34 @@ class NodeChangeForIfStatement extends NodeChange<IfStatement>
 }
 
 /// Implementation of [NodeChange] specialized for operating on
+/// [MethodDeclaration] nodes.
+class NodeChangeForMethodDeclaration extends NodeChange<MethodDeclaration> {
+  /// If non-null, indicates a `@nullable` annotation which should be removed
+  /// from this node.
+  Annotation? annotationToRemove;
+
+  /// If [annotationToRemove] is non-null, the information that should be
+  /// contained in the edit.
+  AtomicEditInfo? removeAnnotationInfo;
+
+  NodeChangeForMethodDeclaration() : super._();
+
+  @override
+  Iterable<String> get _toStringParts =>
+      [if (annotationToRemove != null) 'annotationToRemove'];
+
+  @override
+  EditPlan _apply(MethodDeclaration node, FixAggregator aggregator) {
+    return aggregator.planner.passThrough(node, innerPlans: [
+      if (annotationToRemove != null)
+        aggregator.planner
+            .removeNode(annotationToRemove!, info: removeAnnotationInfo),
+      ...aggregator.innerPlansForNode(node),
+    ]);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
 /// [MethodInvocation] nodes.
 class NodeChangeForMethodInvocation
     extends NodeChangeForExpression<MethodInvocation>
@@ -1421,6 +1449,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
 
   @override
   NodeChange visitIfStatement(IfStatement node) => NodeChangeForIfStatement();
+
+  @override
+  NodeChange visitMethodDeclaration(MethodDeclaration node) =>
+      NodeChangeForMethodDeclaration();
 
   @override
   NodeChange visitMethodInvocation(MethodInvocation node) =>

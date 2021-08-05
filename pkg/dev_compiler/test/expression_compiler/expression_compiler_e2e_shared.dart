@@ -173,8 +173,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -215,8 +215,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -257,8 +257,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -366,8 +366,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -420,7 +420,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField',
-          expectedError: "Error: Getter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('access field', () async {
@@ -476,7 +476,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField = 2',
-          expectedError: "Setter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('static field modification', () async {
@@ -501,8 +501,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -649,8 +649,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -712,8 +712,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('compilation error', () async {
@@ -780,8 +780,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('call function not using type', () async {
@@ -840,8 +840,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('expression using local', () async {
@@ -881,8 +881,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('(then) expression using local', () async {
@@ -948,8 +948,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('expression loop variable', () async {
@@ -975,8 +975,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('evaluate formals', () async {
@@ -1020,8 +1020,8 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.initSource(setup, source);
     });
 
-    tearDownAll(() {
-      driver.cleanupTest();
+    tearDownAll(() async {
+      await driver.cleanupTest();
     });
 
     test('evaluation that non-destructively appends to the type container',

@@ -1,7 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 main() {
-{s A;<}>
+{s A;<*synthetic*}>
 [];}
 
 main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]

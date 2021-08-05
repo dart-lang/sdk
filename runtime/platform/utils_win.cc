@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 
 #include <io.h>  // NOLINT
+
 #include "platform/allocation.h"
 #include "platform/utils.h"
+#include "platform/utils_win.h"
 
 namespace dart {
 
@@ -86,4 +88,4 @@ int Utils::Unlink(const char* path) {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_WINDOWS)
+#endif  // defined(DART_HOST_OS_WINDOWS)

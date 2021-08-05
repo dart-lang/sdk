@@ -178,7 +178,7 @@ class _DartNavigationCollector {
       return null;
     }
 
-    var parsedLibrary = session.getParsedLibrary2(libraryPath);
+    var parsedLibrary = session.getParsedLibrary(libraryPath);
     if (parsedLibrary is! ParsedLibraryResult) {
       return null;
     }
@@ -261,7 +261,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
               uriNode.offset,
               uriNode.length,
               protocol.ElementKind.LIBRARY,
-              protocol.Location(source.fullName, 0, 0, 0, 0, 0, 0));
+              protocol.Location(source.fullName, 0, 0, 0, 0,
+                  endLine: 0, endColumn: 0));
         }
       }
     }

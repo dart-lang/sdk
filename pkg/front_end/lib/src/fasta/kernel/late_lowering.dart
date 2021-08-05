@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
 import '../../base/nnbd_mode.dart';
 import '../source/source_library_builder.dart';
-import '../names.dart';
 
 const String lateFieldPrefix = '_#';
 const String lateIsSetSuffix = '#isSet';
@@ -22,19 +19,14 @@ const String lateLocalSetterSuffix = '#set';
 ///
 /// Late final fields and locals need to detect writes during initialization and
 /// therefore uses [createGetterWithInitializerWithRecheck] instead.
-Statement createGetterWithInitializer(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    DartType type,
-    Expression initializer,
-    bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
-        {bool needsPromotion}),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
+    String name, DartType type, Expression initializer,
+    {required Expression createVariableRead({bool needsPromotion}),
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding}) {
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
@@ -65,8 +57,7 @@ Statement createGetterWithInitializer(
             // If [type] is a type variable with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
-            createVariableRead(useNewMethodInvocationEncoding,
-                needsPromotion: type.isPotentiallyNonNullable))
+            createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
           ..fileOffset = fileOffset
       ])
         ..fileOffset = fileOffset;
@@ -75,9 +66,7 @@ Statement createGetterWithInitializer(
       //
       //    return let # = _#field in isSentinel(#) ? _#field = <init> : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding,
-              needsPromotion: false)
-            ..fileOffset = fileOffset,
+          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -102,52 +91,36 @@ Statement createGetterWithInitializer(
       //
       //    return let # = _#field in # == null ? _#field = <init> : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding,
-              needsPromotion: false)
-            ..fileOffset = fileOffset,
+          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
-      return new ReturnStatement(new Let(
-          variable,
-          new ConditionalExpression(
-              useNewMethodInvocationEncoding
-                  ? (new EqualsNull(
+      return new ReturnStatement(
+          new Let(
+              variable,
+              new ConditionalExpression(
+                  new EqualsNull(
                       new VariableGet(variable)..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset)
-                  : new MethodInvocation(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      equalsName,
-                      new Arguments(<Expression>[
-                        new NullLiteral()..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-              createVariableWrite(initializer)..fileOffset = fileOffset,
-              new VariableGet(variable, type)..fileOffset = fileOffset,
-              type)
+                    ..fileOffset = fileOffset,
+                  createVariableWrite(initializer)..fileOffset = fileOffset,
+                  new VariableGet(variable, type)..fileOffset = fileOffset,
+                  type)
+                ..fileOffset = fileOffset)
             ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late final field or local with an initializer.
-Statement createGetterWithInitializerWithRecheck(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    DartType type,
-    Expression initializer,
-    bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
-        {bool needsPromotion}),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
+    int fileOffset, String name, DartType type, Expression initializer,
+    {required Expression createVariableRead({bool needsPromotion}),
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
   Constructor constructor = forField
       ? coreTypes.lateInitializationFieldAssignedDuringInitializationConstructor
@@ -203,8 +176,7 @@ Statement createGetterWithInitializerWithRecheck(
             // If [type] is a type variable with undetermined nullability we
             // need to create a read of the field that is promoted to the type
             // variable type.
-            createVariableRead(useNewMethodInvocationEncoding,
-                needsPromotion: type.isPotentiallyNonNullable))
+            createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
           ..fileOffset = fileOffset
       ])
         ..fileOffset = fileOffset;
@@ -216,43 +188,41 @@ Statement createGetterWithInitializerWithRecheck(
       //            ? _#field = #2 : throw '...'
       //        : #1;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding,
-              needsPromotion: false)
-            ..fileOffset = fileOffset,
+          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
           type: type)
         ..fileOffset = fileOffset;
-      return new ReturnStatement(new Let(
-          variable,
-          new ConditionalExpression(
-              new StaticInvocation(
-                  coreTypes.isSentinelMethod,
-                  new Arguments(<Expression>[
-                    new VariableGet(variable)..fileOffset = fileOffset
-                  ])
-                    ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-              new Let(
-                  temp,
-                  new ConditionalExpression(
-                      new StaticInvocation(
-                          coreTypes.isSentinelMethod,
-                          new Arguments(<Expression>[
-                            createVariableRead(useNewMethodInvocationEncoding,
-                                needsPromotion: false)
-                              ..fileOffset = fileOffset
-                          ])
-                            ..fileOffset = fileOffset)
-                        ..fileOffset = fileOffset,
-                      createVariableWrite(
-                          new VariableGet(temp)..fileOffset = fileOffset)
-                        ..fileOffset = fileOffset,
-                      exception,
-                      type)
-                    ..fileOffset = fileOffset),
-              new VariableGet(variable)..fileOffset = fileOffset,
-              type)
+      return new ReturnStatement(
+          new Let(
+              variable,
+              new ConditionalExpression(
+                  new StaticInvocation(
+                      coreTypes.isSentinelMethod,
+                      new Arguments(<Expression>[
+                        new VariableGet(variable)..fileOffset = fileOffset
+                      ])
+                        ..fileOffset = fileOffset)
+                    ..fileOffset = fileOffset,
+                  new Let(
+                      temp,
+                      new ConditionalExpression(
+                          new StaticInvocation(
+                              coreTypes.isSentinelMethod,
+                              new Arguments(<Expression>[
+                                createVariableRead(needsPromotion: false)
+                                  ..fileOffset = fileOffset
+                              ])
+                                ..fileOffset = fileOffset)
+                            ..fileOffset = fileOffset,
+                          createVariableWrite(
+                              new VariableGet(temp)..fileOffset = fileOffset)
+                            ..fileOffset = fileOffset,
+                          exception,
+                          type)
+                        ..fileOffset = fileOffset),
+                  new VariableGet(variable)..fileOffset = fileOffset,
+                  type)
+                ..fileOffset = fileOffset)
             ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
     case IsSetEncoding.useNull:
       // Generate:
@@ -262,74 +232,48 @@ Statement createGetterWithInitializerWithRecheck(
       //            ? _#field = #2 : throw '...'
       //        : #1;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding,
-              needsPromotion: false)
-            ..fileOffset = fileOffset,
+          createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
-      return new ReturnStatement(new Let(
-          variable,
-          new ConditionalExpression(
-              useNewMethodInvocationEncoding
-                  ? (new EqualsNull(
+      return new ReturnStatement(
+          new Let(
+              variable,
+              new ConditionalExpression(
+                  new EqualsNull(
                       new VariableGet(variable)..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset)
-                  : new MethodInvocation(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      equalsName,
-                      new Arguments(<Expression>[
-                        new NullLiteral()..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-              new Let(
-                  temp,
-                  new ConditionalExpression(
-                      useNewMethodInvocationEncoding
-                          ? (new EqualsNull(
-                              createVariableRead(useNewMethodInvocationEncoding,
-                                  needsPromotion: false)
+                    ..fileOffset = fileOffset,
+                  new Let(
+                      temp,
+                      new ConditionalExpression(
+                          new EqualsNull(
+                              createVariableRead(needsPromotion: false)
                                 ..fileOffset = fileOffset)
-                            ..fileOffset = fileOffset)
-                          : new MethodInvocation(
-                              createVariableRead(useNewMethodInvocationEncoding,
-                                  needsPromotion: false)
-                                ..fileOffset = fileOffset,
-                              equalsName,
-                              new Arguments(<Expression>[
-                                new NullLiteral()..fileOffset = fileOffset
-                              ])
-                                ..fileOffset = fileOffset)
-                        ..fileOffset = fileOffset,
-                      createVariableWrite(
-                          new VariableGet(temp)..fileOffset = fileOffset)
-                        ..fileOffset = fileOffset,
-                      exception,
-                      type)
-                    ..fileOffset = fileOffset),
-              new VariableGet(variable, type)..fileOffset = fileOffset,
-              type)
+                            ..fileOffset = fileOffset,
+                          createVariableWrite(
+                              new VariableGet(temp)..fileOffset = fileOffset)
+                            ..fileOffset = fileOffset,
+                          exception,
+                          type)
+                        ..fileOffset = fileOffset),
+                  new VariableGet(variable, type)..fileOffset = fileOffset,
+                  type)
+                ..fileOffset = fileOffset)
             ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized getter used to encode the lowering
 /// of a late field or local without an initializer.
 Statement createGetterBodyWithoutInitializer(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    DartType type,
-    bool useNewMethodInvocationEncoding,
-    {Expression createVariableRead(bool useNewMethodInvocationEncoding,
-        {bool needsPromotion}),
-    Expression createIsSetRead(),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+    CoreTypes coreTypes, int fileOffset, String name, DartType type,
+    {required Expression createVariableRead({bool needsPromotion}),
+    required Expression createIsSetRead(),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
@@ -349,8 +293,7 @@ Statement createGetterBodyWithoutInitializer(
       return new ReturnStatement(
           new ConditionalExpression(
               createIsSetRead()..fileOffset = fileOffset,
-              createVariableRead(useNewMethodInvocationEncoding,
-                  needsPromotion: type.isPotentiallyNonNullable)
+              createVariableRead(needsPromotion: type.isPotentiallyNonNullable)
                 ..fileOffset = fileOffset,
               exception,
               type)
@@ -361,8 +304,7 @@ Statement createGetterBodyWithoutInitializer(
       //
       //    return let # = _#field in isSentinel(#) ? throw '...' : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding)
-            ..fileOffset = fileOffset,
+          createVariableRead()..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
       return new ReturnStatement(
@@ -387,43 +329,34 @@ Statement createGetterBodyWithoutInitializer(
       //
       //    return let # = _#field in # == null ? throw '...' : #;
       VariableDeclaration variable = new VariableDeclaration.forValue(
-          createVariableRead(useNewMethodInvocationEncoding)
-            ..fileOffset = fileOffset,
+          createVariableRead()..fileOffset = fileOffset,
           type: type.withDeclaredNullability(Nullability.nullable))
         ..fileOffset = fileOffset;
-      return new ReturnStatement(new Let(
-          variable,
-          new ConditionalExpression(
-              useNewMethodInvocationEncoding
-                  ? (new EqualsNull(
+      return new ReturnStatement(
+          new Let(
+              variable,
+              new ConditionalExpression(
+                  new EqualsNull(
                       new VariableGet(variable)..fileOffset = fileOffset)
-                    ..fileOffset = fileOffset)
-                  : new MethodInvocation(
-                      new VariableGet(variable)..fileOffset = fileOffset,
-                      equalsName,
-                      new Arguments(<Expression>[
-                        new NullLiteral()..fileOffset = fileOffset
-                      ])
-                        ..fileOffset = fileOffset)
-                ..fileOffset = fileOffset,
-              exception,
-              new VariableGet(variable, type)..fileOffset = fileOffset,
-              type)
+                    ..fileOffset = fileOffset,
+                  exception,
+                  new VariableGet(variable, type)..fileOffset = fileOffset,
+                  type)
+                ..fileOffset = fileOffset)
             ..fileOffset = fileOffset)
-        ..fileOffset = fileOffset)
         ..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized setter used to encode the lowering
 /// of a non-final late field or local.
 Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
     VariableDeclaration parameter, DartType type,
-    {bool shouldReturnValue,
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding}) {
+    {required bool shouldReturnValue,
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding}) {
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Statement createReturn(Expression value) {
     if (shouldReturnValue) {
@@ -460,26 +393,22 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
       //
       return assignment;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Creates the body for the synthesized setter used to encode the lowering
 /// of a final late field or local.
-Statement createSetterBodyFinal(
-    CoreTypes coreTypes,
-    int fileOffset,
-    String name,
-    VariableDeclaration parameter,
-    DartType type,
-    bool useNewMethodInvocationEncoding,
-    {bool shouldReturnValue,
-    Expression createVariableRead(bool useNewMethodInvocationEncoding),
-    Expression createVariableWrite(Expression value),
-    Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value),
-    IsSetEncoding isSetEncoding,
-    bool forField}) {
+Statement createSetterBodyFinal(CoreTypes coreTypes, int fileOffset,
+    String name, VariableDeclaration parameter, DartType type,
+    {required bool shouldReturnValue,
+    required Expression createVariableRead(),
+    required Expression createVariableWrite(Expression value),
+    required Expression createIsSetRead(),
+    required Expression createIsSetWrite(Expression value),
+    required IsSetEncoding isSetEncoding,
+    required bool forField}) {
+  // ignore: unnecessary_null_comparison
   assert(forField != null);
+  // ignore: unnecessary_null_comparison
   assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
@@ -535,10 +464,8 @@ Statement createSetterBodyFinal(
       return new IfStatement(
         new StaticInvocation(
             coreTypes.isSentinelMethod,
-            new Arguments(<Expression>[
-              createVariableRead(useNewMethodInvocationEncoding)
-                ..fileOffset = fileOffset
-            ])
+            new Arguments(
+                <Expression>[createVariableRead()..fileOffset = fileOffset])
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
         createReturn(createVariableWrite(
@@ -555,18 +482,7 @@ Statement createSetterBodyFinal(
       //      throw '...';
       //    }
       return new IfStatement(
-        useNewMethodInvocationEncoding
-            ? (new EqualsNull(
-                createVariableRead(useNewMethodInvocationEncoding)
-                  ..fileOffset = fileOffset)
-              ..fileOffset = fileOffset)
-            : new MethodInvocation(
-                createVariableRead(useNewMethodInvocationEncoding)
-                  ..fileOffset = fileOffset,
-                equalsName,
-                new Arguments(
-                    <Expression>[new NullLiteral()..fileOffset = fileOffset])
-                  ..fileOffset = fileOffset)
+        new EqualsNull(createVariableRead()..fileOffset = fileOffset)
           ..fileOffset = fileOffset,
         createReturn(createVariableWrite(
             new VariableGet(parameter)..fileOffset = fileOffset)
@@ -574,7 +490,6 @@ Statement createSetterBodyFinal(
         new ExpressionStatement(exception)..fileOffset = fileOffset,
       )..fileOffset = fileOffset;
   }
-  throw new UnsupportedError("Unexpected IsSetEncoding $isSetEncoding");
 }
 
 /// Strategies for encoding whether a late field/local has been initialized.
@@ -648,7 +563,6 @@ IsSetEncoding computeIsSetEncoding(DartType type, IsSetStrategy isSetStrategy) {
           ? IsSetEncoding.useSentinel
           : IsSetEncoding.useNull;
   }
-  throw new UnsupportedError("Unexpected IsSetStrategy $isSetStrategy");
 }
 
 /// Returns the name used for the variable that holds the value of a late

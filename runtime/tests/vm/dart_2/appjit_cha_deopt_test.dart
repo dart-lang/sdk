@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // OtherResources=appjit_cha_deopt_test_body.dart
 // VMOptions=--optimization-counter-threshold=100 --deterministic
 

@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method getElements() → core::Iterable<core::int*>* sync* {
+  core::Iterable<core::int*>* elements;
+  elements = (() → core::Iterable<core::int*>* sync* {
+    yield 7;
+  })(){() →* core::Iterable<core::int*>*};
+  yield* elements;
+}
+static method main() → dynamic
+  return core::print(self::getElements());

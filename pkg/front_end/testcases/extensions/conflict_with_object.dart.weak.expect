@@ -71,15 +71,15 @@ static method main() → dynamic {
 }
 static method errors() → dynamic {
   core::int* value;
-  value = let final Never* #t1 = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:27:14: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'int'.
+  value = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:27:14: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'int'.
  - 'Invocation' is from 'dart:core'.
   value = \"\".noSuchMethod;
              ^" in "".{core::Object::noSuchMethod}{(core::Invocation*) →* dynamic} as{TypeError} core::int*;
   invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:28:6: Error: The setter 'hashCode' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'hashCode'.
   \"\".hashCode = 42;
-     ^^^^^^^^";
-  value = let final Never* #t2 = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:29:14: Error: A value of type 'Type' can't be assigned to a variable of type 'int'.
+     ^^^^^^^^" in ""{<unresolved>}.hashCode = 42;
+  value = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:29:14: Error: A value of type 'Type' can't be assigned to a variable of type 'int'.
  - 'Type' is from 'dart:core'.
   value = \"\".runtimeType;
              ^" in "".{core::Object::runtimeType}{core::Type*} as{TypeError} core::int*;

@@ -28,10 +28,13 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
 
   AnnotatedTextEdit(
       {required this.annotationId, required this.range, required this.newText});
-  static AnnotatedTextEdit fromJson(Map<String, dynamic> json) {
-    final annotationId = json['annotationId'];
-    final range = Range.fromJson(json['range']);
-    final newText = json['newText'];
+  static AnnotatedTextEdit fromJson(Map<String, Object?> json) {
+    final annotationIdJson = json['annotationId'];
+    final annotationId = annotationIdJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
     return AnnotatedTextEdit(
         annotationId: annotationId, range: range, newText: newText);
   }
@@ -46,8 +49,8 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['annotationId'] = annotationId;
     __result['range'] = range.toJson();
     __result['newText'] = newText;
@@ -55,18 +58,19 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('annotationId');
       try {
         if (!obj.containsKey('annotationId')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['annotationId'] == null) {
+        final annotationId = obj['annotationId'];
+        if (annotationId == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['annotationId'] is String)) {
+        if (!(annotationId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -79,11 +83,12 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -96,11 +101,12 @@ class AnnotatedTextEdit implements TextEdit, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newText'] == null) {
+        final newText = obj['newText'];
+        if (newText == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newText'] is String)) {
+        if (!(newText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -143,9 +149,11 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       ApplyWorkspaceEditParams.canParse, ApplyWorkspaceEditParams.fromJson);
 
   ApplyWorkspaceEditParams({this.label, required this.edit});
-  static ApplyWorkspaceEditParams fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
-    final edit = WorkspaceEdit.fromJson(json['edit']);
+  static ApplyWorkspaceEditParams fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String?;
+    final editJson = json['edit'];
+    final edit = WorkspaceEdit.fromJson(editJson as Map<String, Object?>);
     return ApplyWorkspaceEditParams(label: label, edit: edit);
   }
 
@@ -156,8 +164,8 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   /// user interface for example on an undo stack to undo the workspace edit.
   final String? label;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (label != null) {
       __result['label'] = label;
     }
@@ -166,10 +174,11 @@ class ApplyWorkspaceEditParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        final label = obj['label'];
+        if (label != null && !(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -182,11 +191,12 @@ class ApplyWorkspaceEditParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['edit'] == null) {
+        final edit = obj['edit'];
+        if (edit == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(WorkspaceEdit.canParse(obj['edit'], reporter))) {
+        if (!(WorkspaceEdit.canParse(edit, reporter))) {
           reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
@@ -227,10 +237,13 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
 
   ApplyWorkspaceEditResponse(
       {required this.applied, this.failureReason, this.failedChange});
-  static ApplyWorkspaceEditResponse fromJson(Map<String, dynamic> json) {
-    final applied = json['applied'];
-    final failureReason = json['failureReason'];
-    final failedChange = json['failedChange'];
+  static ApplyWorkspaceEditResponse fromJson(Map<String, Object?> json) {
+    final appliedJson = json['applied'];
+    final applied = appliedJson as bool;
+    final failureReasonJson = json['failureReason'];
+    final failureReason = failureReasonJson as String?;
+    final failedChangeJson = json['failedChange'];
+    final failedChange = failedChangeJson as int?;
     return ApplyWorkspaceEditResponse(
         applied: applied,
         failureReason: failureReason,
@@ -251,8 +264,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   /// error for a request that triggered the edit.
   final String? failureReason;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['applied'] = applied;
     if (failureReason != null) {
       __result['failureReason'] = failureReason;
@@ -264,18 +277,19 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('applied');
       try {
         if (!obj.containsKey('applied')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['applied'] == null) {
+        final applied = obj['applied'];
+        if (applied == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['applied'] is bool)) {
+        if (!(applied is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -284,7 +298,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       reporter.push('failureReason');
       try {
-        if (obj['failureReason'] != null && !(obj['failureReason'] is String)) {
+        final failureReason = obj['failureReason'];
+        if (failureReason != null && !(failureReason is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -293,7 +308,8 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       reporter.push('failedChange');
       try {
-        if (obj['failedChange'] != null && !(obj['failedChange'] is int)) {
+        final failedChange = obj['failedChange'];
+        if (failedChange != null && !(failedChange is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -338,8 +354,9 @@ class CallHierarchyClientCapabilities implements ToJsonable {
       CallHierarchyClientCapabilities.fromJson);
 
   CallHierarchyClientCapabilities({this.dynamicRegistration});
-  static CallHierarchyClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static CallHierarchyClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return CallHierarchyClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -350,8 +367,8 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -359,11 +376,11 @@ class CallHierarchyClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -402,12 +419,13 @@ class CallHierarchyIncomingCall implements ToJsonable {
       CallHierarchyIncomingCall.canParse, CallHierarchyIncomingCall.fromJson);
 
   CallHierarchyIncomingCall({required this.from, required this.fromRanges});
-  static CallHierarchyIncomingCall fromJson(Map<String, dynamic> json) {
-    final from = CallHierarchyItem.fromJson(json['from']);
-    final fromRanges = json['fromRanges']
-        ?.map((item) => Range.fromJson(item))
-        ?.cast<Range>()
-        ?.toList();
+  static CallHierarchyIncomingCall fromJson(Map<String, Object?> json) {
+    final fromJson = json['from'];
+    final from = CallHierarchyItem.fromJson(fromJson as Map<String, Object?>);
+    final fromRangesJson = json['fromRanges'];
+    final fromRanges = (fromRangesJson as List<Object?>)
+        .map((item) => Range.fromJson(item as Map<String, Object?>))
+        .toList();
     return CallHierarchyIncomingCall(from: from, fromRanges: fromRanges);
   }
 
@@ -418,26 +436,27 @@ class CallHierarchyIncomingCall implements ToJsonable {
   /// denoted by [`this.from`](#CallHierarchyIncomingCall.from).
   final List<Range> fromRanges;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['from'] = from.toJson();
     __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('from');
       try {
         if (!obj.containsKey('from')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['from'] == null) {
+        final from = obj['from'];
+        if (from == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(obj['from'], reporter))) {
+        if (!(CallHierarchyItem.canParse(from, reporter))) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -450,13 +469,13 @@ class CallHierarchyIncomingCall implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['fromRanges'] == null) {
+        final fromRanges = obj['fromRanges'];
+        if (fromRanges == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['fromRanges'] is List &&
-            (obj['fromRanges']
-                .every((item) => Range.canParse(item, reporter)))))) {
+        if (!((fromRanges is List &&
+            (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -502,22 +521,25 @@ class CallHierarchyIncomingCallsParams
 
   CallHierarchyIncomingCallsParams(
       {required this.item, this.workDoneToken, this.partialResultToken});
-  static CallHierarchyIncomingCallsParams fromJson(Map<String, dynamic> json) {
-    final item = CallHierarchyItem.fromJson(json['item']);
-    final workDoneToken = json['workDoneToken'] == null
+  static CallHierarchyIncomingCallsParams fromJson(Map<String, Object?> json) {
+    final itemJson = json['item'];
+    final item = CallHierarchyItem.fromJson(itemJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CallHierarchyIncomingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -533,8 +555,8 @@ class CallHierarchyIncomingCallsParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['item'] = item.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -546,18 +568,19 @@ class CallHierarchyIncomingCallsParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('item');
       try {
         if (!obj.containsKey('item')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['item'] == null) {
+        final item = obj['item'];
+        if (item == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(obj['item'], reporter))) {
+        if (!(CallHierarchyItem.canParse(item, reporter))) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -566,9 +589,9 @@ class CallHierarchyIncomingCallsParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -577,9 +600,9 @@ class CallHierarchyIncomingCallsParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -631,18 +654,26 @@ class CallHierarchyItem implements ToJsonable {
       required this.range,
       required this.selectionRange,
       this.data});
-  static CallHierarchyItem fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final kind = SymbolKind.fromJson(json['kind']);
-    final tags = json['tags']
-        ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
-        ?.cast<SymbolTag>()
-        ?.toList();
-    final detail = json['detail'];
-    final uri = json['uri'];
-    final range = Range.fromJson(json['range']);
-    final selectionRange = Range.fromJson(json['selectionRange']);
-    final data = json['data'];
+  static CallHierarchyItem fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final kindJson = json['kind'];
+    final kind = SymbolKind.fromJson(kindJson as int);
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => SymbolTag.fromJson(item as num))
+        .toList();
+    final detailJson = json['detail'];
+    final detail = detailJson as String?;
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final selectionRangeJson = json['selectionRange'];
+    final selectionRange =
+        Range.fromJson(selectionRangeJson as Map<String, Object?>);
+    final dataJson = json['data'];
+    final data = dataJson;
     return CallHierarchyItem(
         name: name,
         kind: kind,
@@ -656,7 +687,7 @@ class CallHierarchyItem implements ToJsonable {
 
   /// A data entry field that is preserved between a call hierarchy prepare and
   /// incoming calls or outgoing calls requests.
-  final dynamic data;
+  final Object? data;
 
   /// More detail for this item, e.g. the signature of a function.
   final String? detail;
@@ -682,8 +713,8 @@ class CallHierarchyItem implements ToJsonable {
   /// The resource identifier of this item.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     __result['kind'] = kind.toJson();
     if (tags != null) {
@@ -702,18 +733,19 @@ class CallHierarchyItem implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -726,11 +758,12 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(obj['kind'], reporter))) {
+        if (!(SymbolKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -739,10 +772,10 @@ class CallHierarchyItem implements ToJsonable {
       }
       reporter.push('tags');
       try {
-        if (obj['tags'] != null &&
-            !((obj['tags'] is List &&
-                (obj['tags']
-                    .every((item) => SymbolTag.canParse(item, reporter)))))) {
+        final tags = obj['tags'];
+        if (tags != null &&
+            !((tags is List &&
+                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -751,7 +784,8 @@ class CallHierarchyItem implements ToJsonable {
       }
       reporter.push('detail');
       try {
-        if (obj['detail'] != null && !(obj['detail'] is String)) {
+        final detail = obj['detail'];
+        if (detail != null && !(detail is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -764,11 +798,12 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -781,11 +816,12 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -798,11 +834,12 @@ class CallHierarchyItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['selectionRange'] == null) {
+        final selectionRange = obj['selectionRange'];
+        if (selectionRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['selectionRange'], reporter))) {
+        if (!(Range.canParse(selectionRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -855,18 +892,19 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
       CallHierarchyOptions.canParse, CallHierarchyOptions.fromJson);
 
   CallHierarchyOptions({this.workDoneProgress});
-  static CallHierarchyOptions fromJson(Map<String, dynamic> json) {
+  static CallHierarchyOptions fromJson(Map<String, Object?> json) {
     if (CallHierarchyRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CallHierarchyRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CallHierarchyOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -874,11 +912,11 @@ class CallHierarchyOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -917,12 +955,13 @@ class CallHierarchyOutgoingCall implements ToJsonable {
       CallHierarchyOutgoingCall.canParse, CallHierarchyOutgoingCall.fromJson);
 
   CallHierarchyOutgoingCall({required this.to, required this.fromRanges});
-  static CallHierarchyOutgoingCall fromJson(Map<String, dynamic> json) {
-    final to = CallHierarchyItem.fromJson(json['to']);
-    final fromRanges = json['fromRanges']
-        ?.map((item) => Range.fromJson(item))
-        ?.cast<Range>()
-        ?.toList();
+  static CallHierarchyOutgoingCall fromJson(Map<String, Object?> json) {
+    final toJson = json['to'];
+    final to = CallHierarchyItem.fromJson(toJson as Map<String, Object?>);
+    final fromRangesJson = json['fromRanges'];
+    final fromRanges = (fromRangesJson as List<Object?>)
+        .map((item) => Range.fromJson(item as Map<String, Object?>))
+        .toList();
     return CallHierarchyOutgoingCall(to: to, fromRanges: fromRanges);
   }
 
@@ -933,26 +972,27 @@ class CallHierarchyOutgoingCall implements ToJsonable {
   /// The item that is called.
   final CallHierarchyItem to;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['to'] = to.toJson();
     __result['fromRanges'] = fromRanges.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('to');
       try {
         if (!obj.containsKey('to')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['to'] == null) {
+        final to = obj['to'];
+        if (to == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(obj['to'], reporter))) {
+        if (!(CallHierarchyItem.canParse(to, reporter))) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -965,13 +1005,13 @@ class CallHierarchyOutgoingCall implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['fromRanges'] == null) {
+        final fromRanges = obj['fromRanges'];
+        if (fromRanges == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['fromRanges'] is List &&
-            (obj['fromRanges']
-                .every((item) => Range.canParse(item, reporter)))))) {
+        if (!((fromRanges is List &&
+            (fromRanges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -1017,22 +1057,25 @@ class CallHierarchyOutgoingCallsParams
 
   CallHierarchyOutgoingCallsParams(
       {required this.item, this.workDoneToken, this.partialResultToken});
-  static CallHierarchyOutgoingCallsParams fromJson(Map<String, dynamic> json) {
-    final item = CallHierarchyItem.fromJson(json['item']);
-    final workDoneToken = json['workDoneToken'] == null
+  static CallHierarchyOutgoingCallsParams fromJson(Map<String, Object?> json) {
+    final itemJson = json['item'];
+    final item = CallHierarchyItem.fromJson(itemJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CallHierarchyOutgoingCallsParams(
         item: item,
         workDoneToken: workDoneToken,
@@ -1048,8 +1091,8 @@ class CallHierarchyOutgoingCallsParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['item'] = item.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -1061,18 +1104,19 @@ class CallHierarchyOutgoingCallsParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('item');
       try {
         if (!obj.containsKey('item')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['item'] == null) {
+        final item = obj['item'];
+        if (item == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CallHierarchyItem.canParse(obj['item'], reporter))) {
+        if (!(CallHierarchyItem.canParse(item, reporter))) {
           reporter.reportError('must be of type CallHierarchyItem');
           return false;
         }
@@ -1081,9 +1125,9 @@ class CallHierarchyOutgoingCallsParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1092,9 +1136,9 @@ class CallHierarchyOutgoingCallsParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1140,16 +1184,20 @@ class CallHierarchyPrepareParams
 
   CallHierarchyPrepareParams(
       {required this.textDocument, required this.position, this.workDoneToken});
-  static CallHierarchyPrepareParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static CallHierarchyPrepareParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return CallHierarchyPrepareParams(
         textDocument: textDocument,
         position: position,
@@ -1165,8 +1213,8 @@ class CallHierarchyPrepareParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -1176,18 +1224,19 @@ class CallHierarchyPrepareParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -1200,11 +1249,12 @@ class CallHierarchyPrepareParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -1213,9 +1263,9 @@ class CallHierarchyPrepareParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1266,13 +1316,15 @@ class CallHierarchyRegistrationOptions
 
   CallHierarchyRegistrationOptions(
       {this.documentSelector, this.workDoneProgress, this.id});
-  static CallHierarchyRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+  static CallHierarchyRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return CallHierarchyRegistrationOptions(
         documentSelector: documentSelector,
         workDoneProgress: workDoneProgress,
@@ -1288,8 +1340,8 @@ class CallHierarchyRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -1301,16 +1353,17 @@ class CallHierarchyRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -1320,8 +1373,8 @@ class CallHierarchyRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1330,7 +1383,8 @@ class CallHierarchyRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1375,37 +1429,39 @@ class CancelParams implements ToJsonable {
       LspJsonHandler(CancelParams.canParse, CancelParams.fromJson);
 
   CancelParams({required this.id});
-  static CancelParams fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is int
-        ? Either2<int, String>.t1(json['id'])
-        : (json['id'] is String
-            ? Either2<int, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (int, String)'''));
+  static CancelParams fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson is int
+        ? Either2<int, String>.t1(idJson)
+        : (idJson is String
+            ? Either2<int, String>.t2(idJson)
+            : (throw '''$idJson was not one of (int, String)'''));
     return CancelParams(id: id);
   }
 
   /// The request id to cancel.
   final Either2<int, String> id;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['id'] = id;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] == null) {
+        final id = obj['id'];
+        if (id == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is int || obj['id'] is String))) {
+        if (!((id is int || id is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -1446,10 +1502,13 @@ class ChangeAnnotation implements ToJsonable {
 
   ChangeAnnotation(
       {required this.label, this.needsConfirmation, this.description});
-  static ChangeAnnotation fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
-    final needsConfirmation = json['needsConfirmation'];
-    final description = json['description'];
+  static ChangeAnnotation fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final needsConfirmationJson = json['needsConfirmation'];
+    final needsConfirmation = needsConfirmationJson as bool?;
+    final descriptionJson = json['description'];
+    final description = descriptionJson as String?;
     return ChangeAnnotation(
         label: label,
         needsConfirmation: needsConfirmation,
@@ -1468,8 +1527,8 @@ class ChangeAnnotation implements ToJsonable {
   /// the change.
   final bool? needsConfirmation;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['label'] = label;
     if (needsConfirmation != null) {
       __result['needsConfirmation'] = needsConfirmation;
@@ -1481,18 +1540,19 @@ class ChangeAnnotation implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1501,8 +1561,8 @@ class ChangeAnnotation implements ToJsonable {
       }
       reporter.push('needsConfirmation');
       try {
-        if (obj['needsConfirmation'] != null &&
-            !(obj['needsConfirmation'] is bool)) {
+        final needsConfirmation = obj['needsConfirmation'];
+        if (needsConfirmation != null && !(needsConfirmation is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1511,7 +1571,8 @@ class ChangeAnnotation implements ToJsonable {
       }
       reporter.push('description');
       try {
-        if (obj['description'] != null && !(obj['description'] is String)) {
+        final description = obj['description'];
+        if (description != null && !(description is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -1559,20 +1620,28 @@ class ClientCapabilities implements ToJsonable {
       this.window,
       this.general,
       this.experimental});
-  static ClientCapabilities fromJson(Map<String, dynamic> json) {
-    final workspace = json['workspace'] != null
-        ? ClientCapabilitiesWorkspace.fromJson(json['workspace'])
+  static ClientCapabilities fromJson(Map<String, Object?> json) {
+    final workspaceJson = json['workspace'];
+    final workspace = workspaceJson != null
+        ? ClientCapabilitiesWorkspace.fromJson(
+            workspaceJson as Map<String, Object?>)
         : null;
-    final textDocument = json['textDocument'] != null
-        ? TextDocumentClientCapabilities.fromJson(json['textDocument'])
+    final textDocumentJson = json['textDocument'];
+    final textDocument = textDocumentJson != null
+        ? TextDocumentClientCapabilities.fromJson(
+            textDocumentJson as Map<String, Object?>)
         : null;
-    final window = json['window'] != null
-        ? ClientCapabilitiesWindow.fromJson(json['window'])
+    final windowJson = json['window'];
+    final window = windowJson != null
+        ? ClientCapabilitiesWindow.fromJson(windowJson as Map<String, Object?>)
         : null;
-    final general = json['general'] != null
-        ? ClientCapabilitiesGeneral.fromJson(json['general'])
+    final generalJson = json['general'];
+    final general = generalJson != null
+        ? ClientCapabilitiesGeneral.fromJson(
+            generalJson as Map<String, Object?>)
         : null;
-    final experimental = json['experimental'];
+    final experimentalJson = json['experimental'];
+    final experimental = experimentalJson;
     return ClientCapabilities(
         workspace: workspace,
         textDocument: textDocument,
@@ -1582,7 +1651,7 @@ class ClientCapabilities implements ToJsonable {
   }
 
   /// Experimental client capabilities.
-  final dynamic experimental;
+  final Object? experimental;
 
   /// General client capabilities.
   ///  @since 3.16.0
@@ -1597,8 +1666,8 @@ class ClientCapabilities implements ToJsonable {
   /// Workspace specific client capabilities.
   final ClientCapabilitiesWorkspace? workspace;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workspace != null) {
       __result['workspace'] = workspace?.toJson();
     }
@@ -1618,12 +1687,12 @@ class ClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workspace');
       try {
-        if (obj['workspace'] != null &&
-            !(ClientCapabilitiesWorkspace.canParse(
-                obj['workspace'], reporter))) {
+        final workspace = obj['workspace'];
+        if (workspace != null &&
+            !(ClientCapabilitiesWorkspace.canParse(workspace, reporter))) {
           reporter.reportError('must be of type ClientCapabilitiesWorkspace');
           return false;
         }
@@ -1632,9 +1701,10 @@ class ClientCapabilities implements ToJsonable {
       }
       reporter.push('textDocument');
       try {
-        if (obj['textDocument'] != null &&
+        final textDocument = obj['textDocument'];
+        if (textDocument != null &&
             !(TextDocumentClientCapabilities.canParse(
-                obj['textDocument'], reporter))) {
+                textDocument, reporter))) {
           reporter
               .reportError('must be of type TextDocumentClientCapabilities');
           return false;
@@ -1644,8 +1714,9 @@ class ClientCapabilities implements ToJsonable {
       }
       reporter.push('window');
       try {
-        if (obj['window'] != null &&
-            !(ClientCapabilitiesWindow.canParse(obj['window'], reporter))) {
+        final window = obj['window'];
+        if (window != null &&
+            !(ClientCapabilitiesWindow.canParse(window, reporter))) {
           reporter.reportError('must be of type ClientCapabilitiesWindow');
           return false;
         }
@@ -1654,8 +1725,9 @@ class ClientCapabilities implements ToJsonable {
       }
       reporter.push('general');
       try {
-        if (obj['general'] != null &&
-            !(ClientCapabilitiesGeneral.canParse(obj['general'], reporter))) {
+        final general = obj['general'];
+        if (general != null &&
+            !(ClientCapabilitiesGeneral.canParse(general, reporter))) {
           reporter.reportError('must be of type ClientCapabilitiesGeneral');
           return false;
         }
@@ -1711,14 +1783,21 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       this.willRename,
       this.didDelete,
       this.willDelete});
-  static ClientCapabilitiesFileOperations fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final didCreate = json['didCreate'];
-    final willCreate = json['willCreate'];
-    final didRename = json['didRename'];
-    final willRename = json['willRename'];
-    final didDelete = json['didDelete'];
-    final willDelete = json['willDelete'];
+  static ClientCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final didCreateJson = json['didCreate'];
+    final didCreate = didCreateJson as bool?;
+    final willCreateJson = json['willCreate'];
+    final willCreate = willCreateJson as bool?;
+    final didRenameJson = json['didRename'];
+    final didRename = didRenameJson as bool?;
+    final willRenameJson = json['willRename'];
+    final willRename = willRenameJson as bool?;
+    final didDeleteJson = json['didDelete'];
+    final didDelete = didDeleteJson as bool?;
+    final willDeleteJson = json['willDelete'];
+    final willDelete = willDeleteJson as bool?;
     return ClientCapabilitiesFileOperations(
         dynamicRegistration: dynamicRegistration,
         didCreate: didCreate,
@@ -1751,8 +1830,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
   /// The client has support for sending willRenameFiles requests.
   final bool? willRename;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -1778,11 +1857,11 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1791,7 +1870,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('didCreate');
       try {
-        if (obj['didCreate'] != null && !(obj['didCreate'] is bool)) {
+        final didCreate = obj['didCreate'];
+        if (didCreate != null && !(didCreate is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1800,7 +1880,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willCreate');
       try {
-        if (obj['willCreate'] != null && !(obj['willCreate'] is bool)) {
+        final willCreate = obj['willCreate'];
+        if (willCreate != null && !(willCreate is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1809,7 +1890,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('didRename');
       try {
-        if (obj['didRename'] != null && !(obj['didRename'] is bool)) {
+        final didRename = obj['didRename'];
+        if (didRename != null && !(didRename is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1818,7 +1900,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willRename');
       try {
-        if (obj['willRename'] != null && !(obj['willRename'] is bool)) {
+        final willRename = obj['willRename'];
+        if (willRename != null && !(willRename is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1827,7 +1910,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('didDelete');
       try {
-        if (obj['didDelete'] != null && !(obj['didDelete'] is bool)) {
+        final didDelete = obj['didDelete'];
+        if (didDelete != null && !(didDelete is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1836,7 +1920,8 @@ class ClientCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willDelete');
       try {
-        if (obj['willDelete'] != null && !(obj['willDelete'] is bool)) {
+        final willDelete = obj['willDelete'];
+        if (willDelete != null && !(willDelete is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -1888,13 +1973,16 @@ class ClientCapabilitiesGeneral implements ToJsonable {
       ClientCapabilitiesGeneral.canParse, ClientCapabilitiesGeneral.fromJson);
 
   ClientCapabilitiesGeneral({this.regularExpressions, this.markdown});
-  static ClientCapabilitiesGeneral fromJson(Map<String, dynamic> json) {
-    final regularExpressions = json['regularExpressions'] != null
+  static ClientCapabilitiesGeneral fromJson(Map<String, Object?> json) {
+    final regularExpressionsJson = json['regularExpressions'];
+    final regularExpressions = regularExpressionsJson != null
         ? RegularExpressionsClientCapabilities.fromJson(
-            json['regularExpressions'])
+            regularExpressionsJson as Map<String, Object?>)
         : null;
-    final markdown = json['markdown'] != null
-        ? MarkdownClientCapabilities.fromJson(json['markdown'])
+    final markdownJson = json['markdown'];
+    final markdown = markdownJson != null
+        ? MarkdownClientCapabilities.fromJson(
+            markdownJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesGeneral(
         regularExpressions: regularExpressions, markdown: markdown);
@@ -1908,8 +1996,8 @@ class ClientCapabilitiesGeneral implements ToJsonable {
   ///  @since 3.16.0
   final RegularExpressionsClientCapabilities? regularExpressions;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (regularExpressions != null) {
       __result['regularExpressions'] = regularExpressions?.toJson();
     }
@@ -1920,12 +2008,13 @@ class ClientCapabilitiesGeneral implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('regularExpressions');
       try {
-        if (obj['regularExpressions'] != null &&
+        final regularExpressions = obj['regularExpressions'];
+        if (regularExpressions != null &&
             !(RegularExpressionsClientCapabilities.canParse(
-                obj['regularExpressions'], reporter))) {
+                regularExpressions, reporter))) {
           reporter.reportError(
               'must be of type RegularExpressionsClientCapabilities');
           return false;
@@ -1935,8 +2024,9 @@ class ClientCapabilitiesGeneral implements ToJsonable {
       }
       reporter.push('markdown');
       try {
-        if (obj['markdown'] != null &&
-            !(MarkdownClientCapabilities.canParse(obj['markdown'], reporter))) {
+        final markdown = obj['markdown'];
+        if (markdown != null &&
+            !(MarkdownClientCapabilities.canParse(markdown, reporter))) {
           reporter.reportError('must be of type MarkdownClientCapabilities');
           return false;
         }
@@ -1979,13 +2069,18 @@ class ClientCapabilitiesWindow implements ToJsonable {
 
   ClientCapabilitiesWindow(
       {this.workDoneProgress, this.showMessage, this.showDocument});
-  static ClientCapabilitiesWindow fromJson(Map<String, dynamic> json) {
-    final workDoneProgress = json['workDoneProgress'];
-    final showMessage = json['showMessage'] != null
-        ? ShowMessageRequestClientCapabilities.fromJson(json['showMessage'])
+  static ClientCapabilitiesWindow fromJson(Map<String, Object?> json) {
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final showMessageJson = json['showMessage'];
+    final showMessage = showMessageJson != null
+        ? ShowMessageRequestClientCapabilities.fromJson(
+            showMessageJson as Map<String, Object?>)
         : null;
-    final showDocument = json['showDocument'] != null
-        ? ShowDocumentClientCapabilities.fromJson(json['showDocument'])
+    final showDocumentJson = json['showDocument'];
+    final showDocument = showDocumentJson != null
+        ? ShowDocumentClientCapabilities.fromJson(
+            showDocumentJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesWindow(
         workDoneProgress: workDoneProgress,
@@ -2007,8 +2102,8 @@ class ClientCapabilitiesWindow implements ToJsonable {
   ///  @since 3.15.0
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -2022,11 +2117,11 @@ class ClientCapabilitiesWindow implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2035,9 +2130,10 @@ class ClientCapabilitiesWindow implements ToJsonable {
       }
       reporter.push('showMessage');
       try {
-        if (obj['showMessage'] != null &&
+        final showMessage = obj['showMessage'];
+        if (showMessage != null &&
             !(ShowMessageRequestClientCapabilities.canParse(
-                obj['showMessage'], reporter))) {
+                showMessage, reporter))) {
           reporter.reportError(
               'must be of type ShowMessageRequestClientCapabilities');
           return false;
@@ -2047,9 +2143,10 @@ class ClientCapabilitiesWindow implements ToJsonable {
       }
       reporter.push('showDocument');
       try {
-        if (obj['showDocument'] != null &&
+        final showDocument = obj['showDocument'];
+        if (showDocument != null &&
             !(ShowDocumentClientCapabilities.canParse(
-                obj['showDocument'], reporter))) {
+                showDocument, reporter))) {
           reporter
               .reportError('must be of type ShowDocumentClientCapabilities');
           return false;
@@ -2106,36 +2203,52 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       this.semanticTokens,
       this.codeLens,
       this.fileOperations});
-  static ClientCapabilitiesWorkspace fromJson(Map<String, dynamic> json) {
-    final applyEdit = json['applyEdit'];
-    final workspaceEdit = json['workspaceEdit'] != null
-        ? WorkspaceEditClientCapabilities.fromJson(json['workspaceEdit'])
+  static ClientCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
+    final applyEditJson = json['applyEdit'];
+    final applyEdit = applyEditJson as bool?;
+    final workspaceEditJson = json['workspaceEdit'];
+    final workspaceEdit = workspaceEditJson != null
+        ? WorkspaceEditClientCapabilities.fromJson(
+            workspaceEditJson as Map<String, Object?>)
         : null;
-    final didChangeConfiguration = json['didChangeConfiguration'] != null
+    final didChangeConfigurationJson = json['didChangeConfiguration'];
+    final didChangeConfiguration = didChangeConfigurationJson != null
         ? DidChangeConfigurationClientCapabilities.fromJson(
-            json['didChangeConfiguration'])
+            didChangeConfigurationJson as Map<String, Object?>)
         : null;
-    final didChangeWatchedFiles = json['didChangeWatchedFiles'] != null
+    final didChangeWatchedFilesJson = json['didChangeWatchedFiles'];
+    final didChangeWatchedFiles = didChangeWatchedFilesJson != null
         ? DidChangeWatchedFilesClientCapabilities.fromJson(
-            json['didChangeWatchedFiles'])
+            didChangeWatchedFilesJson as Map<String, Object?>)
         : null;
-    final symbol = json['symbol'] != null
-        ? WorkspaceSymbolClientCapabilities.fromJson(json['symbol'])
+    final symbolJson = json['symbol'];
+    final symbol = symbolJson != null
+        ? WorkspaceSymbolClientCapabilities.fromJson(
+            symbolJson as Map<String, Object?>)
         : null;
-    final executeCommand = json['executeCommand'] != null
-        ? ExecuteCommandClientCapabilities.fromJson(json['executeCommand'])
+    final executeCommandJson = json['executeCommand'];
+    final executeCommand = executeCommandJson != null
+        ? ExecuteCommandClientCapabilities.fromJson(
+            executeCommandJson as Map<String, Object?>)
         : null;
-    final workspaceFolders = json['workspaceFolders'];
-    final configuration = json['configuration'];
-    final semanticTokens = json['semanticTokens'] != null
+    final workspaceFoldersJson = json['workspaceFolders'];
+    final workspaceFolders = workspaceFoldersJson as bool?;
+    final configurationJson = json['configuration'];
+    final configuration = configurationJson as bool?;
+    final semanticTokensJson = json['semanticTokens'];
+    final semanticTokens = semanticTokensJson != null
         ? SemanticTokensWorkspaceClientCapabilities.fromJson(
-            json['semanticTokens'])
+            semanticTokensJson as Map<String, Object?>)
         : null;
-    final codeLens = json['codeLens'] != null
-        ? CodeLensWorkspaceClientCapabilities.fromJson(json['codeLens'])
+    final codeLensJson = json['codeLens'];
+    final codeLens = codeLensJson != null
+        ? CodeLensWorkspaceClientCapabilities.fromJson(
+            codeLensJson as Map<String, Object?>)
         : null;
-    final fileOperations = json['fileOperations'] != null
-        ? ClientCapabilitiesFileOperations.fromJson(json['fileOperations'])
+    final fileOperationsJson = json['fileOperations'];
+    final fileOperations = fileOperationsJson != null
+        ? ClientCapabilitiesFileOperations.fromJson(
+            fileOperationsJson as Map<String, Object?>)
         : null;
     return ClientCapabilitiesWorkspace(
         applyEdit: applyEdit,
@@ -2193,8 +2306,8 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
   ///  @since 3.6.0
   final bool? workspaceFolders;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (applyEdit != null) {
       __result['applyEdit'] = applyEdit;
     }
@@ -2232,10 +2345,11 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('applyEdit');
       try {
-        if (obj['applyEdit'] != null && !(obj['applyEdit'] is bool)) {
+        final applyEdit = obj['applyEdit'];
+        if (applyEdit != null && !(applyEdit is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2244,9 +2358,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('workspaceEdit');
       try {
-        if (obj['workspaceEdit'] != null &&
+        final workspaceEdit = obj['workspaceEdit'];
+        if (workspaceEdit != null &&
             !(WorkspaceEditClientCapabilities.canParse(
-                obj['workspaceEdit'], reporter))) {
+                workspaceEdit, reporter))) {
           reporter
               .reportError('must be of type WorkspaceEditClientCapabilities');
           return false;
@@ -2256,9 +2371,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('didChangeConfiguration');
       try {
-        if (obj['didChangeConfiguration'] != null &&
+        final didChangeConfiguration = obj['didChangeConfiguration'];
+        if (didChangeConfiguration != null &&
             !(DidChangeConfigurationClientCapabilities.canParse(
-                obj['didChangeConfiguration'], reporter))) {
+                didChangeConfiguration, reporter))) {
           reporter.reportError(
               'must be of type DidChangeConfigurationClientCapabilities');
           return false;
@@ -2268,9 +2384,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('didChangeWatchedFiles');
       try {
-        if (obj['didChangeWatchedFiles'] != null &&
+        final didChangeWatchedFiles = obj['didChangeWatchedFiles'];
+        if (didChangeWatchedFiles != null &&
             !(DidChangeWatchedFilesClientCapabilities.canParse(
-                obj['didChangeWatchedFiles'], reporter))) {
+                didChangeWatchedFiles, reporter))) {
           reporter.reportError(
               'must be of type DidChangeWatchedFilesClientCapabilities');
           return false;
@@ -2280,9 +2397,9 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('symbol');
       try {
-        if (obj['symbol'] != null &&
-            !(WorkspaceSymbolClientCapabilities.canParse(
-                obj['symbol'], reporter))) {
+        final symbol = obj['symbol'];
+        if (symbol != null &&
+            !(WorkspaceSymbolClientCapabilities.canParse(symbol, reporter))) {
           reporter
               .reportError('must be of type WorkspaceSymbolClientCapabilities');
           return false;
@@ -2292,9 +2409,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('executeCommand');
       try {
-        if (obj['executeCommand'] != null &&
+        final executeCommand = obj['executeCommand'];
+        if (executeCommand != null &&
             !(ExecuteCommandClientCapabilities.canParse(
-                obj['executeCommand'], reporter))) {
+                executeCommand, reporter))) {
           reporter
               .reportError('must be of type ExecuteCommandClientCapabilities');
           return false;
@@ -2304,8 +2422,8 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('workspaceFolders');
       try {
-        if (obj['workspaceFolders'] != null &&
-            !(obj['workspaceFolders'] is bool)) {
+        final workspaceFolders = obj['workspaceFolders'];
+        if (workspaceFolders != null && !(workspaceFolders is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2314,7 +2432,8 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('configuration');
       try {
-        if (obj['configuration'] != null && !(obj['configuration'] is bool)) {
+        final configuration = obj['configuration'];
+        if (configuration != null && !(configuration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2323,9 +2442,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('semanticTokens');
       try {
-        if (obj['semanticTokens'] != null &&
+        final semanticTokens = obj['semanticTokens'];
+        if (semanticTokens != null &&
             !(SemanticTokensWorkspaceClientCapabilities.canParse(
-                obj['semanticTokens'], reporter))) {
+                semanticTokens, reporter))) {
           reporter.reportError(
               'must be of type SemanticTokensWorkspaceClientCapabilities');
           return false;
@@ -2335,9 +2455,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('codeLens');
       try {
-        if (obj['codeLens'] != null &&
+        final codeLens = obj['codeLens'];
+        if (codeLens != null &&
             !(CodeLensWorkspaceClientCapabilities.canParse(
-                obj['codeLens'], reporter))) {
+                codeLens, reporter))) {
           reporter.reportError(
               'must be of type CodeLensWorkspaceClientCapabilities');
           return false;
@@ -2347,9 +2468,10 @@ class ClientCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('fileOperations');
       try {
-        if (obj['fileOperations'] != null &&
+        final fileOperations = obj['fileOperations'];
+        if (fileOperations != null &&
             !(ClientCapabilitiesFileOperations.canParse(
-                obj['fileOperations'], reporter))) {
+                fileOperations, reporter))) {
           reporter
               .reportError('must be of type ClientCapabilitiesFileOperations');
           return false;
@@ -2423,23 +2545,32 @@ class CodeAction implements ToJsonable {
       this.edit,
       this.command,
       this.data});
-  static CodeAction fromJson(Map<String, dynamic> json) {
-    final title = json['title'];
+  static CodeAction fromJson(Map<String, Object?> json) {
+    final titleJson = json['title'];
+    final title = titleJson as String;
+    final kindJson = json['kind'];
     final kind =
-        json['kind'] != null ? CodeActionKind.fromJson(json['kind']) : null;
-    final diagnostics = json['diagnostics']
-        ?.map((item) => item != null ? Diagnostic.fromJson(item) : null)
-        ?.cast<Diagnostic>()
-        ?.toList();
-    final isPreferred = json['isPreferred'];
-    final disabled = json['disabled'] != null
-        ? CodeActionDisabled.fromJson(json['disabled'])
+        kindJson != null ? CodeActionKind.fromJson(kindJson as String) : null;
+    final diagnosticsJson = json['diagnostics'];
+    final diagnostics = (diagnosticsJson as List<Object?>?)
+        ?.map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
+        .toList();
+    final isPreferredJson = json['isPreferred'];
+    final isPreferred = isPreferredJson as bool?;
+    final disabledJson = json['disabled'];
+    final disabled = disabledJson != null
+        ? CodeActionDisabled.fromJson(disabledJson as Map<String, Object?>)
         : null;
-    final edit =
-        json['edit'] != null ? WorkspaceEdit.fromJson(json['edit']) : null;
-    final command =
-        json['command'] != null ? Command.fromJson(json['command']) : null;
-    final data = json['data'];
+    final editJson = json['edit'];
+    final edit = editJson != null
+        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
+        : null;
+    final commandJson = json['command'];
+    final command = commandJson != null
+        ? Command.fromJson(commandJson as Map<String, Object?>)
+        : null;
+    final dataJson = json['data'];
+    final data = dataJson;
     return CodeAction(
         title: title,
         kind: kind,
@@ -2458,7 +2589,7 @@ class CodeAction implements ToJsonable {
   /// A data entry field that is preserved on a code action between a
   /// `textDocument/codeAction` and a `codeAction/resolve` request.
   ///  @since 3.16.0
-  final dynamic data;
+  final Object? data;
 
   /// The diagnostics that this code action resolves.
   final List<Diagnostic>? diagnostics;
@@ -2501,8 +2632,8 @@ class CodeAction implements ToJsonable {
   /// A short, human-readable, title for this code action.
   final String title;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['title'] = title;
     if (kind != null) {
       __result['kind'] = kind?.toJson();
@@ -2530,18 +2661,19 @@ class CodeAction implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['title'] == null) {
+        final title = obj['title'];
+        if (title == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['title'] is String)) {
+        if (!(title is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -2550,8 +2682,8 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(CodeActionKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(CodeActionKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type CodeActionKind');
           return false;
         }
@@ -2560,9 +2692,10 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('diagnostics');
       try {
-        if (obj['diagnostics'] != null &&
-            !((obj['diagnostics'] is List &&
-                (obj['diagnostics']
+        final diagnostics = obj['diagnostics'];
+        if (diagnostics != null &&
+            !((diagnostics is List &&
+                (diagnostics
                     .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
@@ -2572,7 +2705,8 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('isPreferred');
       try {
-        if (obj['isPreferred'] != null && !(obj['isPreferred'] is bool)) {
+        final isPreferred = obj['isPreferred'];
+        if (isPreferred != null && !(isPreferred is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2581,8 +2715,9 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('disabled');
       try {
-        if (obj['disabled'] != null &&
-            !(CodeActionDisabled.canParse(obj['disabled'], reporter))) {
+        final disabled = obj['disabled'];
+        if (disabled != null &&
+            !(CodeActionDisabled.canParse(disabled, reporter))) {
           reporter.reportError('must be of type CodeActionDisabled');
           return false;
         }
@@ -2591,8 +2726,8 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('edit');
       try {
-        if (obj['edit'] != null &&
-            !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
+        final edit = obj['edit'];
+        if (edit != null && !(WorkspaceEdit.canParse(edit, reporter))) {
           reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
@@ -2601,8 +2736,8 @@ class CodeAction implements ToJsonable {
       }
       reporter.push('command');
       try {
-        if (obj['command'] != null &&
-            !(Command.canParse(obj['command'], reporter))) {
+        final command = obj['command'];
+        if (command != null && !(Command.canParse(command, reporter))) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -2664,20 +2799,27 @@ class CodeActionClientCapabilities implements ToJsonable {
       this.dataSupport,
       this.resolveSupport,
       this.honorsChangeAnnotations});
-  static CodeActionClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final codeActionLiteralSupport = json['codeActionLiteralSupport'] != null
+  static CodeActionClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final codeActionLiteralSupportJson = json['codeActionLiteralSupport'];
+    final codeActionLiteralSupport = codeActionLiteralSupportJson != null
         ? CodeActionClientCapabilitiesCodeActionLiteralSupport.fromJson(
-            json['codeActionLiteralSupport'])
+            codeActionLiteralSupportJson as Map<String, Object?>)
         : null;
-    final isPreferredSupport = json['isPreferredSupport'];
-    final disabledSupport = json['disabledSupport'];
-    final dataSupport = json['dataSupport'];
-    final resolveSupport = json['resolveSupport'] != null
+    final isPreferredSupportJson = json['isPreferredSupport'];
+    final isPreferredSupport = isPreferredSupportJson as bool?;
+    final disabledSupportJson = json['disabledSupport'];
+    final disabledSupport = disabledSupportJson as bool?;
+    final dataSupportJson = json['dataSupport'];
+    final dataSupport = dataSupportJson as bool?;
+    final resolveSupportJson = json['resolveSupport'];
+    final resolveSupport = resolveSupportJson != null
         ? CodeActionClientCapabilitiesResolveSupport.fromJson(
-            json['resolveSupport'])
+            resolveSupportJson as Map<String, Object?>)
         : null;
-    final honorsChangeAnnotations = json['honorsChangeAnnotations'];
+    final honorsChangeAnnotationsJson = json['honorsChangeAnnotations'];
+    final honorsChangeAnnotations = honorsChangeAnnotationsJson as bool?;
     return CodeActionClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         codeActionLiteralSupport: codeActionLiteralSupport,
@@ -2722,8 +2864,8 @@ class CodeActionClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final CodeActionClientCapabilitiesResolveSupport? resolveSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -2749,11 +2891,11 @@ class CodeActionClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2762,9 +2904,10 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('codeActionLiteralSupport');
       try {
-        if (obj['codeActionLiteralSupport'] != null &&
+        final codeActionLiteralSupport = obj['codeActionLiteralSupport'];
+        if (codeActionLiteralSupport != null &&
             !(CodeActionClientCapabilitiesCodeActionLiteralSupport.canParse(
-                obj['codeActionLiteralSupport'], reporter))) {
+                codeActionLiteralSupport, reporter))) {
           reporter.reportError(
               'must be of type CodeActionClientCapabilitiesCodeActionLiteralSupport');
           return false;
@@ -2774,8 +2917,8 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('isPreferredSupport');
       try {
-        if (obj['isPreferredSupport'] != null &&
-            !(obj['isPreferredSupport'] is bool)) {
+        final isPreferredSupport = obj['isPreferredSupport'];
+        if (isPreferredSupport != null && !(isPreferredSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2784,8 +2927,8 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('disabledSupport');
       try {
-        if (obj['disabledSupport'] != null &&
-            !(obj['disabledSupport'] is bool)) {
+        final disabledSupport = obj['disabledSupport'];
+        if (disabledSupport != null && !(disabledSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2794,7 +2937,8 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('dataSupport');
       try {
-        if (obj['dataSupport'] != null && !(obj['dataSupport'] is bool)) {
+        final dataSupport = obj['dataSupport'];
+        if (dataSupport != null && !(dataSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2803,9 +2947,10 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('resolveSupport');
       try {
-        if (obj['resolveSupport'] != null &&
+        final resolveSupport = obj['resolveSupport'];
+        if (resolveSupport != null &&
             !(CodeActionClientCapabilitiesResolveSupport.canParse(
-                obj['resolveSupport'], reporter))) {
+                resolveSupport, reporter))) {
           reporter.reportError(
               'must be of type CodeActionClientCapabilitiesResolveSupport');
           return false;
@@ -2815,8 +2960,9 @@ class CodeActionClientCapabilities implements ToJsonable {
       }
       reporter.push('honorsChangeAnnotations');
       try {
-        if (obj['honorsChangeAnnotations'] != null &&
-            !(obj['honorsChangeAnnotations'] is bool)) {
+        final honorsChangeAnnotations = obj['honorsChangeAnnotations'];
+        if (honorsChangeAnnotations != null &&
+            !(honorsChangeAnnotations is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -2870,11 +3016,11 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
 
   CodeActionClientCapabilitiesCodeActionKind({required this.valueSet});
   static CodeActionClientCapabilitiesCodeActionKind fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => CodeActionKind.fromJson(item))
-        ?.cast<CodeActionKind>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
     return CodeActionClientCapabilitiesCodeActionKind(valueSet: valueSet);
   }
 
@@ -2883,26 +3029,27 @@ class CodeActionClientCapabilitiesCodeActionKind implements ToJsonable {
   /// gracefully and falls back to a default value when unknown.
   final List<CodeActionKind> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet']
+        if (!((valueSet is List &&
+            (valueSet
                 .every((item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
@@ -2949,9 +3096,10 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   CodeActionClientCapabilitiesCodeActionLiteralSupport(
       {required this.codeActionKind});
   static CodeActionClientCapabilitiesCodeActionLiteralSupport fromJson(
-      Map<String, dynamic> json) {
+      Map<String, Object?> json) {
+    final codeActionKindJson = json['codeActionKind'];
     final codeActionKind = CodeActionClientCapabilitiesCodeActionKind.fromJson(
-        json['codeActionKind']);
+        codeActionKindJson as Map<String, Object?>);
     return CodeActionClientCapabilitiesCodeActionLiteralSupport(
         codeActionKind: codeActionKind);
   }
@@ -2959,26 +3107,27 @@ class CodeActionClientCapabilitiesCodeActionLiteralSupport
   /// The code action kind is supported with the following value set.
   final CodeActionClientCapabilitiesCodeActionKind codeActionKind;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['codeActionKind'] = codeActionKind.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('codeActionKind');
       try {
         if (!obj.containsKey('codeActionKind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['codeActionKind'] == null) {
+        final codeActionKind = obj['codeActionKind'];
+        if (codeActionKind == null) {
           reporter.reportError('must not be null');
           return false;
         }
         if (!(CodeActionClientCapabilitiesCodeActionKind.canParse(
-            obj['codeActionKind'], reporter))) {
+            codeActionKind, reporter))) {
           reporter.reportError(
               'must be of type CodeActionClientCapabilitiesCodeActionKind');
           return false;
@@ -3022,35 +3171,38 @@ class CodeActionClientCapabilitiesResolveSupport implements ToJsonable {
 
   CodeActionClientCapabilitiesResolveSupport({required this.properties});
   static CodeActionClientCapabilitiesResolveSupport fromJson(
-      Map<String, dynamic> json) {
-    final properties =
-        json['properties']?.map((item) => item)?.cast<String>()?.toList();
+      Map<String, Object?> json) {
+    final propertiesJson = json['properties'];
+    final properties = (propertiesJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
     return CodeActionClientCapabilitiesResolveSupport(properties: properties);
   }
 
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['properties'] = properties;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('properties');
       try {
         if (!obj.containsKey('properties')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['properties'] == null) {
+        final properties = obj['properties'];
+        if (properties == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['properties'] is List &&
-            (obj['properties'].every((item) => item is String))))) {
+        if (!((properties is List &&
+            (properties.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -3094,15 +3246,15 @@ class CodeActionContext implements ToJsonable {
       LspJsonHandler(CodeActionContext.canParse, CodeActionContext.fromJson);
 
   CodeActionContext({required this.diagnostics, this.only});
-  static CodeActionContext fromJson(Map<String, dynamic> json) {
-    final diagnostics = json['diagnostics']
-        ?.map((item) => Diagnostic.fromJson(item))
-        ?.cast<Diagnostic>()
-        ?.toList();
-    final only = json['only']
-        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
-        ?.cast<CodeActionKind>()
-        ?.toList();
+  static CodeActionContext fromJson(Map<String, Object?> json) {
+    final diagnosticsJson = json['diagnostics'];
+    final diagnostics = (diagnosticsJson as List<Object?>)
+        .map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
+        .toList();
+    final onlyJson = json['only'];
+    final only = (onlyJson as List<Object?>?)
+        ?.map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
     return CodeActionContext(diagnostics: diagnostics, only: only);
   }
 
@@ -3120,8 +3272,8 @@ class CodeActionContext implements ToJsonable {
   /// shown. So servers can omit computing them.
   final List<CodeActionKind>? only;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['diagnostics'] = diagnostics.map((item) => item.toJson()).toList();
     if (only != null) {
       __result['only'] = only?.map((item) => item.toJson()).toList();
@@ -3130,19 +3282,20 @@ class CodeActionContext implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('diagnostics');
       try {
         if (!obj.containsKey('diagnostics')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['diagnostics'] == null) {
+        final diagnostics = obj['diagnostics'];
+        if (diagnostics == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['diagnostics'] is List &&
-            (obj['diagnostics']
+        if (!((diagnostics is List &&
+            (diagnostics
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
@@ -3152,9 +3305,10 @@ class CodeActionContext implements ToJsonable {
       }
       reporter.push('only');
       try {
-        if (obj['only'] != null &&
-            !((obj['only'] is List &&
-                (obj['only'].every(
+        final only = obj['only'];
+        if (only != null &&
+            !((only is List &&
+                (only.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
@@ -3198,8 +3352,9 @@ class CodeActionDisabled implements ToJsonable {
       LspJsonHandler(CodeActionDisabled.canParse, CodeActionDisabled.fromJson);
 
   CodeActionDisabled({required this.reason});
-  static CodeActionDisabled fromJson(Map<String, dynamic> json) {
-    final reason = json['reason'];
+  static CodeActionDisabled fromJson(Map<String, Object?> json) {
+    final reasonJson = json['reason'];
+    final reason = reasonJson as String;
     return CodeActionDisabled(reason: reason);
   }
 
@@ -3208,25 +3363,26 @@ class CodeActionDisabled implements ToJsonable {
   /// This is displayed in the code actions UI.
   final String reason;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['reason'] = reason;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('reason');
       try {
         if (!obj.containsKey('reason')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['reason'] == null) {
+        final reason = obj['reason'];
+        if (reason == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['reason'] is String)) {
+        if (!(reason is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -3338,16 +3494,18 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
 
   CodeActionOptions(
       {this.codeActionKinds, this.resolveProvider, this.workDoneProgress});
-  static CodeActionOptions fromJson(Map<String, dynamic> json) {
+  static CodeActionOptions fromJson(Map<String, Object?> json) {
     if (CodeActionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeActionRegistrationOptions.fromJson(json);
     }
-    final codeActionKinds = json['codeActionKinds']
-        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
-        ?.cast<CodeActionKind>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+    final codeActionKindsJson = json['codeActionKinds'];
+    final codeActionKinds = (codeActionKindsJson as List<Object?>?)
+        ?.map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CodeActionOptions(
         codeActionKinds: codeActionKinds,
         resolveProvider: resolveProvider,
@@ -3366,8 +3524,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (codeActionKinds != null) {
       __result['codeActionKinds'] =
           codeActionKinds?.map((item) => item.toJson()).toList();
@@ -3382,12 +3540,13 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('codeActionKinds');
       try {
-        if (obj['codeActionKinds'] != null &&
-            !((obj['codeActionKinds'] is List &&
-                (obj['codeActionKinds'].every(
+        final codeActionKinds = obj['codeActionKinds'];
+        if (codeActionKinds != null &&
+            !((codeActionKinds is List &&
+                (codeActionKinds.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
@@ -3397,8 +3556,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3407,8 +3566,8 @@ class CodeActionOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3459,24 +3618,31 @@ class CodeActionParams
       required this.context,
       this.workDoneToken,
       this.partialResultToken});
-  static CodeActionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final range = Range.fromJson(json['range']);
-    final context = CodeActionContext.fromJson(json['context']);
-    final workDoneToken = json['workDoneToken'] == null
+  static CodeActionParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final contextJson = json['context'];
+    final context =
+        CodeActionContext.fromJson(contextJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CodeActionParams(
         textDocument: textDocument,
         range: range,
@@ -3501,8 +3667,8 @@ class CodeActionParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['range'] = range.toJson();
     __result['context'] = context.toJson();
@@ -3516,18 +3682,19 @@ class CodeActionParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -3540,11 +3707,12 @@ class CodeActionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -3557,11 +3725,12 @@ class CodeActionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['context'] == null) {
+        final context = obj['context'];
+        if (context == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CodeActionContext.canParse(obj['context'], reporter))) {
+        if (!(CodeActionContext.canParse(context, reporter))) {
           reporter.reportError('must be of type CodeActionContext');
           return false;
         }
@@ -3570,9 +3739,9 @@ class CodeActionParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3581,9 +3750,9 @@ class CodeActionParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -3636,17 +3805,19 @@ class CodeActionRegistrationOptions
       this.codeActionKinds,
       this.resolveProvider,
       this.workDoneProgress});
-  static CodeActionRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final codeActionKinds = json['codeActionKinds']
-        ?.map((item) => item != null ? CodeActionKind.fromJson(item) : null)
-        ?.cast<CodeActionKind>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+  static CodeActionRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final codeActionKindsJson = json['codeActionKinds'];
+    final codeActionKinds = (codeActionKindsJson as List<Object?>?)
+        ?.map((item) => CodeActionKind.fromJson(item as String))
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CodeActionRegistrationOptions(
         documentSelector: documentSelector,
         codeActionKinds: codeActionKinds,
@@ -3670,8 +3841,8 @@ class CodeActionRegistrationOptions
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (codeActionKinds != null) {
       __result['codeActionKinds'] =
@@ -3687,16 +3858,17 @@ class CodeActionRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -3706,9 +3878,10 @@ class CodeActionRegistrationOptions
       }
       reporter.push('codeActionKinds');
       try {
-        if (obj['codeActionKinds'] != null &&
-            !((obj['codeActionKinds'] is List &&
-                (obj['codeActionKinds'].every(
+        final codeActionKinds = obj['codeActionKinds'];
+        if (codeActionKinds != null &&
+            !((codeActionKinds is List &&
+                (codeActionKinds.every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CodeActionKind>');
           return false;
@@ -3718,8 +3891,8 @@ class CodeActionRegistrationOptions
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3728,8 +3901,8 @@ class CodeActionRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -3779,33 +3952,35 @@ class CodeDescription implements ToJsonable {
       LspJsonHandler(CodeDescription.canParse, CodeDescription.fromJson);
 
   CodeDescription({required this.href});
-  static CodeDescription fromJson(Map<String, dynamic> json) {
-    final href = json['href'];
+  static CodeDescription fromJson(Map<String, Object?> json) {
+    final hrefJson = json['href'];
+    final href = hrefJson as String;
     return CodeDescription(href: href);
   }
 
   /// An URI to open with more information about the diagnostic error.
   final String href;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['href'] = href;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('href');
       try {
         if (!obj.containsKey('href')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['href'] == null) {
+        final href = obj['href'];
+        if (href == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['href'] is String)) {
+        if (!(href is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -3849,11 +4024,15 @@ class CodeLens implements ToJsonable {
       LspJsonHandler(CodeLens.canParse, CodeLens.fromJson);
 
   CodeLens({required this.range, this.command, this.data});
-  static CodeLens fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final command =
-        json['command'] != null ? Command.fromJson(json['command']) : null;
-    final data = json['data'];
+  static CodeLens fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final commandJson = json['command'];
+    final command = commandJson != null
+        ? Command.fromJson(commandJson as Map<String, Object?>)
+        : null;
+    final dataJson = json['data'];
+    final data = dataJson;
     return CodeLens(range: range, command: command, data: data);
   }
 
@@ -3862,14 +4041,14 @@ class CodeLens implements ToJsonable {
 
   /// A data entry field that is preserved on a code lens item between a code
   /// lens and a code lens resolve request.
-  final dynamic data;
+  final Object? data;
 
   /// The range in which this code lens is valid. Should only span a single
   /// line.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (command != null) {
       __result['command'] = command?.toJson();
@@ -3881,18 +4060,19 @@ class CodeLens implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -3901,8 +4081,8 @@ class CodeLens implements ToJsonable {
       }
       reporter.push('command');
       try {
-        if (obj['command'] != null &&
-            !(Command.canParse(obj['command'], reporter))) {
+        final command = obj['command'];
+        if (command != null && !(Command.canParse(command, reporter))) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -3945,16 +4125,17 @@ class CodeLensClientCapabilities implements ToJsonable {
       CodeLensClientCapabilities.canParse, CodeLensClientCapabilities.fromJson);
 
   CodeLensClientCapabilities({this.dynamicRegistration});
-  static CodeLensClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static CodeLensClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return CodeLensClientCapabilities(dynamicRegistration: dynamicRegistration);
   }
 
   /// Whether code lens supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -3962,11 +4143,11 @@ class CodeLensClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4005,12 +4186,14 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(CodeLensOptions.canParse, CodeLensOptions.fromJson);
 
   CodeLensOptions({this.resolveProvider, this.workDoneProgress});
-  static CodeLensOptions fromJson(Map<String, dynamic> json) {
+  static CodeLensOptions fromJson(Map<String, Object?> json) {
     if (CodeLensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CodeLensRegistrationOptions.fromJson(json);
     }
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CodeLensOptions(
         resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
   }
@@ -4019,8 +4202,8 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -4031,11 +4214,11 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4044,8 +4227,8 @@ class CodeLensOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4090,22 +4273,26 @@ class CodeLensParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static CodeLensParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static CodeLensParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CodeLensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -4122,8 +4309,8 @@ class CodeLensParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -4135,18 +4322,19 @@ class CodeLensParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -4155,9 +4343,9 @@ class CodeLensParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4166,9 +4354,9 @@ class CodeLensParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4214,13 +4402,15 @@ class CodeLensRegistrationOptions
 
   CodeLensRegistrationOptions(
       {this.documentSelector, this.resolveProvider, this.workDoneProgress});
-  static CodeLensRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+  static CodeLensRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CodeLensRegistrationOptions(
         documentSelector: documentSelector,
         resolveProvider: resolveProvider,
@@ -4235,8 +4425,8 @@ class CodeLensRegistrationOptions
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -4248,16 +4438,17 @@ class CodeLensRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -4267,8 +4458,8 @@ class CodeLensRegistrationOptions
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4277,8 +4468,8 @@ class CodeLensRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4325,8 +4516,9 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
 
   CodeLensWorkspaceClientCapabilities({this.refreshSupport});
   static CodeLensWorkspaceClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final refreshSupport = json['refreshSupport'];
+      Map<String, Object?> json) {
+    final refreshSupportJson = json['refreshSupport'];
+    final refreshSupport = refreshSupportJson as bool?;
     return CodeLensWorkspaceClientCapabilities(refreshSupport: refreshSupport);
   }
 
@@ -4339,8 +4531,8 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (refreshSupport != null) {
       __result['refreshSupport'] = refreshSupport;
     }
@@ -4348,10 +4540,11 @@ class CodeLensWorkspaceClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('refreshSupport');
       try {
-        if (obj['refreshSupport'] != null && !(obj['refreshSupport'] is bool)) {
+        final refreshSupport = obj['refreshSupport'];
+        if (refreshSupport != null && !(refreshSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -4395,11 +4588,15 @@ class Color implements ToJsonable {
       required this.green,
       required this.blue,
       required this.alpha});
-  static Color fromJson(Map<String, dynamic> json) {
-    final red = json['red'];
-    final green = json['green'];
-    final blue = json['blue'];
-    final alpha = json['alpha'];
+  static Color fromJson(Map<String, Object?> json) {
+    final redJson = json['red'];
+    final red = redJson as num;
+    final greenJson = json['green'];
+    final green = greenJson as num;
+    final blueJson = json['blue'];
+    final blue = blueJson as num;
+    final alphaJson = json['alpha'];
+    final alpha = alphaJson as num;
     return Color(red: red, green: green, blue: blue, alpha: alpha);
   }
 
@@ -4415,8 +4612,8 @@ class Color implements ToJsonable {
   /// The red component of this color in the range [0-1].
   final num red;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['red'] = red;
     __result['green'] = green;
     __result['blue'] = blue;
@@ -4425,18 +4622,19 @@ class Color implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('red');
       try {
         if (!obj.containsKey('red')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['red'] == null) {
+        final red = obj['red'];
+        if (red == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['red'] is num)) {
+        if (!(red is num)) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4449,11 +4647,12 @@ class Color implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['green'] == null) {
+        final green = obj['green'];
+        if (green == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['green'] is num)) {
+        if (!(green is num)) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4466,11 +4665,12 @@ class Color implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['blue'] == null) {
+        final blue = obj['blue'];
+        if (blue == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['blue'] is num)) {
+        if (!(blue is num)) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4483,11 +4683,12 @@ class Color implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['alpha'] == null) {
+        final alpha = obj['alpha'];
+        if (alpha == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['alpha'] is num)) {
+        if (!(alpha is num)) {
           reporter.reportError('must be of type num');
           return false;
         }
@@ -4532,9 +4733,11 @@ class ColorInformation implements ToJsonable {
       LspJsonHandler(ColorInformation.canParse, ColorInformation.fromJson);
 
   ColorInformation({required this.range, required this.color});
-  static ColorInformation fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final color = Color.fromJson(json['color']);
+  static ColorInformation fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final colorJson = json['color'];
+    final color = Color.fromJson(colorJson as Map<String, Object?>);
     return ColorInformation(range: range, color: color);
   }
 
@@ -4544,26 +4747,27 @@ class ColorInformation implements ToJsonable {
   /// The range in the document where this color appears.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     __result['color'] = color.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -4576,11 +4780,12 @@ class ColorInformation implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['color'] == null) {
+        final color = obj['color'];
+        if (color == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Color.canParse(obj['color'], reporter))) {
+        if (!(Color.canParse(color, reporter))) {
           reporter.reportError('must be of type Color');
           return false;
         }
@@ -4620,14 +4825,17 @@ class ColorPresentation implements ToJsonable {
 
   ColorPresentation(
       {required this.label, this.textEdit, this.additionalTextEdits});
-  static ColorPresentation fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
-    final textEdit =
-        json['textEdit'] != null ? TextEdit.fromJson(json['textEdit']) : null;
-    final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
-        ?.cast<TextEdit>()
-        ?.toList();
+  static ColorPresentation fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final textEditJson = json['textEdit'];
+    final textEdit = textEditJson != null
+        ? TextEdit.fromJson(textEditJson as Map<String, Object?>)
+        : null;
+    final additionalTextEditsJson = json['additionalTextEdits'];
+    final additionalTextEdits = (additionalTextEditsJson as List<Object?>?)
+        ?.map((item) => TextEdit.fromJson(item as Map<String, Object?>))
+        .toList();
     return ColorPresentation(
         label: label,
         textEdit: textEdit,
@@ -4649,8 +4857,8 @@ class ColorPresentation implements ToJsonable {
   /// [label](#ColorPresentation.label) is used.
   final TextEdit? textEdit;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['label'] = label;
     if (textEdit != null) {
       __result['textEdit'] = textEdit?.toJson();
@@ -4663,18 +4871,19 @@ class ColorPresentation implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4683,8 +4892,8 @@ class ColorPresentation implements ToJsonable {
       }
       reporter.push('textEdit');
       try {
-        if (obj['textEdit'] != null &&
-            !(TextEdit.canParse(obj['textEdit'], reporter))) {
+        final textEdit = obj['textEdit'];
+        if (textEdit != null && !(TextEdit.canParse(textEdit, reporter))) {
           reporter.reportError('must be of type TextEdit');
           return false;
         }
@@ -4693,9 +4902,10 @@ class ColorPresentation implements ToJsonable {
       }
       reporter.push('additionalTextEdits');
       try {
-        if (obj['additionalTextEdits'] != null &&
-            !((obj['additionalTextEdits'] is List &&
-                (obj['additionalTextEdits']
+        final additionalTextEdits = obj['additionalTextEdits'];
+        if (additionalTextEdits != null &&
+            !((additionalTextEdits is List &&
+                (additionalTextEdits
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TextEdit>');
           return false;
@@ -4746,24 +4956,30 @@ class ColorPresentationParams
       required this.range,
       this.workDoneToken,
       this.partialResultToken});
-  static ColorPresentationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final color = Color.fromJson(json['color']);
-    final range = Range.fromJson(json['range']);
-    final workDoneToken = json['workDoneToken'] == null
+  static ColorPresentationParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final colorJson = json['color'];
+    final color = Color.fromJson(colorJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ColorPresentationParams(
         textDocument: textDocument,
         color: color,
@@ -4788,8 +5004,8 @@ class ColorPresentationParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['color'] = color.toJson();
     __result['range'] = range.toJson();
@@ -4803,18 +5019,19 @@ class ColorPresentationParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -4827,11 +5044,12 @@ class ColorPresentationParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['color'] == null) {
+        final color = obj['color'];
+        if (color == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Color.canParse(obj['color'], reporter))) {
+        if (!(Color.canParse(color, reporter))) {
           reporter.reportError('must be of type Color');
           return false;
         }
@@ -4844,11 +5062,12 @@ class ColorPresentationParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -4857,9 +5076,9 @@ class ColorPresentationParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4868,9 +5087,9 @@ class ColorPresentationParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -4917,16 +5136,19 @@ class Command implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Command.canParse, Command.fromJson);
 
   Command({required this.title, required this.command, this.arguments});
-  static Command fromJson(Map<String, dynamic> json) {
-    final title = json['title'];
-    final command = json['command'];
+  static Command fromJson(Map<String, Object?> json) {
+    final titleJson = json['title'];
+    final title = titleJson as String;
+    final commandJson = json['command'];
+    final command = commandJson as String;
+    final argumentsJson = json['arguments'];
     final arguments =
-        json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
+        (argumentsJson as List<Object?>?)?.map((item) => item).toList();
     return Command(title: title, command: command, arguments: arguments);
   }
 
   /// Arguments that the command handler should be invoked with.
-  final List<dynamic>? arguments;
+  final List<Object?>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
@@ -4934,8 +5156,8 @@ class Command implements ToJsonable {
   /// Title of the command, like `save`.
   final String title;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['title'] = title;
     __result['command'] = command;
     if (arguments != null) {
@@ -4945,18 +5167,19 @@ class Command implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['title'] == null) {
+        final title = obj['title'];
+        if (title == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['title'] is String)) {
+        if (!(title is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4969,11 +5192,12 @@ class Command implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['command'] == null) {
+        final command = obj['command'];
+        if (command == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['command'] is String)) {
+        if (!(command is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -4982,10 +5206,10 @@ class Command implements ToJsonable {
       }
       reporter.push('arguments');
       try {
-        if (obj['arguments'] != null &&
-            !((obj['arguments'] is List &&
-                (obj['arguments'].every((item) => true))))) {
-          reporter.reportError('must be of type List<dynamic>');
+        final arguments = obj['arguments'];
+        if (arguments != null &&
+            !((arguments is List && (arguments.every((item) => true))))) {
+          reporter.reportError('must be of type List<Object?>');
           return false;
         }
       } finally {
@@ -5004,7 +5228,7 @@ class Command implements ToJsonable {
       return title == other.title &&
           command == other.command &&
           listEqual(
-              arguments, other.arguments, (dynamic a, dynamic b) => a == b) &&
+              arguments, other.arguments, (Object? a, Object? b) => a == b) &&
           true;
     }
     return false;
@@ -5033,17 +5257,21 @@ class CompletionClientCapabilities implements ToJsonable {
       this.completionItem,
       this.completionItemKind,
       this.contextSupport});
-  static CompletionClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final completionItem = json['completionItem'] != null
+  static CompletionClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final completionItemJson = json['completionItem'];
+    final completionItem = completionItemJson != null
         ? CompletionClientCapabilitiesCompletionItem.fromJson(
-            json['completionItem'])
+            completionItemJson as Map<String, Object?>)
         : null;
-    final completionItemKind = json['completionItemKind'] != null
+    final completionItemKindJson = json['completionItemKind'];
+    final completionItemKind = completionItemKindJson != null
         ? CompletionClientCapabilitiesCompletionItemKind.fromJson(
-            json['completionItemKind'])
+            completionItemKindJson as Map<String, Object?>)
         : null;
-    final contextSupport = json['contextSupport'];
+    final contextSupportJson = json['contextSupport'];
+    final contextSupport = contextSupportJson as bool?;
     return CompletionClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         completionItem: completionItem,
@@ -5062,8 +5290,8 @@ class CompletionClientCapabilities implements ToJsonable {
   /// Whether completion supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -5080,11 +5308,11 @@ class CompletionClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5093,9 +5321,10 @@ class CompletionClientCapabilities implements ToJsonable {
       }
       reporter.push('completionItem');
       try {
-        if (obj['completionItem'] != null &&
+        final completionItem = obj['completionItem'];
+        if (completionItem != null &&
             !(CompletionClientCapabilitiesCompletionItem.canParse(
-                obj['completionItem'], reporter))) {
+                completionItem, reporter))) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesCompletionItem');
           return false;
@@ -5105,9 +5334,10 @@ class CompletionClientCapabilities implements ToJsonable {
       }
       reporter.push('completionItemKind');
       try {
-        if (obj['completionItemKind'] != null &&
+        final completionItemKind = obj['completionItemKind'];
+        if (completionItemKind != null &&
             !(CompletionClientCapabilitiesCompletionItemKind.canParse(
-                obj['completionItemKind'], reporter))) {
+                completionItemKind, reporter))) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesCompletionItemKind');
           return false;
@@ -5117,7 +5347,8 @@ class CompletionClientCapabilities implements ToJsonable {
       }
       reporter.push('contextSupport');
       try {
-        if (obj['contextSupport'] != null && !(obj['contextSupport'] is bool)) {
+        final contextSupport = obj['contextSupport'];
+        if (contextSupport != null && !(contextSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5174,26 +5405,35 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       this.resolveSupport,
       this.insertTextModeSupport});
   static CompletionClientCapabilitiesCompletionItem fromJson(
-      Map<String, dynamic> json) {
-    final snippetSupport = json['snippetSupport'];
-    final commitCharactersSupport = json['commitCharactersSupport'];
-    final documentationFormat = json['documentationFormat']
-        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
-        ?.cast<MarkupKind>()
-        ?.toList();
-    final deprecatedSupport = json['deprecatedSupport'];
-    final preselectSupport = json['preselectSupport'];
-    final tagSupport = json['tagSupport'] != null
-        ? CompletionClientCapabilitiesTagSupport.fromJson(json['tagSupport'])
+      Map<String, Object?> json) {
+    final snippetSupportJson = json['snippetSupport'];
+    final snippetSupport = snippetSupportJson as bool?;
+    final commitCharactersSupportJson = json['commitCharactersSupport'];
+    final commitCharactersSupport = commitCharactersSupportJson as bool?;
+    final documentationFormatJson = json['documentationFormat'];
+    final documentationFormat = (documentationFormatJson as List<Object?>?)
+        ?.map((item) => MarkupKind.fromJson(item as String))
+        .toList();
+    final deprecatedSupportJson = json['deprecatedSupport'];
+    final deprecatedSupport = deprecatedSupportJson as bool?;
+    final preselectSupportJson = json['preselectSupport'];
+    final preselectSupport = preselectSupportJson as bool?;
+    final tagSupportJson = json['tagSupport'];
+    final tagSupport = tagSupportJson != null
+        ? CompletionClientCapabilitiesTagSupport.fromJson(
+            tagSupportJson as Map<String, Object?>)
         : null;
-    final insertReplaceSupport = json['insertReplaceSupport'];
-    final resolveSupport = json['resolveSupport'] != null
+    final insertReplaceSupportJson = json['insertReplaceSupport'];
+    final insertReplaceSupport = insertReplaceSupportJson as bool?;
+    final resolveSupportJson = json['resolveSupport'];
+    final resolveSupport = resolveSupportJson != null
         ? CompletionClientCapabilitiesResolveSupport.fromJson(
-            json['resolveSupport'])
+            resolveSupportJson as Map<String, Object?>)
         : null;
-    final insertTextModeSupport = json['insertTextModeSupport'] != null
+    final insertTextModeSupportJson = json['insertTextModeSupport'];
+    final insertTextModeSupport = insertTextModeSupportJson != null
         ? CompletionClientCapabilitiesInsertTextModeSupport.fromJson(
-            json['insertTextModeSupport'])
+            insertTextModeSupportJson as Map<String, Object?>)
         : null;
     return CompletionClientCapabilitiesCompletionItem(
         snippetSupport: snippetSupport,
@@ -5253,8 +5493,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   ///  @since 3.15.0
   final CompletionClientCapabilitiesTagSupport? tagSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (snippetSupport != null) {
       __result['snippetSupport'] = snippetSupport;
     }
@@ -5287,10 +5527,11 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('snippetSupport');
       try {
-        if (obj['snippetSupport'] != null && !(obj['snippetSupport'] is bool)) {
+        final snippetSupport = obj['snippetSupport'];
+        if (snippetSupport != null && !(snippetSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5299,8 +5540,9 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('commitCharactersSupport');
       try {
-        if (obj['commitCharactersSupport'] != null &&
-            !(obj['commitCharactersSupport'] is bool)) {
+        final commitCharactersSupport = obj['commitCharactersSupport'];
+        if (commitCharactersSupport != null &&
+            !(commitCharactersSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5309,9 +5551,10 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('documentationFormat');
       try {
-        if (obj['documentationFormat'] != null &&
-            !((obj['documentationFormat'] is List &&
-                (obj['documentationFormat']
+        final documentationFormat = obj['documentationFormat'];
+        if (documentationFormat != null &&
+            !((documentationFormat is List &&
+                (documentationFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
@@ -5321,8 +5564,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('deprecatedSupport');
       try {
-        if (obj['deprecatedSupport'] != null &&
-            !(obj['deprecatedSupport'] is bool)) {
+        final deprecatedSupport = obj['deprecatedSupport'];
+        if (deprecatedSupport != null && !(deprecatedSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5331,8 +5574,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('preselectSupport');
       try {
-        if (obj['preselectSupport'] != null &&
-            !(obj['preselectSupport'] is bool)) {
+        final preselectSupport = obj['preselectSupport'];
+        if (preselectSupport != null && !(preselectSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5341,9 +5584,10 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('tagSupport');
       try {
-        if (obj['tagSupport'] != null &&
+        final tagSupport = obj['tagSupport'];
+        if (tagSupport != null &&
             !(CompletionClientCapabilitiesTagSupport.canParse(
-                obj['tagSupport'], reporter))) {
+                tagSupport, reporter))) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesTagSupport');
           return false;
@@ -5353,8 +5597,8 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('insertReplaceSupport');
       try {
-        if (obj['insertReplaceSupport'] != null &&
-            !(obj['insertReplaceSupport'] is bool)) {
+        final insertReplaceSupport = obj['insertReplaceSupport'];
+        if (insertReplaceSupport != null && !(insertReplaceSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -5363,9 +5607,10 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('resolveSupport');
       try {
-        if (obj['resolveSupport'] != null &&
+        final resolveSupport = obj['resolveSupport'];
+        if (resolveSupport != null &&
             !(CompletionClientCapabilitiesResolveSupport.canParse(
-                obj['resolveSupport'], reporter))) {
+                resolveSupport, reporter))) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesResolveSupport');
           return false;
@@ -5375,9 +5620,10 @@ class CompletionClientCapabilitiesCompletionItem implements ToJsonable {
       }
       reporter.push('insertTextModeSupport');
       try {
-        if (obj['insertTextModeSupport'] != null &&
+        final insertTextModeSupport = obj['insertTextModeSupport'];
+        if (insertTextModeSupport != null &&
             !(CompletionClientCapabilitiesInsertTextModeSupport.canParse(
-                obj['insertTextModeSupport'], reporter))) {
+                insertTextModeSupport, reporter))) {
           reporter.reportError(
               'must be of type CompletionClientCapabilitiesInsertTextModeSupport');
           return false;
@@ -5438,11 +5684,11 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
 
   CompletionClientCapabilitiesCompletionItemKind({this.valueSet});
   static CompletionClientCapabilitiesCompletionItemKind fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => item != null ? CompletionItemKind.fromJson(item) : null)
-        ?.cast<CompletionItemKind>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>?)
+        ?.map((item) => CompletionItemKind.fromJson(item as int))
+        .toList();
     return CompletionClientCapabilitiesCompletionItemKind(valueSet: valueSet);
   }
 
@@ -5455,8 +5701,8 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   /// of the protocol.
   final List<CompletionItemKind>? valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
@@ -5464,12 +5710,13 @@ class CompletionClientCapabilitiesCompletionItemKind implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
-        if (obj['valueSet'] != null &&
-            !((obj['valueSet'] is List &&
-                (obj['valueSet'].every(
+        final valueSet = obj['valueSet'];
+        if (valueSet != null &&
+            !((valueSet is List &&
+                (valueSet.every(
                     (item) => CompletionItemKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemKind>');
           return false;
@@ -5514,37 +5761,38 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
 
   CompletionClientCapabilitiesInsertTextModeSupport({required this.valueSet});
   static CompletionClientCapabilitiesInsertTextModeSupport fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => InsertTextMode.fromJson(item))
-        ?.cast<InsertTextMode>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => InsertTextMode.fromJson(item as num))
+        .toList();
     return CompletionClientCapabilitiesInsertTextModeSupport(
         valueSet: valueSet);
   }
 
   final List<InsertTextMode> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet']
+        if (!((valueSet is List &&
+            (valueSet
                 .every((item) => InsertTextMode.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<InsertTextMode>');
           return false;
@@ -5590,35 +5838,38 @@ class CompletionClientCapabilitiesResolveSupport implements ToJsonable {
 
   CompletionClientCapabilitiesResolveSupport({required this.properties});
   static CompletionClientCapabilitiesResolveSupport fromJson(
-      Map<String, dynamic> json) {
-    final properties =
-        json['properties']?.map((item) => item)?.cast<String>()?.toList();
+      Map<String, Object?> json) {
+    final propertiesJson = json['properties'];
+    final properties = (propertiesJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
     return CompletionClientCapabilitiesResolveSupport(properties: properties);
   }
 
   /// The properties that a client can resolve lazily.
   final List<String> properties;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['properties'] = properties;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('properties');
       try {
         if (!obj.containsKey('properties')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['properties'] == null) {
+        final properties = obj['properties'];
+        if (properties == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['properties'] is List &&
-            (obj['properties'].every((item) => item is String))))) {
+        if (!((properties is List &&
+            (properties.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -5662,37 +5913,38 @@ class CompletionClientCapabilitiesTagSupport implements ToJsonable {
 
   CompletionClientCapabilitiesTagSupport({required this.valueSet});
   static CompletionClientCapabilitiesTagSupport fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => CompletionItemTag.fromJson(item))
-        ?.cast<CompletionItemTag>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => CompletionItemTag.fromJson(item as int))
+        .toList();
     return CompletionClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
   final List<CompletionItemTag> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet'].every(
+        if (!((valueSet is List &&
+            (valueSet.every(
                 (item) => CompletionItemTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
           return false;
@@ -5737,9 +5989,11 @@ class CompletionContext implements ToJsonable {
       LspJsonHandler(CompletionContext.canParse, CompletionContext.fromJson);
 
   CompletionContext({required this.triggerKind, this.triggerCharacter});
-  static CompletionContext fromJson(Map<String, dynamic> json) {
-    final triggerKind = CompletionTriggerKind.fromJson(json['triggerKind']);
-    final triggerCharacter = json['triggerCharacter'];
+  static CompletionContext fromJson(Map<String, Object?> json) {
+    final triggerKindJson = json['triggerKind'];
+    final triggerKind = CompletionTriggerKind.fromJson(triggerKindJson as num);
+    final triggerCharacterJson = json['triggerCharacter'];
+    final triggerCharacter = triggerCharacterJson as String?;
     return CompletionContext(
         triggerKind: triggerKind, triggerCharacter: triggerCharacter);
   }
@@ -5751,8 +6005,8 @@ class CompletionContext implements ToJsonable {
   /// How the completion was triggered.
   final CompletionTriggerKind triggerKind;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['triggerKind'] = triggerKind.toJson();
     if (triggerCharacter != null) {
       __result['triggerCharacter'] = triggerCharacter;
@@ -5761,18 +6015,19 @@ class CompletionContext implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('triggerKind');
       try {
         if (!obj.containsKey('triggerKind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['triggerKind'] == null) {
+        final triggerKind = obj['triggerKind'];
+        if (triggerKind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
+        if (!(CompletionTriggerKind.canParse(triggerKind, reporter))) {
           reporter.reportError('must be of type CompletionTriggerKind');
           return false;
         }
@@ -5781,8 +6036,8 @@ class CompletionContext implements ToJsonable {
       }
       reporter.push('triggerCharacter');
       try {
-        if (obj['triggerCharacter'] != null &&
-            !(obj['triggerCharacter'] is String)) {
+        final triggerCharacter = obj['triggerCharacter'];
+        if (triggerCharacter != null && !(triggerCharacter is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -5840,54 +6095,72 @@ class CompletionItem implements ToJsonable {
       this.commitCharacters,
       this.command,
       this.data});
-  static CompletionItem fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
+  static CompletionItem fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final kindJson = json['kind'];
     final kind =
-        json['kind'] != null ? CompletionItemKind.fromJson(json['kind']) : null;
-    final tags = json['tags']
-        ?.map((item) => item != null ? CompletionItemTag.fromJson(item) : null)
-        ?.cast<CompletionItemTag>()
-        ?.toList();
-    final detail = json['detail'];
-    final documentation = json['documentation'] == null
+        kindJson != null ? CompletionItemKind.fromJson(kindJson as int) : null;
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => CompletionItemTag.fromJson(item as int))
+        .toList();
+    final detailJson = json['detail'];
+    final detail = detailJson as String?;
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson == null
         ? null
-        : (json['documentation'] is String
-            ? Either2<String, MarkupContent>.t1(json['documentation'])
-            : (MarkupContent.canParse(
-                    json['documentation'], nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(
-                    MarkupContent.fromJson(json['documentation']))
-                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
-    final deprecated = json['deprecated'];
-    final preselect = json['preselect'];
-    final sortText = json['sortText'];
-    final filterText = json['filterText'];
-    final insertText = json['insertText'];
-    final insertTextFormat = json['insertTextFormat'] != null
-        ? InsertTextFormat.fromJson(json['insertTextFormat'])
+        : (documentationJson is String
+            ? Either2<String, MarkupContent>.t1(documentationJson)
+            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
+                    documentationJson as Map<String, Object?>))
+                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
+    final deprecatedJson = json['deprecated'];
+    final deprecated = deprecatedJson as bool?;
+    final preselectJson = json['preselect'];
+    final preselect = preselectJson as bool?;
+    final sortTextJson = json['sortText'];
+    final sortText = sortTextJson as String?;
+    final filterTextJson = json['filterText'];
+    final filterText = filterTextJson as String?;
+    final insertTextJson = json['insertText'];
+    final insertText = insertTextJson as String?;
+    final insertTextFormatJson = json['insertTextFormat'];
+    final insertTextFormat = insertTextFormatJson != null
+        ? InsertTextFormat.fromJson(insertTextFormatJson as int)
         : null;
-    final insertTextMode = json['insertTextMode'] != null
-        ? InsertTextMode.fromJson(json['insertTextMode'])
+    final insertTextModeJson = json['insertTextMode'];
+    final insertTextMode = insertTextModeJson != null
+        ? InsertTextMode.fromJson(insertTextModeJson as num)
         : null;
-    final textEdit = json['textEdit'] == null
+    final textEditJson = json['textEdit'];
+    final textEdit = textEditJson == null
         ? null
-        : (TextEdit.canParse(json['textEdit'], nullLspJsonReporter)
+        : (TextEdit.canParse(textEditJson, nullLspJsonReporter)
             ? Either2<TextEdit, InsertReplaceEdit>.t1(
-                TextEdit.fromJson(json['textEdit']))
-            : (InsertReplaceEdit.canParse(json['textEdit'], nullLspJsonReporter)
+                TextEdit.fromJson(textEditJson as Map<String, Object?>))
+            : (InsertReplaceEdit.canParse(textEditJson, nullLspJsonReporter)
                 ? Either2<TextEdit, InsertReplaceEdit>.t2(
-                    InsertReplaceEdit.fromJson(json['textEdit']))
-                : (throw '''${json['textEdit']} was not one of (TextEdit, InsertReplaceEdit)''')));
-    final additionalTextEdits = json['additionalTextEdits']
-        ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
-        ?.cast<TextEdit>()
-        ?.toList();
-    final commitCharacters =
-        json['commitCharacters']?.map((item) => item)?.cast<String>()?.toList();
-    final command =
-        json['command'] != null ? Command.fromJson(json['command']) : null;
-    final data = json['data'] != null
-        ? CompletionItemResolutionInfo.fromJson(json['data'])
+                    InsertReplaceEdit.fromJson(
+                        textEditJson as Map<String, Object?>))
+                : (throw '''$textEditJson was not one of (TextEdit, InsertReplaceEdit)''')));
+    final additionalTextEditsJson = json['additionalTextEdits'];
+    final additionalTextEdits = (additionalTextEditsJson as List<Object?>?)
+        ?.map((item) => TextEdit.fromJson(item as Map<String, Object?>))
+        .toList();
+    final commitCharactersJson = json['commitCharacters'];
+    final commitCharacters = (commitCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final commandJson = json['command'];
+    final command = commandJson != null
+        ? Command.fromJson(commandJson as Map<String, Object?>)
+        : null;
+    final dataJson = json['data'];
+    final data = dataJson != null
+        ? CompletionItemResolutionInfo.fromJson(
+            dataJson as Map<String, Object?>)
         : null;
     return CompletionItem(
         label: label,
@@ -6016,8 +6289,8 @@ class CompletionItem implements ToJsonable {
   ///  @since 3.16.0 additional type `InsertReplaceEdit`
   final Either2<TextEdit, InsertReplaceEdit>? textEdit;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['label'] = label;
     if (kind != null) {
       __result['kind'] = kind?.toJson();
@@ -6072,18 +6345,19 @@ class CompletionItem implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6092,8 +6366,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(CompletionItemKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(CompletionItemKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type CompletionItemKind');
           return false;
         }
@@ -6102,9 +6376,10 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('tags');
       try {
-        if (obj['tags'] != null &&
-            !((obj['tags'] is List &&
-                (obj['tags'].every(
+        final tags = obj['tags'];
+        if (tags != null &&
+            !((tags is List &&
+                (tags.every(
                     (item) => CompletionItemTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItemTag>');
           return false;
@@ -6114,7 +6389,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('detail');
       try {
-        if (obj['detail'] != null && !(obj['detail'] is String)) {
+        final detail = obj['detail'];
+        if (detail != null && !(detail is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6123,9 +6399,10 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('documentation');
       try {
-        if (obj['documentation'] != null &&
-            !((obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation'], reporter)))) {
+        final documentation = obj['documentation'];
+        if (documentation != null &&
+            !((documentation is String ||
+                MarkupContent.canParse(documentation, reporter)))) {
           reporter
               .reportError('must be of type Either2<String, MarkupContent>');
           return false;
@@ -6135,7 +6412,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('deprecated');
       try {
-        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+        final deprecated = obj['deprecated'];
+        if (deprecated != null && !(deprecated is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6144,7 +6422,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('preselect');
       try {
-        if (obj['preselect'] != null && !(obj['preselect'] is bool)) {
+        final preselect = obj['preselect'];
+        if (preselect != null && !(preselect is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6153,7 +6432,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('sortText');
       try {
-        if (obj['sortText'] != null && !(obj['sortText'] is String)) {
+        final sortText = obj['sortText'];
+        if (sortText != null && !(sortText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6162,7 +6442,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('filterText');
       try {
-        if (obj['filterText'] != null && !(obj['filterText'] is String)) {
+        final filterText = obj['filterText'];
+        if (filterText != null && !(filterText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6171,7 +6452,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('insertText');
       try {
-        if (obj['insertText'] != null && !(obj['insertText'] is String)) {
+        final insertText = obj['insertText'];
+        if (insertText != null && !(insertText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -6180,8 +6462,9 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('insertTextFormat');
       try {
-        if (obj['insertTextFormat'] != null &&
-            !(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
+        final insertTextFormat = obj['insertTextFormat'];
+        if (insertTextFormat != null &&
+            !(InsertTextFormat.canParse(insertTextFormat, reporter))) {
           reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
@@ -6190,8 +6473,9 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('insertTextMode');
       try {
-        if (obj['insertTextMode'] != null &&
-            !(InsertTextMode.canParse(obj['insertTextMode'], reporter))) {
+        final insertTextMode = obj['insertTextMode'];
+        if (insertTextMode != null &&
+            !(InsertTextMode.canParse(insertTextMode, reporter))) {
           reporter.reportError('must be of type InsertTextMode');
           return false;
         }
@@ -6200,9 +6484,10 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('textEdit');
       try {
-        if (obj['textEdit'] != null &&
-            !((TextEdit.canParse(obj['textEdit'], reporter) ||
-                InsertReplaceEdit.canParse(obj['textEdit'], reporter)))) {
+        final textEdit = obj['textEdit'];
+        if (textEdit != null &&
+            !((TextEdit.canParse(textEdit, reporter) ||
+                InsertReplaceEdit.canParse(textEdit, reporter)))) {
           reporter.reportError(
               'must be of type Either2<TextEdit, InsertReplaceEdit>');
           return false;
@@ -6212,9 +6497,10 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('additionalTextEdits');
       try {
-        if (obj['additionalTextEdits'] != null &&
-            !((obj['additionalTextEdits'] is List &&
-                (obj['additionalTextEdits']
+        final additionalTextEdits = obj['additionalTextEdits'];
+        if (additionalTextEdits != null &&
+            !((additionalTextEdits is List &&
+                (additionalTextEdits
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TextEdit>');
           return false;
@@ -6224,9 +6510,10 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('commitCharacters');
       try {
-        if (obj['commitCharacters'] != null &&
-            !((obj['commitCharacters'] is List &&
-                (obj['commitCharacters'].every((item) => item is String))))) {
+        final commitCharacters = obj['commitCharacters'];
+        if (commitCharacters != null &&
+            !((commitCharacters is List &&
+                (commitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6235,8 +6522,8 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('command');
       try {
-        if (obj['command'] != null &&
-            !(Command.canParse(obj['command'], reporter))) {
+        final command = obj['command'];
+        if (command != null && !(Command.canParse(command, reporter))) {
           reporter.reportError('must be of type Command');
           return false;
         }
@@ -6245,8 +6532,9 @@ class CompletionItem implements ToJsonable {
       }
       reporter.push('data');
       try {
-        if (obj['data'] != null &&
-            !(CompletionItemResolutionInfo.canParse(obj['data'], reporter))) {
+        final data = obj['data'];
+        if (data != null &&
+            !(CompletionItemResolutionInfo.canParse(data, reporter))) {
           reporter.reportError('must be of type CompletionItemResolutionInfo');
           return false;
         }
@@ -6397,12 +6685,13 @@ class CompletionList implements ToJsonable {
       LspJsonHandler(CompletionList.canParse, CompletionList.fromJson);
 
   CompletionList({required this.isIncomplete, required this.items});
-  static CompletionList fromJson(Map<String, dynamic> json) {
-    final isIncomplete = json['isIncomplete'];
-    final items = json['items']
-        ?.map((item) => CompletionItem.fromJson(item))
-        ?.cast<CompletionItem>()
-        ?.toList();
+  static CompletionList fromJson(Map<String, Object?> json) {
+    final isIncompleteJson = json['isIncomplete'];
+    final isIncomplete = isIncompleteJson as bool;
+    final itemsJson = json['items'];
+    final items = (itemsJson as List<Object?>)
+        .map((item) => CompletionItem.fromJson(item as Map<String, Object?>))
+        .toList();
     return CompletionList(isIncomplete: isIncomplete, items: items);
   }
 
@@ -6413,26 +6702,27 @@ class CompletionList implements ToJsonable {
   /// The completion items.
   final List<CompletionItem> items;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['isIncomplete'] = isIncomplete;
     __result['items'] = items.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('isIncomplete');
       try {
         if (!obj.containsKey('isIncomplete')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['isIncomplete'] == null) {
+        final isIncomplete = obj['isIncomplete'];
+        if (isIncomplete == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['isIncomplete'] is bool)) {
+        if (!(isIncomplete is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6445,12 +6735,13 @@ class CompletionList implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['items'] == null) {
+        final items = obj['items'];
+        if (items == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['items'] is List &&
-            (obj['items']
+        if (!((items is List &&
+            (items
                 .every((item) => CompletionItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<CompletionItem>');
           return false;
@@ -6498,20 +6789,22 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       this.allCommitCharacters,
       this.resolveProvider,
       this.workDoneProgress});
-  static CompletionOptions fromJson(Map<String, dynamic> json) {
+  static CompletionOptions fromJson(Map<String, Object?> json) {
     if (CompletionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return CompletionRegistrationOptions.fromJson(json);
     }
-    final triggerCharacters = json['triggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final allCommitCharacters = json['allCommitCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+    final triggerCharactersJson = json['triggerCharacters'];
+    final triggerCharacters = (triggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final allCommitCharactersJson = json['allCommitCharacters'];
+    final allCommitCharacters = (allCommitCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CompletionOptions(
         triggerCharacters: triggerCharacters,
         allCommitCharacters: allCommitCharacters,
@@ -6546,8 +6839,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   final List<String>? triggerCharacters;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -6564,12 +6857,13 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('triggerCharacters');
       try {
-        if (obj['triggerCharacters'] != null &&
-            !((obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))))) {
+        final triggerCharacters = obj['triggerCharacters'];
+        if (triggerCharacters != null &&
+            !((triggerCharacters is List &&
+                (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6578,10 +6872,10 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('allCommitCharacters');
       try {
-        if (obj['allCommitCharacters'] != null &&
-            !((obj['allCommitCharacters'] is List &&
-                (obj['allCommitCharacters']
-                    .every((item) => item is String))))) {
+        final allCommitCharacters = obj['allCommitCharacters'];
+        if (allCommitCharacters != null &&
+            !((allCommitCharacters is List &&
+                (allCommitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6590,8 +6884,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6600,8 +6894,8 @@ class CompletionOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6658,26 +6952,32 @@ class CompletionParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static CompletionParams fromJson(Map<String, dynamic> json) {
-    final context = json['context'] != null
-        ? CompletionContext.fromJson(json['context'])
+  static CompletionParams fromJson(Map<String, Object?> json) {
+    final contextJson = json['context'];
+    final context = contextJson != null
+        ? CompletionContext.fromJson(contextJson as Map<String, Object?>)
         : null;
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return CompletionParams(
         context: context,
         textDocument: textDocument,
@@ -6703,8 +7003,8 @@ class CompletionParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (context != null) {
       __result['context'] = context?.toJson();
     }
@@ -6720,11 +7020,12 @@ class CompletionParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('context');
       try {
-        if (obj['context'] != null &&
-            !(CompletionContext.canParse(obj['context'], reporter))) {
+        final context = obj['context'];
+        if (context != null &&
+            !(CompletionContext.canParse(context, reporter))) {
           reporter.reportError('must be of type CompletionContext');
           return false;
         }
@@ -6737,11 +7038,12 @@ class CompletionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -6754,11 +7056,12 @@ class CompletionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -6767,9 +7070,9 @@ class CompletionParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -6778,9 +7081,9 @@ class CompletionParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -6834,21 +7137,23 @@ class CompletionRegistrationOptions
       this.allCommitCharacters,
       this.resolveProvider,
       this.workDoneProgress});
-  static CompletionRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final triggerCharacters = json['triggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final allCommitCharacters = json['allCommitCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+  static CompletionRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final triggerCharactersJson = json['triggerCharacters'];
+    final triggerCharacters = (triggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final allCommitCharactersJson = json['allCommitCharacters'];
+    final allCommitCharacters = (allCommitCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return CompletionRegistrationOptions(
         documentSelector: documentSelector,
         triggerCharacters: triggerCharacters,
@@ -6888,8 +7193,8 @@ class CompletionRegistrationOptions
   final List<String>? triggerCharacters;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
@@ -6907,16 +7212,17 @@ class CompletionRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -6926,9 +7232,10 @@ class CompletionRegistrationOptions
       }
       reporter.push('triggerCharacters');
       try {
-        if (obj['triggerCharacters'] != null &&
-            !((obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))))) {
+        final triggerCharacters = obj['triggerCharacters'];
+        if (triggerCharacters != null &&
+            !((triggerCharacters is List &&
+                (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6937,10 +7244,10 @@ class CompletionRegistrationOptions
       }
       reporter.push('allCommitCharacters');
       try {
-        if (obj['allCommitCharacters'] != null &&
-            !((obj['allCommitCharacters'] is List &&
-                (obj['allCommitCharacters']
-                    .every((item) => item is String))))) {
+        final allCommitCharacters = obj['allCommitCharacters'];
+        if (allCommitCharacters != null &&
+            !((allCommitCharacters is List &&
+                (allCommitCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -6949,8 +7256,8 @@ class CompletionRegistrationOptions
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -6959,8 +7266,8 @@ class CompletionRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7051,9 +7358,11 @@ class ConfigurationItem implements ToJsonable {
       LspJsonHandler(ConfigurationItem.canParse, ConfigurationItem.fromJson);
 
   ConfigurationItem({this.scopeUri, this.section});
-  static ConfigurationItem fromJson(Map<String, dynamic> json) {
-    final scopeUri = json['scopeUri'];
-    final section = json['section'];
+  static ConfigurationItem fromJson(Map<String, Object?> json) {
+    final scopeUriJson = json['scopeUri'];
+    final scopeUri = scopeUriJson as String?;
+    final sectionJson = json['section'];
+    final section = sectionJson as String?;
     return ConfigurationItem(scopeUri: scopeUri, section: section);
   }
 
@@ -7063,8 +7372,8 @@ class ConfigurationItem implements ToJsonable {
   /// The configuration section asked for.
   final String? section;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (scopeUri != null) {
       __result['scopeUri'] = scopeUri;
     }
@@ -7075,10 +7384,11 @@ class ConfigurationItem implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('scopeUri');
       try {
-        if (obj['scopeUri'] != null && !(obj['scopeUri'] is String)) {
+        final scopeUri = obj['scopeUri'];
+        if (scopeUri != null && !(scopeUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7087,7 +7397,8 @@ class ConfigurationItem implements ToJsonable {
       }
       reporter.push('section');
       try {
-        if (obj['section'] != null && !(obj['section'] is String)) {
+        final section = obj['section'];
+        if (section != null && !(section is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7126,36 +7437,37 @@ class ConfigurationParams implements ToJsonable {
       ConfigurationParams.canParse, ConfigurationParams.fromJson);
 
   ConfigurationParams({required this.items});
-  static ConfigurationParams fromJson(Map<String, dynamic> json) {
-    final items = json['items']
-        ?.map((item) => ConfigurationItem.fromJson(item))
-        ?.cast<ConfigurationItem>()
-        ?.toList();
+  static ConfigurationParams fromJson(Map<String, Object?> json) {
+    final itemsJson = json['items'];
+    final items = (itemsJson as List<Object?>)
+        .map((item) => ConfigurationItem.fromJson(item as Map<String, Object?>))
+        .toList();
     return ConfigurationParams(items: items);
   }
 
   final List<ConfigurationItem> items;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['items'] = items.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('items');
       try {
         if (!obj.containsKey('items')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['items'] == null) {
+        final items = obj['items'];
+        if (items == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['items'] is List &&
-            (obj['items'].every(
+        if (!((items is List &&
+            (items.every(
                 (item) => ConfigurationItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ConfigurationItem>');
           return false;
@@ -7206,13 +7518,17 @@ class CreateFile implements ToJsonable {
       throw 'kind may only be the literal \'create\'';
     }
   }
-  static CreateFile fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final uri = json['uri'];
-    final options = json['options'] != null
-        ? CreateFileOptions.fromJson(json['options'])
+  static CreateFile fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final optionsJson = json['options'];
+    final options = optionsJson != null
+        ? CreateFileOptions.fromJson(optionsJson as Map<String, Object?>)
         : null;
-    final annotationId = json['annotationId'];
+    final annotationIdJson = json['annotationId'];
+    final annotationId = annotationIdJson as String?;
     return CreateFile(
         kind: kind, uri: uri, options: options, annotationId: annotationId);
   }
@@ -7230,8 +7546,8 @@ class CreateFile implements ToJsonable {
   /// The resource to create.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     __result['uri'] = uri;
     if (options != null) {
@@ -7244,18 +7560,19 @@ class CreateFile implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'create')) {
+        if (!(kind == 'create')) {
           reporter.reportError('must be the literal \'create\'');
           return false;
         }
@@ -7268,11 +7585,12 @@ class CreateFile implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7281,8 +7599,9 @@ class CreateFile implements ToJsonable {
       }
       reporter.push('options');
       try {
-        if (obj['options'] != null &&
-            !(CreateFileOptions.canParse(obj['options'], reporter))) {
+        final options = obj['options'];
+        if (options != null &&
+            !(CreateFileOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type CreateFileOptions');
           return false;
         }
@@ -7291,7 +7610,8 @@ class CreateFile implements ToJsonable {
       }
       reporter.push('annotationId');
       try {
-        if (obj['annotationId'] != null && !(obj['annotationId'] is String)) {
+        final annotationId = obj['annotationId'];
+        if (annotationId != null && !(annotationId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7337,9 +7657,11 @@ class CreateFileOptions implements ToJsonable {
       LspJsonHandler(CreateFileOptions.canParse, CreateFileOptions.fromJson);
 
   CreateFileOptions({this.overwrite, this.ignoreIfExists});
-  static CreateFileOptions fromJson(Map<String, dynamic> json) {
-    final overwrite = json['overwrite'];
-    final ignoreIfExists = json['ignoreIfExists'];
+  static CreateFileOptions fromJson(Map<String, Object?> json) {
+    final overwriteJson = json['overwrite'];
+    final overwrite = overwriteJson as bool?;
+    final ignoreIfExistsJson = json['ignoreIfExists'];
+    final ignoreIfExists = ignoreIfExistsJson as bool?;
     return CreateFileOptions(
         overwrite: overwrite, ignoreIfExists: ignoreIfExists);
   }
@@ -7350,8 +7672,8 @@ class CreateFileOptions implements ToJsonable {
   /// Overwrite existing file. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -7362,10 +7684,11 @@ class CreateFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('overwrite');
       try {
-        if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
+        final overwrite = obj['overwrite'];
+        if (overwrite != null && !(overwrite is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7374,7 +7697,8 @@ class CreateFileOptions implements ToJsonable {
       }
       reporter.push('ignoreIfExists');
       try {
-        if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
+        final ignoreIfExists = obj['ignoreIfExists'];
+        if (ignoreIfExists != null && !(ignoreIfExists is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7418,38 +7742,38 @@ class CreateFilesParams implements ToJsonable {
       LspJsonHandler(CreateFilesParams.canParse, CreateFilesParams.fromJson);
 
   CreateFilesParams({required this.files});
-  static CreateFilesParams fromJson(Map<String, dynamic> json) {
-    final files = json['files']
-        ?.map((item) => FileCreate.fromJson(item))
-        ?.cast<FileCreate>()
-        ?.toList();
+  static CreateFilesParams fromJson(Map<String, Object?> json) {
+    final filesJson = json['files'];
+    final files = (filesJson as List<Object?>)
+        .map((item) => FileCreate.fromJson(item as Map<String, Object?>))
+        .toList();
     return CreateFilesParams(files: files);
   }
 
   /// An array of all files/folders created in this operation.
   final List<FileCreate> files;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('files');
       try {
         if (!obj.containsKey('files')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['files'] == null) {
+        final files = obj['files'];
+        if (files == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['files'] is List &&
-            (obj['files']
-                .every((item) => FileCreate.canParse(item, reporter)))))) {
+        if (!((files is List &&
+            (files.every((item) => FileCreate.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileCreate>');
           return false;
         }
@@ -7490,9 +7814,11 @@ class DeclarationClientCapabilities implements ToJsonable {
       DeclarationClientCapabilities.fromJson);
 
   DeclarationClientCapabilities({this.dynamicRegistration, this.linkSupport});
-  static DeclarationClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final linkSupport = json['linkSupport'];
+  static DeclarationClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final linkSupportJson = json['linkSupport'];
+    final linkSupport = linkSupportJson as bool?;
     return DeclarationClientCapabilities(
         dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
@@ -7505,8 +7831,8 @@ class DeclarationClientCapabilities implements ToJsonable {
   /// The client supports additional metadata in the form of declaration links.
   final bool? linkSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -7517,11 +7843,11 @@ class DeclarationClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7530,7 +7856,8 @@ class DeclarationClientCapabilities implements ToJsonable {
       }
       reporter.push('linkSupport');
       try {
-        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+        final linkSupport = obj['linkSupport'];
+        if (linkSupport != null && !(linkSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7572,18 +7899,19 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(DeclarationOptions.canParse, DeclarationOptions.fromJson);
 
   DeclarationOptions({this.workDoneProgress});
-  static DeclarationOptions fromJson(Map<String, dynamic> json) {
+  static DeclarationOptions fromJson(Map<String, Object?> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DeclarationOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -7591,11 +7919,11 @@ class DeclarationOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7643,23 +7971,28 @@ class DeclarationParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static DeclarationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DeclarationParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DeclarationParams(
         textDocument: textDocument,
         position: position,
@@ -7680,8 +8013,8 @@ class DeclarationParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -7694,18 +8027,19 @@ class DeclarationParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -7718,11 +8052,12 @@ class DeclarationParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -7731,9 +8066,9 @@ class DeclarationParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -7742,9 +8077,9 @@ class DeclarationParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -7796,13 +8131,15 @@ class DeclarationRegistrationOptions
 
   DeclarationRegistrationOptions(
       {this.workDoneProgress, this.documentSelector, this.id});
-  static DeclarationRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final workDoneProgress = json['workDoneProgress'];
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final id = json['id'];
+  static DeclarationRegistrationOptions fromJson(Map<String, Object?> json) {
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final idJson = json['id'];
+    final id = idJson as String?;
     return DeclarationRegistrationOptions(
         workDoneProgress: workDoneProgress,
         documentSelector: documentSelector,
@@ -7818,8 +8155,8 @@ class DeclarationRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -7831,11 +8168,11 @@ class DeclarationRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7848,9 +8185,10 @@ class DeclarationRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -7860,7 +8198,8 @@ class DeclarationRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -7906,9 +8245,11 @@ class DefinitionClientCapabilities implements ToJsonable {
       DefinitionClientCapabilities.fromJson);
 
   DefinitionClientCapabilities({this.dynamicRegistration, this.linkSupport});
-  static DefinitionClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final linkSupport = json['linkSupport'];
+  static DefinitionClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final linkSupportJson = json['linkSupport'];
+    final linkSupport = linkSupportJson as bool?;
     return DefinitionClientCapabilities(
         dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
@@ -7920,8 +8261,8 @@ class DefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -7932,11 +8273,11 @@ class DefinitionClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7945,7 +8286,8 @@ class DefinitionClientCapabilities implements ToJsonable {
       }
       reporter.push('linkSupport');
       try {
-        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+        final linkSupport = obj['linkSupport'];
+        if (linkSupport != null && !(linkSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -7987,18 +8329,19 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(DefinitionOptions.canParse, DefinitionOptions.fromJson);
 
   DefinitionOptions({this.workDoneProgress});
-  static DefinitionOptions fromJson(Map<String, dynamic> json) {
+  static DefinitionOptions fromJson(Map<String, Object?> json) {
     if (DefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DefinitionRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -8006,11 +8349,11 @@ class DefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8057,23 +8400,28 @@ class DefinitionParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static DefinitionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DefinitionParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -8094,8 +8442,8 @@ class DefinitionParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -8108,18 +8456,19 @@ class DefinitionParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -8132,11 +8481,12 @@ class DefinitionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -8145,9 +8495,9 @@ class DefinitionParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8156,9 +8506,9 @@ class DefinitionParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -8205,12 +8555,13 @@ class DefinitionRegistrationOptions
       DefinitionRegistrationOptions.fromJson);
 
   DefinitionRegistrationOptions({this.documentSelector, this.workDoneProgress});
-  static DefinitionRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+  static DefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DefinitionRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -8220,8 +8571,8 @@ class DefinitionRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -8230,16 +8581,17 @@ class DefinitionRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -8249,8 +8601,8 @@ class DefinitionRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8302,13 +8654,17 @@ class DeleteFile implements ToJsonable {
       throw 'kind may only be the literal \'delete\'';
     }
   }
-  static DeleteFile fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final uri = json['uri'];
-    final options = json['options'] != null
-        ? DeleteFileOptions.fromJson(json['options'])
+  static DeleteFile fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final optionsJson = json['options'];
+    final options = optionsJson != null
+        ? DeleteFileOptions.fromJson(optionsJson as Map<String, Object?>)
         : null;
-    final annotationId = json['annotationId'];
+    final annotationIdJson = json['annotationId'];
+    final annotationId = annotationIdJson as String?;
     return DeleteFile(
         kind: kind, uri: uri, options: options, annotationId: annotationId);
   }
@@ -8326,8 +8682,8 @@ class DeleteFile implements ToJsonable {
   /// The file to delete.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     __result['uri'] = uri;
     if (options != null) {
@@ -8340,18 +8696,19 @@ class DeleteFile implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'delete')) {
+        if (!(kind == 'delete')) {
           reporter.reportError('must be the literal \'delete\'');
           return false;
         }
@@ -8364,11 +8721,12 @@ class DeleteFile implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8377,8 +8735,9 @@ class DeleteFile implements ToJsonable {
       }
       reporter.push('options');
       try {
-        if (obj['options'] != null &&
-            !(DeleteFileOptions.canParse(obj['options'], reporter))) {
+        final options = obj['options'];
+        if (options != null &&
+            !(DeleteFileOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type DeleteFileOptions');
           return false;
         }
@@ -8387,7 +8746,8 @@ class DeleteFile implements ToJsonable {
       }
       reporter.push('annotationId');
       try {
-        if (obj['annotationId'] != null && !(obj['annotationId'] is String)) {
+        final annotationId = obj['annotationId'];
+        if (annotationId != null && !(annotationId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8433,9 +8793,11 @@ class DeleteFileOptions implements ToJsonable {
       LspJsonHandler(DeleteFileOptions.canParse, DeleteFileOptions.fromJson);
 
   DeleteFileOptions({this.recursive, this.ignoreIfNotExists});
-  static DeleteFileOptions fromJson(Map<String, dynamic> json) {
-    final recursive = json['recursive'];
-    final ignoreIfNotExists = json['ignoreIfNotExists'];
+  static DeleteFileOptions fromJson(Map<String, Object?> json) {
+    final recursiveJson = json['recursive'];
+    final recursive = recursiveJson as bool?;
+    final ignoreIfNotExistsJson = json['ignoreIfNotExists'];
+    final ignoreIfNotExists = ignoreIfNotExistsJson as bool?;
     return DeleteFileOptions(
         recursive: recursive, ignoreIfNotExists: ignoreIfNotExists);
   }
@@ -8446,8 +8808,8 @@ class DeleteFileOptions implements ToJsonable {
   /// Delete the content recursively if a folder is denoted.
   final bool? recursive;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (recursive != null) {
       __result['recursive'] = recursive;
     }
@@ -8458,10 +8820,11 @@ class DeleteFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('recursive');
       try {
-        if (obj['recursive'] != null && !(obj['recursive'] is bool)) {
+        final recursive = obj['recursive'];
+        if (recursive != null && !(recursive is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8470,8 +8833,8 @@ class DeleteFileOptions implements ToJsonable {
       }
       reporter.push('ignoreIfNotExists');
       try {
-        if (obj['ignoreIfNotExists'] != null &&
-            !(obj['ignoreIfNotExists'] is bool)) {
+        final ignoreIfNotExists = obj['ignoreIfNotExists'];
+        if (ignoreIfNotExists != null && !(ignoreIfNotExists is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -8515,38 +8878,38 @@ class DeleteFilesParams implements ToJsonable {
       LspJsonHandler(DeleteFilesParams.canParse, DeleteFilesParams.fromJson);
 
   DeleteFilesParams({required this.files});
-  static DeleteFilesParams fromJson(Map<String, dynamic> json) {
-    final files = json['files']
-        ?.map((item) => FileDelete.fromJson(item))
-        ?.cast<FileDelete>()
-        ?.toList();
+  static DeleteFilesParams fromJson(Map<String, Object?> json) {
+    final filesJson = json['files'];
+    final files = (filesJson as List<Object?>)
+        .map((item) => FileDelete.fromJson(item as Map<String, Object?>))
+        .toList();
     return DeleteFilesParams(files: files);
   }
 
   /// An array of all files/folders deleted in this operation.
   final List<FileDelete> files;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('files');
       try {
         if (!obj.containsKey('files')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['files'] == null) {
+        final files = obj['files'];
+        if (files == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['files'] is List &&
-            (obj['files']
-                .every((item) => FileDelete.canParse(item, reporter)))))) {
+        if (!((files is List &&
+            (files.every((item) => FileDelete.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileDelete>');
           return false;
         }
@@ -8595,27 +8958,34 @@ class Diagnostic implements ToJsonable {
       this.tags,
       this.relatedInformation,
       this.data});
-  static Diagnostic fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final severity = json['severity'] != null
-        ? DiagnosticSeverity.fromJson(json['severity'])
+  static Diagnostic fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final severityJson = json['severity'];
+    final severity = severityJson != null
+        ? DiagnosticSeverity.fromJson(severityJson as num)
         : null;
-    final code = json['code'];
-    final codeDescription = json['codeDescription'] != null
-        ? CodeDescription.fromJson(json['codeDescription'])
+    final codeJson = json['code'];
+    final code = codeJson as String?;
+    final codeDescriptionJson = json['codeDescription'];
+    final codeDescription = codeDescriptionJson != null
+        ? CodeDescription.fromJson(codeDescriptionJson as Map<String, Object?>)
         : null;
-    final source = json['source'];
-    final message = json['message'];
-    final tags = json['tags']
-        ?.map((item) => item != null ? DiagnosticTag.fromJson(item) : null)
-        ?.cast<DiagnosticTag>()
-        ?.toList();
-    final relatedInformation = json['relatedInformation']
+    final sourceJson = json['source'];
+    final source = sourceJson as String?;
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => DiagnosticTag.fromJson(item as num))
+        .toList();
+    final relatedInformationJson = json['relatedInformation'];
+    final relatedInformation = (relatedInformationJson as List<Object?>?)
         ?.map((item) =>
-            item != null ? DiagnosticRelatedInformation.fromJson(item) : null)
-        ?.cast<DiagnosticRelatedInformation>()
-        ?.toList();
-    final data = json['data'];
+            DiagnosticRelatedInformation.fromJson(item as Map<String, Object?>))
+        .toList();
+    final dataJson = json['data'];
+    final data = dataJson;
     return Diagnostic(
         range: range,
         severity: severity,
@@ -8639,7 +9009,7 @@ class Diagnostic implements ToJsonable {
   /// `textDocument/publishDiagnostics` notification and
   /// `textDocument/codeAction` request.
   ///  @since 3.16.0
-  final dynamic data;
+  final Object? data;
 
   /// The diagnostic's message.
   final String message;
@@ -8663,8 +9033,8 @@ class Diagnostic implements ToJsonable {
   ///  @since 3.15.0
   final List<DiagnosticTag>? tags;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (severity != null) {
       __result['severity'] = severity?.toJson();
@@ -8693,18 +9063,19 @@ class Diagnostic implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -8713,8 +9084,9 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('severity');
       try {
-        if (obj['severity'] != null &&
-            !(DiagnosticSeverity.canParse(obj['severity'], reporter))) {
+        final severity = obj['severity'];
+        if (severity != null &&
+            !(DiagnosticSeverity.canParse(severity, reporter))) {
           reporter.reportError('must be of type DiagnosticSeverity');
           return false;
         }
@@ -8723,7 +9095,8 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('code');
       try {
-        if (obj['code'] != null && !(obj['code'] is String)) {
+        final code = obj['code'];
+        if (code != null && !(code is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8732,8 +9105,9 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('codeDescription');
       try {
-        if (obj['codeDescription'] != null &&
-            !(CodeDescription.canParse(obj['codeDescription'], reporter))) {
+        final codeDescription = obj['codeDescription'];
+        if (codeDescription != null &&
+            !(CodeDescription.canParse(codeDescription, reporter))) {
           reporter.reportError('must be of type CodeDescription');
           return false;
         }
@@ -8742,7 +9116,8 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('source');
       try {
-        if (obj['source'] != null && !(obj['source'] is String)) {
+        final source = obj['source'];
+        if (source != null && !(source is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8755,11 +9130,12 @@ class Diagnostic implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -8768,9 +9144,10 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('tags');
       try {
-        if (obj['tags'] != null &&
-            !((obj['tags'] is List &&
-                (obj['tags'].every(
+        final tags = obj['tags'];
+        if (tags != null &&
+            !((tags is List &&
+                (tags.every(
                     (item) => DiagnosticTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
           return false;
@@ -8780,9 +9157,10 @@ class Diagnostic implements ToJsonable {
       }
       reporter.push('relatedInformation');
       try {
-        if (obj['relatedInformation'] != null &&
-            !((obj['relatedInformation'] is List &&
-                (obj['relatedInformation'].every((item) =>
+        final relatedInformation = obj['relatedInformation'];
+        if (relatedInformation != null &&
+            !((relatedInformation is List &&
+                (relatedInformation.every((item) =>
                     DiagnosticRelatedInformation.canParse(item, reporter)))))) {
           reporter.reportError(
               'must be of type List<DiagnosticRelatedInformation>');
@@ -8849,9 +9227,11 @@ class DiagnosticRelatedInformation implements ToJsonable {
       DiagnosticRelatedInformation.fromJson);
 
   DiagnosticRelatedInformation({required this.location, required this.message});
-  static DiagnosticRelatedInformation fromJson(Map<String, dynamic> json) {
-    final location = Location.fromJson(json['location']);
-    final message = json['message'];
+  static DiagnosticRelatedInformation fromJson(Map<String, Object?> json) {
+    final locationJson = json['location'];
+    final location = Location.fromJson(locationJson as Map<String, Object?>);
+    final messageJson = json['message'];
+    final message = messageJson as String;
     return DiagnosticRelatedInformation(location: location, message: message);
   }
 
@@ -8861,26 +9241,27 @@ class DiagnosticRelatedInformation implements ToJsonable {
   /// The message of this related diagnostic information.
   final String message;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['location'] = location.toJson();
     __result['message'] = message;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('location');
       try {
         if (!obj.containsKey('location')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['location'] == null) {
+        final location = obj['location'];
+        if (location == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Location.canParse(obj['location'], reporter))) {
+        if (!(Location.canParse(location, reporter))) {
           reporter.reportError('must be of type Location');
           return false;
         }
@@ -8893,11 +9274,12 @@ class DiagnosticRelatedInformation implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9006,8 +9388,9 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
 
   DidChangeConfigurationClientCapabilities({this.dynamicRegistration});
   static DidChangeConfigurationClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DidChangeConfigurationClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -9015,8 +9398,8 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   /// Did change configuration notification supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -9024,11 +9407,11 @@ class DidChangeConfigurationClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9069,22 +9452,23 @@ class DidChangeConfigurationParams implements ToJsonable {
       DidChangeConfigurationParams.fromJson);
 
   DidChangeConfigurationParams({this.settings});
-  static DidChangeConfigurationParams fromJson(Map<String, dynamic> json) {
-    final settings = json['settings'];
+  static DidChangeConfigurationParams fromJson(Map<String, Object?> json) {
+    final settingsJson = json['settings'];
+    final settings = settingsJson;
     return DidChangeConfigurationParams(settings: settings);
   }
 
   /// The actual changed settings
-  final dynamic settings;
+  final Object? settings;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['settings'] = settings;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       return true;
     } else {
       reporter.reportError('must be of type DidChangeConfigurationParams');
@@ -9119,22 +9503,23 @@ class DidChangeTextDocumentParams implements ToJsonable {
 
   DidChangeTextDocumentParams(
       {required this.textDocument, required this.contentChanges});
-  static DidChangeTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        VersionedTextDocumentIdentifier.fromJson(json['textDocument']);
-    final contentChanges = json['contentChanges']
-        ?.map((item) => TextDocumentContentChangeEvent1.canParse(
+  static DidChangeTextDocumentParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = VersionedTextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final contentChangesJson = json['contentChanges'];
+    final contentChanges = (contentChangesJson as List<Object?>)
+        .map((item) => TextDocumentContentChangeEvent1.canParse(
                 item, nullLspJsonReporter)
-            ? Either2<TextDocumentContentChangeEvent1,
-                    TextDocumentContentChangeEvent2>.t1(
-                TextDocumentContentChangeEvent1.fromJson(item))
+            ? Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>.t1(
+                TextDocumentContentChangeEvent1.fromJson(
+                    item as Map<String, Object?>))
             : (TextDocumentContentChangeEvent2.canParse(item, nullLspJsonReporter)
                 ? Either2<TextDocumentContentChangeEvent1,
                         TextDocumentContentChangeEvent2>.t2(
-                    TextDocumentContentChangeEvent2.fromJson(item))
+                    TextDocumentContentChangeEvent2.fromJson(item as Map<String, Object?>))
                 : (throw '''$item was not one of (TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2)''')))
-        ?.cast<Either2<TextDocumentContentChangeEvent1, TextDocumentContentChangeEvent2>>()
-        ?.toList();
+        .toList();
     return DidChangeTextDocumentParams(
         textDocument: textDocument, contentChanges: contentChanges);
   }
@@ -9160,27 +9545,28 @@ class DidChangeTextDocumentParams implements ToJsonable {
   /// after all provided content changes have been applied.
   final VersionedTextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['contentChanges'] = contentChanges;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
         if (!(VersionedTextDocumentIdentifier.canParse(
-            obj['textDocument'], reporter))) {
+            textDocument, reporter))) {
           reporter
               .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
@@ -9194,12 +9580,13 @@ class DidChangeTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['contentChanges'] == null) {
+        final contentChanges = obj['contentChanges'];
+        if (contentChanges == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['contentChanges'] is List &&
-            (obj['contentChanges'].every((item) =>
+        if (!((contentChanges is List &&
+            (contentChanges.every((item) =>
                 (TextDocumentContentChangeEvent1.canParse(item, reporter) ||
                     TextDocumentContentChangeEvent2.canParse(
                         item, reporter))))))) {
@@ -9256,8 +9643,9 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
 
   DidChangeWatchedFilesClientCapabilities({this.dynamicRegistration});
   static DidChangeWatchedFilesClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DidChangeWatchedFilesClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -9267,8 +9655,8 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   /// for file changes from the server side.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -9276,11 +9664,11 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9321,38 +9709,38 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       DidChangeWatchedFilesParams.fromJson);
 
   DidChangeWatchedFilesParams({required this.changes});
-  static DidChangeWatchedFilesParams fromJson(Map<String, dynamic> json) {
-    final changes = json['changes']
-        ?.map((item) => FileEvent.fromJson(item))
-        ?.cast<FileEvent>()
-        ?.toList();
+  static DidChangeWatchedFilesParams fromJson(Map<String, Object?> json) {
+    final changesJson = json['changes'];
+    final changes = (changesJson as List<Object?>)
+        .map((item) => FileEvent.fromJson(item as Map<String, Object?>))
+        .toList();
     return DidChangeWatchedFilesParams(changes: changes);
   }
 
   /// The actual file events.
   final List<FileEvent> changes;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['changes'] = changes.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('changes');
       try {
         if (!obj.containsKey('changes')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['changes'] == null) {
+        final changes = obj['changes'];
+        if (changes == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['changes'] is List &&
-            (obj['changes']
-                .every((item) => FileEvent.canParse(item, reporter)))))) {
+        if (!((changes is List &&
+            (changes.every((item) => FileEvent.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileEvent>');
           return false;
         }
@@ -9396,37 +9784,38 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
 
   DidChangeWatchedFilesRegistrationOptions({required this.watchers});
   static DidChangeWatchedFilesRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final watchers = json['watchers']
-        ?.map((item) => FileSystemWatcher.fromJson(item))
-        ?.cast<FileSystemWatcher>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final watchersJson = json['watchers'];
+    final watchers = (watchersJson as List<Object?>)
+        .map((item) => FileSystemWatcher.fromJson(item as Map<String, Object?>))
+        .toList();
     return DidChangeWatchedFilesRegistrationOptions(watchers: watchers);
   }
 
   /// The watchers to register.
   final List<FileSystemWatcher> watchers;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['watchers'] = watchers.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('watchers');
       try {
         if (!obj.containsKey('watchers')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['watchers'] == null) {
+        final watchers = obj['watchers'];
+        if (watchers == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['watchers'] is List &&
-            (obj['watchers'].every(
+        if (!((watchers is List &&
+            (watchers.every(
                 (item) => FileSystemWatcher.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileSystemWatcher>');
           return false;
@@ -9470,33 +9859,36 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       DidChangeWorkspaceFoldersParams.fromJson);
 
   DidChangeWorkspaceFoldersParams({required this.event});
-  static DidChangeWorkspaceFoldersParams fromJson(Map<String, dynamic> json) {
-    final event = WorkspaceFoldersChangeEvent.fromJson(json['event']);
+  static DidChangeWorkspaceFoldersParams fromJson(Map<String, Object?> json) {
+    final eventJson = json['event'];
+    final event =
+        WorkspaceFoldersChangeEvent.fromJson(eventJson as Map<String, Object?>);
     return DidChangeWorkspaceFoldersParams(event: event);
   }
 
   /// The actual workspace folder change event.
   final WorkspaceFoldersChangeEvent event;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['event'] = event.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('event');
       try {
         if (!obj.containsKey('event')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['event'] == null) {
+        final event = obj['event'];
+        if (event == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
+        if (!(WorkspaceFoldersChangeEvent.canParse(event, reporter))) {
           reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
           return false;
         }
@@ -9535,33 +9927,36 @@ class DidCloseTextDocumentParams implements ToJsonable {
       DidCloseTextDocumentParams.canParse, DidCloseTextDocumentParams.fromJson);
 
   DidCloseTextDocumentParams({required this.textDocument});
-  static DidCloseTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
+  static DidCloseTextDocumentParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
     return DidCloseTextDocumentParams(textDocument: textDocument);
   }
 
   /// The document that was closed.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -9600,33 +9995,36 @@ class DidOpenTextDocumentParams implements ToJsonable {
       DidOpenTextDocumentParams.canParse, DidOpenTextDocumentParams.fromJson);
 
   DidOpenTextDocumentParams({required this.textDocument});
-  static DidOpenTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentItem.fromJson(json['textDocument']);
+  static DidOpenTextDocumentParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument =
+        TextDocumentItem.fromJson(textDocumentJson as Map<String, Object?>);
     return DidOpenTextDocumentParams(textDocument: textDocument);
   }
 
   /// The document that was opened.
   final TextDocumentItem textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentItem.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentItem');
           return false;
         }
@@ -9665,9 +10063,12 @@ class DidSaveTextDocumentParams implements ToJsonable {
       DidSaveTextDocumentParams.canParse, DidSaveTextDocumentParams.fromJson);
 
   DidSaveTextDocumentParams({required this.textDocument, this.text});
-  static DidSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final text = json['text'];
+  static DidSaveTextDocumentParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final textJson = json['text'];
+    final text = textJson as String?;
     return DidSaveTextDocumentParams(textDocument: textDocument, text: text);
   }
 
@@ -9678,8 +10079,8 @@ class DidSaveTextDocumentParams implements ToJsonable {
   /// The document that was saved.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (text != null) {
       __result['text'] = text;
@@ -9688,18 +10089,19 @@ class DidSaveTextDocumentParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -9708,7 +10110,8 @@ class DidSaveTextDocumentParams implements ToJsonable {
       }
       reporter.push('text');
       try {
-        if (obj['text'] != null && !(obj['text'] is String)) {
+        final text = obj['text'];
+        if (text != null && !(text is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -9749,8 +10152,9 @@ class DocumentColorClientCapabilities implements ToJsonable {
       DocumentColorClientCapabilities.fromJson);
 
   DocumentColorClientCapabilities({this.dynamicRegistration});
-  static DocumentColorClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static DocumentColorClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentColorClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -9758,8 +10162,8 @@ class DocumentColorClientCapabilities implements ToJsonable {
   /// Whether document color supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -9767,11 +10171,11 @@ class DocumentColorClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9810,18 +10214,19 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
       DocumentColorOptions.canParse, DocumentColorOptions.fromJson);
 
   DocumentColorOptions({this.workDoneProgress});
-  static DocumentColorOptions fromJson(Map<String, dynamic> json) {
+  static DocumentColorOptions fromJson(Map<String, Object?> json) {
     if (DocumentColorRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentColorRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentColorOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -9829,11 +10234,11 @@ class DocumentColorOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -9876,22 +10281,26 @@ class DocumentColorParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static DocumentColorParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentColorParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentColorParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -9908,8 +10317,8 @@ class DocumentColorParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -9921,18 +10330,19 @@ class DocumentColorParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -9941,9 +10351,9 @@ class DocumentColorParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -9952,9 +10362,9 @@ class DocumentColorParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -10005,13 +10415,15 @@ class DocumentColorRegistrationOptions
 
   DocumentColorRegistrationOptions(
       {this.documentSelector, this.id, this.workDoneProgress});
-  static DocumentColorRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final id = json['id'];
-    final workDoneProgress = json['workDoneProgress'];
+  static DocumentColorRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final idJson = json['id'];
+    final id = idJson as String?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentColorRegistrationOptions(
         documentSelector: documentSelector,
         id: id,
@@ -10027,8 +10439,8 @@ class DocumentColorRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (id != null) {
       __result['id'] = id;
@@ -10040,16 +10452,17 @@ class DocumentColorRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -10059,7 +10472,8 @@ class DocumentColorRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -10068,8 +10482,8 @@ class DocumentColorRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10114,10 +10528,13 @@ class DocumentFilter implements ToJsonable {
       LspJsonHandler(DocumentFilter.canParse, DocumentFilter.fromJson);
 
   DocumentFilter({this.language, this.scheme, this.pattern});
-  static DocumentFilter fromJson(Map<String, dynamic> json) {
-    final language = json['language'];
-    final scheme = json['scheme'];
-    final pattern = json['pattern'];
+  static DocumentFilter fromJson(Map<String, Object?> json) {
+    final languageJson = json['language'];
+    final language = languageJson as String?;
+    final schemeJson = json['scheme'];
+    final scheme = schemeJson as String?;
+    final patternJson = json['pattern'];
+    final pattern = patternJson as String?;
     return DocumentFilter(language: language, scheme: scheme, pattern: pattern);
   }
 
@@ -10142,8 +10559,8 @@ class DocumentFilter implements ToJsonable {
   /// A Uri [scheme](#Uri.scheme), like `file` or `untitled`.
   final String? scheme;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (language != null) {
       __result['language'] = language;
     }
@@ -10157,10 +10574,11 @@ class DocumentFilter implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('language');
       try {
-        if (obj['language'] != null && !(obj['language'] is String)) {
+        final language = obj['language'];
+        if (language != null && !(language is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -10169,7 +10587,8 @@ class DocumentFilter implements ToJsonable {
       }
       reporter.push('scheme');
       try {
-        if (obj['scheme'] != null && !(obj['scheme'] is String)) {
+        final scheme = obj['scheme'];
+        if (scheme != null && !(scheme is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -10178,7 +10597,8 @@ class DocumentFilter implements ToJsonable {
       }
       reporter.push('pattern');
       try {
-        if (obj['pattern'] != null && !(obj['pattern'] is String)) {
+        final pattern = obj['pattern'];
+        if (pattern != null && !(pattern is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -10223,8 +10643,9 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
 
   DocumentFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentFormattingClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentFormattingClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -10232,8 +10653,8 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -10241,11 +10662,11 @@ class DocumentFormattingClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10285,19 +10706,20 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
       DocumentFormattingOptions.canParse, DocumentFormattingOptions.fromJson);
 
   DocumentFormattingOptions({this.workDoneProgress});
-  static DocumentFormattingOptions fromJson(Map<String, dynamic> json) {
+  static DocumentFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentFormattingRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -10305,11 +10727,11 @@ class DocumentFormattingOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10349,16 +10771,21 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
 
   DocumentFormattingParams(
       {required this.textDocument, required this.options, this.workDoneToken});
-  static DocumentFormattingParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final options = FormattingOptions.fromJson(json['options']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentFormattingParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final optionsJson = json['options'];
+    final options =
+        FormattingOptions.fromJson(optionsJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return DocumentFormattingParams(
         textDocument: textDocument,
         options: options,
@@ -10374,8 +10801,8 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['options'] = options.toJson();
     if (workDoneToken != null) {
@@ -10385,18 +10812,19 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -10409,11 +10837,12 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['options'] == null) {
+        final options = obj['options'];
+        if (options == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -10422,9 +10851,9 @@ class DocumentFormattingParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -10475,12 +10904,13 @@ class DocumentFormattingRegistrationOptions
   DocumentFormattingRegistrationOptions(
       {this.documentSelector, this.workDoneProgress});
   static DocumentFormattingRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+      Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentFormattingRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -10490,8 +10920,8 @@ class DocumentFormattingRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -10500,16 +10930,17 @@ class DocumentFormattingRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -10519,8 +10950,8 @@ class DocumentFormattingRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10567,10 +10998,12 @@ class DocumentHighlight implements ToJsonable {
       LspJsonHandler(DocumentHighlight.canParse, DocumentHighlight.fromJson);
 
   DocumentHighlight({required this.range, this.kind});
-  static DocumentHighlight fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final kind = json['kind'] != null
-        ? DocumentHighlightKind.fromJson(json['kind'])
+  static DocumentHighlight fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final kindJson = json['kind'];
+    final kind = kindJson != null
+        ? DocumentHighlightKind.fromJson(kindJson as int)
         : null;
     return DocumentHighlight(range: range, kind: kind);
   }
@@ -10581,8 +11014,8 @@ class DocumentHighlight implements ToJsonable {
   /// The range this highlight applies to.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (kind != null) {
       __result['kind'] = kind?.toJson();
@@ -10591,18 +11024,19 @@ class DocumentHighlight implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -10611,8 +11045,8 @@ class DocumentHighlight implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(DocumentHighlightKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(DocumentHighlightKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type DocumentHighlightKind');
           return false;
         }
@@ -10653,8 +11087,9 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
 
   DocumentHighlightClientCapabilities({this.dynamicRegistration});
   static DocumentHighlightClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentHighlightClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -10662,8 +11097,8 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   /// Whether document highlight supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -10671,11 +11106,11 @@ class DocumentHighlightClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10747,19 +11182,20 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
       DocumentHighlightOptions.canParse, DocumentHighlightOptions.fromJson);
 
   DocumentHighlightOptions({this.workDoneProgress});
-  static DocumentHighlightOptions fromJson(Map<String, dynamic> json) {
+  static DocumentHighlightOptions fromJson(Map<String, Object?> json) {
     if (DocumentHighlightRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentHighlightRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentHighlightOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -10767,11 +11203,11 @@ class DocumentHighlightOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -10819,23 +11255,28 @@ class DocumentHighlightParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static DocumentHighlightParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentHighlightParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentHighlightParams(
         textDocument: textDocument,
         position: position,
@@ -10856,8 +11297,8 @@ class DocumentHighlightParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -10870,18 +11311,19 @@ class DocumentHighlightParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -10894,11 +11336,12 @@ class DocumentHighlightParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -10907,9 +11350,9 @@ class DocumentHighlightParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -10918,9 +11361,9 @@ class DocumentHighlightParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -10973,12 +11416,13 @@ class DocumentHighlightRegistrationOptions
   DocumentHighlightRegistrationOptions(
       {this.documentSelector, this.workDoneProgress});
   static DocumentHighlightRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+      Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentHighlightRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -10988,8 +11432,8 @@ class DocumentHighlightRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -10998,16 +11442,17 @@ class DocumentHighlightRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -11017,8 +11462,8 @@ class DocumentHighlightRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11064,18 +11509,22 @@ class DocumentLink implements ToJsonable {
       LspJsonHandler(DocumentLink.canParse, DocumentLink.fromJson);
 
   DocumentLink({required this.range, this.target, this.tooltip, this.data});
-  static DocumentLink fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final target = json['target'];
-    final tooltip = json['tooltip'];
-    final data = json['data'];
+  static DocumentLink fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final targetJson = json['target'];
+    final target = targetJson as String?;
+    final tooltipJson = json['tooltip'];
+    final tooltip = tooltipJson as String?;
+    final dataJson = json['data'];
+    final data = dataJson;
     return DocumentLink(
         range: range, target: target, tooltip: tooltip, data: data);
   }
 
   /// A data entry field that is preserved on a document link between a
   /// DocumentLinkRequest and a DocumentLinkResolveRequest.
-  final dynamic data;
+  final Object? data;
 
   /// The range this link applies to.
   final Range range;
@@ -11092,8 +11541,8 @@ class DocumentLink implements ToJsonable {
   ///  @since 3.15.0
   final String? tooltip;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (target != null) {
       __result['target'] = target;
@@ -11108,18 +11557,19 @@ class DocumentLink implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -11128,7 +11578,8 @@ class DocumentLink implements ToJsonable {
       }
       reporter.push('target');
       try {
-        if (obj['target'] != null && !(obj['target'] is String)) {
+        final target = obj['target'];
+        if (target != null && !(target is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11137,7 +11588,8 @@ class DocumentLink implements ToJsonable {
       }
       reporter.push('tooltip');
       try {
-        if (obj['tooltip'] != null && !(obj['tooltip'] is String)) {
+        final tooltip = obj['tooltip'];
+        if (tooltip != null && !(tooltip is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11184,9 +11636,11 @@ class DocumentLinkClientCapabilities implements ToJsonable {
 
   DocumentLinkClientCapabilities(
       {this.dynamicRegistration, this.tooltipSupport});
-  static DocumentLinkClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final tooltipSupport = json['tooltipSupport'];
+  static DocumentLinkClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final tooltipSupportJson = json['tooltipSupport'];
+    final tooltipSupport = tooltipSupportJson as bool?;
     return DocumentLinkClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         tooltipSupport: tooltipSupport);
@@ -11199,8 +11653,8 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? tooltipSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -11211,11 +11665,11 @@ class DocumentLinkClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11224,7 +11678,8 @@ class DocumentLinkClientCapabilities implements ToJsonable {
       }
       reporter.push('tooltipSupport');
       try {
-        if (obj['tooltipSupport'] != null && !(obj['tooltipSupport'] is bool)) {
+        final tooltipSupport = obj['tooltipSupport'];
+        if (tooltipSupport != null && !(tooltipSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11266,12 +11721,14 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
       DocumentLinkOptions.canParse, DocumentLinkOptions.fromJson);
 
   DocumentLinkOptions({this.resolveProvider, this.workDoneProgress});
-  static DocumentLinkOptions fromJson(Map<String, dynamic> json) {
+  static DocumentLinkOptions fromJson(Map<String, Object?> json) {
     if (DocumentLinkRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentLinkRegistrationOptions.fromJson(json);
     }
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentLinkOptions(
         resolveProvider: resolveProvider, workDoneProgress: workDoneProgress);
   }
@@ -11280,8 +11737,8 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
     }
@@ -11292,11 +11749,11 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11305,8 +11762,8 @@ class DocumentLinkOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11352,22 +11809,26 @@ class DocumentLinkParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static DocumentLinkParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentLinkParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentLinkParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -11384,8 +11845,8 @@ class DocumentLinkParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -11397,18 +11858,19 @@ class DocumentLinkParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -11417,9 +11879,9 @@ class DocumentLinkParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -11428,9 +11890,9 @@ class DocumentLinkParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -11480,13 +11942,15 @@ class DocumentLinkRegistrationOptions
 
   DocumentLinkRegistrationOptions(
       {this.documentSelector, this.resolveProvider, this.workDoneProgress});
-  static DocumentLinkRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final resolveProvider = json['resolveProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+  static DocumentLinkRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final resolveProviderJson = json['resolveProvider'];
+    final resolveProvider = resolveProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentLinkRegistrationOptions(
         documentSelector: documentSelector,
         resolveProvider: resolveProvider,
@@ -11501,8 +11965,8 @@ class DocumentLinkRegistrationOptions
   final bool? resolveProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (resolveProvider != null) {
       __result['resolveProvider'] = resolveProvider;
@@ -11514,16 +11978,17 @@ class DocumentLinkRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -11533,8 +11998,8 @@ class DocumentLinkRegistrationOptions
       }
       reporter.push('resolveProvider');
       try {
-        if (obj['resolveProvider'] != null &&
-            !(obj['resolveProvider'] is bool)) {
+        final resolveProvider = obj['resolveProvider'];
+        if (resolveProvider != null && !(resolveProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11543,8 +12008,8 @@ class DocumentLinkRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11591,8 +12056,9 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
 
   DocumentOnTypeFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentOnTypeFormattingClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentOnTypeFormattingClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -11600,8 +12066,8 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   /// Whether on type formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -11609,11 +12075,11 @@ class DocumentOnTypeFormattingClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -11655,16 +12121,17 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
 
   DocumentOnTypeFormattingOptions(
       {required this.firstTriggerCharacter, this.moreTriggerCharacter});
-  static DocumentOnTypeFormattingOptions fromJson(Map<String, dynamic> json) {
+  static DocumentOnTypeFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentOnTypeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentOnTypeFormattingRegistrationOptions.fromJson(json);
     }
-    final firstTriggerCharacter = json['firstTriggerCharacter'];
-    final moreTriggerCharacter = json['moreTriggerCharacter']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
+    final firstTriggerCharacterJson = json['firstTriggerCharacter'];
+    final firstTriggerCharacter = firstTriggerCharacterJson as String;
+    final moreTriggerCharacterJson = json['moreTriggerCharacter'];
+    final moreTriggerCharacter = (moreTriggerCharacterJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
     return DocumentOnTypeFormattingOptions(
         firstTriggerCharacter: firstTriggerCharacter,
         moreTriggerCharacter: moreTriggerCharacter);
@@ -11676,8 +12143,8 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   /// More trigger characters.
   final List<String>? moreTriggerCharacter;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
       __result['moreTriggerCharacter'] = moreTriggerCharacter;
@@ -11686,18 +12153,19 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('firstTriggerCharacter');
       try {
         if (!obj.containsKey('firstTriggerCharacter')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['firstTriggerCharacter'] == null) {
+        final firstTriggerCharacter = obj['firstTriggerCharacter'];
+        if (firstTriggerCharacter == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['firstTriggerCharacter'] is String)) {
+        if (!(firstTriggerCharacter is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11706,10 +12174,10 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       }
       reporter.push('moreTriggerCharacter');
       try {
-        if (obj['moreTriggerCharacter'] != null &&
-            !((obj['moreTriggerCharacter'] is List &&
-                (obj['moreTriggerCharacter']
-                    .every((item) => item is String))))) {
+        final moreTriggerCharacter = obj['moreTriggerCharacter'];
+        if (moreTriggerCharacter != null &&
+            !((moreTriggerCharacter is List &&
+                (moreTriggerCharacter.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -11758,11 +12226,17 @@ class DocumentOnTypeFormattingParams
       required this.options,
       required this.textDocument,
       required this.position});
-  static DocumentOnTypeFormattingParams fromJson(Map<String, dynamic> json) {
-    final ch = json['ch'];
-    final options = FormattingOptions.fromJson(json['options']);
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
+  static DocumentOnTypeFormattingParams fromJson(Map<String, Object?> json) {
+    final chJson = json['ch'];
+    final ch = chJson as String;
+    final optionsJson = json['options'];
+    final options =
+        FormattingOptions.fromJson(optionsJson as Map<String, Object?>);
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
     return DocumentOnTypeFormattingParams(
         ch: ch,
         options: options,
@@ -11782,8 +12256,8 @@ class DocumentOnTypeFormattingParams
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['ch'] = ch;
     __result['options'] = options.toJson();
     __result['textDocument'] = textDocument.toJson();
@@ -11792,18 +12266,19 @@ class DocumentOnTypeFormattingParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('ch');
       try {
         if (!obj.containsKey('ch')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['ch'] == null) {
+        final ch = obj['ch'];
+        if (ch == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['ch'] is String)) {
+        if (!(ch is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11816,11 +12291,12 @@ class DocumentOnTypeFormattingParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['options'] == null) {
+        final options = obj['options'];
+        if (options == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -11833,11 +12309,12 @@ class DocumentOnTypeFormattingParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -11850,11 +12327,12 @@ class DocumentOnTypeFormattingParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -11909,16 +12387,17 @@ class DocumentOnTypeFormattingRegistrationOptions
       required this.firstTriggerCharacter,
       this.moreTriggerCharacter});
   static DocumentOnTypeFormattingRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final firstTriggerCharacter = json['firstTriggerCharacter'];
-    final moreTriggerCharacter = json['moreTriggerCharacter']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final firstTriggerCharacterJson = json['firstTriggerCharacter'];
+    final firstTriggerCharacter = firstTriggerCharacterJson as String;
+    final moreTriggerCharacterJson = json['moreTriggerCharacter'];
+    final moreTriggerCharacter = (moreTriggerCharacterJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
     return DocumentOnTypeFormattingRegistrationOptions(
         documentSelector: documentSelector,
         firstTriggerCharacter: firstTriggerCharacter,
@@ -11935,8 +12414,8 @@ class DocumentOnTypeFormattingRegistrationOptions
   /// More trigger characters.
   final List<String>? moreTriggerCharacter;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     __result['firstTriggerCharacter'] = firstTriggerCharacter;
     if (moreTriggerCharacter != null) {
@@ -11946,16 +12425,17 @@ class DocumentOnTypeFormattingRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -11969,11 +12449,12 @@ class DocumentOnTypeFormattingRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['firstTriggerCharacter'] == null) {
+        final firstTriggerCharacter = obj['firstTriggerCharacter'];
+        if (firstTriggerCharacter == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['firstTriggerCharacter'] is String)) {
+        if (!(firstTriggerCharacter is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -11982,10 +12463,10 @@ class DocumentOnTypeFormattingRegistrationOptions
       }
       reporter.push('moreTriggerCharacter');
       try {
-        if (obj['moreTriggerCharacter'] != null &&
-            !((obj['moreTriggerCharacter'] is List &&
-                (obj['moreTriggerCharacter']
-                    .every((item) => item is String))))) {
+        final moreTriggerCharacter = obj['moreTriggerCharacter'];
+        if (moreTriggerCharacter != null &&
+            !((moreTriggerCharacter is List &&
+                (moreTriggerCharacter.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -12034,8 +12515,9 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
 
   DocumentRangeFormattingClientCapabilities({this.dynamicRegistration});
   static DocumentRangeFormattingClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return DocumentRangeFormattingClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -12043,8 +12525,8 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   /// Whether formatting supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -12052,11 +12534,11 @@ class DocumentRangeFormattingClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12098,19 +12580,20 @@ class DocumentRangeFormattingOptions
       DocumentRangeFormattingOptions.fromJson);
 
   DocumentRangeFormattingOptions({this.workDoneProgress});
-  static DocumentRangeFormattingOptions fromJson(Map<String, dynamic> json) {
+  static DocumentRangeFormattingOptions fromJson(Map<String, Object?> json) {
     if (DocumentRangeFormattingRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return DocumentRangeFormattingRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentRangeFormattingOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -12118,11 +12601,11 @@ class DocumentRangeFormattingOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12167,17 +12650,23 @@ class DocumentRangeFormattingParams
       required this.range,
       required this.options,
       this.workDoneToken});
-  static DocumentRangeFormattingParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final range = Range.fromJson(json['range']);
-    final options = FormattingOptions.fromJson(json['options']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentRangeFormattingParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final optionsJson = json['options'];
+    final options =
+        FormattingOptions.fromJson(optionsJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return DocumentRangeFormattingParams(
         textDocument: textDocument,
         range: range,
@@ -12197,8 +12686,8 @@ class DocumentRangeFormattingParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['range'] = range.toJson();
     __result['options'] = options.toJson();
@@ -12209,18 +12698,19 @@ class DocumentRangeFormattingParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -12233,11 +12723,12 @@ class DocumentRangeFormattingParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -12250,11 +12741,12 @@ class DocumentRangeFormattingParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['options'] == null) {
+        final options = obj['options'];
+        if (options == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FormattingOptions.canParse(obj['options'], reporter))) {
+        if (!(FormattingOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type FormattingOptions');
           return false;
         }
@@ -12263,9 +12755,9 @@ class DocumentRangeFormattingParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -12318,12 +12810,13 @@ class DocumentRangeFormattingRegistrationOptions
   DocumentRangeFormattingRegistrationOptions(
       {this.documentSelector, this.workDoneProgress});
   static DocumentRangeFormattingRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+      Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentRangeFormattingRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -12333,8 +12826,8 @@ class DocumentRangeFormattingRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -12343,16 +12836,17 @@ class DocumentRangeFormattingRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -12362,8 +12856,8 @@ class DocumentRangeFormattingRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12419,21 +12913,28 @@ class DocumentSymbol implements ToJsonable {
       required this.range,
       required this.selectionRange,
       this.children});
-  static DocumentSymbol fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final detail = json['detail'];
-    final kind = SymbolKind.fromJson(json['kind']);
-    final tags = json['tags']
-        ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
-        ?.cast<SymbolTag>()
-        ?.toList();
-    final deprecated = json['deprecated'];
-    final range = Range.fromJson(json['range']);
-    final selectionRange = Range.fromJson(json['selectionRange']);
-    final children = json['children']
-        ?.map((item) => item != null ? DocumentSymbol.fromJson(item) : null)
-        ?.cast<DocumentSymbol>()
-        ?.toList();
+  static DocumentSymbol fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final detailJson = json['detail'];
+    final detail = detailJson as String?;
+    final kindJson = json['kind'];
+    final kind = SymbolKind.fromJson(kindJson as int);
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => SymbolTag.fromJson(item as num))
+        .toList();
+    final deprecatedJson = json['deprecated'];
+    final deprecated = deprecatedJson as bool?;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final selectionRangeJson = json['selectionRange'];
+    final selectionRange =
+        Range.fromJson(selectionRangeJson as Map<String, Object?>);
+    final childrenJson = json['children'];
+    final children = (childrenJson as List<Object?>?)
+        ?.map((item) => DocumentSymbol.fromJson(item as Map<String, Object?>))
+        .toList();
     return DocumentSymbol(
         name: name,
         detail: detail,
@@ -12477,8 +12978,8 @@ class DocumentSymbol implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     if (detail != null) {
       __result['detail'] = detail;
@@ -12499,18 +13000,19 @@ class DocumentSymbol implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -12519,7 +13021,8 @@ class DocumentSymbol implements ToJsonable {
       }
       reporter.push('detail');
       try {
-        if (obj['detail'] != null && !(obj['detail'] is String)) {
+        final detail = obj['detail'];
+        if (detail != null && !(detail is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -12532,11 +13035,12 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(obj['kind'], reporter))) {
+        if (!(SymbolKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -12545,10 +13049,10 @@ class DocumentSymbol implements ToJsonable {
       }
       reporter.push('tags');
       try {
-        if (obj['tags'] != null &&
-            !((obj['tags'] is List &&
-                (obj['tags']
-                    .every((item) => SymbolTag.canParse(item, reporter)))))) {
+        final tags = obj['tags'];
+        if (tags != null &&
+            !((tags is List &&
+                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -12557,7 +13061,8 @@ class DocumentSymbol implements ToJsonable {
       }
       reporter.push('deprecated');
       try {
-        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+        final deprecated = obj['deprecated'];
+        if (deprecated != null && !(deprecated is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12570,11 +13075,12 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -12587,11 +13093,12 @@ class DocumentSymbol implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['selectionRange'] == null) {
+        final selectionRange = obj['selectionRange'];
+        if (selectionRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['selectionRange'], reporter))) {
+        if (!(Range.canParse(selectionRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -12600,9 +13107,10 @@ class DocumentSymbol implements ToJsonable {
       }
       reporter.push('children');
       try {
-        if (obj['children'] != null &&
-            !((obj['children'] is List &&
-                (obj['children'].every(
+        final children = obj['children'];
+        if (children != null &&
+            !((children is List &&
+                (children.every(
                     (item) => DocumentSymbol.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentSymbol>');
           return false;
@@ -12663,19 +13171,25 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       this.hierarchicalDocumentSymbolSupport,
       this.tagSupport,
       this.labelSupport});
-  static DocumentSymbolClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final symbolKind = json['symbolKind'] != null
+  static DocumentSymbolClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final symbolKindJson = json['symbolKind'];
+    final symbolKind = symbolKindJson != null
         ? DocumentSymbolClientCapabilitiesSymbolKind.fromJson(
-            json['symbolKind'])
+            symbolKindJson as Map<String, Object?>)
         : null;
-    final hierarchicalDocumentSymbolSupport =
+    final hierarchicalDocumentSymbolSupportJson =
         json['hierarchicalDocumentSymbolSupport'];
-    final tagSupport = json['tagSupport'] != null
+    final hierarchicalDocumentSymbolSupport =
+        hierarchicalDocumentSymbolSupportJson as bool?;
+    final tagSupportJson = json['tagSupport'];
+    final tagSupport = tagSupportJson != null
         ? DocumentSymbolClientCapabilitiesTagSupport.fromJson(
-            json['tagSupport'])
+            tagSupportJson as Map<String, Object?>)
         : null;
-    final labelSupport = json['labelSupport'];
+    final labelSupportJson = json['labelSupport'];
+    final labelSupport = labelSupportJson as bool?;
     return DocumentSymbolClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         symbolKind: symbolKind,
@@ -12705,8 +13219,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final DocumentSymbolClientCapabilitiesTagSupport? tagSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -12727,11 +13241,11 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12740,9 +13254,10 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('symbolKind');
       try {
-        if (obj['symbolKind'] != null &&
+        final symbolKind = obj['symbolKind'];
+        if (symbolKind != null &&
             !(DocumentSymbolClientCapabilitiesSymbolKind.canParse(
-                obj['symbolKind'], reporter))) {
+                symbolKind, reporter))) {
           reporter.reportError(
               'must be of type DocumentSymbolClientCapabilitiesSymbolKind');
           return false;
@@ -12752,8 +13267,10 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('hierarchicalDocumentSymbolSupport');
       try {
-        if (obj['hierarchicalDocumentSymbolSupport'] != null &&
-            !(obj['hierarchicalDocumentSymbolSupport'] is bool)) {
+        final hierarchicalDocumentSymbolSupport =
+            obj['hierarchicalDocumentSymbolSupport'];
+        if (hierarchicalDocumentSymbolSupport != null &&
+            !(hierarchicalDocumentSymbolSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12762,9 +13279,10 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('tagSupport');
       try {
-        if (obj['tagSupport'] != null &&
+        final tagSupport = obj['tagSupport'];
+        if (tagSupport != null &&
             !(DocumentSymbolClientCapabilitiesTagSupport.canParse(
-                obj['tagSupport'], reporter))) {
+                tagSupport, reporter))) {
           reporter.reportError(
               'must be of type DocumentSymbolClientCapabilitiesTagSupport');
           return false;
@@ -12774,7 +13292,8 @@ class DocumentSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('labelSupport');
       try {
-        if (obj['labelSupport'] != null && !(obj['labelSupport'] is bool)) {
+        final labelSupport = obj['labelSupport'];
+        if (labelSupport != null && !(labelSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -12826,11 +13345,11 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
   DocumentSymbolClientCapabilitiesSymbolKind({this.valueSet});
   static DocumentSymbolClientCapabilitiesSymbolKind fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
-        ?.cast<SymbolKind>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>?)
+        ?.map((item) => SymbolKind.fromJson(item as int))
+        .toList();
     return DocumentSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
   }
 
@@ -12842,8 +13361,8 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
@@ -12851,12 +13370,13 @@ class DocumentSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
-        if (obj['valueSet'] != null &&
-            !((obj['valueSet'] is List &&
-                (obj['valueSet']
+        final valueSet = obj['valueSet'];
+        if (valueSet != null &&
+            !((valueSet is List &&
+                (valueSet
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolKind>');
           return false;
@@ -12901,38 +13421,38 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   DocumentSymbolClientCapabilitiesTagSupport({required this.valueSet});
   static DocumentSymbolClientCapabilitiesTagSupport fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => SymbolTag.fromJson(item))
-        ?.cast<SymbolTag>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => SymbolTag.fromJson(item as num))
+        .toList();
     return DocumentSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet']
-                .every((item) => SymbolTag.canParse(item, reporter)))))) {
+        if (!((valueSet is List &&
+            (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -12974,12 +13494,14 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       DocumentSymbolOptions.canParse, DocumentSymbolOptions.fromJson);
 
   DocumentSymbolOptions({this.label, this.workDoneProgress});
-  static DocumentSymbolOptions fromJson(Map<String, dynamic> json) {
+  static DocumentSymbolOptions fromJson(Map<String, Object?> json) {
     if (DocumentSymbolRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DocumentSymbolRegistrationOptions.fromJson(json);
     }
-    final label = json['label'];
-    final workDoneProgress = json['workDoneProgress'];
+    final labelJson = json['label'];
+    final label = labelJson as String?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentSymbolOptions(
         label: label, workDoneProgress: workDoneProgress);
   }
@@ -12990,8 +13512,8 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   final String? label;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (label != null) {
       __result['label'] = label;
     }
@@ -13002,10 +13524,11 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        final label = obj['label'];
+        if (label != null && !(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13014,8 +13537,8 @@ class DocumentSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13061,22 +13584,26 @@ class DocumentSymbolParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static DocumentSymbolParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static DocumentSymbolParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return DocumentSymbolParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -13093,8 +13620,8 @@ class DocumentSymbolParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -13106,18 +13633,19 @@ class DocumentSymbolParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -13126,9 +13654,9 @@ class DocumentSymbolParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -13137,9 +13665,9 @@ class DocumentSymbolParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -13189,13 +13717,15 @@ class DocumentSymbolRegistrationOptions
 
   DocumentSymbolRegistrationOptions(
       {this.documentSelector, this.label, this.workDoneProgress});
-  static DocumentSymbolRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final label = json['label'];
-    final workDoneProgress = json['workDoneProgress'];
+  static DocumentSymbolRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final labelJson = json['label'];
+    final label = labelJson as String?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return DocumentSymbolRegistrationOptions(
         documentSelector: documentSelector,
         label: label,
@@ -13212,8 +13742,8 @@ class DocumentSymbolRegistrationOptions
   final String? label;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (label != null) {
       __result['label'] = label;
@@ -13225,16 +13755,17 @@ class DocumentSymbolRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -13244,7 +13775,8 @@ class DocumentSymbolRegistrationOptions
       }
       reporter.push('label');
       try {
-        if (obj['label'] != null && !(obj['label'] is String)) {
+        final label = obj['label'];
+        if (label != null && !(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13253,8 +13785,8 @@ class DocumentSymbolRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13353,8 +13885,9 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
       ExecuteCommandClientCapabilities.fromJson);
 
   ExecuteCommandClientCapabilities({this.dynamicRegistration});
-  static ExecuteCommandClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static ExecuteCommandClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return ExecuteCommandClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -13362,8 +13895,8 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   /// Execute command supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -13371,11 +13904,11 @@ class ExecuteCommandClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13414,13 +13947,15 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
       ExecuteCommandOptions.canParse, ExecuteCommandOptions.fromJson);
 
   ExecuteCommandOptions({required this.commands, this.workDoneProgress});
-  static ExecuteCommandOptions fromJson(Map<String, dynamic> json) {
+  static ExecuteCommandOptions fromJson(Map<String, Object?> json) {
     if (ExecuteCommandRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ExecuteCommandRegistrationOptions.fromJson(json);
     }
+    final commandsJson = json['commands'];
     final commands =
-        json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+        (commandsJson as List<Object?>).map((item) => item as String).toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return ExecuteCommandOptions(
         commands: commands, workDoneProgress: workDoneProgress);
   }
@@ -13429,8 +13964,8 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   final List<String> commands;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['commands'] = commands;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -13439,19 +13974,20 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['commands'] == null) {
+        final commands = obj['commands'];
+        if (commands == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['commands'] is List &&
-            (obj['commands'].every((item) => item is String))))) {
+        if (!((commands is List &&
+            (commands.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -13460,8 +13996,8 @@ class ExecuteCommandOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13505,23 +14041,26 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
 
   ExecuteCommandParams(
       {required this.command, this.arguments, this.workDoneToken});
-  static ExecuteCommandParams fromJson(Map<String, dynamic> json) {
-    final command = json['command'];
+  static ExecuteCommandParams fromJson(Map<String, Object?> json) {
+    final commandJson = json['command'];
+    final command = commandJson as String;
+    final argumentsJson = json['arguments'];
     final arguments =
-        json['arguments']?.map((item) => item)?.cast<dynamic>()?.toList();
-    final workDoneToken = json['workDoneToken'] == null
+        (argumentsJson as List<Object?>?)?.map((item) => item).toList();
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return ExecuteCommandParams(
         command: command, arguments: arguments, workDoneToken: workDoneToken);
   }
 
   /// Arguments that the command should be invoked with.
-  final List<dynamic>? arguments;
+  final List<Object?>? arguments;
 
   /// The identifier of the actual command handler.
   final String command;
@@ -13529,8 +14068,8 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['command'] = command;
     if (arguments != null) {
       __result['arguments'] = arguments;
@@ -13542,18 +14081,19 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('command');
       try {
         if (!obj.containsKey('command')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['command'] == null) {
+        final command = obj['command'];
+        if (command == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['command'] is String)) {
+        if (!(command is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13562,10 +14102,10 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('arguments');
       try {
-        if (obj['arguments'] != null &&
-            !((obj['arguments'] is List &&
-                (obj['arguments'].every((item) => true))))) {
-          reporter.reportError('must be of type List<dynamic>');
+        final arguments = obj['arguments'];
+        if (arguments != null &&
+            !((arguments is List && (arguments.every((item) => true))))) {
+          reporter.reportError('must be of type List<Object?>');
           return false;
         }
       } finally {
@@ -13573,9 +14113,9 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -13595,7 +14135,7 @@ class ExecuteCommandParams implements WorkDoneProgressParams, ToJsonable {
         other.runtimeType == ExecuteCommandParams) {
       return command == other.command &&
           listEqual(
-              arguments, other.arguments, (dynamic a, dynamic b) => a == b) &&
+              arguments, other.arguments, (Object? a, Object? b) => a == b) &&
           workDoneToken == other.workDoneToken &&
           true;
     }
@@ -13624,10 +14164,12 @@ class ExecuteCommandRegistrationOptions
 
   ExecuteCommandRegistrationOptions(
       {required this.commands, this.workDoneProgress});
-  static ExecuteCommandRegistrationOptions fromJson(Map<String, dynamic> json) {
+  static ExecuteCommandRegistrationOptions fromJson(Map<String, Object?> json) {
+    final commandsJson = json['commands'];
     final commands =
-        json['commands']?.map((item) => item)?.cast<String>()?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+        (commandsJson as List<Object?>).map((item) => item as String).toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return ExecuteCommandRegistrationOptions(
         commands: commands, workDoneProgress: workDoneProgress);
   }
@@ -13636,8 +14178,8 @@ class ExecuteCommandRegistrationOptions
   final List<String> commands;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['commands'] = commands;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -13646,19 +14188,20 @@ class ExecuteCommandRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['commands'] == null) {
+        final commands = obj['commands'];
+        if (commands == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['commands'] is List &&
-            (obj['commands'].every((item) => item is String))))) {
+        if (!((commands is List &&
+            (commands.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -13667,8 +14210,8 @@ class ExecuteCommandRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -13791,33 +14334,35 @@ class FileCreate implements ToJsonable {
       LspJsonHandler(FileCreate.canParse, FileCreate.fromJson);
 
   FileCreate({required this.uri});
-  static FileCreate fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
+  static FileCreate fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return FileCreate(uri: uri);
   }
 
   /// A file:// URI for the location of the file/folder being created.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13857,33 +14402,35 @@ class FileDelete implements ToJsonable {
       LspJsonHandler(FileDelete.canParse, FileDelete.fromJson);
 
   FileDelete({required this.uri});
-  static FileDelete fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
+  static FileDelete fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return FileDelete(uri: uri);
   }
 
   /// A file:// URI for the location of the file/folder being deleted.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13922,9 +14469,11 @@ class FileEvent implements ToJsonable {
       LspJsonHandler(FileEvent.canParse, FileEvent.fromJson);
 
   FileEvent({required this.uri, required this.type});
-  static FileEvent fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final type = json['type'];
+  static FileEvent fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final typeJson = json['type'];
+    final type = typeJson as int;
     return FileEvent(uri: uri, type: type);
   }
 
@@ -13934,26 +14483,27 @@ class FileEvent implements ToJsonable {
   /// The file's URI.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['type'] = type;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -13966,11 +14516,12 @@ class FileEvent implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['type'] == null) {
+        final type = obj['type'];
+        if (type == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['type'] is int)) {
+        if (!(type is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14012,9 +14563,12 @@ class FileOperationFilter implements ToJsonable {
       FileOperationFilter.canParse, FileOperationFilter.fromJson);
 
   FileOperationFilter({this.scheme, required this.pattern});
-  static FileOperationFilter fromJson(Map<String, dynamic> json) {
-    final scheme = json['scheme'];
-    final pattern = FileOperationPattern.fromJson(json['pattern']);
+  static FileOperationFilter fromJson(Map<String, Object?> json) {
+    final schemeJson = json['scheme'];
+    final scheme = schemeJson as String?;
+    final patternJson = json['pattern'];
+    final pattern =
+        FileOperationPattern.fromJson(patternJson as Map<String, Object?>);
     return FileOperationFilter(scheme: scheme, pattern: pattern);
   }
 
@@ -14024,8 +14578,8 @@ class FileOperationFilter implements ToJsonable {
   /// A Uri like `file` or `untitled`.
   final String? scheme;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (scheme != null) {
       __result['scheme'] = scheme;
     }
@@ -14034,10 +14588,11 @@ class FileOperationFilter implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('scheme');
       try {
-        if (obj['scheme'] != null && !(obj['scheme'] is String)) {
+        final scheme = obj['scheme'];
+        if (scheme != null && !(scheme is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14050,11 +14605,12 @@ class FileOperationFilter implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['pattern'] == null) {
+        final pattern = obj['pattern'];
+        if (pattern == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(FileOperationPattern.canParse(obj['pattern'], reporter))) {
+        if (!(FileOperationPattern.canParse(pattern, reporter))) {
           reporter.reportError('must be of type FileOperationPattern');
           return false;
         }
@@ -14097,13 +14653,17 @@ class FileOperationPattern implements ToJsonable {
       FileOperationPattern.canParse, FileOperationPattern.fromJson);
 
   FileOperationPattern({required this.glob, this.matches, this.options});
-  static FileOperationPattern fromJson(Map<String, dynamic> json) {
-    final glob = json['glob'];
-    final matches = json['matches'] != null
-        ? FileOperationPatternKind.fromJson(json['matches'])
+  static FileOperationPattern fromJson(Map<String, Object?> json) {
+    final globJson = json['glob'];
+    final glob = globJson as String;
+    final matchesJson = json['matches'];
+    final matches = matchesJson != null
+        ? FileOperationPatternKind.fromJson(matchesJson as String)
         : null;
-    final options = json['options'] != null
-        ? FileOperationPatternOptions.fromJson(json['options'])
+    final optionsJson = json['options'];
+    final options = optionsJson != null
+        ? FileOperationPatternOptions.fromJson(
+            optionsJson as Map<String, Object?>)
         : null;
     return FileOperationPattern(glob: glob, matches: matches, options: options);
   }
@@ -14129,8 +14689,8 @@ class FileOperationPattern implements ToJsonable {
   /// Additional options used during matching.
   final FileOperationPatternOptions? options;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['glob'] = glob;
     if (matches != null) {
       __result['matches'] = matches?.toJson();
@@ -14142,18 +14702,19 @@ class FileOperationPattern implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('glob');
       try {
         if (!obj.containsKey('glob')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['glob'] == null) {
+        final glob = obj['glob'];
+        if (glob == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['glob'] is String)) {
+        if (!(glob is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14162,8 +14723,9 @@ class FileOperationPattern implements ToJsonable {
       }
       reporter.push('matches');
       try {
-        if (obj['matches'] != null &&
-            !(FileOperationPatternKind.canParse(obj['matches'], reporter))) {
+        final matches = obj['matches'];
+        if (matches != null &&
+            !(FileOperationPatternKind.canParse(matches, reporter))) {
           reporter.reportError('must be of type FileOperationPatternKind');
           return false;
         }
@@ -14172,8 +14734,9 @@ class FileOperationPattern implements ToJsonable {
       }
       reporter.push('options');
       try {
-        if (obj['options'] != null &&
-            !(FileOperationPatternOptions.canParse(obj['options'], reporter))) {
+        final options = obj['options'];
+        if (options != null &&
+            !(FileOperationPatternOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type FileOperationPatternOptions');
           return false;
         }
@@ -14250,16 +14813,17 @@ class FileOperationPatternOptions implements ToJsonable {
       FileOperationPatternOptions.fromJson);
 
   FileOperationPatternOptions({this.ignoreCase});
-  static FileOperationPatternOptions fromJson(Map<String, dynamic> json) {
-    final ignoreCase = json['ignoreCase'];
+  static FileOperationPatternOptions fromJson(Map<String, Object?> json) {
+    final ignoreCaseJson = json['ignoreCase'];
+    final ignoreCase = ignoreCaseJson as bool?;
     return FileOperationPatternOptions(ignoreCase: ignoreCase);
   }
 
   /// The pattern should be matched ignoring casing.
   final bool? ignoreCase;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (ignoreCase != null) {
       __result['ignoreCase'] = ignoreCase;
     }
@@ -14267,10 +14831,11 @@ class FileOperationPatternOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('ignoreCase');
       try {
-        if (obj['ignoreCase'] != null && !(obj['ignoreCase'] is bool)) {
+        final ignoreCase = obj['ignoreCase'];
+        if (ignoreCase != null && !(ignoreCase is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14312,37 +14877,39 @@ class FileOperationRegistrationOptions implements ToJsonable {
       FileOperationRegistrationOptions.fromJson);
 
   FileOperationRegistrationOptions({required this.filters});
-  static FileOperationRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final filters = json['filters']
-        ?.map((item) => FileOperationFilter.fromJson(item))
-        ?.cast<FileOperationFilter>()
-        ?.toList();
+  static FileOperationRegistrationOptions fromJson(Map<String, Object?> json) {
+    final filtersJson = json['filters'];
+    final filters = (filtersJson as List<Object?>)
+        .map((item) =>
+            FileOperationFilter.fromJson(item as Map<String, Object?>))
+        .toList();
     return FileOperationRegistrationOptions(filters: filters);
   }
 
   /// The actual filters.
   final List<FileOperationFilter> filters;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['filters'] = filters.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('filters');
       try {
         if (!obj.containsKey('filters')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['filters'] == null) {
+        final filters = obj['filters'];
+        if (filters == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['filters'] is List &&
-            (obj['filters'].every(
+        if (!((filters is List &&
+            (filters.every(
                 (item) => FileOperationFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileOperationFilter>');
           return false;
@@ -14386,9 +14953,11 @@ class FileRename implements ToJsonable {
       LspJsonHandler(FileRename.canParse, FileRename.fromJson);
 
   FileRename({required this.oldUri, required this.newUri});
-  static FileRename fromJson(Map<String, dynamic> json) {
-    final oldUri = json['oldUri'];
-    final newUri = json['newUri'];
+  static FileRename fromJson(Map<String, Object?> json) {
+    final oldUriJson = json['oldUri'];
+    final oldUri = oldUriJson as String;
+    final newUriJson = json['newUri'];
+    final newUri = newUriJson as String;
     return FileRename(oldUri: oldUri, newUri: newUri);
   }
 
@@ -14398,26 +14967,27 @@ class FileRename implements ToJsonable {
   /// A file:// URI for the original location of the file/folder being renamed.
   final String oldUri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['oldUri'] = oldUri;
     __result['newUri'] = newUri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('oldUri');
       try {
         if (!obj.containsKey('oldUri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['oldUri'] == null) {
+        final oldUri = obj['oldUri'];
+        if (oldUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['oldUri'] is String)) {
+        if (!(oldUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14430,11 +15000,12 @@ class FileRename implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newUri'] == null) {
+        final newUri = obj['newUri'];
+        if (newUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newUri'] is String)) {
+        if (!(newUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14473,9 +15044,11 @@ class FileSystemWatcher implements ToJsonable {
       LspJsonHandler(FileSystemWatcher.canParse, FileSystemWatcher.fromJson);
 
   FileSystemWatcher({required this.globPattern, this.kind});
-  static FileSystemWatcher fromJson(Map<String, dynamic> json) {
-    final globPattern = json['globPattern'];
-    final kind = json['kind'] != null ? WatchKind.fromJson(json['kind']) : null;
+  static FileSystemWatcher fromJson(Map<String, Object?> json) {
+    final globPatternJson = json['globPattern'];
+    final globPattern = globPatternJson as String;
+    final kindJson = json['kind'];
+    final kind = kindJson != null ? WatchKind.fromJson(kindJson as int) : null;
     return FileSystemWatcher(globPattern: globPattern, kind: kind);
   }
 
@@ -14498,8 +15071,8 @@ class FileSystemWatcher implements ToJsonable {
   /// | WatchKind.Change | WatchKind.Delete which is 7.
   final WatchKind? kind;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['globPattern'] = globPattern;
     if (kind != null) {
       __result['kind'] = kind?.toJson();
@@ -14508,18 +15081,19 @@ class FileSystemWatcher implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('globPattern');
       try {
         if (!obj.containsKey('globPattern')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['globPattern'] == null) {
+        final globPattern = obj['globPattern'];
+        if (globPattern == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['globPattern'] is String)) {
+        if (!(globPattern is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -14528,8 +15102,8 @@ class FileSystemWatcher implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(WatchKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(WatchKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type WatchKind');
           return false;
         }
@@ -14576,13 +15150,18 @@ class FoldingRange implements ToJsonable {
       required this.endLine,
       this.endCharacter,
       this.kind});
-  static FoldingRange fromJson(Map<String, dynamic> json) {
-    final startLine = json['startLine'];
-    final startCharacter = json['startCharacter'];
-    final endLine = json['endLine'];
-    final endCharacter = json['endCharacter'];
+  static FoldingRange fromJson(Map<String, Object?> json) {
+    final startLineJson = json['startLine'];
+    final startLine = startLineJson as int;
+    final startCharacterJson = json['startCharacter'];
+    final startCharacter = startCharacterJson as int?;
+    final endLineJson = json['endLine'];
+    final endLine = endLineJson as int;
+    final endCharacterJson = json['endCharacter'];
+    final endCharacter = endCharacterJson as int?;
+    final kindJson = json['kind'];
     final kind =
-        json['kind'] != null ? FoldingRangeKind.fromJson(json['kind']) : null;
+        kindJson != null ? FoldingRangeKind.fromJson(kindJson as String) : null;
     return FoldingRange(
         startLine: startLine,
         startCharacter: startCharacter,
@@ -14615,8 +15194,8 @@ class FoldingRange implements ToJsonable {
   /// larger and smaller than the number of lines in the document.
   final int startLine;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['startLine'] = startLine;
     if (startCharacter != null) {
       __result['startCharacter'] = startCharacter;
@@ -14632,18 +15211,19 @@ class FoldingRange implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('startLine');
       try {
         if (!obj.containsKey('startLine')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['startLine'] == null) {
+        final startLine = obj['startLine'];
+        if (startLine == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['startLine'] is int)) {
+        if (!(startLine is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14652,7 +15232,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('startCharacter');
       try {
-        if (obj['startCharacter'] != null && !(obj['startCharacter'] is int)) {
+        final startCharacter = obj['startCharacter'];
+        if (startCharacter != null && !(startCharacter is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14665,11 +15246,12 @@ class FoldingRange implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['endLine'] == null) {
+        final endLine = obj['endLine'];
+        if (endLine == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['endLine'] is int)) {
+        if (!(endLine is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14678,7 +15260,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('endCharacter');
       try {
-        if (obj['endCharacter'] != null && !(obj['endCharacter'] is int)) {
+        final endCharacter = obj['endCharacter'];
+        if (endCharacter != null && !(endCharacter is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14687,8 +15270,8 @@ class FoldingRange implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(FoldingRangeKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(FoldingRangeKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type FoldingRangeKind');
           return false;
         }
@@ -14737,10 +15320,13 @@ class FoldingRangeClientCapabilities implements ToJsonable {
 
   FoldingRangeClientCapabilities(
       {this.dynamicRegistration, this.rangeLimit, this.lineFoldingOnly});
-  static FoldingRangeClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final rangeLimit = json['rangeLimit'];
-    final lineFoldingOnly = json['lineFoldingOnly'];
+  static FoldingRangeClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final rangeLimitJson = json['rangeLimit'];
+    final rangeLimit = rangeLimitJson as int?;
+    final lineFoldingOnlyJson = json['lineFoldingOnly'];
+    final lineFoldingOnly = lineFoldingOnlyJson as bool?;
     return FoldingRangeClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         rangeLimit: rangeLimit,
@@ -14763,8 +15349,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   /// limit.
   final int? rangeLimit;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -14778,11 +15364,11 @@ class FoldingRangeClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14791,7 +15377,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       }
       reporter.push('rangeLimit');
       try {
-        if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is int)) {
+        final rangeLimit = obj['rangeLimit'];
+        if (rangeLimit != null && !(rangeLimit is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -14800,8 +15387,8 @@ class FoldingRangeClientCapabilities implements ToJsonable {
       }
       reporter.push('lineFoldingOnly');
       try {
-        if (obj['lineFoldingOnly'] != null &&
-            !(obj['lineFoldingOnly'] is bool)) {
+        final lineFoldingOnly = obj['lineFoldingOnly'];
+        if (lineFoldingOnly != null && !(lineFoldingOnly is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14876,18 +15463,19 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       FoldingRangeOptions.canParse, FoldingRangeOptions.fromJson);
 
   FoldingRangeOptions({this.workDoneProgress});
-  static FoldingRangeOptions fromJson(Map<String, dynamic> json) {
+  static FoldingRangeOptions fromJson(Map<String, Object?> json) {
     if (FoldingRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return FoldingRangeRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return FoldingRangeOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -14895,11 +15483,11 @@ class FoldingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -14942,22 +15530,26 @@ class FoldingRangeParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static FoldingRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static FoldingRangeParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return FoldingRangeParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -14974,8 +15566,8 @@ class FoldingRangeParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -14987,18 +15579,19 @@ class FoldingRangeParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -15007,9 +15600,9 @@ class FoldingRangeParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15018,9 +15611,9 @@ class FoldingRangeParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15071,13 +15664,15 @@ class FoldingRangeRegistrationOptions
 
   FoldingRangeRegistrationOptions(
       {this.documentSelector, this.workDoneProgress, this.id});
-  static FoldingRangeRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+  static FoldingRangeRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return FoldingRangeRegistrationOptions(
         documentSelector: documentSelector,
         workDoneProgress: workDoneProgress,
@@ -15093,8 +15688,8 @@ class FoldingRangeRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -15106,16 +15701,17 @@ class FoldingRangeRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -15125,8 +15721,8 @@ class FoldingRangeRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15135,7 +15731,8 @@ class FoldingRangeRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -15186,12 +15783,17 @@ class FormattingOptions implements ToJsonable {
       this.trimTrailingWhitespace,
       this.insertFinalNewline,
       this.trimFinalNewlines});
-  static FormattingOptions fromJson(Map<String, dynamic> json) {
-    final tabSize = json['tabSize'];
-    final insertSpaces = json['insertSpaces'];
-    final trimTrailingWhitespace = json['trimTrailingWhitespace'];
-    final insertFinalNewline = json['insertFinalNewline'];
-    final trimFinalNewlines = json['trimFinalNewlines'];
+  static FormattingOptions fromJson(Map<String, Object?> json) {
+    final tabSizeJson = json['tabSize'];
+    final tabSize = tabSizeJson as int;
+    final insertSpacesJson = json['insertSpaces'];
+    final insertSpaces = insertSpacesJson as bool;
+    final trimTrailingWhitespaceJson = json['trimTrailingWhitespace'];
+    final trimTrailingWhitespace = trimTrailingWhitespaceJson as bool?;
+    final insertFinalNewlineJson = json['insertFinalNewline'];
+    final insertFinalNewline = insertFinalNewlineJson as bool?;
+    final trimFinalNewlinesJson = json['trimFinalNewlines'];
+    final trimFinalNewlines = trimFinalNewlinesJson as bool?;
     return FormattingOptions(
         tabSize: tabSize,
         insertSpaces: insertSpaces,
@@ -15218,8 +15820,8 @@ class FormattingOptions implements ToJsonable {
   ///  @since 3.15.0
   final bool? trimTrailingWhitespace;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['tabSize'] = tabSize;
     __result['insertSpaces'] = insertSpaces;
     if (trimTrailingWhitespace != null) {
@@ -15235,18 +15837,19 @@ class FormattingOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('tabSize');
       try {
         if (!obj.containsKey('tabSize')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['tabSize'] == null) {
+        final tabSize = obj['tabSize'];
+        if (tabSize == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['tabSize'] is int)) {
+        if (!(tabSize is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -15259,11 +15862,12 @@ class FormattingOptions implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['insertSpaces'] == null) {
+        final insertSpaces = obj['insertSpaces'];
+        if (insertSpaces == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['insertSpaces'] is bool)) {
+        if (!(insertSpaces is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15272,8 +15876,9 @@ class FormattingOptions implements ToJsonable {
       }
       reporter.push('trimTrailingWhitespace');
       try {
-        if (obj['trimTrailingWhitespace'] != null &&
-            !(obj['trimTrailingWhitespace'] is bool)) {
+        final trimTrailingWhitespace = obj['trimTrailingWhitespace'];
+        if (trimTrailingWhitespace != null &&
+            !(trimTrailingWhitespace is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15282,8 +15887,8 @@ class FormattingOptions implements ToJsonable {
       }
       reporter.push('insertFinalNewline');
       try {
-        if (obj['insertFinalNewline'] != null &&
-            !(obj['insertFinalNewline'] is bool)) {
+        final insertFinalNewline = obj['insertFinalNewline'];
+        if (insertFinalNewline != null && !(insertFinalNewline is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15292,8 +15897,8 @@ class FormattingOptions implements ToJsonable {
       }
       reporter.push('trimFinalNewlines');
       try {
-        if (obj['trimFinalNewlines'] != null &&
-            !(obj['trimFinalNewlines'] is bool)) {
+        final trimFinalNewlines = obj['trimFinalNewlines'];
+        if (trimFinalNewlines != null && !(trimFinalNewlines is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15340,14 +15945,18 @@ class Hover implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Hover.canParse, Hover.fromJson);
 
   Hover({required this.contents, this.range});
-  static Hover fromJson(Map<String, dynamic> json) {
-    final contents = json['contents'] is String
-        ? Either2<String, MarkupContent>.t1(json['contents'])
-        : (MarkupContent.canParse(json['contents'], nullLspJsonReporter)
+  static Hover fromJson(Map<String, Object?> json) {
+    final contentsJson = json['contents'];
+    final contents = contentsJson is String
+        ? Either2<String, MarkupContent>.t1(contentsJson)
+        : (MarkupContent.canParse(contentsJson, nullLspJsonReporter)
             ? Either2<String, MarkupContent>.t2(
-                MarkupContent.fromJson(json['contents']))
-            : (throw '''${json['contents']} was not one of (String, MarkupContent)'''));
-    final range = json['range'] != null ? Range.fromJson(json['range']) : null;
+                MarkupContent.fromJson(contentsJson as Map<String, Object?>))
+            : (throw '''$contentsJson was not one of (String, MarkupContent)'''));
+    final rangeJson = json['range'];
+    final range = rangeJson != null
+        ? Range.fromJson(rangeJson as Map<String, Object?>)
+        : null;
     return Hover(contents: contents, range: range);
   }
 
@@ -15358,8 +15967,8 @@ class Hover implements ToJsonable {
   /// visualize a hover, e.g. by changing the background color.
   final Range? range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['contents'] = contents;
     if (range != null) {
       __result['range'] = range?.toJson();
@@ -15368,19 +15977,20 @@ class Hover implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('contents');
       try {
         if (!obj.containsKey('contents')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['contents'] == null) {
+        final contents = obj['contents'];
+        if (contents == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['contents'] is String ||
-            MarkupContent.canParse(obj['contents'], reporter)))) {
+        if (!((contents is String ||
+            MarkupContent.canParse(contents, reporter)))) {
           reporter
               .reportError('must be of type Either2<String, MarkupContent>');
           return false;
@@ -15390,7 +16000,8 @@ class Hover implements ToJsonable {
       }
       reporter.push('range');
       try {
-        if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
+        final range = obj['range'];
+        if (range != null && !(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -15429,12 +16040,13 @@ class HoverClientCapabilities implements ToJsonable {
       HoverClientCapabilities.canParse, HoverClientCapabilities.fromJson);
 
   HoverClientCapabilities({this.dynamicRegistration, this.contentFormat});
-  static HoverClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final contentFormat = json['contentFormat']
-        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
-        ?.cast<MarkupKind>()
-        ?.toList();
+  static HoverClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final contentFormatJson = json['contentFormat'];
+    final contentFormat = (contentFormatJson as List<Object?>?)
+        ?.map((item) => MarkupKind.fromJson(item as String))
+        .toList();
     return HoverClientCapabilities(
         dynamicRegistration: dynamicRegistration, contentFormat: contentFormat);
   }
@@ -15447,8 +16059,8 @@ class HoverClientCapabilities implements ToJsonable {
   /// Whether hover supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -15460,11 +16072,11 @@ class HoverClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15473,9 +16085,10 @@ class HoverClientCapabilities implements ToJsonable {
       }
       reporter.push('contentFormat');
       try {
-        if (obj['contentFormat'] != null &&
-            !((obj['contentFormat'] is List &&
-                (obj['contentFormat']
+        final contentFormat = obj['contentFormat'];
+        if (contentFormat != null &&
+            !((contentFormat is List &&
+                (contentFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
@@ -15519,18 +16132,19 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(HoverOptions.canParse, HoverOptions.fromJson);
 
   HoverOptions({this.workDoneProgress});
-  static HoverOptions fromJson(Map<String, dynamic> json) {
+  static HoverOptions fromJson(Map<String, Object?> json) {
     if (HoverRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return HoverRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return HoverOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -15538,11 +16152,11 @@ class HoverOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15582,16 +16196,20 @@ class HoverParams
 
   HoverParams(
       {required this.textDocument, required this.position, this.workDoneToken});
-  static HoverParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static HoverParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return HoverParams(
         textDocument: textDocument,
         position: position,
@@ -15607,8 +16225,8 @@ class HoverParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -15618,18 +16236,19 @@ class HoverParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -15642,11 +16261,12 @@ class HoverParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -15655,9 +16275,9 @@ class HoverParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -15701,12 +16321,13 @@ class HoverRegistrationOptions
       HoverRegistrationOptions.canParse, HoverRegistrationOptions.fromJson);
 
   HoverRegistrationOptions({this.documentSelector, this.workDoneProgress});
-  static HoverRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+  static HoverRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return HoverRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -15716,8 +16337,8 @@ class HoverRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -15726,16 +16347,17 @@ class HoverRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -15745,8 +16367,8 @@ class HoverRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15791,9 +16413,11 @@ class ImplementationClientCapabilities implements ToJsonable {
 
   ImplementationClientCapabilities(
       {this.dynamicRegistration, this.linkSupport});
-  static ImplementationClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final linkSupport = json['linkSupport'];
+  static ImplementationClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final linkSupportJson = json['linkSupport'];
+    final linkSupport = linkSupportJson as bool?;
     return ImplementationClientCapabilities(
         dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
@@ -15807,8 +16431,8 @@ class ImplementationClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -15819,11 +16443,11 @@ class ImplementationClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15832,7 +16456,8 @@ class ImplementationClientCapabilities implements ToJsonable {
       }
       reporter.push('linkSupport');
       try {
-        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+        final linkSupport = obj['linkSupport'];
+        if (linkSupport != null && !(linkSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15874,18 +16499,19 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
       ImplementationOptions.canParse, ImplementationOptions.fromJson);
 
   ImplementationOptions({this.workDoneProgress});
-  static ImplementationOptions fromJson(Map<String, dynamic> json) {
+  static ImplementationOptions fromJson(Map<String, Object?> json) {
     if (ImplementationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ImplementationRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return ImplementationOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -15893,11 +16519,11 @@ class ImplementationOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -15945,23 +16571,28 @@ class ImplementationParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static ImplementationParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static ImplementationParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ImplementationParams(
         textDocument: textDocument,
         position: position,
@@ -15982,8 +16613,8 @@ class ImplementationParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -15996,18 +16627,19 @@ class ImplementationParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -16020,11 +16652,12 @@ class ImplementationParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -16033,9 +16666,9 @@ class ImplementationParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -16044,9 +16677,9 @@ class ImplementationParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -16099,13 +16732,15 @@ class ImplementationRegistrationOptions
 
   ImplementationRegistrationOptions(
       {this.documentSelector, this.workDoneProgress, this.id});
-  static ImplementationRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+  static ImplementationRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return ImplementationRegistrationOptions(
         documentSelector: documentSelector,
         workDoneProgress: workDoneProgress,
@@ -16121,8 +16756,8 @@ class ImplementationRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -16134,16 +16769,17 @@ class ImplementationRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -16153,8 +16789,8 @@ class ImplementationRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -16163,7 +16799,8 @@ class ImplementationRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16218,31 +16855,41 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       this.trace,
       this.workspaceFolders,
       this.workDoneToken});
-  static InitializeParams fromJson(Map<String, dynamic> json) {
-    final processId = json['processId'];
-    final clientInfo = json['clientInfo'] != null
-        ? InitializeParamsClientInfo.fromJson(json['clientInfo'])
+  static InitializeParams fromJson(Map<String, Object?> json) {
+    final processIdJson = json['processId'];
+    final processId = processIdJson as int?;
+    final clientInfoJson = json['clientInfo'];
+    final clientInfo = clientInfoJson != null
+        ? InitializeParamsClientInfo.fromJson(
+            clientInfoJson as Map<String, Object?>)
         : null;
-    final locale = json['locale'];
-    final rootPath = json['rootPath'];
-    final rootUri = json['rootUri'];
-    final initializationOptions = json['initializationOptions'];
-    final capabilities = ClientCapabilities.fromJson(json['capabilities']);
-    final trace = const {null, 'off', 'message', 'verbose'}
-            .contains(json['trace'])
-        ? json['trace']
-        : throw '''${json['trace']} was not one of (null, 'off', 'message', 'verbose')''';
-    final workspaceFolders = json['workspaceFolders']
-        ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
-        ?.cast<WorkspaceFolder>()
-        ?.toList();
-    final workDoneToken = json['workDoneToken'] == null
+    final localeJson = json['locale'];
+    final locale = localeJson as String?;
+    final rootPathJson = json['rootPath'];
+    final rootPath = rootPathJson as String?;
+    final rootUriJson = json['rootUri'];
+    final rootUri = rootUriJson as String?;
+    final initializationOptionsJson = json['initializationOptions'];
+    final initializationOptions = initializationOptionsJson;
+    final capabilitiesJson = json['capabilities'];
+    final capabilities =
+        ClientCapabilities.fromJson(capabilitiesJson as Map<String, Object?>);
+    final traceJson = json['trace'];
+    final trace = const {null, 'off', 'message', 'verbose'}.contains(traceJson)
+        ? traceJson as String?
+        : throw '''$traceJson was not one of (null, 'off', 'message', 'verbose')''';
+    final workspaceFoldersJson = json['workspaceFolders'];
+    final workspaceFolders = (workspaceFoldersJson as List<Object?>?)
+        ?.map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return InitializeParams(
         processId: processId,
         clientInfo: clientInfo,
@@ -16264,7 +16911,7 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   final InitializeParamsClientInfo? clientInfo;
 
   /// User provided initialization options.
-  final dynamic initializationOptions;
+  final Object? initializationOptions;
 
   /// The locale the client is currently showing the user interface in. This
   /// must not necessarily be the locale of the operating system.
@@ -16302,8 +16949,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   ///  @since 3.6.0
   final List<WorkspaceFolder>? workspaceFolders;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['processId'] = processId;
     if (clientInfo != null) {
       __result['clientInfo'] = clientInfo?.toJson();
@@ -16333,14 +16980,15 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('processId');
       try {
         if (!obj.containsKey('processId')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['processId'] != null && !(obj['processId'] is int)) {
+        final processId = obj['processId'];
+        if (processId != null && !(processId is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -16349,9 +16997,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('clientInfo');
       try {
-        if (obj['clientInfo'] != null &&
-            !(InitializeParamsClientInfo.canParse(
-                obj['clientInfo'], reporter))) {
+        final clientInfo = obj['clientInfo'];
+        if (clientInfo != null &&
+            !(InitializeParamsClientInfo.canParse(clientInfo, reporter))) {
           reporter.reportError('must be of type InitializeParamsClientInfo');
           return false;
         }
@@ -16360,7 +17008,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('locale');
       try {
-        if (obj['locale'] != null && !(obj['locale'] is String)) {
+        final locale = obj['locale'];
+        if (locale != null && !(locale is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16369,7 +17018,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('rootPath');
       try {
-        if (obj['rootPath'] != null && !(obj['rootPath'] is String)) {
+        final rootPath = obj['rootPath'];
+        if (rootPath != null && !(rootPath is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16382,7 +17032,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['rootUri'] != null && !(obj['rootUri'] is String)) {
+        final rootUri = obj['rootUri'];
+        if (rootUri != null && !(rootUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16395,11 +17046,12 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['capabilities'] == null) {
+        final capabilities = obj['capabilities'];
+        if (capabilities == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
+        if (!(ClientCapabilities.canParse(capabilities, reporter))) {
           reporter.reportError('must be of type ClientCapabilities');
           return false;
         }
@@ -16408,10 +17060,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('trace');
       try {
-        if (obj['trace'] != null &&
-            !((obj['trace'] == 'off' ||
-                obj['trace'] == 'message' ||
-                obj['trace'] == 'verbose'))) {
+        final trace = obj['trace'];
+        if (trace != null &&
+            !((trace == 'off' || trace == 'message' || trace == 'verbose'))) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16420,9 +17071,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('workspaceFolders');
       try {
-        if (obj['workspaceFolders'] != null &&
-            !((obj['workspaceFolders'] is List &&
-                (obj['workspaceFolders'].every(
+        final workspaceFolders = obj['workspaceFolders'];
+        if (workspaceFolders != null &&
+            !((workspaceFolders is List &&
+                (workspaceFolders.every(
                     (item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
@@ -16432,9 +17084,9 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -16492,9 +17144,11 @@ class InitializeParamsClientInfo implements ToJsonable {
       InitializeParamsClientInfo.canParse, InitializeParamsClientInfo.fromJson);
 
   InitializeParamsClientInfo({required this.name, this.version});
-  static InitializeParamsClientInfo fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final version = json['version'];
+  static InitializeParamsClientInfo fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
     return InitializeParamsClientInfo(name: name, version: version);
   }
 
@@ -16504,8 +17158,8 @@ class InitializeParamsClientInfo implements ToJsonable {
   /// The client's version as defined by the client.
   final String? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     if (version != null) {
       __result['version'] = version;
@@ -16514,18 +17168,19 @@ class InitializeParamsClientInfo implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16534,7 +17189,8 @@ class InitializeParamsClientInfo implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is String)) {
+        final version = obj['version'];
+        if (version != null && !(version is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16574,10 +17230,14 @@ class InitializeResult implements ToJsonable {
       LspJsonHandler(InitializeResult.canParse, InitializeResult.fromJson);
 
   InitializeResult({required this.capabilities, this.serverInfo});
-  static InitializeResult fromJson(Map<String, dynamic> json) {
-    final capabilities = ServerCapabilities.fromJson(json['capabilities']);
-    final serverInfo = json['serverInfo'] != null
-        ? InitializeResultServerInfo.fromJson(json['serverInfo'])
+  static InitializeResult fromJson(Map<String, Object?> json) {
+    final capabilitiesJson = json['capabilities'];
+    final capabilities =
+        ServerCapabilities.fromJson(capabilitiesJson as Map<String, Object?>);
+    final serverInfoJson = json['serverInfo'];
+    final serverInfo = serverInfoJson != null
+        ? InitializeResultServerInfo.fromJson(
+            serverInfoJson as Map<String, Object?>)
         : null;
     return InitializeResult(capabilities: capabilities, serverInfo: serverInfo);
   }
@@ -16589,8 +17249,8 @@ class InitializeResult implements ToJsonable {
   ///  @since 3.15.0
   final InitializeResultServerInfo? serverInfo;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['capabilities'] = capabilities.toJson();
     if (serverInfo != null) {
       __result['serverInfo'] = serverInfo?.toJson();
@@ -16599,18 +17259,19 @@ class InitializeResult implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('capabilities');
       try {
         if (!obj.containsKey('capabilities')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['capabilities'] == null) {
+        final capabilities = obj['capabilities'];
+        if (capabilities == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
+        if (!(ServerCapabilities.canParse(capabilities, reporter))) {
           reporter.reportError('must be of type ServerCapabilities');
           return false;
         }
@@ -16619,9 +17280,9 @@ class InitializeResult implements ToJsonable {
       }
       reporter.push('serverInfo');
       try {
-        if (obj['serverInfo'] != null &&
-            !(InitializeResultServerInfo.canParse(
-                obj['serverInfo'], reporter))) {
+        final serverInfo = obj['serverInfo'];
+        if (serverInfo != null &&
+            !(InitializeResultServerInfo.canParse(serverInfo, reporter))) {
           reporter.reportError('must be of type InitializeResultServerInfo');
           return false;
         }
@@ -16662,9 +17323,11 @@ class InitializeResultServerInfo implements ToJsonable {
       InitializeResultServerInfo.canParse, InitializeResultServerInfo.fromJson);
 
   InitializeResultServerInfo({required this.name, this.version});
-  static InitializeResultServerInfo fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final version = json['version'];
+  static InitializeResultServerInfo fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
     return InitializeResultServerInfo(name: name, version: version);
   }
 
@@ -16674,8 +17337,8 @@ class InitializeResultServerInfo implements ToJsonable {
   /// The server's version as defined by the server.
   final String? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     if (version != null) {
       __result['version'] = version;
@@ -16684,18 +17347,19 @@ class InitializeResultServerInfo implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16704,7 +17368,8 @@ class InitializeResultServerInfo implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is String)) {
+        final version = obj['version'];
+        if (version != null && !(version is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16743,17 +17408,17 @@ class InitializedParams implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(InitializedParams.canParse, InitializedParams.fromJson);
 
-  static InitializedParams fromJson(Map<String, dynamic> json) {
+  static InitializedParams fromJson(Map<String, Object?> json) {
     return InitializedParams();
   }
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       return true;
     } else {
       reporter.reportError('must be of type InitializedParams');
@@ -16787,10 +17452,13 @@ class InsertReplaceEdit implements ToJsonable {
 
   InsertReplaceEdit(
       {required this.newText, required this.insert, required this.replace});
-  static InsertReplaceEdit fromJson(Map<String, dynamic> json) {
-    final newText = json['newText'];
-    final insert = Range.fromJson(json['insert']);
-    final replace = Range.fromJson(json['replace']);
+  static InsertReplaceEdit fromJson(Map<String, Object?> json) {
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
+    final insertJson = json['insert'];
+    final insert = Range.fromJson(insertJson as Map<String, Object?>);
+    final replaceJson = json['replace'];
+    final replace = Range.fromJson(replaceJson as Map<String, Object?>);
     return InsertReplaceEdit(
         newText: newText, insert: insert, replace: replace);
   }
@@ -16804,8 +17472,8 @@ class InsertReplaceEdit implements ToJsonable {
   /// The range if the replace is requested.
   final Range replace;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['newText'] = newText;
     __result['insert'] = insert.toJson();
     __result['replace'] = replace.toJson();
@@ -16813,18 +17481,19 @@ class InsertReplaceEdit implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('newText');
       try {
         if (!obj.containsKey('newText')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newText'] == null) {
+        final newText = obj['newText'];
+        if (newText == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newText'] is String)) {
+        if (!(newText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -16837,11 +17506,12 @@ class InsertReplaceEdit implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['insert'] == null) {
+        final insert = obj['insert'];
+        if (insert == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['insert'], reporter))) {
+        if (!(Range.canParse(insert, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -16854,11 +17524,12 @@ class InsertReplaceEdit implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['replace'] == null) {
+        final replace = obj['replace'];
+        if (replace == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['replace'], reporter))) {
+        if (!(Range.canParse(replace, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -16979,8 +17650,9 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
 
   LinkedEditingRangeClientCapabilities({this.dynamicRegistration});
   static LinkedEditingRangeClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return LinkedEditingRangeClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -16991,8 +17663,8 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -17000,11 +17672,11 @@ class LinkedEditingRangeClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17044,19 +17716,20 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       LinkedEditingRangeOptions.canParse, LinkedEditingRangeOptions.fromJson);
 
   LinkedEditingRangeOptions({this.workDoneProgress});
-  static LinkedEditingRangeOptions fromJson(Map<String, dynamic> json) {
+  static LinkedEditingRangeOptions fromJson(Map<String, Object?> json) {
     if (LinkedEditingRangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return LinkedEditingRangeOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -17064,11 +17737,11 @@ class LinkedEditingRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17109,16 +17782,20 @@ class LinkedEditingRangeParams
 
   LinkedEditingRangeParams(
       {required this.textDocument, required this.position, this.workDoneToken});
-  static LinkedEditingRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static LinkedEditingRangeParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return LinkedEditingRangeParams(
         textDocument: textDocument,
         position: position,
@@ -17134,8 +17811,8 @@ class LinkedEditingRangeParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -17145,18 +17822,19 @@ class LinkedEditingRangeParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -17169,11 +17847,12 @@ class LinkedEditingRangeParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -17182,9 +17861,9 @@ class LinkedEditingRangeParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -17236,13 +17915,15 @@ class LinkedEditingRangeRegistrationOptions
   LinkedEditingRangeRegistrationOptions(
       {this.documentSelector, this.workDoneProgress, this.id});
   static LinkedEditingRangeRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+      Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return LinkedEditingRangeRegistrationOptions(
         documentSelector: documentSelector,
         workDoneProgress: workDoneProgress,
@@ -17258,8 +17939,8 @@ class LinkedEditingRangeRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -17271,16 +17952,17 @@ class LinkedEditingRangeRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -17290,8 +17972,8 @@ class LinkedEditingRangeRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -17300,7 +17982,8 @@ class LinkedEditingRangeRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17346,12 +18029,13 @@ class LinkedEditingRanges implements ToJsonable {
       LinkedEditingRanges.canParse, LinkedEditingRanges.fromJson);
 
   LinkedEditingRanges({required this.ranges, this.wordPattern});
-  static LinkedEditingRanges fromJson(Map<String, dynamic> json) {
-    final ranges = json['ranges']
-        ?.map((item) => Range.fromJson(item))
-        ?.cast<Range>()
-        ?.toList();
-    final wordPattern = json['wordPattern'];
+  static LinkedEditingRanges fromJson(Map<String, Object?> json) {
+    final rangesJson = json['ranges'];
+    final ranges = (rangesJson as List<Object?>)
+        .map((item) => Range.fromJson(item as Map<String, Object?>))
+        .toList();
+    final wordPatternJson = json['wordPattern'];
+    final wordPattern = wordPatternJson as String?;
     return LinkedEditingRanges(ranges: ranges, wordPattern: wordPattern);
   }
 
@@ -17365,8 +18049,8 @@ class LinkedEditingRanges implements ToJsonable {
   /// configuration's word pattern will be used.
   final String? wordPattern;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['ranges'] = ranges.map((item) => item.toJson()).toList();
     if (wordPattern != null) {
       __result['wordPattern'] = wordPattern;
@@ -17375,19 +18059,20 @@ class LinkedEditingRanges implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('ranges');
       try {
         if (!obj.containsKey('ranges')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['ranges'] == null) {
+        final ranges = obj['ranges'];
+        if (ranges == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['ranges'] is List &&
-            (obj['ranges'].every((item) => Range.canParse(item, reporter)))))) {
+        if (!((ranges is List &&
+            (ranges.every((item) => Range.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Range>');
           return false;
         }
@@ -17396,7 +18081,8 @@ class LinkedEditingRanges implements ToJsonable {
       }
       reporter.push('wordPattern');
       try {
-        if (obj['wordPattern'] != null && !(obj['wordPattern'] is String)) {
+        final wordPattern = obj['wordPattern'];
+        if (wordPattern != null && !(wordPattern is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17438,35 +18124,38 @@ class Location implements ToJsonable {
       LspJsonHandler(Location.canParse, Location.fromJson);
 
   Location({required this.uri, required this.range});
-  static Location fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final range = Range.fromJson(json['range']);
+  static Location fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
     return Location(uri: uri, range: range);
   }
 
   final Range range;
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['range'] = range.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17479,11 +18168,12 @@ class Location implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -17526,13 +18216,18 @@ class LocationLink implements ToJsonable {
       required this.targetUri,
       required this.targetRange,
       required this.targetSelectionRange});
-  static LocationLink fromJson(Map<String, dynamic> json) {
-    final originSelectionRange = json['originSelectionRange'] != null
-        ? Range.fromJson(json['originSelectionRange'])
+  static LocationLink fromJson(Map<String, Object?> json) {
+    final originSelectionRangeJson = json['originSelectionRange'];
+    final originSelectionRange = originSelectionRangeJson != null
+        ? Range.fromJson(originSelectionRangeJson as Map<String, Object?>)
         : null;
-    final targetUri = json['targetUri'];
-    final targetRange = Range.fromJson(json['targetRange']);
-    final targetSelectionRange = Range.fromJson(json['targetSelectionRange']);
+    final targetUriJson = json['targetUri'];
+    final targetUri = targetUriJson as String;
+    final targetRangeJson = json['targetRange'];
+    final targetRange = Range.fromJson(targetRangeJson as Map<String, Object?>);
+    final targetSelectionRangeJson = json['targetSelectionRange'];
+    final targetSelectionRange =
+        Range.fromJson(targetSelectionRangeJson as Map<String, Object?>);
     return LocationLink(
         originSelectionRange: originSelectionRange,
         targetUri: targetUri,
@@ -17560,8 +18255,8 @@ class LocationLink implements ToJsonable {
   /// The target resource identifier of this link.
   final String targetUri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (originSelectionRange != null) {
       __result['originSelectionRange'] = originSelectionRange?.toJson();
     }
@@ -17572,11 +18267,12 @@ class LocationLink implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('originSelectionRange');
       try {
-        if (obj['originSelectionRange'] != null &&
-            !(Range.canParse(obj['originSelectionRange'], reporter))) {
+        final originSelectionRange = obj['originSelectionRange'];
+        if (originSelectionRange != null &&
+            !(Range.canParse(originSelectionRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -17589,11 +18285,12 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['targetUri'] == null) {
+        final targetUri = obj['targetUri'];
+        if (targetUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['targetUri'] is String)) {
+        if (!(targetUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17606,11 +18303,12 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['targetRange'] == null) {
+        final targetRange = obj['targetRange'];
+        if (targetRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['targetRange'], reporter))) {
+        if (!(Range.canParse(targetRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -17623,11 +18321,12 @@ class LocationLink implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['targetSelectionRange'] == null) {
+        final targetSelectionRange = obj['targetSelectionRange'];
+        if (targetSelectionRange == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['targetSelectionRange'], reporter))) {
+        if (!(Range.canParse(targetSelectionRange, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -17672,9 +18371,11 @@ class LogMessageParams implements ToJsonable {
       LspJsonHandler(LogMessageParams.canParse, LogMessageParams.fromJson);
 
   LogMessageParams({required this.type, required this.message});
-  static LogMessageParams fromJson(Map<String, dynamic> json) {
-    final type = MessageType.fromJson(json['type']);
-    final message = json['message'];
+  static LogMessageParams fromJson(Map<String, Object?> json) {
+    final typeJson = json['type'];
+    final type = MessageType.fromJson(typeJson as int);
+    final messageJson = json['message'];
+    final message = messageJson as String;
     return LogMessageParams(type: type, message: message);
   }
 
@@ -17684,26 +18385,27 @@ class LogMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['type'] = type.toJson();
     __result['message'] = message;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['type'] == null) {
+        final type = obj['type'];
+        if (type == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(type, reporter))) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -17716,11 +18418,12 @@ class LogMessageParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17759,9 +18462,11 @@ class LogTraceParams implements ToJsonable {
       LspJsonHandler(LogTraceParams.canParse, LogTraceParams.fromJson);
 
   LogTraceParams({required this.message, this.verbose});
-  static LogTraceParams fromJson(Map<String, dynamic> json) {
-    final message = json['message'];
-    final verbose = json['verbose'];
+  static LogTraceParams fromJson(Map<String, Object?> json) {
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final verboseJson = json['verbose'];
+    final verbose = verboseJson as String?;
     return LogTraceParams(message: message, verbose: verbose);
   }
 
@@ -17772,8 +18477,8 @@ class LogTraceParams implements ToJsonable {
   /// is set to `'verbose'`
   final String? verbose;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['message'] = message;
     if (verbose != null) {
       __result['verbose'] = verbose;
@@ -17782,18 +18487,19 @@ class LogTraceParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17802,7 +18508,8 @@ class LogTraceParams implements ToJsonable {
       }
       reporter.push('verbose');
       try {
-        if (obj['verbose'] != null && !(obj['verbose'] is String)) {
+        final verbose = obj['verbose'];
+        if (verbose != null && !(verbose is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17843,9 +18550,11 @@ class MarkdownClientCapabilities implements ToJsonable {
       MarkdownClientCapabilities.canParse, MarkdownClientCapabilities.fromJson);
 
   MarkdownClientCapabilities({required this.parser, this.version});
-  static MarkdownClientCapabilities fromJson(Map<String, dynamic> json) {
-    final parser = json['parser'];
-    final version = json['version'];
+  static MarkdownClientCapabilities fromJson(Map<String, Object?> json) {
+    final parserJson = json['parser'];
+    final parser = parserJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
     return MarkdownClientCapabilities(parser: parser, version: version);
   }
 
@@ -17855,8 +18564,8 @@ class MarkdownClientCapabilities implements ToJsonable {
   /// The version of the parser.
   final String? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['parser'] = parser;
     if (version != null) {
       __result['version'] = version;
@@ -17865,18 +18574,19 @@ class MarkdownClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('parser');
       try {
         if (!obj.containsKey('parser')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['parser'] == null) {
+        final parser = obj['parser'];
+        if (parser == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['parser'] is String)) {
+        if (!(parser is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17885,7 +18595,8 @@ class MarkdownClientCapabilities implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is String)) {
+        final version = obj['version'];
+        if (version != null && !(version is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -17946,9 +18657,11 @@ class MarkupContent implements ToJsonable {
       LspJsonHandler(MarkupContent.canParse, MarkupContent.fromJson);
 
   MarkupContent({required this.kind, required this.value});
-  static MarkupContent fromJson(Map<String, dynamic> json) {
-    final kind = MarkupKind.fromJson(json['kind']);
-    final value = json['value'];
+  static MarkupContent fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = MarkupKind.fromJson(kindJson as String);
+    final valueJson = json['value'];
+    final value = valueJson as String;
     return MarkupContent(kind: kind, value: value);
   }
 
@@ -17958,26 +18671,27 @@ class MarkupContent implements ToJsonable {
   /// The content itself
   final String value;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind.toJson();
     __result['value'] = value;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MarkupKind.canParse(obj['kind'], reporter))) {
+        if (!(MarkupKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type MarkupKind');
           return false;
         }
@@ -17990,11 +18704,12 @@ class MarkupContent implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['value'] == null) {
+        final value = obj['value'];
+        if (value == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['value'] is String)) {
+        if (!(value is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18069,7 +18784,7 @@ class Message implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Message.canParse, Message.fromJson);
 
   Message({required this.jsonrpc});
-  static Message fromJson(Map<String, dynamic> json) {
+  static Message fromJson(Map<String, Object?> json) {
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       return RequestMessage.fromJson(json);
     }
@@ -18079,31 +18794,33 @@ class Message implements ToJsonable {
     if (NotificationMessage.canParse(json, nullLspJsonReporter)) {
       return NotificationMessage.fromJson(json);
     }
-    final jsonrpc = json['jsonrpc'];
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
     return Message(jsonrpc: jsonrpc);
   }
 
   final String jsonrpc;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['jsonrpc'] = jsonrpc;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['jsonrpc'] == null) {
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['jsonrpc'] is String)) {
+        if (!(jsonrpc is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18141,33 +18858,35 @@ class MessageActionItem implements ToJsonable {
       LspJsonHandler(MessageActionItem.canParse, MessageActionItem.fromJson);
 
   MessageActionItem({required this.title});
-  static MessageActionItem fromJson(Map<String, dynamic> json) {
-    final title = json['title'];
+  static MessageActionItem fromJson(Map<String, Object?> json) {
+    final titleJson = json['title'];
+    final title = titleJson as String;
     return MessageActionItem(title: title);
   }
 
   /// A short title like 'Retry', 'Open Log' etc.
   final String title;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['title'] = title;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['title'] == null) {
+        final title = obj['title'];
+        if (title == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['title'] is String)) {
+        if (!(title is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18515,12 +19234,16 @@ class Moniker implements ToJsonable {
       required this.identifier,
       required this.unique,
       this.kind});
-  static Moniker fromJson(Map<String, dynamic> json) {
-    final scheme = json['scheme'];
-    final identifier = json['identifier'];
-    final unique = UniquenessLevel.fromJson(json['unique']);
+  static Moniker fromJson(Map<String, Object?> json) {
+    final schemeJson = json['scheme'];
+    final scheme = schemeJson as String;
+    final identifierJson = json['identifier'];
+    final identifier = identifierJson as String;
+    final uniqueJson = json['unique'];
+    final unique = UniquenessLevel.fromJson(uniqueJson as String);
+    final kindJson = json['kind'];
     final kind =
-        json['kind'] != null ? MonikerKind.fromJson(json['kind']) : null;
+        kindJson != null ? MonikerKind.fromJson(kindJson as String) : null;
     return Moniker(
         scheme: scheme, identifier: identifier, unique: unique, kind: kind);
   }
@@ -18538,8 +19261,8 @@ class Moniker implements ToJsonable {
   /// The scope in which the moniker is unique
   final UniquenessLevel unique;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['scheme'] = scheme;
     __result['identifier'] = identifier;
     __result['unique'] = unique.toJson();
@@ -18550,18 +19273,19 @@ class Moniker implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('scheme');
       try {
         if (!obj.containsKey('scheme')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['scheme'] == null) {
+        final scheme = obj['scheme'];
+        if (scheme == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['scheme'] is String)) {
+        if (!(scheme is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18574,11 +19298,12 @@ class Moniker implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['identifier'] == null) {
+        final identifier = obj['identifier'];
+        if (identifier == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['identifier'] is String)) {
+        if (!(identifier is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -18591,11 +19316,12 @@ class Moniker implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['unique'] == null) {
+        final unique = obj['unique'];
+        if (unique == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(UniquenessLevel.canParse(obj['unique'], reporter))) {
+        if (!(UniquenessLevel.canParse(unique, reporter))) {
           reporter.reportError('must be of type UniquenessLevel');
           return false;
         }
@@ -18604,8 +19330,8 @@ class Moniker implements ToJsonable {
       }
       reporter.push('kind');
       try {
-        if (obj['kind'] != null &&
-            !(MonikerKind.canParse(obj['kind'], reporter))) {
+        final kind = obj['kind'];
+        if (kind != null && !(MonikerKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type MonikerKind');
           return false;
         }
@@ -18650,8 +19376,9 @@ class MonikerClientCapabilities implements ToJsonable {
       MonikerClientCapabilities.canParse, MonikerClientCapabilities.fromJson);
 
   MonikerClientCapabilities({this.dynamicRegistration});
-  static MonikerClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static MonikerClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return MonikerClientCapabilities(dynamicRegistration: dynamicRegistration);
   }
 
@@ -18661,8 +19388,8 @@ class MonikerClientCapabilities implements ToJsonable {
   /// capability as well.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -18670,11 +19397,11 @@ class MonikerClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18745,18 +19472,19 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(MonikerOptions.canParse, MonikerOptions.fromJson);
 
   MonikerOptions({this.workDoneProgress});
-  static MonikerOptions fromJson(Map<String, dynamic> json) {
+  static MonikerOptions fromJson(Map<String, Object?> json) {
     if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return MonikerRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return MonikerOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -18764,11 +19492,11 @@ class MonikerOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -18815,23 +19543,28 @@ class MonikerParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static MonikerParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static MonikerParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return MonikerParams(
         textDocument: textDocument,
         position: position,
@@ -18852,8 +19585,8 @@ class MonikerParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -18866,18 +19599,19 @@ class MonikerParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -18890,11 +19624,12 @@ class MonikerParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -18903,9 +19638,9 @@ class MonikerParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -18914,9 +19649,9 @@ class MonikerParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -18962,12 +19697,13 @@ class MonikerRegistrationOptions
       MonikerRegistrationOptions.canParse, MonikerRegistrationOptions.fromJson);
 
   MonikerRegistrationOptions({this.documentSelector, this.workDoneProgress});
-  static MonikerRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+  static MonikerRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return MonikerRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -18977,8 +19713,8 @@ class MonikerRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -18987,16 +19723,17 @@ class MonikerRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -19006,8 +19743,8 @@ class MonikerRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19051,10 +19788,13 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
 
   NotificationMessage(
       {required this.method, this.params, required this.jsonrpc});
-  static NotificationMessage fromJson(Map<String, dynamic> json) {
-    final method = Method.fromJson(json['method']);
-    final params = json['params'];
-    final jsonrpc = json['jsonrpc'];
+  static NotificationMessage fromJson(Map<String, Object?> json) {
+    final methodJson = json['method'];
+    final method = Method.fromJson(methodJson as String);
+    final paramsJson = json['params'];
+    final params = paramsJson;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
     return NotificationMessage(
         method: method, params: params, jsonrpc: jsonrpc);
   }
@@ -19065,10 +19805,10 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   final Method method;
 
   /// The notification's params.
-  final dynamic params;
+  final Object? params;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['method'] = method.toJson();
     if (params != null) {
       __result['params'] = params;
@@ -19078,18 +19818,19 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['method'] == null) {
+        final method = obj['method'];
+        if (method == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Method.canParse(obj['method'], reporter))) {
+        if (!(Method.canParse(method, reporter))) {
           reporter.reportError('must be of type Method');
           return false;
         }
@@ -19102,11 +19843,12 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['jsonrpc'] == null) {
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['jsonrpc'] is String)) {
+        if (!(jsonrpc is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19153,9 +19895,11 @@ class OptionalVersionedTextDocumentIdentifier
 
   OptionalVersionedTextDocumentIdentifier({this.version, required this.uri});
   static OptionalVersionedTextDocumentIdentifier fromJson(
-      Map<String, dynamic> json) {
-    final version = json['version'];
-    final uri = json['uri'];
+      Map<String, Object?> json) {
+    final versionJson = json['version'];
+    final version = versionJson as int?;
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return OptionalVersionedTextDocumentIdentifier(version: version, uri: uri);
   }
 
@@ -19173,22 +19917,23 @@ class OptionalVersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['version'] = version;
     __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['version'] != null && !(obj['version'] is int)) {
+        final version = obj['version'];
+        if (version != null && !(version is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -19201,11 +19946,12 @@ class OptionalVersionedTextDocumentIdentifier
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19248,17 +19994,18 @@ class ParameterInformation implements ToJsonable {
       ParameterInformation.canParse, ParameterInformation.fromJson);
 
   ParameterInformation({required this.label, this.documentation});
-  static ParameterInformation fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
-    final documentation = json['documentation'] == null
+  static ParameterInformation fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson == null
         ? null
-        : (json['documentation'] is String
-            ? Either2<String, MarkupContent>.t1(json['documentation'])
-            : (MarkupContent.canParse(
-                    json['documentation'], nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(
-                    MarkupContent.fromJson(json['documentation']))
-                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
+        : (documentationJson is String
+            ? Either2<String, MarkupContent>.t1(documentationJson)
+            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
+                    documentationJson as Map<String, Object?>))
+                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
     return ParameterInformation(label: label, documentation: documentation);
   }
 
@@ -19278,8 +20025,8 @@ class ParameterInformation implements ToJsonable {
   /// part in the `SignatureInformation.label`.
   final String label;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['label'] = label;
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -19288,18 +20035,19 @@ class ParameterInformation implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -19308,9 +20056,10 @@ class ParameterInformation implements ToJsonable {
       }
       reporter.push('documentation');
       try {
-        if (obj['documentation'] != null &&
-            !((obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation'], reporter)))) {
+        final documentation = obj['documentation'];
+        if (documentation != null &&
+            !((documentation is String ||
+                MarkupContent.canParse(documentation, reporter)))) {
           reporter
               .reportError('must be of type Either2<String, MarkupContent>');
           return false;
@@ -19353,7 +20102,7 @@ class PartialResultParams implements ToJsonable {
       PartialResultParams.canParse, PartialResultParams.fromJson);
 
   PartialResultParams({this.partialResultToken});
-  static PartialResultParams fromJson(Map<String, dynamic> json) {
+  static PartialResultParams fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolParams.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolParams.fromJson(json);
     }
@@ -19420,13 +20169,14 @@ class PartialResultParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final partialResultToken = json['partialResultToken'] == null
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return PartialResultParams(partialResultToken: partialResultToken);
   }
 
@@ -19434,8 +20184,8 @@ class PartialResultParams implements ToJsonable {
   /// streaming) to the client.
   final Either2<int, String>? partialResultToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (partialResultToken != null) {
       __result['partialResultToken'] = partialResultToken;
     }
@@ -19443,12 +20193,12 @@ class PartialResultParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19487,9 +20237,11 @@ class Position implements ToJsonable {
       LspJsonHandler(Position.canParse, Position.fromJson);
 
   Position({required this.line, required this.character});
-  static Position fromJson(Map<String, dynamic> json) {
-    final line = json['line'];
-    final character = json['character'];
+  static Position fromJson(Map<String, Object?> json) {
+    final lineJson = json['line'];
+    final line = lineJson as int;
+    final characterJson = json['character'];
+    final character = characterJson as int;
     return Position(line: line, character: character);
   }
 
@@ -19504,26 +20256,27 @@ class Position implements ToJsonable {
   /// Line position in a document (zero-based).
   final int line;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['line'] = line;
     __result['character'] = character;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('line');
       try {
         if (!obj.containsKey('line')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['line'] == null) {
+        final line = obj['line'];
+        if (line == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['line'] is int)) {
+        if (!(line is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -19536,11 +20289,12 @@ class Position implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['character'] == null) {
+        final character = obj['character'];
+        if (character == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['character'] is int)) {
+        if (!(character is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -19579,9 +20333,12 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
       PrepareRenameParams.canParse, PrepareRenameParams.fromJson);
 
   PrepareRenameParams({required this.textDocument, required this.position});
-  static PrepareRenameParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
+  static PrepareRenameParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
     return PrepareRenameParams(textDocument: textDocument, position: position);
   }
 
@@ -19591,26 +20348,27 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -19623,11 +20381,12 @@ class PrepareRenameParams implements TextDocumentPositionParams, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -19695,13 +20454,15 @@ class ProgressParams<T> implements ToJsonable {
       LspJsonHandler(ProgressParams.canParse, ProgressParams.fromJson);
 
   ProgressParams({required this.token, this.value});
-  static ProgressParams<T> fromJson<T>(Map<String, dynamic> json) {
-    final token = json['token'] is int
-        ? Either2<int, String>.t1(json['token'])
-        : (json['token'] is String
-            ? Either2<int, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (int, String)'''));
-    final value = json['value'];
+  static ProgressParams<T> fromJson<T>(Map<String, Object?> json) {
+    final tokenJson = json['token'];
+    final token = tokenJson is int
+        ? Either2<int, String>.t1(tokenJson)
+        : (tokenJson is String
+            ? Either2<int, String>.t2(tokenJson)
+            : (throw '''$tokenJson was not one of (int, String)'''));
+    final valueJson = json['value'];
+    final value = valueJson;
     return ProgressParams<T>(token: token, value: value);
   }
 
@@ -19709,28 +20470,29 @@ class ProgressParams<T> implements ToJsonable {
   final Either2<int, String> token;
 
   /// The progress data.
-  final dynamic value;
+  final Object? value;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['token'] = token;
     __result['value'] = value;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('token');
       try {
         if (!obj.containsKey('token')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['token'] == null) {
+        final token = obj['token'];
+        if (token == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is int || obj['token'] is String))) {
+        if (!((token is int || token is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -19776,15 +20538,20 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       this.codeDescriptionSupport,
       this.dataSupport});
   static PublishDiagnosticsClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final relatedInformation = json['relatedInformation'];
-    final tagSupport = json['tagSupport'] != null
+      Map<String, Object?> json) {
+    final relatedInformationJson = json['relatedInformation'];
+    final relatedInformation = relatedInformationJson as bool?;
+    final tagSupportJson = json['tagSupport'];
+    final tagSupport = tagSupportJson != null
         ? PublishDiagnosticsClientCapabilitiesTagSupport.fromJson(
-            json['tagSupport'])
+            tagSupportJson as Map<String, Object?>)
         : null;
-    final versionSupport = json['versionSupport'];
-    final codeDescriptionSupport = json['codeDescriptionSupport'];
-    final dataSupport = json['dataSupport'];
+    final versionSupportJson = json['versionSupport'];
+    final versionSupport = versionSupportJson as bool?;
+    final codeDescriptionSupportJson = json['codeDescriptionSupport'];
+    final codeDescriptionSupport = codeDescriptionSupportJson as bool?;
+    final dataSupportJson = json['dataSupport'];
+    final dataSupport = dataSupportJson as bool?;
     return PublishDiagnosticsClientCapabilities(
         relatedInformation: relatedInformation,
         tagSupport: tagSupport,
@@ -19816,8 +20583,8 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   ///  @since 3.15.0
   final bool? versionSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (relatedInformation != null) {
       __result['relatedInformation'] = relatedInformation;
     }
@@ -19837,11 +20604,11 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('relatedInformation');
       try {
-        if (obj['relatedInformation'] != null &&
-            !(obj['relatedInformation'] is bool)) {
+        final relatedInformation = obj['relatedInformation'];
+        if (relatedInformation != null && !(relatedInformation is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19850,9 +20617,10 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       }
       reporter.push('tagSupport');
       try {
-        if (obj['tagSupport'] != null &&
+        final tagSupport = obj['tagSupport'];
+        if (tagSupport != null &&
             !(PublishDiagnosticsClientCapabilitiesTagSupport.canParse(
-                obj['tagSupport'], reporter))) {
+                tagSupport, reporter))) {
           reporter.reportError(
               'must be of type PublishDiagnosticsClientCapabilitiesTagSupport');
           return false;
@@ -19862,7 +20630,8 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       }
       reporter.push('versionSupport');
       try {
-        if (obj['versionSupport'] != null && !(obj['versionSupport'] is bool)) {
+        final versionSupport = obj['versionSupport'];
+        if (versionSupport != null && !(versionSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19871,8 +20640,9 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       }
       reporter.push('codeDescriptionSupport');
       try {
-        if (obj['codeDescriptionSupport'] != null &&
-            !(obj['codeDescriptionSupport'] is bool)) {
+        final codeDescriptionSupport = obj['codeDescriptionSupport'];
+        if (codeDescriptionSupport != null &&
+            !(codeDescriptionSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19881,7 +20651,8 @@ class PublishDiagnosticsClientCapabilities implements ToJsonable {
       }
       reporter.push('dataSupport');
       try {
-        if (obj['dataSupport'] != null && !(obj['dataSupport'] is bool)) {
+        final dataSupport = obj['dataSupport'];
+        if (dataSupport != null && !(dataSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -19932,37 +20703,38 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
 
   PublishDiagnosticsClientCapabilitiesTagSupport({required this.valueSet});
   static PublishDiagnosticsClientCapabilitiesTagSupport fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => DiagnosticTag.fromJson(item))
-        ?.cast<DiagnosticTag>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => DiagnosticTag.fromJson(item as num))
+        .toList();
     return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
   final List<DiagnosticTag> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet']
+        if (!((valueSet is List &&
+            (valueSet
                 .every((item) => DiagnosticTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DiagnosticTag>');
           return false;
@@ -20006,13 +20778,15 @@ class PublishDiagnosticsParams implements ToJsonable {
 
   PublishDiagnosticsParams(
       {required this.uri, this.version, required this.diagnostics});
-  static PublishDiagnosticsParams fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final version = json['version'];
-    final diagnostics = json['diagnostics']
-        ?.map((item) => Diagnostic.fromJson(item))
-        ?.cast<Diagnostic>()
-        ?.toList();
+  static PublishDiagnosticsParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as int?;
+    final diagnosticsJson = json['diagnostics'];
+    final diagnostics = (diagnosticsJson as List<Object?>)
+        .map((item) => Diagnostic.fromJson(item as Map<String, Object?>))
+        .toList();
     return PublishDiagnosticsParams(
         uri: uri, version: version, diagnostics: diagnostics);
   }
@@ -20028,8 +20802,8 @@ class PublishDiagnosticsParams implements ToJsonable {
   ///  @since 3.15.0
   final int? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     if (version != null) {
       __result['version'] = version;
@@ -20039,18 +20813,19 @@ class PublishDiagnosticsParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20059,7 +20834,8 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is int)) {
+        final version = obj['version'];
+        if (version != null && !(version is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -20072,12 +20848,13 @@ class PublishDiagnosticsParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['diagnostics'] == null) {
+        final diagnostics = obj['diagnostics'];
+        if (diagnostics == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['diagnostics'] is List &&
-            (obj['diagnostics']
+        if (!((diagnostics is List &&
+            (diagnostics
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Diagnostic>');
           return false;
@@ -20122,9 +20899,11 @@ class Range implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Range.canParse, Range.fromJson);
 
   Range({required this.start, required this.end});
-  static Range fromJson(Map<String, dynamic> json) {
-    final start = Position.fromJson(json['start']);
-    final end = Position.fromJson(json['end']);
+  static Range fromJson(Map<String, Object?> json) {
+    final startJson = json['start'];
+    final start = Position.fromJson(startJson as Map<String, Object?>);
+    final endJson = json['end'];
+    final end = Position.fromJson(endJson as Map<String, Object?>);
     return Range(start: start, end: end);
   }
 
@@ -20134,26 +20913,27 @@ class Range implements ToJsonable {
   /// The range's start position.
   final Position start;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['start'] = start.toJson();
     __result['end'] = end.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('start');
       try {
         if (!obj.containsKey('start')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['start'] == null) {
+        final start = obj['start'];
+        if (start == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['start'], reporter))) {
+        if (!(Position.canParse(start, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -20166,11 +20946,12 @@ class Range implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['end'] == null) {
+        final end = obj['end'];
+        if (end == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['end'], reporter))) {
+        if (!(Position.canParse(end, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -20209,35 +20990,38 @@ class RangeAndPlaceholder implements ToJsonable {
       RangeAndPlaceholder.canParse, RangeAndPlaceholder.fromJson);
 
   RangeAndPlaceholder({required this.range, required this.placeholder});
-  static RangeAndPlaceholder fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final placeholder = json['placeholder'];
+  static RangeAndPlaceholder fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final placeholderJson = json['placeholder'];
+    final placeholder = placeholderJson as String;
     return RangeAndPlaceholder(range: range, placeholder: placeholder);
   }
 
   final String placeholder;
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     __result['placeholder'] = placeholder;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -20250,11 +21034,12 @@ class RangeAndPlaceholder implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['placeholder'] == null) {
+        final placeholder = obj['placeholder'];
+        if (placeholder == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['placeholder'] is String)) {
+        if (!(placeholder is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20295,8 +21080,9 @@ class ReferenceClientCapabilities implements ToJsonable {
       ReferenceClientCapabilities.fromJson);
 
   ReferenceClientCapabilities({this.dynamicRegistration});
-  static ReferenceClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static ReferenceClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return ReferenceClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -20304,8 +21090,8 @@ class ReferenceClientCapabilities implements ToJsonable {
   /// Whether references supports dynamic registration.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -20313,11 +21099,11 @@ class ReferenceClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20356,33 +21142,35 @@ class ReferenceContext implements ToJsonable {
       LspJsonHandler(ReferenceContext.canParse, ReferenceContext.fromJson);
 
   ReferenceContext({required this.includeDeclaration});
-  static ReferenceContext fromJson(Map<String, dynamic> json) {
-    final includeDeclaration = json['includeDeclaration'];
+  static ReferenceContext fromJson(Map<String, Object?> json) {
+    final includeDeclarationJson = json['includeDeclaration'];
+    final includeDeclaration = includeDeclarationJson as bool;
     return ReferenceContext(includeDeclaration: includeDeclaration);
   }
 
   /// Include the declaration of the current symbol.
   final bool includeDeclaration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['includeDeclaration'] = includeDeclaration;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('includeDeclaration');
       try {
         if (!obj.containsKey('includeDeclaration')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['includeDeclaration'] == null) {
+        final includeDeclaration = obj['includeDeclaration'];
+        if (includeDeclaration == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['includeDeclaration'] is bool)) {
+        if (!(includeDeclaration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20420,18 +21208,19 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(ReferenceOptions.canParse, ReferenceOptions.fromJson);
 
   ReferenceOptions({this.workDoneProgress});
-  static ReferenceOptions fromJson(Map<String, dynamic> json) {
+  static ReferenceOptions fromJson(Map<String, Object?> json) {
     if (ReferenceRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return ReferenceRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return ReferenceOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -20439,11 +21228,11 @@ class ReferenceOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20491,24 +21280,31 @@ class ReferenceParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static ReferenceParams fromJson(Map<String, dynamic> json) {
-    final context = ReferenceContext.fromJson(json['context']);
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static ReferenceParams fromJson(Map<String, Object?> json) {
+    final contextJson = json['context'];
+    final context =
+        ReferenceContext.fromJson(contextJson as Map<String, Object?>);
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return ReferenceParams(
         context: context,
         textDocument: textDocument,
@@ -20532,8 +21328,8 @@ class ReferenceParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['context'] = context.toJson();
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
@@ -20547,18 +21343,19 @@ class ReferenceParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('context');
       try {
         if (!obj.containsKey('context')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['context'] == null) {
+        final context = obj['context'];
+        if (context == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ReferenceContext.canParse(obj['context'], reporter))) {
+        if (!(ReferenceContext.canParse(context, reporter))) {
           reporter.reportError('must be of type ReferenceContext');
           return false;
         }
@@ -20571,11 +21368,12 @@ class ReferenceParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -20588,11 +21386,12 @@ class ReferenceParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -20601,9 +21400,9 @@ class ReferenceParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -20612,9 +21411,9 @@ class ReferenceParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -20663,12 +21462,13 @@ class ReferenceRegistrationOptions
       ReferenceRegistrationOptions.fromJson);
 
   ReferenceRegistrationOptions({this.documentSelector, this.workDoneProgress});
-  static ReferenceRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+  static ReferenceRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return ReferenceRegistrationOptions(
         documentSelector: documentSelector, workDoneProgress: workDoneProgress);
   }
@@ -20678,8 +21478,8 @@ class ReferenceRegistrationOptions
   final List<DocumentFilter>? documentSelector;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -20688,16 +21488,17 @@ class ReferenceRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -20707,8 +21508,8 @@ class ReferenceRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -20752,10 +21553,13 @@ class Registration implements ToJsonable {
       LspJsonHandler(Registration.canParse, Registration.fromJson);
 
   Registration({required this.id, required this.method, this.registerOptions});
-  static Registration fromJson(Map<String, dynamic> json) {
-    final id = json['id'];
-    final method = json['method'];
-    final registerOptions = json['registerOptions'];
+  static Registration fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson as String;
+    final methodJson = json['method'];
+    final method = methodJson as String;
+    final registerOptionsJson = json['registerOptions'];
+    final registerOptions = registerOptionsJson;
     return Registration(
         id: id, method: method, registerOptions: registerOptions);
   }
@@ -20768,10 +21572,10 @@ class Registration implements ToJsonable {
   final String method;
 
   /// Options necessary for the registration.
-  final dynamic registerOptions;
+  final Object? registerOptions;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['id'] = id;
     __result['method'] = method;
     if (registerOptions != null) {
@@ -20781,18 +21585,19 @@ class Registration implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] == null) {
+        final id = obj['id'];
+        if (id == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['id'] is String)) {
+        if (!(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20805,11 +21610,12 @@ class Registration implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['method'] == null) {
+        final method = obj['method'];
+        if (method == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['method'] is String)) {
+        if (!(method is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20852,37 +21658,38 @@ class RegistrationParams implements ToJsonable {
       LspJsonHandler(RegistrationParams.canParse, RegistrationParams.fromJson);
 
   RegistrationParams({required this.registrations});
-  static RegistrationParams fromJson(Map<String, dynamic> json) {
-    final registrations = json['registrations']
-        ?.map((item) => Registration.fromJson(item))
-        ?.cast<Registration>()
-        ?.toList();
+  static RegistrationParams fromJson(Map<String, Object?> json) {
+    final registrationsJson = json['registrations'];
+    final registrations = (registrationsJson as List<Object?>)
+        .map((item) => Registration.fromJson(item as Map<String, Object?>))
+        .toList();
     return RegistrationParams(registrations: registrations);
   }
 
   final List<Registration> registrations;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['registrations'] =
         registrations.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('registrations');
       try {
         if (!obj.containsKey('registrations')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['registrations'] == null) {
+        final registrations = obj['registrations'];
+        if (registrations == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['registrations'] is List &&
-            (obj['registrations']
+        if (!((registrations is List &&
+            (registrations
                 .every((item) => Registration.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Registration>');
           return false;
@@ -20927,9 +21734,11 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
 
   RegularExpressionsClientCapabilities({required this.engine, this.version});
   static RegularExpressionsClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final engine = json['engine'];
-    final version = json['version'];
+      Map<String, Object?> json) {
+    final engineJson = json['engine'];
+    final engine = engineJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as String?;
     return RegularExpressionsClientCapabilities(
         engine: engine, version: version);
   }
@@ -20940,8 +21749,8 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   /// The engine's version.
   final String? version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['engine'] = engine;
     if (version != null) {
       __result['version'] = version;
@@ -20950,18 +21759,19 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('engine');
       try {
         if (!obj.containsKey('engine')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['engine'] == null) {
+        final engine = obj['engine'];
+        if (engine == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['engine'] is String)) {
+        if (!(engine is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -20970,7 +21780,8 @@ class RegularExpressionsClientCapabilities implements ToJsonable {
       }
       reporter.push('version');
       try {
-        if (obj['version'] != null && !(obj['version'] is String)) {
+        final version = obj['version'];
+        if (version != null && !(version is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21015,15 +21826,20 @@ class RenameClientCapabilities implements ToJsonable {
       this.prepareSupport,
       this.prepareSupportDefaultBehavior,
       this.honorsChangeAnnotations});
-  static RenameClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final prepareSupport = json['prepareSupport'];
+  static RenameClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final prepareSupportJson = json['prepareSupport'];
+    final prepareSupport = prepareSupportJson as bool?;
+    final prepareSupportDefaultBehaviorJson =
+        json['prepareSupportDefaultBehavior'];
     final prepareSupportDefaultBehavior =
-        json['prepareSupportDefaultBehavior'] != null
+        prepareSupportDefaultBehaviorJson != null
             ? PrepareSupportDefaultBehavior.fromJson(
-                json['prepareSupportDefaultBehavior'])
+                prepareSupportDefaultBehaviorJson as num)
             : null;
-    final honorsChangeAnnotations = json['honorsChangeAnnotations'];
+    final honorsChangeAnnotationsJson = json['honorsChangeAnnotations'];
+    final honorsChangeAnnotations = honorsChangeAnnotationsJson as bool?;
     return RenameClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         prepareSupport: prepareSupport,
@@ -21053,8 +21869,8 @@ class RenameClientCapabilities implements ToJsonable {
   ///  @since version 3.16.0
   final PrepareSupportDefaultBehavior? prepareSupportDefaultBehavior;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -21072,11 +21888,11 @@ class RenameClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21085,7 +21901,8 @@ class RenameClientCapabilities implements ToJsonable {
       }
       reporter.push('prepareSupport');
       try {
-        if (obj['prepareSupport'] != null && !(obj['prepareSupport'] is bool)) {
+        final prepareSupport = obj['prepareSupport'];
+        if (prepareSupport != null && !(prepareSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21094,9 +21911,11 @@ class RenameClientCapabilities implements ToJsonable {
       }
       reporter.push('prepareSupportDefaultBehavior');
       try {
-        if (obj['prepareSupportDefaultBehavior'] != null &&
+        final prepareSupportDefaultBehavior =
+            obj['prepareSupportDefaultBehavior'];
+        if (prepareSupportDefaultBehavior != null &&
             !(PrepareSupportDefaultBehavior.canParse(
-                obj['prepareSupportDefaultBehavior'], reporter))) {
+                prepareSupportDefaultBehavior, reporter))) {
           reporter.reportError('must be of type PrepareSupportDefaultBehavior');
           return false;
         }
@@ -21105,8 +21924,9 @@ class RenameClientCapabilities implements ToJsonable {
       }
       reporter.push('honorsChangeAnnotations');
       try {
-        if (obj['honorsChangeAnnotations'] != null &&
-            !(obj['honorsChangeAnnotations'] is bool)) {
+        final honorsChangeAnnotations = obj['honorsChangeAnnotations'];
+        if (honorsChangeAnnotations != null &&
+            !(honorsChangeAnnotations is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21163,14 +21983,19 @@ class RenameFile implements ToJsonable {
       throw 'kind may only be the literal \'rename\'';
     }
   }
-  static RenameFile fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final oldUri = json['oldUri'];
-    final newUri = json['newUri'];
-    final options = json['options'] != null
-        ? RenameFileOptions.fromJson(json['options'])
+  static RenameFile fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final oldUriJson = json['oldUri'];
+    final oldUri = oldUriJson as String;
+    final newUriJson = json['newUri'];
+    final newUri = newUriJson as String;
+    final optionsJson = json['options'];
+    final options = optionsJson != null
+        ? RenameFileOptions.fromJson(optionsJson as Map<String, Object?>)
         : null;
-    final annotationId = json['annotationId'];
+    final annotationIdJson = json['annotationId'];
+    final annotationId = annotationIdJson as String?;
     return RenameFile(
         kind: kind,
         oldUri: oldUri,
@@ -21195,8 +22020,8 @@ class RenameFile implements ToJsonable {
   /// Rename options.
   final RenameFileOptions? options;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     __result['oldUri'] = oldUri;
     __result['newUri'] = newUri;
@@ -21210,18 +22035,19 @@ class RenameFile implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'rename')) {
+        if (!(kind == 'rename')) {
           reporter.reportError('must be the literal \'rename\'');
           return false;
         }
@@ -21234,11 +22060,12 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['oldUri'] == null) {
+        final oldUri = obj['oldUri'];
+        if (oldUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['oldUri'] is String)) {
+        if (!(oldUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21251,11 +22078,12 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newUri'] == null) {
+        final newUri = obj['newUri'];
+        if (newUri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newUri'] is String)) {
+        if (!(newUri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21264,8 +22092,9 @@ class RenameFile implements ToJsonable {
       }
       reporter.push('options');
       try {
-        if (obj['options'] != null &&
-            !(RenameFileOptions.canParse(obj['options'], reporter))) {
+        final options = obj['options'];
+        if (options != null &&
+            !(RenameFileOptions.canParse(options, reporter))) {
           reporter.reportError('must be of type RenameFileOptions');
           return false;
         }
@@ -21274,7 +22103,8 @@ class RenameFile implements ToJsonable {
       }
       reporter.push('annotationId');
       try {
-        if (obj['annotationId'] != null && !(obj['annotationId'] is String)) {
+        final annotationId = obj['annotationId'];
+        if (annotationId != null && !(annotationId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21322,9 +22152,11 @@ class RenameFileOptions implements ToJsonable {
       LspJsonHandler(RenameFileOptions.canParse, RenameFileOptions.fromJson);
 
   RenameFileOptions({this.overwrite, this.ignoreIfExists});
-  static RenameFileOptions fromJson(Map<String, dynamic> json) {
-    final overwrite = json['overwrite'];
-    final ignoreIfExists = json['ignoreIfExists'];
+  static RenameFileOptions fromJson(Map<String, Object?> json) {
+    final overwriteJson = json['overwrite'];
+    final overwrite = overwriteJson as bool?;
+    final ignoreIfExistsJson = json['ignoreIfExists'];
+    final ignoreIfExists = ignoreIfExistsJson as bool?;
     return RenameFileOptions(
         overwrite: overwrite, ignoreIfExists: ignoreIfExists);
   }
@@ -21335,8 +22167,8 @@ class RenameFileOptions implements ToJsonable {
   /// Overwrite target if existing. Overwrite wins over `ignoreIfExists`
   final bool? overwrite;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (overwrite != null) {
       __result['overwrite'] = overwrite;
     }
@@ -21347,10 +22179,11 @@ class RenameFileOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('overwrite');
       try {
-        if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
+        final overwrite = obj['overwrite'];
+        if (overwrite != null && !(overwrite is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21359,7 +22192,8 @@ class RenameFileOptions implements ToJsonable {
       }
       reporter.push('ignoreIfExists');
       try {
-        if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
+        final ignoreIfExists = obj['ignoreIfExists'];
+        if (ignoreIfExists != null && !(ignoreIfExists is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21403,11 +22237,11 @@ class RenameFilesParams implements ToJsonable {
       LspJsonHandler(RenameFilesParams.canParse, RenameFilesParams.fromJson);
 
   RenameFilesParams({required this.files});
-  static RenameFilesParams fromJson(Map<String, dynamic> json) {
-    final files = json['files']
-        ?.map((item) => FileRename.fromJson(item))
-        ?.cast<FileRename>()
-        ?.toList();
+  static RenameFilesParams fromJson(Map<String, Object?> json) {
+    final filesJson = json['files'];
+    final files = (filesJson as List<Object?>)
+        .map((item) => FileRename.fromJson(item as Map<String, Object?>))
+        .toList();
     return RenameFilesParams(files: files);
   }
 
@@ -21415,27 +22249,27 @@ class RenameFilesParams implements ToJsonable {
   /// renamed, only the folder will be included, and not its children.
   final List<FileRename> files;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['files'] = files.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('files');
       try {
         if (!obj.containsKey('files')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['files'] == null) {
+        final files = obj['files'];
+        if (files == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['files'] is List &&
-            (obj['files']
-                .every((item) => FileRename.canParse(item, reporter)))))) {
+        if (!((files is List &&
+            (files.every((item) => FileRename.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<FileRename>');
           return false;
         }
@@ -21475,12 +22309,14 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
       LspJsonHandler(RenameOptions.canParse, RenameOptions.fromJson);
 
   RenameOptions({this.prepareProvider, this.workDoneProgress});
-  static RenameOptions fromJson(Map<String, dynamic> json) {
+  static RenameOptions fromJson(Map<String, Object?> json) {
     if (RenameRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return RenameRegistrationOptions.fromJson(json);
     }
-    final prepareProvider = json['prepareProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+    final prepareProviderJson = json['prepareProvider'];
+    final prepareProvider = prepareProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return RenameOptions(
         prepareProvider: prepareProvider, workDoneProgress: workDoneProgress);
   }
@@ -21489,8 +22325,8 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   final bool? prepareProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
     }
@@ -21501,11 +22337,11 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('prepareProvider');
       try {
-        if (obj['prepareProvider'] != null &&
-            !(obj['prepareProvider'] is bool)) {
+        final prepareProvider = obj['prepareProvider'];
+        if (prepareProvider != null && !(prepareProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21514,8 +22350,8 @@ class RenameOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21561,17 +22397,22 @@ class RenameParams
       required this.textDocument,
       required this.position,
       this.workDoneToken});
-  static RenameParams fromJson(Map<String, dynamic> json) {
-    final newName = json['newName'];
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static RenameParams fromJson(Map<String, Object?> json) {
+    final newNameJson = json['newName'];
+    final newName = newNameJson as String;
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return RenameParams(
         newName: newName,
         textDocument: textDocument,
@@ -21592,8 +22433,8 @@ class RenameParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['newName'] = newName;
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
@@ -21604,18 +22445,19 @@ class RenameParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('newName');
       try {
         if (!obj.containsKey('newName')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newName'] == null) {
+        final newName = obj['newName'];
+        if (newName == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newName'] is String)) {
+        if (!(newName is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21628,11 +22470,12 @@ class RenameParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -21645,11 +22488,12 @@ class RenameParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -21658,9 +22502,9 @@ class RenameParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -21707,13 +22551,15 @@ class RenameRegistrationOptions
 
   RenameRegistrationOptions(
       {this.documentSelector, this.prepareProvider, this.workDoneProgress});
-  static RenameRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final prepareProvider = json['prepareProvider'];
-    final workDoneProgress = json['workDoneProgress'];
+  static RenameRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final prepareProviderJson = json['prepareProvider'];
+    final prepareProvider = prepareProviderJson as bool?;
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return RenameRegistrationOptions(
         documentSelector: documentSelector,
         prepareProvider: prepareProvider,
@@ -21728,8 +22574,8 @@ class RenameRegistrationOptions
   final bool? prepareProvider;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (prepareProvider != null) {
       __result['prepareProvider'] = prepareProvider;
@@ -21741,16 +22587,17 @@ class RenameRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -21760,8 +22607,8 @@ class RenameRegistrationOptions
       }
       reporter.push('prepareProvider');
       try {
-        if (obj['prepareProvider'] != null &&
-            !(obj['prepareProvider'] is bool)) {
+        final prepareProvider = obj['prepareProvider'];
+        if (prepareProvider != null && !(prepareProvider is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21770,8 +22617,8 @@ class RenameRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -21820,15 +22667,19 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       required this.method,
       this.params,
       required this.jsonrpc});
-  static RequestMessage fromJson(Map<String, dynamic> json) {
-    final id = json['id'] is int
-        ? Either2<int, String>.t1(json['id'])
-        : (json['id'] is String
-            ? Either2<int, String>.t2(json['id'])
-            : (throw '''${json['id']} was not one of (int, String)'''));
-    final method = Method.fromJson(json['method']);
-    final params = json['params'];
-    final jsonrpc = json['jsonrpc'];
+  static RequestMessage fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson is int
+        ? Either2<int, String>.t1(idJson)
+        : (idJson is String
+            ? Either2<int, String>.t2(idJson)
+            : (throw '''$idJson was not one of (int, String)'''));
+    final methodJson = json['method'];
+    final method = Method.fromJson(methodJson as String);
+    final paramsJson = json['params'];
+    final params = paramsJson;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
     return RequestMessage(
         id: id, method: method, params: params, jsonrpc: jsonrpc);
   }
@@ -21841,10 +22692,10 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   final Method method;
 
   /// The method's params.
-  final dynamic params;
+  final Object? params;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['id'] = id;
     __result['method'] = method.toJson();
     if (params != null) {
@@ -21855,18 +22706,19 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] == null) {
+        final id = obj['id'];
+        if (id == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['id'] is int || obj['id'] is String))) {
+        if (!((id is int || id is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -21879,11 +22731,12 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['method'] == null) {
+        final method = obj['method'];
+        if (method == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Method.canParse(obj['method'], reporter))) {
+        if (!(Method.canParse(method, reporter))) {
           reporter.reportError('must be of type Method');
           return false;
         }
@@ -21896,11 +22749,12 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['jsonrpc'] == null) {
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['jsonrpc'] is String)) {
+        if (!(jsonrpc is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -21982,10 +22836,13 @@ class ResponseError implements ToJsonable {
       LspJsonHandler(ResponseError.canParse, ResponseError.fromJson);
 
   ResponseError({required this.code, required this.message, this.data});
-  static ResponseError fromJson(Map<String, dynamic> json) {
-    final code = ErrorCodes.fromJson(json['code']);
-    final message = json['message'];
-    final data = json['data'];
+  static ResponseError fromJson(Map<String, Object?> json) {
+    final codeJson = json['code'];
+    final code = ErrorCodes.fromJson(codeJson as int);
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final dataJson = json['data'];
+    final data = dataJson as String?;
     return ResponseError(code: code, message: message, data: data);
   }
 
@@ -21999,8 +22856,8 @@ class ResponseError implements ToJsonable {
   /// A string providing a short description of the error.
   final String message;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['code'] = code.toJson();
     __result['message'] = message;
     if (data != null) {
@@ -22010,18 +22867,19 @@ class ResponseError implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('code');
       try {
         if (!obj.containsKey('code')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['code'] == null) {
+        final code = obj['code'];
+        if (code == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(ErrorCodes.canParse(obj['code'], reporter))) {
+        if (!(ErrorCodes.canParse(code, reporter))) {
           reporter.reportError('must be of type ErrorCodes');
           return false;
         }
@@ -22034,11 +22892,12 @@ class ResponseError implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22047,7 +22906,8 @@ class ResponseError implements ToJsonable {
       }
       reporter.push('data');
       try {
-        if (obj['data'] != null && !(obj['data'] is String)) {
+        final data = obj['data'];
+        if (data != null && !(data is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22090,18 +22950,23 @@ class ResponseMessage implements Message, ToJsonable {
       LspJsonHandler(ResponseMessage.canParse, ResponseMessage.fromJson);
 
   ResponseMessage({this.id, this.result, this.error, required this.jsonrpc});
-  static ResponseMessage fromJson(Map<String, dynamic> json) {
-    final id = json['id'] == null
+  static ResponseMessage fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson == null
         ? null
-        : (json['id'] is int
-            ? Either2<int, String>.t1(json['id'])
-            : (json['id'] is String
-                ? Either2<int, String>.t2(json['id'])
-                : (throw '''${json['id']} was not one of (int, String)''')));
-    final result = json['result'];
-    final error =
-        json['error'] != null ? ResponseError.fromJson(json['error']) : null;
-    final jsonrpc = json['jsonrpc'];
+        : (idJson is int
+            ? Either2<int, String>.t1(idJson)
+            : (idJson is String
+                ? Either2<int, String>.t2(idJson)
+                : (throw '''$idJson was not one of (int, String)''')));
+    final resultJson = json['result'];
+    final result = resultJson;
+    final errorJson = json['error'];
+    final error = errorJson != null
+        ? ResponseError.fromJson(errorJson as Map<String, Object?>)
+        : null;
+    final jsonrpcJson = json['jsonrpc'];
+    final jsonrpc = jsonrpcJson as String;
     return ResponseMessage(
         id: id, result: result, error: error, jsonrpc: jsonrpc);
   }
@@ -22115,10 +22980,10 @@ class ResponseMessage implements Message, ToJsonable {
 
   /// The result of a request. This member is REQUIRED on success. This member
   /// MUST NOT exist if there was an error invoking the method.
-  final dynamic result;
+  final Object? result;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['id'] = id;
     __result['jsonrpc'] = jsonrpc;
     if (error != null && result != null) {
@@ -22132,14 +22997,15 @@ class ResponseMessage implements Message, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] != null && !((obj['id'] is int || obj['id'] is String))) {
+        final id = obj['id'];
+        if (id != null && !((id is int || id is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -22148,8 +23014,8 @@ class ResponseMessage implements Message, ToJsonable {
       }
       reporter.push('error');
       try {
-        if (obj['error'] != null &&
-            !(ResponseError.canParse(obj['error'], reporter))) {
+        final error = obj['error'];
+        if (error != null && !(ResponseError.canParse(error, reporter))) {
           reporter.reportError('must be of type ResponseError');
           return false;
         }
@@ -22162,11 +23028,12 @@ class ResponseMessage implements Message, ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['jsonrpc'] == null) {
+        final jsonrpc = obj['jsonrpc'];
+        if (jsonrpc == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['jsonrpc'] is String)) {
+        if (!(jsonrpc is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22211,16 +23078,17 @@ class SaveOptions implements ToJsonable {
       LspJsonHandler(SaveOptions.canParse, SaveOptions.fromJson);
 
   SaveOptions({this.includeText});
-  static SaveOptions fromJson(Map<String, dynamic> json) {
-    final includeText = json['includeText'];
+  static SaveOptions fromJson(Map<String, Object?> json) {
+    final includeTextJson = json['includeText'];
+    final includeText = includeTextJson as bool?;
     return SaveOptions(includeText: includeText);
   }
 
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -22228,10 +23096,11 @@ class SaveOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('includeText');
       try {
-        if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
+        final includeText = obj['includeText'];
+        if (includeText != null && !(includeText is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22269,10 +23138,13 @@ class SelectionRange implements ToJsonable {
       LspJsonHandler(SelectionRange.canParse, SelectionRange.fromJson);
 
   SelectionRange({required this.range, this.parent});
-  static SelectionRange fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final parent =
-        json['parent'] != null ? SelectionRange.fromJson(json['parent']) : null;
+  static SelectionRange fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final parentJson = json['parent'];
+    final parent = parentJson != null
+        ? SelectionRange.fromJson(parentJson as Map<String, Object?>)
+        : null;
     return SelectionRange(range: range, parent: parent);
   }
 
@@ -22283,8 +23155,8 @@ class SelectionRange implements ToJsonable {
   /// The range ([Range]) of this selection range.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (parent != null) {
       __result['parent'] = parent?.toJson();
@@ -22293,18 +23165,19 @@ class SelectionRange implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -22313,8 +23186,8 @@ class SelectionRange implements ToJsonable {
       }
       reporter.push('parent');
       try {
-        if (obj['parent'] != null &&
-            !(SelectionRange.canParse(obj['parent'], reporter))) {
+        final parent = obj['parent'];
+        if (parent != null && !(SelectionRange.canParse(parent, reporter))) {
           reporter.reportError('must be of type SelectionRange');
           return false;
         }
@@ -22354,8 +23227,9 @@ class SelectionRangeClientCapabilities implements ToJsonable {
       SelectionRangeClientCapabilities.fromJson);
 
   SelectionRangeClientCapabilities({this.dynamicRegistration});
-  static SelectionRangeClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
+  static SelectionRangeClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
     return SelectionRangeClientCapabilities(
         dynamicRegistration: dynamicRegistration);
   }
@@ -22366,8 +23240,8 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   /// server capability as well.
   final bool? dynamicRegistration;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -22375,11 +23249,11 @@ class SelectionRangeClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22418,18 +23292,19 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
       SelectionRangeOptions.canParse, SelectionRangeOptions.fromJson);
 
   SelectionRangeOptions({this.workDoneProgress});
-  static SelectionRangeOptions fromJson(Map<String, dynamic> json) {
+  static SelectionRangeOptions fromJson(Map<String, Object?> json) {
     if (SelectionRangeRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SelectionRangeRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return SelectionRangeOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -22437,11 +23312,11 @@ class SelectionRangeOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22485,26 +23360,30 @@ class SelectionRangeParams
       required this.positions,
       this.workDoneToken,
       this.partialResultToken});
-  static SelectionRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final positions = json['positions']
-        ?.map((item) => Position.fromJson(item))
-        ?.cast<Position>()
-        ?.toList();
-    final workDoneToken = json['workDoneToken'] == null
+  static SelectionRangeParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionsJson = json['positions'];
+    final positions = (positionsJson as List<Object?>)
+        .map((item) => Position.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SelectionRangeParams(
         textDocument: textDocument,
         positions: positions,
@@ -22525,8 +23404,8 @@ class SelectionRangeParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['positions'] = positions.map((item) => item.toJson()).toList();
     if (workDoneToken != null) {
@@ -22539,18 +23418,19 @@ class SelectionRangeParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -22563,13 +23443,13 @@ class SelectionRangeParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['positions'] == null) {
+        final positions = obj['positions'];
+        if (positions == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['positions'] is List &&
-            (obj['positions']
-                .every((item) => Position.canParse(item, reporter)))))) {
+        if (!((positions is List &&
+            (positions.every((item) => Position.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Position>');
           return false;
         }
@@ -22578,9 +23458,9 @@ class SelectionRangeParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -22589,9 +23469,9 @@ class SelectionRangeParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -22645,13 +23525,15 @@ class SelectionRangeRegistrationOptions
 
   SelectionRangeRegistrationOptions(
       {this.workDoneProgress, this.documentSelector, this.id});
-  static SelectionRangeRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final workDoneProgress = json['workDoneProgress'];
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final id = json['id'];
+  static SelectionRangeRegistrationOptions fromJson(Map<String, Object?> json) {
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final idJson = json['id'];
+    final id = idJson as String?;
     return SelectionRangeRegistrationOptions(
         workDoneProgress: workDoneProgress,
         documentSelector: documentSelector,
@@ -22667,8 +23549,8 @@ class SelectionRangeRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -22680,11 +23562,11 @@ class SelectionRangeRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -22697,9 +23579,10 @@ class SelectionRangeRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -22709,7 +23592,8 @@ class SelectionRangeRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22834,9 +23718,12 @@ class SemanticTokens implements ToJsonable {
       LspJsonHandler(SemanticTokens.canParse, SemanticTokens.fromJson);
 
   SemanticTokens({this.resultId, required this.data});
-  static SemanticTokens fromJson(Map<String, dynamic> json) {
-    final resultId = json['resultId'];
-    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
+  static SemanticTokens fromJson(Map<String, Object?> json) {
+    final resultIdJson = json['resultId'];
+    final resultId = resultIdJson as String?;
+    final dataJson = json['data'];
+    final data =
+        (dataJson as List<Object?>).map((item) => item as int).toList();
     return SemanticTokens(resultId: resultId, data: data);
   }
 
@@ -22849,8 +23736,8 @@ class SemanticTokens implements ToJsonable {
   /// a delta.
   final String? resultId;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (resultId != null) {
       __result['resultId'] = resultId;
     }
@@ -22859,10 +23746,11 @@ class SemanticTokens implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('resultId');
       try {
-        if (obj['resultId'] != null && !(obj['resultId'] is String)) {
+        final resultId = obj['resultId'];
+        if (resultId != null && !(resultId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -22875,12 +23763,12 @@ class SemanticTokens implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['data'] == null) {
+        final data = obj['data'];
+        if (data == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is int))))) {
+        if (!((data is List && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -22929,20 +23817,28 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       required this.formats,
       this.overlappingTokenSupport,
       this.multilineTokenSupport});
-  static SemanticTokensClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final requests =
-        SemanticTokensClientCapabilitiesRequests.fromJson(json['requests']);
-    final tokenTypes =
-        json['tokenTypes']?.map((item) => item)?.cast<String>()?.toList();
-    final tokenModifiers =
-        json['tokenModifiers']?.map((item) => item)?.cast<String>()?.toList();
-    final formats = json['formats']
-        ?.map((item) => TokenFormat.fromJson(item))
-        ?.cast<TokenFormat>()
-        ?.toList();
-    final overlappingTokenSupport = json['overlappingTokenSupport'];
-    final multilineTokenSupport = json['multilineTokenSupport'];
+  static SemanticTokensClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final requestsJson = json['requests'];
+    final requests = SemanticTokensClientCapabilitiesRequests.fromJson(
+        requestsJson as Map<String, Object?>);
+    final tokenTypesJson = json['tokenTypes'];
+    final tokenTypes = (tokenTypesJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    final tokenModifiersJson = json['tokenModifiers'];
+    final tokenModifiers = (tokenModifiersJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    final formatsJson = json['formats'];
+    final formats = (formatsJson as List<Object?>)
+        .map((item) => TokenFormat.fromJson(item as String))
+        .toList();
+    final overlappingTokenSupportJson = json['overlappingTokenSupport'];
+    final overlappingTokenSupport = overlappingTokenSupportJson as bool?;
+    final multilineTokenSupportJson = json['multilineTokenSupport'];
+    final multilineTokenSupport = multilineTokenSupportJson as bool?;
     return SemanticTokensClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         requests: requests,
@@ -22984,8 +23880,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   /// The token types that the client supports.
   final List<String> tokenTypes;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -23003,11 +23899,11 @@ class SemanticTokensClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -23020,12 +23916,13 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['requests'] == null) {
+        final requests = obj['requests'];
+        if (requests == null) {
           reporter.reportError('must not be null');
           return false;
         }
         if (!(SemanticTokensClientCapabilitiesRequests.canParse(
-            obj['requests'], reporter))) {
+            requests, reporter))) {
           reporter.reportError(
               'must be of type SemanticTokensClientCapabilitiesRequests');
           return false;
@@ -23039,12 +23936,13 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['tokenTypes'] == null) {
+        final tokenTypes = obj['tokenTypes'];
+        if (tokenTypes == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['tokenTypes'] is List &&
-            (obj['tokenTypes'].every((item) => item is String))))) {
+        if (!((tokenTypes is List &&
+            (tokenTypes.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -23057,12 +23955,13 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['tokenModifiers'] == null) {
+        final tokenModifiers = obj['tokenModifiers'];
+        if (tokenModifiers == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['tokenModifiers'] is List &&
-            (obj['tokenModifiers'].every((item) => item is String))))) {
+        if (!((tokenModifiers is List &&
+            (tokenModifiers.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -23075,13 +23974,13 @@ class SemanticTokensClientCapabilities implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['formats'] == null) {
+        final formats = obj['formats'];
+        if (formats == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['formats'] is List &&
-            (obj['formats']
-                .every((item) => TokenFormat.canParse(item, reporter)))))) {
+        if (!((formats is List &&
+            (formats.every((item) => TokenFormat.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<TokenFormat>');
           return false;
         }
@@ -23090,8 +23989,9 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       }
       reporter.push('overlappingTokenSupport');
       try {
-        if (obj['overlappingTokenSupport'] != null &&
-            !(obj['overlappingTokenSupport'] is bool)) {
+        final overlappingTokenSupport = obj['overlappingTokenSupport'];
+        if (overlappingTokenSupport != null &&
+            !(overlappingTokenSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -23100,8 +24000,8 @@ class SemanticTokensClientCapabilities implements ToJsonable {
       }
       reporter.push('multilineTokenSupport');
       try {
-        if (obj['multilineTokenSupport'] != null &&
-            !(obj['multilineTokenSupport'] is bool)) {
+        final multilineTokenSupport = obj['multilineTokenSupport'];
+        if (multilineTokenSupport != null && !(multilineTokenSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -23158,8 +24058,9 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
 
   SemanticTokensClientCapabilitiesFull({this.delta});
   static SemanticTokensClientCapabilitiesFull fromJson(
-      Map<String, dynamic> json) {
-    final delta = json['delta'];
+      Map<String, Object?> json) {
+    final deltaJson = json['delta'];
+    final delta = deltaJson as bool?;
     return SemanticTokensClientCapabilitiesFull(delta: delta);
   }
 
@@ -23167,8 +24068,8 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
   /// if the server provides a corresponding handler.
   final bool? delta;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (delta != null) {
       __result['delta'] = delta;
     }
@@ -23176,10 +24077,11 @@ class SemanticTokensClientCapabilitiesFull implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('delta');
       try {
-        if (obj['delta'] != null && !(obj['delta'] is bool)) {
+        final delta = obj['delta'];
+        if (delta != null && !(delta is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -23220,17 +24122,17 @@ class SemanticTokensClientCapabilitiesRange implements ToJsonable {
       SemanticTokensClientCapabilitiesRange.fromJson);
 
   static SemanticTokensClientCapabilitiesRange fromJson(
-      Map<String, dynamic> json) {
+      Map<String, Object?> json) {
     return SemanticTokensClientCapabilitiesRange();
   }
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       return true;
     } else {
       reporter
@@ -23265,28 +24167,29 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
 
   SemanticTokensClientCapabilitiesRequests({this.range, this.full});
   static SemanticTokensClientCapabilitiesRequests fromJson(
-      Map<String, dynamic> json) {
-    final range = json['range'] == null
+      Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = rangeJson == null
         ? null
-        : (json['range'] is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(
-                json['range'])
+        : (rangeJson is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t1(rangeJson)
             : (SemanticTokensClientCapabilitiesRange.canParse(
-                    json['range'], nullLspJsonReporter)
+                    rangeJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensClientCapabilitiesRange>.t2(
                     SemanticTokensClientCapabilitiesRange.fromJson(
-                        json['range']))
-                : (throw '''${json['range']} was not one of (bool, SemanticTokensClientCapabilitiesRange)''')));
-    final full = json['full'] == null
+                        rangeJson as Map<String, Object?>))
+                : (throw '''$rangeJson was not one of (bool, SemanticTokensClientCapabilitiesRange)''')));
+    final fullJson = json['full'];
+    final full = fullJson == null
         ? null
-        : (json['full'] is bool
-            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(
-                json['full'])
+        : (fullJson is bool
+            ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t1(fullJson)
             : (SemanticTokensClientCapabilitiesFull.canParse(
-                    json['full'], nullLspJsonReporter)
+                    fullJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensClientCapabilitiesFull>.t2(
-                    SemanticTokensClientCapabilitiesFull.fromJson(json['full']))
-                : (throw '''${json['full']} was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
+                    SemanticTokensClientCapabilitiesFull.fromJson(
+                        fullJson as Map<String, Object?>))
+                : (throw '''$fullJson was not one of (bool, SemanticTokensClientCapabilitiesFull)''')));
     return SemanticTokensClientCapabilitiesRequests(range: range, full: full);
   }
 
@@ -23298,8 +24201,8 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   /// the server provides a corresponding handler.
   final Either2<bool, SemanticTokensClientCapabilitiesRange>? range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (range != null) {
       __result['range'] = range;
     }
@@ -23310,13 +24213,14 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
-        if (obj['range'] != null &&
-            !((obj['range'] is bool ||
+        final range = obj['range'];
+        if (range != null &&
+            !((range is bool ||
                 SemanticTokensClientCapabilitiesRange.canParse(
-                    obj['range'], reporter)))) {
+                    range, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensClientCapabilitiesRange>');
           return false;
@@ -23326,10 +24230,11 @@ class SemanticTokensClientCapabilitiesRequests implements ToJsonable {
       }
       reporter.push('full');
       try {
-        if (obj['full'] != null &&
-            !((obj['full'] is bool ||
+        final full = obj['full'];
+        if (full != null &&
+            !((full is bool ||
                 SemanticTokensClientCapabilitiesFull.canParse(
-                    obj['full'], reporter)))) {
+                    full, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensClientCapabilitiesFull>');
           return false;
@@ -23371,12 +24276,14 @@ class SemanticTokensDelta implements ToJsonable {
       SemanticTokensDelta.canParse, SemanticTokensDelta.fromJson);
 
   SemanticTokensDelta({this.resultId, required this.edits});
-  static SemanticTokensDelta fromJson(Map<String, dynamic> json) {
-    final resultId = json['resultId'];
-    final edits = json['edits']
-        ?.map((item) => SemanticTokensEdit.fromJson(item))
-        ?.cast<SemanticTokensEdit>()
-        ?.toList();
+  static SemanticTokensDelta fromJson(Map<String, Object?> json) {
+    final resultIdJson = json['resultId'];
+    final resultId = resultIdJson as String?;
+    final editsJson = json['edits'];
+    final edits = (editsJson as List<Object?>)
+        .map(
+            (item) => SemanticTokensEdit.fromJson(item as Map<String, Object?>))
+        .toList();
     return SemanticTokensDelta(resultId: resultId, edits: edits);
   }
 
@@ -23384,8 +24291,8 @@ class SemanticTokensDelta implements ToJsonable {
   final List<SemanticTokensEdit> edits;
   final String? resultId;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (resultId != null) {
       __result['resultId'] = resultId;
     }
@@ -23394,10 +24301,11 @@ class SemanticTokensDelta implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('resultId');
       try {
-        if (obj['resultId'] != null && !(obj['resultId'] is String)) {
+        final resultId = obj['resultId'];
+        if (resultId != null && !(resultId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23410,12 +24318,13 @@ class SemanticTokensDelta implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['edits'] == null) {
+        final edits = obj['edits'];
+        if (edits == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['edits'] is List &&
-            (obj['edits'].every(
+        if (!((edits is List &&
+            (edits.every(
                 (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
           return false;
@@ -23464,23 +24373,28 @@ class SemanticTokensDeltaParams
       required this.previousResultId,
       this.workDoneToken,
       this.partialResultToken});
-  static SemanticTokensDeltaParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final previousResultId = json['previousResultId'];
-    final workDoneToken = json['workDoneToken'] == null
+  static SemanticTokensDeltaParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final previousResultIdJson = json['previousResultId'];
+    final previousResultId = previousResultIdJson as String;
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensDeltaParams(
         textDocument: textDocument,
         previousResultId: previousResultId,
@@ -23502,8 +24416,8 @@ class SemanticTokensDeltaParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['previousResultId'] = previousResultId;
     if (workDoneToken != null) {
@@ -23516,18 +24430,19 @@ class SemanticTokensDeltaParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -23540,11 +24455,12 @@ class SemanticTokensDeltaParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['previousResultId'] == null) {
+        final previousResultId = obj['previousResultId'];
+        if (previousResultId == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['previousResultId'] is String)) {
+        if (!(previousResultId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -23553,9 +24469,9 @@ class SemanticTokensDeltaParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -23564,9 +24480,9 @@ class SemanticTokensDeltaParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -23613,36 +24529,38 @@ class SemanticTokensDeltaPartialResult implements ToJsonable {
       SemanticTokensDeltaPartialResult.fromJson);
 
   SemanticTokensDeltaPartialResult({required this.edits});
-  static SemanticTokensDeltaPartialResult fromJson(Map<String, dynamic> json) {
-    final edits = json['edits']
-        ?.map((item) => SemanticTokensEdit.fromJson(item))
-        ?.cast<SemanticTokensEdit>()
-        ?.toList();
+  static SemanticTokensDeltaPartialResult fromJson(Map<String, Object?> json) {
+    final editsJson = json['edits'];
+    final edits = (editsJson as List<Object?>)
+        .map(
+            (item) => SemanticTokensEdit.fromJson(item as Map<String, Object?>))
+        .toList();
     return SemanticTokensDeltaPartialResult(edits: edits);
   }
 
   final List<SemanticTokensEdit> edits;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['edits'] = edits.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('edits');
       try {
         if (!obj.containsKey('edits')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['edits'] == null) {
+        final edits = obj['edits'];
+        if (edits == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['edits'] is List &&
-            (obj['edits'].every(
+        if (!((edits is List &&
+            (edits.every(
                 (item) => SemanticTokensEdit.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SemanticTokensEdit>');
           return false;
@@ -23685,10 +24603,14 @@ class SemanticTokensEdit implements ToJsonable {
 
   SemanticTokensEdit(
       {required this.start, required this.deleteCount, this.data});
-  static SemanticTokensEdit fromJson(Map<String, dynamic> json) {
-    final start = json['start'];
-    final deleteCount = json['deleteCount'];
-    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
+  static SemanticTokensEdit fromJson(Map<String, Object?> json) {
+    final startJson = json['start'];
+    final start = startJson as int;
+    final deleteCountJson = json['deleteCount'];
+    final deleteCount = deleteCountJson as int;
+    final dataJson = json['data'];
+    final data =
+        (dataJson as List<Object?>?)?.map((item) => item as int).toList();
     return SemanticTokensEdit(
         start: start, deleteCount: deleteCount, data: data);
   }
@@ -23702,8 +24624,8 @@ class SemanticTokensEdit implements ToJsonable {
   /// The start offset of the edit.
   final int start;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['start'] = start;
     __result['deleteCount'] = deleteCount;
     if (data != null) {
@@ -23713,18 +24635,19 @@ class SemanticTokensEdit implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('start');
       try {
         if (!obj.containsKey('start')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['start'] == null) {
+        final start = obj['start'];
+        if (start == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['start'] is int)) {
+        if (!(start is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -23737,11 +24660,12 @@ class SemanticTokensEdit implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['deleteCount'] == null) {
+        final deleteCount = obj['deleteCount'];
+        if (deleteCount == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['deleteCount'] is int)) {
+        if (!(deleteCount is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -23750,9 +24674,9 @@ class SemanticTokensEdit implements ToJsonable {
       }
       reporter.push('data');
       try {
-        if (obj['data'] != null &&
-            !((obj['data'] is List &&
-                (obj['data'].every((item) => item is int))))) {
+        final data = obj['data'];
+        if (data != null &&
+            !((data is List && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -23797,11 +24721,15 @@ class SemanticTokensLegend implements ToJsonable {
 
   SemanticTokensLegend(
       {required this.tokenTypes, required this.tokenModifiers});
-  static SemanticTokensLegend fromJson(Map<String, dynamic> json) {
-    final tokenTypes =
-        json['tokenTypes']?.map((item) => item)?.cast<String>()?.toList();
-    final tokenModifiers =
-        json['tokenModifiers']?.map((item) => item)?.cast<String>()?.toList();
+  static SemanticTokensLegend fromJson(Map<String, Object?> json) {
+    final tokenTypesJson = json['tokenTypes'];
+    final tokenTypes = (tokenTypesJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
+    final tokenModifiersJson = json['tokenModifiers'];
+    final tokenModifiers = (tokenModifiersJson as List<Object?>)
+        .map((item) => item as String)
+        .toList();
     return SemanticTokensLegend(
         tokenTypes: tokenTypes, tokenModifiers: tokenModifiers);
   }
@@ -23812,27 +24740,28 @@ class SemanticTokensLegend implements ToJsonable {
   /// The token types a server uses.
   final List<String> tokenTypes;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['tokenTypes'] = tokenTypes;
     __result['tokenModifiers'] = tokenModifiers;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('tokenTypes');
       try {
         if (!obj.containsKey('tokenTypes')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['tokenTypes'] == null) {
+        final tokenTypes = obj['tokenTypes'];
+        if (tokenTypes == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['tokenTypes'] is List &&
-            (obj['tokenTypes'].every((item) => item is String))))) {
+        if (!((tokenTypes is List &&
+            (tokenTypes.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -23845,12 +24774,13 @@ class SemanticTokensLegend implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['tokenModifiers'] == null) {
+        final tokenModifiers = obj['tokenModifiers'];
+        if (tokenModifiers == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['tokenModifiers'] is List &&
-            (obj['tokenModifiers'].every((item) => item is String))))) {
+        if (!((tokenModifiers is List &&
+            (tokenModifiers.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -23895,30 +24825,36 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
 
   SemanticTokensOptions(
       {required this.legend, this.range, this.full, this.workDoneProgress});
-  static SemanticTokensOptions fromJson(Map<String, dynamic> json) {
+  static SemanticTokensOptions fromJson(Map<String, Object?> json) {
     if (SemanticTokensRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SemanticTokensRegistrationOptions.fromJson(json);
     }
-    final legend = SemanticTokensLegend.fromJson(json['legend']);
-    final range = json['range'] == null
+    final legendJson = json['legend'];
+    final legend =
+        SemanticTokensLegend.fromJson(legendJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = rangeJson == null
         ? null
-        : (json['range'] is bool
-            ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
+        : (rangeJson is bool
+            ? Either2<bool, SemanticTokensOptionsRange>.t1(rangeJson)
             : (SemanticTokensOptionsRange.canParse(
-                    json['range'], nullLspJsonReporter)
+                    rangeJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensOptionsRange>.t2(
-                    SemanticTokensOptionsRange.fromJson(json['range']))
-                : (throw '''${json['range']} was not one of (bool, SemanticTokensOptionsRange)''')));
-    final full = json['full'] == null
+                    SemanticTokensOptionsRange.fromJson(
+                        rangeJson as Map<String, Object?>))
+                : (throw '''$rangeJson was not one of (bool, SemanticTokensOptionsRange)''')));
+    final fullJson = json['full'];
+    final full = fullJson == null
         ? null
-        : (json['full'] is bool
-            ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
-            : (SemanticTokensOptionsFull.canParse(
-                    json['full'], nullLspJsonReporter)
+        : (fullJson is bool
+            ? Either2<bool, SemanticTokensOptionsFull>.t1(fullJson)
+            : (SemanticTokensOptionsFull.canParse(fullJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensOptionsFull>.t2(
-                    SemanticTokensOptionsFull.fromJson(json['full']))
-                : (throw '''${json['full']} was not one of (bool, SemanticTokensOptionsFull)''')));
-    final workDoneProgress = json['workDoneProgress'];
+                    SemanticTokensOptionsFull.fromJson(
+                        fullJson as Map<String, Object?>))
+                : (throw '''$fullJson was not one of (bool, SemanticTokensOptionsFull)''')));
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return SemanticTokensOptions(
         legend: legend,
         range: range,
@@ -23937,8 +24873,8 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   final Either2<bool, SemanticTokensOptionsRange>? range;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['legend'] = legend.toJson();
     if (range != null) {
       __result['range'] = range;
@@ -23953,18 +24889,19 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('legend');
       try {
         if (!obj.containsKey('legend')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['legend'] == null) {
+        final legend = obj['legend'];
+        if (legend == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SemanticTokensLegend.canParse(obj['legend'], reporter))) {
+        if (!(SemanticTokensLegend.canParse(legend, reporter))) {
           reporter.reportError('must be of type SemanticTokensLegend');
           return false;
         }
@@ -23973,9 +24910,10 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('range');
       try {
-        if (obj['range'] != null &&
-            !((obj['range'] is bool ||
-                SemanticTokensOptionsRange.canParse(obj['range'], reporter)))) {
+        final range = obj['range'];
+        if (range != null &&
+            !((range is bool ||
+                SemanticTokensOptionsRange.canParse(range, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsRange>');
           return false;
@@ -23985,9 +24923,10 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('full');
       try {
-        if (obj['full'] != null &&
-            !((obj['full'] is bool ||
-                SemanticTokensOptionsFull.canParse(obj['full'], reporter)))) {
+        final full = obj['full'];
+        if (full != null &&
+            !((full is bool ||
+                SemanticTokensOptionsFull.canParse(full, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsFull>');
           return false;
@@ -23997,8 +24936,8 @@ class SemanticTokensOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24044,16 +24983,17 @@ class SemanticTokensOptionsFull implements ToJsonable {
       SemanticTokensOptionsFull.canParse, SemanticTokensOptionsFull.fromJson);
 
   SemanticTokensOptionsFull({this.delta});
-  static SemanticTokensOptionsFull fromJson(Map<String, dynamic> json) {
-    final delta = json['delta'];
+  static SemanticTokensOptionsFull fromJson(Map<String, Object?> json) {
+    final deltaJson = json['delta'];
+    final delta = deltaJson as bool?;
     return SemanticTokensOptionsFull(delta: delta);
   }
 
   /// The server supports deltas for full documents.
   final bool? delta;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (delta != null) {
       __result['delta'] = delta;
     }
@@ -24061,10 +25001,11 @@ class SemanticTokensOptionsFull implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('delta');
       try {
-        if (obj['delta'] != null && !(obj['delta'] is bool)) {
+        final delta = obj['delta'];
+        if (delta != null && !(delta is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24102,17 +25043,17 @@ class SemanticTokensOptionsRange implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       SemanticTokensOptionsRange.canParse, SemanticTokensOptionsRange.fromJson);
 
-  static SemanticTokensOptionsRange fromJson(Map<String, dynamic> json) {
+  static SemanticTokensOptionsRange fromJson(Map<String, Object?> json) {
     return SemanticTokensOptionsRange();
   }
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       return true;
     } else {
       reporter.reportError('must be of type SemanticTokensOptionsRange');
@@ -24148,22 +25089,26 @@ class SemanticTokensParams
       {required this.textDocument,
       this.workDoneToken,
       this.partialResultToken});
-  static SemanticTokensParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final workDoneToken = json['workDoneToken'] == null
+  static SemanticTokensParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensParams(
         textDocument: textDocument,
         workDoneToken: workDoneToken,
@@ -24180,8 +25125,8 @@ class SemanticTokensParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -24193,18 +25138,19 @@ class SemanticTokensParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -24213,9 +25159,9 @@ class SemanticTokensParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24224,9 +25170,9 @@ class SemanticTokensParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24271,33 +25217,35 @@ class SemanticTokensPartialResult implements ToJsonable {
       SemanticTokensPartialResult.fromJson);
 
   SemanticTokensPartialResult({required this.data});
-  static SemanticTokensPartialResult fromJson(Map<String, dynamic> json) {
-    final data = json['data']?.map((item) => item)?.cast<int>()?.toList();
+  static SemanticTokensPartialResult fromJson(Map<String, Object?> json) {
+    final dataJson = json['data'];
+    final data =
+        (dataJson as List<Object?>).map((item) => item as int).toList();
     return SemanticTokensPartialResult(data: data);
   }
 
   final List<int> data;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['data'] = data;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('data');
       try {
         if (!obj.containsKey('data')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['data'] == null) {
+        final data = obj['data'];
+        if (data == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['data'] is List &&
-            (obj['data'].every((item) => item is int))))) {
+        if (!((data is List && (data.every((item) => item is int))))) {
           reporter.reportError('must be of type List<int>');
           return false;
         }
@@ -24341,23 +25289,28 @@ class SemanticTokensRangeParams
       required this.range,
       this.workDoneToken,
       this.partialResultToken});
-  static SemanticTokensRangeParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final range = Range.fromJson(json['range']);
-    final workDoneToken = json['workDoneToken'] == null
+  static SemanticTokensRangeParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return SemanticTokensRangeParams(
         textDocument: textDocument,
         range: range,
@@ -24378,8 +25331,8 @@ class SemanticTokensRangeParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['range'] = range.toJson();
     if (workDoneToken != null) {
@@ -24392,18 +25345,19 @@ class SemanticTokensRangeParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -24416,11 +25370,12 @@ class SemanticTokensRangeParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -24429,9 +25384,9 @@ class SemanticTokensRangeParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24440,9 +25395,9 @@ class SemanticTokensRangeParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -24500,32 +25455,39 @@ class SemanticTokensRegistrationOptions
       this.full,
       this.workDoneProgress,
       this.id});
-  static SemanticTokensRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final legend = SemanticTokensLegend.fromJson(json['legend']);
-    final range = json['range'] == null
+  static SemanticTokensRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final legendJson = json['legend'];
+    final legend =
+        SemanticTokensLegend.fromJson(legendJson as Map<String, Object?>);
+    final rangeJson = json['range'];
+    final range = rangeJson == null
         ? null
-        : (json['range'] is bool
-            ? Either2<bool, SemanticTokensOptionsRange>.t1(json['range'])
+        : (rangeJson is bool
+            ? Either2<bool, SemanticTokensOptionsRange>.t1(rangeJson)
             : (SemanticTokensOptionsRange.canParse(
-                    json['range'], nullLspJsonReporter)
+                    rangeJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensOptionsRange>.t2(
-                    SemanticTokensOptionsRange.fromJson(json['range']))
-                : (throw '''${json['range']} was not one of (bool, SemanticTokensOptionsRange)''')));
-    final full = json['full'] == null
+                    SemanticTokensOptionsRange.fromJson(
+                        rangeJson as Map<String, Object?>))
+                : (throw '''$rangeJson was not one of (bool, SemanticTokensOptionsRange)''')));
+    final fullJson = json['full'];
+    final full = fullJson == null
         ? null
-        : (json['full'] is bool
-            ? Either2<bool, SemanticTokensOptionsFull>.t1(json['full'])
-            : (SemanticTokensOptionsFull.canParse(
-                    json['full'], nullLspJsonReporter)
+        : (fullJson is bool
+            ? Either2<bool, SemanticTokensOptionsFull>.t1(fullJson)
+            : (SemanticTokensOptionsFull.canParse(fullJson, nullLspJsonReporter)
                 ? Either2<bool, SemanticTokensOptionsFull>.t2(
-                    SemanticTokensOptionsFull.fromJson(json['full']))
-                : (throw '''${json['full']} was not one of (bool, SemanticTokensOptionsFull)''')));
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+                    SemanticTokensOptionsFull.fromJson(
+                        fullJson as Map<String, Object?>))
+                : (throw '''$fullJson was not one of (bool, SemanticTokensOptionsFull)''')));
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return SemanticTokensRegistrationOptions(
         documentSelector: documentSelector,
         legend: legend,
@@ -24554,8 +25516,8 @@ class SemanticTokensRegistrationOptions
   final Either2<bool, SemanticTokensOptionsRange>? range;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     __result['legend'] = legend.toJson();
     if (range != null) {
@@ -24574,16 +25536,17 @@ class SemanticTokensRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -24597,11 +25560,12 @@ class SemanticTokensRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['legend'] == null) {
+        final legend = obj['legend'];
+        if (legend == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SemanticTokensLegend.canParse(obj['legend'], reporter))) {
+        if (!(SemanticTokensLegend.canParse(legend, reporter))) {
           reporter.reportError('must be of type SemanticTokensLegend');
           return false;
         }
@@ -24610,9 +25574,10 @@ class SemanticTokensRegistrationOptions
       }
       reporter.push('range');
       try {
-        if (obj['range'] != null &&
-            !((obj['range'] is bool ||
-                SemanticTokensOptionsRange.canParse(obj['range'], reporter)))) {
+        final range = obj['range'];
+        if (range != null &&
+            !((range is bool ||
+                SemanticTokensOptionsRange.canParse(range, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsRange>');
           return false;
@@ -24622,9 +25587,10 @@ class SemanticTokensRegistrationOptions
       }
       reporter.push('full');
       try {
-        if (obj['full'] != null &&
-            !((obj['full'] is bool ||
-                SemanticTokensOptionsFull.canParse(obj['full'], reporter)))) {
+        final full = obj['full'];
+        if (full != null &&
+            !((full is bool ||
+                SemanticTokensOptionsFull.canParse(full, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, SemanticTokensOptionsFull>');
           return false;
@@ -24634,8 +25600,8 @@ class SemanticTokensRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24644,7 +25610,8 @@ class SemanticTokensRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -24697,8 +25664,9 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
 
   SemanticTokensWorkspaceClientCapabilities({this.refreshSupport});
   static SemanticTokensWorkspaceClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final refreshSupport = json['refreshSupport'];
+      Map<String, Object?> json) {
+    final refreshSupportJson = json['refreshSupport'];
+    final refreshSupport = refreshSupportJson as bool?;
     return SemanticTokensWorkspaceClientCapabilities(
         refreshSupport: refreshSupport);
   }
@@ -24712,8 +25680,8 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   /// change that requires such a calculation.
   final bool? refreshSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (refreshSupport != null) {
       __result['refreshSupport'] = refreshSupport;
     }
@@ -24721,10 +25689,11 @@ class SemanticTokensWorkspaceClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('refreshSupport');
       try {
-        if (obj['refreshSupport'] != null && !(obj['refreshSupport'] is bool)) {
+        final refreshSupport = obj['refreshSupport'];
+        if (refreshSupport != null && !(refreshSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -24793,299 +25762,337 @@ class ServerCapabilities implements ToJsonable {
       this.workspaceSymbolProvider,
       this.workspace,
       this.experimental});
-  static ServerCapabilities fromJson(Map<String, dynamic> json) {
-    final textDocumentSync = json['textDocumentSync'] == null
+  static ServerCapabilities fromJson(Map<String, Object?> json) {
+    final textDocumentSyncJson = json['textDocumentSync'];
+    final textDocumentSync = textDocumentSyncJson == null
         ? null
         : (TextDocumentSyncOptions.canParse(
-                json['textDocumentSync'], nullLspJsonReporter)
+                textDocumentSyncJson, nullLspJsonReporter)
             ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t1(
-                TextDocumentSyncOptions.fromJson(json['textDocumentSync']))
+                TextDocumentSyncOptions.fromJson(
+                    textDocumentSyncJson as Map<String, Object?>))
             : (TextDocumentSyncKind.canParse(
-                    json['textDocumentSync'], nullLspJsonReporter)
+                    textDocumentSyncJson, nullLspJsonReporter)
                 ? Either2<TextDocumentSyncOptions, TextDocumentSyncKind>.t2(
-                    TextDocumentSyncKind.fromJson(json['textDocumentSync']))
-                : (throw '''${json['textDocumentSync']} was not one of (TextDocumentSyncOptions, TextDocumentSyncKind)''')));
-    final completionProvider = json['completionProvider'] != null
-        ? CompletionOptions.fromJson(json['completionProvider'])
+                    TextDocumentSyncKind.fromJson(textDocumentSyncJson as int))
+                : (throw '''$textDocumentSyncJson was not one of (TextDocumentSyncOptions, TextDocumentSyncKind)''')));
+    final completionProviderJson = json['completionProvider'];
+    final completionProvider = completionProviderJson != null
+        ? CompletionOptions.fromJson(
+            completionProviderJson as Map<String, Object?>)
         : null;
-    final hoverProvider = json['hoverProvider'] == null
+    final hoverProviderJson = json['hoverProvider'];
+    final hoverProvider = hoverProviderJson == null
         ? null
-        : (json['hoverProvider'] is bool
-            ? Either2<bool, HoverOptions>.t1(json['hoverProvider'])
-            : (HoverOptions.canParse(json['hoverProvider'], nullLspJsonReporter)
-                ? Either2<bool, HoverOptions>.t2(
-                    HoverOptions.fromJson(json['hoverProvider']))
-                : (throw '''${json['hoverProvider']} was not one of (bool, HoverOptions)''')));
-    final signatureHelpProvider = json['signatureHelpProvider'] != null
-        ? SignatureHelpOptions.fromJson(json['signatureHelpProvider'])
+        : (hoverProviderJson is bool
+            ? Either2<bool, HoverOptions>.t1(hoverProviderJson)
+            : (HoverOptions.canParse(hoverProviderJson, nullLspJsonReporter)
+                ? Either2<bool, HoverOptions>.t2(HoverOptions.fromJson(
+                    hoverProviderJson as Map<String, Object?>))
+                : (throw '''$hoverProviderJson was not one of (bool, HoverOptions)''')));
+    final signatureHelpProviderJson = json['signatureHelpProvider'];
+    final signatureHelpProvider = signatureHelpProviderJson != null
+        ? SignatureHelpOptions.fromJson(
+            signatureHelpProviderJson as Map<String, Object?>)
         : null;
-    final declarationProvider = json['declarationProvider'] == null
+    final declarationProviderJson = json['declarationProvider'];
+    final declarationProvider = declarationProviderJson == null
         ? null
-        : (json['declarationProvider'] is bool
-            ? Either3<bool, DeclarationOptions,
-                DeclarationRegistrationOptions>.t1(json['declarationProvider'])
+        : (declarationProviderJson is bool
+            ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t1(
+                declarationProviderJson)
             : (DeclarationOptions.canParse(
-                    json['declarationProvider'], nullLspJsonReporter)
+                    declarationProviderJson, nullLspJsonReporter)
                 ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t2(
-                    DeclarationOptions.fromJson(json['declarationProvider']))
+                    DeclarationOptions.fromJson(
+                        declarationProviderJson as Map<String, Object?>))
                 : (DeclarationRegistrationOptions.canParse(
-                        json['declarationProvider'], nullLspJsonReporter)
+                        declarationProviderJson, nullLspJsonReporter)
                     ? Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>.t3(
                         DeclarationRegistrationOptions.fromJson(
-                            json['declarationProvider']))
-                    : (throw '''${json['declarationProvider']} was not one of (bool, DeclarationOptions, DeclarationRegistrationOptions)'''))));
-    final definitionProvider = json['definitionProvider'] == null
+                            declarationProviderJson as Map<String, Object?>))
+                    : (throw '''$declarationProviderJson was not one of (bool, DeclarationOptions, DeclarationRegistrationOptions)'''))));
+    final definitionProviderJson = json['definitionProvider'];
+    final definitionProvider = definitionProviderJson == null
         ? null
-        : (json['definitionProvider'] is bool
-            ? Either2<bool, DefinitionOptions>.t1(json['definitionProvider'])
+        : (definitionProviderJson is bool
+            ? Either2<bool, DefinitionOptions>.t1(definitionProviderJson)
             : (DefinitionOptions.canParse(
-                    json['definitionProvider'], nullLspJsonReporter)
+                    definitionProviderJson, nullLspJsonReporter)
                 ? Either2<bool, DefinitionOptions>.t2(
-                    DefinitionOptions.fromJson(json['definitionProvider']))
-                : (throw '''${json['definitionProvider']} was not one of (bool, DefinitionOptions)''')));
-    final typeDefinitionProvider = json['typeDefinitionProvider'] == null
+                    DefinitionOptions.fromJson(
+                        definitionProviderJson as Map<String, Object?>))
+                : (throw '''$definitionProviderJson was not one of (bool, DefinitionOptions)''')));
+    final typeDefinitionProviderJson = json['typeDefinitionProvider'];
+    final typeDefinitionProvider = typeDefinitionProviderJson == null
         ? null
-        : (json['typeDefinitionProvider'] is bool
+        : (typeDefinitionProviderJson is bool
             ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t1(
-                json['typeDefinitionProvider'])
+                typeDefinitionProviderJson)
             : (TypeDefinitionOptions.canParse(
-                    json['typeDefinitionProvider'], nullLspJsonReporter)
+                    typeDefinitionProviderJson, nullLspJsonReporter)
                 ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t2(
                     TypeDefinitionOptions.fromJson(
-                        json['typeDefinitionProvider']))
+                        typeDefinitionProviderJson as Map<String, Object?>))
                 : (TypeDefinitionRegistrationOptions.canParse(
-                        json['typeDefinitionProvider'], nullLspJsonReporter)
+                        typeDefinitionProviderJson, nullLspJsonReporter)
                     ? Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>.t3(
                         TypeDefinitionRegistrationOptions.fromJson(
-                            json['typeDefinitionProvider']))
-                    : (throw '''${json['typeDefinitionProvider']} was not one of (bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions)'''))));
-    final implementationProvider = json['implementationProvider'] == null
+                            typeDefinitionProviderJson as Map<String, Object?>))
+                    : (throw '''$typeDefinitionProviderJson was not one of (bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions)'''))));
+    final implementationProviderJson = json['implementationProvider'];
+    final implementationProvider = implementationProviderJson == null
         ? null
-        : (json['implementationProvider'] is bool
+        : (implementationProviderJson is bool
             ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t1(
-                json['implementationProvider'])
+                implementationProviderJson)
             : (ImplementationOptions.canParse(
-                    json['implementationProvider'], nullLspJsonReporter)
+                    implementationProviderJson, nullLspJsonReporter)
                 ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t2(
                     ImplementationOptions.fromJson(
-                        json['implementationProvider']))
+                        implementationProviderJson as Map<String, Object?>))
                 : (ImplementationRegistrationOptions.canParse(
-                        json['implementationProvider'], nullLspJsonReporter)
+                        implementationProviderJson, nullLspJsonReporter)
                     ? Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>.t3(
                         ImplementationRegistrationOptions.fromJson(
-                            json['implementationProvider']))
-                    : (throw '''${json['implementationProvider']} was not one of (bool, ImplementationOptions, ImplementationRegistrationOptions)'''))));
-    final referencesProvider = json['referencesProvider'] == null
+                            implementationProviderJson as Map<String, Object?>))
+                    : (throw '''$implementationProviderJson was not one of (bool, ImplementationOptions, ImplementationRegistrationOptions)'''))));
+    final referencesProviderJson = json['referencesProvider'];
+    final referencesProvider = referencesProviderJson == null
         ? null
-        : (json['referencesProvider'] is bool
-            ? Either2<bool, ReferenceOptions>.t1(json['referencesProvider'])
+        : (referencesProviderJson is bool
+            ? Either2<bool, ReferenceOptions>.t1(referencesProviderJson)
             : (ReferenceOptions.canParse(
-                    json['referencesProvider'], nullLspJsonReporter)
-                ? Either2<bool, ReferenceOptions>.t2(
-                    ReferenceOptions.fromJson(json['referencesProvider']))
-                : (throw '''${json['referencesProvider']} was not one of (bool, ReferenceOptions)''')));
-    final documentHighlightProvider = json['documentHighlightProvider'] == null
+                    referencesProviderJson, nullLspJsonReporter)
+                ? Either2<bool, ReferenceOptions>.t2(ReferenceOptions.fromJson(
+                    referencesProviderJson as Map<String, Object?>))
+                : (throw '''$referencesProviderJson was not one of (bool, ReferenceOptions)''')));
+    final documentHighlightProviderJson = json['documentHighlightProvider'];
+    final documentHighlightProvider = documentHighlightProviderJson == null
         ? null
-        : (json['documentHighlightProvider'] is bool
+        : (documentHighlightProviderJson is bool
             ? Either2<bool, DocumentHighlightOptions>.t1(
-                json['documentHighlightProvider'])
+                documentHighlightProviderJson)
             : (DocumentHighlightOptions.canParse(
-                    json['documentHighlightProvider'], nullLspJsonReporter)
+                    documentHighlightProviderJson, nullLspJsonReporter)
                 ? Either2<bool, DocumentHighlightOptions>.t2(
                     DocumentHighlightOptions.fromJson(
-                        json['documentHighlightProvider']))
-                : (throw '''${json['documentHighlightProvider']} was not one of (bool, DocumentHighlightOptions)''')));
-    final documentSymbolProvider = json['documentSymbolProvider'] == null
+                        documentHighlightProviderJson as Map<String, Object?>))
+                : (throw '''$documentHighlightProviderJson was not one of (bool, DocumentHighlightOptions)''')));
+    final documentSymbolProviderJson = json['documentSymbolProvider'];
+    final documentSymbolProvider = documentSymbolProviderJson == null
         ? null
-        : (json['documentSymbolProvider'] is bool
+        : (documentSymbolProviderJson is bool
             ? Either2<bool, DocumentSymbolOptions>.t1(
-                json['documentSymbolProvider'])
+                documentSymbolProviderJson)
             : (DocumentSymbolOptions.canParse(
-                    json['documentSymbolProvider'], nullLspJsonReporter)
+                    documentSymbolProviderJson, nullLspJsonReporter)
                 ? Either2<bool, DocumentSymbolOptions>.t2(
                     DocumentSymbolOptions.fromJson(
-                        json['documentSymbolProvider']))
-                : (throw '''${json['documentSymbolProvider']} was not one of (bool, DocumentSymbolOptions)''')));
-    final codeActionProvider = json['codeActionProvider'] == null
+                        documentSymbolProviderJson as Map<String, Object?>))
+                : (throw '''$documentSymbolProviderJson was not one of (bool, DocumentSymbolOptions)''')));
+    final codeActionProviderJson = json['codeActionProvider'];
+    final codeActionProvider = codeActionProviderJson == null
         ? null
-        : (json['codeActionProvider'] is bool
-            ? Either2<bool, CodeActionOptions>.t1(json['codeActionProvider'])
+        : (codeActionProviderJson is bool
+            ? Either2<bool, CodeActionOptions>.t1(codeActionProviderJson)
             : (CodeActionOptions.canParse(
-                    json['codeActionProvider'], nullLspJsonReporter)
+                    codeActionProviderJson, nullLspJsonReporter)
                 ? Either2<bool, CodeActionOptions>.t2(
-                    CodeActionOptions.fromJson(json['codeActionProvider']))
-                : (throw '''${json['codeActionProvider']} was not one of (bool, CodeActionOptions)''')));
-    final codeLensProvider = json['codeLensProvider'] != null
-        ? CodeLensOptions.fromJson(json['codeLensProvider'])
+                    CodeActionOptions.fromJson(
+                        codeActionProviderJson as Map<String, Object?>))
+                : (throw '''$codeActionProviderJson was not one of (bool, CodeActionOptions)''')));
+    final codeLensProviderJson = json['codeLensProvider'];
+    final codeLensProvider = codeLensProviderJson != null
+        ? CodeLensOptions.fromJson(codeLensProviderJson as Map<String, Object?>)
         : null;
-    final documentLinkProvider = json['documentLinkProvider'] != null
-        ? DocumentLinkOptions.fromJson(json['documentLinkProvider'])
+    final documentLinkProviderJson = json['documentLinkProvider'];
+    final documentLinkProvider = documentLinkProviderJson != null
+        ? DocumentLinkOptions.fromJson(
+            documentLinkProviderJson as Map<String, Object?>)
         : null;
-    final colorProvider = json['colorProvider'] == null
+    final colorProviderJson = json['colorProvider'];
+    final colorProvider = colorProviderJson == null
         ? null
-        : (json['colorProvider'] is bool
-            ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t1(
-                json['colorProvider'])
-            : (DocumentColorOptions.canParse(json['colorProvider'], nullLspJsonReporter)
+        : (colorProviderJson is bool
+            ? Either3<bool, DocumentColorOptions,
+                DocumentColorRegistrationOptions>.t1(colorProviderJson)
+            : (DocumentColorOptions.canParse(colorProviderJson, nullLspJsonReporter)
                 ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t2(
-                    DocumentColorOptions.fromJson(json['colorProvider']))
+                    DocumentColorOptions.fromJson(
+                        colorProviderJson as Map<String, Object?>))
                 : (DocumentColorRegistrationOptions.canParse(
-                        json['colorProvider'], nullLspJsonReporter)
-                    ? Either3<bool, DocumentColorOptions,
-                            DocumentColorRegistrationOptions>.t3(
+                        colorProviderJson, nullLspJsonReporter)
+                    ? Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>.t3(
                         DocumentColorRegistrationOptions.fromJson(
-                            json['colorProvider']))
-                    : (throw '''${json['colorProvider']} was not one of (bool, DocumentColorOptions, DocumentColorRegistrationOptions)'''))));
-    final documentFormattingProvider = json['documentFormattingProvider'] ==
-            null
+                            colorProviderJson as Map<String, Object?>))
+                    : (throw '''$colorProviderJson was not one of (bool, DocumentColorOptions, DocumentColorRegistrationOptions)'''))));
+    final documentFormattingProviderJson = json['documentFormattingProvider'];
+    final documentFormattingProvider = documentFormattingProviderJson == null
         ? null
-        : (json['documentFormattingProvider'] is bool
+        : (documentFormattingProviderJson is bool
             ? Either2<bool, DocumentFormattingOptions>.t1(
-                json['documentFormattingProvider'])
+                documentFormattingProviderJson)
             : (DocumentFormattingOptions.canParse(
-                    json['documentFormattingProvider'], nullLspJsonReporter)
+                    documentFormattingProviderJson, nullLspJsonReporter)
                 ? Either2<bool, DocumentFormattingOptions>.t2(
                     DocumentFormattingOptions.fromJson(
-                        json['documentFormattingProvider']))
-                : (throw '''${json['documentFormattingProvider']} was not one of (bool, DocumentFormattingOptions)''')));
-    final documentRangeFormattingProvider = json[
-                'documentRangeFormattingProvider'] ==
+                        documentFormattingProviderJson as Map<String, Object?>))
+                : (throw '''$documentFormattingProviderJson was not one of (bool, DocumentFormattingOptions)''')));
+    final documentRangeFormattingProviderJson =
+        json['documentRangeFormattingProvider'];
+    final documentRangeFormattingProvider = documentRangeFormattingProviderJson ==
             null
         ? null
-        : (json['documentRangeFormattingProvider'] is bool
+        : (documentRangeFormattingProviderJson is bool
             ? Either2<bool, DocumentRangeFormattingOptions>.t1(
-                json['documentRangeFormattingProvider'])
+                documentRangeFormattingProviderJson)
             : (DocumentRangeFormattingOptions.canParse(
-                    json['documentRangeFormattingProvider'],
-                    nullLspJsonReporter)
+                    documentRangeFormattingProviderJson, nullLspJsonReporter)
                 ? Either2<bool, DocumentRangeFormattingOptions>.t2(
                     DocumentRangeFormattingOptions.fromJson(
-                        json['documentRangeFormattingProvider']))
-                : (throw '''${json['documentRangeFormattingProvider']} was not one of (bool, DocumentRangeFormattingOptions)''')));
+                        documentRangeFormattingProviderJson
+                            as Map<String, Object?>))
+                : (throw '''$documentRangeFormattingProviderJson was not one of (bool, DocumentRangeFormattingOptions)''')));
+    final documentOnTypeFormattingProviderJson =
+        json['documentOnTypeFormattingProvider'];
     final documentOnTypeFormattingProvider =
-        json['documentOnTypeFormattingProvider'] != null
+        documentOnTypeFormattingProviderJson != null
             ? DocumentOnTypeFormattingOptions.fromJson(
-                json['documentOnTypeFormattingProvider'])
+                documentOnTypeFormattingProviderJson as Map<String, Object?>)
             : null;
-    final renameProvider = json['renameProvider'] == null
+    final renameProviderJson = json['renameProvider'];
+    final renameProvider = renameProviderJson == null
         ? null
-        : (json['renameProvider'] is bool
-            ? Either2<bool, RenameOptions>.t1(json['renameProvider'])
-            : (RenameOptions.canParse(
-                    json['renameProvider'], nullLspJsonReporter)
-                ? Either2<bool, RenameOptions>.t2(
-                    RenameOptions.fromJson(json['renameProvider']))
-                : (throw '''${json['renameProvider']} was not one of (bool, RenameOptions)''')));
-    final foldingRangeProvider = json['foldingRangeProvider'] == null
+        : (renameProviderJson is bool
+            ? Either2<bool, RenameOptions>.t1(renameProviderJson)
+            : (RenameOptions.canParse(renameProviderJson, nullLspJsonReporter)
+                ? Either2<bool, RenameOptions>.t2(RenameOptions.fromJson(
+                    renameProviderJson as Map<String, Object?>))
+                : (throw '''$renameProviderJson was not one of (bool, RenameOptions)''')));
+    final foldingRangeProviderJson = json['foldingRangeProvider'];
+    final foldingRangeProvider = foldingRangeProviderJson == null
         ? null
-        : (json['foldingRangeProvider'] is bool
+        : (foldingRangeProviderJson is bool
             ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t1(
-                json['foldingRangeProvider'])
+                foldingRangeProviderJson)
             : (FoldingRangeOptions.canParse(
-                    json['foldingRangeProvider'], nullLspJsonReporter)
+                    foldingRangeProviderJson, nullLspJsonReporter)
                 ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t2(
-                    FoldingRangeOptions.fromJson(json['foldingRangeProvider']))
+                    FoldingRangeOptions.fromJson(
+                        foldingRangeProviderJson as Map<String, Object?>))
                 : (FoldingRangeRegistrationOptions.canParse(
-                        json['foldingRangeProvider'], nullLspJsonReporter)
+                        foldingRangeProviderJson, nullLspJsonReporter)
                     ? Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>.t3(
                         FoldingRangeRegistrationOptions.fromJson(
-                            json['foldingRangeProvider']))
-                    : (throw '''${json['foldingRangeProvider']} was not one of (bool, FoldingRangeOptions, FoldingRangeRegistrationOptions)'''))));
-    final executeCommandProvider = json['executeCommandProvider'] != null
-        ? ExecuteCommandOptions.fromJson(json['executeCommandProvider'])
+                            foldingRangeProviderJson as Map<String, Object?>))
+                    : (throw '''$foldingRangeProviderJson was not one of (bool, FoldingRangeOptions, FoldingRangeRegistrationOptions)'''))));
+    final executeCommandProviderJson = json['executeCommandProvider'];
+    final executeCommandProvider = executeCommandProviderJson != null
+        ? ExecuteCommandOptions.fromJson(
+            executeCommandProviderJson as Map<String, Object?>)
         : null;
-    final selectionRangeProvider = json['selectionRangeProvider'] == null
+    final selectionRangeProviderJson = json['selectionRangeProvider'];
+    final selectionRangeProvider = selectionRangeProviderJson == null
         ? null
-        : (json['selectionRangeProvider'] is bool
+        : (selectionRangeProviderJson is bool
             ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t1(
-                json['selectionRangeProvider'])
+                selectionRangeProviderJson)
             : (SelectionRangeOptions.canParse(
-                    json['selectionRangeProvider'], nullLspJsonReporter)
+                    selectionRangeProviderJson, nullLspJsonReporter)
                 ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t2(
                     SelectionRangeOptions.fromJson(
-                        json['selectionRangeProvider']))
+                        selectionRangeProviderJson as Map<String, Object?>))
                 : (SelectionRangeRegistrationOptions.canParse(
-                        json['selectionRangeProvider'], nullLspJsonReporter)
+                        selectionRangeProviderJson, nullLspJsonReporter)
                     ? Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>.t3(
                         SelectionRangeRegistrationOptions.fromJson(
-                            json['selectionRangeProvider']))
-                    : (throw '''${json['selectionRangeProvider']} was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)'''))));
-    final linkedEditingRangeProvider = json['linkedEditingRangeProvider'] == null
+                            selectionRangeProviderJson as Map<String, Object?>))
+                    : (throw '''$selectionRangeProviderJson was not one of (bool, SelectionRangeOptions, SelectionRangeRegistrationOptions)'''))));
+    final linkedEditingRangeProviderJson = json['linkedEditingRangeProvider'];
+    final linkedEditingRangeProvider = linkedEditingRangeProviderJson == null
         ? null
-        : (json['linkedEditingRangeProvider'] is bool
+        : (linkedEditingRangeProviderJson is bool
             ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t1(
-                json['linkedEditingRangeProvider'])
+                linkedEditingRangeProviderJson)
             : (LinkedEditingRangeOptions.canParse(
-                    json['linkedEditingRangeProvider'], nullLspJsonReporter)
+                    linkedEditingRangeProviderJson, nullLspJsonReporter)
                 ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t2(
                     LinkedEditingRangeOptions.fromJson(
-                        json['linkedEditingRangeProvider']))
+                        linkedEditingRangeProviderJson as Map<String, Object?>))
                 : (LinkedEditingRangeRegistrationOptions.canParse(
-                        json['linkedEditingRangeProvider'], nullLspJsonReporter)
+                        linkedEditingRangeProviderJson, nullLspJsonReporter)
                     ? Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>.t3(
                         LinkedEditingRangeRegistrationOptions.fromJson(
-                            json['linkedEditingRangeProvider']))
-                    : (throw '''${json['linkedEditingRangeProvider']} was not one of (bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions)'''))));
-    final callHierarchyProvider = json['callHierarchyProvider'] == null
+                            linkedEditingRangeProviderJson as Map<String, Object?>))
+                    : (throw '''$linkedEditingRangeProviderJson was not one of (bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions)'''))));
+    final callHierarchyProviderJson = json['callHierarchyProvider'];
+    final callHierarchyProvider = callHierarchyProviderJson == null
         ? null
-        : (json['callHierarchyProvider'] is bool
+        : (callHierarchyProviderJson is bool
             ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t1(
-                json['callHierarchyProvider'])
+                callHierarchyProviderJson)
             : (CallHierarchyOptions.canParse(
-                    json['callHierarchyProvider'], nullLspJsonReporter)
+                    callHierarchyProviderJson, nullLspJsonReporter)
                 ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t2(
                     CallHierarchyOptions.fromJson(
-                        json['callHierarchyProvider']))
+                        callHierarchyProviderJson as Map<String, Object?>))
                 : (CallHierarchyRegistrationOptions.canParse(
-                        json['callHierarchyProvider'], nullLspJsonReporter)
+                        callHierarchyProviderJson, nullLspJsonReporter)
                     ? Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>.t3(
                         CallHierarchyRegistrationOptions.fromJson(
-                            json['callHierarchyProvider']))
-                    : (throw '''${json['callHierarchyProvider']} was not one of (bool, CallHierarchyOptions, CallHierarchyRegistrationOptions)'''))));
-    final semanticTokensProvider = json['semanticTokensProvider'] == null
+                            callHierarchyProviderJson as Map<String, Object?>))
+                    : (throw '''$callHierarchyProviderJson was not one of (bool, CallHierarchyOptions, CallHierarchyRegistrationOptions)'''))));
+    final semanticTokensProviderJson = json['semanticTokensProvider'];
+    final semanticTokensProvider = semanticTokensProviderJson == null
         ? null
         : (SemanticTokensOptions.canParse(
-                json['semanticTokensProvider'], nullLspJsonReporter)
+                semanticTokensProviderJson, nullLspJsonReporter)
             ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t1(
-                SemanticTokensOptions.fromJson(json['semanticTokensProvider']))
+                SemanticTokensOptions.fromJson(
+                    semanticTokensProviderJson as Map<String, Object?>))
             : (SemanticTokensRegistrationOptions.canParse(
-                    json['semanticTokensProvider'], nullLspJsonReporter)
-                ? Either2<SemanticTokensOptions,
-                        SemanticTokensRegistrationOptions>.t2(
+                    semanticTokensProviderJson, nullLspJsonReporter)
+                ? Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>.t2(
                     SemanticTokensRegistrationOptions.fromJson(
-                        json['semanticTokensProvider']))
-                : (throw '''${json['semanticTokensProvider']} was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)''')));
-    final monikerProvider = json['monikerProvider'] == null
+                        semanticTokensProviderJson as Map<String, Object?>))
+                : (throw '''$semanticTokensProviderJson was not one of (SemanticTokensOptions, SemanticTokensRegistrationOptions)''')));
+    final monikerProviderJson = json['monikerProvider'];
+    final monikerProvider = monikerProviderJson == null
         ? null
-        : (json['monikerProvider'] is bool
+        : (monikerProviderJson is bool
             ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t1(
-                json['monikerProvider'])
-            : (MonikerOptions.canParse(
-                    json['monikerProvider'], nullLspJsonReporter)
+                monikerProviderJson)
+            : (MonikerOptions.canParse(monikerProviderJson, nullLspJsonReporter)
                 ? Either3<bool, MonikerOptions, MonikerRegistrationOptions>.t2(
-                    MonikerOptions.fromJson(json['monikerProvider']))
+                    MonikerOptions.fromJson(
+                        monikerProviderJson as Map<String, Object?>))
                 : (MonikerRegistrationOptions.canParse(
-                        json['monikerProvider'], nullLspJsonReporter)
+                        monikerProviderJson, nullLspJsonReporter)
                     ? Either3<bool, MonikerOptions,
                             MonikerRegistrationOptions>.t3(
                         MonikerRegistrationOptions.fromJson(
-                            json['monikerProvider']))
-                    : (throw '''${json['monikerProvider']} was not one of (bool, MonikerOptions, MonikerRegistrationOptions)'''))));
-    final workspaceSymbolProvider = json['workspaceSymbolProvider'] == null
+                            monikerProviderJson as Map<String, Object?>))
+                    : (throw '''$monikerProviderJson was not one of (bool, MonikerOptions, MonikerRegistrationOptions)'''))));
+    final workspaceSymbolProviderJson = json['workspaceSymbolProvider'];
+    final workspaceSymbolProvider = workspaceSymbolProviderJson == null
         ? null
-        : (json['workspaceSymbolProvider'] is bool
+        : (workspaceSymbolProviderJson is bool
             ? Either2<bool, WorkspaceSymbolOptions>.t1(
-                json['workspaceSymbolProvider'])
+                workspaceSymbolProviderJson)
             : (WorkspaceSymbolOptions.canParse(
-                    json['workspaceSymbolProvider'], nullLspJsonReporter)
+                    workspaceSymbolProviderJson, nullLspJsonReporter)
                 ? Either2<bool, WorkspaceSymbolOptions>.t2(
                     WorkspaceSymbolOptions.fromJson(
-                        json['workspaceSymbolProvider']))
-                : (throw '''${json['workspaceSymbolProvider']} was not one of (bool, WorkspaceSymbolOptions)''')));
-    final workspace = json['workspace'] != null
-        ? ServerCapabilitiesWorkspace.fromJson(json['workspace'])
+                        workspaceSymbolProviderJson as Map<String, Object?>))
+                : (throw '''$workspaceSymbolProviderJson was not one of (bool, WorkspaceSymbolOptions)''')));
+    final workspaceJson = json['workspace'];
+    final workspace = workspaceJson != null
+        ? ServerCapabilitiesWorkspace.fromJson(
+            workspaceJson as Map<String, Object?>)
         : null;
-    final experimental = json['experimental'];
+    final experimentalJson = json['experimental'];
+    final experimental = experimentalJson;
     return ServerCapabilities(
         textDocumentSync: textDocumentSync,
         completionProvider: completionProvider,
@@ -25170,7 +26177,7 @@ class ServerCapabilities implements ToJsonable {
   final ExecuteCommandOptions? executeCommandProvider;
 
   /// Experimental server capabilities.
-  final dynamic experimental;
+  final Object? experimental;
 
   /// The server provides folding provider support.
   ///  @since 3.10.0
@@ -25234,8 +26241,8 @@ class ServerCapabilities implements ToJsonable {
   /// The server provides workspace symbol support.
   final Either2<bool, WorkspaceSymbolOptions>? workspaceSymbolProvider;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (textDocumentSync != null) {
       __result['textDocumentSync'] = textDocumentSync;
     }
@@ -25329,14 +26336,13 @@ class ServerCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocumentSync');
       try {
-        if (obj['textDocumentSync'] != null &&
-            !((TextDocumentSyncOptions.canParse(
-                    obj['textDocumentSync'], reporter) ||
-                TextDocumentSyncKind.canParse(
-                    obj['textDocumentSync'], reporter)))) {
+        final textDocumentSync = obj['textDocumentSync'];
+        if (textDocumentSync != null &&
+            !((TextDocumentSyncOptions.canParse(textDocumentSync, reporter) ||
+                TextDocumentSyncKind.canParse(textDocumentSync, reporter)))) {
           reporter.reportError(
               'must be of type Either2<TextDocumentSyncOptions, TextDocumentSyncKind>');
           return false;
@@ -25346,9 +26352,9 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('completionProvider');
       try {
-        if (obj['completionProvider'] != null &&
-            !(CompletionOptions.canParse(
-                obj['completionProvider'], reporter))) {
+        final completionProvider = obj['completionProvider'];
+        if (completionProvider != null &&
+            !(CompletionOptions.canParse(completionProvider, reporter))) {
           reporter.reportError('must be of type CompletionOptions');
           return false;
         }
@@ -25357,9 +26363,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('hoverProvider');
       try {
-        if (obj['hoverProvider'] != null &&
-            !((obj['hoverProvider'] is bool ||
-                HoverOptions.canParse(obj['hoverProvider'], reporter)))) {
+        final hoverProvider = obj['hoverProvider'];
+        if (hoverProvider != null &&
+            !((hoverProvider is bool ||
+                HoverOptions.canParse(hoverProvider, reporter)))) {
           reporter.reportError('must be of type Either2<bool, HoverOptions>');
           return false;
         }
@@ -25368,9 +26375,9 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('signatureHelpProvider');
       try {
-        if (obj['signatureHelpProvider'] != null &&
-            !(SignatureHelpOptions.canParse(
-                obj['signatureHelpProvider'], reporter))) {
+        final signatureHelpProvider = obj['signatureHelpProvider'];
+        if (signatureHelpProvider != null &&
+            !(SignatureHelpOptions.canParse(signatureHelpProvider, reporter))) {
           reporter.reportError('must be of type SignatureHelpOptions');
           return false;
         }
@@ -25379,12 +26386,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('declarationProvider');
       try {
-        if (obj['declarationProvider'] != null &&
-            !((obj['declarationProvider'] is bool ||
-                DeclarationOptions.canParse(
-                    obj['declarationProvider'], reporter) ||
+        final declarationProvider = obj['declarationProvider'];
+        if (declarationProvider != null &&
+            !((declarationProvider is bool ||
+                DeclarationOptions.canParse(declarationProvider, reporter) ||
                 DeclarationRegistrationOptions.canParse(
-                    obj['declarationProvider'], reporter)))) {
+                    declarationProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, DeclarationOptions, DeclarationRegistrationOptions>');
           return false;
@@ -25394,10 +26401,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('definitionProvider');
       try {
-        if (obj['definitionProvider'] != null &&
-            !((obj['definitionProvider'] is bool ||
-                DefinitionOptions.canParse(
-                    obj['definitionProvider'], reporter)))) {
+        final definitionProvider = obj['definitionProvider'];
+        if (definitionProvider != null &&
+            !((definitionProvider is bool ||
+                DefinitionOptions.canParse(definitionProvider, reporter)))) {
           reporter
               .reportError('must be of type Either2<bool, DefinitionOptions>');
           return false;
@@ -25407,12 +26414,13 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('typeDefinitionProvider');
       try {
-        if (obj['typeDefinitionProvider'] != null &&
-            !((obj['typeDefinitionProvider'] is bool ||
+        final typeDefinitionProvider = obj['typeDefinitionProvider'];
+        if (typeDefinitionProvider != null &&
+            !((typeDefinitionProvider is bool ||
                 TypeDefinitionOptions.canParse(
-                    obj['typeDefinitionProvider'], reporter) ||
+                    typeDefinitionProvider, reporter) ||
                 TypeDefinitionRegistrationOptions.canParse(
-                    obj['typeDefinitionProvider'], reporter)))) {
+                    typeDefinitionProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>');
           return false;
@@ -25422,12 +26430,13 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('implementationProvider');
       try {
-        if (obj['implementationProvider'] != null &&
-            !((obj['implementationProvider'] is bool ||
+        final implementationProvider = obj['implementationProvider'];
+        if (implementationProvider != null &&
+            !((implementationProvider is bool ||
                 ImplementationOptions.canParse(
-                    obj['implementationProvider'], reporter) ||
+                    implementationProvider, reporter) ||
                 ImplementationRegistrationOptions.canParse(
-                    obj['implementationProvider'], reporter)))) {
+                    implementationProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>');
           return false;
@@ -25437,10 +26446,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('referencesProvider');
       try {
-        if (obj['referencesProvider'] != null &&
-            !((obj['referencesProvider'] is bool ||
-                ReferenceOptions.canParse(
-                    obj['referencesProvider'], reporter)))) {
+        final referencesProvider = obj['referencesProvider'];
+        if (referencesProvider != null &&
+            !((referencesProvider is bool ||
+                ReferenceOptions.canParse(referencesProvider, reporter)))) {
           reporter
               .reportError('must be of type Either2<bool, ReferenceOptions>');
           return false;
@@ -25450,10 +26459,11 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentHighlightProvider');
       try {
-        if (obj['documentHighlightProvider'] != null &&
-            !((obj['documentHighlightProvider'] is bool ||
+        final documentHighlightProvider = obj['documentHighlightProvider'];
+        if (documentHighlightProvider != null &&
+            !((documentHighlightProvider is bool ||
                 DocumentHighlightOptions.canParse(
-                    obj['documentHighlightProvider'], reporter)))) {
+                    documentHighlightProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentHighlightOptions>');
           return false;
@@ -25463,10 +26473,11 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentSymbolProvider');
       try {
-        if (obj['documentSymbolProvider'] != null &&
-            !((obj['documentSymbolProvider'] is bool ||
+        final documentSymbolProvider = obj['documentSymbolProvider'];
+        if (documentSymbolProvider != null &&
+            !((documentSymbolProvider is bool ||
                 DocumentSymbolOptions.canParse(
-                    obj['documentSymbolProvider'], reporter)))) {
+                    documentSymbolProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentSymbolOptions>');
           return false;
@@ -25476,10 +26487,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('codeActionProvider');
       try {
-        if (obj['codeActionProvider'] != null &&
-            !((obj['codeActionProvider'] is bool ||
-                CodeActionOptions.canParse(
-                    obj['codeActionProvider'], reporter)))) {
+        final codeActionProvider = obj['codeActionProvider'];
+        if (codeActionProvider != null &&
+            !((codeActionProvider is bool ||
+                CodeActionOptions.canParse(codeActionProvider, reporter)))) {
           reporter
               .reportError('must be of type Either2<bool, CodeActionOptions>');
           return false;
@@ -25489,8 +26500,9 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('codeLensProvider');
       try {
-        if (obj['codeLensProvider'] != null &&
-            !(CodeLensOptions.canParse(obj['codeLensProvider'], reporter))) {
+        final codeLensProvider = obj['codeLensProvider'];
+        if (codeLensProvider != null &&
+            !(CodeLensOptions.canParse(codeLensProvider, reporter))) {
           reporter.reportError('must be of type CodeLensOptions');
           return false;
         }
@@ -25499,9 +26511,9 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentLinkProvider');
       try {
-        if (obj['documentLinkProvider'] != null &&
-            !(DocumentLinkOptions.canParse(
-                obj['documentLinkProvider'], reporter))) {
+        final documentLinkProvider = obj['documentLinkProvider'];
+        if (documentLinkProvider != null &&
+            !(DocumentLinkOptions.canParse(documentLinkProvider, reporter))) {
           reporter.reportError('must be of type DocumentLinkOptions');
           return false;
         }
@@ -25510,11 +26522,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('colorProvider');
       try {
-        if (obj['colorProvider'] != null &&
-            !((obj['colorProvider'] is bool ||
-                DocumentColorOptions.canParse(obj['colorProvider'], reporter) ||
+        final colorProvider = obj['colorProvider'];
+        if (colorProvider != null &&
+            !((colorProvider is bool ||
+                DocumentColorOptions.canParse(colorProvider, reporter) ||
                 DocumentColorRegistrationOptions.canParse(
-                    obj['colorProvider'], reporter)))) {
+                    colorProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, DocumentColorOptions, DocumentColorRegistrationOptions>');
           return false;
@@ -25524,10 +26537,11 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentFormattingProvider');
       try {
-        if (obj['documentFormattingProvider'] != null &&
-            !((obj['documentFormattingProvider'] is bool ||
+        final documentFormattingProvider = obj['documentFormattingProvider'];
+        if (documentFormattingProvider != null &&
+            !((documentFormattingProvider is bool ||
                 DocumentFormattingOptions.canParse(
-                    obj['documentFormattingProvider'], reporter)))) {
+                    documentFormattingProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentFormattingOptions>');
           return false;
@@ -25537,10 +26551,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentRangeFormattingProvider');
       try {
-        if (obj['documentRangeFormattingProvider'] != null &&
-            !((obj['documentRangeFormattingProvider'] is bool ||
+        final documentRangeFormattingProvider =
+            obj['documentRangeFormattingProvider'];
+        if (documentRangeFormattingProvider != null &&
+            !((documentRangeFormattingProvider is bool ||
                 DocumentRangeFormattingOptions.canParse(
-                    obj['documentRangeFormattingProvider'], reporter)))) {
+                    documentRangeFormattingProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, DocumentRangeFormattingOptions>');
           return false;
@@ -25550,9 +26566,11 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('documentOnTypeFormattingProvider');
       try {
-        if (obj['documentOnTypeFormattingProvider'] != null &&
+        final documentOnTypeFormattingProvider =
+            obj['documentOnTypeFormattingProvider'];
+        if (documentOnTypeFormattingProvider != null &&
             !(DocumentOnTypeFormattingOptions.canParse(
-                obj['documentOnTypeFormattingProvider'], reporter))) {
+                documentOnTypeFormattingProvider, reporter))) {
           reporter
               .reportError('must be of type DocumentOnTypeFormattingOptions');
           return false;
@@ -25562,9 +26580,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('renameProvider');
       try {
-        if (obj['renameProvider'] != null &&
-            !((obj['renameProvider'] is bool ||
-                RenameOptions.canParse(obj['renameProvider'], reporter)))) {
+        final renameProvider = obj['renameProvider'];
+        if (renameProvider != null &&
+            !((renameProvider is bool ||
+                RenameOptions.canParse(renameProvider, reporter)))) {
           reporter.reportError('must be of type Either2<bool, RenameOptions>');
           return false;
         }
@@ -25573,12 +26592,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('foldingRangeProvider');
       try {
-        if (obj['foldingRangeProvider'] != null &&
-            !((obj['foldingRangeProvider'] is bool ||
-                FoldingRangeOptions.canParse(
-                    obj['foldingRangeProvider'], reporter) ||
+        final foldingRangeProvider = obj['foldingRangeProvider'];
+        if (foldingRangeProvider != null &&
+            !((foldingRangeProvider is bool ||
+                FoldingRangeOptions.canParse(foldingRangeProvider, reporter) ||
                 FoldingRangeRegistrationOptions.canParse(
-                    obj['foldingRangeProvider'], reporter)))) {
+                    foldingRangeProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>');
           return false;
@@ -25588,9 +26607,10 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('executeCommandProvider');
       try {
-        if (obj['executeCommandProvider'] != null &&
+        final executeCommandProvider = obj['executeCommandProvider'];
+        if (executeCommandProvider != null &&
             !(ExecuteCommandOptions.canParse(
-                obj['executeCommandProvider'], reporter))) {
+                executeCommandProvider, reporter))) {
           reporter.reportError('must be of type ExecuteCommandOptions');
           return false;
         }
@@ -25599,12 +26619,13 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('selectionRangeProvider');
       try {
-        if (obj['selectionRangeProvider'] != null &&
-            !((obj['selectionRangeProvider'] is bool ||
+        final selectionRangeProvider = obj['selectionRangeProvider'];
+        if (selectionRangeProvider != null &&
+            !((selectionRangeProvider is bool ||
                 SelectionRangeOptions.canParse(
-                    obj['selectionRangeProvider'], reporter) ||
+                    selectionRangeProvider, reporter) ||
                 SelectionRangeRegistrationOptions.canParse(
-                    obj['selectionRangeProvider'], reporter)))) {
+                    selectionRangeProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>');
           return false;
@@ -25614,12 +26635,13 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('linkedEditingRangeProvider');
       try {
-        if (obj['linkedEditingRangeProvider'] != null &&
-            !((obj['linkedEditingRangeProvider'] is bool ||
+        final linkedEditingRangeProvider = obj['linkedEditingRangeProvider'];
+        if (linkedEditingRangeProvider != null &&
+            !((linkedEditingRangeProvider is bool ||
                 LinkedEditingRangeOptions.canParse(
-                    obj['linkedEditingRangeProvider'], reporter) ||
+                    linkedEditingRangeProvider, reporter) ||
                 LinkedEditingRangeRegistrationOptions.canParse(
-                    obj['linkedEditingRangeProvider'], reporter)))) {
+                    linkedEditingRangeProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, LinkedEditingRangeOptions, LinkedEditingRangeRegistrationOptions>');
           return false;
@@ -25629,12 +26651,13 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('callHierarchyProvider');
       try {
-        if (obj['callHierarchyProvider'] != null &&
-            !((obj['callHierarchyProvider'] is bool ||
+        final callHierarchyProvider = obj['callHierarchyProvider'];
+        if (callHierarchyProvider != null &&
+            !((callHierarchyProvider is bool ||
                 CallHierarchyOptions.canParse(
-                    obj['callHierarchyProvider'], reporter) ||
+                    callHierarchyProvider, reporter) ||
                 CallHierarchyRegistrationOptions.canParse(
-                    obj['callHierarchyProvider'], reporter)))) {
+                    callHierarchyProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>');
           return false;
@@ -25644,11 +26667,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('semanticTokensProvider');
       try {
-        if (obj['semanticTokensProvider'] != null &&
+        final semanticTokensProvider = obj['semanticTokensProvider'];
+        if (semanticTokensProvider != null &&
             !((SemanticTokensOptions.canParse(
-                    obj['semanticTokensProvider'], reporter) ||
+                    semanticTokensProvider, reporter) ||
                 SemanticTokensRegistrationOptions.canParse(
-                    obj['semanticTokensProvider'], reporter)))) {
+                    semanticTokensProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<SemanticTokensOptions, SemanticTokensRegistrationOptions>');
           return false;
@@ -25658,11 +26682,12 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('monikerProvider');
       try {
-        if (obj['monikerProvider'] != null &&
-            !((obj['monikerProvider'] is bool ||
-                MonikerOptions.canParse(obj['monikerProvider'], reporter) ||
+        final monikerProvider = obj['monikerProvider'];
+        if (monikerProvider != null &&
+            !((monikerProvider is bool ||
+                MonikerOptions.canParse(monikerProvider, reporter) ||
                 MonikerRegistrationOptions.canParse(
-                    obj['monikerProvider'], reporter)))) {
+                    monikerProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either3<bool, MonikerOptions, MonikerRegistrationOptions>');
           return false;
@@ -25672,10 +26697,11 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('workspaceSymbolProvider');
       try {
-        if (obj['workspaceSymbolProvider'] != null &&
-            !((obj['workspaceSymbolProvider'] is bool ||
+        final workspaceSymbolProvider = obj['workspaceSymbolProvider'];
+        if (workspaceSymbolProvider != null &&
+            !((workspaceSymbolProvider is bool ||
                 WorkspaceSymbolOptions.canParse(
-                    obj['workspaceSymbolProvider'], reporter)))) {
+                    workspaceSymbolProvider, reporter)))) {
           reporter.reportError(
               'must be of type Either2<bool, WorkspaceSymbolOptions>');
           return false;
@@ -25685,9 +26711,9 @@ class ServerCapabilities implements ToJsonable {
       }
       reporter.push('workspace');
       try {
-        if (obj['workspace'] != null &&
-            !(ServerCapabilitiesWorkspace.canParse(
-                obj['workspace'], reporter))) {
+        final workspace = obj['workspace'];
+        if (workspace != null &&
+            !(ServerCapabilitiesWorkspace.canParse(workspace, reporter))) {
           reporter.reportError('must be of type ServerCapabilitiesWorkspace');
           return false;
         }
@@ -25794,24 +26820,36 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       this.willRename,
       this.didDelete,
       this.willDelete});
-  static ServerCapabilitiesFileOperations fromJson(Map<String, dynamic> json) {
-    final didCreate = json['didCreate'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['didCreate'])
+  static ServerCapabilitiesFileOperations fromJson(Map<String, Object?> json) {
+    final didCreateJson = json['didCreate'];
+    final didCreate = didCreateJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didCreateJson as Map<String, Object?>)
         : null;
-    final willCreate = json['willCreate'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['willCreate'])
+    final willCreateJson = json['willCreate'];
+    final willCreate = willCreateJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willCreateJson as Map<String, Object?>)
         : null;
-    final didRename = json['didRename'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['didRename'])
+    final didRenameJson = json['didRename'];
+    final didRename = didRenameJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didRenameJson as Map<String, Object?>)
         : null;
-    final willRename = json['willRename'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['willRename'])
+    final willRenameJson = json['willRename'];
+    final willRename = willRenameJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willRenameJson as Map<String, Object?>)
         : null;
-    final didDelete = json['didDelete'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['didDelete'])
+    final didDeleteJson = json['didDelete'];
+    final didDelete = didDeleteJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            didDeleteJson as Map<String, Object?>)
         : null;
-    final willDelete = json['willDelete'] != null
-        ? FileOperationRegistrationOptions.fromJson(json['willDelete'])
+    final willDeleteJson = json['willDelete'];
+    final willDelete = willDeleteJson != null
+        ? FileOperationRegistrationOptions.fromJson(
+            willDeleteJson as Map<String, Object?>)
         : null;
     return ServerCapabilitiesFileOperations(
         didCreate: didCreate,
@@ -25840,8 +26878,8 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
   /// The server is interested in receiving willRenameFiles requests.
   final FileOperationRegistrationOptions? willRename;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (didCreate != null) {
       __result['didCreate'] = didCreate?.toJson();
     }
@@ -25864,12 +26902,12 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('didCreate');
       try {
-        if (obj['didCreate'] != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                obj['didCreate'], reporter))) {
+        final didCreate = obj['didCreate'];
+        if (didCreate != null &&
+            !(FileOperationRegistrationOptions.canParse(didCreate, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25879,9 +26917,10 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willCreate');
       try {
-        if (obj['willCreate'] != null &&
+        final willCreate = obj['willCreate'];
+        if (willCreate != null &&
             !(FileOperationRegistrationOptions.canParse(
-                obj['willCreate'], reporter))) {
+                willCreate, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25891,9 +26930,9 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('didRename');
       try {
-        if (obj['didRename'] != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                obj['didRename'], reporter))) {
+        final didRename = obj['didRename'];
+        if (didRename != null &&
+            !(FileOperationRegistrationOptions.canParse(didRename, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25903,9 +26942,10 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willRename');
       try {
-        if (obj['willRename'] != null &&
+        final willRename = obj['willRename'];
+        if (willRename != null &&
             !(FileOperationRegistrationOptions.canParse(
-                obj['willRename'], reporter))) {
+                willRename, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25915,9 +26955,9 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('didDelete');
       try {
-        if (obj['didDelete'] != null &&
-            !(FileOperationRegistrationOptions.canParse(
-                obj['didDelete'], reporter))) {
+        final didDelete = obj['didDelete'];
+        if (didDelete != null &&
+            !(FileOperationRegistrationOptions.canParse(didDelete, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25927,9 +26967,10 @@ class ServerCapabilitiesFileOperations implements ToJsonable {
       }
       reporter.push('willDelete');
       try {
-        if (obj['willDelete'] != null &&
+        final willDelete = obj['willDelete'];
+        if (willDelete != null &&
             !(FileOperationRegistrationOptions.canParse(
-                obj['willDelete'], reporter))) {
+                willDelete, reporter))) {
           reporter
               .reportError('must be of type FileOperationRegistrationOptions');
           return false;
@@ -25981,12 +27022,16 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       ServerCapabilitiesWorkspace.fromJson);
 
   ServerCapabilitiesWorkspace({this.workspaceFolders, this.fileOperations});
-  static ServerCapabilitiesWorkspace fromJson(Map<String, dynamic> json) {
-    final workspaceFolders = json['workspaceFolders'] != null
-        ? WorkspaceFoldersServerCapabilities.fromJson(json['workspaceFolders'])
+  static ServerCapabilitiesWorkspace fromJson(Map<String, Object?> json) {
+    final workspaceFoldersJson = json['workspaceFolders'];
+    final workspaceFolders = workspaceFoldersJson != null
+        ? WorkspaceFoldersServerCapabilities.fromJson(
+            workspaceFoldersJson as Map<String, Object?>)
         : null;
-    final fileOperations = json['fileOperations'] != null
-        ? ServerCapabilitiesFileOperations.fromJson(json['fileOperations'])
+    final fileOperationsJson = json['fileOperations'];
+    final fileOperations = fileOperationsJson != null
+        ? ServerCapabilitiesFileOperations.fromJson(
+            fileOperationsJson as Map<String, Object?>)
         : null;
     return ServerCapabilitiesWorkspace(
         workspaceFolders: workspaceFolders, fileOperations: fileOperations);
@@ -26000,8 +27045,8 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   ///  @since 3.6.0
   final WorkspaceFoldersServerCapabilities? workspaceFolders;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workspaceFolders != null) {
       __result['workspaceFolders'] = workspaceFolders?.toJson();
     }
@@ -26012,12 +27057,13 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workspaceFolders');
       try {
-        if (obj['workspaceFolders'] != null &&
+        final workspaceFolders = obj['workspaceFolders'];
+        if (workspaceFolders != null &&
             !(WorkspaceFoldersServerCapabilities.canParse(
-                obj['workspaceFolders'], reporter))) {
+                workspaceFolders, reporter))) {
           reporter.reportError(
               'must be of type WorkspaceFoldersServerCapabilities');
           return false;
@@ -26027,9 +27073,10 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       }
       reporter.push('fileOperations');
       try {
-        if (obj['fileOperations'] != null &&
+        final fileOperations = obj['fileOperations'];
+        if (fileOperations != null &&
             !(ServerCapabilitiesFileOperations.canParse(
-                obj['fileOperations'], reporter))) {
+                fileOperations, reporter))) {
           reporter
               .reportError('must be of type ServerCapabilitiesFileOperations');
           return false;
@@ -26072,37 +27119,37 @@ class SetTraceParams implements ToJsonable {
       LspJsonHandler(SetTraceParams.canParse, SetTraceParams.fromJson);
 
   SetTraceParams({required this.value});
-  static SetTraceParams fromJson(Map<String, dynamic> json) {
-    final value = const {'off', 'message', 'verbose'}.contains(json['value'])
-        ? json['value']
-        : throw '''${json['value']} was not one of ('off', 'message', 'verbose')''';
+  static SetTraceParams fromJson(Map<String, Object?> json) {
+    final valueJson = json['value'];
+    final value = const {'off', 'message', 'verbose'}.contains(valueJson)
+        ? valueJson as String
+        : throw '''$valueJson was not one of ('off', 'message', 'verbose')''';
     return SetTraceParams(value: value);
   }
 
   /// The new value that should be assigned to the trace setting.
   final String value;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['value'] = value;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('value');
       try {
         if (!obj.containsKey('value')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['value'] == null) {
+        final value = obj['value'];
+        if (value == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['value'] == 'off' ||
-            obj['value'] == 'message' ||
-            obj['value'] == 'verbose'))) {
+        if (!((value == 'off' || value == 'message' || value == 'verbose'))) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26143,33 +27190,35 @@ class ShowDocumentClientCapabilities implements ToJsonable {
       ShowDocumentClientCapabilities.fromJson);
 
   ShowDocumentClientCapabilities({required this.support});
-  static ShowDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
-    final support = json['support'];
+  static ShowDocumentClientCapabilities fromJson(Map<String, Object?> json) {
+    final supportJson = json['support'];
+    final support = supportJson as bool;
     return ShowDocumentClientCapabilities(support: support);
   }
 
   /// The client has support for the show document request.
   final bool support;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['support'] = support;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('support');
       try {
         if (!obj.containsKey('support')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['support'] == null) {
+        final support = obj['support'];
+        if (support == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['support'] is bool)) {
+        if (!(support is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26211,12 +27260,17 @@ class ShowDocumentParams implements ToJsonable {
 
   ShowDocumentParams(
       {required this.uri, this.external, this.takeFocus, this.selection});
-  static ShowDocumentParams fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final external = json['external'];
-    final takeFocus = json['takeFocus'];
-    final selection =
-        json['selection'] != null ? Range.fromJson(json['selection']) : null;
+  static ShowDocumentParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final externalJson = json['external'];
+    final external = externalJson as bool?;
+    final takeFocusJson = json['takeFocus'];
+    final takeFocus = takeFocusJson as bool?;
+    final selectionJson = json['selection'];
+    final selection = selectionJson != null
+        ? Range.fromJson(selectionJson as Map<String, Object?>)
+        : null;
     return ShowDocumentParams(
         uri: uri,
         external: external,
@@ -26242,8 +27296,8 @@ class ShowDocumentParams implements ToJsonable {
   /// The document uri to show.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     if (external != null) {
       __result['external'] = external;
@@ -26258,18 +27312,19 @@ class ShowDocumentParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26278,7 +27333,8 @@ class ShowDocumentParams implements ToJsonable {
       }
       reporter.push('external');
       try {
-        if (obj['external'] != null && !(obj['external'] is bool)) {
+        final external = obj['external'];
+        if (external != null && !(external is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26287,7 +27343,8 @@ class ShowDocumentParams implements ToJsonable {
       }
       reporter.push('takeFocus');
       try {
-        if (obj['takeFocus'] != null && !(obj['takeFocus'] is bool)) {
+        final takeFocus = obj['takeFocus'];
+        if (takeFocus != null && !(takeFocus is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26296,8 +27353,8 @@ class ShowDocumentParams implements ToJsonable {
       }
       reporter.push('selection');
       try {
-        if (obj['selection'] != null &&
-            !(Range.canParse(obj['selection'], reporter))) {
+        final selection = obj['selection'];
+        if (selection != null && !(Range.canParse(selection, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -26345,33 +27402,35 @@ class ShowDocumentResult implements ToJsonable {
       LspJsonHandler(ShowDocumentResult.canParse, ShowDocumentResult.fromJson);
 
   ShowDocumentResult({required this.success});
-  static ShowDocumentResult fromJson(Map<String, dynamic> json) {
-    final success = json['success'];
+  static ShowDocumentResult fromJson(Map<String, Object?> json) {
+    final successJson = json['success'];
+    final success = successJson as bool;
     return ShowDocumentResult(success: success);
   }
 
   /// A boolean indicating if the show was successful.
   final bool success;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['success'] = success;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('success');
       try {
         if (!obj.containsKey('success')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['success'] == null) {
+        final success = obj['success'];
+        if (success == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['success'] is bool)) {
+        if (!(success is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26410,9 +27469,11 @@ class ShowMessageParams implements ToJsonable {
       LspJsonHandler(ShowMessageParams.canParse, ShowMessageParams.fromJson);
 
   ShowMessageParams({required this.type, required this.message});
-  static ShowMessageParams fromJson(Map<String, dynamic> json) {
-    final type = MessageType.fromJson(json['type']);
-    final message = json['message'];
+  static ShowMessageParams fromJson(Map<String, Object?> json) {
+    final typeJson = json['type'];
+    final type = MessageType.fromJson(typeJson as int);
+    final messageJson = json['message'];
+    final message = messageJson as String;
     return ShowMessageParams(type: type, message: message);
   }
 
@@ -26422,26 +27483,27 @@ class ShowMessageParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['type'] = type.toJson();
     __result['message'] = message;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['type'] == null) {
+        final type = obj['type'];
+        if (type == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(type, reporter))) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -26454,11 +27516,12 @@ class ShowMessageParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26500,10 +27563,11 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
 
   ShowMessageRequestClientCapabilities({this.messageActionItem});
   static ShowMessageRequestClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final messageActionItem = json['messageActionItem'] != null
+      Map<String, Object?> json) {
+    final messageActionItemJson = json['messageActionItem'];
+    final messageActionItem = messageActionItemJson != null
         ? ShowMessageRequestClientCapabilitiesMessageActionItem.fromJson(
-            json['messageActionItem'])
+            messageActionItemJson as Map<String, Object?>)
         : null;
     return ShowMessageRequestClientCapabilities(
         messageActionItem: messageActionItem);
@@ -26513,8 +27577,8 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
   final ShowMessageRequestClientCapabilitiesMessageActionItem?
       messageActionItem;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (messageActionItem != null) {
       __result['messageActionItem'] = messageActionItem?.toJson();
     }
@@ -26522,12 +27586,13 @@ class ShowMessageRequestClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('messageActionItem');
       try {
-        if (obj['messageActionItem'] != null &&
+        final messageActionItem = obj['messageActionItem'];
+        if (messageActionItem != null &&
             !(ShowMessageRequestClientCapabilitiesMessageActionItem.canParse(
-                obj['messageActionItem'], reporter))) {
+                messageActionItem, reporter))) {
           reporter.reportError(
               'must be of type ShowMessageRequestClientCapabilitiesMessageActionItem');
           return false;
@@ -26572,8 +27637,10 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   ShowMessageRequestClientCapabilitiesMessageActionItem(
       {this.additionalPropertiesSupport});
   static ShowMessageRequestClientCapabilitiesMessageActionItem fromJson(
-      Map<String, dynamic> json) {
-    final additionalPropertiesSupport = json['additionalPropertiesSupport'];
+      Map<String, Object?> json) {
+    final additionalPropertiesSupportJson = json['additionalPropertiesSupport'];
+    final additionalPropertiesSupport =
+        additionalPropertiesSupportJson as bool?;
     return ShowMessageRequestClientCapabilitiesMessageActionItem(
         additionalPropertiesSupport: additionalPropertiesSupport);
   }
@@ -26582,8 +27649,8 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   /// sent back to the server in the request's response.
   final bool? additionalPropertiesSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (additionalPropertiesSupport != null) {
       __result['additionalPropertiesSupport'] = additionalPropertiesSupport;
     }
@@ -26591,11 +27658,12 @@ class ShowMessageRequestClientCapabilitiesMessageActionItem
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('additionalPropertiesSupport');
       try {
-        if (obj['additionalPropertiesSupport'] != null &&
-            !(obj['additionalPropertiesSupport'] is bool)) {
+        final additionalPropertiesSupport = obj['additionalPropertiesSupport'];
+        if (additionalPropertiesSupport != null &&
+            !(additionalPropertiesSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26638,13 +27706,16 @@ class ShowMessageRequestParams implements ToJsonable {
 
   ShowMessageRequestParams(
       {required this.type, required this.message, this.actions});
-  static ShowMessageRequestParams fromJson(Map<String, dynamic> json) {
-    final type = MessageType.fromJson(json['type']);
-    final message = json['message'];
-    final actions = json['actions']
-        ?.map((item) => item != null ? MessageActionItem.fromJson(item) : null)
-        ?.cast<MessageActionItem>()
-        ?.toList();
+  static ShowMessageRequestParams fromJson(Map<String, Object?> json) {
+    final typeJson = json['type'];
+    final type = MessageType.fromJson(typeJson as int);
+    final messageJson = json['message'];
+    final message = messageJson as String;
+    final actionsJson = json['actions'];
+    final actions = (actionsJson as List<Object?>?)
+        ?.map(
+            (item) => MessageActionItem.fromJson(item as Map<String, Object?>))
+        .toList();
     return ShowMessageRequestParams(
         type: type, message: message, actions: actions);
   }
@@ -26658,8 +27729,8 @@ class ShowMessageRequestParams implements ToJsonable {
   /// The message type.
   final MessageType type;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['type'] = type.toJson();
     __result['message'] = message;
     if (actions != null) {
@@ -26669,18 +27740,19 @@ class ShowMessageRequestParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['type'] == null) {
+        final type = obj['type'];
+        if (type == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(MessageType.canParse(obj['type'], reporter))) {
+        if (!(MessageType.canParse(type, reporter))) {
           reporter.reportError('must be of type MessageType');
           return false;
         }
@@ -26693,11 +27765,12 @@ class ShowMessageRequestParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['message'] == null) {
+        final message = obj['message'];
+        if (message == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['message'] is String)) {
+        if (!(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -26706,9 +27779,10 @@ class ShowMessageRequestParams implements ToJsonable {
       }
       reporter.push('actions');
       try {
-        if (obj['actions'] != null &&
-            !((obj['actions'] is List &&
-                (obj['actions'].every(
+        final actions = obj['actions'];
+        if (actions != null &&
+            !((actions is List &&
+                (actions.every(
                     (item) => MessageActionItem.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MessageActionItem>');
           return false;
@@ -26757,13 +27831,16 @@ class SignatureHelp implements ToJsonable {
 
   SignatureHelp(
       {required this.signatures, this.activeSignature, this.activeParameter});
-  static SignatureHelp fromJson(Map<String, dynamic> json) {
-    final signatures = json['signatures']
-        ?.map((item) => SignatureInformation.fromJson(item))
-        ?.cast<SignatureInformation>()
-        ?.toList();
-    final activeSignature = json['activeSignature'];
-    final activeParameter = json['activeParameter'];
+  static SignatureHelp fromJson(Map<String, Object?> json) {
+    final signaturesJson = json['signatures'];
+    final signatures = (signaturesJson as List<Object?>)
+        .map((item) =>
+            SignatureInformation.fromJson(item as Map<String, Object?>))
+        .toList();
+    final activeSignatureJson = json['activeSignature'];
+    final activeSignature = activeSignatureJson as int?;
+    final activeParameterJson = json['activeParameter'];
+    final activeParameter = activeParameterJson as int?;
     return SignatureHelp(
         signatures: signatures,
         activeSignature: activeSignature,
@@ -26793,8 +27870,8 @@ class SignatureHelp implements ToJsonable {
   /// request should return `null`.
   final List<SignatureInformation> signatures;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['signatures'] = signatures.map((item) => item.toJson()).toList();
     if (activeSignature != null) {
       __result['activeSignature'] = activeSignature;
@@ -26806,19 +27883,20 @@ class SignatureHelp implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('signatures');
       try {
         if (!obj.containsKey('signatures')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['signatures'] == null) {
+        final signatures = obj['signatures'];
+        if (signatures == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['signatures'] is List &&
-            (obj['signatures'].every(
+        if (!((signatures is List &&
+            (signatures.every(
                 (item) => SignatureInformation.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SignatureInformation>');
           return false;
@@ -26828,8 +27906,8 @@ class SignatureHelp implements ToJsonable {
       }
       reporter.push('activeSignature');
       try {
-        if (obj['activeSignature'] != null &&
-            !(obj['activeSignature'] is int)) {
+        final activeSignature = obj['activeSignature'];
+        if (activeSignature != null && !(activeSignature is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -26838,8 +27916,8 @@ class SignatureHelp implements ToJsonable {
       }
       reporter.push('activeParameter');
       try {
-        if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is int)) {
+        final activeParameter = obj['activeParameter'];
+        if (activeParameter != null && !(activeParameter is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -26887,13 +27965,16 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       {this.dynamicRegistration,
       this.signatureInformation,
       this.contextSupport});
-  static SignatureHelpClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final signatureInformation = json['signatureInformation'] != null
+  static SignatureHelpClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final signatureInformationJson = json['signatureInformation'];
+    final signatureInformation = signatureInformationJson != null
         ? SignatureHelpClientCapabilitiesSignatureInformation.fromJson(
-            json['signatureInformation'])
+            signatureInformationJson as Map<String, Object?>)
         : null;
-    final contextSupport = json['contextSupport'];
+    final contextSupportJson = json['contextSupport'];
+    final contextSupport = contextSupportJson as bool?;
     return SignatureHelpClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         signatureInformation: signatureInformation,
@@ -26915,8 +27996,8 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   final SignatureHelpClientCapabilitiesSignatureInformation?
       signatureInformation;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -26930,11 +28011,11 @@ class SignatureHelpClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -26943,9 +28024,10 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       }
       reporter.push('signatureInformation');
       try {
-        if (obj['signatureInformation'] != null &&
+        final signatureInformation = obj['signatureInformation'];
+        if (signatureInformation != null &&
             !(SignatureHelpClientCapabilitiesSignatureInformation.canParse(
-                obj['signatureInformation'], reporter))) {
+                signatureInformation, reporter))) {
           reporter.reportError(
               'must be of type SignatureHelpClientCapabilitiesSignatureInformation');
           return false;
@@ -26955,7 +28037,8 @@ class SignatureHelpClientCapabilities implements ToJsonable {
       }
       reporter.push('contextSupport');
       try {
-        if (obj['contextSupport'] != null && !(obj['contextSupport'] is bool)) {
+        final contextSupport = obj['contextSupport'];
+        if (contextSupport != null && !(contextSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27003,8 +28086,9 @@ class SignatureHelpClientCapabilitiesParameterInformation
   SignatureHelpClientCapabilitiesParameterInformation(
       {this.labelOffsetSupport});
   static SignatureHelpClientCapabilitiesParameterInformation fromJson(
-      Map<String, dynamic> json) {
-    final labelOffsetSupport = json['labelOffsetSupport'];
+      Map<String, Object?> json) {
+    final labelOffsetSupportJson = json['labelOffsetSupport'];
+    final labelOffsetSupport = labelOffsetSupportJson as bool?;
     return SignatureHelpClientCapabilitiesParameterInformation(
         labelOffsetSupport: labelOffsetSupport);
   }
@@ -27014,8 +28098,8 @@ class SignatureHelpClientCapabilitiesParameterInformation
   ///  @since 3.14.0
   final bool? labelOffsetSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (labelOffsetSupport != null) {
       __result['labelOffsetSupport'] = labelOffsetSupport;
     }
@@ -27023,11 +28107,11 @@ class SignatureHelpClientCapabilitiesParameterInformation
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('labelOffsetSupport');
       try {
-        if (obj['labelOffsetSupport'] != null &&
-            !(obj['labelOffsetSupport'] is bool)) {
+        final labelOffsetSupport = obj['labelOffsetSupport'];
+        if (labelOffsetSupport != null && !(labelOffsetSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27074,16 +28158,18 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       this.parameterInformation,
       this.activeParameterSupport});
   static SignatureHelpClientCapabilitiesSignatureInformation fromJson(
-      Map<String, dynamic> json) {
-    final documentationFormat = json['documentationFormat']
-        ?.map((item) => item != null ? MarkupKind.fromJson(item) : null)
-        ?.cast<MarkupKind>()
-        ?.toList();
-    final parameterInformation = json['parameterInformation'] != null
+      Map<String, Object?> json) {
+    final documentationFormatJson = json['documentationFormat'];
+    final documentationFormat = (documentationFormatJson as List<Object?>?)
+        ?.map((item) => MarkupKind.fromJson(item as String))
+        .toList();
+    final parameterInformationJson = json['parameterInformation'];
+    final parameterInformation = parameterInformationJson != null
         ? SignatureHelpClientCapabilitiesParameterInformation.fromJson(
-            json['parameterInformation'])
+            parameterInformationJson as Map<String, Object?>)
         : null;
-    final activeParameterSupport = json['activeParameterSupport'];
+    final activeParameterSupportJson = json['activeParameterSupport'];
+    final activeParameterSupport = activeParameterSupportJson as bool?;
     return SignatureHelpClientCapabilitiesSignatureInformation(
         documentationFormat: documentationFormat,
         parameterInformation: parameterInformation,
@@ -27103,8 +28189,8 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   final SignatureHelpClientCapabilitiesParameterInformation?
       parameterInformation;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (documentationFormat != null) {
       __result['documentationFormat'] =
           documentationFormat?.map((item) => item.toJson()).toList();
@@ -27119,12 +28205,13 @@ class SignatureHelpClientCapabilitiesSignatureInformation
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentationFormat');
       try {
-        if (obj['documentationFormat'] != null &&
-            !((obj['documentationFormat'] is List &&
-                (obj['documentationFormat']
+        final documentationFormat = obj['documentationFormat'];
+        if (documentationFormat != null &&
+            !((documentationFormat is List &&
+                (documentationFormat
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<MarkupKind>');
           return false;
@@ -27134,9 +28221,10 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       }
       reporter.push('parameterInformation');
       try {
-        if (obj['parameterInformation'] != null &&
+        final parameterInformation = obj['parameterInformation'];
+        if (parameterInformation != null &&
             !(SignatureHelpClientCapabilitiesParameterInformation.canParse(
-                obj['parameterInformation'], reporter))) {
+                parameterInformation, reporter))) {
           reporter.reportError(
               'must be of type SignatureHelpClientCapabilitiesParameterInformation');
           return false;
@@ -27146,8 +28234,9 @@ class SignatureHelpClientCapabilitiesSignatureInformation
       }
       reporter.push('activeParameterSupport');
       try {
-        if (obj['activeParameterSupport'] != null &&
-            !(obj['activeParameterSupport'] is bool)) {
+        final activeParameterSupport = obj['activeParameterSupport'];
+        if (activeParameterSupport != null &&
+            !(activeParameterSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27201,12 +28290,18 @@ class SignatureHelpContext implements ToJsonable {
       this.triggerCharacter,
       required this.isRetrigger,
       this.activeSignatureHelp});
-  static SignatureHelpContext fromJson(Map<String, dynamic> json) {
-    final triggerKind = SignatureHelpTriggerKind.fromJson(json['triggerKind']);
-    final triggerCharacter = json['triggerCharacter'];
-    final isRetrigger = json['isRetrigger'];
-    final activeSignatureHelp = json['activeSignatureHelp'] != null
-        ? SignatureHelp.fromJson(json['activeSignatureHelp'])
+  static SignatureHelpContext fromJson(Map<String, Object?> json) {
+    final triggerKindJson = json['triggerKind'];
+    final triggerKind =
+        SignatureHelpTriggerKind.fromJson(triggerKindJson as num);
+    final triggerCharacterJson = json['triggerCharacter'];
+    final triggerCharacter = triggerCharacterJson as String?;
+    final isRetriggerJson = json['isRetrigger'];
+    final isRetrigger = isRetriggerJson as bool;
+    final activeSignatureHelpJson = json['activeSignatureHelp'];
+    final activeSignatureHelp = activeSignatureHelpJson != null
+        ? SignatureHelp.fromJson(
+            activeSignatureHelpJson as Map<String, Object?>)
         : null;
     return SignatureHelpContext(
         triggerKind: triggerKind,
@@ -27237,8 +28332,8 @@ class SignatureHelpContext implements ToJsonable {
   /// Action that caused signature help to be triggered.
   final SignatureHelpTriggerKind triggerKind;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['triggerKind'] = triggerKind.toJson();
     if (triggerCharacter != null) {
       __result['triggerCharacter'] = triggerCharacter;
@@ -27251,19 +28346,19 @@ class SignatureHelpContext implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('triggerKind');
       try {
         if (!obj.containsKey('triggerKind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['triggerKind'] == null) {
+        final triggerKind = obj['triggerKind'];
+        if (triggerKind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SignatureHelpTriggerKind.canParse(
-            obj['triggerKind'], reporter))) {
+        if (!(SignatureHelpTriggerKind.canParse(triggerKind, reporter))) {
           reporter.reportError('must be of type SignatureHelpTriggerKind');
           return false;
         }
@@ -27272,8 +28367,8 @@ class SignatureHelpContext implements ToJsonable {
       }
       reporter.push('triggerCharacter');
       try {
-        if (obj['triggerCharacter'] != null &&
-            !(obj['triggerCharacter'] is String)) {
+        final triggerCharacter = obj['triggerCharacter'];
+        if (triggerCharacter != null && !(triggerCharacter is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27286,11 +28381,12 @@ class SignatureHelpContext implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['isRetrigger'] == null) {
+        final isRetrigger = obj['isRetrigger'];
+        if (isRetrigger == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['isRetrigger'] is bool)) {
+        if (!(isRetrigger is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27299,8 +28395,9 @@ class SignatureHelpContext implements ToJsonable {
       }
       reporter.push('activeSignatureHelp');
       try {
-        if (obj['activeSignatureHelp'] != null &&
-            !(SignatureHelp.canParse(obj['activeSignatureHelp'], reporter))) {
+        final activeSignatureHelp = obj['activeSignatureHelp'];
+        if (activeSignatureHelp != null &&
+            !(SignatureHelp.canParse(activeSignatureHelp, reporter))) {
           reporter.reportError('must be of type SignatureHelp');
           return false;
         }
@@ -27349,19 +28446,20 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       {this.triggerCharacters,
       this.retriggerCharacters,
       this.workDoneProgress});
-  static SignatureHelpOptions fromJson(Map<String, dynamic> json) {
+  static SignatureHelpOptions fromJson(Map<String, Object?> json) {
     if (SignatureHelpRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return SignatureHelpRegistrationOptions.fromJson(json);
     }
-    final triggerCharacters = json['triggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final retriggerCharacters = json['retriggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+    final triggerCharactersJson = json['triggerCharacters'];
+    final triggerCharacters = (triggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final retriggerCharactersJson = json['retriggerCharacters'];
+    final retriggerCharacters = (retriggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return SignatureHelpOptions(
         triggerCharacters: triggerCharacters,
         retriggerCharacters: retriggerCharacters,
@@ -27379,8 +28477,8 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   final List<String>? triggerCharacters;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
     }
@@ -27394,12 +28492,13 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('triggerCharacters');
       try {
-        if (obj['triggerCharacters'] != null &&
-            !((obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))))) {
+        final triggerCharacters = obj['triggerCharacters'];
+        if (triggerCharacters != null &&
+            !((triggerCharacters is List &&
+                (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -27408,10 +28507,10 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('retriggerCharacters');
       try {
-        if (obj['retriggerCharacters'] != null &&
-            !((obj['retriggerCharacters'] is List &&
-                (obj['retriggerCharacters']
-                    .every((item) => item is String))))) {
+        final retriggerCharacters = obj['retriggerCharacters'];
+        if (retriggerCharacters != null &&
+            !((retriggerCharacters is List &&
+                (retriggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -27420,8 +28519,8 @@ class SignatureHelpOptions implements WorkDoneProgressOptions, ToJsonable {
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27472,19 +28571,24 @@ class SignatureHelpParams
       required this.textDocument,
       required this.position,
       this.workDoneToken});
-  static SignatureHelpParams fromJson(Map<String, dynamic> json) {
-    final context = json['context'] != null
-        ? SignatureHelpContext.fromJson(json['context'])
+  static SignatureHelpParams fromJson(Map<String, Object?> json) {
+    final contextJson = json['context'];
+    final context = contextJson != null
+        ? SignatureHelpContext.fromJson(contextJson as Map<String, Object?>)
         : null;
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return SignatureHelpParams(
         context: context,
         textDocument: textDocument,
@@ -27507,8 +28611,8 @@ class SignatureHelpParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (context != null) {
       __result['context'] = context?.toJson();
     }
@@ -27521,11 +28625,12 @@ class SignatureHelpParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('context');
       try {
-        if (obj['context'] != null &&
-            !(SignatureHelpContext.canParse(obj['context'], reporter))) {
+        final context = obj['context'];
+        if (context != null &&
+            !(SignatureHelpContext.canParse(context, reporter))) {
           reporter.reportError('must be of type SignatureHelpContext');
           return false;
         }
@@ -27538,11 +28643,12 @@ class SignatureHelpParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -27555,11 +28661,12 @@ class SignatureHelpParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -27568,9 +28675,9 @@ class SignatureHelpParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -27625,20 +28732,21 @@ class SignatureHelpRegistrationOptions
       this.triggerCharacters,
       this.retriggerCharacters,
       this.workDoneProgress});
-  static SignatureHelpRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final triggerCharacters = json['triggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final retriggerCharacters = json['retriggerCharacters']
-        ?.map((item) => item)
-        ?.cast<String>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
+  static SignatureHelpRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final triggerCharactersJson = json['triggerCharacters'];
+    final triggerCharacters = (triggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final retriggerCharactersJson = json['retriggerCharacters'];
+    final retriggerCharacters = (retriggerCharactersJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return SignatureHelpRegistrationOptions(
         documentSelector: documentSelector,
         triggerCharacters: triggerCharacters,
@@ -27661,8 +28769,8 @@ class SignatureHelpRegistrationOptions
   final List<String>? triggerCharacters;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (triggerCharacters != null) {
       __result['triggerCharacters'] = triggerCharacters;
@@ -27677,16 +28785,17 @@ class SignatureHelpRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -27696,9 +28805,10 @@ class SignatureHelpRegistrationOptions
       }
       reporter.push('triggerCharacters');
       try {
-        if (obj['triggerCharacters'] != null &&
-            !((obj['triggerCharacters'] is List &&
-                (obj['triggerCharacters'].every((item) => item is String))))) {
+        final triggerCharacters = obj['triggerCharacters'];
+        if (triggerCharacters != null &&
+            !((triggerCharacters is List &&
+                (triggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -27707,10 +28817,10 @@ class SignatureHelpRegistrationOptions
       }
       reporter.push('retriggerCharacters');
       try {
-        if (obj['retriggerCharacters'] != null &&
-            !((obj['retriggerCharacters'] is List &&
-                (obj['retriggerCharacters']
-                    .every((item) => item is String))))) {
+        final retriggerCharacters = obj['retriggerCharacters'];
+        if (retriggerCharacters != null &&
+            !((retriggerCharacters is List &&
+                (retriggerCharacters.every((item) => item is String))))) {
           reporter.reportError('must be of type List<String>');
           return false;
         }
@@ -27719,8 +28829,8 @@ class SignatureHelpRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -27809,23 +28919,25 @@ class SignatureInformation implements ToJsonable {
       this.documentation,
       this.parameters,
       this.activeParameter});
-  static SignatureInformation fromJson(Map<String, dynamic> json) {
-    final label = json['label'];
-    final documentation = json['documentation'] == null
+  static SignatureInformation fromJson(Map<String, Object?> json) {
+    final labelJson = json['label'];
+    final label = labelJson as String;
+    final documentationJson = json['documentation'];
+    final documentation = documentationJson == null
         ? null
-        : (json['documentation'] is String
-            ? Either2<String, MarkupContent>.t1(json['documentation'])
-            : (MarkupContent.canParse(
-                    json['documentation'], nullLspJsonReporter)
-                ? Either2<String, MarkupContent>.t2(
-                    MarkupContent.fromJson(json['documentation']))
-                : (throw '''${json['documentation']} was not one of (String, MarkupContent)''')));
-    final parameters = json['parameters']
-        ?.map(
-            (item) => item != null ? ParameterInformation.fromJson(item) : null)
-        ?.cast<ParameterInformation>()
-        ?.toList();
-    final activeParameter = json['activeParameter'];
+        : (documentationJson is String
+            ? Either2<String, MarkupContent>.t1(documentationJson)
+            : (MarkupContent.canParse(documentationJson, nullLspJsonReporter)
+                ? Either2<String, MarkupContent>.t2(MarkupContent.fromJson(
+                    documentationJson as Map<String, Object?>))
+                : (throw '''$documentationJson was not one of (String, MarkupContent)''')));
+    final parametersJson = json['parameters'];
+    final parameters = (parametersJson as List<Object?>?)
+        ?.map((item) =>
+            ParameterInformation.fromJson(item as Map<String, Object?>))
+        .toList();
+    final activeParameterJson = json['activeParameter'];
+    final activeParameter = activeParameterJson as int?;
     return SignatureInformation(
         label: label,
         documentation: documentation,
@@ -27849,8 +28961,8 @@ class SignatureInformation implements ToJsonable {
   /// The parameters of this signature.
   final List<ParameterInformation>? parameters;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['label'] = label;
     if (documentation != null) {
       __result['documentation'] = documentation;
@@ -27866,18 +28978,19 @@ class SignatureInformation implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['label'] == null) {
+        final label = obj['label'];
+        if (label == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['label'] is String)) {
+        if (!(label is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -27886,9 +28999,10 @@ class SignatureInformation implements ToJsonable {
       }
       reporter.push('documentation');
       try {
-        if (obj['documentation'] != null &&
-            !((obj['documentation'] is String ||
-                MarkupContent.canParse(obj['documentation'], reporter)))) {
+        final documentation = obj['documentation'];
+        if (documentation != null &&
+            !((documentation is String ||
+                MarkupContent.canParse(documentation, reporter)))) {
           reporter
               .reportError('must be of type Either2<String, MarkupContent>');
           return false;
@@ -27898,9 +29012,10 @@ class SignatureInformation implements ToJsonable {
       }
       reporter.push('parameters');
       try {
-        if (obj['parameters'] != null &&
-            !((obj['parameters'] is List &&
-                (obj['parameters'].every((item) =>
+        final parameters = obj['parameters'];
+        if (parameters != null &&
+            !((parameters is List &&
+                (parameters.every((item) =>
                     ParameterInformation.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ParameterInformation>');
           return false;
@@ -27910,8 +29025,8 @@ class SignatureInformation implements ToJsonable {
       }
       reporter.push('activeParameter');
       try {
-        if (obj['activeParameter'] != null &&
-            !(obj['activeParameter'] is int)) {
+        final activeParameter = obj['activeParameter'];
+        if (activeParameter != null && !(activeParameter is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -27959,7 +29074,7 @@ class StaticRegistrationOptions implements ToJsonable {
       StaticRegistrationOptions.canParse, StaticRegistrationOptions.fromJson);
 
   StaticRegistrationOptions({this.id});
-  static StaticRegistrationOptions fromJson(Map<String, dynamic> json) {
+  static StaticRegistrationOptions fromJson(Map<String, Object?> json) {
     if (DeclarationRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return DeclarationRegistrationOptions.fromJson(json);
     }
@@ -27988,7 +29103,8 @@ class StaticRegistrationOptions implements ToJsonable {
         json, nullLspJsonReporter)) {
       return LinkedEditingRangeRegistrationOptions.fromJson(json);
     }
-    final id = json['id'];
+    final idJson = json['id'];
+    final id = idJson as String?;
     return StaticRegistrationOptions(id: id);
   }
 
@@ -27996,8 +29112,8 @@ class StaticRegistrationOptions implements ToJsonable {
   /// request again. See also Registration#id.
   final String? id;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (id != null) {
       __result['id'] = id;
     }
@@ -28005,10 +29121,11 @@ class StaticRegistrationOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -28055,16 +29172,21 @@ class SymbolInformation implements ToJsonable {
       this.deprecated,
       required this.location,
       this.containerName});
-  static SymbolInformation fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final kind = SymbolKind.fromJson(json['kind']);
-    final tags = json['tags']
-        ?.map((item) => item != null ? SymbolTag.fromJson(item) : null)
-        ?.cast<SymbolTag>()
-        ?.toList();
-    final deprecated = json['deprecated'];
-    final location = Location.fromJson(json['location']);
-    final containerName = json['containerName'];
+  static SymbolInformation fromJson(Map<String, Object?> json) {
+    final nameJson = json['name'];
+    final name = nameJson as String;
+    final kindJson = json['kind'];
+    final kind = SymbolKind.fromJson(kindJson as int);
+    final tagsJson = json['tags'];
+    final tags = (tagsJson as List<Object?>?)
+        ?.map((item) => SymbolTag.fromJson(item as num))
+        .toList();
+    final deprecatedJson = json['deprecated'];
+    final deprecated = deprecatedJson as bool?;
+    final locationJson = json['location'];
+    final location = Location.fromJson(locationJson as Map<String, Object?>);
+    final containerNameJson = json['containerName'];
+    final containerName = containerNameJson as String?;
     return SymbolInformation(
         name: name,
         kind: kind,
@@ -28105,8 +29227,8 @@ class SymbolInformation implements ToJsonable {
   ///  @since 3.16.0
   final List<SymbolTag>? tags;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['name'] = name;
     __result['kind'] = kind.toJson();
     if (tags != null) {
@@ -28123,18 +29245,19 @@ class SymbolInformation implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -28147,11 +29270,12 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(SymbolKind.canParse(obj['kind'], reporter))) {
+        if (!(SymbolKind.canParse(kind, reporter))) {
           reporter.reportError('must be of type SymbolKind');
           return false;
         }
@@ -28160,10 +29284,10 @@ class SymbolInformation implements ToJsonable {
       }
       reporter.push('tags');
       try {
-        if (obj['tags'] != null &&
-            !((obj['tags'] is List &&
-                (obj['tags']
-                    .every((item) => SymbolTag.canParse(item, reporter)))))) {
+        final tags = obj['tags'];
+        if (tags != null &&
+            !((tags is List &&
+                (tags.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -28172,7 +29296,8 @@ class SymbolInformation implements ToJsonable {
       }
       reporter.push('deprecated');
       try {
-        if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
+        final deprecated = obj['deprecated'];
+        if (deprecated != null && !(deprecated is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -28185,11 +29310,12 @@ class SymbolInformation implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['location'] == null) {
+        final location = obj['location'];
+        if (location == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Location.canParse(obj['location'], reporter))) {
+        if (!(Location.canParse(location, reporter))) {
           reporter.reportError('must be of type Location');
           return false;
         }
@@ -28198,7 +29324,8 @@ class SymbolInformation implements ToJsonable {
       }
       reporter.push('containerName');
       try {
-        if (obj['containerName'] != null && !(obj['containerName'] is String)) {
+        final containerName = obj['containerName'];
+        if (containerName != null && !(containerName is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -28328,12 +29455,13 @@ class TextDocumentChangeRegistrationOptions
   TextDocumentChangeRegistrationOptions(
       {required this.syncKind, this.documentSelector});
   static TextDocumentChangeRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final syncKind = TextDocumentSyncKind.fromJson(json['syncKind']);
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final syncKindJson = json['syncKind'];
+    final syncKind = TextDocumentSyncKind.fromJson(syncKindJson as int);
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
     return TextDocumentChangeRegistrationOptions(
         syncKind: syncKind, documentSelector: documentSelector);
   }
@@ -28346,26 +29474,27 @@ class TextDocumentChangeRegistrationOptions
   /// TextDocumentSyncKind.Incremental.
   final TextDocumentSyncKind syncKind;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['syncKind'] = syncKind.toJson();
     __result['documentSelector'] = documentSelector;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('syncKind');
       try {
         if (!obj.containsKey('syncKind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['syncKind'] == null) {
+        final syncKind = obj['syncKind'];
+        if (syncKind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
+        if (!(TextDocumentSyncKind.canParse(syncKind, reporter))) {
           reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
@@ -28378,9 +29507,10 @@ class TextDocumentChangeRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -28453,89 +29583,134 @@ class TextDocumentClientCapabilities implements ToJsonable {
       this.callHierarchy,
       this.semanticTokens,
       this.moniker});
-  static TextDocumentClientCapabilities fromJson(Map<String, dynamic> json) {
-    final synchronization = json['synchronization'] != null
-        ? TextDocumentSyncClientCapabilities.fromJson(json['synchronization'])
+  static TextDocumentClientCapabilities fromJson(Map<String, Object?> json) {
+    final synchronizationJson = json['synchronization'];
+    final synchronization = synchronizationJson != null
+        ? TextDocumentSyncClientCapabilities.fromJson(
+            synchronizationJson as Map<String, Object?>)
         : null;
-    final completion = json['completion'] != null
-        ? CompletionClientCapabilities.fromJson(json['completion'])
+    final completionJson = json['completion'];
+    final completion = completionJson != null
+        ? CompletionClientCapabilities.fromJson(
+            completionJson as Map<String, Object?>)
         : null;
-    final hover = json['hover'] != null
-        ? HoverClientCapabilities.fromJson(json['hover'])
+    final hoverJson = json['hover'];
+    final hover = hoverJson != null
+        ? HoverClientCapabilities.fromJson(hoverJson as Map<String, Object?>)
         : null;
-    final signatureHelp = json['signatureHelp'] != null
-        ? SignatureHelpClientCapabilities.fromJson(json['signatureHelp'])
+    final signatureHelpJson = json['signatureHelp'];
+    final signatureHelp = signatureHelpJson != null
+        ? SignatureHelpClientCapabilities.fromJson(
+            signatureHelpJson as Map<String, Object?>)
         : null;
-    final declaration = json['declaration'] != null
-        ? DeclarationClientCapabilities.fromJson(json['declaration'])
+    final declarationJson = json['declaration'];
+    final declaration = declarationJson != null
+        ? DeclarationClientCapabilities.fromJson(
+            declarationJson as Map<String, Object?>)
         : null;
-    final definition = json['definition'] != null
-        ? DefinitionClientCapabilities.fromJson(json['definition'])
+    final definitionJson = json['definition'];
+    final definition = definitionJson != null
+        ? DefinitionClientCapabilities.fromJson(
+            definitionJson as Map<String, Object?>)
         : null;
-    final typeDefinition = json['typeDefinition'] != null
-        ? TypeDefinitionClientCapabilities.fromJson(json['typeDefinition'])
+    final typeDefinitionJson = json['typeDefinition'];
+    final typeDefinition = typeDefinitionJson != null
+        ? TypeDefinitionClientCapabilities.fromJson(
+            typeDefinitionJson as Map<String, Object?>)
         : null;
-    final implementation = json['implementation'] != null
-        ? ImplementationClientCapabilities.fromJson(json['implementation'])
+    final implementationJson = json['implementation'];
+    final implementation = implementationJson != null
+        ? ImplementationClientCapabilities.fromJson(
+            implementationJson as Map<String, Object?>)
         : null;
-    final references = json['references'] != null
-        ? ReferenceClientCapabilities.fromJson(json['references'])
+    final referencesJson = json['references'];
+    final references = referencesJson != null
+        ? ReferenceClientCapabilities.fromJson(
+            referencesJson as Map<String, Object?>)
         : null;
-    final documentHighlight = json['documentHighlight'] != null
+    final documentHighlightJson = json['documentHighlight'];
+    final documentHighlight = documentHighlightJson != null
         ? DocumentHighlightClientCapabilities.fromJson(
-            json['documentHighlight'])
+            documentHighlightJson as Map<String, Object?>)
         : null;
-    final documentSymbol = json['documentSymbol'] != null
-        ? DocumentSymbolClientCapabilities.fromJson(json['documentSymbol'])
+    final documentSymbolJson = json['documentSymbol'];
+    final documentSymbol = documentSymbolJson != null
+        ? DocumentSymbolClientCapabilities.fromJson(
+            documentSymbolJson as Map<String, Object?>)
         : null;
-    final codeAction = json['codeAction'] != null
-        ? CodeActionClientCapabilities.fromJson(json['codeAction'])
+    final codeActionJson = json['codeAction'];
+    final codeAction = codeActionJson != null
+        ? CodeActionClientCapabilities.fromJson(
+            codeActionJson as Map<String, Object?>)
         : null;
-    final codeLens = json['codeLens'] != null
-        ? CodeLensClientCapabilities.fromJson(json['codeLens'])
+    final codeLensJson = json['codeLens'];
+    final codeLens = codeLensJson != null
+        ? CodeLensClientCapabilities.fromJson(
+            codeLensJson as Map<String, Object?>)
         : null;
-    final documentLink = json['documentLink'] != null
-        ? DocumentLinkClientCapabilities.fromJson(json['documentLink'])
+    final documentLinkJson = json['documentLink'];
+    final documentLink = documentLinkJson != null
+        ? DocumentLinkClientCapabilities.fromJson(
+            documentLinkJson as Map<String, Object?>)
         : null;
-    final colorProvider = json['colorProvider'] != null
-        ? DocumentColorClientCapabilities.fromJson(json['colorProvider'])
+    final colorProviderJson = json['colorProvider'];
+    final colorProvider = colorProviderJson != null
+        ? DocumentColorClientCapabilities.fromJson(
+            colorProviderJson as Map<String, Object?>)
         : null;
-    final formatting = json['formatting'] != null
-        ? DocumentFormattingClientCapabilities.fromJson(json['formatting'])
+    final formattingJson = json['formatting'];
+    final formatting = formattingJson != null
+        ? DocumentFormattingClientCapabilities.fromJson(
+            formattingJson as Map<String, Object?>)
         : null;
-    final rangeFormatting = json['rangeFormatting'] != null
+    final rangeFormattingJson = json['rangeFormatting'];
+    final rangeFormatting = rangeFormattingJson != null
         ? DocumentRangeFormattingClientCapabilities.fromJson(
-            json['rangeFormatting'])
+            rangeFormattingJson as Map<String, Object?>)
         : null;
-    final onTypeFormatting = json['onTypeFormatting'] != null
+    final onTypeFormattingJson = json['onTypeFormatting'];
+    final onTypeFormatting = onTypeFormattingJson != null
         ? DocumentOnTypeFormattingClientCapabilities.fromJson(
-            json['onTypeFormatting'])
+            onTypeFormattingJson as Map<String, Object?>)
         : null;
-    final rename = json['rename'] != null
-        ? RenameClientCapabilities.fromJson(json['rename'])
+    final renameJson = json['rename'];
+    final rename = renameJson != null
+        ? RenameClientCapabilities.fromJson(renameJson as Map<String, Object?>)
         : null;
-    final publishDiagnostics = json['publishDiagnostics'] != null
+    final publishDiagnosticsJson = json['publishDiagnostics'];
+    final publishDiagnostics = publishDiagnosticsJson != null
         ? PublishDiagnosticsClientCapabilities.fromJson(
-            json['publishDiagnostics'])
+            publishDiagnosticsJson as Map<String, Object?>)
         : null;
-    final foldingRange = json['foldingRange'] != null
-        ? FoldingRangeClientCapabilities.fromJson(json['foldingRange'])
+    final foldingRangeJson = json['foldingRange'];
+    final foldingRange = foldingRangeJson != null
+        ? FoldingRangeClientCapabilities.fromJson(
+            foldingRangeJson as Map<String, Object?>)
         : null;
-    final selectionRange = json['selectionRange'] != null
-        ? SelectionRangeClientCapabilities.fromJson(json['selectionRange'])
+    final selectionRangeJson = json['selectionRange'];
+    final selectionRange = selectionRangeJson != null
+        ? SelectionRangeClientCapabilities.fromJson(
+            selectionRangeJson as Map<String, Object?>)
         : null;
-    final linkedEditingRange = json['linkedEditingRange'] != null
+    final linkedEditingRangeJson = json['linkedEditingRange'];
+    final linkedEditingRange = linkedEditingRangeJson != null
         ? LinkedEditingRangeClientCapabilities.fromJson(
-            json['linkedEditingRange'])
+            linkedEditingRangeJson as Map<String, Object?>)
         : null;
-    final callHierarchy = json['callHierarchy'] != null
-        ? CallHierarchyClientCapabilities.fromJson(json['callHierarchy'])
+    final callHierarchyJson = json['callHierarchy'];
+    final callHierarchy = callHierarchyJson != null
+        ? CallHierarchyClientCapabilities.fromJson(
+            callHierarchyJson as Map<String, Object?>)
         : null;
-    final semanticTokens = json['semanticTokens'] != null
-        ? SemanticTokensClientCapabilities.fromJson(json['semanticTokens'])
+    final semanticTokensJson = json['semanticTokens'];
+    final semanticTokens = semanticTokensJson != null
+        ? SemanticTokensClientCapabilities.fromJson(
+            semanticTokensJson as Map<String, Object?>)
         : null;
-    final moniker = json['moniker'] != null
-        ? MonikerClientCapabilities.fromJson(json['moniker'])
+    final monikerJson = json['moniker'];
+    final moniker = monikerJson != null
+        ? MonikerClientCapabilities.fromJson(
+            monikerJson as Map<String, Object?>)
         : null;
     return TextDocumentClientCapabilities(
         synchronization: synchronization,
@@ -28655,8 +29830,8 @@ class TextDocumentClientCapabilities implements ToJsonable {
   ///  @since 3.6.0
   final TypeDefinitionClientCapabilities? typeDefinition;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (synchronization != null) {
       __result['synchronization'] = synchronization?.toJson();
     }
@@ -28739,12 +29914,13 @@ class TextDocumentClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('synchronization');
       try {
-        if (obj['synchronization'] != null &&
+        final synchronization = obj['synchronization'];
+        if (synchronization != null &&
             !(TextDocumentSyncClientCapabilities.canParse(
-                obj['synchronization'], reporter))) {
+                synchronization, reporter))) {
           reporter.reportError(
               'must be of type TextDocumentSyncClientCapabilities');
           return false;
@@ -28754,9 +29930,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('completion');
       try {
-        if (obj['completion'] != null &&
-            !(CompletionClientCapabilities.canParse(
-                obj['completion'], reporter))) {
+        final completion = obj['completion'];
+        if (completion != null &&
+            !(CompletionClientCapabilities.canParse(completion, reporter))) {
           reporter.reportError('must be of type CompletionClientCapabilities');
           return false;
         }
@@ -28765,8 +29941,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('hover');
       try {
-        if (obj['hover'] != null &&
-            !(HoverClientCapabilities.canParse(obj['hover'], reporter))) {
+        final hover = obj['hover'];
+        if (hover != null &&
+            !(HoverClientCapabilities.canParse(hover, reporter))) {
           reporter.reportError('must be of type HoverClientCapabilities');
           return false;
         }
@@ -28775,9 +29952,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('signatureHelp');
       try {
-        if (obj['signatureHelp'] != null &&
+        final signatureHelp = obj['signatureHelp'];
+        if (signatureHelp != null &&
             !(SignatureHelpClientCapabilities.canParse(
-                obj['signatureHelp'], reporter))) {
+                signatureHelp, reporter))) {
           reporter
               .reportError('must be of type SignatureHelpClientCapabilities');
           return false;
@@ -28787,9 +29965,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('declaration');
       try {
-        if (obj['declaration'] != null &&
-            !(DeclarationClientCapabilities.canParse(
-                obj['declaration'], reporter))) {
+        final declaration = obj['declaration'];
+        if (declaration != null &&
+            !(DeclarationClientCapabilities.canParse(declaration, reporter))) {
           reporter.reportError('must be of type DeclarationClientCapabilities');
           return false;
         }
@@ -28798,9 +29976,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('definition');
       try {
-        if (obj['definition'] != null &&
-            !(DefinitionClientCapabilities.canParse(
-                obj['definition'], reporter))) {
+        final definition = obj['definition'];
+        if (definition != null &&
+            !(DefinitionClientCapabilities.canParse(definition, reporter))) {
           reporter.reportError('must be of type DefinitionClientCapabilities');
           return false;
         }
@@ -28809,9 +29987,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('typeDefinition');
       try {
-        if (obj['typeDefinition'] != null &&
+        final typeDefinition = obj['typeDefinition'];
+        if (typeDefinition != null &&
             !(TypeDefinitionClientCapabilities.canParse(
-                obj['typeDefinition'], reporter))) {
+                typeDefinition, reporter))) {
           reporter
               .reportError('must be of type TypeDefinitionClientCapabilities');
           return false;
@@ -28821,9 +30000,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('implementation');
       try {
-        if (obj['implementation'] != null &&
+        final implementation = obj['implementation'];
+        if (implementation != null &&
             !(ImplementationClientCapabilities.canParse(
-                obj['implementation'], reporter))) {
+                implementation, reporter))) {
           reporter
               .reportError('must be of type ImplementationClientCapabilities');
           return false;
@@ -28833,9 +30013,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('references');
       try {
-        if (obj['references'] != null &&
-            !(ReferenceClientCapabilities.canParse(
-                obj['references'], reporter))) {
+        final references = obj['references'];
+        if (references != null &&
+            !(ReferenceClientCapabilities.canParse(references, reporter))) {
           reporter.reportError('must be of type ReferenceClientCapabilities');
           return false;
         }
@@ -28844,9 +30024,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('documentHighlight');
       try {
-        if (obj['documentHighlight'] != null &&
+        final documentHighlight = obj['documentHighlight'];
+        if (documentHighlight != null &&
             !(DocumentHighlightClientCapabilities.canParse(
-                obj['documentHighlight'], reporter))) {
+                documentHighlight, reporter))) {
           reporter.reportError(
               'must be of type DocumentHighlightClientCapabilities');
           return false;
@@ -28856,9 +30037,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('documentSymbol');
       try {
-        if (obj['documentSymbol'] != null &&
+        final documentSymbol = obj['documentSymbol'];
+        if (documentSymbol != null &&
             !(DocumentSymbolClientCapabilities.canParse(
-                obj['documentSymbol'], reporter))) {
+                documentSymbol, reporter))) {
           reporter
               .reportError('must be of type DocumentSymbolClientCapabilities');
           return false;
@@ -28868,9 +30050,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('codeAction');
       try {
-        if (obj['codeAction'] != null &&
-            !(CodeActionClientCapabilities.canParse(
-                obj['codeAction'], reporter))) {
+        final codeAction = obj['codeAction'];
+        if (codeAction != null &&
+            !(CodeActionClientCapabilities.canParse(codeAction, reporter))) {
           reporter.reportError('must be of type CodeActionClientCapabilities');
           return false;
         }
@@ -28879,8 +30061,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('codeLens');
       try {
-        if (obj['codeLens'] != null &&
-            !(CodeLensClientCapabilities.canParse(obj['codeLens'], reporter))) {
+        final codeLens = obj['codeLens'];
+        if (codeLens != null &&
+            !(CodeLensClientCapabilities.canParse(codeLens, reporter))) {
           reporter.reportError('must be of type CodeLensClientCapabilities');
           return false;
         }
@@ -28889,9 +30072,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('documentLink');
       try {
-        if (obj['documentLink'] != null &&
+        final documentLink = obj['documentLink'];
+        if (documentLink != null &&
             !(DocumentLinkClientCapabilities.canParse(
-                obj['documentLink'], reporter))) {
+                documentLink, reporter))) {
           reporter
               .reportError('must be of type DocumentLinkClientCapabilities');
           return false;
@@ -28901,9 +30085,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('colorProvider');
       try {
-        if (obj['colorProvider'] != null &&
+        final colorProvider = obj['colorProvider'];
+        if (colorProvider != null &&
             !(DocumentColorClientCapabilities.canParse(
-                obj['colorProvider'], reporter))) {
+                colorProvider, reporter))) {
           reporter
               .reportError('must be of type DocumentColorClientCapabilities');
           return false;
@@ -28913,9 +30098,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('formatting');
       try {
-        if (obj['formatting'] != null &&
+        final formatting = obj['formatting'];
+        if (formatting != null &&
             !(DocumentFormattingClientCapabilities.canParse(
-                obj['formatting'], reporter))) {
+                formatting, reporter))) {
           reporter.reportError(
               'must be of type DocumentFormattingClientCapabilities');
           return false;
@@ -28925,9 +30111,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('rangeFormatting');
       try {
-        if (obj['rangeFormatting'] != null &&
+        final rangeFormatting = obj['rangeFormatting'];
+        if (rangeFormatting != null &&
             !(DocumentRangeFormattingClientCapabilities.canParse(
-                obj['rangeFormatting'], reporter))) {
+                rangeFormatting, reporter))) {
           reporter.reportError(
               'must be of type DocumentRangeFormattingClientCapabilities');
           return false;
@@ -28937,9 +30124,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('onTypeFormatting');
       try {
-        if (obj['onTypeFormatting'] != null &&
+        final onTypeFormatting = obj['onTypeFormatting'];
+        if (onTypeFormatting != null &&
             !(DocumentOnTypeFormattingClientCapabilities.canParse(
-                obj['onTypeFormatting'], reporter))) {
+                onTypeFormatting, reporter))) {
           reporter.reportError(
               'must be of type DocumentOnTypeFormattingClientCapabilities');
           return false;
@@ -28949,8 +30137,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('rename');
       try {
-        if (obj['rename'] != null &&
-            !(RenameClientCapabilities.canParse(obj['rename'], reporter))) {
+        final rename = obj['rename'];
+        if (rename != null &&
+            !(RenameClientCapabilities.canParse(rename, reporter))) {
           reporter.reportError('must be of type RenameClientCapabilities');
           return false;
         }
@@ -28959,9 +30148,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('publishDiagnostics');
       try {
-        if (obj['publishDiagnostics'] != null &&
+        final publishDiagnostics = obj['publishDiagnostics'];
+        if (publishDiagnostics != null &&
             !(PublishDiagnosticsClientCapabilities.canParse(
-                obj['publishDiagnostics'], reporter))) {
+                publishDiagnostics, reporter))) {
           reporter.reportError(
               'must be of type PublishDiagnosticsClientCapabilities');
           return false;
@@ -28971,9 +30161,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('foldingRange');
       try {
-        if (obj['foldingRange'] != null &&
+        final foldingRange = obj['foldingRange'];
+        if (foldingRange != null &&
             !(FoldingRangeClientCapabilities.canParse(
-                obj['foldingRange'], reporter))) {
+                foldingRange, reporter))) {
           reporter
               .reportError('must be of type FoldingRangeClientCapabilities');
           return false;
@@ -28983,9 +30174,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('selectionRange');
       try {
-        if (obj['selectionRange'] != null &&
+        final selectionRange = obj['selectionRange'];
+        if (selectionRange != null &&
             !(SelectionRangeClientCapabilities.canParse(
-                obj['selectionRange'], reporter))) {
+                selectionRange, reporter))) {
           reporter
               .reportError('must be of type SelectionRangeClientCapabilities');
           return false;
@@ -28995,9 +30187,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('linkedEditingRange');
       try {
-        if (obj['linkedEditingRange'] != null &&
+        final linkedEditingRange = obj['linkedEditingRange'];
+        if (linkedEditingRange != null &&
             !(LinkedEditingRangeClientCapabilities.canParse(
-                obj['linkedEditingRange'], reporter))) {
+                linkedEditingRange, reporter))) {
           reporter.reportError(
               'must be of type LinkedEditingRangeClientCapabilities');
           return false;
@@ -29007,9 +30200,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('callHierarchy');
       try {
-        if (obj['callHierarchy'] != null &&
+        final callHierarchy = obj['callHierarchy'];
+        if (callHierarchy != null &&
             !(CallHierarchyClientCapabilities.canParse(
-                obj['callHierarchy'], reporter))) {
+                callHierarchy, reporter))) {
           reporter
               .reportError('must be of type CallHierarchyClientCapabilities');
           return false;
@@ -29019,9 +30213,10 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('semanticTokens');
       try {
-        if (obj['semanticTokens'] != null &&
+        final semanticTokens = obj['semanticTokens'];
+        if (semanticTokens != null &&
             !(SemanticTokensClientCapabilities.canParse(
-                obj['semanticTokens'], reporter))) {
+                semanticTokens, reporter))) {
           reporter
               .reportError('must be of type SemanticTokensClientCapabilities');
           return false;
@@ -29031,8 +30226,9 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       reporter.push('moniker');
       try {
-        if (obj['moniker'] != null &&
-            !(MonikerClientCapabilities.canParse(obj['moniker'], reporter))) {
+        final moniker = obj['moniker'];
+        if (moniker != null &&
+            !(MonikerClientCapabilities.canParse(moniker, reporter))) {
           reporter.reportError('must be of type MonikerClientCapabilities');
           return false;
         }
@@ -29124,10 +30320,13 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
 
   TextDocumentContentChangeEvent1(
       {required this.range, this.rangeLength, required this.text});
-  static TextDocumentContentChangeEvent1 fromJson(Map<String, dynamic> json) {
-    final range = Range.fromJson(json['range']);
-    final rangeLength = json['rangeLength'];
-    final text = json['text'];
+  static TextDocumentContentChangeEvent1 fromJson(Map<String, Object?> json) {
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final rangeLengthJson = json['rangeLength'];
+    final rangeLength = rangeLengthJson as int?;
+    final textJson = json['text'];
+    final text = textJson as String;
     return TextDocumentContentChangeEvent1(
         range: range, rangeLength: rangeLength, text: text);
   }
@@ -29142,8 +30341,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   /// The new text for the provided range.
   final String text;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     if (rangeLength != null) {
       __result['rangeLength'] = rangeLength;
@@ -29153,18 +30352,19 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -29173,7 +30373,8 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
       }
       reporter.push('rangeLength');
       try {
-        if (obj['rangeLength'] != null && !(obj['rangeLength'] is int)) {
+        final rangeLength = obj['rangeLength'];
+        if (rangeLength != null && !(rangeLength is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -29186,11 +30387,12 @@ class TextDocumentContentChangeEvent1 implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['text'] == null) {
+        final text = obj['text'];
+        if (text == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['text'] is String)) {
+        if (!(text is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29235,33 +30437,35 @@ class TextDocumentContentChangeEvent2 implements ToJsonable {
       TextDocumentContentChangeEvent2.fromJson);
 
   TextDocumentContentChangeEvent2({required this.text});
-  static TextDocumentContentChangeEvent2 fromJson(Map<String, dynamic> json) {
-    final text = json['text'];
+  static TextDocumentContentChangeEvent2 fromJson(Map<String, Object?> json) {
+    final textJson = json['text'];
+    final text = textJson as String;
     return TextDocumentContentChangeEvent2(text: text);
   }
 
   /// The new text of the whole document.
   final String text;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['text'] = text;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('text');
       try {
         if (!obj.containsKey('text')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['text'] == null) {
+        final text = obj['text'];
+        if (text == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['text'] is String)) {
+        if (!(text is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29300,22 +30504,23 @@ class TextDocumentEdit implements ToJsonable {
       LspJsonHandler(TextDocumentEdit.canParse, TextDocumentEdit.fromJson);
 
   TextDocumentEdit({required this.textDocument, required this.edits});
-  static TextDocumentEdit fromJson(Map<String, dynamic> json) {
-    final textDocument =
-        OptionalVersionedTextDocumentIdentifier.fromJson(json['textDocument']);
-    final edits = json['edits']
-        ?.map((item) => SnippetTextEdit.canParse(item, nullLspJsonReporter)
+  static TextDocumentEdit fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = OptionalVersionedTextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final editsJson = json['edits'];
+    final edits = (editsJson as List<Object?>)
+        .map((item) => SnippetTextEdit.canParse(item, nullLspJsonReporter)
             ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t1(
-                SnippetTextEdit.fromJson(item))
+                SnippetTextEdit.fromJson(item as Map<String, Object?>))
             : (AnnotatedTextEdit.canParse(item, nullLspJsonReporter)
                 ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t2(
-                    AnnotatedTextEdit.fromJson(item))
+                    AnnotatedTextEdit.fromJson(item as Map<String, Object?>))
                 : (TextEdit.canParse(item, nullLspJsonReporter)
                     ? Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>.t3(
-                        TextEdit.fromJson(item))
+                        TextEdit.fromJson(item as Map<String, Object?>))
                     : (throw '''$item was not one of (SnippetTextEdit, AnnotatedTextEdit, TextEdit)'''))))
-        ?.cast<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>()
-        ?.toList();
+        .toList();
     return TextDocumentEdit(textDocument: textDocument, edits: edits);
   }
 
@@ -29327,27 +30532,28 @@ class TextDocumentEdit implements ToJsonable {
   /// The text document to change.
   final OptionalVersionedTextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['edits'] = edits;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
         if (!(OptionalVersionedTextDocumentIdentifier.canParse(
-            obj['textDocument'], reporter))) {
+            textDocument, reporter))) {
           reporter.reportError(
               'must be of type OptionalVersionedTextDocumentIdentifier');
           return false;
@@ -29361,15 +30567,15 @@ class TextDocumentEdit implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['edits'] == null) {
+        final edits = obj['edits'];
+        if (edits == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['edits'] is List &&
-            (obj['edits'].every((item) =>
-                (SnippetTextEdit.canParse(item, reporter) ||
-                    AnnotatedTextEdit.canParse(item, reporter) ||
-                    TextEdit.canParse(item, reporter))))))) {
+        if (!((edits is List &&
+            (edits.every((item) => (SnippetTextEdit.canParse(item, reporter) ||
+                AnnotatedTextEdit.canParse(item, reporter) ||
+                TextEdit.canParse(item, reporter))))))) {
           reporter.reportError(
               'must be of type List<Either3<SnippetTextEdit, AnnotatedTextEdit, TextEdit>>');
           return false;
@@ -29417,7 +30623,7 @@ class TextDocumentIdentifier implements ToJsonable {
       TextDocumentIdentifier.canParse, TextDocumentIdentifier.fromJson);
 
   TextDocumentIdentifier({required this.uri});
-  static TextDocumentIdentifier fromJson(Map<String, dynamic> json) {
+  static TextDocumentIdentifier fromJson(Map<String, Object?> json) {
     if (VersionedTextDocumentIdentifier.canParse(json, nullLspJsonReporter)) {
       return VersionedTextDocumentIdentifier.fromJson(json);
     }
@@ -29425,32 +30631,34 @@ class TextDocumentIdentifier implements ToJsonable {
         json, nullLspJsonReporter)) {
       return OptionalVersionedTextDocumentIdentifier.fromJson(json);
     }
-    final uri = json['uri'];
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return TextDocumentIdentifier(uri: uri);
   }
 
   /// The text document's URI.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29493,11 +30701,15 @@ class TextDocumentItem implements ToJsonable {
       required this.languageId,
       required this.version,
       required this.text});
-  static TextDocumentItem fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final languageId = json['languageId'];
-    final version = json['version'];
-    final text = json['text'];
+  static TextDocumentItem fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final languageIdJson = json['languageId'];
+    final languageId = languageIdJson as String;
+    final versionJson = json['version'];
+    final version = versionJson as int;
+    final textJson = json['text'];
+    final text = textJson as String;
     return TextDocumentItem(
         uri: uri, languageId: languageId, version: version, text: text);
   }
@@ -29515,8 +30727,8 @@ class TextDocumentItem implements ToJsonable {
   /// including undo/redo).
   final int version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['languageId'] = languageId;
     __result['version'] = version;
@@ -29525,18 +30737,19 @@ class TextDocumentItem implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29549,11 +30762,12 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['languageId'] == null) {
+        final languageId = obj['languageId'];
+        if (languageId == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['languageId'] is String)) {
+        if (!(languageId is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29566,11 +30780,12 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['version'] == null) {
+        final version = obj['version'];
+        if (version == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is int)) {
+        if (!(version is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -29583,11 +30798,12 @@ class TextDocumentItem implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['text'] == null) {
+        final text = obj['text'];
+        if (text == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['text'] is String)) {
+        if (!(text is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -29633,7 +30849,7 @@ class TextDocumentPositionParams implements ToJsonable {
 
   TextDocumentPositionParams(
       {required this.textDocument, required this.position});
-  static TextDocumentPositionParams fromJson(Map<String, dynamic> json) {
+  static TextDocumentPositionParams fromJson(Map<String, Object?> json) {
     if (CompletionParams.canParse(json, nullLspJsonReporter)) {
       return CompletionParams.fromJson(json);
     }
@@ -29679,8 +30895,11 @@ class TextDocumentPositionParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
     return TextDocumentPositionParams(
         textDocument: textDocument, position: position);
   }
@@ -29691,26 +30910,27 @@ class TextDocumentPositionParams implements ToJsonable {
   /// The text document.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -29723,11 +30943,12 @@ class TextDocumentPositionParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -29771,7 +30992,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       TextDocumentRegistrationOptions.fromJson);
 
   TextDocumentRegistrationOptions({this.documentSelector});
-  static TextDocumentRegistrationOptions fromJson(Map<String, dynamic> json) {
+  static TextDocumentRegistrationOptions fromJson(Map<String, Object?> json) {
     if (TextDocumentChangeRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return TextDocumentChangeRegistrationOptions.fromJson(json);
@@ -29857,10 +31078,10 @@ class TextDocumentRegistrationOptions implements ToJsonable {
     if (MonikerRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return MonikerRegistrationOptions.fromJson(json);
     }
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
     return TextDocumentRegistrationOptions(documentSelector: documentSelector);
   }
 
@@ -29868,23 +31089,24 @@ class TextDocumentRegistrationOptions implements ToJsonable {
   /// null the document selector provided on the client side will be used.
   final List<DocumentFilter>? documentSelector;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -29963,12 +31185,13 @@ class TextDocumentSaveRegistrationOptions
   TextDocumentSaveRegistrationOptions(
       {this.includeText, this.documentSelector});
   static TextDocumentSaveRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final includeText = json['includeText'];
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final includeTextJson = json['includeText'];
+    final includeText = includeTextJson as bool?;
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
     return TextDocumentSaveRegistrationOptions(
         includeText: includeText, documentSelector: documentSelector);
   }
@@ -29980,8 +31203,8 @@ class TextDocumentSaveRegistrationOptions
   /// The client is supposed to include the content on save.
   final bool? includeText;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (includeText != null) {
       __result['includeText'] = includeText;
     }
@@ -29990,10 +31213,11 @@ class TextDocumentSaveRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('includeText');
       try {
-        if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
+        final includeText = obj['includeText'];
+        if (includeText != null && !(includeText is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30006,9 +31230,10 @@ class TextDocumentSaveRegistrationOptions
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -30059,11 +31284,15 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       this.willSaveWaitUntil,
       this.didSave});
   static TextDocumentSyncClientCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final willSave = json['willSave'];
-    final willSaveWaitUntil = json['willSaveWaitUntil'];
-    final didSave = json['didSave'];
+      Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final willSaveJson = json['willSave'];
+    final willSave = willSaveJson as bool?;
+    final willSaveWaitUntilJson = json['willSaveWaitUntil'];
+    final willSaveWaitUntil = willSaveWaitUntilJson as bool?;
+    final didSaveJson = json['didSave'];
+    final didSave = didSaveJson as bool?;
     return TextDocumentSyncClientCapabilities(
         dynamicRegistration: dynamicRegistration,
         willSave: willSave,
@@ -30085,8 +31314,8 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   /// saved.
   final bool? willSaveWaitUntil;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -30103,11 +31332,11 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30116,7 +31345,8 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       }
       reporter.push('willSave');
       try {
-        if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
+        final willSave = obj['willSave'];
+        if (willSave != null && !(willSave is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30125,8 +31355,8 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       }
       reporter.push('willSaveWaitUntil');
       try {
-        if (obj['willSaveWaitUntil'] != null &&
-            !(obj['willSaveWaitUntil'] is bool)) {
+        final willSaveWaitUntil = obj['willSaveWaitUntil'];
+        if (willSaveWaitUntil != null && !(willSaveWaitUntil is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30135,7 +31365,8 @@ class TextDocumentSyncClientCapabilities implements ToJsonable {
       }
       reporter.push('didSave');
       try {
-        if (obj['didSave'] != null && !(obj['didSave'] is bool)) {
+        final didSave = obj['didSave'];
+        if (didSave != null && !(didSave is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30220,21 +31451,26 @@ class TextDocumentSyncOptions implements ToJsonable {
       this.willSave,
       this.willSaveWaitUntil,
       this.save});
-  static TextDocumentSyncOptions fromJson(Map<String, dynamic> json) {
-    final openClose = json['openClose'];
-    final change = json['change'] != null
-        ? TextDocumentSyncKind.fromJson(json['change'])
+  static TextDocumentSyncOptions fromJson(Map<String, Object?> json) {
+    final openCloseJson = json['openClose'];
+    final openClose = openCloseJson as bool?;
+    final changeJson = json['change'];
+    final change = changeJson != null
+        ? TextDocumentSyncKind.fromJson(changeJson as int)
         : null;
-    final willSave = json['willSave'];
-    final willSaveWaitUntil = json['willSaveWaitUntil'];
-    final save = json['save'] == null
+    final willSaveJson = json['willSave'];
+    final willSave = willSaveJson as bool?;
+    final willSaveWaitUntilJson = json['willSaveWaitUntil'];
+    final willSaveWaitUntil = willSaveWaitUntilJson as bool?;
+    final saveJson = json['save'];
+    final save = saveJson == null
         ? null
-        : (json['save'] is bool
-            ? Either2<bool, SaveOptions>.t1(json['save'])
-            : (SaveOptions.canParse(json['save'], nullLspJsonReporter)
+        : (saveJson is bool
+            ? Either2<bool, SaveOptions>.t1(saveJson)
+            : (SaveOptions.canParse(saveJson, nullLspJsonReporter)
                 ? Either2<bool, SaveOptions>.t2(
-                    SaveOptions.fromJson(json['save']))
-                : (throw '''${json['save']} was not one of (bool, SaveOptions)''')));
+                    SaveOptions.fromJson(saveJson as Map<String, Object?>))
+                : (throw '''$saveJson was not one of (bool, SaveOptions)''')));
     return TextDocumentSyncOptions(
         openClose: openClose,
         change: change,
@@ -30265,8 +31501,8 @@ class TextDocumentSyncOptions implements ToJsonable {
   /// omitted the request should not be sent.
   final bool? willSaveWaitUntil;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (openClose != null) {
       __result['openClose'] = openClose;
     }
@@ -30286,10 +31522,11 @@ class TextDocumentSyncOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('openClose');
       try {
-        if (obj['openClose'] != null && !(obj['openClose'] is bool)) {
+        final openClose = obj['openClose'];
+        if (openClose != null && !(openClose is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30298,8 +31535,9 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       reporter.push('change');
       try {
-        if (obj['change'] != null &&
-            !(TextDocumentSyncKind.canParse(obj['change'], reporter))) {
+        final change = obj['change'];
+        if (change != null &&
+            !(TextDocumentSyncKind.canParse(change, reporter))) {
           reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
@@ -30308,7 +31546,8 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       reporter.push('willSave');
       try {
-        if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
+        final willSave = obj['willSave'];
+        if (willSave != null && !(willSave is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30317,8 +31556,8 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       reporter.push('willSaveWaitUntil');
       try {
-        if (obj['willSaveWaitUntil'] != null &&
-            !(obj['willSaveWaitUntil'] is bool)) {
+        final willSaveWaitUntil = obj['willSaveWaitUntil'];
+        if (willSaveWaitUntil != null && !(willSaveWaitUntil is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30327,9 +31566,9 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       reporter.push('save');
       try {
-        if (obj['save'] != null &&
-            !((obj['save'] is bool ||
-                SaveOptions.canParse(obj['save'], reporter)))) {
+        final save = obj['save'];
+        if (save != null &&
+            !((save is bool || SaveOptions.canParse(save, reporter)))) {
           reporter.reportError('must be of type Either2<bool, SaveOptions>');
           return false;
         }
@@ -30377,15 +31616,17 @@ class TextEdit implements ToJsonable {
       LspJsonHandler(TextEdit.canParse, TextEdit.fromJson);
 
   TextEdit({required this.range, required this.newText});
-  static TextEdit fromJson(Map<String, dynamic> json) {
+  static TextEdit fromJson(Map<String, Object?> json) {
     if (AnnotatedTextEdit.canParse(json, nullLspJsonReporter)) {
       return AnnotatedTextEdit.fromJson(json);
     }
     if (SnippetTextEdit.canParse(json, nullLspJsonReporter)) {
       return SnippetTextEdit.fromJson(json);
     }
-    final range = Range.fromJson(json['range']);
-    final newText = json['newText'];
+    final rangeJson = json['range'];
+    final range = Range.fromJson(rangeJson as Map<String, Object?>);
+    final newTextJson = json['newText'];
+    final newText = newTextJson as String;
     return TextEdit(range: range, newText: newText);
   }
 
@@ -30396,26 +31637,27 @@ class TextEdit implements ToJsonable {
   /// document create a range where start === end.
   final Range range;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['range'] = range.toJson();
     __result['newText'] = newText;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['range'] == null) {
+        final range = obj['range'];
+        if (range == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Range.canParse(obj['range'], reporter))) {
+        if (!(Range.canParse(range, reporter))) {
           reporter.reportError('must be of type Range');
           return false;
         }
@@ -30428,11 +31670,12 @@ class TextEdit implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['newText'] == null) {
+        final newText = obj['newText'];
+        if (newText == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['newText'] is String)) {
+        if (!(newText is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30496,9 +31739,11 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
 
   TypeDefinitionClientCapabilities(
       {this.dynamicRegistration, this.linkSupport});
-  static TypeDefinitionClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final linkSupport = json['linkSupport'];
+  static TypeDefinitionClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final linkSupportJson = json['linkSupport'];
+    final linkSupport = linkSupportJson as bool?;
     return TypeDefinitionClientCapabilities(
         dynamicRegistration: dynamicRegistration, linkSupport: linkSupport);
   }
@@ -30512,8 +31757,8 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   ///  @since 3.14.0
   final bool? linkSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -30524,11 +31769,11 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30537,7 +31782,8 @@ class TypeDefinitionClientCapabilities implements ToJsonable {
       }
       reporter.push('linkSupport');
       try {
-        if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
+        final linkSupport = obj['linkSupport'];
+        if (linkSupport != null && !(linkSupport is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30579,18 +31825,19 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
       TypeDefinitionOptions.canParse, TypeDefinitionOptions.fromJson);
 
   TypeDefinitionOptions({this.workDoneProgress});
-  static TypeDefinitionOptions fromJson(Map<String, dynamic> json) {
+  static TypeDefinitionOptions fromJson(Map<String, Object?> json) {
     if (TypeDefinitionRegistrationOptions.canParse(json, nullLspJsonReporter)) {
       return TypeDefinitionRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return TypeDefinitionOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -30598,11 +31845,11 @@ class TypeDefinitionOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30650,23 +31897,28 @@ class TypeDefinitionParams
       required this.position,
       this.workDoneToken,
       this.partialResultToken});
-  static TypeDefinitionParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final position = Position.fromJson(json['position']);
-    final workDoneToken = json['workDoneToken'] == null
+  static TypeDefinitionParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final positionJson = json['position'];
+    final position = Position.fromJson(positionJson as Map<String, Object?>);
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return TypeDefinitionParams(
         textDocument: textDocument,
         position: position,
@@ -30687,8 +31939,8 @@ class TypeDefinitionParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['position'] = position.toJson();
     if (workDoneToken != null) {
@@ -30701,18 +31953,19 @@ class TypeDefinitionParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -30725,11 +31978,12 @@ class TypeDefinitionParams
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['position'] == null) {
+        final position = obj['position'];
+        if (position == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(Position.canParse(obj['position'], reporter))) {
+        if (!(Position.canParse(position, reporter))) {
           reporter.reportError('must be of type Position');
           return false;
         }
@@ -30738,9 +31992,9 @@ class TypeDefinitionParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -30749,9 +32003,9 @@ class TypeDefinitionParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -30804,13 +32058,15 @@ class TypeDefinitionRegistrationOptions
 
   TypeDefinitionRegistrationOptions(
       {this.documentSelector, this.workDoneProgress, this.id});
-  static TypeDefinitionRegistrationOptions fromJson(Map<String, dynamic> json) {
-    final documentSelector = json['documentSelector']
-        ?.map((item) => item != null ? DocumentFilter.fromJson(item) : null)
-        ?.cast<DocumentFilter>()
-        ?.toList();
-    final workDoneProgress = json['workDoneProgress'];
-    final id = json['id'];
+  static TypeDefinitionRegistrationOptions fromJson(Map<String, Object?> json) {
+    final documentSelectorJson = json['documentSelector'];
+    final documentSelector = (documentSelectorJson as List<Object?>?)
+        ?.map((item) => DocumentFilter.fromJson(item as Map<String, Object?>))
+        .toList();
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
+    final idJson = json['id'];
+    final id = idJson as String?;
     return TypeDefinitionRegistrationOptions(
         documentSelector: documentSelector,
         workDoneProgress: workDoneProgress,
@@ -30826,8 +32082,8 @@ class TypeDefinitionRegistrationOptions
   final String? id;
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['documentSelector'] = documentSelector;
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
@@ -30839,16 +32095,17 @@ class TypeDefinitionRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['documentSelector'] != null &&
-            !((obj['documentSelector'] is List &&
-                (obj['documentSelector'].every(
+        final documentSelector = obj['documentSelector'];
+        if (documentSelector != null &&
+            !((documentSelector is List &&
+                (documentSelector.every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<DocumentFilter>');
           return false;
@@ -30858,8 +32115,8 @@ class TypeDefinitionRegistrationOptions
       }
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -30868,7 +32125,8 @@ class TypeDefinitionRegistrationOptions
       }
       reporter.push('id');
       try {
-        if (obj['id'] != null && !(obj['id'] is String)) {
+        final id = obj['id'];
+        if (id != null && !(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30951,9 +32209,11 @@ class Unregistration implements ToJsonable {
       LspJsonHandler(Unregistration.canParse, Unregistration.fromJson);
 
   Unregistration({required this.id, required this.method});
-  static Unregistration fromJson(Map<String, dynamic> json) {
-    final id = json['id'];
-    final method = json['method'];
+  static Unregistration fromJson(Map<String, Object?> json) {
+    final idJson = json['id'];
+    final id = idJson as String;
+    final methodJson = json['method'];
+    final method = methodJson as String;
     return Unregistration(id: id, method: method);
   }
 
@@ -30964,26 +32224,27 @@ class Unregistration implements ToJsonable {
   /// The method / capability to unregister for.
   final String method;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['id'] = id;
     __result['method'] = method;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['id'] == null) {
+        final id = obj['id'];
+        if (id == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['id'] is String)) {
+        if (!(id is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -30996,11 +32257,12 @@ class Unregistration implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['method'] == null) {
+        final method = obj['method'];
+        if (method == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['method'] is String)) {
+        if (!(method is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31039,11 +32301,11 @@ class UnregistrationParams implements ToJsonable {
       UnregistrationParams.canParse, UnregistrationParams.fromJson);
 
   UnregistrationParams({required this.unregisterations});
-  static UnregistrationParams fromJson(Map<String, dynamic> json) {
-    final unregisterations = json['unregisterations']
-        ?.map((item) => Unregistration.fromJson(item))
-        ?.cast<Unregistration>()
-        ?.toList();
+  static UnregistrationParams fromJson(Map<String, Object?> json) {
+    final unregisterationsJson = json['unregisterations'];
+    final unregisterations = (unregisterationsJson as List<Object?>)
+        .map((item) => Unregistration.fromJson(item as Map<String, Object?>))
+        .toList();
     return UnregistrationParams(unregisterations: unregisterations);
   }
 
@@ -31052,27 +32314,28 @@ class UnregistrationParams implements ToJsonable {
   /// of the specification.
   final List<Unregistration> unregisterations;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['unregisterations'] =
         unregisterations.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('unregisterations');
       try {
         if (!obj.containsKey('unregisterations')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['unregisterations'] == null) {
+        final unregisterations = obj['unregisterations'];
+        if (unregisterations == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['unregisterations'] is List &&
-            (obj['unregisterations']
+        if (!((unregisterations is List &&
+            (unregisterations
                 .every((item) => Unregistration.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<Unregistration>');
           return false;
@@ -31116,9 +32379,11 @@ class VersionedTextDocumentIdentifier
       VersionedTextDocumentIdentifier.fromJson);
 
   VersionedTextDocumentIdentifier({required this.version, required this.uri});
-  static VersionedTextDocumentIdentifier fromJson(Map<String, dynamic> json) {
-    final version = json['version'];
-    final uri = json['uri'];
+  static VersionedTextDocumentIdentifier fromJson(Map<String, Object?> json) {
+    final versionJson = json['version'];
+    final version = versionJson as int;
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
     return VersionedTextDocumentIdentifier(version: version, uri: uri);
   }
 
@@ -31131,26 +32396,27 @@ class VersionedTextDocumentIdentifier
   /// including undo/redo. The number doesn't need to be consecutive.
   final int version;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['version'] = version;
     __result['uri'] = uri;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['version'] == null) {
+        final version = obj['version'];
+        if (version == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['version'] is int)) {
+        if (!(version is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -31163,11 +32429,12 @@ class VersionedTextDocumentIdentifier
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31239,9 +32506,12 @@ class WillSaveTextDocumentParams implements ToJsonable {
 
   WillSaveTextDocumentParams(
       {required this.textDocument, required this.reason});
-  static WillSaveTextDocumentParams fromJson(Map<String, dynamic> json) {
-    final textDocument = TextDocumentIdentifier.fromJson(json['textDocument']);
-    final reason = TextDocumentSaveReason.fromJson(json['reason']);
+  static WillSaveTextDocumentParams fromJson(Map<String, Object?> json) {
+    final textDocumentJson = json['textDocument'];
+    final textDocument = TextDocumentIdentifier.fromJson(
+        textDocumentJson as Map<String, Object?>);
+    final reasonJson = json['reason'];
+    final reason = TextDocumentSaveReason.fromJson(reasonJson as int);
     return WillSaveTextDocumentParams(
         textDocument: textDocument, reason: reason);
   }
@@ -31252,26 +32522,27 @@ class WillSaveTextDocumentParams implements ToJsonable {
   /// The document that will be saved.
   final TextDocumentIdentifier textDocument;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['textDocument'] = textDocument.toJson();
     __result['reason'] = reason.toJson();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['textDocument'] == null) {
+        final textDocument = obj['textDocument'];
+        if (textDocument == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
+        if (!(TextDocumentIdentifier.canParse(textDocument, reporter))) {
           reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
@@ -31284,11 +32555,12 @@ class WillSaveTextDocumentParams implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['reason'] == null) {
+        final reason = obj['reason'];
+        if (reason == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(TextDocumentSaveReason.canParse(obj['reason'], reporter))) {
+        if (!(TextDocumentSaveReason.canParse(reason, reporter))) {
           reporter.reportError('must be of type TextDocumentSaveReason');
           return false;
         }
@@ -31339,12 +32611,17 @@ class WorkDoneProgressBegin implements ToJsonable {
       throw 'kind may only be the literal \'begin\'';
     }
   }
-  static WorkDoneProgressBegin fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final title = json['title'];
-    final cancellable = json['cancellable'];
-    final message = json['message'];
-    final percentage = json['percentage'];
+  static WorkDoneProgressBegin fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final titleJson = json['title'];
+    final title = titleJson as String;
+    final cancellableJson = json['cancellable'];
+    final cancellable = cancellableJson as bool?;
+    final messageJson = json['message'];
+    final message = messageJson as String?;
+    final percentageJson = json['percentage'];
+    final percentage = percentageJson as int?;
     return WorkDoneProgressBegin(
         kind: kind,
         title: title,
@@ -31380,8 +32657,8 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// Examples: "Indexing" or "Linking dependencies".
   final String title;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     __result['title'] = title;
     if (cancellable != null) {
@@ -31397,18 +32674,19 @@ class WorkDoneProgressBegin implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'begin')) {
+        if (!(kind == 'begin')) {
           reporter.reportError('must be the literal \'begin\'');
           return false;
         }
@@ -31421,11 +32699,12 @@ class WorkDoneProgressBegin implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['title'] == null) {
+        final title = obj['title'];
+        if (title == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['title'] is String)) {
+        if (!(title is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31434,7 +32713,8 @@ class WorkDoneProgressBegin implements ToJsonable {
       }
       reporter.push('cancellable');
       try {
-        if (obj['cancellable'] != null && !(obj['cancellable'] is bool)) {
+        final cancellable = obj['cancellable'];
+        if (cancellable != null && !(cancellable is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31443,7 +32723,8 @@ class WorkDoneProgressBegin implements ToJsonable {
       }
       reporter.push('message');
       try {
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        final message = obj['message'];
+        if (message != null && !(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31452,7 +32733,8 @@ class WorkDoneProgressBegin implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+        final percentage = obj['percentage'];
+        if (percentage != null && !(percentage is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -31501,37 +32783,39 @@ class WorkDoneProgressCancelParams implements ToJsonable {
       WorkDoneProgressCancelParams.fromJson);
 
   WorkDoneProgressCancelParams({required this.token});
-  static WorkDoneProgressCancelParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is int
-        ? Either2<int, String>.t1(json['token'])
-        : (json['token'] is String
-            ? Either2<int, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (int, String)'''));
+  static WorkDoneProgressCancelParams fromJson(Map<String, Object?> json) {
+    final tokenJson = json['token'];
+    final token = tokenJson is int
+        ? Either2<int, String>.t1(tokenJson)
+        : (tokenJson is String
+            ? Either2<int, String>.t2(tokenJson)
+            : (throw '''$tokenJson was not one of (int, String)'''));
     return WorkDoneProgressCancelParams(token: token);
   }
 
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['token'] = token;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('token');
       try {
         if (!obj.containsKey('token')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['token'] == null) {
+        final token = obj['token'];
+        if (token == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is int || obj['token'] is String))) {
+        if (!((token is int || token is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -31571,37 +32855,39 @@ class WorkDoneProgressCreateParams implements ToJsonable {
       WorkDoneProgressCreateParams.fromJson);
 
   WorkDoneProgressCreateParams({required this.token});
-  static WorkDoneProgressCreateParams fromJson(Map<String, dynamic> json) {
-    final token = json['token'] is int
-        ? Either2<int, String>.t1(json['token'])
-        : (json['token'] is String
-            ? Either2<int, String>.t2(json['token'])
-            : (throw '''${json['token']} was not one of (int, String)'''));
+  static WorkDoneProgressCreateParams fromJson(Map<String, Object?> json) {
+    final tokenJson = json['token'];
+    final token = tokenJson is int
+        ? Either2<int, String>.t1(tokenJson)
+        : (tokenJson is String
+            ? Either2<int, String>.t2(tokenJson)
+            : (throw '''$tokenJson was not one of (int, String)'''));
     return WorkDoneProgressCreateParams(token: token);
   }
 
   /// The token to be used to report progress.
   final Either2<int, String> token;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['token'] = token;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('token');
       try {
         if (!obj.containsKey('token')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['token'] == null) {
+        final token = obj['token'];
+        if (token == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['token'] is int || obj['token'] is String))) {
+        if (!((token is int || token is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -31644,9 +32930,11 @@ class WorkDoneProgressEnd implements ToJsonable {
       throw 'kind may only be the literal \'end\'';
     }
   }
-  static WorkDoneProgressEnd fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final message = json['message'];
+  static WorkDoneProgressEnd fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final messageJson = json['message'];
+    final message = messageJson as String?;
     return WorkDoneProgressEnd(kind: kind, message: message);
   }
 
@@ -31656,8 +32944,8 @@ class WorkDoneProgressEnd implements ToJsonable {
   /// of the operation.
   final String? message;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     if (message != null) {
       __result['message'] = message;
@@ -31666,18 +32954,19 @@ class WorkDoneProgressEnd implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'end')) {
+        if (!(kind == 'end')) {
           reporter.reportError('must be the literal \'end\'');
           return false;
         }
@@ -31686,7 +32975,8 @@ class WorkDoneProgressEnd implements ToJsonable {
       }
       reporter.push('message');
       try {
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        final message = obj['message'];
+        if (message != null && !(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -31726,7 +33016,7 @@ class WorkDoneProgressOptions implements ToJsonable {
       WorkDoneProgressOptions.canParse, WorkDoneProgressOptions.fromJson);
 
   WorkDoneProgressOptions({this.workDoneProgress});
-  static WorkDoneProgressOptions fromJson(Map<String, dynamic> json) {
+  static WorkDoneProgressOptions fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolOptions.canParse(json, nullLspJsonReporter)) {
       return WorkspaceSymbolOptions.fromJson(json);
     }
@@ -31802,14 +33092,15 @@ class WorkDoneProgressOptions implements ToJsonable {
     if (MonikerOptions.canParse(json, nullLspJsonReporter)) {
       return MonikerOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return WorkDoneProgressOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -31817,11 +33108,11 @@ class WorkDoneProgressOptions implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -31860,7 +33151,7 @@ class WorkDoneProgressParams implements ToJsonable {
       WorkDoneProgressParams.canParse, WorkDoneProgressParams.fromJson);
 
   WorkDoneProgressParams({this.workDoneToken});
-  static WorkDoneProgressParams fromJson(Map<String, dynamic> json) {
+  static WorkDoneProgressParams fromJson(Map<String, Object?> json) {
     if (InitializeParams.canParse(json, nullLspJsonReporter)) {
       return InitializeParams.fromJson(json);
     }
@@ -31954,21 +33245,22 @@ class WorkDoneProgressParams implements ToJsonable {
     if (MonikerParams.canParse(json, nullLspJsonReporter)) {
       return MonikerParams.fromJson(json);
     }
-    final workDoneToken = json['workDoneToken'] == null
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
     return WorkDoneProgressParams(workDoneToken: workDoneToken);
   }
 
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
     }
@@ -31976,12 +33268,12 @@ class WorkDoneProgressParams implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -32025,11 +33317,15 @@ class WorkDoneProgressReport implements ToJsonable {
       throw 'kind may only be the literal \'report\'';
     }
   }
-  static WorkDoneProgressReport fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'];
-    final cancellable = json['cancellable'];
-    final message = json['message'];
-    final percentage = json['percentage'];
+  static WorkDoneProgressReport fromJson(Map<String, Object?> json) {
+    final kindJson = json['kind'];
+    final kind = kindJson as String;
+    final cancellableJson = json['cancellable'];
+    final cancellable = cancellableJson as bool?;
+    final messageJson = json['message'];
+    final message = messageJson as String?;
+    final percentageJson = json['percentage'];
+    final percentage = percentageJson as int?;
     return WorkDoneProgressReport(
         kind: kind,
         cancellable: cancellable,
@@ -32061,8 +33357,8 @@ class WorkDoneProgressReport implements ToJsonable {
   /// that are not following this rule. The value range is [0, 100]
   final int? percentage;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['kind'] = kind;
     if (cancellable != null) {
       __result['cancellable'] = cancellable;
@@ -32077,18 +33373,19 @@ class WorkDoneProgressReport implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['kind'] == null) {
+        final kind = obj['kind'];
+        if (kind == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] == 'report')) {
+        if (!(kind == 'report')) {
           reporter.reportError('must be the literal \'report\'');
           return false;
         }
@@ -32097,7 +33394,8 @@ class WorkDoneProgressReport implements ToJsonable {
       }
       reporter.push('cancellable');
       try {
-        if (obj['cancellable'] != null && !(obj['cancellable'] is bool)) {
+        final cancellable = obj['cancellable'];
+        if (cancellable != null && !(cancellable is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32106,7 +33404,8 @@ class WorkDoneProgressReport implements ToJsonable {
       }
       reporter.push('message');
       try {
-        if (obj['message'] != null && !(obj['message'] is String)) {
+        final message = obj['message'];
+        if (message != null && !(message is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -32115,7 +33414,8 @@ class WorkDoneProgressReport implements ToJsonable {
       }
       reporter.push('percentage');
       try {
-        if (obj['percentage'] != null && !(obj['percentage'] is int)) {
+        final percentage = obj['percentage'];
+        if (percentage != null && !(percentage is int)) {
           reporter.reportError('must be of type int');
           return false;
         }
@@ -32161,38 +33461,38 @@ class WorkspaceEdit implements ToJsonable {
       LspJsonHandler(WorkspaceEdit.canParse, WorkspaceEdit.fromJson);
 
   WorkspaceEdit({this.changes, this.documentChanges, this.changeAnnotations});
-  static WorkspaceEdit fromJson(Map<String, dynamic> json) {
-    final changes = json['changes']
-        ?.map((key, value) => MapEntry(
-            key,
-            value
-                ?.map((item) => item != null ? TextEdit.fromJson(item) : null)
-                ?.cast<TextEdit>()
-                ?.toList()))
-        ?.cast<String, List<TextEdit>>();
-    final documentChanges = json['documentChanges'] == null
+  static WorkspaceEdit fromJson(Map<String, Object?> json) {
+    final changesJson = json['changes'];
+    final changes = (changesJson as Map<Object, Object?>?)?.map((key, value) =>
+        MapEntry(
+            key as String,
+            (value as List<Object?>)
+                .map((item) => TextEdit.fromJson(item as Map<String, Object?>))
+                .toList()));
+    final documentChangesJson = json['documentChanges'];
+    final documentChanges = documentChangesJson == null
         ? null
-        : ((json['documentChanges'] is List && (json['documentChanges'].every((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter))))
-            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(json['documentChanges']
-                ?.map((item) => TextDocumentEdit.fromJson(item))
-                ?.cast<TextDocumentEdit>()
-                ?.toList())
-            : ((json['documentChanges'] is List &&
-                    (json['documentChanges'].every((item) => (TextDocumentEdit.canParse(item, nullLspJsonReporter) ||
-                        CreateFile.canParse(item, nullLspJsonReporter) ||
-                        RenameFile.canParse(item, nullLspJsonReporter) ||
-                        DeleteFile.canParse(item, nullLspJsonReporter)))))
-                ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(json['documentChanges']
-                    ?.map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter)
-                        ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(TextDocumentEdit.fromJson(item))
-                        : (CreateFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(CreateFile.fromJson(item)) : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(RenameFile.fromJson(item)) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(DeleteFile.fromJson(item)) : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)''')))))
-                    ?.cast<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>()
-                    ?.toList())
-                : (throw '''${json['documentChanges']} was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
-    final changeAnnotations = json['changeAnnotations']
-        ?.map((key, value) => MapEntry(
-            key, value != null ? ChangeAnnotation.fromJson(value) : null))
-        ?.cast<String, ChangeAnnotation>();
+        : ((documentChangesJson is List &&
+                (documentChangesJson.every((item) =>
+                    TextDocumentEdit.canParse(item, nullLspJsonReporter))))
+            ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t1(
+                (documentChangesJson)
+                    .map((item) =>
+                        TextDocumentEdit.fromJson(item as Map<String, Object?>))
+                    .toList())
+            : ((documentChangesJson is List &&
+                    (documentChangesJson.every((item) =>
+                        (TextDocumentEdit.canParse(item, nullLspJsonReporter) ||
+                            CreateFile.canParse(item, nullLspJsonReporter) ||
+                            RenameFile.canParse(item, nullLspJsonReporter) ||
+                            DeleteFile.canParse(item, nullLspJsonReporter)))))
+                ? Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>.t2(
+                    (documentChangesJson).map((item) => TextDocumentEdit.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t1(TextDocumentEdit.fromJson(item as Map<String, Object?>)) : (CreateFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t2(CreateFile.fromJson(item as Map<String, Object?>)) : (RenameFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t3(RenameFile.fromJson(item as Map<String, Object?>)) : (DeleteFile.canParse(item, nullLspJsonReporter) ? Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>.t4(DeleteFile.fromJson(item as Map<String, Object?>)) : (throw '''$item was not one of (TextDocumentEdit, CreateFile, RenameFile, DeleteFile)'''))))).toList())
+                : (throw '''$documentChangesJson was not one of (List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>)''')));
+    final changeAnnotationsJson = json['changeAnnotations'];
+    final changeAnnotations = (changeAnnotationsJson as Map<Object, Object?>?)
+        ?.map((key, value) => MapEntry(key as String,
+            ChangeAnnotation.fromJson(value as Map<String, Object?>)));
     return WorkspaceEdit(
         changes: changes,
         documentChanges: documentChanges,
@@ -32227,8 +33527,8 @@ class WorkspaceEdit implements ToJsonable {
           List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>?
       documentChanges;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (changes != null) {
       __result['changes'] = changes;
     }
@@ -32242,14 +33542,15 @@ class WorkspaceEdit implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('changes');
       try {
-        if (obj['changes'] != null &&
-            !((obj['changes'] is Map &&
-                (obj['changes'].keys.every((item) =>
+        final changes = obj['changes'];
+        if (changes != null &&
+            !((changes is Map &&
+                (changes.keys.every((item) =>
                     item is String &&
-                    obj['changes'].values.every((item) => (item is List &&
+                    changes.values.every((item) => (item is List &&
                         (item.every((item) =>
                             TextEdit.canParse(item, reporter)))))))))) {
           reporter.reportError('must be of type Map<String, List<TextEdit>>');
@@ -32260,12 +33561,13 @@ class WorkspaceEdit implements ToJsonable {
       }
       reporter.push('documentChanges');
       try {
-        if (obj['documentChanges'] != null &&
-            !(((obj['documentChanges'] is List &&
-                    (obj['documentChanges'].every((item) =>
+        final documentChanges = obj['documentChanges'];
+        if (documentChanges != null &&
+            !(((documentChanges is List &&
+                    (documentChanges.every((item) =>
                         TextDocumentEdit.canParse(item, reporter)))) ||
-                (obj['documentChanges'] is List &&
-                    (obj['documentChanges'].every((item) =>
+                (documentChanges is List &&
+                    (documentChanges.every((item) =>
                         (TextDocumentEdit.canParse(item, reporter) ||
                             CreateFile.canParse(item, reporter) ||
                             RenameFile.canParse(item, reporter) ||
@@ -32279,11 +33581,12 @@ class WorkspaceEdit implements ToJsonable {
       }
       reporter.push('changeAnnotations');
       try {
-        if (obj['changeAnnotations'] != null &&
-            !((obj['changeAnnotations'] is Map &&
-                (obj['changeAnnotations'].keys.every((item) =>
+        final changeAnnotations = obj['changeAnnotations'];
+        if (changeAnnotations != null &&
+            !((changeAnnotations is Map &&
+                (changeAnnotations.keys.every((item) =>
                     item is String &&
-                    obj['changeAnnotations'].values.every((item) =>
+                    changeAnnotations.values.every((item) =>
                         ChangeAnnotation.canParse(item, reporter))))))) {
           reporter.reportError('must be of type Map<String, ChangeAnnotation>');
           return false;
@@ -32338,20 +33641,23 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       this.failureHandling,
       this.normalizesLineEndings,
       this.changeAnnotationSupport});
-  static WorkspaceEditClientCapabilities fromJson(Map<String, dynamic> json) {
-    final documentChanges = json['documentChanges'];
-    final resourceOperations = json['resourceOperations']
-        ?.map((item) =>
-            item != null ? ResourceOperationKind.fromJson(item) : null)
-        ?.cast<ResourceOperationKind>()
-        ?.toList();
-    final failureHandling = json['failureHandling'] != null
-        ? FailureHandlingKind.fromJson(json['failureHandling'])
+  static WorkspaceEditClientCapabilities fromJson(Map<String, Object?> json) {
+    final documentChangesJson = json['documentChanges'];
+    final documentChanges = documentChangesJson as bool?;
+    final resourceOperationsJson = json['resourceOperations'];
+    final resourceOperations = (resourceOperationsJson as List<Object?>?)
+        ?.map((item) => ResourceOperationKind.fromJson(item as String))
+        .toList();
+    final failureHandlingJson = json['failureHandling'];
+    final failureHandling = failureHandlingJson != null
+        ? FailureHandlingKind.fromJson(failureHandlingJson as String)
         : null;
-    final normalizesLineEndings = json['normalizesLineEndings'];
-    final changeAnnotationSupport = json['changeAnnotationSupport'] != null
+    final normalizesLineEndingsJson = json['normalizesLineEndings'];
+    final normalizesLineEndings = normalizesLineEndingsJson as bool?;
+    final changeAnnotationSupportJson = json['changeAnnotationSupport'];
+    final changeAnnotationSupport = changeAnnotationSupportJson != null
         ? WorkspaceEditClientCapabilitiesChangeAnnotationSupport.fromJson(
-            json['changeAnnotationSupport'])
+            changeAnnotationSupportJson as Map<String, Object?>)
         : null;
     return WorkspaceEditClientCapabilities(
         documentChanges: documentChanges,
@@ -32386,8 +33692,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   ///  @since 3.13.0
   final List<ResourceOperationKind>? resourceOperations;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (documentChanges != null) {
       __result['documentChanges'] = documentChanges;
     }
@@ -32408,11 +33714,11 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('documentChanges');
       try {
-        if (obj['documentChanges'] != null &&
-            !(obj['documentChanges'] is bool)) {
+        final documentChanges = obj['documentChanges'];
+        if (documentChanges != null && !(documentChanges is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32421,9 +33727,10 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       }
       reporter.push('resourceOperations');
       try {
-        if (obj['resourceOperations'] != null &&
-            !((obj['resourceOperations'] is List &&
-                (obj['resourceOperations'].every((item) =>
+        final resourceOperations = obj['resourceOperations'];
+        if (resourceOperations != null &&
+            !((resourceOperations is List &&
+                (resourceOperations.every((item) =>
                     ResourceOperationKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<ResourceOperationKind>');
           return false;
@@ -32433,8 +33740,9 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       }
       reporter.push('failureHandling');
       try {
-        if (obj['failureHandling'] != null &&
-            !(FailureHandlingKind.canParse(obj['failureHandling'], reporter))) {
+        final failureHandling = obj['failureHandling'];
+        if (failureHandling != null &&
+            !(FailureHandlingKind.canParse(failureHandling, reporter))) {
           reporter.reportError('must be of type FailureHandlingKind');
           return false;
         }
@@ -32443,8 +33751,8 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       }
       reporter.push('normalizesLineEndings');
       try {
-        if (obj['normalizesLineEndings'] != null &&
-            !(obj['normalizesLineEndings'] is bool)) {
+        final normalizesLineEndings = obj['normalizesLineEndings'];
+        if (normalizesLineEndings != null && !(normalizesLineEndings is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32453,9 +33761,10 @@ class WorkspaceEditClientCapabilities implements ToJsonable {
       }
       reporter.push('changeAnnotationSupport');
       try {
-        if (obj['changeAnnotationSupport'] != null &&
+        final changeAnnotationSupport = obj['changeAnnotationSupport'];
+        if (changeAnnotationSupport != null &&
             !(WorkspaceEditClientCapabilitiesChangeAnnotationSupport.canParse(
-                obj['changeAnnotationSupport'], reporter))) {
+                changeAnnotationSupport, reporter))) {
           reporter.reportError(
               'must be of type WorkspaceEditClientCapabilitiesChangeAnnotationSupport');
           return false;
@@ -32508,8 +33817,9 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
 
   WorkspaceEditClientCapabilitiesChangeAnnotationSupport({this.groupsOnLabel});
   static WorkspaceEditClientCapabilitiesChangeAnnotationSupport fromJson(
-      Map<String, dynamic> json) {
-    final groupsOnLabel = json['groupsOnLabel'];
+      Map<String, Object?> json) {
+    final groupsOnLabelJson = json['groupsOnLabel'];
+    final groupsOnLabel = groupsOnLabelJson as bool?;
     return WorkspaceEditClientCapabilitiesChangeAnnotationSupport(
         groupsOnLabel: groupsOnLabel);
   }
@@ -32519,8 +33829,8 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   /// node.
   final bool? groupsOnLabel;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (groupsOnLabel != null) {
       __result['groupsOnLabel'] = groupsOnLabel;
     }
@@ -32528,10 +33838,11 @@ class WorkspaceEditClientCapabilitiesChangeAnnotationSupport
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('groupsOnLabel');
       try {
-        if (obj['groupsOnLabel'] != null && !(obj['groupsOnLabel'] is bool)) {
+        final groupsOnLabel = obj['groupsOnLabel'];
+        if (groupsOnLabel != null && !(groupsOnLabel is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32572,9 +33883,11 @@ class WorkspaceFolder implements ToJsonable {
       LspJsonHandler(WorkspaceFolder.canParse, WorkspaceFolder.fromJson);
 
   WorkspaceFolder({required this.uri, required this.name});
-  static WorkspaceFolder fromJson(Map<String, dynamic> json) {
-    final uri = json['uri'];
-    final name = json['name'];
+  static WorkspaceFolder fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = uriJson as String;
+    final nameJson = json['name'];
+    final name = nameJson as String;
     return WorkspaceFolder(uri: uri, name: name);
   }
 
@@ -32585,26 +33898,27 @@ class WorkspaceFolder implements ToJsonable {
   /// The associated URI for this workspace folder.
   final String uri;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['uri'] = uri;
     __result['name'] = name;
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['uri'] == null) {
+        final uri = obj['uri'];
+        if (uri == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['uri'] is String)) {
+        if (!(uri is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -32617,11 +33931,12 @@ class WorkspaceFolder implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['name'] == null) {
+        final name = obj['name'];
+        if (name == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['name'] is String)) {
+        if (!(name is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -32662,15 +33977,15 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       WorkspaceFoldersChangeEvent.fromJson);
 
   WorkspaceFoldersChangeEvent({required this.added, required this.removed});
-  static WorkspaceFoldersChangeEvent fromJson(Map<String, dynamic> json) {
-    final added = json['added']
-        ?.map((item) => WorkspaceFolder.fromJson(item))
-        ?.cast<WorkspaceFolder>()
-        ?.toList();
-    final removed = json['removed']
-        ?.map((item) => WorkspaceFolder.fromJson(item))
-        ?.cast<WorkspaceFolder>()
-        ?.toList();
+  static WorkspaceFoldersChangeEvent fromJson(Map<String, Object?> json) {
+    final addedJson = json['added'];
+    final added = (addedJson as List<Object?>)
+        .map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
+        .toList();
+    final removedJson = json['removed'];
+    final removed = (removedJson as List<Object?>)
+        .map((item) => WorkspaceFolder.fromJson(item as Map<String, Object?>))
+        .toList();
     return WorkspaceFoldersChangeEvent(added: added, removed: removed);
   }
 
@@ -32680,27 +33995,28 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
   /// The array of the removed workspace folders
   final List<WorkspaceFolder> removed;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['added'] = added.map((item) => item.toJson()).toList();
     __result['removed'] = removed.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('added');
       try {
         if (!obj.containsKey('added')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['added'] == null) {
+        final added = obj['added'];
+        if (added == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['added'] is List &&
-            (obj['added']
+        if (!((added is List &&
+            (added
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
@@ -32714,12 +34030,13 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['removed'] == null) {
+        final removed = obj['removed'];
+        if (removed == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['removed'] is List &&
-            (obj['removed']
+        if (!((removed is List &&
+            (removed
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
@@ -32767,15 +34084,17 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   WorkspaceFoldersServerCapabilities(
       {this.supported, this.changeNotifications});
   static WorkspaceFoldersServerCapabilities fromJson(
-      Map<String, dynamic> json) {
-    final supported = json['supported'];
-    final changeNotifications = json['changeNotifications'] == null
+      Map<String, Object?> json) {
+    final supportedJson = json['supported'];
+    final supported = supportedJson as bool?;
+    final changeNotificationsJson = json['changeNotifications'];
+    final changeNotifications = changeNotificationsJson == null
         ? null
-        : (json['changeNotifications'] is String
-            ? Either2<String, bool>.t1(json['changeNotifications'])
-            : (json['changeNotifications'] is bool
-                ? Either2<String, bool>.t2(json['changeNotifications'])
-                : (throw '''${json['changeNotifications']} was not one of (String, bool)''')));
+        : (changeNotificationsJson is String
+            ? Either2<String, bool>.t1(changeNotificationsJson)
+            : (changeNotificationsJson is bool
+                ? Either2<String, bool>.t2(changeNotificationsJson)
+                : (throw '''$changeNotificationsJson was not one of (String, bool)''')));
     return WorkspaceFoldersServerCapabilities(
         supported: supported, changeNotifications: changeNotifications);
   }
@@ -32791,8 +34110,8 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   /// The server has support for workspace folders
   final bool? supported;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (supported != null) {
       __result['supported'] = supported;
     }
@@ -32803,10 +34122,11 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('supported');
       try {
-        if (obj['supported'] != null && !(obj['supported'] is bool)) {
+        final supported = obj['supported'];
+        if (supported != null && !(supported is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32815,9 +34135,9 @@ class WorkspaceFoldersServerCapabilities implements ToJsonable {
       }
       reporter.push('changeNotifications');
       try {
-        if (obj['changeNotifications'] != null &&
-            !((obj['changeNotifications'] is String ||
-                obj['changeNotifications'] is bool))) {
+        final changeNotifications = obj['changeNotifications'];
+        if (changeNotifications != null &&
+            !((changeNotifications is String || changeNotifications is bool))) {
           reporter.reportError('must be of type Either2<String, bool>');
           return false;
         }
@@ -32862,15 +34182,18 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
 
   WorkspaceSymbolClientCapabilities(
       {this.dynamicRegistration, this.symbolKind, this.tagSupport});
-  static WorkspaceSymbolClientCapabilities fromJson(Map<String, dynamic> json) {
-    final dynamicRegistration = json['dynamicRegistration'];
-    final symbolKind = json['symbolKind'] != null
+  static WorkspaceSymbolClientCapabilities fromJson(Map<String, Object?> json) {
+    final dynamicRegistrationJson = json['dynamicRegistration'];
+    final dynamicRegistration = dynamicRegistrationJson as bool?;
+    final symbolKindJson = json['symbolKind'];
+    final symbolKind = symbolKindJson != null
         ? WorkspaceSymbolClientCapabilitiesSymbolKind.fromJson(
-            json['symbolKind'])
+            symbolKindJson as Map<String, Object?>)
         : null;
-    final tagSupport = json['tagSupport'] != null
+    final tagSupportJson = json['tagSupport'];
+    final tagSupport = tagSupportJson != null
         ? WorkspaceSymbolClientCapabilitiesTagSupport.fromJson(
-            json['tagSupport'])
+            tagSupportJson as Map<String, Object?>)
         : null;
     return WorkspaceSymbolClientCapabilities(
         dynamicRegistration: dynamicRegistration,
@@ -32890,8 +34213,8 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   ///  @since 3.16.0
   final WorkspaceSymbolClientCapabilitiesTagSupport? tagSupport;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (dynamicRegistration != null) {
       __result['dynamicRegistration'] = dynamicRegistration;
     }
@@ -32905,11 +34228,11 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('dynamicRegistration');
       try {
-        if (obj['dynamicRegistration'] != null &&
-            !(obj['dynamicRegistration'] is bool)) {
+        final dynamicRegistration = obj['dynamicRegistration'];
+        if (dynamicRegistration != null && !(dynamicRegistration is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -32918,9 +34241,10 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('symbolKind');
       try {
-        if (obj['symbolKind'] != null &&
+        final symbolKind = obj['symbolKind'];
+        if (symbolKind != null &&
             !(WorkspaceSymbolClientCapabilitiesSymbolKind.canParse(
-                obj['symbolKind'], reporter))) {
+                symbolKind, reporter))) {
           reporter.reportError(
               'must be of type WorkspaceSymbolClientCapabilitiesSymbolKind');
           return false;
@@ -32930,9 +34254,10 @@ class WorkspaceSymbolClientCapabilities implements ToJsonable {
       }
       reporter.push('tagSupport');
       try {
-        if (obj['tagSupport'] != null &&
+        final tagSupport = obj['tagSupport'];
+        if (tagSupport != null &&
             !(WorkspaceSymbolClientCapabilitiesTagSupport.canParse(
-                obj['tagSupport'], reporter))) {
+                tagSupport, reporter))) {
           reporter.reportError(
               'must be of type WorkspaceSymbolClientCapabilitiesTagSupport');
           return false;
@@ -32979,11 +34304,11 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
 
   WorkspaceSymbolClientCapabilitiesSymbolKind({this.valueSet});
   static WorkspaceSymbolClientCapabilitiesSymbolKind fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => item != null ? SymbolKind.fromJson(item) : null)
-        ?.cast<SymbolKind>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>?)
+        ?.map((item) => SymbolKind.fromJson(item as int))
+        .toList();
     return WorkspaceSymbolClientCapabilitiesSymbolKind(valueSet: valueSet);
   }
 
@@ -32995,8 +34320,8 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   /// from `File` to `Array` as defined in the initial version of the protocol.
   final List<SymbolKind>? valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (valueSet != null) {
       __result['valueSet'] = valueSet?.map((item) => item.toJson()).toList();
     }
@@ -33004,12 +34329,13 @@ class WorkspaceSymbolClientCapabilitiesSymbolKind implements ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
-        if (obj['valueSet'] != null &&
-            !((obj['valueSet'] is List &&
-                (obj['valueSet']
+        final valueSet = obj['valueSet'];
+        if (valueSet != null &&
+            !((valueSet is List &&
+                (valueSet
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolKind>');
           return false;
@@ -33054,38 +34380,38 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
 
   WorkspaceSymbolClientCapabilitiesTagSupport({required this.valueSet});
   static WorkspaceSymbolClientCapabilitiesTagSupport fromJson(
-      Map<String, dynamic> json) {
-    final valueSet = json['valueSet']
-        ?.map((item) => SymbolTag.fromJson(item))
-        ?.cast<SymbolTag>()
-        ?.toList();
+      Map<String, Object?> json) {
+    final valueSetJson = json['valueSet'];
+    final valueSet = (valueSetJson as List<Object?>)
+        .map((item) => SymbolTag.fromJson(item as num))
+        .toList();
     return WorkspaceSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
   }
 
   /// The tags supported by the client.
   final List<SymbolTag> valueSet;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['valueSet'] = valueSet.map((item) => item.toJson()).toList();
     return __result;
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['valueSet'] == null) {
+        final valueSet = obj['valueSet'];
+        if (valueSet == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!((obj['valueSet'] is List &&
-            (obj['valueSet']
-                .every((item) => SymbolTag.canParse(item, reporter)))))) {
+        if (!((valueSet is List &&
+            (valueSet.every((item) => SymbolTag.canParse(item, reporter)))))) {
           reporter.reportError('must be of type List<SymbolTag>');
           return false;
         }
@@ -33127,19 +34453,20 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
       WorkspaceSymbolOptions.canParse, WorkspaceSymbolOptions.fromJson);
 
   WorkspaceSymbolOptions({this.workDoneProgress});
-  static WorkspaceSymbolOptions fromJson(Map<String, dynamic> json) {
+  static WorkspaceSymbolOptions fromJson(Map<String, Object?> json) {
     if (WorkspaceSymbolRegistrationOptions.canParse(
         json, nullLspJsonReporter)) {
       return WorkspaceSymbolRegistrationOptions.fromJson(json);
     }
-    final workDoneProgress = json['workDoneProgress'];
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return WorkspaceSymbolOptions(workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -33147,11 +34474,11 @@ class WorkspaceSymbolOptions implements WorkDoneProgressOptions, ToJsonable {
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }
@@ -33193,22 +34520,25 @@ class WorkspaceSymbolParams
 
   WorkspaceSymbolParams(
       {required this.query, this.workDoneToken, this.partialResultToken});
-  static WorkspaceSymbolParams fromJson(Map<String, dynamic> json) {
-    final query = json['query'];
-    final workDoneToken = json['workDoneToken'] == null
+  static WorkspaceSymbolParams fromJson(Map<String, Object?> json) {
+    final queryJson = json['query'];
+    final query = queryJson as String;
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken = workDoneTokenJson == null
         ? null
-        : (json['workDoneToken'] is int
-            ? Either2<int, String>.t1(json['workDoneToken'])
-            : (json['workDoneToken'] is String
-                ? Either2<int, String>.t2(json['workDoneToken'])
-                : (throw '''${json['workDoneToken']} was not one of (int, String)''')));
-    final partialResultToken = json['partialResultToken'] == null
+        : (workDoneTokenJson is int
+            ? Either2<int, String>.t1(workDoneTokenJson)
+            : (workDoneTokenJson is String
+                ? Either2<int, String>.t2(workDoneTokenJson)
+                : (throw '''$workDoneTokenJson was not one of (int, String)''')));
+    final partialResultTokenJson = json['partialResultToken'];
+    final partialResultToken = partialResultTokenJson == null
         ? null
-        : (json['partialResultToken'] is int
-            ? Either2<int, String>.t1(json['partialResultToken'])
-            : (json['partialResultToken'] is String
-                ? Either2<int, String>.t2(json['partialResultToken'])
-                : (throw '''${json['partialResultToken']} was not one of (int, String)''')));
+        : (partialResultTokenJson is int
+            ? Either2<int, String>.t1(partialResultTokenJson)
+            : (partialResultTokenJson is String
+                ? Either2<int, String>.t2(partialResultTokenJson)
+                : (throw '''$partialResultTokenJson was not one of (int, String)''')));
     return WorkspaceSymbolParams(
         query: query,
         workDoneToken: workDoneToken,
@@ -33226,8 +34556,8 @@ class WorkspaceSymbolParams
   /// An optional token that a server can use to report work done progress.
   final Either2<int, String>? workDoneToken;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     __result['query'] = query;
     if (workDoneToken != null) {
       __result['workDoneToken'] = workDoneToken;
@@ -33239,18 +34569,19 @@ class WorkspaceSymbolParams
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('query');
       try {
         if (!obj.containsKey('query')) {
           reporter.reportError('must not be undefined');
           return false;
         }
-        if (obj['query'] == null) {
+        final query = obj['query'];
+        if (query == null) {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['query'] is String)) {
+        if (!(query is String)) {
           reporter.reportError('must be of type String');
           return false;
         }
@@ -33259,9 +34590,9 @@ class WorkspaceSymbolParams
       }
       reporter.push('workDoneToken');
       try {
-        if (obj['workDoneToken'] != null &&
-            !((obj['workDoneToken'] is int ||
-                obj['workDoneToken'] is String))) {
+        final workDoneToken = obj['workDoneToken'];
+        if (workDoneToken != null &&
+            !((workDoneToken is int || workDoneToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -33270,9 +34601,9 @@ class WorkspaceSymbolParams
       }
       reporter.push('partialResultToken');
       try {
-        if (obj['partialResultToken'] != null &&
-            !((obj['partialResultToken'] is int ||
-                obj['partialResultToken'] is String))) {
+        final partialResultToken = obj['partialResultToken'];
+        if (partialResultToken != null &&
+            !((partialResultToken is int || partialResultToken is String))) {
           reporter.reportError('must be of type Either2<int, String>');
           return false;
         }
@@ -33319,16 +34650,17 @@ class WorkspaceSymbolRegistrationOptions
 
   WorkspaceSymbolRegistrationOptions({this.workDoneProgress});
   static WorkspaceSymbolRegistrationOptions fromJson(
-      Map<String, dynamic> json) {
-    final workDoneProgress = json['workDoneProgress'];
+      Map<String, Object?> json) {
+    final workDoneProgressJson = json['workDoneProgress'];
+    final workDoneProgress = workDoneProgressJson as bool?;
     return WorkspaceSymbolRegistrationOptions(
         workDoneProgress: workDoneProgress);
   }
 
   final bool? workDoneProgress;
 
-  Map<String, dynamic> toJson() {
-    var __result = <String, dynamic>{};
+  Map<String, Object?> toJson() {
+    var __result = <String, Object?>{};
     if (workDoneProgress != null) {
       __result['workDoneProgress'] = workDoneProgress;
     }
@@ -33336,11 +34668,11 @@ class WorkspaceSymbolRegistrationOptions
   }
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    if (obj is Map<String, dynamic>) {
+    if (obj is Map<String, Object?>) {
       reporter.push('workDoneProgress');
       try {
-        if (obj['workDoneProgress'] != null &&
-            !(obj['workDoneProgress'] is bool)) {
+        final workDoneProgress = obj['workDoneProgress'];
+        if (workDoneProgress != null && !(workDoneProgress is bool)) {
           reporter.reportError('must be of type bool');
           return false;
         }

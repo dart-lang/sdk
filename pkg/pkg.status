@@ -66,6 +66,7 @@ front_end/tool/incremental_perf_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
 vm/testcases/*: SkipByDesign # These are not tests but input for tests.
+vm_service/test/cpu_samples_stream_test: Slow, Pass # Requires CPU sample buffer to fill.
 wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
 [ $compiler == dart2analyzer ]

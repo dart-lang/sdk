@@ -224,7 +224,8 @@ void StubCodeCompiler::GenerateSharedStub(
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Code& closure_allocation_stub,
-    const Code& context_allocation_stub) {
+    const Code& context_allocation_stub,
+    bool generic) {
   const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
@@ -291,12 +292,15 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
       FieldAddress(AllocateClosureABI::kResultReg,
                    target::Closure::instantiator_type_arguments_offset()),
       AllocateClosureABI::kScratchReg);
-  __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-  __ StoreIntoObjectNoBarrier(
-      AllocateClosureABI::kResultReg,
-      FieldAddress(AllocateClosureABI::kResultReg,
-                   target::Closure::delayed_type_arguments_offset()),
-      AllocateClosureABI::kScratchReg);
+  // Keep delayed_type_arguments as null if non-generic (see Closure::New).
+  if (generic) {
+    __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
+    __ StoreIntoObjectNoBarrier(
+        AllocateClosureABI::kResultReg,
+        FieldAddress(AllocateClosureABI::kResultReg,
+                     target::Closure::delayed_type_arguments_offset()),
+        AllocateClosureABI::kScratchReg);
+  }
 
   __ LeaveStubFrame();
   // No-op if the two are the same.
@@ -689,13 +693,13 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ LoadImmediate(R1, 0);
-  __ Push(R9);  // Preserve cache (guarded CID as Smi).
+  __ Push(R1);  // Result slot.
   __ Push(R0);  // Preserve receiver.
-  __ Push(R1);
-  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
-  __ Pop(CODE_REG);
+  __ Push(R9);  // Old cache value (also 2nd return value).
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 2);
+  __ Pop(R9);  // Get target cache object.
   __ Pop(R0);  // Restore receiver.
-  __ Pop(R9);  // Restore cache (guarded CID as Smi).
+  __ Pop(CODE_REG);  // Get target Code object.
   // Remove the stub frame.
   __ LeaveStubFrame();
   // Jump to the dart function.
@@ -1226,7 +1230,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
-#if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -27);
 #else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -28);
@@ -3140,20 +3144,13 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
-  const auto target_address = FieldAddress(IP, base + target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
-    __ Branch(target_address);
-  } else {
-    __ ldr(R0, target_address);
+  __ ldr(R0, FieldAddress(IP, base + target::kWordSize));
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-    __ ldr(
-        ARGS_DESC_REG,
-        FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
-    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
   }
+  __ ldr(ARGS_DESC_REG,
+         FieldAddress(R9, target::CallSiteData::arguments_descriptor_offset()));
+  __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
 
   // Probe failed, check if it is a miss.
   __ Bind(&probe_failed);
@@ -3194,14 +3191,17 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ b(&loop);
 
   __ Bind(&found);
-  const intptr_t code_offset =
-      target::ICData::CodeIndexFor(1) * target::kWordSize;
-  const intptr_t entry_offset =
-      target::ICData::EntryPointIndexFor(1) * target::kWordSize;
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
-    __ ldr(CODE_REG, Address(R8, code_offset));
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    const intptr_t entry_offset =
+        target::ICData::EntryPointIndexFor(1) * target::kWordSize;
+    __ LoadCompressed(R0, Address(R8, entry_offset));
+    __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
+  } else {
+    const intptr_t code_offset =
+        target::ICData::CodeIndexFor(1) * target::kWordSize;
+    __ LoadCompressed(CODE_REG, Address(R8, code_offset));
+    __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
-  __ Branch(Address(R8, entry_offset));
 
   __ Bind(&miss);
   __ LoadIsolate(R2);

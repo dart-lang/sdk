@@ -14,7 +14,7 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
-#if defined(HOST_OS_IOS)
+#if defined(DART_HOST_OS_IOS)
 #include <libkern/OSCacheControl.h>
 #endif
 
@@ -57,7 +57,7 @@ DEFINE_FLAG(bool,
             "Use integer division instruction if supported");
 
 #if defined(TARGET_HOST_MISMATCH)
-#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS)
+#if defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_MACOS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
 DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
@@ -81,7 +81,7 @@ void CPU::FlushICache(uword start, uword size) {
 // On iOS we use sys_icache_invalidate from Darwin. See:
 //
 // https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
-#if defined(HOST_OS_IOS)
+#if defined(DART_HOST_OS_IOS)
   sys_icache_invalidate(reinterpret_cast<void*>(start), size);
 #elif defined(__linux__) && !defined(ANDROID)
   extern void __clear_cache(char*, char*);
@@ -115,7 +115,7 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 #if !defined(TARGET_HOST_MISMATCH)
-#if HOST_OS_IOS
+#if DART_HOST_OS_IOS
 void HostCPUFeatures::Init() {
   // TODO(24743): Actually check the CPU features and fail if we're missing
   // something assumed in a precompiled snapshot.
@@ -130,7 +130,7 @@ void HostCPUFeatures::Init() {
   initialized_ = true;
 #endif
 }
-#else  // HOST_OS_IOS
+#else  // DART_HOST_OS_IOS
 void HostCPUFeatures::Init() {
   bool is_arm64 = false;
   CpuInfo::Init();
@@ -171,7 +171,7 @@ void HostCPUFeatures::Init() {
       CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
   bool is_virtual_machine =
       CpuInfo::FieldContains(kCpuInfoHardware, "Dummy Virtual Machine");
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
   bool is_android = true;
 #else
   bool is_android = false;
@@ -213,7 +213,7 @@ void HostCPUFeatures::Init() {
   initialized_ = true;
 #endif
 }
-#endif  // HOST_OS_IOS
+#endif  // DART_HOST_OS_IOS
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

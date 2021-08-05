@@ -32,26 +32,34 @@ class AddMissingEnumLikeCaseClauses extends CorrectionProducer {
       var missingNames = _constantNames(classElement)
         ..removeWhere((e) => caseNames.contains(e));
       missingNames.sort();
-      var firstCase = node.members[0];
-      var caseIndent = utils.getLinePrefix(firstCase.offset);
-      var statementIndent = utils.getLinePrefix(firstCase.statements[0].offset);
-      // TODO(brianwilkerson) Consider inserting the names in order into the
-      //  switch statement.
+
+      var statementIndent = utils.getLinePrefix(node.offset);
+      var singleIndent = utils.getIndent(1);
+      var location = utils.newCaseClauseAtEndLocation(node);
+
       await builder.addDartFileEdit(file, (builder) {
-        builder.addInsertion(node.members.last.end, (builder) {
+        // TODO(brianwilkerson) Consider inserting the names in order into the
+        //  switch statement.
+        builder.addInsertion(location.offset, (builder) {
+          builder.write(location.prefix);
           for (var name in missingNames) {
-            builder.writeln();
-            builder.write(caseIndent);
+            builder.write(statementIndent);
+            builder.write(singleIndent);
             builder.write('case ');
             builder.write(className);
             builder.write('.');
             builder.write(name);
             builder.writeln(':');
             builder.write(statementIndent);
+            builder.write(singleIndent);
+            builder.write(singleIndent);
             builder.writeln('// TODO: Handle this case.');
             builder.write(statementIndent);
-            builder.write('break;');
+            builder.write(singleIndent);
+            builder.write(singleIndent);
+            builder.writeln('break;');
           }
+          builder.write(location.suffix);
         });
       });
     }

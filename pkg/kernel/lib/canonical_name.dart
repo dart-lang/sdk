@@ -137,34 +137,34 @@ class CanonicalName {
   }
 
   CanonicalName getChildFromField(Field field) {
-    return getChild('@getters').getChildFromQualifiedName(field.name);
+    return getChild(gettersName).getChildFromQualifiedName(field.name);
   }
 
   CanonicalName getChildFromFieldSetter(Field field) {
-    return getChild('@setters').getChildFromQualifiedName(field.name);
+    return getChild(settersName).getChildFromQualifiedName(field.name);
   }
 
   CanonicalName getChildFromConstructor(Constructor constructor) {
-    return getChild('@constructors')
+    return getChild(constructorsName)
         .getChildFromQualifiedName(constructor.name);
   }
 
-  CanonicalName getChildFromRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor redirectingFactoryConstructor) {
-    return getChild('@factories')
-        .getChildFromQualifiedName(redirectingFactoryConstructor.name);
+  CanonicalName getChildFromRedirectingFactory(
+      RedirectingFactory redirectingFactory) {
+    return getChild(factoriesName)
+        .getChildFromQualifiedName(redirectingFactory.name);
   }
 
   CanonicalName getChildFromFieldWithName(Name name) {
-    return getChild('@getters').getChildFromQualifiedName(name);
+    return getChild(gettersName).getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromFieldSetterWithName(Name name) {
-    return getChild('@setters').getChildFromQualifiedName(name);
+    return getChild(settersName).getChildFromQualifiedName(name);
   }
 
   CanonicalName getChildFromTypedef(Typedef typedef_) {
-    return getChild('@typedefs').getChild(typedef_.name);
+    return getChild(typedefsName).getChild(typedef_.name);
   }
 
   /// Take ownership of a child canonical name and its subtree.
@@ -279,14 +279,7 @@ class CanonicalName {
     Iterable<CanonicalName>? parentChildren = parent.childrenOrNull;
     if (parentChildren != null) {
       for (CanonicalName child in parentChildren) {
-        if (child.name != '@methods' &&
-            child.name != '@typedefs' &&
-            child.name != '@fields' &&
-            child.name != '@=fields' &&
-            child.name != '@getters' &&
-            child.name != '@setters' &&
-            child.name != '@factories' &&
-            child.name != '@constructors') {
+        if (!isSymbolicName(child.name)) {
           bool checkReferenceNode = true;
           if (child._reference == null) {
             // OK for "if private: URI of library" part of "Qualified name"...
@@ -333,11 +326,46 @@ class CanonicalName {
     return sb.toString();
   }
 
+  /// Symbolic name used for the [CanonicalName] node that holds all
+  /// constructors within a class.
+  static const String constructorsName = '@constructors';
+
+  /// Symbolic name used for the [CanonicalName] node that holds all factories
+  /// within a class.
+  static const String factoriesName = '@factories';
+
+  /// Symbolic name used for the [CanonicalName] node that holds all methods
+  /// within a library or a class.
+  static const String methodsName = '@methods';
+
+  /// Symbolic name used for the [CanonicalName] node that holds all getters and
+  /// readable fields within a library or class.
+  static const String gettersName = '@getters';
+
+  /// Symbolic name used for the [CanonicalName] node that holds all setters and
+  /// writable fields within a library or class.
+  static const String settersName = '@setters';
+
+  /// Symbolic name used for the [CanonicalName] node that holds all typedefs
+  /// within a library.
+  static const String typedefsName = '@typedefs';
+
+  static const Set<String> symbolicNames = {
+    constructorsName,
+    factoriesName,
+    methodsName,
+    gettersName,
+    settersName,
+    typedefsName,
+  };
+
+  static bool isSymbolicName(String name) => symbolicNames.contains(name);
+
   static String getProcedureQualifier(Procedure procedure) {
-    if (procedure.isGetter) return '@getters';
-    if (procedure.isSetter) return '@setters';
-    if (procedure.isFactory) return '@factories';
-    return '@methods';
+    if (procedure.isGetter) return gettersName;
+    if (procedure.isSetter) return settersName;
+    if (procedure.isFactory) return factoriesName;
+    return methodsName;
   }
 
   /// Returns `true` if [node] is orphaned through its [reference].

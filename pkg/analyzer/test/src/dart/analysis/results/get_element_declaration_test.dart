@@ -42,7 +42,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 1'),
+        this.result.content.indexOf('A {} // 1'),
       );
     }
 
@@ -53,7 +53,7 @@ class A {} // 2
       expect(node.name.name, 'A');
       expect(
         node.name.offset,
-        this.result.content!.indexOf('A {} // 2'),
+        this.result.content.indexOf('A {} // 2'),
       );
     }
   }
@@ -66,7 +66,7 @@ class A {}
     await resolveTestCode(r'''
 part 'a.dart';
 ''');
-    var library = this.result.unit!.declaredElement!.library;
+    var library = this.result.unit.declaredElement!.library;
     var element = library.getType('A')!;
     var result = await getElementDeclaration(element);
     var node = result!.node as ClassDeclaration;
@@ -139,7 +139,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 1'),
+        this.result.content.indexOf('named(); // 1'),
       );
     }
 
@@ -150,7 +150,7 @@ class A {
       expect(node.name!.name, 'named');
       expect(
         node.name!.offset,
-        this.result.content!.indexOf('named(); // 2'),
+        this.result.content.indexOf('named(); // 2'),
       );
     }
   }
@@ -169,7 +169,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 1'),
+        this.result.content.indexOf('A(); // 1'),
       );
     }
 
@@ -180,7 +180,7 @@ class A {
       expect(node.name, isNull);
       expect(
         node.returnType.offset,
-        this.result.content!.indexOf('A(); // 2'),
+        this.result.content.indexOf('A(); // 2'),
       );
     }
   }
@@ -439,7 +439,7 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
 
   ParsedLibraryResult _getParsedLibrary(String path) {
     var session = contextFor(path).currentSession;
-    return session.getParsedLibrary2(path) as ParsedLibraryResult;
+    return session.getParsedLibrary(path) as ParsedLibraryResult;
   }
 }
 
@@ -456,6 +456,6 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(String path) async {
     var session = contextFor(path).currentSession;
-    return await session.getResolvedLibrary2(path) as ResolvedLibraryResult;
+    return await session.getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 }

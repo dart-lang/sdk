@@ -435,6 +435,26 @@ class Namer extends ModularNamer {
         ..remove('P')
         ..remove('W');
 
+  static final RegExp _identifierStartRE = RegExp(r'[A-Za-z_$]');
+  static final RegExp _nonIdentifierRE = RegExp(r'[^A-Za-z0-9_$]');
+
+  /// Returns `true` iff [s] begins with an ASCII character that can begin a
+  /// JavaScript identifier.
+  ///
+  /// In particular, [s] must begin with an ASCII letter, an underscore, or a
+  /// dollar sign.
+  static bool startsWithIdentifierCharacter(String s) =>
+      s.startsWith(_identifierStartRE);
+
+  /// Returns a copy of [s] in which characters which cannot be part of an ASCII
+  /// JavaScript identifier have been replaced by underscores.
+  ///
+  /// Note that the result may not be unconditionally used as a JavaScript
+  /// identifier. For example, the result may still begin with a digit or it may
+  /// be a reserved keyword.
+  static String replaceNonIdentifierCharacters(String s) =>
+      s.replaceAll(_nonIdentifierRE, '_');
+
   Set<String> _jsReserved = null;
 
   /// Names that cannot be used by members, top level and static
@@ -557,9 +577,12 @@ class Namer extends ModularNamer {
   /// key into maps.
   final Map<LibraryEntity, String> _libraryKeys = {};
 
+  _TypeConstantRepresentationVisitor _typeConstantRepresenter;
+
   Namer(this._closedWorld, this.fixedNames) {
     _literalGetterPrefix = new StringBackedName(fixedNames.getterPrefix);
     _literalSetterPrefix = new StringBackedName(fixedNames.setterPrefix);
+    _typeConstantRepresenter = _TypeConstantRepresentationVisitor(this);
   }
 
   JElementEnvironment get _elementEnvironment =>
@@ -618,9 +641,7 @@ class Namer extends ModularNamer {
   ///
   /// The resulting name is a *proposed name* and is never minified.
   String privateName(Name originalName) {
-    String text = originalName.text;
-
-    text = text.replaceAll(_nonIdentifierRE, '_');
+    String text = replaceNonIdentifierCharacters(originalName.text);
 
     // Public names are easy.
     if (!originalName.isPrivate) return text;
@@ -670,7 +691,7 @@ class Namer extends ModularNamer {
       // TODO(sra): If the generator is for a closure's 'call' method, we don't
       // need to incorporate the enclosing class.
       String className =
-          method.enclosingClass.name.replaceAll(_nonIdentifierRE, '_');
+          replaceNonIdentifierCharacters(method.enclosingClass.name);
       return '${invocationName}\$body\$${className}';
     });
   }
@@ -844,9 +865,8 @@ class Namer extends ModularNamer {
     if (element is JSEntity) {
       return _disambiguateInternalMember(
           element,
-          () => (element as JSEntity)
-              .declaredName
-              .replaceAll(_nonIdentifierRE, '_'));
+          () => replaceNonIdentifierCharacters(
+              (element as JSEntity).declaredName));
     }
 
     // If the name of the field might clash with another field,
@@ -859,8 +879,8 @@ class Namer extends ModularNamer {
     if (_closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
-      String proposeName() => '${enclosingClass.name}_${element.name}'
-          .replaceAll(_nonIdentifierRE, '_');
+      String proposeName() => replaceNonIdentifierCharacters(
+          '${enclosingClass.name}_${element.name}');
       return _disambiguateInternalMember(element, proposeName);
     }
 
@@ -1204,10 +1224,8 @@ class Namer extends ModularNamer {
   /// Returns a proposed name for the given typedef or class [element].
   /// The returned id is guaranteed to be a valid JavaScript identifier.
   String _proposeNameForType(Entity element) {
-    return element.name.replaceAll(_nonIdentifierRE, '_');
+    return replaceNonIdentifierCharacters(element.name);
   }
-
-  static RegExp _nonIdentifierRE = new RegExp(r'[^A-Za-z0-9_$]');
 
   /// Returns a proposed name for the given top-level or static member
   /// [element]. The returned id is guaranteed to be a valid JavaScript
@@ -1219,10 +1237,10 @@ class Namer extends ModularNamer {
       return _proposeNameForMember(element.function) + r'$body';
     } else if (element.enclosingClass != null) {
       ClassEntity enclosingClass = element.enclosingClass;
-      return '${enclosingClass.name}_${element.name}'
-          .replaceAll(_nonIdentifierRE, '_');
+      return replaceNonIdentifierCharacters(
+          '${enclosingClass.name}_${element.name}');
     }
-    return element.name.replaceAll(_nonIdentifierRE, '_');
+    return replaceNonIdentifierCharacters(element.name);
   }
 
   String _proposeNameForLazyStaticGetter(MemberEntity element) {
@@ -1357,7 +1375,7 @@ class Namer extends ModularNamer {
     String enclosing =
         element.enclosingClass == null ? "" : element.enclosingClass.name;
     String library = _proposeNameForLibrary(element.library);
-    String name = element.name.replaceAll(_nonIdentifierRE, '_');
+    String name = replaceNonIdentifierCharacters(element.name);
     return _disambiguateInternalGlobal(
         "${library}_${enclosing}_${name}\$closure");
   }
@@ -1460,32 +1478,79 @@ class Namer extends ModularNamer {
     }
   }
 
-  String getTypeRepresentationForTypeConstant(DartType type) {
-    type = type.withoutNullability;
-    if (type is DynamicType) return "dynamic";
-    if (type is NeverType) return "Never";
-    if (type is FutureOrType) {
-      return "FutureOr<dynamic>";
-    }
-    if (type is FunctionType) {
-      // TODO(johnniwinther): Add naming scheme for function type literals.
-      // These currently only occur from kernel.
-      return '()->';
-    }
-    InterfaceType interface = type;
-    String name = uniqueNameForTypeConstantElement(
-        interface.element.library, interface.element);
+  String getTypeRepresentationForTypeConstant(DartType type) =>
+      _typeConstantRepresenter.visit(type, null);
+}
+
+class _TypeConstantRepresentationVisitor extends DartTypeVisitor<String, Null> {
+  final Namer _namer;
+
+  _TypeConstantRepresentationVisitor(this._namer);
+
+  String _represent(DartType type) => visit(type, null);
+
+  @override
+  String visitLegacyType(LegacyType type, _) => '${_represent(type.baseType)}*';
+
+  @override
+  String visitNullableType(NullableType type, _) =>
+      '${_represent(type.baseType)}?';
+
+  @override
+  String visitNeverType(NeverType type, _) => 'Never';
+
+  @override
+  String visitVoidType(VoidType type, _) => 'void';
+
+  @override
+  String visitTypeVariableType(TypeVariableType type, _) {
+    throw StateError('Unexpected TypeVariableType $type');
+  }
+
+  @override
+  String visitFunctionTypeVariable(FunctionTypeVariable type, _) {
+    throw StateError('Unexpected FunctionTypeVariable $type');
+  }
+
+  @override
+  String visitFunctionType(FunctionType type, _) {
+    // TODO(johnniwinther): Add naming scheme for function type literals.
+    // These currently only occur from kernel.
+    return '()->';
+  }
+
+  @override
+  String visitInterfaceType(InterfaceType type, _) {
+    String name = _namer.uniqueNameForTypeConstantElement(
+        type.element.library, type.element);
 
     // Type constants can currently only be raw types, so there is no point
     // adding ground-term type parameters, as they would just be 'dynamic'.
     // TODO(sra): Since the result string is used only in constructing constant
     // names, it would result in more readable names if the final string was a
     // legal JavaScript identifier.
-    if (interface.typeArguments.isEmpty) return name;
+    if (type.typeArguments.isEmpty) return name;
     String arguments =
-        new List.filled(interface.typeArguments.length, 'dynamic').join(', ');
+        new List.filled(type.typeArguments.length, 'dynamic').join(', ');
     return '$name<$arguments>';
   }
+
+  @override
+  String visitDynamicType(DynamicType type, _) => 'dynamic';
+
+  @override
+  String visitErasedType(ErasedType type, _) {
+    throw StateError('Unexpected ErasedType $type');
+  }
+
+  @override
+  String visitAnyType(AnyType type, _) {
+    throw StateError('Unexpected AnyType $type');
+  }
+
+  @override
+  String visitFutureOrType(FutureOrType type, _) =>
+      'FutureOr<${_represent(type.typeArgument)}>';
 }
 
 /// Returns a unique suffix for an intercepted accesses to [classes]. This is

@@ -276,7 +276,7 @@ void f() {
     var testFilePathConverted = convertPath(testFilePath);
     var errorsResult = await contextFor(testFilePathConverted)
         .currentSession
-        .getErrors2(testFilePathConverted) as ErrorsResult;
+        .getErrors(testFilePathConverted) as ErrorsResult;
     return errorsResult.errors;
   }
 }

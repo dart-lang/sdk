@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/src/bounds_checks.dart' as ir;
+import 'package:kernel/text/debug_printer.dart';
 import 'package:kernel/type_environment.dart' as ir;
 
 import '../common.dart';
@@ -26,7 +27,6 @@ import '../environment.dart';
 import '../frontend_strategy.dart';
 import '../ir/annotations.dart';
 import '../ir/constants.dart';
-import '../ir/debug.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';

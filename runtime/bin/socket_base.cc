@@ -128,7 +128,7 @@ void SocketAddress::GetSockAddr(Dart_Handle obj, RawAddr* addr) {
 Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
                                                  Namespace* namespc,
                                                  RawAddr* addr) {
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   NamespaceScope ns(namespc, path);
   path = ns.path();
   bool is_abstract = (path[0] == '@');
@@ -139,7 +139,7 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
     // connection will be rejected.
     bzero(addr->un.sun_path, sizeof(addr->un.sun_path));
   }
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   if (sizeof(path) > sizeof(addr->un.sun_path)) {
     OSError os_error(-1,
                      "The length of path exceeds the limit. "
@@ -149,12 +149,12 @@ Dart_Handle SocketAddress::GetUnixDomainSockAddr(const char* path,
   }
   addr->un.sun_family = AF_UNIX;
   Utils::SNPrint(addr->un.sun_path, sizeof(addr->un.sun_path), "%s", path);
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   // In case of abstract namespace, transfer the leading '@' into a null byte.
   if (is_abstract) {
     addr->un.sun_path[0] = '\0';
   }
-#endif  // defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   return Dart_Null();
 }
 

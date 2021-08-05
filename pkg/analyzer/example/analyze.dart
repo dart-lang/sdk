@@ -32,7 +32,7 @@ void main(List<String> args) async {
         continue;
       }
 
-      final errorsResult = await context.currentSession.getErrors2(filePath);
+      final errorsResult = await context.currentSession.getErrors(filePath);
       if (errorsResult is ErrorsResult) {
         for (final error in errorsResult.errors) {
           if (error.errorCode.type != ErrorType.TODO) {

@@ -310,6 +310,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         superClass.name == 'Struct';
   }
 
+  /// The language team is thinking about adding abstract fields, or external
+  /// fields. But for now we will ignore such fields in `Struct` subtypes.
+  bool get _isEnclosingClassFfiUnion {
+    var superClass = _enclosingClass?.supertype?.element;
+    return superClass != null &&
+        superClass.library.name == 'dart.ffi' &&
+        superClass.name == 'Union';
+  }
+
   bool get _isNonNullableByDefault =>
       _featureSet?.isEnabled(Feature.non_nullable) ?? false;
 
@@ -509,8 +518,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withEnclosingExecutable(element, () {
       _checkForInvalidModifierOnBody(
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
-      _checkForConstConstructorWithNonFinalField(node, element);
-      _checkForConstConstructorWithNonConstSuper(node);
+      if (!_checkForConstConstructorWithNonConstSuper(node)) {
+        _checkForConstConstructorWithNonFinalField(node, element);
+      }
       _constructorFieldsVerifier.verify(node);
       _checkForRedirectingConstructorErrorCodes(node);
       _checkForMultipleSuperInitializers(node);
@@ -1842,23 +1852,40 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// are no invocations of non-'const' super constructors, and that there are
   /// no instance variables mixed in.
   ///
+  /// Return `true` if an error is reported here, and the caller should stop
+  /// checking the constructor for constant-related errors.
+  ///
   /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
   /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
-  void _checkForConstConstructorWithNonConstSuper(
+  bool _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
     if (!_enclosingExecutable.isConstConstructor) {
-      return;
+      return false;
     }
     // OK, const factory, checked elsewhere
     if (constructor.factoryKeyword != null) {
-      return;
+      return false;
     }
 
     // check for mixins
     var instanceFields = <FieldElement>[];
     for (var mixin in _enclosingClass!.mixins) {
-      instanceFields.addAll(mixin.element.fields
-          .where((field) => !field.isStatic && !field.isSynthetic));
+      instanceFields.addAll(mixin.element.fields.where((field) {
+        if (field.isStatic) {
+          return false;
+        }
+        if (field.isSynthetic) {
+          return false;
+        }
+        // From the abstract and external fields specification:
+        // > An abstract instance variable declaration D is treated as an
+        // > abstract getter declaration and possibly an abstract setter
+        // > declaration. The setter is included if and only if D is non-final.
+        if (field.isAbstract && field.isFinal) {
+          return false;
+        }
+        return true;
+      }));
     }
     if (instanceFields.length == 1) {
       var field = instanceFields.single;
@@ -1866,7 +1893,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
           constructor.returnType,
           ["'${field.enclosingElement.name}.${field.name}'"]);
-      return;
+      return true;
     } else if (instanceFields.length > 1) {
       var fieldNames = instanceFields
           .map((field) => "'${field.enclosingElement.name}.${field.name}'")
@@ -1875,7 +1902,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
           constructor.returnType,
           [fieldNames]);
-      return;
+      return true;
     }
 
     // try to find and check super constructor invocation
@@ -1883,26 +1910,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (initializer is SuperConstructorInvocation) {
         var element = initializer.staticElement;
         if (element == null || element.isConst) {
-          return;
+          return false;
         }
         errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
             initializer,
             [element.enclosingElement.displayName]);
-        return;
+        return true;
       }
     }
     // no explicit super constructor invocation, check default constructor
     var supertype = _enclosingClass!.supertype;
     if (supertype == null) {
-      return;
+      return false;
     }
     if (supertype.isDartCoreObject) {
-      return;
+      return false;
     }
     var unnamedConstructor = supertype.element.unnamedConstructor;
     if (unnamedConstructor == null || unnamedConstructor.isConst) {
-      return;
+      return false;
     }
 
     // default constructor is not 'const', report problem
@@ -1910,6 +1937,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
         constructor.returnType,
         [supertype]);
+    return true;
   }
 
   /// Verify that if the given [constructor] declaration is 'const' then there
@@ -1926,10 +1954,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!classElement.hasNonFinalField) {
       return;
     }
-    // TODO(brianwilkerson) Stop generating
-    //  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD when either
-    //  CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER or
-    //  CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD is also generated.
     errorReporter.reportErrorForName(
         CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
         constructor);
@@ -3423,6 +3447,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (fields.isFinal) return;
 
     if (_isEnclosingClassFfiStruct) return;
+    if (_isEnclosingClassFfiUnion) return;
 
     for (var field in fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;

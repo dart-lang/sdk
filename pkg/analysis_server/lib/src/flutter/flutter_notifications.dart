@@ -15,7 +15,7 @@ void sendFlutterNotificationOutline(
     var outline = computer.compute();
     // send notification
     var params = protocol.FlutterOutlineParams(
-      resolvedUnit.path!,
+      resolvedUnit.path,
       outline,
     );
     server.sendNotification(params.toNotification());

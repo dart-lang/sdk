@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX) ||            \
+    defined(DART_HOST_OS_MACOS)
 
 #include "vm/virtual_memory.h"
 
@@ -37,7 +38,7 @@ namespace dart {
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
-#if defined(TARGET_OS_LINUX)
+#if defined(DART_TARGET_OS_LINUX)
 DECLARE_FLAG(bool, generate_perf_events_symbols);
 DECLARE_FLAG(bool, generate_perf_jitdump);
 #endif
@@ -101,7 +102,7 @@ void VirtualMemory::Init() {
 
 #if defined(DUAL_MAPPING_SUPPORTED)
 // Perf is Linux-specific and the flags aren't defined in Product.
-#if defined(TARGET_OS_LINUX) && !defined(PRODUCT)
+#if defined(DART_TARGET_OS_LINUX) && !defined(PRODUCT)
   // Perf interacts strangely with memfds, leading it to sometimes collect
   // garbled return addresses.
   if (FLAG_generate_perf_events_symbols || FLAG_generate_perf_jitdump) {
@@ -136,7 +137,7 @@ void VirtualMemory::Init() {
   }
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
   FILE* fp = fopen("/proc/sys/vm/max_map_count", "r");
   if (fp != nullptr) {
     size_t max_map_count = 0;
@@ -286,7 +287,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // The mapping will be RX and stays that way until it will eventually be
     // unmapped.
     MemoryRegion region(region_ptr, size);
-    // DUAL_MAPPING_SUPPORTED is false in TARGET_OS_MACOS and hence support
+    // DUAL_MAPPING_SUPPORTED is false in DART_TARGET_OS_MACOS and hence support
     // for MAP_JIT is not required here.
     const int alias_prot = PROT_READ | PROT_EXEC;
     void* hint = reinterpret_cast<void*>(&Dart_Initialize);
@@ -333,11 +334,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#if (defined(HOST_OS_MACOS) && !defined(HOST_OS_IOS))
+#if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
   if (is_executable && IsAtLeastOS10_14()) {
     map_flags |= MAP_JIT;
   }
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)
 
   void* hint = nullptr;
   // Some 64-bit microarchitectures store only the low 32-bits of targets as
@@ -431,4 +432,5 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID ... HOST_OS_LINUX ... HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX) ||     \
+        // defined(DART_HOST_OS_MACOS)

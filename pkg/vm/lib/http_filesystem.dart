@@ -1,3 +1,7 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:io' as io;
 
@@ -60,7 +64,7 @@ class HttpFileSystemEntity implements FileSystemEntity {
   }
 
   Future<T> connectAndRun<T>(Future<T> body(io.HttpClient httpClient)) async {
-    io.HttpClient httpClient;
+    io.HttpClient? httpClient;
     try {
       httpClient = new io.HttpClient();
       // Set timeout to be shorter than anticipated OS default

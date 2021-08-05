@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -590,7 +589,7 @@ class PropertyElementResolver {
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
       if (!forAnnotation &&
-          !_resolver.nameScope.shouldIgnoreUndefined2(
+          !_resolver.definingLibrary.shouldIgnoreUndefined(
             prefix: target.name,
             name: identifier.name,
           )) {

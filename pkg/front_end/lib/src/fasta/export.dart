@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 library fasta.export;
 
 import 'builder/builder.dart';
@@ -19,7 +17,7 @@ class Export {
   /// The library being exported.
   LibraryBuilder exported;
 
-  final List<Combinator> combinators;
+  final List<Combinator>? combinators;
 
   final int charOffset;
 
@@ -29,7 +27,7 @@ class Export {
 
   bool addToExportScope(String name, Builder member) {
     if (combinators != null) {
-      for (Combinator combinator in combinators) {
+      for (Combinator combinator in combinators!) {
         if (combinator.isShow && !combinator.names.contains(name)) return false;
         if (combinator.isHide && combinator.names.contains(name)) return false;
       }
@@ -38,7 +36,7 @@ class Export {
     if (changed) {
       if (exporter.isNonNullableByDefault) {
         // TODO(johnniwinther): Add a common interface for exportable builders.
-        Builder memberLibrary = member.parent;
+        Builder? memberLibrary = member.parent;
         if (memberLibrary is LibraryBuilder &&
             !memberLibrary.isNonNullableByDefault) {
           exporter.addProblem(

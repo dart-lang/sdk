@@ -110,23 +110,24 @@ class IndexedLibrary extends IndexedContainer {
 }
 
 class IndexedClass extends IndexedContainer {
+  final Class cls;
   final Map<Name, Member> _constructors = new Map<Name, Member>();
   final Library library;
 
-  IndexedClass._(Class c, this.library) {
-    for (int i = 0; i < c.constructors.length; i++) {
-      Constructor constructor = c.constructors[i];
+  IndexedClass._(this.cls, this.library) {
+    for (int i = 0; i < cls.constructors.length; i++) {
+      Constructor constructor = cls.constructors[i];
       _constructors[constructor.name] = constructor;
     }
-    for (int i = 0; i < c.procedures.length; i++) {
-      Procedure procedure = c.procedures[i];
+    for (int i = 0; i < cls.procedures.length; i++) {
+      Procedure procedure = cls.procedures[i];
       if (procedure.isFactory) {
         _constructors[procedure.name] = procedure;
       } else {
         _addProcedure(procedure);
       }
     }
-    _addFields(c.fields);
+    _addFields(cls.fields);
   }
 
   Member? lookupConstructor(Name name) => _constructors[name];

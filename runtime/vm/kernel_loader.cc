@@ -801,7 +801,7 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
     signature.SetParameterTypeAt(0, Object::dynamic_type());
   }
   signature ^= ClassFinalizer::FinalizeType(signature);
-  function.set_signature(signature);
+  function.SetSignature(signature);
 
   return function.ptr();
 }
@@ -1729,7 +1729,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // must be finalized here, since finalization of member types will not be
       // called anymore.
       signature ^= ClassFinalizer::FinalizeType(signature);
-      function.set_signature(signature);
+      function.SetSignature(signature);
     }
     functions_.Add(&function);
 
@@ -1946,8 +1946,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   // additional functions can cause strain on the VM. They are therefore skipped
   // in jit mode and their associated origin function is used instead as
   // interface call target.
-  if (procedure_helper.IsRedirectingFactoryConstructor() ||
-      (!FLAG_precompiled_mode && procedure_helper.IsMemberSignature())) {
+  if (!FLAG_precompiled_mode && procedure_helper.IsMemberSignature()) {
     helper_.SetOffset(procedure_end);
     return;
   }
@@ -2014,22 +2013,17 @@ void KernelLoader::LoadProcedure(const Library& library,
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
       function.set_modifier(UntaggedFunction::kSyncGen);
-      function.set_is_visible(!FLAG_causal_async_stacks &&
-                              !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsync:
       function.set_modifier(UntaggedFunction::kAsync);
-      function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                !FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_causal_async_stacks &&
-                              !FLAG_lazy_async_stacks);
+      function.set_is_inlinable(!FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(UntaggedFunction::kAsyncGen);
-      function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                !FLAG_lazy_async_stacks);
-      function.set_is_visible(!FLAG_causal_async_stacks &&
-                              !FLAG_lazy_async_stacks);
+      function.set_is_inlinable(!FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_lazy_async_stacks);
       break;
     default:
       // no special modifier
@@ -2404,14 +2398,13 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
                     false,              // is_native
                     initializer_owner, TokenPosition::kNoSource));
   if (!field.is_static()) {
-    initializer_fun.set_num_fixed_parameters(1);
+    signature.set_num_fixed_parameters(1);
     signature.set_parameter_types(
         Array::Handle(zone, Array::New(1, Heap::kOld)));
-    signature.CreateNameArrayIncludingFlags(Heap::kOld);
     signature.SetParameterTypeAt(
         0, AbstractType::Handle(zone, field_owner.DeclarationType()));
-    signature.SetParameterNameAt(0, Symbols::This());
-    signature.FinalizeNameArrays(initializer_fun);
+    initializer_fun.CreateNameArray();
+    initializer_fun.SetParameterNameAt(0, Symbols::This());
   }
   signature.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);
@@ -2423,7 +2416,7 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_is_extension_member(field.is_extension_member());
 
   signature ^= ClassFinalizer::FinalizeType(signature);
-  initializer_fun.set_signature(signature);
+  initializer_fun.SetSignature(signature);
 
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.ptr();

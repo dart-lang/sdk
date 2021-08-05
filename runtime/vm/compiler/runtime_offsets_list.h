@@ -156,12 +156,12 @@
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
   NOT_IN_PRODUCT(FIELD(Isolate, single_step_offset))                           \
   FIELD(Isolate, user_tag_offset)                                              \
-  FIELD(LinkedHashMap, data_offset)                                            \
-  FIELD(LinkedHashMap, deleted_keys_offset)                                    \
-  FIELD(LinkedHashMap, hash_mask_offset)                                       \
-  FIELD(LinkedHashMap, index_offset)                                           \
-  FIELD(LinkedHashMap, type_arguments_offset)                                  \
-  FIELD(LinkedHashMap, used_data_offset)                                       \
+  FIELD(LinkedHashBase, data_offset)                                           \
+  FIELD(LinkedHashBase, deleted_keys_offset)                                   \
+  FIELD(LinkedHashBase, hash_mask_offset)                                      \
+  FIELD(LinkedHashBase, index_offset)                                          \
+  FIELD(LinkedHashBase, type_arguments_offset)                                 \
+  FIELD(LinkedHashBase, used_data_offset)                                      \
   FIELD(LocalHandle, ptr_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
@@ -290,9 +290,10 @@
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
   FIELD(FunctionType, hash_offset)                                             \
-  FIELD(FunctionType, packed_fields_offset)                                    \
+  FIELD(FunctionType, packed_parameter_counts_offset)                          \
+  FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
-  FIELD(FunctionType, parameter_names_offset)                                  \
+  FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \
@@ -363,7 +364,7 @@
   SIZEOF(LanguageError, InstanceSize, UntaggedLanguageError)                   \
   SIZEOF(Library, InstanceSize, UntaggedLibrary)                               \
   SIZEOF(LibraryPrefix, InstanceSize, UntaggedLibraryPrefix)                   \
-  SIZEOF(LinkedHashMap, InstanceSize, UntaggedLinkedHashMap)                   \
+  SIZEOF(LinkedHashBase, InstanceSize, UntaggedLinkedHashBase)                 \
   SIZEOF(MegamorphicCache, InstanceSize, UntaggedMegamorphicCache)             \
   SIZEOF(Mint, InstanceSize, UntaggedMint)                                     \
   SIZEOF(MirrorReference, InstanceSize, UntaggedMirrorReference)               \

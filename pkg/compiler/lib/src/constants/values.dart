@@ -8,7 +8,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../deferred_load.dart' show OutputUnit;
+import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../js/js.dart' as js;
 import '../util/util.dart';
 
@@ -741,8 +741,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
   int get length => keys.length;
 
   ConstantValue lookup(ConstantValue key) {
-    var lookupMap = _lookupMap ??=
-        new Map<ConstantValue, ConstantValue>.fromIterables(keys, values);
+    var lookupMap = _lookupMap ??= Map.fromIterables(keys, values);
     return lookupMap[key];
   }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -13,7 +11,6 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         LibraryDependency,
         LoadLibrary,
-        Member,
         Name,
         Procedure,
         ProcedureKind,
@@ -37,25 +34,25 @@ class LoadLibraryBuilder extends BuilderImpl {
 
   /// Synthetic static method to represent the tear-off of 'loadLibrary'.  If
   /// null, no tear-offs were seen in the code and no method is generated.
-  Member tearoff;
+  Procedure? tearoff;
 
   LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset);
 
   Uri get fileUri => parent.fileUri;
 
   LoadLibrary createLoadLibrary(
-      int charOffset, Forest forest, Arguments arguments) {
+      int charOffset, Forest forest, Arguments? arguments) {
     return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
   Procedure createTearoffMethod(Forest forest) {
-    if (tearoff != null) return tearoff;
+    if (tearoff != null) return tearoff!;
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
-    String prefix = expression.import.name;
+    String prefix = expression.import.name!;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
-    Reference reference =
+    Reference? reference =
         parent.referencesFromIndexed?.lookupGetterReference(name);
-    tearoff = new Procedure(
+    return tearoff = new Procedure(
         name,
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
@@ -67,7 +64,6 @@ class LoadLibraryBuilder extends BuilderImpl {
       ..startFileOffset = charOffset
       ..fileOffset = charOffset
       ..isNonNullableByDefault = parent.isNonNullableByDefault;
-    return tearoff;
   }
 
   @override

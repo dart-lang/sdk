@@ -7,7 +7,7 @@ class Class extends core::Object {
   constructor •() → self::Class
     ;
   static factory redirect() → self::Class
-    let dynamic #redirecting_factory = self::Class::• in invalid-expression;
+    return new self::Class::•();
 }
 static method main() → dynamic
   ;

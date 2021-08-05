@@ -39,7 +39,7 @@ class FlutterWrap extends MultiCorrectionProducer {
   Iterable<CorrectionProducer> _wrapMultipleWidgets() sync* {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
-    resolvedResult.unit!.accept(analyzer);
+    resolvedResult.unit.accept(analyzer);
 
     var widgetExpressions = <Expression>[];
     if (analyzer.hasSelectedNodes) {

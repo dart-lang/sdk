@@ -9,6 +9,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
+#include "vm/message_snapshot.h"
 #include "vm/snapshot.h"
 
 namespace dart {
@@ -37,9 +38,7 @@ MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
   // All allocation of objects for decoding the message is done in the
   // zone associated with this scope.
   ApiNativeScope scope;
-  Dart_CObject* object;
-  ApiMessageReader reader(message.get());
-  object = reader.ReadMessage();
+  Dart_CObject* object = ReadApiMessage(scope.zone(), message.get());
   (*func())(message->dest_port(), object);
   return kOK;
 }

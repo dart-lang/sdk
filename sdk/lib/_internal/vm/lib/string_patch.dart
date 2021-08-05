@@ -390,17 +390,7 @@ abstract class _StringBase implements String {
   }
 
   String substring(int startIndex, [int? endIndex]) {
-    endIndex ??= this.length;
-
-    if ((startIndex < 0) || (startIndex > this.length)) {
-      throw new RangeError.value(startIndex);
-    }
-    if ((endIndex < 0) || (endIndex > this.length)) {
-      throw new RangeError.value(endIndex);
-    }
-    if (startIndex > endIndex) {
-      throw new RangeError.value(startIndex);
-    }
+    endIndex = RangeError.checkValidRange(startIndex, endIndex, this.length);
     return _substringUnchecked(startIndex, endIndex);
   }
 
@@ -846,6 +836,7 @@ abstract class _StringBase implements String {
    */
   @pragma("vm:recognized", "other")
   @pragma("vm:entry-point", "call")
+  @pragma("vm:never-inline")
   static String _interpolate(final List values) {
     final numValues = values.length;
     int totalLength = 0;

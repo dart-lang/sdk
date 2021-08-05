@@ -25,6 +25,7 @@
 namespace dart {
 
 // Forward declarations.
+class BitsContainer;
 class Code;
 class Dwarf;
 class Elf;
@@ -137,6 +138,7 @@ class Image : ValueObject {
 
   // For access to private constants.
   friend class AssemblyImageWriter;
+  friend class BitsContainer;
   friend class BlobImageWriter;
   friend class ImageWriter;
 
@@ -239,15 +241,8 @@ class ImageWriter : public ValueObject {
   // ROData sections contain objects wrapped in an Image object.
   static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
   // Text sections contain objects (even in bare instructions mode) wrapped
-  // in an Image object, and for now we also align them to the same page
-  // size assumed by Elf objects.
-  static constexpr intptr_t kTextAlignment = 16 * KB;
-#if defined(DART_PRECOMPILER)
-  static_assert(kTextAlignment == Elf::kPageSize,
-                "Page alignment must be consistent with max object alignment");
-  static_assert(Elf::kPageSize >= kMaxObjectAlignment,
-                "Page alignment must be consistent with max object alignment");
-#endif
+  // in an Image object.
+  static constexpr intptr_t kTextAlignment = kMaxObjectAlignment;
 
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
@@ -406,11 +401,11 @@ class ImageWriter : public ValueObject {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend) = 0;
-  // Returns the final relocated address for the section represented by the
-  // symbol. May not be supported by some writers.
-  virtual uword RelocatedAddress(const char* symbol) = 0;
+                              intptr_t target_offset) = 0;
+  // Writes a target word-sized value that contains the relocated address
+  // pointed to by the given symbol.
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) = 0;
   // Creates a static symbol for the given Code object when appropriate.
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
@@ -423,7 +418,7 @@ class ImageWriter : public ValueObject {
   intptr_t Relocation(intptr_t section_offset,
                       const char* source_symbol,
                       const char* target_symbol) {
-    return Relocation(section_offset, source_symbol, 0, target_symbol, 0, 0);
+    return Relocation(section_offset, source_symbol, 0, target_symbol, 0);
   }
 #endif
   // Writes a fixed-sized value of type T to the section contents.
@@ -435,7 +430,8 @@ class ImageWriter : public ValueObject {
   // instruction for the target architecture is used.
   intptr_t AlignWithBreakInstructions(intptr_t alignment, intptr_t offset);
 
-  Heap* heap_;  // Used for mapping InstructionsPtr to object ids.
+  Thread* const thread_;
+  Zone* const zone_;
   intptr_t next_data_offset_;
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
@@ -549,12 +545,11 @@ class AssemblyImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  // We can't generate the relocated address in assembly, so it'll be
-  // retrieved and stored in the BSS during BSS initialization instead.
-  virtual uword RelocatedAddress(const char* symbol) {
-    return Image::kNoRelocatedAddress;
+                              intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* symbol) {
+    // Cannot calculate snapshot-relative addresses in assembly snapshots.
+    return WriteTargetWord(Image::kNoRelocatedAddress);
   }
   virtual void FrameUnwindPrologue();
   virtual void FrameUnwindEpilogue();
@@ -569,6 +564,9 @@ class AssemblyImageWriter : public ImageWriter {
   // Used in Relocation to output "(.)" for relocations involving the current
   // section position and creating local symbols in AddCodeSymbol.
   const char* current_section_symbol_ = nullptr;
+  // Used for creating local symbols for code objects in the debugging info,
+  // if separately written.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
@@ -602,12 +600,23 @@ class BlobImageWriter : public ImageWriter {
                               const char* source_symbol,
                               intptr_t source_offset,
                               const char* target_symbol,
-                              intptr_t target_offset,
-                              intptr_t target_addend);
-  virtual uword RelocatedAddress(const char* symbol);
+                              intptr_t target_offset);
+  virtual intptr_t RelocatedAddress(intptr_t section_offset,
+                                    const char* target_symbol) {
+    // ELF symbol tables always have a reserved symbol with name "" and value 0.
+    return ImageWriter::Relocation(section_offset, "", target_symbol);
+  }
   virtual void AddCodeSymbol(const Code& code,
                              const char* symbol,
                              intptr_t offset);
+
+  // Set on section entrance to a new array containing the relocations for the
+  // current section.
+  ZoneGrowableArray<Elf::Relocation>* current_relocations_ = nullptr;
+  // Set on section entrance to a new array containing the local symbol data
+  // for the current section.
+  ZoneGrowableArray<Elf::SymbolData>* current_symbols_ = nullptr;
+
 #endif
 
   NonStreamingWriteStream* const vm_instructions_;

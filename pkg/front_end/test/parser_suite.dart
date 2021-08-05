@@ -23,6 +23,9 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show SyntheticStringToken;
+
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
 
@@ -365,6 +368,9 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
       }
       if (token is! ErrorToken) {
         sb.write(token.lexeme);
+        if (!addTypes && token.lexeme == "" && token is SyntheticStringToken) {
+          sb.write("*synthetic*");
+        }
       }
       if (addTypes) {
         sb.write("[${token.runtimeType}]");

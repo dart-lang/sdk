@@ -25,7 +25,7 @@ class C<T extends Function> {
   }
 }
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 89, 26),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 110, 1),
     ]);
   }
 

@@ -554,7 +554,7 @@ class ProcedureHelper {
     kConst = 1 << 3,  // Only for external const factories.
 
     // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactoryConstructor = 1 << 4,
+    kRedirectingFactory = 1 << 4,
     kExtensionMember = 1 << 5,
     kSyntheticProcedure = 1 << 7,
   };
@@ -579,8 +579,8 @@ class ProcedureHelper {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;
   }
-  bool IsRedirectingFactoryConstructor() const {
-    return (flags_ & kRedirectingFactoryConstructor) != 0;
+  bool IsRedirectingFactory() const {
+    return (flags_ & kRedirectingFactory) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;

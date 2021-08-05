@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Defines the front-end API for converting source code to summaries.
 library front_end.summary_generator;
 
@@ -30,12 +28,12 @@ import '../kernel_generator_impl.dart';
 /// was compiled from sources.
 ///
 /// The return value is a list of bytes to write to the summary file.
-Future<List<int>> summaryFor(List<Uri> sources, CompilerOptions options,
+Future<List<int>?> summaryFor(List<Uri> sources, CompilerOptions options,
     {bool truncate: false}) async {
   return (await generateKernel(
           new ProcessedOptions(options: options, inputs: sources),
           buildSummary: true,
           buildComponent: false,
           truncateSummary: truncate))
-      ?.summary;
+      .summary;
 }

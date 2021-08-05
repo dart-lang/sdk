@@ -24,6 +24,9 @@ wasm/*: SkipByDesign # dart:wasm not currently supported on web.
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip # JS-integration only test
 
+[ $builder_tag == dart2js_production && $compiler == dart2js ]
+js/js_util/properties_implicit_checks_test: SkipByDesign # No implicit checks in production mode
+
 [ $compiler == dart2js && $runtime == chrome ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050

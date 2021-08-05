@@ -11,8 +11,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
-import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -34,7 +32,6 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -115,23 +112,6 @@ class EditDomainHandler extends AbstractRequestHandler {
       server.sendResponse(response);
     } catch (exception, stackTrace) {
       server.sendServerErrorNotification('Exception while getting bulk fixes',
-          CaughtException(exception, stackTrace), stackTrace);
-    }
-  }
-
-  Future dartfix(Request request) async {
-    // TODO(danrubel): Add support for dartfix plugins
-
-    //
-    // Compute fixes
-    //
-    try {
-      var dartFix = EditDartFix(server, request);
-      var response = await dartFix.compute();
-
-      server.sendResponse(response);
-    } catch (exception, stackTrace) {
-      server.sendServerErrorNotification('Exception while running dartfix',
           CaughtException(exception, stackTrace), stackTrace);
     }
   }
@@ -243,10 +223,6 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     server.sendResponse(EditGetAssistsResult(changes).toResponse(request.id));
   }
-
-  Response getDartfixInfo(Request request) =>
-      EditGetDartfixInfoResult(allFixes.map((i) => i.asDartFix()).toList())
-          .toResponse(request.id);
 
   Future<void> getFixes(Request request) async {
     var params = EditGetFixesParams.fromRequest(request);
@@ -374,13 +350,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
         bulkFixes(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_GET_DARTFIX_INFO) {
-        return getDartfixInfo(request);
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
-        return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_REQUEST_DARTFIX) {
-        dartfix(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
@@ -430,7 +401,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit!.declaredElement) {
+    if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getResolvedUnit(libraryUnit.source.fullName);
@@ -512,8 +483,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var fileStamp = -1;
-    var code = result.content!;
-    var unit = result.unit!;
+    var code = result.content;
+    var unit = result.unit;
     var errors = result.errors;
     // check if there are scan/parse errors in the file
     var numScanParseErrors = _getNumberOfScanParseErrors(errors);
@@ -574,7 +545,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
       String file, int offset) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var optionsFile = server.resourceProvider.getFile(file);
+    var resourceProvider = server.resourceProvider;
+    var optionsFile = resourceProvider.getFile(file);
     var content = _safelyRead(optionsFile);
     if (content == null) {
       return errorFixesList;
@@ -596,13 +568,14 @@ class EditDomainHandler extends AbstractRequestHandler {
       return errorFixesList;
     }
     for (var error in errors) {
-      var generator = AnalysisOptionsFixGenerator(error, content, options);
+      var generator = AnalysisOptionsFixGenerator(
+          resourceProvider, error, content, options);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -637,7 +610,7 @@ class EditDomainHandler extends AbstractRequestHandler {
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(
               result.session.analysisContext,
-              result.path!,
+              result.path,
               name,
             );
           }, extensionCache: server.getExtensionCacheFor(result));
@@ -654,7 +627,7 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content!,
+              file: result.content,
               'parameters': parametersFile,
             });
           }
@@ -700,8 +673,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -718,7 +691,8 @@ error.errorCode: ${error.errorCode}
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
       String file, int offset) async {
     var errorFixesList = <AnalysisErrorFixes>[];
-    var pubspecFile = server.resourceProvider.getFile(file);
+    var resourceProvider = server.resourceProvider;
+    var pubspecFile = resourceProvider.getFile(file);
     var content = _safelyRead(pubspecFile);
     if (content == null) {
       return errorFixesList;
@@ -727,23 +701,29 @@ error.errorCode: ${error.errorCode}
     if (driver == null) {
       return errorFixesList;
     }
-    var sourceFactory = driver.sourceFactory;
-    var pubspec = _getOptions(sourceFactory, content);
-    if (pubspec == null) {
+    YamlDocument document;
+    try {
+      document = loadYamlDocument(content);
+    } catch (exception) {
       return errorFixesList;
     }
+    var yamlContent = document.contents;
+    if (yamlContent is! YamlMap) {
+      yamlContent = YamlMap();
+    }
     var validator =
-        PubspecValidator(server.resourceProvider, pubspecFile.createSource());
+        PubspecValidator(resourceProvider, pubspecFile.createSource());
     var session = driver.currentSession;
-    var errors = validator.validate(pubspec.nodes);
+    var errors = validator.validate(yamlContent.nodes);
     for (var error in errors) {
-      var generator = PubspecFixGenerator(error, content, pubspec);
+      var generator =
+          PubspecFixGenerator(resourceProvider, error, content, document);
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -786,7 +766,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content!,
+          file: result.content,
           'parameters': parametersFile,
         });
       }

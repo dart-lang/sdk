@@ -45,7 +45,7 @@ class B {
 @TypedefAnnotation([1, 2, 3])
 typedef void SomeType<T>(List<T> arg);
 
-int foo(SomeType<int> a) {
+int foo(SomeType<int>? a) {
   @VarAnnotation()
   int x = 2;
   return x + 2;

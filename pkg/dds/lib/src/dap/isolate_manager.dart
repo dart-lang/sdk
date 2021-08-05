@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'adapters/dart.dart';
@@ -23,15 +24,33 @@ class IsolateManager {
   final Map<int, ThreadInfo> _threadsByThreadId = {};
   int _nextThreadNumber = 1;
 
-  /// Whether debugging is enabled.
+  /// Whether debugging is enabled for this session.
   ///
   /// This must be set before any isolates are spawned and controls whether
   /// breakpoints or exception pause modes are sent to the VM.
   ///
+  /// If false, requests to send breakpoints or exception pause mode will be
+  /// dropped. Other functionality (handling pause events, resuming, etc.) will
+  /// all still function.
+  ///
   /// This is used to support debug sessions that have VM Service connections
   /// but were run with noDebug: true (for example we may need a VM Service
   /// connection for a noDebug flutter app in order to support hot reload).
-  bool _debug = false;
+  bool debug = false;
+
+  /// Whether SDK libraries should be marked as debuggable.
+  ///
+  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// apply changes. This allows applying both [debugSdkLibraries] and
+  /// [debugExternalPackageLibraries] in one step.
+  bool debugSdkLibraries = true;
+
+  /// Whether external package libraries should be marked as debuggable.
+  ///
+  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// apply changes. This allows applying both [debugSdkLibraries] and
+  /// [debugExternalPackageLibraries] in one step.
+  bool debugExternalPackageLibraries = true;
 
   /// Tracks breakpoints last provided by the client so they can be sent to new
   /// isolates that appear after initial breakpoints were sent.
@@ -71,6 +90,18 @@ class IsolateManager {
   /// due to the async nature, it's not guaranteed that threads in this list have
   /// not exited between accessing this list and trying to use the results.
   List<ThreadInfo> get threads => _threadsByIsolateId.values.toList();
+
+  /// Re-applies debug options to all isolates/libraries.
+  ///
+  /// This is required if options like debugSdkLibraries are modified, but is a
+  /// separate step to batch together changes to multiple options.
+  Future<void> applyDebugOptions() async {
+    await Future.wait(_threadsByThreadId.values.map(
+      // debuggable libraries is the only thing currently affected by these
+      // changable options.
+      (isolate) => _sendLibraryDebuggables(isolate.isolate),
+    ));
+  }
 
   Future<T> getObject<T extends vm.Response>(
       vm.IsolateRef isolate, vm.ObjRef object) async {
@@ -219,19 +250,6 @@ class IsolateManager {
         .map((isolate) => _sendBreakpoints(isolate.isolate, uri: uri)));
   }
 
-  /// Sets whether debugging is enabled for this session.
-  ///
-  /// If not, requests to send breakpoints or exception pause mode will be
-  /// dropped. Other functionality (handling pause events, resuming, etc.) will
-  /// all still function.
-  ///
-  /// This is used to support debug sessions that have VM Service connections
-  /// but were run with noDebug: true (for example we may need a VM Service
-  /// connection for a noDebug flutter app in order to support hot reload).
-  void setDebugEnabled(bool debug) {
-    _debug = debug;
-  }
-
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
   /// existing isolates will be updated to reflect the new setting.
   Future<void> setExceptionPauseMode(String mode) async {
@@ -354,30 +372,50 @@ class IsolateManager {
     }
   }
 
-  bool _isExternalPackageLibrary(vm.LibraryRef library) =>
-      // TODO(dantup): This needs to check if it's _external_, eg.
-      //
-      // - is from the flutter SDK (flutter, flutter_test, ...)
-      // - is from pub/pubcache
-      //
-      // This is intended to match the users idea of "my code". For example
-      // they may wish to debug the current app being run, as well as any other
-      // projects that are references with path: dependencies (which are likely
-      // their own supporting projects).
-      false /*library.uri?.startsWith('package:') ?? false*/;
+  /// Checks whether this library is from an external package.
+  ///
+  /// This is used to support debugging "Just My Code" so Pub packages can be
+  /// marked as not-debuggable.
+  ///
+  /// A library is considered local if the path is within the 'cwd' or
+  /// 'additionalProjectPaths' in the launch arguments. An editor should include
+  /// the paths of all open workspace folders in 'additionalProjectPaths' to
+  /// support this feature correctly.
+  bool _isExternalPackageLibrary(vm.LibraryRef library) {
+    final libraryUri = library.uri;
+    if (libraryUri == null) {
+      return false;
+    }
+    final uri = Uri.parse(libraryUri);
+    if (!uri.isScheme('package')) {
+      return false;
+    }
+    final libraryPath = _adapter.resolvePackageUri(uri);
+    if (libraryPath == null) {
+      return false;
+    }
+
+    // Always compare paths case-insensitively to avoid any issues where APIs
+    // may have returned different casing (eg. Windows drive letters). It's
+    // almost certain a user wouldn't have a "local" package and an "external"
+    // package with paths differing only be case.
+    final libraryPathLower = libraryPath.toLowerCase();
+    return !_adapter.projectPaths.any((projectPath) =>
+        path.isWithin(projectPath.toLowerCase(), libraryPathLower));
+  }
 
   bool _isSdkLibrary(vm.LibraryRef library) =>
       library.uri?.startsWith('dart:') ?? false;
 
   /// Checks whether a library should be considered debuggable.
   ///
-  /// This usesthe settings from the launch arguments (debugSdkLibraries
-  /// and debugExternalPackageLibraries) against the type of library given.
+  /// Initial values are provided in the launch arguments, but may be updated
+  /// by the `updateDebugOptions` custom request.
   bool _libaryIsDebuggable(vm.LibraryRef library) {
     if (_isSdkLibrary(library)) {
-      return _adapter.args.debugSdkLibraries ?? false;
+      return debugSdkLibraries;
     } else if (_isExternalPackageLibrary(library)) {
-      return _adapter.args.debugExternalPackageLibraries ?? false;
+      return debugExternalPackageLibraries;
     } else {
       return true;
     }
@@ -391,7 +429,7 @@ class IsolateManager {
   /// newly-created isolates).
   Future<void> _sendBreakpoints(vm.IsolateRef isolate, {String? uri}) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 
@@ -425,7 +463,7 @@ class IsolateManager {
   /// Sets the exception pause mode for an individual isolate.
   Future<void> _sendExceptionPauseMode(vm.IsolateRef isolate) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 
@@ -436,7 +474,7 @@ class IsolateManager {
   /// on the debug settings.
   Future<void> _sendLibraryDebuggables(vm.IsolateRef isolateRef) async {
     final service = _adapter.vmService;
-    if (!_debug || service == null) {
+    if (!debug || service == null) {
       return;
     }
 

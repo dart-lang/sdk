@@ -30,7 +30,7 @@ class DeepCaller2 {
 use1(DeepCaller1 x, A aa) => x.barL1(aa);
 use2(DeepCaller2 x, A aa) => x.barL1(aa);
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

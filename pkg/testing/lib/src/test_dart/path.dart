@@ -192,7 +192,7 @@ class Path {
   Path makeCanonical() {
     bool isAbs = isAbsolute;
     List segs = segments();
-    String drive;
+    String? drive;
     if (isAbs && !segs.isEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
@@ -267,7 +267,7 @@ class Path {
   }
 
   List<String> segments() {
-    List result = _path.split('/');
+    List<String> result = _path.split('/');
     if (isAbsolute) result.removeRange(0, 1);
     if (hasTrailingSeparator) result.removeLast();
     return result;

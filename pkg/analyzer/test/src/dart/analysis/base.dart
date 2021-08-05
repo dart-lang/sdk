@@ -33,7 +33,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final AnalysisDriverScheduler scheduler;
   late final AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<ResolvedUnitResult> allResults = <ResolvedUnitResult>[];
+  final List<AnalysisResultWithErrors> allResults = [];
   final List<ExceptionResult> allExceptions = <ExceptionResult>[];
 
   late final String testProject;
@@ -141,7 +141,11 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
     driver = createAnalysisDriver();
     scheduler.start();
     scheduler.status.listen(allStatuses.add);
-    driver.results.listen(allResults.add);
+    driver.results.listen((result) {
+      if (result is AnalysisResultWithErrors) {
+        allResults.add(result);
+      }
+    });
     driver.exceptions.listen(allExceptions.add);
   }
 

@@ -28,6 +28,7 @@ namespace dart {
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
+  F(Function, signature_)                                                      \
   F(Function, data_)                                                           \
   F(Function, ic_data_array_)                                                  \
   F(Function, code_)                                                           \
@@ -37,10 +38,10 @@ namespace dart {
   F(Field, name_)                                                              \
   F(Field, owner_)                                                             \
   F(Field, type_)                                                              \
-  F(Field, guarded_list_length_)                                               \
-  F(Field, dependent_code_)                                                    \
   F(Field, initializer_function_)                                              \
   F(Field, host_offset_or_field_id_)                                           \
+  F(Field, guarded_list_length_)                                               \
+  F(Field, dependent_code_)                                                    \
   F(Script, url_)                                                              \
   F(Script, resolved_url_)                                                     \
   F(Script, line_starts_)                                                      \
@@ -57,6 +58,7 @@ namespace dart {
   F(Library, loading_unit_)                                                    \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
+  F(Library, dependencies_)                                                    \
   F(Library, kernel_data_)                                                     \
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
@@ -98,9 +100,13 @@ namespace dart {
   F(MonomorphicSmiableCall, target_)                                           \
   F(CallSiteData, target_name_)                                                \
   F(CallSiteData, args_descriptor_)                                            \
+  F(ICData, target_name_)                                                      \
+  F(ICData, args_descriptor_)                                                  \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
   F(InstructionsTable, descriptors_)                                           \
+  F(MegamorphicCache, target_name_)                                            \
+  F(MegamorphicCache, args_descriptor_)                                        \
   F(MegamorphicCache, buckets_)                                                \
   F(MegamorphicCache, mask_)                                                   \
   F(SubtypeTestCache, cache_)                                                  \
@@ -130,7 +136,7 @@ namespace dart {
   F(FunctionType, hash_)                                                       \
   F(FunctionType, result_type_)                                                \
   F(FunctionType, parameter_types_)                                            \
-  F(FunctionType, parameter_names_)                                            \
+  F(FunctionType, named_parameter_names_)                                      \
   F(FunctionType, type_parameters_)                                            \
   F(TypeRef, type_test_stub_)                                                  \
   F(TypeRef, type_)                                                            \
@@ -153,12 +159,12 @@ namespace dart {
   F(GrowableObjectArray, type_arguments_)                                      \
   F(GrowableObjectArray, length_)                                              \
   F(GrowableObjectArray, data_)                                                \
-  F(LinkedHashMap, type_arguments_)                                            \
-  F(LinkedHashMap, index_)                                                     \
-  F(LinkedHashMap, hash_mask_)                                                 \
-  F(LinkedHashMap, data_)                                                      \
-  F(LinkedHashMap, used_data_)                                                 \
-  F(LinkedHashMap, deleted_keys_)                                              \
+  F(LinkedHashBase, type_arguments_)                                           \
+  F(LinkedHashBase, index_)                                                    \
+  F(LinkedHashBase, hash_mask_)                                                \
+  F(LinkedHashBase, data_)                                                     \
+  F(LinkedHashBase, used_data_)                                                \
+  F(LinkedHashBase, deleted_keys_)                                             \
   F(TypedData, length_)                                                        \
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \
@@ -207,19 +213,25 @@ namespace dart {
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
+  F(Function, positional_parameter_names_)                                     \
   F(Function, unoptimized_code_)                                               \
   F(Field, type_test_cache_)
 
+#define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
+  F(Script, constant_coverage_)
+
 #define NON_PRODUCT_CLASSES_AND_FIELDS(F)                                      \
   F(Class, user_name_)                                                         \
+  F(Code, return_address_metadata_)                                            \
+  F(Code, var_descriptors_)                                                    \
+  F(Code, comments_)                                                           \
   F(ReceivePort, debug_name_)                                                  \
   F(ReceivePort, allocation_location_)
 
 #define NON_HEADER_HASH_CLASSES_AND_FIELDS(F) F(String, hash_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
-  for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {
-    OffsetsTableEntry entry = offsets_table[i];
+  for (const OffsetsTableEntry& entry : OffsetsTable::offsets_table()) {
     cached_offsets_.Insert({{entry.class_id, entry.offset}, entry.field_name});
   }
 }
@@ -229,34 +241,46 @@ const char* OffsetsTable::FieldNameForOffset(intptr_t class_id,
   return cached_offsets_.LookupValue({class_id, offset});
 }
 
-#define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
-  {class_name::kClassId, #field_name,                                          \
-   OFFSET_OF(Untagged##class_name, field_name)},
+static MallocGrowableArray<OffsetsTable::OffsetsTableEntry> field_offsets_table;
 
-// clang-format off
-const OffsetsTable::OffsetsTableEntry OffsetsTable::offsets_table[] = {
-    COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+const MallocGrowableArray<OffsetsTable::OffsetsTableEntry>&
+OffsetsTable::offsets_table() {
+  ASSERT(field_offsets_table.length() > 0);  // Initialized.
+  return field_offsets_table;
+}
+
+void OffsetsTable::Init() {
+#define DEFINE_OFFSETS_TABLE_ENTRY(class_name, field_name)                     \
+  field_offsets_table.Add({class_name::kClassId, #field_name,                  \
+                           OFFSET_OF(Untagged##class_name, field_name)});
+
+  COMMON_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-    NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if !defined(HASH_IN_OBJECT_HEADER)
-    NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  NON_HEADER_HASH_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
-    AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  AOT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #if !defined(PRODUCT)
-    AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  AOT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
 #else
-    JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+  JIT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
+#if !defined(PRODUCT)
+  JIT_NON_PRODUCT_CLASSES_AND_FIELDS(DEFINE_OFFSETS_TABLE_ENTRY)
 #endif
-    {-1, nullptr, -1}
-};
-// clang-format on
+#endif
 
 #undef DEFINE_OFFSETS_TABLE_ENTRY
+}
+
+void OffsetsTable::Cleanup() {
+  field_offsets_table.Clear();
+}
 
 #endif
 

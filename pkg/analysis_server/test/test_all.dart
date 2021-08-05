@@ -14,7 +14,6 @@ import 'completion_test.dart' as completion;
 import 'domain_analysis_test.dart' as domain_analysis;
 import 'domain_completion_test.dart' as domain_completion;
 import 'domain_diagnostic_test.dart' as domain_experimental;
-import 'domain_edit_dartfix_test.dart' as domain_edit_dartfix;
 import 'domain_execution_test.dart' as domain_execution;
 import 'domain_server_test.dart' as domain_server;
 import 'edit/test_all.dart' as edit;
@@ -27,6 +26,7 @@ import 'services/test_all.dart' as services;
 import 'socket_server_test.dart' as socket_server;
 import 'src/test_all.dart' as src;
 import 'tool/test_all.dart' as tool;
+import 'verify_no_solo_test.dart' as verify_no_solo;
 import 'verify_sorted_test.dart' as verify_sorted;
 import 'verify_tests_test.dart' as verify_tests;
 
@@ -40,7 +40,6 @@ void main() {
     completion.main();
     domain_analysis.main();
     domain_completion.main();
-    domain_edit_dartfix.main();
     domain_execution.main();
     domain_experimental.main();
     domain_server.main();
@@ -54,6 +53,7 @@ void main() {
     socket_server.main();
     src.main();
     tool.main();
+    verify_no_solo.main();
     verify_sorted.main();
     verify_tests.main();
     defineReflectiveSuite(() {

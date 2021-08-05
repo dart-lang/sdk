@@ -15,7 +15,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/builder/declaration_builder.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/modifier_builder.dart';
 import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
 import 'package:front_end/src/fasta/builder/unresolved_type.dart';
@@ -137,7 +136,7 @@ class SourceLoaderTest extends SourceLoader {
   }
 
   BodyBuilder createBodyBuilderForOutlineExpression(
-      LibraryBuilder library,
+      SourceLibraryBuilder library,
       DeclarationBuilder declarationBuilder,
       ModifierBuilder member,
       Scope scope,

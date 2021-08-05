@@ -113,8 +113,8 @@ int _internal() {
 
 // Test with compile-time error. Note that this means no tests are compiled at
 // all and that while the error messages are passed it spills the internals of
-// the dartdocs stuff (e.g. points to lines that doesn't exist because we added
-// them, specifies 'dartDocTest.test' etc).
+// the dartdocs stuff (e.g. the uri "dartdoctest:tester",
+// calls to 'dartDocTest.test' etc).
   Uri test5 = new Uri(scheme: "darttest", path: "/test5.dart");
   test = """
 // DartDocTest(_internal() + 2, 42)
@@ -128,10 +128,10 @@ void _internal() {
   expected = [
     new impl.TestResult(null, impl.TestOutcome.CompilationError)
       ..message =
-          """darttest:/test5.dart:9:20: Error: This expression has type 'void' and can't be used.
+          """dartdoctest:tester:3:20: Error: This expression has type 'void' and can't be used.
   dartDocTest.test(_internal() + 2, 42);
                    ^
-darttest:/test5.dart:9:32: Error: The operator '+' isn't defined for the class 'void'.
+dartdoctest:tester:3:32: Error: The operator '+' isn't defined for the class 'void'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   dartDocTest.test(_internal() + 2, 42);
                                ^""",
@@ -158,6 +158,27 @@ dynamic _internal() {
   ];
   memoryFileSystem.entityForUri(test6).writeAsStringSync(test);
   expect(await dartDocTest.process(test6), expected);
+
+  // Good/bad test with private static class method.
+  Uri test7 = new Uri(scheme: "darttest", path: "/test7.dart");
+  test = """
+  class Foo {
+    // DartDocTest(Foo._internal(), 42)
+    // DartDocTest(Foo._internal(), 44)
+    static int _internal() {
+      return 42;
+    }
+  }
+  """;
+  tests = extractTests(test, test7);
+  expect(tests.length, 2);
+  expected = [
+    new impl.TestResult(tests[0], impl.TestOutcome.Pass),
+    new impl.TestResult(tests[1], impl.TestOutcome.Failed)
+      ..message = "Expected '44'; got '42'.",
+  ];
+  memoryFileSystem.entityForUri(test7).writeAsStringSync(test);
+  expect(await dartDocTest.process(test7), expected);
 }
 
 void testTestExtraction() {

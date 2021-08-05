@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44733.dart:22:3: Error: Type 'F' not found.
+//   F get y => super.y as F;
+//   ^
+//
+// pkg/front_end/testcases/general/issue44733.dart:5:16: Error: 'A' doesn't implement 'D' so it can't be used with 'C'.
+//  - 'A' is from 'pkg/front_end/testcases/general/issue44733.dart'.
+//  - 'D' is from 'pkg/front_end/testcases/general/issue44733.dart'.
+//  - 'C' is from 'pkg/front_end/testcases/general/issue44733.dart'.
+// abstract class B extends A with C {}
+//                ^
+//
+// pkg/front_end/testcases/general/issue44733.dart:9:12: Error: Expected identifier, but got 'super'.
+// B get x => super.x;
+//            ^^^^^
+//
+// pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
+//  - 'E' is from 'pkg/front_end/testcases/general/issue44733.dart'.
+//   E get y {}
+//         ^
+//
+// pkg/front_end/testcases/general/issue44733.dart:22:25: Error: 'F' isn't a type.
+//   F get y => super.y as F;
+//                         ^
+//
+// pkg/front_end/testcases/general/issue44733.dart:22:20: Error: Superclass has no getter named 'y'.
+//   F get y => super.y as F;
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class _B&A&C = self::A with self::C /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_B&A&C
+    : super self::A::•()
+    ;
+}
+abstract class B extends self::_B&A&C {
+  synthetic constructor •() → self::B
+    : super self::_B&A&C::•()
+    ;
+}
+abstract class C extends self::D /*isMixinDeclaration*/  {
+}
+abstract class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+}
+abstract class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  get y() → self::E {
+    return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:18:9: Error: A non-null value must be returned since the return type 'E' doesn't allow null.
+ - 'E' is from 'pkg/front_end/testcases/general/issue44733.dart'.
+  E get y {}
+        ^" in null;
+  }
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get y() → invalid-type
+    return super.y as{ForNonNullableByDefault} invalid-type;
+}
+static get x() → self::B
+  return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:9:12: Error: Expected identifier, but got 'super'.
+B get x => super.x;
+           ^^^^^"{<invalid>}.x;
+static method f() → void {
+  switch(self::x.{self::A::y}{invalid-type}{<invalid>}.z) {
+  }
+}
+static method main() → dynamic {}

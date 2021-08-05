@@ -5,6 +5,7 @@
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
 
+AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
@@ -102,6 +103,10 @@ ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
 ConstEvalExtension/example: Fail
+ConstEvalExternalConstructor/analyzerCode: Fail
+ConstEvalExternalConstructor/example: Fail
+ConstEvalExternalFactory/analyzerCode: Fail
+ConstEvalExternalFactory/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
@@ -164,6 +169,8 @@ CyclicClassHierarchy/part_wrapped_script1: Fail
 CyclicClassHierarchy/part_wrapped_script2: Fail
 CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
+CyclicRedirectingFactoryConstructors/part_wrapped_script: Fail # Error is reported for each factory involved in the cycle.
+CyclicRedirectingFactoryConstructors/script: Fail # Error is reported for each factory involved in the cycle.
 CyclicTypedef/example: Fail
 DefaultListConstructorError/analyzerCode: Fail
 DefaultListConstructorError/example: Fail
@@ -339,6 +346,7 @@ FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldNull/analyzerCode: Fail
 FfiLeafCallMustNotReturnHandle/analyzerCode: Fail
 FfiLeafCallMustNotTakeHandle/analyzerCode: Fail
+FfiNativeAnnotationMustAnnotateStatic/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
@@ -508,6 +516,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
+JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific

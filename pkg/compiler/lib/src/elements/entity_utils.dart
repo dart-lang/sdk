@@ -7,6 +7,7 @@ library entity_utils;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show isUserDefinableOperator, isMinusOperator;
 
+import '../js_backend/namer.dart';
 import 'entities.dart';
 
 // Somewhat stable ordering for libraries using [Uri]s
@@ -154,7 +155,7 @@ String operatorNameToIdentifier(String name) {
   } else if (name == 'unary-') {
     return r'operator$negate';
   } else {
-    return name;
+    return Namer.replaceNonIdentifierCharacters(name);
   }
 }
 

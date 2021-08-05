@@ -30,7 +30,7 @@ use1(Intermediate i, A aa) => i.bar(aa);
 use2(Intermediate i, A aa) => i.bar(aa);
 use3(Intermediate i, A aa) => i.bar(aa);
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

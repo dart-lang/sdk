@@ -332,7 +332,6 @@ class LibraryAnalyzer {
 
     var enableTiming = _analysisOptions.enableTiming;
     var nodeRegistry = NodeLintRegistry(enableTiming);
-    var visitors = <AstVisitor>[];
 
     var context = LinterContextImpl(
       allUnits,
@@ -353,15 +352,14 @@ class LibraryAnalyzer {
     }
 
     // Run lints that handle specific node types.
-    unit.accept(LinterVisitor(
-        nodeRegistry, ExceptionHandlingDelegatingAstVisitor.logException));
-
-    // Run visitor based lints.
-    if (visitors.isNotEmpty) {
-      AstVisitor visitor = ExceptionHandlingDelegatingAstVisitor(
-          visitors, ExceptionHandlingDelegatingAstVisitor.logException);
-      unit.accept(visitor);
-    }
+    unit.accept(
+      LinterVisitor(
+        nodeRegistry,
+        LinterExceptionHandler(
+          propagateExceptions: _analysisOptions.propagateLinterExceptions,
+        ).logException,
+      ),
+    );
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {

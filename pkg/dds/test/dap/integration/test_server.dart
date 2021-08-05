@@ -6,20 +6,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math' show Random;
 
 import 'package:dds/src/dap/logging.dart';
 import 'package:dds/src/dap/server.dart';
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 
-final _random = Random();
-
 abstract class DapTestServer {
-  List<String> get errorLogs;
-  String get host;
-  int get port;
   Future<void> stop();
+  StreamSink<List<int>> get sink;
+  Stream<List<int>> get stream;
 }
 
 /// An instance of a DAP server running in-process (to aid debugging).
@@ -28,22 +24,37 @@ abstract class DapTestServer {
 /// serialized and deserialized but it's not quite the same running out of
 /// process.
 class InProcessDapTestServer extends DapTestServer {
-  final DapServer _server;
+  late final DapServer _server;
+  final stdinController = StreamController<List<int>>();
+  final stdoutController = StreamController<List<int>>();
 
-  InProcessDapTestServer._(this._server);
+  StreamSink<List<int>> get sink => stdinController.sink;
+  Stream<List<int>> get stream => stdoutController.stream;
 
-  String get host => _server.host;
-  int get port => _server.port;
-  List<String> get errorLogs => const []; // In-proc errors just throw in-line.
+  InProcessDapTestServer._(List<String> args) {
+    _server = DapServer(
+      stdinController.stream,
+      stdoutController.sink,
+      // Simulate flags based on the args to aid testing.
+      enableDds: !args.contains('--no-dds'),
+      ipv6: args.contains('--ipv6'),
+      enableAuthCodes: !args.contains('--no-auth-codes'),
+    );
+  }
 
   @override
   Future<void> stop() async {
-    await _server.stop();
+    _server.stop();
   }
 
-  static Future<InProcessDapTestServer> create({Logger? logger}) async {
-    final DapServer server = await DapServer.create(logger: logger);
-    return InProcessDapTestServer._(server);
+  static Future<InProcessDapTestServer> create({
+    Logger? logger,
+    List<String>? additionalArgs,
+  }) async {
+    return InProcessDapTestServer._([
+      ...?additionalArgs,
+      if (logger != null) '--verbose',
+    ]);
   }
 }
 
@@ -53,41 +64,24 @@ class InProcessDapTestServer extends DapTestServer {
 /// but will be a little more difficult to debug tests as the debugger will not
 /// be attached to the process.
 class OutOfProcessDapTestServer extends DapTestServer {
-  /// To avoid issues with port bindings if multiple test libraries are run
-  /// concurrently (in their own processes), start from a random port between
-  /// [DapServer.defaultPort] and [DapServer.defaultPort] + 5000.
-  ///
-  /// This number will then be increased should multiple libraries run within
-  /// this same process.
-  static var _nextPort = DapServer.defaultPort + _random.nextInt(5000);
-
   var _isShuttingDown = false;
   final Process _process;
-  final int port;
-  final String host;
-  final List<String> _errors = [];
 
-  List<String> get errorLogs => _errors;
+  StreamSink<List<int>> get sink => _process.stdin;
+  Stream<List<int>> get stream => _process.stdout;
 
   OutOfProcessDapTestServer._(
     this._process,
-    this.host,
-    this.port,
     Logger? logger,
   ) {
-    // The DAP server should generally not write to stdout/stderr (unless -v is
-    // passed), but it may do if it fails to start or crashes. If this happens,
-    // and there's no logger, print to stdout.
-    _process.stdout.transform(utf8.decoder).listen(logger ?? print);
+    // Treat anything written to stderr as the DAP crashing and fail the test.
     _process.stderr.transform(utf8.decoder).listen((error) {
       logger?.call(error);
-      _errors.add(error);
       throw error;
     });
     unawaited(_process.exitCode.then((code) {
       final message = 'Out-of-process DAP server terminated with code $code';
       logger?.call(message);
-      _errors.add(message);
       if (!_isShuttingDown && code != 0) {
         throw message;
       }
@@ -111,20 +105,16 @@ class OutOfProcessDapTestServer extends DapTestServer {
     final dapServerScript =
         path.join(ddsLibFolder, '../tool/dap/run_server.dart');
 
-    final port = OutOfProcessDapTestServer._nextPort++;
-    final host = 'localhost';
     final _process = await Process.start(
       Platform.resolvedExecutable,
       [
         dapServerScript,
         'dap',
-        '--host=$host',
-        '--port=$port',
         ...?additionalArgs,
         if (logger != null) '--verbose'
       ],
     );
 
-    return OutOfProcessDapTestServer._(_process, host, port, logger);
+    return OutOfProcessDapTestServer._(_process, logger);
   }
 }

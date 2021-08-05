@@ -23,6 +23,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
+  static const _ffiNativeName = 'FfiNative';
 
   static const List<String> _primitiveIntegerNativeTypes = [
     'Int8',
@@ -76,8 +77,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           inCompound = true;
           compound = node;
           if (node.declaredElement!.isEmptyStruct) {
-            _errorReporter
-                .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [node.name]);
+            _errorReporter.reportErrorForNode(
+                FfiCode.EMPTY_STRUCT, node.name, [node.name.name]);
           }
           if (className == _structClassName) {
             _validatePackedAnnotation(node.metadata);
@@ -137,9 +138,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (inCompound) {
+    if (!typeSystem.isNonNullableByDefault && inCompound) {
       _errorReporter.reportErrorForNode(
-          FfiCode.FIELD_INITIALIZER_IN_STRUCT, node);
+        FfiCode.FIELD_INITIALIZER_IN_STRUCT,
+        node,
+      );
     }
     super.visitConstructorFieldInitializer(node);
   }
@@ -150,6 +153,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       _validateFieldsInCompound(node);
     }
     super.visitFieldDeclaration(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _checkFfiNative(node);
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -177,6 +186,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.constructorName.staticElement;
+    var class_ = constructor?.enclosingElement;
+    if (class_.isStructSubclass || class_.isUnionSubclass) {
+      _errorReporter.reportErrorForNode(
+        FfiCode.CREATION_OF_STRUCT_OR_UNION,
+        node.constructorName,
+      );
+    }
+
+    super.visitInstanceCreationExpression(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _checkFfiNative(node);
+    super.visitMethodDeclaration(node);
   }
 
   @override
@@ -238,6 +267,38 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  void _checkFfiNative(Declaration node) {
+    NodeList<Annotation> annotations = node.metadata;
+    if (annotations.isEmpty) {
+      return;
+    }
+
+    for (Annotation annotation in annotations) {
+      if (annotation.name.name == _ffiNativeName) {
+        // All FFI Natives must be static.
+        final isStatic = (node is FunctionDeclaration) ||
+            ((node is MethodDeclaration) && node.isStatic);
+        if (!isStatic) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.FFI_NATIVE_ONLY_STATIC, node);
+        }
+        // Leaf call FFI Natives can't use Handles.
+        ArgumentList? argumentList = annotation.arguments;
+        if (argumentList != null) {
+          NodeList<Expression> arguments = argumentList.arguments;
+          TypeArgumentList? typeArgumentList = annotation.typeArguments;
+          if (typeArgumentList != null) {
+            NodeList<TypeAnnotation> typeArguments = typeArgumentList.arguments;
+            if (typeArguments.isNotEmpty && typeArguments[0].type != null) {
+              _validateFfiLeafCallUsesNoHandles(
+                  arguments, typeArguments[0].type!, node);
+            }
+          }
+        }
+      }
+    }
   }
 
   /// Returns `true` if [nativeType] is a C type that has a size.
@@ -483,7 +544,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiLeafCallUsesNoHandles(node, TPrime, node);
+      _validateFfiLeafCallUsesNoHandles(
+          node.argumentList.arguments, TPrime, node);
     }
     _validateIsLeafIsConst(node);
   }
@@ -576,8 +638,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateFfiLeafCallUsesNoHandles(
-      MethodInvocation node, DartType nativeType, AstNode errorNode) {
-    final args = node.argumentList.arguments;
+      NodeList<Expression> args, DartType nativeType, AstNode errorNode) {
     if (args.isNotEmpty) {
       for (final arg in args) {
         if (arg is NamedExpression) {
@@ -612,8 +673,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (node.isStatic) {
       return;
     }
+
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
+
+    if (typeSystem.isNonNullableByDefault) {
+      if (node.externalKeyword == null) {
+        _errorReporter.reportErrorForNode(
+          FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
+          fields.variables[0].name,
+        );
+      }
+    }
+
     var fieldType = fields.type;
     if (fieldType == null) {
       _errorReporter.reportErrorForNode(
@@ -643,6 +715,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else if (declaredType.isCompoundSubtype) {
         final clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
+          // TODO(brianwilkerson) There are no tests for this branch. Ensure
+          //  that the diagnostic is correct and add tests.
           _errorReporter
               .reportErrorForNode(FfiCode.EMPTY_STRUCT, node, [clazz.name]);
         }
@@ -653,10 +727,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             fieldType, [fieldType.toSource()]);
       }
     }
-    for (VariableDeclaration field in fields.variables) {
-      if (field.initializer != null) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, field.name);
+
+    if (!typeSystem.isNonNullableByDefault) {
+      for (VariableDeclaration field in fields.variables) {
+        if (field.initializer != null) {
+          _errorReporter.reportErrorForNode(
+            FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
+            field.name,
+          );
+        }
       }
     }
   }
@@ -673,8 +752,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     final DartType T = node.typeArgumentTypes![0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, node, [T, 'fromFunction']);
+      AstNode errorNode = node.methodName;
+      var typeArgument = node.typeArguments?.arguments[0];
+      if (typeArgument != null) {
+        errorNode = typeArgument;
+      }
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode, [T, 'fromFunction']);
       return;
     }
 
@@ -718,10 +802,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (arg is NamedExpression) {
           if (arg.element?.name == _isLeafParamName) {
             if (_maybeGetBoolConstValue(arg.expression) == null) {
-              final AstNode errorNode = node;
               _errorReporter.reportErrorForNode(
                   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
-                  errorNode,
+                  arg.expression,
                   [_isLeafParamName]);
             }
           }
@@ -734,7 +817,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `DynamicLibrary.lookupFunction<S, F>()`.
   void _validateLookupFunction(MethodInvocation node) {
     final typeArguments = node.typeArguments?.arguments;
-    if (typeArguments?.length != 2) {
+    if (typeArguments == null || typeArguments.length != 2) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
@@ -744,18 +827,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     final DartType S = argTypes[0];
     final DartType F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
-      final AstNode errorNode = typeArguments![0];
+      final AstNode errorNode = typeArguments[0];
       _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
           errorNode, [S, 'lookupFunction']);
       return;
     }
     if (!_validateCompatibleFunctionTypes(F, S)) {
-      final AstNode errorNode = typeArguments![1];
+      final AstNode errorNode = typeArguments[1];
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiLeafCallUsesNoHandles(node, S, typeArguments![0]);
+    _validateFfiLeafCallUsesNoHandles(
+        node.argumentList.arguments, S, typeArguments[0]);
   }
 
   /// Validate that none of the [annotations] are from `dart:ffi`.
@@ -1041,6 +1125,34 @@ extension on Element? {
         element.isFfiClass;
   }
 
+  /// Return `true` if this represents the class `Struct`.
+  bool get isStruct {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Struct' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isStructSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isStruct;
+  }
+
+  /// Return `true` if this represents the class `Union`.
+  bool get isUnion {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Union' &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class `Struct`.
+  bool get isUnionSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isUnion;
+  }
+
   /// If this is a class element from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     var element = this;
@@ -1092,6 +1204,18 @@ extension on ClassElement {
 extension on ExtensionElement {
   bool get isFfiExtension {
     return library.name == FfiVerifier._dartFfiLibraryName;
+  }
+}
+
+extension on DartType? {
+  bool get isStruct {
+    final self = this;
+    return self is InterfaceType && self.element.isStruct;
+  }
+
+  bool get isUnion {
+    final self = this;
+    return self is InterfaceType && self.element.isUnion;
   }
 }
 

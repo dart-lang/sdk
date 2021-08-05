@@ -180,8 +180,8 @@ class C {
   static int get foo => 0;
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 14,
+          3),
     ]);
   }
 
@@ -212,8 +212,8 @@ class C {
   static void set foo(_) {}
 }
 ''', [
-      error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 14, 3),
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 14,
+          3),
     ]);
   }
 
@@ -335,6 +335,28 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorDefault_bothNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.new();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorDefault_oneNew() async {
+    await assertErrorsInCode(r'''
+class C {
+  C();
+  C.new();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
     ]);
   }
 

@@ -43,16 +43,16 @@ class Class extends self::Super {
   constructor •(core::bool* value) → self::Class*
     : assert(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:15:16: Error: Getter not found: 'property'.
       : assert(property),
-               ^^^^^^^^" as{TypeError,ForDynamic} core::bool*), self::Class::field = invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:16:22: Error: Getter not found: 'property'.
+               ^^^^^^^^"), self::Class::field = invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:16:22: Error: Getter not found: 'property'.
         this.field = property,
-                     ^^^^^^^^" as{TypeError,ForDynamic} core::bool*, super self::Super::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:17:15: Error: Getter not found: 'property'.
+                     ^^^^^^^^", super self::Super::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:17:15: Error: Getter not found: 'property'.
         super(property);
-              ^^^^^^^^" as{TypeError,ForDynamic} core::bool*)
+              ^^^^^^^^")
     ;
   constructor redirect() → self::Class*
     : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/super_access_in_initializer.dart:19:27: Error: Getter not found: 'property'.
   Class.redirect() : this(property);
-                          ^^^^^^^^" as{TypeError,ForDynamic} core::bool*)
+                          ^^^^^^^^")
     ;
 }
 static method main() → dynamic {}

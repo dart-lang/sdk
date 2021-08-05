@@ -230,7 +230,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
       if (PeekTag() == kRedirectingInitializer ||
-          PeekTag() == kRedirectingFactoryConstructor) {
+          PeekTag() == kRedirectingFactory) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;
@@ -2007,6 +2007,11 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
   TokenPosition pos = ReadPosition();
   if (position != NULL) *position = pos;
   const String& message = H.DartString(ReadStringReference());
+  Tag tag = ReadTag();  // read (first part of) expression.
+  if (tag == kSomething) {
+    SkipExpression();  // read (rest of) expression.
+  }
+
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
   H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());
@@ -2855,7 +2860,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // read flags.
   const uint8_t flags = is_dynamic ? 0 : ReadFlags();
-  const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
+  const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
@@ -5299,7 +5304,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         if (!closure_owner_.IsNull()) {
           function = Function::NewClosureFunctionWithKind(
               UntaggedFunction::kClosureFunction, *name,
-              parsed_function()->function(), position, closure_owner_);
+              parsed_function()->function(),
+              parsed_function()->function().is_static(), position,
+              closure_owner_);
         } else {
           function = Function::NewClosureFunction(
               *name, parsed_function()->function(), position);
@@ -5320,11 +5327,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
             break;
           case FunctionNodeHelper::kAsync:
             function.set_modifier(UntaggedFunction::kAsync);
-            function.set_is_inlinable(!FLAG_causal_async_stacks);
             break;
           case FunctionNodeHelper::kAsyncStar:
             function.set_modifier(UntaggedFunction::kAsyncGen);
-            function.set_is_inlinable(!FLAG_causal_async_stacks);
             break;
           default:
             // no special modifier
@@ -5343,8 +5348,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         }
         // Note: Is..() methods use the modifiers set above, so order matters.
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          function.set_is_inlinable(!FLAG_causal_async_stacks &&
-                                    !FLAG_lazy_async_stacks);
+          function.set_is_inlinable(!FLAG_lazy_async_stacks);
         }
 
         function.set_end_token_pos(function_node_helper.end_position_);
@@ -5365,7 +5369,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         // Finalize function type.
         FunctionType& signature = FunctionType::Handle(Z, function.signature());
         signature ^= ClassFinalizer::FinalizeType(signature);
-        function.set_signature(signature);
+        function.SetSignature(signature);
 
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;

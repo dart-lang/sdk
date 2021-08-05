@@ -105,7 +105,7 @@ static method foo() → asy::Future<self::X*>* /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
+  self::Y* :async_temporary_0;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L3:

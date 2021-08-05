@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import '../messages.dart';
@@ -22,25 +20,25 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   LibraryBuilder get library;
 
   /// Lookup a member accessed statically through this declaration.
-  Builder findStaticBuilder(
+  Builder? findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false});
 
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context});
+      {bool wasHandled: false, List<LocatedMessage>? context});
 
   /// Returns the type of `this` in an instance of this declaration.
   ///
   /// This is non-null for class and mixin declarations and `null` for
   /// extension declarations.
-  InterfaceType get thisType;
+  InterfaceType? get thisType;
 
   /// Lookups the member [name] declared in this declaration.
   ///
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder lookupLocalMember(String name,
+  Builder? lookupLocalMember(String name,
       {bool setter: false, bool required: false});
 }
 
@@ -52,20 +50,24 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   final ScopeBuilder scopeBuilder;
 
-  DeclarationBuilderImpl(List<MetadataBuilder> metadata, int modifiers,
+  @override
+  final Uri fileUri;
+
+  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
       String name, LibraryBuilder parent, int charOffset, this.scope)
       : scopeBuilder = new ScopeBuilder(scope),
+        fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 
   @override
   LibraryBuilder get library {
-    LibraryBuilder library = parent;
+    LibraryBuilder library = parent as LibraryBuilder;
     return library.partOfLibrary ?? library;
   }
 
   @override
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
+      {bool wasHandled: false, List<LocatedMessage>? context}) {
     library.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled, context: context);
   }

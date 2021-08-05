@@ -8,12 +8,17 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
+import 'package:yaml/yaml.dart';
 
 /// A builder used to build a [SourceChange].
 class ChangeBuilderImpl implements ChangeBuilder {
@@ -45,6 +50,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// A map of absolute normalized path to Dart file edit builders.
   final Map<String, DartFileEditBuilderImpl> _dartFileEditBuilders = {};
 
+  /// A map of absolute normalized path to YAML file edit builders.
+  final Map<String, YamlFileEditBuilderImpl> _yamlFileEditBuilders = {};
+
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
@@ -52,6 +60,35 @@ class ChangeBuilderImpl implements ChangeBuilder {
       {AnalysisSession? session, ChangeWorkspace? workspace, this.eol})
       : assert(session == null || workspace == null),
         workspace = workspace ?? _SingleSessionWorkspace(session!);
+
+  /// Return a hash value that will change when new edits have been added to
+  /// this builder.
+  int get changeHash {
+    // The hash value currently ignores edits to import directives because
+    // finalizing the builders needs to happen exactly once and this getter
+    // needs to be invoked repeatedly.
+    //
+    // In addition, we should consider implementing our own hash function for
+    // file edits because the `hashCode` defined for them might not be
+    // sufficient to detect all changes to the list of edits.
+    var hash = 0;
+    for (var builder in _genericFileEditBuilders.values) {
+      if (builder.hasEdits) {
+        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
+      }
+    }
+    for (var builder in _dartFileEditBuilders.values) {
+      if (builder.hasEdits) {
+        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
+      }
+    }
+    for (var builder in _yamlFileEditBuilders.values) {
+      if (builder.hasEdits) {
+        hash = JenkinsSmiHash.combine(hash, builder.fileEdit.hashCode);
+      }
+    }
+    return JenkinsSmiHash.finish(hash);
+  }
 
   @override
   SourceRange? get selectionRange => _selectionRange;
@@ -66,6 +103,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
       }
     }
     for (var builder in _dartFileEditBuilders.values) {
+      if (builder.hasEdits) {
+        change.addFileEdit(builder.fileEdit);
+        builder.finalize();
+      }
+    }
+    for (var builder in _yamlFileEditBuilders.values) {
       if (builder.hasEdits) {
         change.addFileEdit(builder.fileEdit);
         builder.finalize();
@@ -89,6 +132,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
       throw StateError("Can't create both a generic file edit and a dart file "
           'edit for the same file');
     }
+    if (_yamlFileEditBuilders.containsKey(path)) {
+      throw StateError("Can't create both a yaml file edit and a dart file "
+          'edit for the same file');
+    }
     var builder = _dartFileEditBuilders[path];
     if (builder == null) {
       builder = await _createDartFileEditBuilder(path);
@@ -106,13 +153,46 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<void> addGenericFileEdit(
       String path, void Function(FileEditBuilder builder) buildFileEdit) async {
     if (_dartFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a generic file edit and a dart file "
+      throw StateError("Can't create both a dart file edit and a generic file "
+          'edit for the same file');
+    }
+    if (_yamlFileEditBuilders.containsKey(path)) {
+      throw StateError("Can't create both a yaml file edit and a generic file "
           'edit for the same file');
     }
     var builder = _genericFileEditBuilders[path];
     if (builder == null) {
       builder = FileEditBuilderImpl(this, path, 0);
       _genericFileEditBuilders[path] = builder;
+    }
+    buildFileEdit(builder);
+  }
+
+  @override
+  Future<void> addYamlFileEdit(String path,
+      void Function(YamlFileEditBuilder builder) buildFileEdit) async {
+    if (_dartFileEditBuilders.containsKey(path)) {
+      throw StateError("Can't create both a dart file edit and a yaml file "
+          'edit for the same file');
+    }
+    if (_genericFileEditBuilders.containsKey(path)) {
+      throw StateError("Can't create both a generic file edit and a yaml file "
+          'edit for the same file');
+    }
+    var builder = _yamlFileEditBuilders[path];
+    if (builder == null) {
+      builder = YamlFileEditBuilderImpl(
+          this,
+          path,
+          loadYamlDocument(
+              workspace
+                  .getSession(path)!
+                  .resourceProvider
+                  .getFile(path)
+                  .readAsStringSync(),
+              recover: true),
+          0);
+      _yamlFileEditBuilders[path] = builder;
     }
     buildFileEdit(builder);
   }
@@ -154,6 +234,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
         copy._dartFileEditBuilders[entry.key] = newBuilder;
       }
     }
+    for (var entry in _yamlFileEditBuilders.entries) {
+      copy._yamlFileEditBuilders[entry.key] = entry.value.copyWith(copy);
+    }
     return copy;
   }
 
@@ -193,13 +276,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
 
     var session = workspace.getSession(path);
-    var result = await session?.getResolvedUnit2(path);
+    var result = await session?.getResolvedUnit(path);
     if (result is! ResolvedUnitResult) {
       throw AnalysisException('Cannot analyze "$path"');
     }
     var timeStamp = result.exists ? 0 : -1;
 
-    var declaredUnit = result.unit?.declaredElement;
+    var declaredUnit = result.unit.declaredElement;
     var libraryUnit = declaredUnit?.library.definingCompilationUnit;
 
     DartFileEditBuilderImpl? libraryEditBuilder;
@@ -550,6 +633,9 @@ class _SingleSessionWorkspace extends ChangeWorkspace {
   final AnalysisSession session;
 
   _SingleSessionWorkspace(this.session);
+
+  @override
+  ResourceProvider get resourceProvider => session.resourceProvider;
 
   @override
   bool? containsFile(String path) {

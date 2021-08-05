@@ -1293,7 +1293,7 @@ class CompletionMetricsComputer {
     for (var filePath in context.contextRoot.analyzedFiles()) {
       if (file_paths.isDart(pathContext, filePath)) {
         try {
-          var result = await context.currentSession.getResolvedUnit2(filePath)
+          var result = await context.currentSession.getResolvedUnit(filePath)
               as ResolvedUnitResult;
 
           var analysisError = getFirstErrorOrNull(result);
@@ -1315,11 +1315,11 @@ class CompletionMetricsComputer {
     }
     for (var result in results) {
       _resolvedUnitResult = result;
-      var filePath = result.path!;
+      var filePath = result.path;
       // Use the ExpectedCompletionsVisitor to compute the set of expected
       // completions for this CompilationUnit.
       final visitor = ExpectedCompletionsVisitor(filePath);
-      _resolvedUnitResult.unit!.accept(visitor);
+      _resolvedUnitResult.unit.accept(visitor);
 
       for (var expectedCompletion in visitor.expectedCompletions) {
         var resolvedUnitResult = _resolvedUnitResult;
@@ -1328,14 +1328,14 @@ class CompletionMetricsComputer {
         // have the context reanalyze the file
         if (options.overlay != CompletionMetricsOptions.OVERLAY_NONE) {
           var overlayContents = _getOverlayContents(
-              _resolvedUnitResult.content!, expectedCompletion);
+              _resolvedUnitResult.content, expectedCompletion);
 
           _provider.setOverlay(filePath,
               content: overlayContents,
               modificationStamp: overlayModificationStamp++);
           context.driver.changeFile(filePath);
           resolvedUnitResult = await context.currentSession
-              .getResolvedUnit2(filePath) as ResolvedUnitResult;
+              .getResolvedUnit(filePath) as ResolvedUnitResult;
         }
 
         // As this point the completion suggestions are computed,

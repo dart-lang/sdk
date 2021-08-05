@@ -546,6 +546,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.serverMode, passThrough),
     new OptionHandler(Flags.disableInlining, passThrough),
     new OptionHandler(Flags.disableProgramSplit, passThrough),
+    new OptionHandler(Flags.stopAfterProgramSplit, passThrough),
     new OptionHandler(Flags.disableTypeInference, passThrough),
     new OptionHandler(Flags.useTrivialAbstractValueDomain, passThrough),
     new OptionHandler(Flags.experimentalWrapped, passThrough),
@@ -1034,7 +1035,8 @@ void writeString(Uri uri, String text) {
   if (uri.scheme != 'file') {
     fail('Unhandled scheme ${uri.scheme}.');
   }
-  var file = new File(uri.toFilePath()).openSync(mode: FileMode.write);
+  var file = (File(uri.toFilePath())..createSync(recursive: true))
+      .openSync(mode: FileMode.write);
   file.writeStringSync(text);
   file.closeSync();
 }

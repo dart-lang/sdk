@@ -45,7 +45,7 @@ void myMethod() {
   /// don't end up with lots of unwanted labels on each line here.
   Future<void> test_chainedConstructorOverManyLines() async {
     var content = '''
-main() {
+void f() {
   return new thing
     .whatIsSplit
     .acrossManyLines(1, 2);
@@ -185,7 +185,7 @@ void myMethod() {
   /// it isn't obvious which closing bracket goes with the label.
   Future<void> test_mixedLineSpanning() async {
     var content = '''
-main() {
+void f() {
     /*1*/new Foo((m) {
       /*2*/new Bar(
           labels,
@@ -270,7 +270,7 @@ Widget build(BuildContext context) {
 
   Future<void> test_NoLabelsFromInterpolatedStrings() async {
     var content = """
-void main(HighlightRegionType type, int offset, int length) {
+void f(HighlightRegionType type, int offset, int length) {
   /*1*/new Wrapper(
     /*2*/new Fail(
         'Not expected to find (offset=\$offset; length=\$length; type=\$type) in\\n'
@@ -398,8 +398,8 @@ void myMethod() {
   Future<List<ClosingLabel>> _computeElements(String sourceContent) async {
     newFile(sourcePath, content: sourceContent);
     var result =
-        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
-    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit!);
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
+    var computer = DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
 }

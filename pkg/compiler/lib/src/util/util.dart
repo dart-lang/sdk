@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.12
+
 library dart2js.util;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB, Link;
+    show $BACKSLASH, $CR, $DEL, $DQ, $LF, $LS, $PS, $TAB;
 
 export 'maplet.dart';
 export 'setlet.dart';
-
-part 'indentation.dart';
 
 /// Helper functions for creating hash codes.
 class Hashing {
@@ -45,13 +45,13 @@ class Hashing {
   }
 
   /// Mix the bits of `object.hashCode` with [existing].
-  static int objectHash(Object object, [int existing = 0]) {
+  static int objectHash(Object? object, [int existing = 0]) {
     return mixHashCodeBits(existing, object.hashCode);
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object obj1,
-      [Object obj2, Object obj3, Object obj4, Object obj5]) {
+  static int objectsHash(Object? obj1,
+      [Object? obj2, Object? obj3, Object? obj4, Object? obj5]) {
     int hash = 0;
     if (obj5 != null) hash = objectHash(obj5, hash);
     if (obj4 != null) hash = objectHash(obj4, hash);
@@ -61,7 +61,7 @@ class Hashing {
   }
 
   /// Mix the bits of the element hash codes of [list] with [existing].
-  static int listHash(List list, [int existing = 0]) {
+  static int listHash(List? list, [int existing = 0]) {
     int h = existing;
     if (list != null) {
       int length = list.length;
@@ -73,7 +73,7 @@ class Hashing {
   }
 
   /// Mix the bits of the element hash codes of [iterable] with [existing].
-  static int setHash<E>(Iterable<E> iterable, [int existing = 0]) {
+  static int setHash<E>(Iterable<E>? iterable, [int existing = 0]) {
     int h = existing;
     if (iterable != null) {
       for (E e in iterable) {
@@ -111,7 +111,7 @@ class Hashing {
   }
 }
 
-bool identicalElements<E>(List<E> a, List<E> b) {
+bool identicalElements<E>(List<E>? a, List<E>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
@@ -123,7 +123,7 @@ bool identicalElements<E>(List<E> a, List<E> b) {
   return true;
 }
 
-bool equalElements<E>(List<E> a, List<E> b) {
+bool equalElements<E>(List<E>? a, List<E>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
@@ -135,13 +135,13 @@ bool equalElements<E>(List<E> a, List<E> b) {
   return true;
 }
 
-bool equalSets<E>(Set<E> a, Set<E> b) {
+bool equalSets<E>(Set<E>? a, Set<E>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   return a.length == b.length && a.containsAll(b) && b.containsAll(a);
 }
 
-bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
+bool equalMaps<K, V>(Map<K, V>? a, Map<K, V>? b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.length != b.length) return false;
@@ -153,7 +153,7 @@ bool equalMaps<K, V>(Map<K, V> a, Map<K, V> b) {
 
 /// File name prefix used to shorten the file name in stack traces printed by
 /// [trace].
-String stackTraceFilePrefix = null;
+String? stackTraceFilePrefix = null;
 
 /// Writes the characters of [string] on [buffer].  The characters
 /// are escaped as suitable for JavaScript and JSON.  [buffer] is

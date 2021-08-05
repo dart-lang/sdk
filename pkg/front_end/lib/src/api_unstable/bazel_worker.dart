@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// API needed by `utils/front_end/summary_worker.dart`, a tool used to compute
 /// summaries in build systems like bazel, pub-build, and package-build.
 
@@ -12,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
-import 'package:kernel/kernel.dart' show Component, Library;
+import 'package:kernel/kernel.dart' show Component, Library, dummyComponent;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -60,7 +58,7 @@ export 'compiler_state.dart' show InitializedCompilerState;
 /// Re-uses cached components from [oldState.workerInputCache], and reloads them
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     Set<String> tags,
     Uri sdkSummary,
     Uri packagesFile,
@@ -69,14 +67,14 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     FileSystem fileSystem,
-    Iterable<String> experiments,
+    Iterable<String>? experiments,
     bool outlineOnly,
     Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false,
     bool verbose: false,
     NnbdMode nnbdMode: NnbdMode.Weak}) async {
   List<Component> outputLoadedAdditionalDills =
-      new List<Component>.filled(additionalDills.length, null);
+      new List<Component>.filled(additionalDills.length, dummyComponent);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experiments),
       onError: (e) => throw e);
@@ -101,7 +99,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 }
 
 Future<InitializedCompilerState> initializeCompiler(
-  InitializedCompilerState oldState,
+  InitializedCompilerState? oldState,
   Uri sdkSummary,
   Uri librariesSpecificationUri,
   Uri packagesFile,
@@ -139,7 +137,7 @@ Future<InitializedCompilerState> initializeCompiler(
 
 Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool summaryOnly, bool includeOffsets: true}) {
+    {bool? summaryOnly, bool includeOffsets: true}) {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -154,22 +152,22 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
       includeOffsets: includeOffsets);
 }
 
-Future<List<int>> compileSummary(InitializedCompilerState compilerState,
+Future<List<int>?> compileSummary(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
     {bool includeOffsets: false}) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: true, includeOffsets: includeOffsets);
-  return result?.summary;
+  return result.summary;
 }
 
-Future<Component> compileComponent(InitializedCompilerState compilerState,
+Future<Component?> compileComponent(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
   CompilerResult result = await _compile(
       compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: false);
 
-  Component component = result?.component;
+  Component? component = result.component;
   if (component != null) {
     for (Library lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {

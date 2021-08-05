@@ -34,7 +34,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector;
 import 'package:kernel/target/targets.dart' show TargetFlags, getTarget;
-import 'package:meta/meta.dart';
 import 'package:vm/target/install.dart' show installAdditionalTargets;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -69,7 +68,7 @@ ArgResults parseArgs(List<String> args) {
         help: 'Write to stdout about what classes and fields where remeoved')
     ..addFlag('help', help: 'Prints this help', negatable: false);
 
-  ArgResults argResults;
+  ArgResults? argResults;
   try {
     argResults = argParser.parse(args);
   } on FormatException catch (e) {
@@ -109,7 +108,7 @@ Future main(List<String> args) async {
 
   installAdditionalTargets();
 
-  final target = getTarget(argResults['target'], TargetFlags());
+  final target = getTarget(argResults['target'], TargetFlags())!;
 
   // The [component] is treeshaken and has TFA annotations. Write output.
   if (argResults['aot']) {
@@ -156,7 +155,7 @@ Uint8List concatenate(Uint8List a, Uint8List b) {
 }
 
 Future writeComponent(Component component, String filename,
-    {@required bool removeCoreLibs, @required bool removeSource}) async {
+    {required bool removeCoreLibs, required bool removeSource}) async {
   if (removeSource) {
     component.uriToSource.clear();
   }

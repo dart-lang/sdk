@@ -14,8 +14,8 @@ import 'dart:isolate' show Capability, Isolate, ReceivePort;
 import 'log.dart' show StdoutLogger;
 
 Future runGuarded(Future f(),
-    {void printLineOnStdout(line),
-    void handleLateError(error, StackTrace stackTrace)}) {
+    {void Function(String)? printLineOnStdout,
+    void Function(dynamic, StackTrace)? handleLateError}) {
   var printWrapper;
   if (printLineOnStdout != null) {
     printWrapper = (_1, _2, _3, String line) {
@@ -39,6 +39,7 @@ Future runGuarded(Future f(),
         // Ignored.
       }
       stderr
+          // ignore: unnecessary_null_comparison
           .write("$errorString\n" + (stackTrace == null ? "" : "$stackTrace"));
       stderr.flush();
       exit(255);
@@ -81,7 +82,7 @@ Future runGuarded(Future f(),
 /// Ping [isolate] to ensure control messages have been delivered.  Control
 /// messages are things like [Isolate.addErrorListener] and
 /// [Isolate.addOnExitListener].
-Future acknowledgeControlMessages(Isolate isolate, {Capability resume}) {
+Future acknowledgeControlMessages(Isolate isolate, {Capability? resume}) {
   ReceivePort ping = new ReceivePort();
   Isolate.current.ping(ping.sendPort);
   if (resume == null) {

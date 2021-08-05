@@ -265,7 +265,7 @@ void main() async {
           ${options.dartLangComment}
 
           class A {
-            String privateInstanceField = 'Cello';
+            String _privateInstanceField = 'Cello';
           }
           ''';
         setUpAll(() async {
@@ -279,7 +279,7 @@ void main() async {
           driver.cleanUp();
         });
         test('fieldId in classSymbol', () async {
-          expect(fieldId, endsWith('A|privateInstanceField'));
+          expect(fieldId, endsWith('A|Symbol(_privateInstanceField)'));
           expect(fieldId, fieldSymbol.id);
         });
         test('has class scopeId', () async {
@@ -291,6 +291,394 @@ void main() async {
         });
         test('is not static', () async {
           expect(fieldSymbol.isStatic, isFalse);
+        });
+      });
+      group('class public instance method debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            String publicInstanceMethod() => 'Cello';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicInstanceMethod'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class private instance method debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            String _privateInstanceMethod() => 'Cello';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|Symbol(_privateInstanceMethod)'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class public static method debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            static String publicStaticMethod() => 'Cello';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicStaticMethod'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
+        });
+      });
+      group('class private static method debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            static String _privateStaticMethod() => 'Fosse';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|_privateStaticMethod'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
+        });
+      });
+      group('class public instance getter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            String get publicGetter() => 'Fosse';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicGetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class private instance getter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            String get _privateGetter() => 'Fosse';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|Symbol(_privateGetter)'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class public instance setter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            var _value
+            set publicSetter(String v) => _value = v;
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicSetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class private instance setter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            var _value
+            set _privateSetter(String v) => _value = v;
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|Symbol(_privateSetter)'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is not static', () async {
+          expect(methodSymbol.isStatic, isFalse);
+        });
+      });
+      group('class public static getter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            static String get publicGetter() => 'Fosse';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicGetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
+        });
+      });
+      group('class private static getter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            static String get _privateGetter() => 'Fosse';
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|_privateGetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
+        });
+      });
+      group('class public static setter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            var _value;
+            static set publicSetter(String v) => _value = v;
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|publicSetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
+        });
+      });
+      group('class private static setter debug symbols', () {
+        TestDriver driver;
+        ClassSymbol classSymbol;
+        FunctionSymbol methodSymbol;
+        final source = '''
+          ${options.dartLangComment}
+
+          class A {
+            var _value;
+            static set _privateSetter(String v) => _value = v;
+          }
+          ''';
+        setUpAll(() async {
+          driver = TestDriver(options, source);
+          var result = await driver.compile();
+          classSymbol = result.symbols.classes.single;
+          methodSymbol = result.symbols.functions.single;
+        });
+        tearDownAll(() {
+          driver.cleanUp();
+        });
+        test('functionId in classSymbol', () async {
+          expect(methodSymbol.id, endsWith('A|_privateSetter'));
+          expect(methodSymbol.id, classSymbol.functionIds.single);
+        });
+        test('has class scopeId', () async {
+          expect(methodSymbol.scopeId, endsWith('|A'));
+          expect(methodSymbol.scopeId, classSymbol.id);
+        });
+        test('is static', () async {
+          expect(methodSymbol.isStatic, isTrue);
         });
       });
     });

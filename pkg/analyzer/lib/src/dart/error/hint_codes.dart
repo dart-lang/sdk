@@ -309,9 +309,34 @@ class HintCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the class `Function` is used in
+  // either the `extends`, `implements`, or `with` clause of a class or mixin.
+  // Using the class `Function` in this way has no semantic value, so it's
+  // effectively dead code.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `Function` is used as
+  // the superclass of `F`:
+  //
+  // ```dart
+  // class F extends [!Function!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the class `Function` from whichever clause it's in, and remove the
+  // whole clause if `Function` is the only type in the clause:
+  //
+  // ```dart
+  // class F {}
+  // ```
   static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
       'DEPRECATED_SUBTYPE_OF_FUNCTION', "Extending 'Function' is deprecated.",
       correction: "Try removing 'Function' from the 'extends' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_EXTENDS_FUNCTION');
 
   /**
@@ -329,6 +354,7 @@ class HintCode extends AnalyzerErrorCode {
       'DEPRECATED_SUBTYPE_OF_FUNCTION',
       "Implementing 'Function' has no effect.",
       correction: "Try removing 'Function' from the 'implements' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION');
 
   /**
@@ -427,6 +453,7 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
       'DEPRECATED_SUBTYPE_OF_FUNCTION', "Mixing in 'Function' is deprecated.",
       correction: "Try removing 'Function' from the 'with' clause.",
+      hasPublishedDocs: true,
       uniqueName: 'DEPRECATED_MIXIN_FUNCTION');
 
   /**
@@ -742,14 +769,85 @@ class HintCode extends AnalyzerErrorCode {
           correction: "Try using a package: URI instead.");
 
   /**
-   * Deferred libraries shouldn't define a top level function 'loadLibrary'.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a library that declares a
+  // function named `loadLibrary` is imported using a deferred import. A
+  // deferred import introduces an implicit function named `loadLibrary`. This
+  // function is used to load the contents of the deferred library, and the
+  // implicit function hides the explicit declaration in the deferred library.
+  //
+  // For more information, see the language tour's coverage of
+  // [deferred loading](https://dart.dev/guides/language/language-tour#lazily-loading-a-library).
+  //
+  // #### Example
+  //
+  // Given a file (`a.dart`) that defines a function named `loadLibrary`:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // void loadLibrary(Library library) {}
+  //
+  // class Library {}
+  // ```
+  //
+  // The following code produces this diagnostic because the implicit
+  // declaration of `a.loadLibrary` is hiding the explicit declaration of
+  // `loadLibrary` in `a.dart`:
+  //
+  // ```dart
+  // [!import 'a.dart' deferred as a;!]
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the imported library isn't required to be deferred, then remove the
+  // keyword `deferred`:
+  //
+  // ```dart
+  // import 'a.dart' as a;
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // If the imported library is required to be deferred and you need to
+  // reference the imported function, then rename the function in the imported
+  // library:
+  //
+  // ```dart
+  // void populateLibrary(Library library) {}
+  //
+  // class Library {}
+  // ```
+  //
+  // If the imported library is required to be deferred and you don't need to
+  // reference the imported function, then add a `hide` clause:
+  //
+  // ```dart
+  // import 'a.dart' deferred as a hide loadLibrary;
+  //
+  // void f() {
+  //   a.Library();
+  // }
+  // ```
+  //
+  // If type arguments shouldn't be required for the class, then mark the class
+  // with the `@optionalTypeArgs` annotation (from `package:meta`):
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
       'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-      "The library '{0}' defines a top-level function named 'loadLibrary' "
-          "which is hidden by deferring this library.",
+      "The imported library defines a top-level function named 'loadLibrary' "
+          "that is hidden by deferring this library.",
       correction: "Try changing the import to not be deferred, or "
-          "rename the function in the imported library.");
+          "rename the function in the imported library.",
+      hasPublishedDocs: true);
 
   /**
    * https://github.com/dart-lang/sdk/issues/44063
@@ -2620,32 +2718,126 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type arguments for '{0}'.");
 
   /**
-   * This hint is generated anywhere where a `@sealed` class or mixin is used as
-   * a super-type of a class.
+   * Parameters:
+   * 0: the name of the sealed class
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a sealed class (one that either
+  // has the `@sealed` annotation or inherits or mixes in a sealed class) is
+  // referenced in either the `extends`, `implements`, or `with` clause of a
+  // class or mixin declaration if the declaration isn't in the same package as
+  // the sealed class.
+  //
+  // #### Example
+  //
+  // Given a library in a package other than the package being analyzed that
+  // contains the following:
+  //
+  // ```dart
+  // %uri="package:a/a.dart"
+  // import 'package:meta/meta.dart';
+  //
+  // class A {}
+  //
+  // @sealed
+  // class B {}
+  // ```
+  //
+  // The following code produces this diagnostic because `C`, which isn't in the
+  // same package as `B`, is extending the sealed class `B`:
+  //
+  // ```dart
+  // import 'package:a/a.dart';
+  //
+  // [!class C extends B {}!]
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the class doesn't need to be a subtype of the sealed class, then change
+  // the declaration so that it isn't:
+  //
+  // ```dart
+  // import 'package:a/a.dart';
+  //
+  // class B extends A {}
+  // ```
+  //
+  // If the class needs to be a subtype of the sealed class, then either change
+  // the sealed class so that it's no longer sealed or move the subclass into
+  // the same package as the sealed class.
   static const HintCode SUBTYPE_OF_SEALED_CLASS = HintCode(
       'SUBTYPE_OF_SEALED_CLASS',
       "The class '{0}' shouldn't be extended, mixed in, or implemented because "
-          "it is sealed.",
+          "it's sealed.",
       correction:
-          "Try composing instead of inheriting, or refer to its documentation "
-          "for more information.");
+          "Try composing instead of inheriting, or refer to the documentation "
+          "of '{0}' for more information.",
+      hasPublishedDocs: true);
 
   /**
-   * Type checks of the type `x is! Null` should be done with `x != null`.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a type check (using the
+  // `as` operator) where the type is `Null`. There's only one value whose type
+  // is `Null`, so the code is both more readable and more performant when it
+  // tests for `null` explicitly.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the code is testing to
+  // see whether the value of `s` is `null` by using a type check:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if ([!s is Null!]) {
+  //     return;
+  //   }
+  //   print(s);
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the code is testing to
+  // see whether the value of `s` is something other than `null` by using a type
+  // check:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if ([!s is! Null!]) {
+  //     print(s);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the type check with the equivalent comparison with `null`:
+  //
+  // ```dart
+  // void f(String? s) {
+  //   if (s == null) {
+  //     return;
+  //   }
+  //   print(s);
+  // }
+  // ```
   static const HintCode TYPE_CHECK_IS_NOT_NULL = HintCode(
       'TYPE_CHECK_WITH_NULL',
       "Tests for non-null should be done with '!= null'.",
       correction: "Try replacing the 'is! Null' check with '!= null'.",
+      hasPublishedDocs: true,
       uniqueName: 'TYPE_CHECK_IS_NOT_NULL');
 
   /**
-   * Type checks of the type `x is Null` should be done with `x == null`.
+   * No parameters.
    */
   static const HintCode TYPE_CHECK_IS_NULL = HintCode(
       'TYPE_CHECK_WITH_NULL', "Tests for null should be done with '== null'.",
       correction: "Try replacing the 'is Null' check with '== null'.",
+      hasPublishedDocs: true,
       uniqueName: 'TYPE_CHECK_IS_NULL');
 
   /**
@@ -2684,6 +2876,18 @@ class HintCode extends AnalyzerErrorCode {
       "The library '{0}' doesn't export a member with the hidden name '{1}'.",
       correction: "Try removing the name from the list of hidden members.",
       hasPublishedDocs: true);
+
+  /**
+   * This hint is generated when an `@UnusedResult.unless` annotation
+   * references an undefined parameter.
+   *
+   * Parameters:
+   * 0: the name of the undefined parameter
+   * 1: the name of the targeted member
+   */
+  static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(
+      'UNDEFINED_REFERENCED_PARAMETER',
+      "The parameter '{0}' is not defined by '{1}'.");
 
   /**
    * Parameters:
@@ -2786,11 +2990,55 @@ class HintCode extends AnalyzerErrorCode {
       correction: 'Try removing the import directive.');
 
   /**
-   * Unnecessary `noSuchMethod` declaration.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there's a declaration of
+  // `noSuchMethod`, the only thing the declaration does is invoke the
+  // overridden declaration, and the overridden declaration isn't the
+  // declaration in `Object`.
+  //
+  // Overriding the implementation of `Object`'s `noSuchMethod` (no matter what
+  // the implementation does) signals to the analyzer that it shouldn't flag any
+  // inherited abstract methods that aren't implemented in that class. This
+  // works even if the overriding implementation is inherited from a superclass,
+  // so there's no value to declare it again in a subclass.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the declaration of
+  // `noSuchMethod` in `A` makes the declaration of `noSuchMethod` in `B`
+  // unnecessary:
+  //
+  // ```dart
+  // class A {
+  //   @override
+  //   dynamic noSuchMethod(x) => super.noSuchMethod(x);
+  // }
+  // class B extends A {
+  //   @override
+  //   dynamic [!noSuchMethod!](y) {
+  //     return super.noSuchMethod(y);
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the unnecessary declaration:
+  //
+  // ```dart
+  // class A {
+  //   @override
+  //   dynamic noSuchMethod(x) => super.noSuchMethod(x);
+  // }
+  // class B extends A {}
+  // ```
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
-      correction: "Try removing the declaration of 'noSuchMethod'.");
+      correction: "Try removing the declaration of 'noSuchMethod'.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.

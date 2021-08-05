@@ -98,7 +98,7 @@ String? getImprovedType(String interfaceName, String? fieldName) {
     },
     'ResponseError': {
       'code': 'ErrorCodes',
-      // This is dynamic normally, but since this class can be serialised
+      // This is Object? normally, but since this class can be serialised
       // we will crash if it data is set to something that can't be converted to
       // JSON (for ex. Uri) so this forces anyone setting this to convert to a
       // String.

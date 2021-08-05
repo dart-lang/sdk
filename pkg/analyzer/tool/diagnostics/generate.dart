@@ -33,9 +33,11 @@ List<CodePath> computeCodePaths() {
     [analyzerPath, 'lib', 'src', 'dart', 'error', 'hint_codes.dart'],
     [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
     [analyzerPath, 'lib', 'src', 'error', 'codes.dart'],
+    [analyzerPath, 'lib', 'src', 'pubspec', 'pubspec_warning_code.dart'],
   ], [
     null,
     [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.g.dart'],
+    null,
     null,
   ]);
 }
@@ -361,7 +363,7 @@ class DocumentationGenerator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    var result = session.getParsedUnit2(path);
+    var result = session.getParsedUnit(path);
     if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
@@ -545,7 +547,7 @@ condition is `true` and the path in which the condition is `false`.
 For additional details, see the
 [specification of definite assignment][definiteAssignmentSpec].
 
-[definiteAssignmentSpec](https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md)
+[definiteAssignmentSpec]: https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md
 
 ### Mixin application
 

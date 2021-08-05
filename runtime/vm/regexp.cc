@@ -5537,24 +5537,23 @@ void CreateSpecializedFunction(Thread* thread,
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   // TODO(regis): Better, share a common signature.
-  fn.set_num_fixed_parameters(kParamCount);
+  signature.set_num_fixed_parameters(kParamCount);
   signature.set_parameter_types(
       Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
-  signature.CreateNameArrayIncludingFlags(Heap::kOld);
+  fn.CreateNameArray();
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
-                               Symbols::This());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Symbols::This());
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
-                               Symbols::string_param());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                        Symbols::string_param());
   signature.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
                                Object::dynamic_type());
-  signature.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                               Symbols::start_index_param());
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Symbols::start_index_param());
   signature.set_result_type(Type::Handle(zone, Type::ArrayType()));
-  signature.FinalizeNameArrays(fn);
 
   // Cache the result.
   regexp.set_function(specialization_cid, sticky, fn);

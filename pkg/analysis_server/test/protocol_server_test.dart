@@ -361,11 +361,8 @@ class MockAnalysisSession implements AnalysisSession {
   Map<String, FileResult> fileResults = {};
 
   void addFileResult(FileResult result) {
-    fileResults[result.path!] = result;
+    fileResults[result.path] = result;
   }
-
-  @override
-  FileResult getFile(String path) => fileResults[path]!;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

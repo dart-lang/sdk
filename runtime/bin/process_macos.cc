@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "bin/process.h"
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif
 #include <errno.h>      // NOLINT
@@ -468,7 +468,7 @@ class ProcessStarter {
       ReportChildError();
     }
 
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
     if (program_environment_ != NULL) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
@@ -521,7 +521,7 @@ class ProcessStarter {
               (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
-#if !HOST_OS_IOS
+#if !DART_HOST_OS_IOS
           if (program_environment_ != NULL) {
             // On MacOS you have to do a bit of magic to get to the
             // environment strings.
@@ -1141,6 +1141,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
 }
 
 void ProcessInfoList::Init() {
+  active_processes_ = NULL;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -1152,6 +1153,9 @@ void ProcessInfoList::Cleanup() {
 }
 
 void ExitCodeHandler::Init() {
+  running_ = false;
+  process_count_ = 0;
+  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
@@ -1168,6 +1172,7 @@ void Process::Init() {
 
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
+  signal_handlers = NULL;
 
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();
@@ -1191,4 +1196,4 @@ void Process::Cleanup() {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

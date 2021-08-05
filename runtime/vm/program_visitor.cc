@@ -467,7 +467,7 @@ class StackMapEntry : public ZoneAllocated {
     ASSERT(it.current_spill_slot_bit_count_ >= 0);
   }
 
-  static const intptr_t kHashBits = 30;
+  static constexpr intptr_t kHashBits = Object::kHashBits;
 
   uword Hash() {
     if (hash_ != 0) return hash_;
@@ -754,8 +754,7 @@ void ProgramVisitor::DedupPcDescriptors(Zone* zone,
         public Dedupper<PcDescriptors, PcDescriptorsKeyValueTrait> {
    public:
     explicit DedupPcDescriptorsVisitor(Zone* zone)
-        : Dedupper(zone),
-          pc_descriptor_(PcDescriptors::Handle(zone)) {
+        : Dedupper(zone), pc_descriptor_(PcDescriptors::Handle(zone)) {
       if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
         // Prefer existing objects in the VM isolate.
         AddVMBaseObjects();
@@ -1105,63 +1104,19 @@ void ProgramVisitor::DedupLists(Zone* zone, IsolateGroup* isolate_group) {
     }
 
     void VisitFunction(const Function& function) {
-      list_ = PrepareParameterNames(function);
-      list_ = Dedup(list_);
-      function.set_parameter_names(list_);
-
-      // No need to dedup parameter types, as they are stored in the
-      // canonicalized function type of the function.
-      // However, the function type of the function is only needed in case of
-      // recompilation or if available to mirrors, or for copied types
-      // to lazily generated tear offs. Also avoid attempting to change
-      // read-only VM objects for de-duplication.
-      // We cannot check precisely if a function is an entry point here,
-      // because the metadata has been dropped already. However, we use the
-      // has_pragma flag on the function as a conservative approximation.
-      // Resolution requires the number of parameters (no signature needed) and
-      // their names if any named parameter is required (signature needed).
-      if (FLAG_precompiled_mode && !function.InVMIsolateHeap() &&
-          !function.IsClosureFunction() && !function.IsFfiTrampoline() &&
-          function.name() != Symbols::Call().ptr() && !function.is_native() &&
-          !function.HasRequiredNamedParameters() &&
-          !MayBeEntryPoint(function)) {
-        // Function type not needed for function type tests or resolution.
-        function.set_signature(Object::null_function_type());
+      // Don't bother dedupping the positional names in precompiled mode, as
+      // they'll be dropped anyway.
+      if (!FLAG_precompiled_mode) {
+        list_ = function.positional_parameter_names();
+        if (!list_.IsNull()) {
+          list_ = Dedup(list_);
+          function.set_positional_parameter_names(list_);
+        }
       }
     }
 
    private:
     bool IsCorrectType(const Object& obj) const { return obj.IsArray(); }
-
-    ArrayPtr PrepareParameterNames(const Function& function) {
-      list_ = function.parameter_names();
-      // Preserve parameter names in case of recompilation for the JIT. Also
-      // avoid attempting to change read-only VM objects for de-duplication.
-      if (FLAG_precompiled_mode && !list_.IsNull() &&
-          !list_.InVMIsolateHeap() && !function.HasOptionalNamedParameters()) {
-        // Parameter names not needed for resolution.
-        ASSERT(list_.Length() == function.NumParameters());
-        for (intptr_t i = 0; i < list_.Length(); i++) {
-          list_.SetAt(i, Symbols::OptimizedOut());
-        }
-      }
-      return list_.ptr();
-    }
-
-    bool MayBeEntryPoint(const Function& function) {
-      // Metadata has been dropped already.
-      // Use presence of pragma as conservative approximation.
-      if (function.has_pragma()) return true;
-      auto kind = function.kind();
-      if ((kind == UntaggedFunction::kImplicitGetter) ||
-          (kind == UntaggedFunction::kImplicitSetter) ||
-          (kind == UntaggedFunction::kImplicitStaticGetter) ||
-          (kind == UntaggedFunction::kFieldInitializer)) {
-        field_ = function.accessor_field();
-        if (!field_.IsNull() && field_.has_pragma()) return true;
-      }
-      return false;
-    }
 
     Array& list_;
     Field& field_;
@@ -1480,7 +1435,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
   ObjectPtr* from = object_store->from();
   ObjectPtr* to = object_store->to_snapshot(Snapshot::kFullAOT);
   for (ObjectPtr* p = from; p <= to; p++) {
-    if ((*p)->IsCode()) {
+    if ((*p)->IsHeapObject() && (*p)->IsCode()) {
       code ^= *p;
       inst = code.instructions();
       thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);

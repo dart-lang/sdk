@@ -13,7 +13,7 @@ main() {
     ..aKeep = 43;
   test('retrieving values', () {
     expect(foo.barKeep.aKeep, 5);
-    expect(foo.mapKeep['foo'].aKeep, 2);
+    expect(foo.mapKeep['foo']!.aKeep, 2);
     expect(foo.hasHasKeep(), false);
     expect(foo.aKeep, 43);
     foo.clearClearKeep();

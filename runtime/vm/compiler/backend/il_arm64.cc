@@ -699,7 +699,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
-      Utils::SignedNBitMask(kNumberOfFpuRegisters) & ~(1l << FpuTMP);
+      Utils::NBitMask<intptr_t>(kNumberOfFpuRegisters) & ~(1l << FpuTMP);
 
   const intptr_t kNumTemps = (Utils::CountOneBits64(kCpuRegistersToPreserve) +
                               Utils::CountOneBits64(kFpuRegistersToPreserve));
@@ -1454,7 +1454,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Now that we have THR, we can set CSP.
   __ SetupCSPFromThread(THR);
 
-#if defined(TARGET_OS_FUCHSIA)
+#if defined(DART_TARGET_OS_FUCHSIA)
   __ str(R18,
          compiler::Address(
              THR, compiler::target::Thread::saved_shadow_call_stack_offset()));
@@ -1496,11 +1496,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load the code object.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R0, R0,
-                         compiler::target::GrowableObjectArray::data_offset());
-  __ LoadFieldFromOffset(CODE_REG, R0,
-                         compiler::target::Array::data_offset() +
-                             callback_id_ * compiler::target::kWordSize);
+  __ LoadCompressedFieldFromOffset(
+      R0, R0, compiler::target::GrowableObjectArray::data_offset());
+  __ LoadCompressedFieldFromOffset(
+      CODE_REG, R0,
+      compiler::target::Array::data_offset() +
+          callback_id_ * compiler::target::kCompressedWordSize);
 
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,
@@ -1573,31 +1574,6 @@ void StringToCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(result, -1);
   __ csel(result, TMP, result, EQ);
   __ SmiTag(result);
-}
-
-LocationSummary* StringInterpolateInstr::MakeLocationSummary(Zone* zone,
-                                                             bool opt) const {
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_out(0, Location::RegisterLocation(R0));
-  return summary;
-}
-
-void StringInterpolateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register array = locs()->in(0).reg();
-  __ Push(array);
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), source(), CallFunction(), args_info,
-                               locs(), ICData::Handle(), ICData::kStatic);
-  ASSERT(locs()->out(0).reg() == R0);
 }
 
 LocationSummary* Utf8ScanInstr::MakeLocationSummary(Zone* zone,
@@ -2733,8 +2709,11 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
     if (array_size < (kInlineArraySize * kCompressedWordSize)) {
       intptr_t current_offset = 0;
       while (current_offset < array_size) {
-        __ str(R6, compiler::Address(R8, current_offset),
-               compiler::kObjectBytes);
+        __ StoreCompressedIntoObjectNoBarrier(
+            AllocateArrayABI::kResultReg,
+            compiler::Address(R8, current_offset, compiler::Address::Offset,
+                              compiler::kObjectBytes),
+            R6);
         current_offset += kCompressedWordSize;
       }
     } else {
@@ -2742,7 +2721,11 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ Bind(&init_loop);
       __ CompareRegisters(R8, R3);
       __ b(&end_loop, CS);
-      __ str(R6, compiler::Address(R8), compiler::kObjectBytes);
+      __ StoreCompressedIntoObjectNoBarrier(
+          AllocateArrayABI::kResultReg,
+          compiler::Address(R8, 0, compiler::Address::Offset,
+                            compiler::kObjectBytes),
+          R6);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);

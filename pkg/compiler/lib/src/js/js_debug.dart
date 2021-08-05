@@ -7,9 +7,9 @@
 library js.debug;
 
 import 'package:js_ast/js_ast.dart';
+import 'package:kernel/text/indentation.dart' show Indentation, Tagging;
 
 import '../io/code_output.dart' show BufferedCodeOutput;
-import '../util/util.dart' show Indentation, Tagging;
 
 /// Unparse the JavaScript [node].
 String nodeToString(Node node, {bool pretty: false}) {

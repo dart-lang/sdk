@@ -63,12 +63,13 @@ class Service {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort =
         new RawReceivePort(null, 'Service.getInfo');
-    final Completer<Uri?> uriCompleter = new Completer<Uri?>();
-    receivePort.handler = (Uri? uri) => uriCompleter.complete(uri);
+    final Completer<String?> completer = new Completer<String?>();
+    receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
     _getServerInfo(receivePort.sendPort);
     // Await the response from the service isolate.
-    Uri? uri = await uriCompleter.future;
+    String? uriString = await completer.future;
+    Uri? uri = uriString == null ? null : Uri.parse(uriString);
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);
@@ -85,12 +86,13 @@ class Service {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort =
         new RawReceivePort(null, 'Service.controlWebServer');
-    final Completer<Uri> uriCompleter = new Completer<Uri>();
-    receivePort.handler = (Uri uri) => uriCompleter.complete(uri);
+    final Completer<String?> completer = new Completer<String?>();
+    receivePort.handler = (String? uriString) => completer.complete(uriString);
     // Request the information from the service isolate.
     _webServerControl(receivePort.sendPort, enable, silenceOutput);
     // Await the response from the service isolate.
-    Uri uri = await uriCompleter.future;
+    String? uriString = await completer.future;
+    Uri? uri = uriString == null ? null : Uri.parse(uriString);
     // Close the port.
     receivePort.close();
     return new ServiceProtocolInfo(uri);

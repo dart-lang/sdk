@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain;
 
@@ -14,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show StringToken;
 
-import 'package:kernel/kernel.dart' show Component, Statement;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -25,7 +23,7 @@ import '../api_prototype/compiler_options.dart'
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
-import '../api_prototype/file_system.dart' show FileSystem;
+import '../api_prototype/file_system.dart' show FileSystem, NullFileSystem;
 
 import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
@@ -38,8 +36,6 @@ import '../base/nnbd_mode.dart' show NnbdMode;
 import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../kernel_generator_impl.dart' show generateKernelInternal;
-
-import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
 
 import 'compiler_state.dart' show InitializedCompilerState;
 
@@ -139,14 +135,14 @@ void clearStringTokenCanonicalizer() {
 }
 
 InitializedCompilerState initializeCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     Target target,
     Uri librariesSpecificationUri,
     List<Uri> additionalDills,
     Uri packagesFileUri,
-    {Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+    {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     bool verify: false,
-    NnbdMode nnbdMode,
+    NnbdMode? nnbdMode,
     Set<InvocationMode> invocationModes: const <InvocationMode>{},
     Verbosity verbosity: Verbosity.all}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
@@ -183,7 +179,7 @@ InitializedCompilerState initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<Component> compile(
+Future<Component?> compile(
     InitializedCompilerState state,
     bool verbose,
     FileSystem fileSystem,
@@ -200,10 +196,10 @@ Future<Component> compile(
   processedOpts.inputs.add(input);
   processedOpts.clearFileSystemCache();
 
-  CompilerResult compilerResult = await CompilerContext.runWithOptions(
+  CompilerResult? compilerResult = await CompilerContext.runWithOptions(
       processedOpts, (CompilerContext context) async {
     CompilerResult compilerResult = await generateKernelInternal();
-    Component component = compilerResult?.component;
+    Component? component = compilerResult.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
       context.options.report(
@@ -216,7 +212,7 @@ Future<Component> compile(
   // Remove these parameters from [options] - they are no longer needed and
   // retain state from the previous compile. (http://dartbug.com/33708)
   options.onDiagnostic = null;
-  options.fileSystem = null;
+  options.fileSystem = const NullFileSystem();
   return compilerResult?.component;
 }
 
@@ -242,20 +238,6 @@ Iterable<String> getSupportedLibraryNames(
 
 /// Desugar API to determine whether [member] is a redirecting factory
 /// constructor.
-// TODO(sigmund): Delete this API once `member.isRedirectingFactoryConstructor`
+// TODO(sigmund): Delete this API once `member.isRedirectingFactory`
 // is implemented correctly for patch files (Issue #33495).
-bool isRedirectingFactory(ir.Procedure member) {
-  if (member.kind == ir.ProcedureKind.Factory) {
-    Statement body = member.function.body;
-    if (body is redirecting.RedirectingFactoryBody) return true;
-    if (body is ir.ExpressionStatement) {
-      ir.Expression expression = body.expression;
-      if (expression is ir.Let) {
-        if (expression.variable.name == redirecting.letName) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
+bool isRedirectingFactory(ir.Procedure member) => member.isRedirectingFactory;

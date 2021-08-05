@@ -1302,38 +1302,21 @@ class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A [DelegatingAstVisitor] that will additionally catch all exceptions from
-/// the delegates without stopping the visiting. A function must be provided
-/// that will be invoked for each such exception.
+/// Class capable of handling exceptions generated during linting.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
-  /// The function that will be executed for each exception that is thrown by
-  /// one of the visit methods on the delegate.
-  final ExceptionInDelegateHandler handler;
+class LinterExceptionHandler {
+  /// Indicates whether linter exceptions should be propagated to the caller (by
+  /// re-throwing them)
+  final bool propagateExceptions;
 
-  /// Initialize a newly created visitor to use each of the given delegate
-  /// visitors to visit the nodes of an AST structure.
-  ExceptionHandlingDelegatingAstVisitor(
-      Iterable<AstVisitor<T>> delegates, this.handler)
-      : super(delegates);
+  LinterExceptionHandler({
+    required this.propagateExceptions,
+  });
 
-  @override
-  T? visitNode(AstNode node) {
-    delegates.forEach((delegate) {
-      try {
-        node.accept(delegate);
-      } catch (exception, stackTrace) {
-        handler(node, delegate, exception, stackTrace);
-      }
-    });
-    node.visitChildren(this);
-    return null;
-  }
-
-  /// A function that can be used with instances of this class to log and then
-  /// ignore any exceptions that are thrown by any of the delegates.
-  static void logException(
+  /// A method that can be passed to the `LinterVisitor` constructor to handle
+  /// exceptions that occur during linting.
+  void logException(
       AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
@@ -1351,6 +1334,9 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
     // TODO(39284): should this exception be silent?
     AnalysisEngine.instance.instrumentationService.logException(
         SilentException(buffer.toString(), exception, stackTrace));
+    if (propagateExceptions) {
+      throw exception;
+    }
   }
 }
 

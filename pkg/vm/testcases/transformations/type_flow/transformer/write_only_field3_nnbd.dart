@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Test for tree shaking of write-only late fields.
-// This test requires non-nullable experiment.
-
-// @dart = 2.10
 
 foo() {}
 

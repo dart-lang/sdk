@@ -219,7 +219,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       scavenger_->IterateRoots(this);
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -233,7 +232,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       } while (HasWork());
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -249,7 +247,6 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       } while (HasWork());
     } else {
       ASSERT(scavenger_->abort_);
-      thread_->ClearStickyError();
     }
   }
 
@@ -475,7 +472,9 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       OS::PrintErr("Aborting scavenge\n");
     }
     scavenger_->abort_ = true;
-    thread_->long_jump_base()->Jump(1, Object::out_of_memory_error());
+    // N.B. We must not set the sticky error, which may be a data race if
+    // that root slot was processed by a different worker.
+    thread_->long_jump_base()->Jump(1);
   }
 
   inline void ProcessToSpace();

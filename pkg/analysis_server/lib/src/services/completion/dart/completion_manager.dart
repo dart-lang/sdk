@@ -100,7 +100,7 @@ class DartCompletionManager {
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, request.result.path!)) {
+    if (!file_paths.isDart(pathContext, request.result.path)) {
       return const <CompletionSuggestion>[];
     }
 
@@ -458,7 +458,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return performance.run(
       'build DartCompletionRequest',
       (_) {
-        var unit = request.result.unit!;
+        var unit = request.result.unit;
         var libSource = unit.declaredElement!.library.source;
         var objectType = request.result.typeProvider.objectType;
 

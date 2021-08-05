@@ -37,7 +37,7 @@ class FormatTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_alreadyFormatted() async {
-    const contents = '''main() {
+    const contents = '''void f() {
   print('test');
 }
 ''';
@@ -166,13 +166,13 @@ ErrorOr<Pair<A, List<B>>> c(
 
   Future<void> test_formatOnType_simple() async {
     const contents = '''
-    main  ()
+    void f  ()
     {
 
         print('test');
     ^}
     ''';
-    final expected = '''main() {
+    final expected = '''void f() {
   print('test');
 }
 ''';
@@ -190,7 +190,7 @@ ErrorOr<Pair<A, List<B>>> c(
     // Only ranges that are fully contained by the range should be applied,
     // not those that intersect the start/end.
     const contents = '''
-main()
+void f()
 {
     [[    print('test');
         print('test');
@@ -198,7 +198,7 @@ main()
 }
 ''';
     final expected = '''
-main()
+void f()
 {
         print('test');
   print('test');
@@ -212,7 +212,7 @@ main()
 
   Future<void> test_formatRange_invalidRange() async {
     const contents = '''
-main()
+void f()
 {
         print('test');
 }
@@ -272,7 +272,7 @@ main3  ()
   }
 
   Future<void> test_invalidSyntax() async {
-    const contents = '''main(((( {
+    const contents = '''void f(((( {
   print('test');
 }
 ''';
@@ -285,15 +285,15 @@ main3  ()
 
   Future<void> test_lineLength() async {
     const contents = '''
-    main() =>
+    void f() =>
     print(
     '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789'
     );
     ''';
-    final expectedDefault = '''main() => print(
+    final expectedDefault = '''void f() => print(
     '123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
     final expectedLongLines =
-        '''main() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
+        '''void f() => print('123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789');\n''';
 
     // Initialize with config support, supplying an empty config when requested.
     await provideConfig(
@@ -309,14 +309,105 @@ main3  ()
     await expectFormattedContents(mainFileUri, contents, expectedLongLines);
   }
 
+  Future<void> test_lineLength_outsideWorkspaceFolders() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+        // Use empty roots so the test file is not inside any known
+        // WorkspaceFolder.
+        allowEmptyRootUri: true,
+        workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      // Global config (this should be used).
+      {'lineLength': 10},
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
+  Future<void> test_lineLength_workspaceFolderSpecified() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      // Global config.
+      {'lineLength': 200},
+      folderConfig: {
+        // WorkspaceFolder config for this project (this should be used).
+        projectFolderPath: {'lineLength': 10},
+      },
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
+  Future<void> test_lineLength_workspaceFolderUnspecified() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      // Global config (this should be used).
+      {'lineLength': 10},
+      folderConfig: {
+        // WorkspaceFolder config for this project that doesn't specific
+        // lineLength.
+        projectFolderPath: {'someOtherValue': 'foo'},
+      },
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
   Future<void> test_minimalEdits_addWhitespace() async {
     // Check we only get one edit to add the required whitespace and not
     // an entire document replacement.
     const contents = '''
-main(){}
+void f(){}
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -324,7 +415,7 @@ main() {}
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(1));
     expect(formatEdits[0].newText, ' ');
-    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 6)));
+    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 8)));
   }
 
   Future<void> test_minimalEdits_removeFileLeadingWhitespace() async {
@@ -333,10 +424,10 @@ main() {}
 
 
 
-main() {}
+void f() {}
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -351,14 +442,14 @@ main() {}
   Future<void> test_minimalEdits_removeFileTrailingWhitespace() async {
     // Check whitespace after the last token is handled.
     const contents = '''
-main() {}
+void f() {}
 
 
 
 
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -374,10 +465,10 @@ main() {}
     // Check we get an edit only to remove the unnecessary trailing whitespace
     // and not to replace the whole whitespace with a single space.
     const contents = '''
-main()       {}
+void f()       {}
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -388,8 +479,8 @@ main() {}
         formatEdits[0],
         equals(TextEdit(
           range: Range(
-              start: Position(line: 0, character: 7),
-              end: Position(line: 0, character: 13)),
+              start: Position(line: 0, character: 9),
+              end: Position(line: 0, character: 15)),
           newText: '',
         )));
   }
@@ -398,13 +489,13 @@ main() {}
     // Check we get an edit only to remove the unnecessary leading whitespace
     // and not to replace the whole whitespace with a single space.
     const contents = '''
-main()
+void f()
 
 
  {}
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -415,7 +506,7 @@ main() {}
         formatEdits[0],
         equals(TextEdit(
           range: Range(
-              start: Position(line: 0, character: 6),
+              start: Position(line: 0, character: 8),
               end: Position(line: 3, character: 0)),
           newText: '',
         )));
@@ -425,10 +516,10 @@ main() {}
     // Check we only get two edits to remove the unwanted whitespace and not
     // an entire document replacement.
     const contents = '''
-main( ) { }
+void f( ) { }
 ''';
     const expected = '''
-main() {}
+void f() {}
 ''';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -436,23 +527,24 @@ main() {}
         await expectFormattedContents(mainFileUri, contents, expected);
     expect(formatEdits, hasLength(2));
     expect(formatEdits[0].newText, isEmpty);
-    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 5)));
+    expect(formatEdits[0].range.start, equals(Position(line: 0, character: 7)));
     expect(formatEdits[1].newText, isEmpty);
-    expect(formatEdits[1].range.start, equals(Position(line: 0, character: 9)));
+    expect(
+        formatEdits[1].range.start, equals(Position(line: 0, character: 11)));
   }
 
   Future<void> test_minimalEdits_withComments() async {
     // Check we can get edits that span a comment (which does not appear in the
     // main token list).
     const contents = '''
-main() {
+void f() {
         var a = 1;
         // Comment
         print(a);
 }
 ''';
     const expected = '''
-main() {
+void f() {
   var a = 1;
   // Comment
   print(a);
@@ -529,13 +621,13 @@ main() {
 
   Future<void> test_simple() async {
     const contents = '''
-    main  ()
+    void f  ()
     {
 
         print('test');
     }
     ''';
-    final expected = '''main() {
+    final expected = '''void f() {
   print('test');
 }
 ''';
@@ -546,13 +638,13 @@ main() {
 
   Future<void> test_unopenFile() async {
     const contents = '''
-    main  ()
+    void f  ()
     {
 
         print('test');
     }
     ''';
-    final expected = '''main() {
+    final expected = '''void f() {
   print('test');
 }
 ''';
@@ -564,11 +656,11 @@ main() {
   Future<void> test_validSyntax_withErrors() async {
     // We should still be able to format syntactically valid code even if it has analysis
     // errors.
-    const contents = '''main() {
+    const contents = '''void f() {
        print(a);
 }
 ''';
-    const expected = '''main() {
+    const expected = '''void f() {
   print(a);
 }
 ''';

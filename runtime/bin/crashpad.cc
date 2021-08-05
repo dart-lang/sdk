@@ -21,7 +21,7 @@ namespace dart {
 namespace bin {
 
 #if defined(DART_USE_CRASHPAD)
-#if !defined(HOST_OS_WINDOWS)
+#if !defined(DART_HOST_OS_WINDOWS)
 #error "Currently we only support Crashpad on Windows"
 #endif
 

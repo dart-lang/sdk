@@ -6,7 +6,7 @@
  a_pre_fragments=[
   p1: {units: [3{liba}], usedBy: [], needs: []},
   p2: {units: [1{libb}], usedBy: [], needs: []},
-  p3: {units: [2{libb, liba}], usedBy: [], needs: []}],
+  p3: {units: [2{liba, libb}], usedBy: [], needs: []}],
  b_finalized_fragments=[
   f1: [3{liba}],
   f2: [1{libb}]],
@@ -19,7 +19,7 @@
  a_pre_fragments=[
   p1: {units: [3{liba}], usedBy: [p3], needs: []},
   p2: {units: [1{libb}], usedBy: [p3], needs: []},
-  p3: {units: [2{libb, liba}], usedBy: [], needs: [p1, p2]}],
+  p3: {units: [2{liba, libb}], usedBy: [], needs: [p1, p2]}],
  b_finalized_fragments=[
   f1: [3{liba}],
   f2: [1{libb}]],

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // This test ensures that the flag for --dwarf-stack-traces given at AOT
 // compile-time will be used at runtime (irrespective if other values were
 // passed to the runtime).
@@ -118,6 +120,11 @@ main(List<String> args) async {
     // Check that build IDs match for traces.
     Expect.isNotNull(dwarf.buildId);
     print('Dwarf build ID: "${dwarf.buildId}"');
+    // We should never generate an all-zero build ID.
+    Expect.notEquals(dwarf.buildId, "00000000000000000000000000000000");
+    // This is a common failure case as well, when HashBitsContainer ends up
+    // hashing over seemingly empty sections.
+    Expect.notEquals(dwarf.buildId, "01000000010000000100000001000000");
     final buildId1 = buildId(dwarfTrace1);
     Expect.isFalse(buildId1.isEmpty);
     print('Trace 1 build ID: "${buildId1}"');

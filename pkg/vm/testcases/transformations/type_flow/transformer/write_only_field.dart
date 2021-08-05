@@ -11,7 +11,7 @@ class A {
   }
 }
 
-var field = A();
+A? field = A();
 
 class B {
   B() {
@@ -20,7 +20,7 @@ class B {
 }
 
 class C {
-  var instanceField = new B();
+  B? instanceField = new B();
 }
 
 void main() {

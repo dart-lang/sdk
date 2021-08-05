@@ -39,6 +39,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
 const M = 1024 * 1024 /*1 MiB*/;
@@ -109,7 +110,8 @@ class FileResolver {
   /// It is used to allow assists and fixes without resolving the same file
   /// multiple times, as we compute more than one assist, or fixes when there
   /// are more than one error on a line.
-  final Map<String, ResolvedLibraryResult> _cachedResults = {};
+  @visibleForTesting
+  final Map<String, ResolvedLibraryResult> cachedResults = {};
 
   FileResolver(
     PerformanceLog logger,
@@ -164,7 +166,7 @@ class FileResolver {
     }
 
     // Forget all results, anything is potentially affected.
-    _cachedResults.clear();
+    cachedResults.clear();
 
     // Remove this file and all files that transitively depend on it.
     var removedFiles = <FileState>[];
@@ -208,7 +210,7 @@ class FileResolver {
       result.forEach((filePath) {
         var resolved = resolve(path: filePath);
         var collector = ReferencesCollector(element);
-        resolved.unit?.accept(collector);
+        resolved.unit.accept(collector);
         var offsets = collector.offsets;
         if (offsets.isNotEmpty) {
           references.add(CiderSearchMatch(filePath, offsets));
@@ -445,24 +447,16 @@ class FileResolver {
         }
       }
 
-      var libraryUnit = resolveLibrary(
+      var libraryResult = resolveLibrary(
         completionLine: completionLine,
         completionColumn: completionColumn,
         path: libraryFile.path,
-        completionPath: path,
+        completionPath: completionLine != null ? path : null,
         performance: performance,
       );
-      var result = libraryUnit.units!
-          .firstWhereOrNull((element) => element.path == path);
-      // TODO(scheglov) Fix and remove.
-      if (result == null) {
-        throw StateError('''
-libraryFile.path: ${libraryFile.path}
-path: $path
-units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
-''');
-      }
-      return result;
+      return libraryResult.units.firstWhere(
+        (unitResult) => unitResult.path == path,
+      );
     });
   }
 
@@ -478,7 +472,7 @@ units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
 
     performance ??= OperationPerformanceImpl('<default>');
 
-    var cachedResult = _cachedResults[path];
+    var cachedResult = cachedResults[path];
     if (cachedResult != null) {
       return cachedResult;
     }
@@ -513,7 +507,7 @@ units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
         );
       });
 
-      testView?.addResolvedFile(path);
+      testView?.addResolvedLibrary(path);
 
       late Map<FileState, UnitAnalysisResult> results;
 
@@ -570,7 +564,11 @@ units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(contextObjects!.analysisSession,
           path, libraryUnit.uri, libraryUnit.libraryElement, resolvedUnits);
-      _cachedResults[path] = result;
+
+      if (completionPath == null) {
+        cachedResults[path] = result;
+      }
+
       return result;
     });
   }
@@ -764,13 +762,13 @@ units: ${libraryUnit.units!.map((e) => '(${e.uri} = ${e.path})').toList()}
 }
 
 class FileResolverTestView {
-  /// The paths of files which were resolved.
+  /// The paths of libraries which were resolved.
   ///
-  /// The file path is added every time when it is resolved.
-  final List<String> resolvedFiles = [];
+  /// The library path is added every time when it is resolved.
+  final List<String> resolvedLibraries = [];
 
-  void addResolvedFile(String path) {
-    resolvedFiles.add(path);
+  void addResolvedLibrary(String path) {
+    resolvedLibraries.add(path);
   }
 }
 
@@ -908,16 +906,15 @@ class _LibraryContext {
       } else {
         performance.getDataInt('bytesGet').add(resolutionBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
+        elementFactory.addBundle(
+          BundleReader(
+            elementFactory: elementFactory,
+            unitsInformativeBytes: unitsInformativeBytes,
+            resolutionBytes: resolutionBytes as Uint8List,
+          ),
+        );
       }
       cycle.resolutionId = resolutionData!.id;
-
-      elementFactory.addBundle(
-        BundleReader(
-          elementFactory: elementFactory,
-          unitsInformativeBytes: unitsInformativeBytes,
-          resolutionBytes: resolutionBytes as Uint8List,
-        ),
-      );
 
       // We might have just linked dart:core, ensure the type provider.
       _createElementFactoryTypeProvider();

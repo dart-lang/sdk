@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveArgumentBulkTest);
     defineReflectiveTests(RemoveArgumentTest);
   });
+}
+
+@reflectiveTest
+class RemoveArgumentBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_redundant_argument_values;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+void f({bool valWithDefault = true, bool val}) {}
+void f2({bool valWithDefault = true, bool val}) {}
+
+void main() {
+  f(valWithDefault: true);
+  f2(valWithDefault: true, val: false);
+}
+''');
+    await assertHasFix('''
+void f({bool valWithDefault = true, bool val}) {}
+void f2({bool valWithDefault = true, bool val}) {}
+
+void main() {
+  f();
+  f2(val: false);
+}
+''');
+  }
 }
 
 @reflectiveTest

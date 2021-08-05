@@ -176,7 +176,8 @@ class RenameTest extends AbstractLspAnalysisServerTest {
       throw error;
     }
 
-    final result = WorkspaceEdit.fromJson(response.result);
+    final result =
+        WorkspaceEdit.fromJson(response.result as Map<String, Object?>);
 
     // Ensure applying the changes will give us the expected content.
     final contents = {
@@ -205,7 +206,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     // Expect a successful empty response if cancelled.
     expect(response.error, isNull);
     expect(
-      WorkspaceEdit.fromJson(response.result),
+      WorkspaceEdit.fromJson(response.result as Map<String, Object?>),
       equals(emptyWorkspaceEdit),
     );
   }

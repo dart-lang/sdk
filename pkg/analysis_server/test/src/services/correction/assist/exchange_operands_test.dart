@@ -40,12 +40,12 @@ bool f(int a, int b) {
 
   Future<void> test_extended_mixOperator_1() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 * 2 * 3 + 4;
 }
 ''');
     await assertHasAssistAt('* 2', '''
-main() {
+void f() {
   2 * 3 * 1 + 4;
 }
 ''');
@@ -53,12 +53,12 @@ main() {
 
   Future<void> test_extended_mixOperator_2() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 - 3 + 4;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 1 - 3 + 4;
 }
 ''');
@@ -66,12 +66,12 @@ main() {
 
   Future<void> test_extended_sameOperator_afterFirst() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 3 + 1;
 }
 ''');
@@ -79,12 +79,12 @@ main() {
 
   Future<void> test_extended_sameOperator_afterSecond() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
     await assertHasAssistAt('+ 3', '''
-main() {
+void f() {
   3 + 1 + 2;
 }
 ''');
@@ -92,7 +92,7 @@ main() {
 
   Future<void> test_extraLength() async {
     await resolveTestCode('''
-main() {
+void f() {
   111 + 222;
 }
 ''');
@@ -101,7 +101,7 @@ main() {
 
   Future<void> test_onOperand() async {
     await resolveTestCode('''
-main() {
+void f() {
   111 + 222;
 }
 ''');
@@ -110,7 +110,7 @@ main() {
 
   Future<void> test_selectionWithBinary() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2 + 3;
 }
 ''');
@@ -119,12 +119,12 @@ main() {
 
   Future<void> test_simple_afterOperator() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(' 2', '''
-main() {
+void f() {
   2 + 1;
 }
 ''');
@@ -132,12 +132,12 @@ main() {
 
   Future<void> test_simple_beforeOperator() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt('+ 2', '''
-main() {
+void f() {
   2 + 1;
 }
 ''');
@@ -145,14 +145,14 @@ main() {
 
   Future<void> test_simple_fullSelection() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(
         '1 + 2',
         '''
-main() {
+void f() {
   2 + 1;
 }
 ''',
@@ -161,14 +161,14 @@ main() {
 
   Future<void> test_simple_withLength() async {
     await resolveTestCode('''
-main() {
+void f() {
   1 + 2;
 }
 ''');
     await assertHasAssistAt(
         '+ 2',
         '''
-main() {
+void f() {
   2 + 1;
 }
 ''',

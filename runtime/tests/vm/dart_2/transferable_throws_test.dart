@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// @dart = 2.9
+
+// VMOptions=--enable-isolate-groups
 // VMOptions=--no-enable-isolate-groups
 
 // Test that ensures correct exceptions are thrown when misusing
@@ -11,7 +13,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
-import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:math';

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_ANDROID)
+#if defined(DART_HOST_OS_ANDROID)
 
 #include "bin/platform.h"
 
@@ -22,7 +22,6 @@ namespace dart {
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
-char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
@@ -173,4 +172,4 @@ void Platform::SetCoreDumpResourceLimit(int value) {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(HOST_OS_ANDROID)
+#endif  // defined(DART_HOST_OS_ANDROID)

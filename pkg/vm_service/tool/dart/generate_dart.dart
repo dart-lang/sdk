@@ -200,7 +200,7 @@ final String _implCode = r'''
       request.completeError(RPCError.parse(request.method, json['error']));
     } else {
       Map<String, dynamic> result = json['result'] as Map<String, dynamic>;
-      String type = result['type'];
+      String? type = result['type'];
       if (type == 'Sentinel') {
         request.completeError(SentinelException.parse(request.method, result));
       } else if (_typeFactories[type] == null) {
@@ -517,7 +517,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 
   if (json is List) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
-  } else if (json is Map) {
+  } else if (json is Map<String, dynamic>) {
     String? type = json['type'];
 
     // Not a Response type.
@@ -526,7 +526,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
       if (expectedTypes.length == 1) {
         type = expectedTypes.first;
       } else {
-        return null;
+        return Response.parse(json);
       }
     } else if (_isNullInstance(json) && (!expectedTypes.contains('InstanceRef'))) {
       // Replace null instances with null when we don't expect an instance to

@@ -15,31 +15,10 @@ main() {
     print('Caught TypeError');
   }
 
-  try {
-    print(const Symbol('0')); //# 02: compile-time error
-  } on ArgumentError catch (e) {
-    print('Caught $e');
-  }
-
-  try {
-    print(const Symbol('_')); //# 03: compile-time error
-  } on ArgumentError catch (e) {
-    print('Caught $e');
-  }
-
-  try {
-    print(new Symbol('0'));
-    throw 'Expected an ArgumentError';
-  } on ArgumentError catch (e) {
-    print('Caught $e');
-  }
-
-  try {
-    print(new Symbol('_'));
-    throw 'Expected an ArgumentError';
-  } on ArgumentError catch (e) {
-    print('Caught $e');
-  }
+  print(const Symbol('0'));
+  print(const Symbol('_'));
+  print(new Symbol('0'));
+  print(new Symbol('_'));
 
   if (!identical(const Symbol('fisk'), x)) {
     throw 'Symbol constant is not canonicalized';

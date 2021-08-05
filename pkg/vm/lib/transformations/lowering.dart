@@ -37,8 +37,8 @@ class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final ListLiteralsLowering listLiteralsLowering;
 
-  Member _currentMember;
-  StaticTypeContext _cachedStaticTypeContext;
+  Member? _currentMember;
+  StaticTypeContext? _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
       : env = TypeEnvironment(coreTypes, hierarchy),
@@ -47,10 +47,16 @@ class _Lowering extends Transformer {
         listLiteralsLowering = ListLiteralsLowering(coreTypes);
 
   StaticTypeContext get _staticTypeContext =>
-      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
+      _cachedStaticTypeContext ??= StaticTypeContext(_currentMember!, env);
 
   @override
   defaultMember(Member node) {
+    if (node is Procedure && node.isRedirectingFactory) {
+      // Keep bodies of redirecting factories unchanged because
+      // front-end expects them to have a certain shape.
+      return node;
+    }
+
     _currentMember = node;
     _cachedStaticTypeContext = null;
 

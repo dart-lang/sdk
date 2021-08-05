@@ -111,8 +111,7 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
 
 List<TextEdit> _generateFullEdit(
     LineInfo lineInfo, String unformattedSource, String formattedSource) {
-  final end =
-      lineInfo.getLocation(unformattedSource.length) as CharacterLocation;
+  final end = lineInfo.getLocation(unformattedSource.length);
   return [
     TextEdit(
       range:
@@ -217,9 +216,8 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
     // edits in the same set.
     edits.add(TextEdit(
       range: Range(
-        start:
-            toPosition(lineInfo.getLocation(startOffset) as CharacterLocation),
-        end: toPosition(lineInfo.getLocation(endOffset) as CharacterLocation),
+        start: toPosition(lineInfo.getLocation(startOffset)),
+        end: toPosition(lineInfo.getLocation(endOffset)),
       ),
       newText: newText,
     ));

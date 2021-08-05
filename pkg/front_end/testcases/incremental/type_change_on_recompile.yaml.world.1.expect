@@ -43,7 +43,7 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
   }
   abstract class _A&B&C&D extends main::_A&B&C implements main::D /*isAnonymousMixin,isEliminatedMixin*/  {
-    synthetic constructor named(dynamic _field) → main::_A&B&C&D*
+    synthetic constructor named(lib::E* _field) → main::_A&B&C&D*
       : super main::_A&B&C::named(_field)
       ;
   }

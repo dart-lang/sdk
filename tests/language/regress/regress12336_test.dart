@@ -6,7 +6,6 @@
 // [foo].
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 main() {
   var result = foo(1, 2);
@@ -18,7 +17,8 @@ main() {
   Expect.listEquals([], result[1]);
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 foo(a, b) {
   () => 42;
   if (a is List) {

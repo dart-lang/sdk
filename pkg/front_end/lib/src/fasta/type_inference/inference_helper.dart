@@ -16,9 +16,11 @@ abstract class InferenceHelper {
   set transformSetLiterals(bool value);
 
   Expression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage>? context, bool suppressMessage = false});
+      {List<LocatedMessage>? context,
+      bool suppressMessage = false,
+      Expression? expression});
 
-  LocatedMessage checkArgumentsForType(
+  LocatedMessage? checkArgumentsForType(
       FunctionType function, Arguments arguments, int offset,
       {bool isExtensionMemberInvocation = false});
 

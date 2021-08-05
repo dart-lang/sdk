@@ -57,13 +57,13 @@ class Cat extends self::Animal {
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.
   Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
-                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                     ^^^^^^^^^^^^";
   self::Cat secondCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:19:23: Error: No named parameter with the name 'numberOfLegs'.
   Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
-                      ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                      ^^^^^^^^^^^^";
   self::Cat thirdCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:20:22: Error: No named parameter with the name 'numberOfLegs'.
   Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
-                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+                     ^^^^^^^^^^^^";
   self::expect(true, firstCat =={core::Object::==}{(core::Object) → core::bool} secondCat);
   self::expect(false, firstCat =={core::Object::==}{(core::Object) → core::bool} thirdCat);
   self::expect(true, firstCat.{core::Object::hashCode}{core::int} =={core::num::==}{(core::Object) → core::bool} secondCat.{core::Object::hashCode}{core::int});

@@ -10,8 +10,6 @@
 #endif
 
 #include "platform/assert.h"
-#include "platform/atomic.h"
-#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
@@ -20,8 +18,10 @@
 #include "vm/pointer_tagging.h"
 #include "vm/snapshot.h"
 #include "vm/tagged_pointer.h"
+#include "vm/thread.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
+#include "vm/visitor.h"
 
 // Currently we have two different axes for offset generation:
 //
@@ -120,16 +120,9 @@ enum TypedDataElementType {
 #undef V
 };
 
-#define SNAPSHOT_WRITER_SUPPORT()                                              \
-  void WriteTo(SnapshotWriter* writer, intptr_t object_id,                     \
-               Snapshot::Kind kind, bool as_reference);                        \
-  friend class SnapshotWriter;
-
 #define VISITOR_SUPPORT(object)                                                \
   static intptr_t Visit##object##Pointers(object##Ptr raw_obj,                 \
                                           ObjectPointerVisitor* visitor);
-
-#define HEAP_PROFILER_SUPPORT() friend class HeapProfiler;
 
 #define RAW_OBJECT_IMPLEMENTATION(object)                                      \
  private: /* NOLINT */                                                         \
@@ -146,12 +139,14 @@ enum TypedDataElementType {
 #define RAW_HEAP_OBJECT_IMPLEMENTATION(object)                                 \
  private:                                                                      \
   RAW_OBJECT_IMPLEMENTATION(object);                                           \
-  SNAPSHOT_WRITER_SUPPORT()                                                    \
-  HEAP_PROFILER_SUPPORT()                                                      \
   friend class object##SerializationCluster;                                   \
   friend class object##DeserializationCluster;                                 \
+  friend class object##MessageSerializationCluster;                            \
+  friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
+  template <typename Base>                                                     \
+  friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
 // RawObject is the base class of all raw objects; even though it carries the
@@ -259,102 +254,6 @@ class UntaggedObject {
 
   class ReservedBits
       : public BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
-
-  template <typename T>
-  class Tags {
-   public:
-    Tags() : tags_(0) {}
-
-    operator T() const { return tags_.load(std::memory_order_relaxed); }
-    T operator=(T tags) {
-      tags_.store(tags, std::memory_order_relaxed);
-      return tags;
-    }
-
-    T load(std::memory_order order) const { return tags_.load(order); }
-    void store(T value, std::memory_order order) { tags_.store(value, order); }
-
-    bool compare_exchange_weak(T old_tags,
-                               T new_tags,
-                               std::memory_order order) {
-      return tags_.compare_exchange_weak(old_tags, new_tags, order);
-    }
-
-    template <class TagBitField>
-    typename TagBitField::Type Read() const {
-      return TagBitField::decode(tags_.load(std::memory_order_relaxed));
-    }
-
-    template <class TagBitField>
-    NO_SANITIZE_THREAD typename TagBitField::Type ReadIgnoreRace() const {
-      return TagBitField::decode(*reinterpret_cast<const T*>(&tags_));
-    }
-
-    template <class TagBitField,
-              std::memory_order order = std::memory_order_relaxed>
-    void UpdateBool(bool value) {
-      if (value) {
-        tags_.fetch_or(TagBitField::encode(true), order);
-      } else {
-        tags_.fetch_and(~TagBitField::encode(true), order);
-      }
-    }
-
-    template <class TagBitField>
-    void Update(typename TagBitField::Type value) {
-      T old_tags = tags_.load(std::memory_order_relaxed);
-      T new_tags;
-      do {
-        new_tags = TagBitField::update(value, old_tags);
-      } while (!tags_.compare_exchange_weak(old_tags, new_tags,
-                                            std::memory_order_relaxed));
-    }
-
-    template <class TagBitField>
-    void UpdateUnsynchronized(typename TagBitField::Type value) {
-      tags_.store(
-          TagBitField::update(value, tags_.load(std::memory_order_relaxed)),
-          std::memory_order_relaxed);
-    }
-
-    template <class TagBitField>
-    typename TagBitField::Type UpdateConditional(
-        typename TagBitField::Type value_to_be_set,
-        typename TagBitField::Type conditional_old_value) {
-      T old_tags = tags_.load(std::memory_order_relaxed);
-      while (true) {
-        // This operation is only performed if the condition is met.
-        auto old_value = TagBitField::decode(old_tags);
-        if (old_value != conditional_old_value) {
-          return old_value;
-        }
-        T new_tags = TagBitField::update(value_to_be_set, old_tags);
-        if (tags_.compare_exchange_weak(old_tags, new_tags,
-                                        std::memory_order_relaxed)) {
-          return value_to_be_set;
-        }
-        // [old_tags] was updated to it's current value.
-      }
-    }
-
-    template <class TagBitField>
-    bool TryAcquire() {
-      T mask = TagBitField::encode(true);
-      T old_tags = tags_.fetch_or(mask, std::memory_order_relaxed);
-      return !TagBitField::decode(old_tags);
-    }
-
-    template <class TagBitField>
-    bool TryClear() {
-      T mask = ~TagBitField::encode(true);
-      T old_tags = tags_.fetch_and(mask, std::memory_order_relaxed);
-      return TagBitField::decode(old_tags);
-    }
-
-   private:
-    std::atomic<T> tags_;
-    COMPILE_ASSERT(sizeof(std::atomic<T>) == sizeof(T));
-  };
 
   // Assumes this is a heap object.
   bool IsNewObject() const {
@@ -596,7 +495,7 @@ class UntaggedObject {
   }
 
  private:
-  Tags<uword> tags_;  // Various object tags (bits).
+  AtomicBitFieldContainer<uword> tags_;  // Various object tags (bits).
 
   intptr_t VisitPointersPredefined(ObjectPointerVisitor* visitor,
                                    intptr_t class_id);
@@ -638,10 +537,12 @@ class UntaggedObject {
   void StorePointer(type const* addr, type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
   }
+
+  friend class MessageDeserializer;  // bogus
 
   template <typename type,
             typename compressed_type,
@@ -650,7 +551,7 @@ class UntaggedObject {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
         ->store(static_cast<compressed_type>(value), order);
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
   }
@@ -658,7 +559,7 @@ class UntaggedObject {
   template <typename type>
   void StorePointer(type const* addr, type value, Thread* thread) {
     *const_cast<type*>(addr) = value;
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
   }
@@ -668,7 +569,7 @@ class UntaggedObject {
                               type value,
                               Thread* thread) {
     *const_cast<compressed_type*>(addr) = value;
-    if (value->IsHeapObject()) {
+    if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, thread);
     }
   }
@@ -856,9 +757,7 @@ class UntaggedObject {
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
-  friend class SnapshotReader;
   friend class Deserializer;
-  friend class SnapshotWriter;
   friend class String;
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
@@ -870,6 +769,9 @@ class UntaggedObject {
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
   friend class Object;
+  friend uword TagsFromUntaggedObject(UntaggedObject*);                // tags_
+  friend void SetNewSpaceTaggingWord(ObjectPtr, classid_t, uint32_t);  // tags_
+  friend class ObjectCopyBase;  // LoadPointer/StorePointer
   friend void ReportImpossibleNullError(intptr_t cid,
                                         StackFrame* caller_frame,
                                         Thread* thread);
@@ -933,8 +835,8 @@ inline intptr_t ObjectPtr::GetClassId() const {
   }                                                                            \
   template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
-    StoreArrayPointer<Compressed##type, order>(&name##_,                       \
-                                               Compressed##type(value));       \
+    StoreCompressedArrayPointer<type, Compressed##type, order>(&name##_,       \
+                                                               value);         \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -1108,7 +1010,6 @@ class UntaggedClass : public UntaggedObject {
 #if !defined(DART_PRECOMPILED_RUNTIME)
         return reinterpret_cast<CompressedObjectPtr*>(&dependent_code_);
 #endif
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1155,7 +1056,7 @@ class UntaggedClass : public UntaggedObject {
   friend class UntaggedInstance;
   friend class UntaggedInstructions;
   friend class UntaggedTypeArguments;
-  friend class SnapshotReader;
+  friend class MessageSerializer;
   friend class InstanceSerializationCluster;
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
@@ -1181,7 +1082,6 @@ class UntaggedPatchClass : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&library_kernel_data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1354,8 +1254,7 @@ class UntaggedFunction : public UntaggedObject {
   VISIT_FROM(name)
   // Class or patch class or mixin class where this function is defined.
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names)
-  COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
+  WSR_COMPRESSED_POINTER_FIELD(FunctionTypePtr, signature)
   // Additional data specific to the function kind. See Function::set_data()
   // for details.
   COMPRESSED_POINTER_FIELD(ObjectPtr, data)
@@ -1366,7 +1265,6 @@ class UntaggedFunction : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1378,52 +1276,21 @@ class UntaggedFunction : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ArrayPtr, ic_data_array);
   // Currently active code. Accessed from generated code.
   COMPRESSED_POINTER_FIELD(CodePtr, code);
-  // Unoptimized code, keep it after optimization.
-  NOT_IN_PRECOMPILED(COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code));
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_TO(code);
 #else
+  // Positional parameter names are not needed in the AOT runtime.
+  COMPRESSED_POINTER_FIELD(ArrayPtr, positional_parameter_names);
+  // Unoptimized code, keep it after optimization.
+  COMPRESSED_POINTER_FIELD(CodePtr, unoptimized_code);
   VISIT_TO(unoptimized_code);
+
+  UnboxedParameterBitmap unboxed_parameters_info_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
 #endif
 
-  NOT_IN_PRECOMPILED(UnboxedParameterBitmap unboxed_parameters_info_);
-  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
-  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  Tags<uint32_t> kind_tag_;  // See Function::KindTagBits.
-  uint32_t packed_fields_;
-
-  // TODO(regis): Split packed_fields_ in 2 uint32_t if max values are too low.
-
-  static constexpr intptr_t kMaxOptimizableBits = 1;
-  static constexpr intptr_t kMaxTypeParametersBits = 7;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits = 1;
-  static constexpr intptr_t kMaxFixedParametersBits = 10;
-  static constexpr intptr_t kMaxOptionalParametersBits = 10;
-
-  typedef BitField<uint32_t, bool, 0, kMaxOptimizableBits> PackedOptimizable;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedOptimizable::kNextBit,
-                   kMaxTypeParametersBits>
-      PackedNumTypeParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumTypeParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunction::packed_fields_ bitfields don't fit.");
+  AtomicBitFieldContainer<uint32_t> kind_tag_;  // See Function::KindTagBits.
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1442,7 +1309,12 @@ class UntaggedFunction : public UntaggedObject {
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  friend class UntaggedFunctionType;  // To use same constants for packing.
+  AtomicBitFieldContainer<uint8_t> packed_fields_;
+
+  static constexpr intptr_t kMaxOptimizableBits = 1;
+
+  using PackedOptimizable =
+      BitField<decltype(packed_fields_), bool, 0, kMaxOptimizableBits>;
 };
 
 class UntaggedClosureData : public UntaggedObject {
@@ -1537,7 +1409,6 @@ class UntaggedField : public UntaggedObject {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<CompressedObjectPtr*>(&initializer_function_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1611,7 +1482,6 @@ class alignas(8) UntaggedScript : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1703,7 +1573,6 @@ class UntaggedLibrary : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&kernel_data_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1756,7 +1625,6 @@ class UntaggedNamespace : public UntaggedObject {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&owner_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2238,8 +2106,8 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     TokenPosition begin_pos =
         TokenPosition::kNoSource;  // Token position of scope start.
     TokenPosition end_pos =
-        TokenPosition::kNoSource;   // Token position of scope end.
-    int16_t scope_id;               // Scope to which the variable belongs.
+        TokenPosition::kNoSource;  // Token position of scope end.
+    int16_t scope_id;              // Scope to which the variable belongs.
 
     VarInfoKind kind() const {
       return static_cast<VarInfoKind>(KindBits::decode(index_kind));
@@ -2311,7 +2179,6 @@ class UntaggedContext : public UntaggedObject {
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedContextScope : public UntaggedObject {
@@ -2387,7 +2254,6 @@ class UntaggedContextScope : public UntaggedObject {
 
   friend class Object;
   friend class UntaggedClosureData;
-  friend class SnapshotReader;
 };
 
 class UntaggedSentinel : public UntaggedObject {
@@ -2453,7 +2319,6 @@ class UntaggedICData : public UntaggedCallSiteData {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return to();
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2462,7 +2327,8 @@ class UntaggedICData : public UntaggedCallSiteData {
     return NULL;
   }
   NOT_IN_PRECOMPILED(int32_t deopt_id_);
-  uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
+  // Number of arguments tested in IC, deopt reasons.
+  AtomicBitFieldContainer<uint32_t> state_bits_;
 };
 
 class UntaggedMegamorphicCache : public UntaggedCallSiteData {
@@ -2547,7 +2413,6 @@ class UntaggedUnwindError : public UntaggedError {
 class UntaggedInstance : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instance);
   friend class Object;
-  friend class SnapshotReader;
 
  public:
 #if defined(DART_COMPRESSED_POINTERS)
@@ -2576,7 +2441,6 @@ class UntaggedLibraryPrefix : public UntaggedInstance {
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
         return reinterpret_cast<CompressedObjectPtr*>(&importer_);
-      case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -2603,7 +2467,6 @@ class UntaggedTypeArguments : public UntaggedInstance {
   COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedTypeParameters : public UntaggedObject {
@@ -2622,7 +2485,6 @@ class UntaggedTypeParameters : public UntaggedObject {
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class Object;
-  friend class SnapshotReader;
 };
 
 class UntaggedAbstractType : public UntaggedInstance {
@@ -2637,9 +2499,13 @@ class UntaggedAbstractType : public UntaggedInstance {
 
  protected:
   static constexpr intptr_t kTypeStateBitSize = 2;
+  COMPILE_ASSERT(sizeof(std::atomic<word>) == sizeof(word));
 
   // Accessed from generated code.
-  uword type_test_stub_entry_point_;
+  std::atomic<uword> type_test_stub_entry_point_;
+#if defined(DART_COMPRESSED_POINTERS)
+  uint32_t padding_;  // Makes Windows and Posix agree on layout.
+#endif
   COMPRESSED_POINTER_FIELD(CodePtr, type_test_stub)
   VISIT_FROM(type_test_stub)
 
@@ -2674,49 +2540,43 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(TypeParametersPtr, type_parameters)
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, result_type)
   COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_types)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, parameter_names);
+  COMPRESSED_POINTER_FIELD(ArrayPtr, named_parameter_names);
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
-  uint32_t packed_fields_;  // Number of parent type args and own parameters.
+  AtomicBitFieldContainer<uint32_t> packed_parameter_counts_;
+  AtomicBitFieldContainer<uint16_t> packed_type_parameter_counts_;
   uint8_t type_state_;
   uint8_t nullability_;
 
-  static constexpr intptr_t kMaxParentTypeArgumentsBits = 8;
-  static constexpr intptr_t kMaxImplicitParametersBits = 1;
-  static constexpr intptr_t kMaxHasNamedOptionalParametersBits =
-      UntaggedFunction::kMaxHasNamedOptionalParametersBits;
-  static constexpr intptr_t kMaxFixedParametersBits =
-      UntaggedFunction::kMaxFixedParametersBits;
-  static constexpr intptr_t kMaxOptionalParametersBits =
-      UntaggedFunction::kMaxOptionalParametersBits;
-
   // The bit fields are public for use in kernel_to_il.cc.
  public:
-  typedef BitField<uint32_t, uint8_t, 0, kMaxParentTypeArgumentsBits>
-      PackedNumParentTypeArguments;
-  typedef BitField<uint32_t,
-                   uint8_t,
-                   PackedNumParentTypeArguments::kNextBit,
-                   kMaxImplicitParametersBits>
-      PackedNumImplicitParameters;
-  typedef BitField<uint32_t,
-                   bool,
-                   PackedNumImplicitParameters::kNextBit,
-                   kMaxHasNamedOptionalParametersBits>
-      PackedHasNamedOptionalParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedHasNamedOptionalParameters::kNextBit,
-                   kMaxFixedParametersBits>
-      PackedNumFixedParameters;
-  typedef BitField<uint32_t,
-                   uint16_t,
-                   PackedNumFixedParameters::kNextBit,
-                   kMaxOptionalParametersBits>
-      PackedNumOptionalParameters;
-  static_assert(PackedNumOptionalParameters::kNextBit <=
-                    kBitsPerByte * sizeof(decltype(packed_fields_)),
-                "UntaggedFunctionType::packed_fields_ bitfields don't fit.");
+  // For packed_type_parameter_counts_.
+  using PackedNumParentTypeArguments =
+      BitField<decltype(packed_type_parameter_counts_), uint8_t, 0, 8>;
+  using PackedNumTypeParameters =
+      BitField<decltype(packed_type_parameter_counts_),
+               uint8_t,
+               PackedNumParentTypeArguments::kNextBit,
+               8>;
+
+  // For packed_parameter_counts_.
+  using PackedNumImplicitParameters =
+      BitField<decltype(packed_parameter_counts_), uint8_t, 0, 1>;
+  using PackedHasNamedOptionalParameters =
+      BitField<decltype(packed_parameter_counts_),
+               bool,
+               PackedNumImplicitParameters::kNextBit,
+               1>;
+  using PackedNumFixedParameters =
+      BitField<decltype(packed_parameter_counts_),
+               uint16_t,
+               PackedHasNamedOptionalParameters::kNextBit,
+               14>;
+  using PackedNumOptionalParameters =
+      BitField<decltype(packed_parameter_counts_),
+               uint16_t,
+               PackedNumFixedParameters::kNextBit,
+               14>;
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "
@@ -2836,7 +2696,6 @@ class UntaggedMint : public UntaggedInteger {
   friend class Api;
   friend class Class;
   friend class Integer;
-  friend class SnapshotReader;
 };
 COMPILE_ASSERT(sizeof(UntaggedMint) == 16);
 
@@ -2847,7 +2706,6 @@ class UntaggedDouble : public UntaggedNumber {
   ALIGN8 double value_;
 
   friend class Api;
-  friend class SnapshotReader;
   friend class Class;
 };
 COMPILE_ASSERT(sizeof(UntaggedDouble) == 16);
@@ -2867,10 +2725,6 @@ class UntaggedString : public UntaggedInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };
@@ -2883,10 +2737,10 @@ class UntaggedOneByteString : public UntaggedString {
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
-  friend class ApiMessageReader;
   friend class RODataSerializationCluster;
-  friend class SnapshotReader;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 class UntaggedTwoByteString : public UntaggedString {
@@ -2898,8 +2752,9 @@ class UntaggedTwoByteString : public UntaggedString {
   const uint16_t* data() const { OPEN_ARRAY_START(uint16_t, uint16_t); }
 
   friend class RODataSerializationCluster;
-  friend class SnapshotReader;
   friend class String;
+  friend class StringDeserializationCluster;
+  friend class StringSerializationCluster;
 };
 
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
@@ -2929,6 +2784,9 @@ class UntaggedPointerBase : public UntaggedInstance {
 // Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
 class UntaggedTypedDataBase : public UntaggedPointerBase {
  protected:
+#if defined(DART_COMPRESSED_POINTERS)
+  uint32_t padding_;  // Makes Windows and Posix agree on layout.
+#endif
   // The length of the view in element sizes (obtainable via
   // [TypedDataBase::ElementSizeInBytes]).
   COMPRESSED_SMI_FIELD(SmiPtr, length);
@@ -2937,6 +2795,12 @@ class UntaggedTypedDataBase : public UntaggedPointerBase {
 
  private:
   friend class UntaggedTypedDataView;
+  friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
+  friend void InitializeExternalTypedData(
+      intptr_t,
+      ExternalTypedDataPtr,
+      ExternalTypedDataPtr);  // initialize fields.
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypedDataBase);
 };
 
@@ -2973,7 +2837,6 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
   friend class ObjectPoolDeserializationCluster;
   friend class ObjectPoolSerializationCluster;
   friend class UntaggedObjectPool;
-  friend class SnapshotReader;
 };
 
 // All _*ArrayView/_ByteDataView classes share the same layout.
@@ -3028,6 +2891,7 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   VISIT_TO(offset_in_bytes)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
+  friend void InitializeTypedDataView(TypedDataViewPtr);
   friend class Api;
   friend class Object;
   friend class ObjectPoolDeserializationCluster;
@@ -3036,7 +2900,6 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
   friend class GCCompactor;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class SnapshotReader;
 };
 
 class UntaggedExternalOneByteString : public UntaggedString {
@@ -3082,7 +2945,6 @@ class UntaggedArray : public UntaggedInstance {
   friend class Deserializer;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
-  friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
   friend class UntaggedLinkedHashMap;
@@ -3093,12 +2955,12 @@ class UntaggedArray : public UntaggedInstance {
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
   friend class OldPage;
+  friend class FastObjectCopy;  // For initializing fields.
+  friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
 
 class UntaggedImmutableArray : public UntaggedArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
-
-  friend class SnapshotReader;
 };
 
 class UntaggedGrowableObjectArray : public UntaggedInstance {
@@ -3111,24 +2973,33 @@ class UntaggedGrowableObjectArray : public UntaggedInstance {
   VISIT_TO(data)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  friend class SnapshotReader;
   friend class ReversePc;
 };
 
-class UntaggedLinkedHashMap : public UntaggedInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedLinkedHashBase : public UntaggedInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashBase);
 
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
-  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash_mask)
   COMPRESSED_POINTER_FIELD(ArrayPtr, data)
   COMPRESSED_POINTER_FIELD(SmiPtr, used_data)
   COMPRESSED_POINTER_FIELD(SmiPtr, deleted_keys)
-  VISIT_TO(deleted_keys)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  COMPRESSED_POINTER_FIELD(TypedDataPtr, index)
+  VISIT_TO(index)
 
-  friend class SnapshotReader;
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
+    // Do not serialize index.
+    return reinterpret_cast<CompressedObjectPtr*>(&deleted_keys_);
+  }
+};
+
+class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+};
+
+class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3137,7 +3008,6 @@ class UntaggedFloat32x4 : public UntaggedInstance {
 
   ALIGN8 float value_[4];
 
-  friend class SnapshotReader;
   friend class Class;
 
  public:
@@ -3154,7 +3024,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
-  friend class SnapshotReader;
+  friend class Simd128MessageSerializationCluster;
+  friend class Simd128MessageDeserializationCluster;
 
  public:
   int32_t x() const { return value_[0]; }
@@ -3170,7 +3041,6 @@ class UntaggedFloat64x2 : public UntaggedInstance {
 
   ALIGN8 double value_[2];
 
-  friend class SnapshotReader;
   friend class Class;
 
  public:
@@ -3359,7 +3229,6 @@ class UntaggedUserTag : public UntaggedInstance {
   // Isolate unique tag.
   uword tag_;
 
-  friend class SnapshotReader;
   friend class Object;
 
  public:
@@ -3372,8 +3241,6 @@ class UntaggedFutureOr : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, type_arguments)
   VISIT_FROM(type_arguments)
   VISIT_TO(type_arguments)
-
-  friend class SnapshotReader;
 };
 
 #undef WSR_COMPRESSED_POINTER_FIELD

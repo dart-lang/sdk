@@ -21,7 +21,7 @@ class FixTest extends FixProcessorTest {
 
   Future<void> test_malformedTypeTest() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   p i s Null;
 }''');
     await assertNoExceptions();

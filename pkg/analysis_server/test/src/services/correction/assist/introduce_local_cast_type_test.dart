@@ -23,7 +23,7 @@ class IntroduceLocalCastTypeTest extends AssistProcessorTest {
   Future<void> test_introduceLocalTestedType_if_is() async {
     await resolveTestCode('''
 class MyTypeName {}
-main(p) {
+void f(p) {
   if (p is MyTypeName) {
   }
   p = null;
@@ -31,7 +31,7 @@ main(p) {
 ''');
     var expected = '''
 class MyTypeName {}
-main(p) {
+void f(p) {
   if (p is MyTypeName) {
     MyTypeName myTypeName = p;
   }
@@ -51,7 +51,7 @@ main(p) {
   Future<void> test_introduceLocalTestedType_if_isNot() async {
     await resolveTestCode('''
 class MyTypeName {}
-main(p) {
+void f(p) {
   if (p is! MyTypeName) {
     return;
   }
@@ -59,7 +59,7 @@ main(p) {
 ''');
     var expected = '''
 class MyTypeName {}
-main(p) {
+void f(p) {
   if (p is! MyTypeName) {
     return;
   }
@@ -78,7 +78,7 @@ main(p) {
 
   Future<void> test_introduceLocalTestedType_notBlock() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   if (p is String)
     print('not a block');
 }
@@ -88,7 +88,7 @@ main(p) {
 
   Future<void> test_introduceLocalTestedType_notIsExpression() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   if (p == null) {
   }
 }
@@ -107,14 +107,14 @@ class C {
 
   Future<void> test_introduceLocalTestedType_while() async {
     await resolveTestCode('''
-main(p) {
+void f(p) {
   while (p is String) {
   }
   p = null;
 }
 ''');
     var expected = '''
-main(p) {
+void f(p) {
   while (p is String) {
     String s = p;
   }

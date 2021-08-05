@@ -761,7 +761,7 @@ class C = D with E;
 class D {}
 class E {}
 ''');
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.documentationComment, isNotNull);
   }
@@ -1610,7 +1610,7 @@ mixin M<T> on A<T> {}
 
 class C extends A<B> with M {}
 ''');
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<B>');
@@ -1632,7 +1632,7 @@ class C extends A<int Function(String)> with M {}
         1,
       ),
     ]);
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<int, String>');
@@ -1648,7 +1648,7 @@ mixin M<T> on A<List<T>> {}
 
 class C extends A<List<B>> with M {}
 ''');
-    CompilationUnit unit = result.unit!;
+    CompilationUnit unit = result.unit;
     ClassElement classC = unit.declaredElement!.getType('C')!;
     expect(classC.mixins, hasLength(1));
     assertType(classC.mixins[0], 'M<B>');
@@ -2095,7 +2095,7 @@ void main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
-    var z = result.unit!.declaredElement!.topLevelVariables
+    var z = result.unit.declaredElement!.topLevelVariables
         .where((e) => e.name == 'z')
         .single;
     assertType(z.type, 'List<String>');
@@ -2275,7 +2275,7 @@ class A<T> {}
 class B<T> = Object with A<T>;
 class C = Object with B;
 ''');
-    var bReference = result.unit!.declaredElement!.getType('C')!.mixins[0];
+    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
     assertTypeDynamic(bReference.typeArguments[0]);
   }
 
@@ -2294,7 +2294,7 @@ class C = Base with B;
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 122, 1),
     ]);
-    var bReference = result.unit!.declaredElement!.getType('C')!.mixins[0];
+    var bReference = result.unit.declaredElement!.getType('C')!.mixins[0];
     assertType(bReference.typeArguments[0], 'int');
   }
 
@@ -2333,7 +2333,7 @@ void main () {
   x;
 }
 ''');
-    var main = result.unit!.declarations.last as FunctionDeclaration;
+    var main = result.unit.declarations.last as FunctionDeclaration;
     var mainBody = main.functionExpression.body as BlockFunctionBody;
     var xDecl = mainBody.block.statements[0] as VariableDeclarationStatement;
     var xElem = xDecl.variables.variables[0].declaredElement!;
@@ -2804,8 +2804,8 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit!.declarations, hasLength(1));
-    final mainDecl = result.unit!.declarations[0];
+    expect(result.unit.declarations, hasLength(1));
+    final mainDecl = result.unit.declarations[0];
     expect(mainDecl.metadata, hasLength(8));
     mainDecl.metadata.forEach((metadata) {
       final value = metadata.elementAnnotation!.computeConstantValue()!;
@@ -2816,13 +2816,9 @@ main() {}
       if (!unbounded.isNull) {
         expect(bounded.isNull, true);
         assertType(unbounded.type, 'Unbounded<dynamic>');
-        expect(unbounded.type!.typeArguments, hasLength(1));
-        expect(unbounded.type!.typeArguments[0].isDynamic, isTrue);
       } else {
         expect(unbounded.isNull, true);
         assertType(bounded.type, 'Bounded<String>');
-        expect(bounded.type!.typeArguments, hasLength(1));
-        assertType(bounded.type!.typeArguments[0], 'String');
       }
     });
   }

@@ -30,7 +30,7 @@ intptr_t WeakTable::SizeFor(intptr_t count, intptr_t size) {
 }
 
 void WeakTable::SetValueExclusive(ObjectPtr key, intptr_t val) {
-  intptr_t mask = size() - 1;
+  const intptr_t mask = size() - 1;
   intptr_t idx = Hash(key) & mask;
   intptr_t empty_idx = -1;
   ObjectPtr obj = ObjectAtExclusive(idx);
@@ -72,6 +72,46 @@ void WeakTable::SetValueExclusive(ObjectPtr key, intptr_t val) {
   if (used_ >= limit()) {
     Rehash();
   }
+}
+
+bool WeakTable::MarkValueExclusive(ObjectPtr key, intptr_t val) {
+  const intptr_t mask = size() - 1;
+  intptr_t idx = Hash(key) & mask;
+  intptr_t empty_idx = -1;
+  ObjectPtr obj = ObjectAtExclusive(idx);
+
+  while (obj != static_cast<ObjectPtr>(kNoEntry)) {
+    if (obj == key) {
+      return false;
+    } else if ((empty_idx < 0) &&
+               (static_cast<intptr_t>(obj) == kDeletedEntry)) {
+      empty_idx = idx;  // Insert at this location if not found.
+    }
+    idx = (idx + 1) & mask;
+    obj = ObjectAtExclusive(idx);
+  }
+
+  ASSERT(val != 0);
+
+  if (empty_idx >= 0) {
+    // We will be reusing a slot below.
+    set_used(used() - 1);
+    idx = empty_idx;
+  }
+
+  ASSERT(!IsValidEntryAtExclusive(idx));
+  // Set the key and value.
+  SetObjectAt(idx, key);
+  SetValueAt(idx, val);
+  // Update the counts.
+  set_used(used() + 1);
+  set_count(count() + 1);
+
+  // Rehash if needed to ensure that there are empty slots available.
+  if (used_ >= limit()) {
+    Rehash();
+  }
+  return true;
 }
 
 void WeakTable::Reset() {

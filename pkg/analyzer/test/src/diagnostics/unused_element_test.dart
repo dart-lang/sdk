@@ -541,6 +541,16 @@ class A {
     ]);
   }
 
+  test_method_isUsed_hasPragma_vmEntryPoint() async {
+    pragma;
+    await assertNoErrorsInCode(r'''
+class A {
+  @pragma('vm:entry-point')
+  void _foo() {}
+}
+''');
+  }
+
   test_method_isUsed_hasReference_implicitThis() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -1437,6 +1447,13 @@ void set _c(int x) {}
 int f() {
   return _c ??= 7;
 }
+''');
+  }
+
+  test_topLevelFunction_isUsed_hasPragma_vmEntryPoint() async {
+    await assertNoErrorsInCode(r'''
+@pragma('vm:entry-point')
+void _f() {}
 ''');
   }
 

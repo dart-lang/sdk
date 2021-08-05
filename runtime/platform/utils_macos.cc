@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
 
 #include "platform/utils.h"
+#include "platform/utils_macos.h"
 
 #include <errno.h>        // NOLINT
 #include <sys/utsname.h>  // NOLINT
@@ -150,4 +151,4 @@ int32_t MacOSXMinorVersion() {
 
 }  // namespace dart
 
-#endif  // defined(HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS)

@@ -177,6 +177,7 @@ class Zone {
 
   friend class StackZone;
   friend class ApiZone;
+  friend class AllocOnlyStackZone;
   template <typename T, typename B, typename Allocator>
   friend class BaseGrowableArray;
   template <typename T, typename B, typename Allocator>
@@ -210,6 +211,23 @@ class StackZone : public StackResource {
   friend class ZoneGrowableArray;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackZone);
+};
+
+class AllocOnlyStackZone : public ValueObject {
+ public:
+  AllocOnlyStackZone() : zone_() {}
+  ~AllocOnlyStackZone() {
+    // This zone is not linked into the thread, so any handles would not be
+    // visited.
+    ASSERT(zone_.handles()->IsEmpty());
+  }
+
+  Zone* GetZone() { return &zone_; }
+
+ private:
+  Zone zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocOnlyStackZone);
 };
 
 inline uword Zone::AllocUnsafe(intptr_t size) {

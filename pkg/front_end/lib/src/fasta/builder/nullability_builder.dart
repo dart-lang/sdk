@@ -2,12 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
-
-import '../kernel/body_builder.dart';
-import '../problems.dart';
 
 import 'library_builder.dart';
 
@@ -50,6 +45,7 @@ class NullabilityBuilder {
   }
 
   Nullability build(LibraryBuilder libraryBuilder) {
+    // ignore: unnecessary_null_comparison
     assert(libraryBuilder != null);
 
     Nullability ifOmitted = libraryBuilder.isNonNullableByDefault
@@ -63,8 +59,6 @@ class NullabilityBuilder {
       case SyntacticNullability.omitted:
         return ifOmitted;
     }
-    return unhandled(
-        "$_syntacticNullability", "buildNullability", noLocation, null);
   }
 
   void writeNullabilityOn(StringBuffer sb) {
@@ -79,7 +73,6 @@ class NullabilityBuilder {
         // Do nothing.
         return;
     }
-    unhandled("$_syntacticNullability", "writeNullabilityOn", noLocation, null);
   }
 
   String toString() {

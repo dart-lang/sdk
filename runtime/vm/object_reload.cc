@@ -6,6 +6,7 @@
 
 #include "platform/unaligned.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"

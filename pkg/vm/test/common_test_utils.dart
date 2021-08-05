@@ -35,11 +35,11 @@ class TestingVmTarget extends VmTarget {
 }
 
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
-    {Target target,
+    {Target? target,
     bool enableSuperMixins = false,
-    List<String> experimentalFlags,
-    Map<String, String> environmentDefines,
-    Uri packagesFileUri}) async {
+    List<String>? experimentalFlags,
+    Map<String, String>? environmentDefines,
+    Uri? packagesFileUri}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   target ??= new TestingVmTarget(new TargetFlags())
@@ -60,11 +60,11 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     };
 
   final Component component =
-      (await kernelForProgram(sourceUri, options)).component;
+      (await kernelForProgram(sourceUri, options))!.component!;
 
   // Make sure the library name is the same and does not depend on the order
   // of test cases.
-  component.mainMethod.enclosingLibrary.name = '#lib';
+  component.mainMethod!.enclosingLibrary.name = '#lib';
 
   return component;
 }
@@ -73,19 +73,19 @@ String kernelLibraryToString(Library library) {
   final StringBuffer buffer = new StringBuffer();
   final printer = new Printer(buffer, showMetadata: true);
   printer.writeLibraryFile(library);
-  printer.writeConstantTable(library.enclosingComponent);
+  printer.writeConstantTable(library.enclosingComponent!);
   return buffer
       .toString()
-      .replaceAll(library.importUri.toString(), library.name);
+      .replaceAll(library.importUri.toString(), library.name!);
 }
 
 String kernelComponentToString(Component component) {
   final StringBuffer buffer = new StringBuffer();
   new Printer(buffer, showMetadata: true).writeComponentFile(component);
-  final mainLibrary = component.mainMethod.enclosingLibrary;
+  final mainLibrary = component.mainMethod!.enclosingLibrary;
   return buffer
       .toString()
-      .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name);
+      .replaceAll(mainLibrary.importUri.toString(), mainLibrary.name!);
 }
 
 class DevNullSink<T> extends Sink<T> {

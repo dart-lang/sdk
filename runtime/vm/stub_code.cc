@@ -35,6 +35,7 @@ StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {
     VM_STUB_CODE_LIST(STUB_CODE_DECLARE)
 #undef STUB_CODE_DECLARE
 };
+AcqRelAtomic<bool> StubCode::initialized_ = {false};
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 void StubCode::Init() {
@@ -60,6 +61,8 @@ void StubCode::Init() {
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
     entries_[i].code->set_object_pool(object_pool.ptr());
   }
+
+  InitializationDone();
 
 #if defined(DART_PRECOMPILER)
   {
@@ -111,14 +114,11 @@ CodePtr StubCode::Generate(
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void StubCode::Cleanup() {
+  initialized_.store(false, std::memory_order_release);
+
   for (size_t i = 0; i < ARRAY_SIZE(entries_); i++) {
     entries_[i].code = nullptr;
   }
-}
-
-bool StubCode::HasBeenInitialized() {
-  // Use AsynchronousGapMarker as canary.
-  return entries_[kAsynchronousGapMarkerIndex].code != nullptr;
 }
 
 bool StubCode::InInvocationStub(uword pc) {
@@ -299,8 +299,8 @@ CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
-CodePtr StubCode::GetBuildMethodExtractorStub(
-    compiler::ObjectPoolBuilder* pool) {
+CodePtr StubCode::GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
+                                              bool generic) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();
   auto Z = thread->zone();
@@ -314,9 +314,10 @@ CodePtr StubCode::GetBuildMethodExtractorStub(
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
   compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
-      &assembler, closure_allocation_stub, context_allocation_stub);
+      &assembler, closure_allocation_stub, context_allocation_stub, generic);
 
-  const char* name = "BuildMethodExtractor";
+  const char* name = generic ? "BuildGenericMethodExtractor"
+                             : "BuildNonGenericMethodExtractor";
   const Code& stub = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
       /*optimized=*/false));
@@ -368,7 +369,8 @@ const char* StubCode::NameOfStub(uword entry_point) {
     return "_iso_stub_" #name "Stub";                                          \
   }
   OBJECT_STORE_STUB_CODE_LIST(MATCH)
-  MATCH(build_method_extractor_code, BuildMethodExtractor)
+  MATCH(build_generic_method_extractor_code, BuildGenericMethodExtractor)
+  MATCH(build_nongeneric_method_extractor_code, BuildNonGenericMethodExtractor)
 #undef MATCH
   return nullptr;
 }

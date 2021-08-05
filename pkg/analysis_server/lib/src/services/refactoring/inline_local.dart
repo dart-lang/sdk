@@ -114,7 +114,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() {
     var change = SourceChange(refactoringName);
-    var unitElement = resolveResult.unit!.declaredElement!;
+    var unitElement = resolveResult.unit.declaredElement!;
     var state = _initialState!;
     // remove declaration
     {

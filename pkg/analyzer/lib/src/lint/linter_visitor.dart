@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/services/lint.dart';
 
@@ -16,7 +17,9 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   final NodeLintRegistry registry;
   final LintRuleExceptionHandler exceptionHandler;
 
-  LinterVisitor(this.registry, this.exceptionHandler);
+  LinterVisitor(this.registry, [LintRuleExceptionHandler? exceptionHandler])
+      : exceptionHandler = exceptionHandler ??
+            LinterExceptionHandler(propagateExceptions: true).logException;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

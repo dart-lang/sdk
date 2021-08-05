@@ -36,7 +36,7 @@ class C extends core::Object /*hasConstConstructor*/  {
   constructor missingFactoryKeyword() → self::C*
     ;
   static factory good() → self::C*
-    let dynamic #redirecting_factory = self::C::constant in invalid-expression;
+    return new self::C::constant();
   method notEvenAConstructor(dynamic a) → self::C*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

@@ -38,7 +38,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
           ? null as T
           : throw 'Expected Null response but got ${resp.result}';
     } else {
-      return fromJson(resp.result);
+      return fromJson(resp.result as R);
     }
   }
 

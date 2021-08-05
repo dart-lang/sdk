@@ -38,7 +38,8 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   for (int i = -128; i < 128; i++) {
     smi = Smi::New(i);
     TEST_CODE(smi.ptr(), grow_old_array.ptr(), thread);
-    EXPECT(static_cast<ArrayPtr>(smi.ptr()) == grow_old_array.data());
+    EXPECT(static_cast<CompressedObjectPtr>(smi.ptr()) ==
+           static_cast<CompressedObjectPtr>(grow_old_array.data()));
     EXPECT(!thread->StoreBufferContains(grow_old_array.ptr()));
   }
 

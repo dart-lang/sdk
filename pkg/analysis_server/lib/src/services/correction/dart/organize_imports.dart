@@ -25,7 +25,7 @@ class OrganizeImports extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var organizer =
-        ImportOrganizer(resolvedResult.content!, unit, resolvedResult.errors);
+        ImportOrganizer(resolvedResult.content, unit, resolvedResult.errors);
     // todo (pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {

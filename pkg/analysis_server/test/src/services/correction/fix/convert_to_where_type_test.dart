@@ -11,8 +11,36 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToWhereTypeBulkTest);
     defineReflectiveTests(ConvertToWhereTypeTest);
   });
+}
+
+@reflectiveTest
+class ConvertToWhereTypeBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_iterable_whereType;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+Iterable<C> f(List<Object> list) {
+  return list.where((e) => e is C);
+}
+Iterable<C> f2(List<Object> list) =>
+  list.where((e) => e is C);
+
+class C {}
+''');
+    await assertHasFix('''
+Iterable<C> f(List<Object> list) {
+  return list.whereType<C>();
+}
+Iterable<C> f2(List<Object> list) =>
+  list.whereType<C>();
+
+class C {}
+''');
+  }
 }
 
 @reflectiveTest

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -42,7 +40,7 @@ TestResult runCommand(List<String> cmd, Map<String, String> env) {
 /// Abstraction for running one test in a particular mode.
 abstract class TestRunner {
   TestResult run();
-  String description;
+  late String description;
 
   // Factory.
   static TestRunner getTestRunner(String mode, String top, String tmp,
@@ -151,12 +149,12 @@ class TestRunnerJIT implements TestRunner {
       print(cmd.join(' ').replaceAll('$top/', ''));
 
   @override
-  String description;
-  String dart;
-  String fileName;
+  late String description;
+  late String dart;
+  late String fileName;
   final String top;
   Map<String, String> env;
-  List<String> cmd;
+  late List<String> cmd;
 }
 
 /// Concrete test runner of Dart AOT.
@@ -197,15 +195,15 @@ class TestRunnerAOT implements TestRunner {
   }
 
   @override
-  String description;
-  String precompiler;
-  String dart;
-  String fileName;
-  String snapshot;
+  late String description;
+  late String precompiler;
+  late String dart;
+  late String fileName;
+  late String snapshot;
   final String top;
   final String tmp;
-  Map<String, String> env;
-  List<String> cmd;
+  late Map<String, String> env;
+  late List<String> cmd;
 }
 
 /// Concrete test runner of Dart2JS.
@@ -236,13 +234,13 @@ class TestRunnerDJS implements TestRunner {
   }
 
   @override
-  String description;
-  String dart2js;
-  String fileName;
-  String js;
+  late String description;
+  late String dart2js;
+  late String fileName;
+  late String js;
   final String top;
   final String tmp;
-  Map<String, String> env;
+  late Map<String, String> env;
 }
 
 /// Class to run fuzz testing.
@@ -523,32 +521,32 @@ class DartFuzzTest {
   final String dartSdkRevision;
 
   // Test.
-  Random rand;
-  Directory tmpDir;
-  String fileName;
-  TestRunner runner1;
-  TestRunner runner2;
-  bool fp;
-  bool ffi;
-  bool flatTp;
-  String isolate;
-  int seed;
+  late Random rand;
+  late Directory tmpDir;
+  late String fileName;
+  late TestRunner runner1;
+  late TestRunner runner2;
+  late bool fp;
+  late bool ffi;
+  late bool flatTp;
+  late String isolate;
+  late int seed;
 
   // Timing
-  int start_time;
-  int current_time;
-  int report_time;
-  int end_time;
+  late int start_time;
+  late int current_time;
+  late int report_time;
+  late int end_time;
 
   // Stats.
-  int numTests;
-  int numSuccess;
-  int numSkipped;
-  int numRerun;
-  int numTimeout;
-  int numDivergences;
-  Set<int> timeoutSeeds;
-  Set<int> skippedSeeds;
+  late int numTests;
+  late int numSuccess;
+  late int numSkipped;
+  late int numRerun;
+  late int numTimeout;
+  late int numDivergences;
+  late Set<int> timeoutSeeds;
+  late Set<int> skippedSeeds;
 }
 
 /// Class to start fuzz testing session.
@@ -560,7 +558,7 @@ class DartFuzzTestSession {
       this.numOutputLines,
       this.trueDivergence,
       this.showStats,
-      String tp,
+      String? tp,
       this.mode1,
       this.mode2,
       this.rerun)
@@ -592,7 +590,7 @@ class DartFuzzTestSession {
     // Join.
     var divergences = 0;
     for (var i = 0; i < isolates; i++) {
-      var d = await ports[i].first;
+      var d = await ports[i].first as int;
       divergences += d;
     }
     if (divergences == 0) {
@@ -621,14 +619,14 @@ class DartFuzzTestSession {
           session.rerun,
           session.dartSdkRevision);
       divergences = fuzz.run();
-    } catch (e) {
-      print('Isolate: $e');
+    } catch (e, st) {
+      print('Isolate: $e\n$st');
     }
     session.port.send(divergences);
   }
 
   // Picks a top directory (command line, environment, or current).
-  static String getTop(String top) {
+  static String getTop(String? top) {
     if (top == null || top == '') {
       top = Platform.environment['DART_TOP'];
     }
@@ -638,13 +636,13 @@ class DartFuzzTestSession {
     return top;
   }
 
-  static String getDartSdkRevision(String top) {
+  static String getDartSdkRevision(String? top) {
     var res = Process.runSync(Platform.resolvedExecutable, ['--version']);
     return res.stderr;
   }
 
   // Picks a mode (command line or random).
-  static String getMode(String mode, String other) {
+  static String getMode(String? mode, String? other) {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
@@ -669,12 +667,12 @@ class DartFuzzTestSession {
   final bool showStats;
   final bool rerun;
   final String top;
-  final String mode1;
-  final String mode2;
+  final String? mode1;
+  final String? mode2;
   final String dartSdkRevision;
 
   // Passes each port to isolate.
-  SendPort port;
+  late SendPort port;
 
   // Modes used on cluster runs.
   static const List<String> clusterModes = [
@@ -745,27 +743,29 @@ void main(List<String> arguments) {
         help: 'path to output (ignored)', defaultsTo: null);
 
   // Starts fuzz testing session.
+  var results;
   try {
-    final results = parser.parse(arguments);
-    final shards = int.parse(results['shards']);
-    final shard = int.parse(results['shard']);
-    if (shards > 1) {
-      print('\nSHARD $shard OF $shards');
-    }
-    DartFuzzTestSession(
-            int.parse(results['isolates']),
-            int.parse(results['repeat']),
-            int.parse(results['time']),
-            int.parse(results['num-output-lines']),
-            results['true-divergence'],
-            results['show-stats'],
-            results['dart-top'],
-            results['mode1'],
-            results['mode2'],
-            results['rerun'])
-        .start();
+    results = parser.parse(arguments);
   } catch (e) {
     print('Usage: dart dartfuzz_test.dart [OPTIONS]\n${parser.usage}\n$e');
     exitCode = 255;
+    return;
   }
+  final shards = int.parse(results['shards']);
+  final shard = int.parse(results['shard']);
+  if (shards > 1) {
+    print('\nSHARD $shard OF $shards');
+  }
+  DartFuzzTestSession(
+          int.parse(results['isolates']),
+          int.parse(results['repeat']),
+          int.parse(results['time']),
+          int.parse(results['num-output-lines']),
+          results['true-divergence'],
+          results['show-stats'],
+          results['dart-top'],
+          results['mode1'],
+          results['mode2'],
+          results['rerun'])
+      .start();
 }

@@ -22,7 +22,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue containing all [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   ///
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself may have any element type, so this
@@ -37,7 +37,7 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// Creates a queue from [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   factory Queue.of(Iterable<E> elements) = ListQueue<E>.of;
 
   /// Adapts [source] to be a `Queue<T>`.
@@ -52,6 +52,10 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// and if all elements stored into the returned queue are actually instance
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
+  ///
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
+  /// will pass the argument directly to the this queue's method
+  /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
 
   /// Provides a view of this queue as a queue of [R] instances, if necessary.
@@ -64,6 +68,12 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// must be instance of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this queue as well.
+  ///
+  /// Methods which accept `Object?` as argument, like [contains] and [remove],
+  /// will pass the argument directly to the this queue's method
+  /// without any checks.
+  /// That means that you can do `queueOfStrings.cast<int>().remove("a")`
+  /// successfully, even if it looks like it shouldn't have any effect.
   Queue<R> cast<R>();
 
   /// Removes and returns the first element of this queue.
@@ -278,11 +288,11 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// Creates a double-linked queue containing all [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   ///
   /// All the [elements] should be instances of [E].
-  /// The `elements` iterable itself may have any element type, so this
-  /// constructor can be used to down-cast a `Queue`, for example as:
+  /// The [elements] iterable itself may have any element type, so this
+  /// constructor can be used to down-cast a [Queue], for example as:
   /// ```dart
   /// Queue<SuperType> superQueue = ...;
   /// Queue<SubType> subQueue =
@@ -299,11 +309,12 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// Creates a double-linked queue from [elements].
   ///
   /// The element order in the queue is as if the elements were added using
-  /// [addLast] in the order provided by [elements.iterator].
+  /// [addLast] in the order provided by [elements].iterator.
   factory DoubleLinkedQueue.of(Iterable<E> elements) =>
       DoubleLinkedQueue<E>()..addAll(elements);
 
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
+
   int get length => _elementCount;
 
   void addLast(E value) {

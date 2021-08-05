@@ -58,7 +58,8 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
    private:
     static constexpr size_t kIdSpaceBits =
         Utils::BitLength(static_cast<int64_t>(IdSpace::kArtificial));
-    static constexpr int64_t kIdSpaceMask = Utils::NBitMaskUnsafe(kIdSpaceBits);
+    static constexpr int64_t kIdSpaceMask =
+        Utils::NBitMask<int64_t>(kIdSpaceBits);
     static const char* IdSpaceToCString(IdSpace space);
 
     int64_t encoded_;

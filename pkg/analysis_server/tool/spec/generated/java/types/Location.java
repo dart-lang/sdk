@@ -63,17 +63,17 @@ public class Location {
   /**
    * The one-based index of the line containing the character immediately following the range.
    */
-  private final int endLine;
+  private final Integer endLine;
 
   /**
    * The one-based index of the column containing the character immediately following the range.
    */
-  private final int endColumn;
+  private final Integer endColumn;
 
   /**
    * Constructor for {@link Location}.
    */
-  public Location(String file, int offset, int length, int startLine, int startColumn, int endLine, int endColumn) {
+  public Location(String file, int offset, int length, int startLine, int startColumn, Integer endLine, Integer endColumn) {
     this.file = file;
     this.offset = offset;
     this.length = length;
@@ -93,8 +93,8 @@ public class Location {
         other.length == length &&
         other.startLine == startLine &&
         other.startColumn == startColumn &&
-        other.endLine == endLine &&
-        other.endColumn == endColumn;
+        ObjectUtilities.equals(other.endLine, endLine) &&
+        ObjectUtilities.equals(other.endColumn, endColumn);
     }
     return false;
   }
@@ -105,8 +105,8 @@ public class Location {
     int length = jsonObject.get("length").getAsInt();
     int startLine = jsonObject.get("startLine").getAsInt();
     int startColumn = jsonObject.get("startColumn").getAsInt();
-    int endLine = jsonObject.get("endLine").getAsInt();
-    int endColumn = jsonObject.get("endColumn").getAsInt();
+    Integer endLine = jsonObject.get("endLine") == null ? null : jsonObject.get("endLine").getAsInt();
+    Integer endColumn = jsonObject.get("endColumn") == null ? null : jsonObject.get("endColumn").getAsInt();
     return new Location(file, offset, length, startLine, startColumn, endLine, endColumn);
   }
 
@@ -125,14 +125,14 @@ public class Location {
   /**
    * The one-based index of the column containing the character immediately following the range.
    */
-  public int getEndColumn() {
+  public Integer getEndColumn() {
     return endColumn;
   }
 
   /**
    * The one-based index of the line containing the character immediately following the range.
    */
-  public int getEndLine() {
+  public Integer getEndLine() {
     return endLine;
   }
 
@@ -191,8 +191,12 @@ public class Location {
     jsonObject.addProperty("length", length);
     jsonObject.addProperty("startLine", startLine);
     jsonObject.addProperty("startColumn", startColumn);
-    jsonObject.addProperty("endLine", endLine);
-    jsonObject.addProperty("endColumn", endColumn);
+    if (endLine != null) {
+      jsonObject.addProperty("endLine", endLine);
+    }
+    if (endColumn != null) {
+      jsonObject.addProperty("endColumn", endColumn);
+    }
     return jsonObject;
   }
 

@@ -47,7 +47,7 @@ abstract class Metric {
 }
 
 /// A measured value with a min and max. Initial value is min. Value will
-/// be clamped to the interval [min, max].
+/// be clamped to the interval `[min, max]`.
 class Gauge extends Metric {
   final double min;
   final double max;
@@ -128,7 +128,6 @@ class Metrics {
     _metrics.remove(metric.name);
   }
 
-  // ignore: unused_element, called from native code
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String? _printMetric(String id) {
     var metric = _metrics[id];
@@ -138,7 +137,6 @@ class Metrics {
     return json.encode(metric._toJSON());
   }
 
-  // ignore: unused_element, called from native code
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String _printMetrics() {
     var metrics = [];

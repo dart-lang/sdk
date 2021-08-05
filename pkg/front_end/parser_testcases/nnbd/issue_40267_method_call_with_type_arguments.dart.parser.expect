@@ -5,7 +5,7 @@ var a, b;
 
 a?.call<Foo>(b);
 a?<Foo>(b);
-:;}
+:*synthetic*;}
 
 f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
 var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken];[SimpleToken]

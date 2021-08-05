@@ -25,6 +25,7 @@ import 'package:js_runtime/shared/embedded_names.dart'
         NATIVE_SUPERCLASS_TAG_NAME,
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
+        STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
@@ -37,7 +38,7 @@ import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load/output_unit.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -135,6 +136,8 @@ class ModelEmitter {
   /// For deferred loading we communicate the initializers via this global var.
   static const String deferredInitializersGlobal =
       r"$__dart_deferred_initializers__";
+
+  static const String startupMetricsGlobal = r'$__dart_startupMetrics';
 
   static const String partExtension = "part";
   static const String deferredExtension = "part.js";
@@ -352,17 +355,17 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    StringBuffer flavor = new StringBuffer();
-    flavor.write('fast startup emitter');
-    // TODO(johnniwinther): Remove this flavor.
-    flavor.write(', strong');
+    final flavor = StringBuffer();
+    flavor.write(_options.nullSafetyMode);
     if (_options.trustPrimitives) flavor.write(', trust primitives');
     if (_options.omitImplicitChecks) flavor.write(', omit checks');
     if (_options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');
     }
     if (_options.useContentSecurityPolicy) flavor.write(', CSP');
-    return new js.Comment(generatedBy(_options, flavor: '$flavor'));
+    var featureString = _options.features.flavorString();
+    if (featureString.isNotEmpty) flavor.write(', $featureString');
+    return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
   js.Statement buildDeferredInitializerGlobal() {
@@ -370,6 +373,32 @@ class ModelEmitter {
         'self.#deferredInitializers = '
         'self.#deferredInitializers || Object.create(null);',
         {'deferredInitializers': deferredInitializersGlobal});
+  }
+
+  js.Statement buildStartupMetrics() {
+    // We want the code that initializes the startup metrics to execute as early
+    // as possible, so it is placed ahead of the main program IIFE instead of,
+    // e.g. as a parameter of the IIFE. It is OK to use a top-level variable,
+    // since the IIFE immediately reads the variable.
+    return js.js.statement('''
+var ${startupMetricsGlobal} =
+(function(){
+  // The timestamp metrics use `performance.now()`. We feature-detect and
+  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  var _performance =
+      (typeof performance == "object" &&
+       performance != null &&
+       typeof performance.now == "function")
+          ? performance
+          : Date;
+  var metrics = {
+    a: [],
+    now: function() { return _performance.now() },
+    add: function(name) { this.a.push(name, this.now()); }
+  };
+  metrics.add('firstMs');
+  return metrics;
+})();''');
   }
 
   // Writes the given [fragment]'s [code] into a file.
@@ -395,6 +424,8 @@ class ModelEmitter {
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
       if (isSplit) buildDeferredInitializerGlobal(),
+      if (_closedWorld.backendUsage.requiresStartupMetrics)
+        buildStartupMetrics(),
       code
     ]);
 

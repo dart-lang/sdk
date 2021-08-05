@@ -1201,6 +1201,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a prefix name.",
           correction: "Try choosing a different name for the prefix.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_PREFIX_NAME');
 
   /**
@@ -1242,6 +1243,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a type name.",
           correction: "Try choosing a different name for the type.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_NAME');
 
   /**
@@ -1254,6 +1256,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The built-in identifier '{0}' can't be used as a type parameter "
               "name.",
           correction: "Try choosing a different name for the type parameter.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME');
 
   /**
@@ -1264,6 +1267,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_IN_DECLARATION',
           "The built-in identifier '{0}' can't be used as a typedef name.",
           correction: "Try choosing a different name for the typedef.",
+          hasPublishedDocs: true,
           uniqueName: 'BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME');
 
   /**
@@ -1561,7 +1565,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the field
+   * 0: the name of the constructor and field
    */
   // #### Description
   //
@@ -1601,7 +1605,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a constructor and a static field "
               "in this class.",
           correction: "Try renaming either the constructor or the field.",
+          hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD');
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor and getter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static getter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the getter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER');
 
   /**
    * Parameters:
@@ -1613,7 +1631,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't be used to name both a constructor and a static method "
               "in this class.",
           correction: "Try renaming either the constructor or the method.",
+          hasPublishedDocs: true,
           uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD');
+
+  /**
+   * Parameters:
+   * 0: the name of the constructor and setter
+   */
+  static const CompileTimeErrorCode CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER =
+      CompileTimeErrorCode(
+          'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
+          "'{0}' can't be used to name both a constructor and a static setter "
+              "in this class.",
+          correction: "Try renaming either the constructor or the setter.",
+          hasPublishedDocs: true,
+          uniqueName: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER');
 
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
@@ -1722,26 +1754,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try renaming the member to a name that doesn't conflict.");
 
   /**
-   * 7. Classes: It is a compile time error if a generic class declares a type
-   * variable with the same name as the class or any of its members or
-   * constructors.
-   *
    * Parameters:
    * 0: the name of the type variable
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class, mixin, or extension
+  // declaration declares a type parameter with the same name as the class,
+  // mixin, or extension that declares it.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type parameter `C`
+  // has the same name as the class `C` of which it's a part:
+  //
+  // ```dart
+  // class C<[!C!]> {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename either the type parameter, or the class, mixin, or extension:
+  //
+  // ```dart
+  // class C<T> {}
+  // ```
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
     "'{0}' can't be used to name both a type variable and the class in "
         "which the type variable is defined.",
     correction: "Try renaming either the type variable or the class.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_CLASS',
   );
 
   /**
-   * It is a compile time error if an extension declares a type parameter with
-   * the same name as the extension.
-   *
    * Parameters:
    * 0: the name of the type variable
    */
@@ -1751,23 +1799,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and the extension "
         "in which the type variable is defined.",
     correction: "Try renaming either the type variable or the extension.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
   );
 
   /**
-   * 7. Classes: It is a compile time error if a generic class declares a type
-   * variable with the same name as the class or any of its members or
-   * constructors.
-   *
    * Parameters:
    * 0: the name of the type variable
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class, mixin, or extension
+  // declaration declares a type parameter with the same name as one of the
+  // members of the class, mixin, or extension that declares it.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type parameter `T`
+  // has the same name as the field `T`:
+  //
+  // ```dart
+  // class C<[!T!]> {
+  //   int T = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename either the type parameter or the member with which it conflicts:
+  //
+  // ```dart
+  // class C<T> {
+  //   int total = 0;
+  // }
+  // ```
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
     "'{0}' can't be used to name both a type variable and a member in "
         "this class.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
   );
 
@@ -1781,12 +1853,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and a member in "
         "this mixin.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
   );
 
   /**
-   * It is a compile time error if a generic extension declares a member with
-   * the same basename as the name of any of the extension's type parameters.
+   * Parameters:
+   * 0: the name of the type variable
    */
   static const CompileTimeErrorCode
       CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION = CompileTimeErrorCode(
@@ -1794,6 +1867,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and a member in "
         "this extension.",
     correction: "Try renaming either the type variable or the member.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
   );
 
@@ -1807,6 +1881,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' can't be used to name both a type variable and the mixin in "
         "which the type variable is defined.",
     correction: "Try renaming either the type variable or the mixin.",
+    hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
   );
 
@@ -1824,8 +1899,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The type of the runtime value of the argument
-   * 1: The static type of the parameter
+   * 0: the type of the runtime value of the argument
+   * 1: the static type of the parameter
    */
   // #### Description
   //
@@ -2796,7 +2871,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constant constructor.",
+          "The class '{0}' doesn't have an unnamed constant constructor.",
           correction: "Try calling a different constructor.");
 
   static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
@@ -3152,7 +3227,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
     'DUPLICATE_CONSTRUCTOR',
-    "The default constructor is already defined.",
+    "The unnamed constructor is already defined.",
     correction: "Try giving one of the constructors a name.",
     hasPublishedDocs: true,
     uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
@@ -3243,7 +3318,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The field '{0}' can't be initialized by multiple parameters in the "
               "same constructor.",
           correction: "Try removing one of the parameters, or "
-              "using different fields.");
+              "using different fields.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3549,7 +3625,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // Remove the export directive.
   static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode('EXPORT_INTERNAL_LIBRARY',
-          "The library '{0}' is internal and can't be exported.");
+          "The library '{0}' is internal and can't be exported.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3727,7 +3804,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The name of the disallowed type
+   * 0: the name of the disallowed type
    */
   // #### Description
   //
@@ -3879,6 +3956,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try specifying a different superclass, or removing the extends "
               "clause.",
+          hasPublishedDocs: true,
           uniqueName: 'EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -4954,9 +5032,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The type of the iterable expression.
-   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
-   * 2: The loop variable type.
+   * 0: the type of the iterable expression.
+   * 1: the sequence type -- Iterable for `for` or Stream for `await for`.
+   * 2: the loop variable type.
    */
   // #### Description
   //
@@ -5010,8 +5088,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The type of the iterable expression.
-   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   * 0: the type of the iterable expression.
+   * 1: the sequence type -- Iterable for `for` or Stream for `await for`.
    */
   // #### Description
   //
@@ -5341,7 +5419,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The name of the disallowed type
+   * 0: the name of the disallowed type
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
       CompileTimeErrorCode(
@@ -5480,6 +5558,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be implemented.",
           correction: "Try specifying a class or mixin, or removing the list.",
+          hasPublishedDocs: true,
           uniqueName: 'IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -5803,7 +5882,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'INITIALIZER_FOR_STATIC_FIELD',
           "'{0}' is a static field in the enclosing class. Fields initialized "
               "in a constructor can't be static.",
-          correction: "Try removing the initialization.");
+          correction: "Try removing the initialization.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6120,20 +6200,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try replacing it with a class.");
 
   /**
-   * An integer literal with static type `double` and numeric value `i`
-   * evaluates to an instance of the `double` class representing the value `i`.
-   * It is a compile-time error if the value `i` cannot be represented
-   * _precisely_ by the an instace of `double`.
+   * Parameters:
+   * 0: the lexeme of the integer
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an integer literal is being
+  // implicitly converted to a double, but can't be represented as a 64-bit
+  // double without overflow or loss of precision. Integer literals are
+  // implicitly converted to a double if the context requires the type `double`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the integer value
+  // `9223372036854775807` can't be represented exactly as a double:
+  //
+  // ```dart
+  // double x = [!9223372036854775807!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to use the exact value, then use the class `BigInt` to
+  // represent the value:
+  //
+  // ```dart
+  // var x = BigInt.parse('9223372036854775807');
+  // ```
+  //
+  // If you need to use a double, then change the value to one that can be
+  // represented exactly:
+  //
+  // ```dart
+  // double x = 9223372036854775808;
+  // ```
   static const CompileTimeErrorCode INTEGER_LITERAL_IMPRECISE_AS_DOUBLE =
       CompileTimeErrorCode(
           'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
           "The integer literal is being used as a double, but can't be "
-              "represented as a 64 bit double without overflow and/or loss of "
-              "precision: {0}",
+              "represented as a 64-bit double without overflow or loss of "
+              "precision: '{0}'.",
           correction:
-              "Try using the BigInt class, or switch to the closest valid "
-              "double: {1}");
+              "Try using the class 'BigInt', or switch to the closest valid "
+              "double: '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6763,7 +6873,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
       CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
           "The modifier '{0}' can't be applied to the body of a constructor.",
-          correction: "Try removing the modifier.");
+          correction: "Try removing the modifier.", hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6807,7 +6917,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
       CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
           "The modifier '{0}' can't be applied to the body of a setter.",
-          correction: "Try removing the modifier.");
+          correction: "Try removing the modifier.", hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8060,7 +8170,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
           "The super-invoked member '{0}' has the type '{1}', and the concrete "
-              "member in the class has the type '{2}'.");
+              "member in the class has the type '{2}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8183,7 +8294,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
           "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement "
               "'{2}'.",
-          correction: "Try extending the class '{0}'.");
+          correction: "Try extending the class '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8242,7 +8354,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
-              "constructor.");
+              "constructor.",
+          hasPublishedDocs: true);
 
   /**
    * The <i>mixinMember</i> production allows the same instance or static
@@ -8344,7 +8457,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'MIXIN_INHERITS_FROM_NOT_OBJECT',
           "The class '{0}' can't be used as a mixin because it extends a class "
-              "other than 'Object'.");
+              "other than 'Object'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -8374,7 +8488,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The name of the disallowed type
+   * 0: the name of the disallowed type
    */
   static const CompileTimeErrorCode MIXIN_OF_DISALLOWED_CLASS =
       CompileTimeErrorCode(
@@ -8426,6 +8540,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER = CompileTimeErrorCode(
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be mixed in.",
+          hasPublishedDocs: true,
           uniqueName: 'MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -8436,6 +8551,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
           "A type alias that expands to a type parameter can't be used as a "
               "superclass constraint.",
+          hasPublishedDocs: true,
           uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER');
 
   /**
@@ -8449,7 +8565,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The name of the disallowed type
+   * 0: the name of the disallowed type
    */
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS = CompileTimeErrorCode(
@@ -8608,7 +8724,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode MULTIPLE_SUPER_INITIALIZERS =
       CompileTimeErrorCode('MULTIPLE_SUPER_INITIALIZERS',
           "A constructor can have at most one 'super' initializer.",
-          correction: "Try removing all but one of the 'super' initializers.");
+          correction: "Try removing all but one of the 'super' initializers.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8731,7 +8848,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constructor.",
+          "The class '{0}' doesn't have an unnamed constructor.",
           correction:
               "Try using one of the named constructors defined in '{0}'.",
           hasPublishedDocs: true);
@@ -9822,7 +9939,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "found.",
           correction:
               "Try calling a different constructor of the superclass, or "
-              "making the called constructor not be a factory constructor.");
+              "making the called constructor not be a factory constructor.",
+          hasPublishedDocs: true);
 
   /**
    * An error code for when a class has no explicit constructor, and therefore
@@ -9837,8 +9955,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-          "The default constructor of superclass '{0}' (called by the implicit "
-              "default constructor of '{1}') must be a generative constructor, "
+          "The unnamed constructor of superclass '{0}' (called by the default "
+              "constructor of '{1}') must be a generative constructor, "
               "but factory found.",
           correction: "Try adding an explicit constructor that has a different "
               "superinitializer or changing the superclass constructor '{2}' "
@@ -10011,7 +10129,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_VOID_RETURN_FOR_OPERATOR =
       CompileTimeErrorCode('NON_VOID_RETURN_FOR_OPERATOR',
           "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.");
+          correction: "Try changing the return type to 'void'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -10045,7 +10164,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('NON_VOID_RETURN_FOR_SETTER',
           "The return type of the setter must be 'void' or absent.",
           correction: "Try removing the return type, or "
-              "define a method rather than a setter.");
+              "define a method rather than a setter.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10085,7 +10205,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // - Doesn't have an initializer.
   // - Isn't marked as `late`.
   // - The analyzer can't prove that the local variable will be assigned before
-  //   the reference based on the specification of [definite assignment.][]
+  //   the reference based on the specification of [definite assignment][].
   //
   // #### Example
   //
@@ -10411,6 +10531,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode DISALLOWED_TYPE_INSTANTIATION_EXPRESSION =
+      CompileTimeErrorCode(
+          'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+          'Only a generic type, generic function, generic instance method, or '
+              'generic constructor can be type instantiated.',
+          correction:
+              'Try instantiating the type(s) of a generic type, generic '
+              'function, generic instance method, or generic constructor.');
+
+  /**
+   * No parameters.
+   */
   // #### Description
   //
   // The analyzer produces this diagnostic when the static type of the
@@ -10729,7 +10861,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode OPTIONAL_PARAMETER_IN_OPERATOR =
       CompileTimeErrorCode('OPTIONAL_PARAMETER_IN_OPERATOR',
           "Optional parameters aren't allowed when defining an operator.",
-          correction: "Try removing the optional parameters.");
+          correction: "Try removing the optional parameters.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -10866,11 +10999,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'{0}', in the part-of directive.",
           correction:
               "Try changing the part-of directive to a URI, or try including a "
-              "different part.");
+              "different part.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
-   * 0: The name of the prefix
+   * 0: the name of the prefix
    */
   // #### Description
   //
@@ -10918,7 +11052,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The name of the prefix
+   * 0: the name of the prefix
    */
   // #### Description
   //
@@ -10983,15 +11117,61 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try renaming either the prefix or the local declaration.");
 
   /**
-   * It is an error for a mixin to add a private name that conflicts with a
-   * private name added by a superclass or another mixin.
+   * Parameters:
+   * 0: the private name that collides
+   * 1: the name of the first mixin
+   * 2: the name of the second mixin
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when two mixins that define the same
+  // private member are used together in a single class in a library other than
+  // the one that defines the mixins.
+  //
+  // #### Example
+  //
+  // Given a file named `a.dart` containing the following code:
+  //
+  // ```dart
+  // %uri="lib/a.dart"
+  // class A {
+  //   void _foo() {}
+  // }
+  //
+  // class B {
+  //   void _foo() {}
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the classes `A` and `B`
+  // both define the method `_foo`:
+  //
+  // ```dart
+  // import 'a.dart';
+  //
+  // class C extends Object with A, [!B!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need both of the mixins, then remove one of them from the
+  // `with` clause:
+  //
+  // ```dart
+  // import 'a.dart';
+  //
+  // class C extends Object with A, [!B!] {}
+  // ```
+  //
+  // If you need both of the mixins, then rename the conflicting member in one
+  // of the two mixins.
   static const CompileTimeErrorCode PRIVATE_COLLISION_IN_MIXIN_APPLICATION =
       CompileTimeErrorCode(
           'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
           "The private name '{0}', defined by '{1}', "
               "conflicts with the same name defined by '{2}'.",
-          correction: "Try removing '{1}' from the 'with' clause.");
+          correction: "Try removing '{1}' from the 'with' clause.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -11214,6 +11394,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't be a superinterface of itself: {1}.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE');
 
   /**
@@ -11232,6 +11413,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_EXTENDS =
       CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't extend itself.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_EXTENDS');
 
   /**
@@ -11250,6 +11432,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS =
       CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE', "'{0}' can't implement itself.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS');
 
   /**
@@ -11259,6 +11442,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_ON =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't use itself as a superclass constraint.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_ON');
 
   /**
@@ -11277,6 +11461,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_WITH =
       CompileTimeErrorCode('RECURSIVE_INTERFACE_INHERITANCE',
           "'{0}' can't use itself as a mixin.",
+          hasPublishedDocs: true,
           uniqueName: 'RECURSIVE_INTERFACE_INHERITANCE_WITH');
 
   /**
@@ -11858,7 +12043,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "Can't return a value from a generator function (using the '{0}' "
           "modifier).",
       correction: "Try removing the value, replacing 'return' with 'yield' or "
-          "changing the method body modifier.");
+          "changing the method body modifier.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -12051,7 +12237,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode SET_ELEMENT_TYPE_NOT_ASSIGNABLE =
       CompileTimeErrorCode('SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-          "The element type '{0}' can't be assigned to the set type '{1}'.");
+          "The element type '{0}' can't be assigned to the set type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -12291,8 +12478,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The static type of the switch expression
-   * 1: The static type of the case expressions
+   * 0: the static type of the switch expression
+   * 1: the static type of the case expressions
    */
   // #### Description
   //
@@ -12434,17 +12621,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "through the cycle: {1}.",
       correction:
           "Try adding an explicit type to one or more of the variables in the "
-          "cycle in order to break the cycle.");
+          "cycle in order to break the cycle.",
+      hasPublishedDocs: true);
 
   /**
-   * 15.3.1 Typedef: Any self reference, either directly, or recursively via
-   * another typedef, is a compile time error.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a typedef refers to itself,
+  // either directly or indirectly.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `F` depends on itself
+  // indirectly through `G`:
+  //
+  // ```dart
+  // typedef [!F!] = void Function(G);
+  // typedef G = void Function(F);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change one or more of the typedefs in the cycle so that none of them refer
+  // to themselves:
+  //
+  // ```dart
+  // typedef F = void Function(G);
+  // typedef G = void Function(int);
+  // ```
   static const CompileTimeErrorCode TYPE_ALIAS_CANNOT_REFERENCE_ITSELF =
       CompileTimeErrorCode(
           'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
           "Typedefs can't reference themselves directly or recursively via "
-              "another typedef.");
+              "another typedef.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -12583,19 +12795,57 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 10 Generics: It is a static type warning if a type parameter is a supertype
-   * of its upper bound.
-   *
    * Parameters:
    * 0: the name of the type parameter
    * 1: the name of the bounding type
    *
    * See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the bound of a type parameter
+  // (the type following the `extends` keyword) is either directly or indirectly
+  // the type parameter itself. Stating that the type parameter must be the same
+  // as itself or a subtype of itself or a subtype of itself isn't helpful
+  // because it will always be the same as itself.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the bound of `T` is
+  // `T`:
+  //
+  // ```dart
+  // class C<[!T!] extends T> {}
+  // ```
+  //
+  // The following code produces this diagnostic because the bound of `T1` is
+  // `T2`, and the bound of `T2` is `T1`, effectively making the bound of `T1`
+  // be `T1`:
+  //
+  // ```dart
+  // class C<[!T1!] extends T2, T2 extends T1> {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type parameter needs to be a subclass of some type, then replace the
+  // bound with the required type:
+  //
+  // ```dart
+  // class C<T extends num> {}
+  // ```
+  //
+  // If the type parameter can be any type, then remove the `extends` clause:
+  //
+  // ```dart
+  // class C<T> {}
+  // ```
   static const CompileTimeErrorCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
       CompileTimeErrorCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
           "'{0}' can't be a supertype of its upper bound.",
-          correction: "Try using a type that is or is a subclass of '{1}'.");
+          correction:
+              "Try using a type that is the same as or a subclass of '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -12651,7 +12901,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'TYPE_TEST_WITH_NON_TYPE',
           "The name '{0}' isn't a type and can't be used in an 'is' "
               "expression.",
-          correction: "Try correcting the name to match an existing type.");
+          correction: "Try correcting the name to match an existing type.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -13020,6 +13271,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The class '{0}' doesn't have an unnamed constructor.",
     correction: "Try defining an unnamed constructor in '{0}', or "
         "invoking a different constructor.",
+    hasPublishedDocs: true,
     uniqueName: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
   );
 
@@ -13322,7 +13574,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_OPERATOR =
       CompileTimeErrorCode('UNDEFINED_EXTENSION_OPERATOR',
           "The operator '{0}' isn't defined for the extension '{1}'.",
-          correction: "Try defining the operator '{0}'.");
+          correction: "Try defining the operator '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14416,17 +14669,73 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * It will be a static type warning if <i>m</i> is not a generic method with
-   * exactly <i>n</i> type parameters.
-   *
+   * Parameters:
+   * 0: the number of type parameters that were declared
+   * 1: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode
+      WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION = CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+          "This function is declared with {0} type parameters, "
+              "but {1} type arguments were given.",
+          correction:
+              "Try adjusting the number of type arguments to match the number "
+              "of type parameters.",
+          hasPublishedDocs: true,
+          uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION');
+
+  /**
    * Parameters:
    * 0: the name of the class being instantiated
    * 1: the name of the constructor being invoked
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when type arguments are provided
+  // after the name of a named constructor. Constructors can't declare type
+  // parameters, so invocations can only provide the type arguments associated
+  // with the class, and those type arguments are required to follow the name of
+  // the class rather than the name of the constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type parameters
+  // (`<String>`) follow the name of the constructor rather than the name of the
+  // class:
+  //
+  // ```dart
+  // class C<T> {
+  //   C.named();
+  // }
+  // C f() => C.named[!<String>!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type arguments are for the class' type parameters, then move the
+  // type arguments to follow the class name:
+  //
+  // ```dart
+  // class C<T> {
+  //   C.named();
+  // }
+  // C f() => C<String>.named();
+  // ```
+  //
+  // If the type arguments aren't for the class' type parameters, then remove
+  // them:
+  //
+  // ```dart
+  // class C<T> {
+  //   C.named();
+  // }
+  // C f() => C.named();
+  // ```
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR =
       CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
           "The constructor '{0}.{1}' doesn't have type parameters.",
-          correction: "Try moving type arguments to after the type name.");
+          correction: "Try moving type arguments to after the type name.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14434,12 +14743,65 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension that has type
+  // parameters is used and type arguments are provided, but the number of type
+  // arguments isn't the same as the number of type parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E` is
+  // declared to have a single type parameter (`T`), but the extension override
+  // has two type arguments:
+  //
+  // ```dart
+  // extension E<T> on List<T> {
+  //   int get len => length;
+  // }
+  //
+  // void f(List<int> p) {
+  //   E[!<int, String>!](p).len;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the type arguments so that there are the same number of type
+  // arguments as there are type parameters:
+  //
+  // ```dart
+  // extension E<T> on List<T> {
+  //   int get len => length;
+  // }
+  //
+  // void f(List<int> p) {
+  //   E<int>(p).len;
+  // }
+  // ```
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION =
       CompileTimeErrorCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
           "The extension '{0}' is declared with {1} type parameters, "
               "but {2} type arguments were given.",
-          correction: "Try adjusting the number of type arguments.");
+          correction: "Try adjusting the number of type arguments.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the function being referenced
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION =
+      CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+          "The function '{0}' is declared with {1} type parameters, "
+              "but {2} type arguments were given.",
+          correction:
+              "Try adjusting the number of type arguments to match the number "
+              "of type parameters.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14540,11 +14902,45 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * ?? Yield: It is a compile-time error if a yield statement appears in a
-   * function that is not a generator function.
-   *
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a `yield` or `yield*` statement
+  // appears in a function whose body isn't marked with one of the `async*` or
+  // `sync*` modifiers.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `yield` is being used
+  // in a function whose body doesn't have a modifier:
+  //
+  // ```dart
+  // Iterable<int> get digits {
+  //   yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `yield*` is being used
+  // in a function whose body has the `async` modifier rather than the `async*`
+  // modifier:
+  //
+  // ```dart
+  // Stream<int> get digits async {
+  //   yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add a modifier, or change the existing modifier to be either `async*` or
+  // `sync*`:
+  //
+  // ```dart
+  // Iterable<int> get digits sync* {
+  //   yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  // }
+  // ```
   static const CompileTimeErrorCode YIELD_EACH_IN_NON_GENERATOR =
       CompileTimeErrorCode(
           'YIELD_IN_NON_GENERATOR',
@@ -14552,6 +14948,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "(one marked with either 'async*' or 'sync*').",
           correction:
               "Try adding 'async*' or 'sync*' to the enclosing function.",
+          hasPublishedDocs: true,
           uniqueName: 'YIELD_EACH_IN_NON_GENERATOR');
 
   /**
@@ -14566,7 +14963,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Yield statements must be in a generator function "
               "(one marked with either 'async*' or 'sync*').",
           correction:
-              "Try adding 'async*' or 'sync*' to the enclosing function.");
+              "Try adding 'async*' or 'sync*' to the enclosing function.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -14824,8 +15222,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The null-aware operator that is invalid
-   * 1: The non-null-aware operator that can replace the invalid operator
+   * 0: the null-aware operator that is invalid
+   * 1: the non-null-aware operator that can replace the invalid operator
    */
   // #### Description
   //
@@ -14905,8 +15303,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: The null-aware operator that is invalid
-   * 1: The non-null-aware operator that can replace the invalid operator
+   * 0: the null-aware operator that is invalid
+   * 1: the non-null-aware operator that can replace the invalid operator
    */
   static const StaticWarningCode
       INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT = StaticWarningCode(

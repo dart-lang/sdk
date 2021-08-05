@@ -11,7 +11,7 @@
 
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 #include <psapi.h>
 #include <windows.h>
 #else
@@ -116,7 +116,7 @@ DART_EXPORT uint8_t IsThreadInGenerated() {
              : 0;
 }
 
-#if !defined(HOST_OS_WINDOWS)
+#if !defined(DART_HOST_OS_WINDOWS)
 DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
                                            std::condition_variable* var,
                                            std::mutex* mut) {
@@ -185,7 +185,7 @@ DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
 // Clobbers some registers with special meaning in Dart before re-entry, for
 // stress-testing. Not used on 32-bit Windows due to complications with Windows
 // "safeseh".
-#if defined(TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
+#if defined(DART_TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
 void ClobberAndCall(void (*fn)()) {
   fn();
 }
@@ -203,7 +203,7 @@ struct CallbackTestData {
   void (*callback)();
 };
 
-#if defined(TARGET_OS_LINUX)
+#if defined(DART_TARGET_OS_LINUX)
 
 thread_local sigjmp_buf buf;
 void CallbackTestSignalHandler(int) {
@@ -312,13 +312,13 @@ DART_EXPORT intptr_t TestLeafCallApi(void (*fn)()) {
 #endif
 }
 
-#endif  // defined(TARGET_OS_LINUX)
+#endif  // defined(DART_TARGET_OS_LINUX)
 
 // Restore default SIGPIPE handler, which is only needed on mac
 // since that is the only platform we explicitly ignore it.
 // See Platform::Initialize() in platform_macos.cc.
 DART_EXPORT void RestoreSIGPIPEHandler() {
-#if defined(HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS)
   signal(SIGPIPE, SIG_DFL);
 #endif
 }
@@ -428,7 +428,7 @@ void Fatal(char const* file, int line, char const* error) {
 #define FATAL(error) Fatal(__FILE__, __LINE__, error)
 
 DART_EXPORT void SleepOnAnyOS(intptr_t seconds) {
-#if defined(HOST_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   Sleep(1000 * seconds);
 #else
   sleep(seconds);
@@ -1078,6 +1078,38 @@ DART_EXPORT void InvokeClosureCallback() {
 
 DART_EXPORT void ReleaseClosureCallback() {
   Dart_DeletePersistentHandle_DL(closure_to_callback_);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Functions for testing @FfiNative.
+
+DART_EXPORT Dart_Handle GetRootLibraryUrl() {
+  Dart_Handle root_lib = Dart_RootLibrary();
+  Dart_Handle lib_url = Dart_LibraryUrl(root_lib);
+  ENSURE(!Dart_IsError(lib_url));
+  return lib_url;
+}
+
+intptr_t ReturnIntPtr(intptr_t x) {
+  return x;
+}
+
+static void* FfiNativeResolver(const char* name) {
+  if (strcmp(name, "ReturnIntPtr") == 0) {
+    return reinterpret_cast<void*>(ReturnIntPtr);
+  }
+  if (strcmp(name, "IsThreadInGenerated") == 0) {
+    return reinterpret_cast<void*>(IsThreadInGenerated);
+  }
+  // This should be unreachable in tests.
+  ENSURE(false);
+}
+
+DART_EXPORT void SetFfiNativeResolverForTest(Dart_Handle url) {
+  Dart_Handle library = Dart_LookupLibrary(url);
+  ENSURE(!Dart_IsError(library));
+  Dart_Handle result = Dart_SetFfiNativeResolver(library, &FfiNativeResolver);
+  ENSURE(!Dart_IsError(result));
 }
 
 }  // namespace dart

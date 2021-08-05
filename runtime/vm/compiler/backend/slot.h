@@ -59,9 +59,10 @@ class ParsedFunction;
     FINAL)                                                                     \
   V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
   V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
-  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
+  V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
+  V(Type, UntaggedType, arguments, TypeArguments, FINAL)                       \
   V(TypeParameters, UntaggedTypeParameters, flags, Array, FINAL)               \
   V(TypeParameters, UntaggedTypeParameters, bounds, TypeArguments, FINAL)      \
   V(TypeParameters, UntaggedTypeParameters, defaults, TypeArguments, FINAL)    \
@@ -87,7 +88,7 @@ class ParsedFunction;
   V(Closure, UntaggedClosure, context, Context, FINAL)                         \
   V(Closure, UntaggedClosure, hash, Context, VAR)                              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
-  V(FunctionType, UntaggedFunctionType, parameter_names, Array, FINAL)         \
+  V(FunctionType, UntaggedFunctionType, named_parameter_names, Array, FINAL)   \
   V(FunctionType, UntaggedFunctionType, parameter_types, Array, FINAL)         \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
@@ -95,11 +96,11 @@ class ParsedFunction;
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
   V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
   V(String, UntaggedString, length, Smi, FINAL)                                \
-  V(LinkedHashMap, UntaggedLinkedHashMap, index, TypedDataUint32Array, VAR)    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, data, Array, VAR)                    \
-  V(LinkedHashMap, UntaggedLinkedHashMap, hash_mask, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, used_data, Smi, VAR)                 \
-  V(LinkedHashMap, UntaggedLinkedHashMap, deleted_keys, Smi, VAR)              \
+  V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
+  V(LinkedHashBase, UntaggedLinkedHashBase, hash_mask, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, used_data, Smi, VAR)               \
+  V(LinkedHashBase, UntaggedLinkedHashBase, deleted_keys, Smi, VAR)            \
   V(ArgumentsDescriptor, UntaggedArray, type_args_len, Smi, FINAL)             \
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
@@ -145,7 +146,10 @@ class ParsedFunction;
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \
   V(Function, UntaggedFunction, kind_tag, Uint32, FINAL)                       \
   V(Function, UntaggedFunction, packed_fields, Uint32, FINAL)                  \
-  V(FunctionType, UntaggedFunctionType, packed_fields, Uint32, FINAL)          \
+  V(FunctionType, UntaggedFunctionType, packed_parameter_counts, Uint32,       \
+    FINAL)                                                                     \
+  V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
+    FINAL)                                                                     \
   V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
   V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
@@ -335,7 +339,7 @@ class Slot : public ZoneAllocated {
   static const Slot& GetNativeSlot(Kind kind);
 
   const Kind kind_;
-  const int8_t flags_;  // is_immutable, is_nullable
+  const int8_t flags_;        // is_immutable, is_nullable
   const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;

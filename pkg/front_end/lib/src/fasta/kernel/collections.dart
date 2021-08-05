@@ -778,7 +778,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 /// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
 /// [IfMapEntry] is converted to a [ForElement], [ForInElement], or [IfElement],
 /// respectively.
-Expression convertToElement(MapLiteralEntry entry, InferenceHelper helper,
+Expression convertToElement(MapLiteralEntry entry, InferenceHelper? helper,
     void onConvertMapEntry(TreeNode from, TreeNode to)) {
   if (entry is SpreadMapEntry) {
     return new SpreadElement(entry.expression, isNullAware: entry.isNullAware)
@@ -823,7 +823,9 @@ Expression convertToElement(MapLiteralEntry entry, InferenceHelper helper,
       return key;
     }
   }
-  return helper.buildProblem(
+  // TODO(johnniwinther): How can this be triggered? This will fail if
+  // encountered in top level inference.
+  return helper!.buildProblem(
     templateExpectedButGot.withArguments(','),
     entry.fileOffset,
     1,

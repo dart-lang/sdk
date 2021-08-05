@@ -479,37 +479,6 @@ public interface AnalysisServer {
   public void edit_bulkFixes(List<String> included, boolean inTestMode, BulkFixesConsumer consumer);
 
   /**
-   * {@code edit.dartfix}
-   *
-   * Analyze the specified sources for recommended changes and return a set of suggested edits for
-   * those sources. These edits may include changes to sources outside the set of specified sources
-   * if a change in a specified source requires it.
-   *
-   * If includedFixes is specified, then those fixes will be applied. If includePedanticFixes is
-   * specified, then fixes associated with the pedantic rule set will be applied in addition to
-   * whatever fixes are specified in includedFixes if any. If neither includedFixes nor
-   * includePedanticFixes is specified, then no fixes will be applied. If excludedFixes is specified,
-   * then those fixes will not be applied regardless of whether they are specified in includedFixes.
-   *
-   * @param included A list of the files and directories for which edits should be suggested. If a
-   *         request is made with a path that is invalid, e.g. is not absolute and normalized, an
-   *         error of type INVALID_FILE_PATH_FORMAT will be generated. If a request is made for a
-   *         file which does not exist, or which is not currently subject to analysis (e.g. because
-   *         it is not associated with any analysis root specified to analysis.setAnalysisRoots), an
-   *         error of type FILE_NOT_ANALYZED will be generated.
-   * @param includedFixes A list of names indicating which fixes should be applied. If a name is
-   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
-   *         be generated.
-   * @param includePedanticFixes A flag indicating whether "pedantic" fixes should be applied.
-   * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
-   *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
-   *         be generated.
-   * @param port Deprecated: This field is now ignored by server.
-   * @param outputDir Deprecated: This field is now ignored by server.
-   */
-  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, List<String> excludedFixes, int port, String outputDir, DartfixConsumer consumer);
-
-  /**
    * {@code edit.format}
    *
    * Format the contents of a single file. The currently selected region of text is passed in so that
@@ -554,14 +523,6 @@ public interface AnalysisServer {
    * @param length The length of the code on which the refactoring would be based.
    */
   public void edit_getAvailableRefactorings(String file, int offset, int length, GetAvailableRefactoringsConsumer consumer);
-
-  /**
-   * {@code edit.getDartfixInfo}
-   *
-   * Request information about edit.dartfix such as the list of known fixes that can be specified in
-   * an edit.dartfix request.
-   */
-  public void edit_getDartfixInfo(GetDartfixInfoConsumer consumer);
 
   /**
    * {@code edit.getFixes}

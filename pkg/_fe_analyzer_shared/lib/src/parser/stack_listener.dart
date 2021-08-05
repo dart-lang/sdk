@@ -504,6 +504,10 @@ abstract class Stack {
   /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
   List<T?>? popList<T>(int count, List<T?> list, NullValue? nullValue);
 
+  /// Pops [count] elements from the stack and puts it into [list].
+  /// Returns [null] if a [ParserRecovery] value is found, or [list] otherwise.
+  List<T>? popNonNullableList<T>(int count, List<T> list);
+
   void push(Object value);
 
   /// Will return [null] instead of [NullValue].
@@ -583,6 +587,27 @@ class StackImpl implements Stack {
     return isParserRecovery ? null : list;
   }
 
+  List<T>? popNonNullableList<T>(int count, List<T> list) {
+    assert(arrayLength >= count);
+    final List<Object?> array = this.array;
+    final int length = arrayLength;
+    final int startIndex = length - count;
+    bool isParserRecovery = false;
+    for (int i = 0; i < count; i++) {
+      int arrayIndex = startIndex + i;
+      final Object? value = array[arrayIndex];
+      array[arrayIndex] = null;
+      if (value is ParserRecovery) {
+        isParserRecovery = true;
+      } else {
+        list[i] = value as T;
+      }
+    }
+    arrayLength -= count;
+
+    return isParserRecovery ? null : list;
+  }
+
   List<Object?> get values {
     final int length = arrayLength;
     final List<Object?> list = new List<Object?>.filled(length, null);
@@ -642,6 +667,14 @@ class DebugStack implements Stack {
   }
 
   @override
+  List<T>? popNonNullableList<T>(int count, List<T> list) {
+    List<T>? result = realStack.popNonNullableList(count, list);
+    latestStacktraces.length = count;
+    stackTraceStack.popList(count, latestStacktraces, /* nullValue = */ null);
+    return result;
+  }
+
+  @override
   void push(Object value) {
     realStack.push(value);
     stackTraceStack.push(StackTrace.current);
@@ -662,11 +695,24 @@ class FixedNullableList<T> {
     return stack.popList(count, new List<T?>.filled(count, null), nullValue);
   }
 
+  List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
+    if (count == 0) return null;
+    return stack.popNonNullableList(
+        count, new List<T>.filled(count, dummyValue));
+  }
+
   List<T?>? popPadded(Stack stack, int count, int padding,
       [NullValue? nullValue]) {
     if (count + padding == 0) return null;
     return stack.popList(
         count, new List<T?>.filled(count + padding, null), nullValue);
+  }
+
+  List<T>? popPaddedNonNullable(
+      Stack stack, int count, int padding, T dummyValue) {
+    if (count + padding == 0) return null;
+    return stack.popNonNullableList(
+        count, new List<T>.filled(count + padding, dummyValue));
   }
 }
 
@@ -680,6 +726,12 @@ class GrowableList<T> {
         count,
         new List<T?>.filled(count, /* fill = */ null, growable: true),
         nullValue);
+  }
+
+  List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
+    if (count == 0) return null;
+    return stack.popNonNullableList(
+        count, new List<T>.filled(count, dummyValue, growable: true));
   }
 }
 

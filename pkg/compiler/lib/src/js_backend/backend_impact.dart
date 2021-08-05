@@ -284,7 +284,6 @@ class BackendImpacts {
   BackendImpact get constantMapLiteral {
     return _constantMapLiteral ??= new BackendImpact(instantiatedClasses: [
       _commonElements.constantMapClass,
-      _commonElements.constantProtoMapClass,
       _commonElements.constantStringMapClass,
       _commonElements.generalConstantMapClass,
     ]);

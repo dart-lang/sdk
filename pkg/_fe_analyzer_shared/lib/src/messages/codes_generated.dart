@@ -12,6 +12,15 @@
 part of _fe_analyzer_shared.messages.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractClassConstructorTearOff =
+    messageAbstractClassConstructorTearOff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractClassConstructorTearOff = const MessageCode(
+    "AbstractClassConstructorTearOff",
+    message: r"""Constructors on abstract classes can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateAbstractClassInstantiation =
     const Template<Message Function(String name)>(
@@ -1317,6 +1326,25 @@ const MessageCode messageConstEvalExtension = const MessageCode(
     analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
     message:
         r"""Extension operations can't be used in constant expressions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalExternalConstructor =
+    messageConstEvalExternalConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalExternalConstructor = const MessageCode(
+    "ConstEvalExternalConstructor",
+    message:
+        r"""External constructors can't be evaluated in constant expressions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalExternalFactory = messageConstEvalExternalFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalExternalFactory = const MessageCode(
+    "ConstEvalExternalFactory",
+    message:
+        r"""External factory constructors can't be evaluated in constant expressions.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
@@ -3983,6 +4011,16 @@ const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     message: r"""FFI leaf call must not have Handle argument types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeAnnotationMustAnnotateStatic =
+    messageFfiNativeAnnotationMustAnnotateStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeAnnotationMustAnnotateStatic =
+    const MessageCode("FfiNativeAnnotationMustAnnotateStatic",
+        message:
+            r"""FfiNative annotations can only be used on static functions.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
@@ -6197,6 +6235,18 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
     const MessageCode("JsInteropEnclosingClassJSAnnotationContext",
         severity: Severity.context,
         message: r"""This is the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
+    messageJsInteropExternalExtensionMemberOnTypeInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
+    const MessageCode("JsInteropExternalExtensionMemberOnTypeInvalid",
+        message:
+            r"""JS interop or Native class required for 'external' extension members.""",
+        tip:
+            r"""Try adding a JS interop annotation to the on type class of the extension.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalMemberNotJSAnnotated =

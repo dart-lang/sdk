@@ -23,8 +23,6 @@ abstract class ExpressionVisitor<R> {
   R visitInstanceGet(InstanceGet node) => defaultExpression(node);
   R visitInstanceSet(InstanceSet node) => defaultExpression(node);
   R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
-  R visitPropertyGet(PropertyGet node) => defaultExpression(node);
-  R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
@@ -39,7 +37,6 @@ abstract class ExpressionVisitor<R> {
       defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
-  R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -82,6 +79,9 @@ abstract class ExpressionVisitor<R> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) =>
+      defaultExpression(node);
+  R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 }
 
 abstract class StatementVisitor<R> {
@@ -123,7 +123,7 @@ abstract class MemberVisitor<R> {
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
-  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  R visitRedirectingFactory(RedirectingFactory node) {
     return defaultMember(node);
   }
 }
@@ -136,8 +136,7 @@ abstract class MemberVisitor1<R, A> {
   R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  R visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, A arg) {
+  R visitRedirectingFactory(RedirectingFactory node, A arg) {
     return defaultMember(node, arg);
   }
 }
@@ -198,8 +197,6 @@ abstract class TreeVisitor<R>
   R visitInstanceGet(InstanceGet node) => defaultExpression(node);
   R visitInstanceSet(InstanceSet node) => defaultExpression(node);
   R visitInstanceTearOff(InstanceTearOff node) => defaultExpression(node);
-  R visitPropertyGet(PropertyGet node) => defaultExpression(node);
-  R visitPropertySet(PropertySet node) => defaultExpression(node);
   R visitSuperPropertyGet(SuperPropertyGet node) => defaultExpression(node);
   R visitSuperPropertySet(SuperPropertySet node) => defaultExpression(node);
   R visitStaticGet(StaticGet node) => defaultExpression(node);
@@ -214,7 +211,6 @@ abstract class TreeVisitor<R>
       defaultExpression(node);
   R visitEqualsNull(EqualsNull node) => defaultExpression(node);
   R visitEqualsCall(EqualsCall node) => defaultExpression(node);
-  R visitMethodInvocation(MethodInvocation node) => defaultExpression(node);
   R visitSuperMethodInvocation(SuperMethodInvocation node) =>
       defaultExpression(node);
   R visitStaticInvocation(StaticInvocation node) => defaultExpression(node);
@@ -257,6 +253,9 @@ abstract class TreeVisitor<R>
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
   R visitConstructorTearOff(ConstructorTearOff node) => defaultExpression(node);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) =>
+      defaultExpression(node);
+  R visitTypedefTearOff(TypedefTearOff node) => defaultExpression(node);
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
@@ -290,7 +289,7 @@ abstract class TreeVisitor<R>
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
-  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  R visitRedirectingFactory(RedirectingFactory node) {
     return defaultMember(node);
   }
 
@@ -351,8 +350,6 @@ abstract class TreeVisitor1<R, A>
   R visitInstanceSet(InstanceSet node, A arg) => defaultExpression(node, arg);
   R visitInstanceTearOff(InstanceTearOff node, A arg) =>
       defaultExpression(node, arg);
-  R visitPropertyGet(PropertyGet node, A arg) => defaultExpression(node, arg);
-  R visitPropertySet(PropertySet node, A arg) => defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, A arg) =>
       defaultExpression(node, arg);
   R visitSuperPropertySet(SuperPropertySet node, A arg) =>
@@ -373,8 +370,6 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, A arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, A arg) => defaultExpression(node, arg);
-  R visitMethodInvocation(MethodInvocation node, A arg) =>
-      defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, A arg) =>
       defaultExpression(node, arg);
   R visitStaticInvocation(StaticInvocation node, A arg) =>
@@ -434,6 +429,10 @@ abstract class TreeVisitor1<R, A>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, A arg) =>
       defaultExpression(node, arg);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, A arg) =>
+      defaultExpression(node, arg);
+  R visitTypedefTearOff(TypedefTearOff node, A arg) =>
+      defaultExpression(node, arg);
 
   // Statements
   R defaultStatement(Statement node, A arg) => defaultTreeNode(node, arg);
@@ -476,8 +475,7 @@ abstract class TreeVisitor1<R, A>
   R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  R visitRedirectingFactoryConstructor(
-      RedirectingFactoryConstructor node, A arg) {
+  R visitRedirectingFactory(RedirectingFactory node, A arg) {
     return defaultMember(node, arg);
   }
 
@@ -577,11 +575,55 @@ abstract class ConstantVisitor<R> {
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
+}
+
+abstract class ConstantVisitor1<R, A> {
+  const ConstantVisitor1();
+
+  R defaultConstant(Constant node, A arg);
+
+  R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
+  R visitBoolConstant(BoolConstant node, A arg) => defaultConstant(node, arg);
+  R visitIntConstant(IntConstant node, A arg) => defaultConstant(node, arg);
+  R visitDoubleConstant(DoubleConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStringConstant(StringConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitSymbolConstant(SymbolConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
+  R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
+  R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  R visitInstanceConstant(InstanceConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitInstantiationConstant(InstantiationConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStaticTearOffConstant(StaticTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitUnevaluatedConstant(UnevaluatedConstant node, A arg) =>
+      defaultConstant(node, arg);
 }
 
 abstract class _ConstantCallback<R> {
@@ -597,8 +639,12 @@ abstract class _ConstantCallback<R> {
   R visitListConstant(ListConstant node);
   R visitSetConstant(SetConstant node);
   R visitInstanceConstant(InstanceConstant node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node);
-  R visitTearOffConstant(TearOffConstant node);
+  R visitInstantiationConstant(InstantiationConstant node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node);
+  R visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node);
   R visitTypeLiteralConstant(TypeLiteralConstant node);
   R visitUnevaluatedConstant(UnevaluatedConstant node);
 }
@@ -617,12 +663,25 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
       _callback.visitTypeLiteralConstant(node);
 
   @override
-  R visitTearOffConstant(TearOffConstant node) =>
-      _callback.visitTearOffConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      _callback.visitStaticTearOffConstant(node);
 
   @override
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
-      _callback.visitPartialInstantiationConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      _callback.visitConstructorTearOffConstant(node);
+
+  @override
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      _callback.visitRedirectingFactoryTearOffConstant(node);
+
+  @override
+  R visitInstantiationConstant(InstantiationConstant node) =>
+      _callback.visitInstantiationConstant(node);
+
+  @override
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      _callback.visitTypedefTearOffConstant(node);
 
   @override
   R visitInstanceConstant(InstanceConstant node) =>
@@ -703,9 +762,17 @@ abstract class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 }
@@ -744,9 +811,15 @@ abstract class VisitOnceConstantVisitor implements _ConstantCallback<void> {
   void visitListConstant(ListConstant node) => defaultConstant(node);
   void visitSetConstant(SetConstant node) => defaultConstant(node);
   void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  void visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  void visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  void visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  void visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
+  void visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   void visitTypeLiteralConstant(TypeLiteralConstant node) =>
       defaultConstant(node);
   void visitUnevaluatedConstant(UnevaluatedConstant node) =>
@@ -761,9 +834,23 @@ abstract class MemberReferenceVisitor<R> {
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  R visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
+  R visitRedirectingFactoryReference(RedirectingFactory node) {
     return defaultMemberReference(node);
+  }
+}
+
+abstract class MemberReferenceVisitor1<R, A> {
+  const MemberReferenceVisitor1();
+
+  R defaultMemberReference(Member node, A arg);
+
+  R visitFieldReference(Field node, A arg) => defaultMemberReference(node, arg);
+  R visitConstructorReference(Constructor node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitProcedureReference(Procedure node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) {
+    return defaultMemberReference(node, arg);
   }
 }
 
@@ -804,9 +891,17 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitListConstant(ListConstant node) => defaultConstant(node);
   R visitSetConstant(SetConstant node) => defaultConstant(node);
   R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
-  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+  R visitInstantiationConstant(InstantiationConstant node) =>
       defaultConstant(node);
-  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypedefTearOffConstant(TypedefTearOffConstant node) =>
+      defaultConstant(node);
+  R visitStaticTearOffConstant(StaticTearOffConstant node) =>
+      defaultConstant(node);
+  R visitConstructorTearOffConstant(ConstructorTearOffConstant node) =>
+      defaultConstant(node);
+  R visitRedirectingFactoryTearOffConstant(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
 
@@ -840,10 +935,16 @@ abstract class Visitor<R> extends TreeVisitor<R>
       defaultConstantReference(node);
   R visitInstanceConstantReference(InstanceConstant node) =>
       defaultConstantReference(node);
-  R visitPartialInstantiationConstantReference(
-          PartialInstantiationConstant node) =>
+  R visitInstantiationConstantReference(InstantiationConstant node) =>
       defaultConstantReference(node);
-  R visitTearOffConstantReference(TearOffConstant node) =>
+  R visitStaticTearOffConstantReference(StaticTearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitConstructorTearOffConstantReference(ConstructorTearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitRedirectingFactoryTearOffConstantReference(
+          RedirectingFactoryTearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitTypedefTearOffConstantReference(TypedefTearOffConstant node) =>
       defaultConstantReference(node);
   R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
       defaultConstantReference(node);
@@ -856,14 +957,125 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  R visitRedirectingFactoryConstructorReference(
-      RedirectingFactoryConstructor node) {
+  R visitRedirectingFactoryReference(RedirectingFactory node) {
     return defaultMemberReference(node);
   }
 
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);
   R visitNamedType(NamedType node) => defaultNode(node);
+}
+
+abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
+    implements
+        DartTypeVisitor1<R, A>,
+        ConstantVisitor1<R, A>,
+        MemberReferenceVisitor1<R, A> {
+  const Visitor1();
+
+  /// The catch-all case, except for references.
+  R defaultNode(Node node, A arg);
+  R defaultTreeNode(TreeNode node, A arg) => defaultNode(node, arg);
+
+  // DartTypes
+  R defaultDartType(DartType node, A arg) => defaultNode(node, arg);
+  R visitInvalidType(InvalidType node, A arg) => defaultDartType(node, arg);
+  R visitDynamicType(DynamicType node, A arg) => defaultDartType(node, arg);
+  R visitVoidType(VoidType node, A arg) => defaultDartType(node, arg);
+  R visitInterfaceType(InterfaceType node, A arg) => defaultDartType(node, arg);
+  R visitFutureOrType(FutureOrType node, A arg) => defaultDartType(node, arg);
+  R visitFunctionType(FunctionType node, A arg) => defaultDartType(node, arg);
+  R visitTypeParameterType(TypeParameterType node, A arg) =>
+      defaultDartType(node, arg);
+  R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
+  R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
+  R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
+  R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
+
+  // Constants
+  R defaultConstant(Constant node, A arg) => defaultNode(node, arg);
+  R visitNullConstant(NullConstant node, A arg) => defaultConstant(node, arg);
+  R visitBoolConstant(BoolConstant node, A arg) => defaultConstant(node, arg);
+  R visitIntConstant(IntConstant node, A arg) => defaultConstant(node, arg);
+  R visitDoubleConstant(DoubleConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitStringConstant(StringConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitSymbolConstant(SymbolConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitMapConstant(MapConstant node, A arg) => defaultConstant(node, arg);
+  R visitListConstant(ListConstant node, A arg) => defaultConstant(node, arg);
+  R visitSetConstant(SetConstant node, A arg) => defaultConstant(node, arg);
+  R visitInstanceConstant(InstanceConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitInstantiationConstant(InstantiationConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitTypeLiteralConstant(TypeLiteralConstant node, A arg) =>
+      defaultConstant(node, arg);
+  R visitUnevaluatedConstant(UnevaluatedConstant node, A arg) =>
+      defaultConstant(node, arg);
+
+  // Class references
+  R visitClassReference(Class node, A arg);
+
+  R visitTypedefReference(Typedef node, A arg);
+
+  R visitExtensionReference(Extension node, A arg);
+
+  // Constant references
+  R defaultConstantReference(Constant node, A arg);
+
+  R visitNullConstantReference(NullConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitBoolConstantReference(BoolConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitIntConstantReference(IntConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitDoubleConstantReference(DoubleConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitStringConstantReference(StringConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitSymbolConstantReference(SymbolConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitMapConstantReference(MapConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitListConstantReference(ListConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitSetConstantReference(SetConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitInstanceConstantReference(InstanceConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitInstantiationConstantReference(InstantiationConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitConstructorTearOffConstantReference(
+          ConstructorTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitRedirectingFactoryTearOffConstantReference(
+          RedirectingFactoryTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitStaticTearOffConstantReference(StaticTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitTypedefTearOffConstantReference(TypedefTearOffConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitTypeLiteralConstantReference(TypeLiteralConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+  R visitUnevaluatedConstantReference(UnevaluatedConstant node, A arg) =>
+      defaultConstantReference(node, arg);
+
+  // Member references
+  R defaultMemberReference(Member node, A arg);
+
+  R visitFieldReference(Field node, A arg) => defaultMemberReference(node, arg);
+  R visitConstructorReference(Constructor node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitProcedureReference(Procedure node, A arg) =>
+      defaultMemberReference(node, arg);
+  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) =>
+      defaultMemberReference(node, arg);
+
+  R visitName(Name node, A arg) => defaultNode(node, arg);
+  R visitSupertype(Supertype node, A arg) => defaultNode(node, arg);
+  R visitNamedType(NamedType node, A arg) => defaultNode(node, arg);
 }
 
 /// Visitor mixin that throws as its base case.
@@ -1313,14 +1525,14 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
     transformList(nodes, parent, dummyField);
   }
 
-  /// Transforms or removes [RedirectingFactoryConstructor] nodes in [nodes] as
+  /// Transforms or removes [RedirectingFactory] nodes in [nodes] as
   /// children of [parent].
   ///
   /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [RedirectingFactoryConstructor] nodes.
-  void transformRedirectingFactoryConstructorList(
-      List<RedirectingFactoryConstructor> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyRedirectingFactoryConstructor);
+  /// sentinel for [RedirectingFactory] nodes.
+  void transformRedirectingFactoryList(
+      List<RedirectingFactory> nodes, TreeNode parent) {
+    transformList(nodes, parent, dummyRedirectingFactory);
   }
 
   /// Transforms or removes [Typedef] nodes in [nodes] as children of [parent].
@@ -1465,8 +1677,6 @@ abstract class ExpressionVisitor1<R, T> {
   R visitInstanceSet(InstanceSet node, T arg) => defaultExpression(node, arg);
   R visitInstanceTearOff(InstanceTearOff node, T arg) =>
       defaultExpression(node, arg);
-  R visitPropertyGet(PropertyGet node, T arg) => defaultExpression(node, arg);
-  R visitPropertySet(PropertySet node, T arg) => defaultExpression(node, arg);
   R visitSuperPropertyGet(SuperPropertyGet node, T arg) =>
       defaultExpression(node, arg);
   R visitSuperPropertySet(SuperPropertySet node, T arg) =>
@@ -1487,8 +1697,6 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitEqualsNull(EqualsNull node, T arg) => defaultExpression(node, arg);
   R visitEqualsCall(EqualsCall node, T arg) => defaultExpression(node, arg);
-  R visitMethodInvocation(MethodInvocation node, T arg) =>
-      defaultExpression(node, arg);
   R visitSuperMethodInvocation(SuperMethodInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitStaticInvocation(StaticInvocation node, T arg) =>
@@ -1547,6 +1755,10 @@ abstract class ExpressionVisitor1<R, T> {
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
       defaultExpression(node, arg);
   R visitConstructorTearOff(ConstructorTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node, T arg) =>
+      defaultExpression(node, arg);
+  R visitTypedefTearOff(TypedefTearOff node, T arg) =>
       defaultExpression(node, arg);
 }
 

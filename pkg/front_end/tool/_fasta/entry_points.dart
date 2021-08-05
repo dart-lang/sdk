@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 library fasta.tool.entry_points;
 
 import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
@@ -76,9 +74,9 @@ compileEntryPoint(List<String> arguments) async {
     stopwatch.stop();
 
     elapsedTimes.add(stopwatch.elapsedMilliseconds.toDouble());
-    List<Object> typeChecks = Types.typeChecksForTesting;
+    List<Object>? typeChecks = Types.typeChecksForTesting;
     if (typeChecks?.isNotEmpty ?? false) {
-      BenchMaker.writeTypeChecks("type_checks.json", typeChecks);
+      BenchMaker.writeTypeChecks("type_checks.json", typeChecks!);
     }
   }
 
@@ -130,9 +128,9 @@ batchEntryPoint(List<String> arguments) {
 class BatchCompiler {
   final Stream<String> lines;
 
-  Uri platformUri;
+  Uri? platformUri;
 
-  Component platformComponent;
+  Component? platformComponent;
 
   bool hadVerifyError = false;
 
@@ -186,14 +184,14 @@ class BatchCompiler {
       }
       hadVerifyError = false;
     } else {
-      options.sdkSummaryComponent = platformComponent;
+      options.sdkSummaryComponent = platformComponent!;
     }
     CompileTask task = new CompileTask(c, ticker);
     await task.compile(omitPlatform: true, supportAdditionalDills: false);
-    CanonicalName root = platformComponent.root;
-    for (Library library in platformComponent.libraries) {
+    CanonicalName root = platformComponent!.root;
+    for (Library library in platformComponent!.libraries) {
       library.parent = platformComponent;
-      CanonicalName name = library.reference.canonicalName;
+      CanonicalName? name = library.reference.canonicalName;
       if (name != null && name.parent != root) {
         root.adoptChild(name);
       }
@@ -249,8 +247,8 @@ Future<Uri> compile(List<String> arguments) async {
   });
 }
 
-Future<Uri> deps(List<String> arguments) async {
-  return await runProtectedFromAbort<Uri>(() async {
+Future<Uri?> deps(List<String> arguments) async {
+  return await runProtectedFromAbort<Uri?>(() async {
     return await withGlobalOptions("deps", arguments, true,
         (CompilerContext c, _) async {
       if (c.options.verbose) {
@@ -278,12 +276,12 @@ class CompileTask {
     return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator);
   }
 
-  Future<Uri> buildDeps([Uri output]) async {
+  Future<Uri?> buildDeps([Uri? output]) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
     KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
-    Uri platform = c.options.sdkSummary;
+    Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       // TODO(CFE-Team): Probably this should be read through the filesystem as
       // well and the recording would be automatic.
@@ -294,7 +292,7 @@ class CompileTask {
     await dillTarget.buildOutlines();
     await kernelTarget.loader.buildOutlines();
 
-    Uri dFile;
+    Uri? dFile;
     if (output != null) {
       dFile = new File(new File.fromUri(output).path + ".d").uri;
       await writeDepsFile(output, dFile, c.dependencies);
@@ -303,7 +301,7 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline(
-      {Uri output,
+      {Uri? output,
       bool omitPlatform: false,
       bool supportAdditionalDills: true}) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
@@ -312,7 +310,7 @@ class CompileTask {
     KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
 
     if (supportAdditionalDills) {
-      Component sdkSummary = await c.options.loadSdkSummary(null);
+      Component? sdkSummary = await c.options.loadSdkSummary(null);
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
       }
@@ -323,7 +321,7 @@ class CompileTask {
         dillTarget.loader.appendLibraries(additionalDill);
       }
     } else {
-      Component sdkSummary = await c.options.loadSdkSummary(null);
+      Component? sdkSummary = await c.options.loadSdkSummary(null);
       if (sdkSummary != null) {
         dillTarget.loader.appendLibraries(sdkSummary);
       }
@@ -338,7 +336,7 @@ class CompileTask {
     }
     if (output != null) {
       if (omitPlatform) {
-        outline.computeCanonicalNames();
+        outline!.computeCanonicalNames();
         Component userCode = new Component(
             nameRoot: outline.root,
             uriToSource: new Map<Uri, Source>.from(outline.uriToSource));
@@ -352,7 +350,7 @@ class CompileTask {
         outline = userCode;
       }
 
-      await writeComponentToFile(outline, output);
+      await writeComponentToFile(outline!, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
     return kernelTarget;
@@ -363,9 +361,9 @@ class CompileTask {
     c.options.reportNullSafetyCompilationModeInfo();
     KernelTarget kernelTarget =
         await buildOutline(supportAdditionalDills: supportAdditionalDills);
-    Uri uri = c.options.output;
+    Uri uri = c.options.output!;
     Component component =
-        await kernelTarget.buildComponent(verify: c.options.verify);
+        (await kernelTarget.buildComponent(verify: c.options.verify))!;
     if (c.options.debugDump) {
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging);
@@ -408,7 +406,7 @@ Future<void> compilePlatform(List<String> arguments) async {
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
     Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
     return compilePlatformInternal(
-        c, c.options.output, outlineOutput, hostPlatform);
+        c, c.options.output!, outlineOutput, hostPlatform);
   });
 }
 
@@ -421,16 +419,17 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 
   var result =
       await generateKernelInternal(buildSummary: true, buildComponent: true);
+  // ignore: unnecessary_null_comparison
   if (result == null) {
     exitCode = 1;
     // Note: an error should have been reported by now.
     print('The platform .dill files were not created.');
     return;
   }
-  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
+  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  await writeComponentToFile(result.component, fullOutput);
+  await writeComponentToFile(result.component!, fullOutput);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
@@ -455,7 +454,7 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
   // mode), this is only an approximation, albeit accurate.  Once Fasta is
   // self-hosting, this isn't an approximation. Regardless, strong mode
   // shouldn't affect which files are read.
-  Target hostTarget = getTarget("vm", new TargetFlags());
+  Target? hostTarget = getTarget("vm", new TargetFlags());
   return getDependencies(Platform.script,
       platform: hostPlatform, target: hostTarget);
 }
@@ -489,13 +488,12 @@ Future<void> writeDepsFile(
   StringBuffer sb = new StringBuffer();
   sb.write(toRelativeFilePath(output));
   sb.write(":");
-  List<String> paths = new List<String>.filled(allDependencies.length, null);
-  for (int i = 0; i < allDependencies.length; i++) {
-    paths[i] = toRelativeFilePath(allDependencies[i]);
-  }
+  List<String> paths = new List<String>.generate(
+      allDependencies.length, (int i) => toRelativeFilePath(allDependencies[i]),
+      growable: false);
   // Sort the relative paths to ease analyzing future changes to this code.
   paths.sort();
-  String previous;
+  String? previous;
   for (String path in paths) {
     // Check for and omit duplicates.
     if (path != previous) {

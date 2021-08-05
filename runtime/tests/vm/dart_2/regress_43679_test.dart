@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 // VMOptions=--deterministic --optimization_counter_threshold=80
 
 // Verifies that JIT compiler doesn't crash when typed data allocation is

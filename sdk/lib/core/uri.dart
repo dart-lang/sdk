@@ -59,8 +59,8 @@ abstract class Uri {
   ///
   /// The host part of the authority component is set through
   /// [host]. The host can either be a hostname, an IPv4 address or an
-  /// IPv6 address, contained in '[' and ']'. If the host contains a
-  /// ':' character, the '[' and ']' are added if not already provided.
+  /// IPv6 address, contained in `'['` and `']'`. If the host contains a
+  /// ':' character, the `'['` and `']'` are added if not already provided.
   /// The host is normalized to all lowercase letters.
   ///
   /// The port part of the authority component is set through
@@ -101,17 +101,17 @@ abstract class Uri {
   ///
   /// The percent-encoding of the keys and values encodes all characters
   /// except for the unreserved characters, and replaces spaces with `+`.
-  /// If `query` is the empty string, it is equivalent to omitting it.
+  /// If [query] is the empty string, it is equivalent to omitting it.
   /// To have an actual empty query part,
-  /// use an empty map for `queryParameters`.
+  /// use an empty map for [queryParameters].
   ///
-  /// If both `query` and `queryParameters` are omitted or `null`,
+  /// If both [query] and [queryParameters] are omitted or `null`,
   /// the URI has no query part.
   ///
   /// The fragment component is set through [fragment].
   /// It should be a valid URI fragment, but invalid characters other than
   /// general delimiters, are escaped if necessary.
-  /// If `fragment` is omitted or `null`, the URI has no fragment part.
+  /// If [fragment] is omitted or `null`, the URI has no fragment part.
   factory Uri(
       {String? scheme,
       String? userInfo,
