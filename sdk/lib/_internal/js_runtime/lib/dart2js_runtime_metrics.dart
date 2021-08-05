@@ -16,12 +16,17 @@ import 'dart:_js_helper' show fillLiteralMap, rawStartupMetrics;
 ///
 /// - `runtime`: `'dart2js'`
 ///
-/// - `firstMs`:  first performance.now() reading in the main.dart.js file.
+/// - `firstMs`: First `performance.now()` reading taken from the main.dart.js
+///   file. This is the earliest time that the script is executing. The script
+///   has already been loaded and parsed (otherwise the script load would fail)
+///   and these earier events may be available from the `performance` API.
 ///
-/// - `dartMainProgramMs`: performance.now() immediately inside the function
-///    wrapping all the Dart code
+/// - `dartProgramMs`: `performance.now()` immediately inside the large function
+///   with the name 'dartProgram' that wraps all the Dart code, before doing any
+///   program setup actions.
 ///
-/// - `callMainMs`: performance.now() just before calling main()
+/// - `callMainMs`: performance.now() just before calling main(), after doing
+///   all program setup actions.
 ///
 /// The injected code uses `Date.now()` if `performance.now()` is not defined.
 Map<String, Object> get startupMetrics {
