@@ -8,6 +8,14 @@
 
 import 'dart:async';
 
+void foo(FutureOr<void> x) {}
+
+void main() {
+  FutureOr<void> x;
+  // https://github.com/dart-lang/linter/issues/1675
+  foo(x); // OK
+}
+
 var x;
 get g => null;
 set s(v) {}
