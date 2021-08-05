@@ -3352,7 +3352,7 @@ class F {}
 
 _The constructor with name '{0}' is already defined._
 
-_The default constructor is already defined._
+_The unnamed constructor is already defined._
 
 #### Description
 
@@ -8738,7 +8738,7 @@ name: example
 
 ### new_with_undefined_constructor_default
 
-_The class '{0}' doesn't have a default constructor._
+_The class '{0}' doesn't have an unnamed constructor._
 
 #### Description
 

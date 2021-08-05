@@ -50,24 +50,28 @@ static bool ClosureEqualsHelper(Zone* zone,
   }
   // Closures that are not implicit instance closures are unique.
   const auto& func_a = Function::Handle(zone, receiver.function());
-  if (!func_a.IsImplicitInstanceClosureFunction()) {
+  if (!func_a.IsImplicitClosureFunction()) {
     return false;
   }
   const auto& func_b = Function::Handle(zone, other_closure.function());
-  if (!func_b.IsImplicitInstanceClosureFunction()) {
+  if (!func_b.IsImplicitClosureFunction()) {
     return false;
   }
   // If the closure functions are not the same, check the function's name and
   // owner, as multiple function objects could exist for the same function due
   // to hot reload.
   if (func_a.ptr() != func_b.ptr() &&
-      (func_a.name() != func_b.name() || func_a.Owner() != func_b.Owner())) {
+      (func_a.name() != func_b.name() || func_a.Owner() != func_b.Owner() ||
+       func_a.is_static() != func_b.is_static())) {
     return false;
   }
-  // Check that the both receiver instances are the same.
-  const Context& context_a = Context::Handle(zone, receiver.context());
-  const Context& context_b = Context::Handle(zone, other_closure.context());
-  return context_a.At(0) == context_b.At(0);
+  if (!func_a.is_static()) {
+    // Check that the both receiver instances are the same.
+    const Context& context_a = Context::Handle(zone, receiver.context());
+    const Context& context_b = Context::Handle(zone, other_closure.context());
+    return context_a.At(0) == context_b.At(0);
+  }
+  return true;
 }
 
 DEFINE_NATIVE_ENTRY(Closure_equals, 0, 2) {

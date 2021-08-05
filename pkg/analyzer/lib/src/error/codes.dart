@@ -2871,7 +2871,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   static const CompileTimeErrorCode CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constant constructor.",
+          "The class '{0}' doesn't have an unnamed constant constructor.",
           correction: "Try calling a different constructor.");
 
   static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
@@ -3227,7 +3227,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode(
     'DUPLICATE_CONSTRUCTOR',
-    "The default constructor is already defined.",
+    "The unnamed constructor is already defined.",
     correction: "Try giving one of the constructors a name.",
     hasPublishedDocs: true,
     uniqueName: 'DUPLICATE_CONSTRUCTOR_DEFAULT',
@@ -8848,7 +8848,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT =
       CompileTimeErrorCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-          "The class '{0}' doesn't have a default constructor.",
+          "The class '{0}' doesn't have an unnamed constructor.",
           correction:
               "Try using one of the named constructors defined in '{0}'.",
           hasPublishedDocs: true);
@@ -9955,8 +9955,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-          "The default constructor of superclass '{0}' (called by the implicit "
-              "default constructor of '{1}') must be a generative constructor, "
+          "The unnamed constructor of superclass '{0}' (called by the default "
+              "constructor of '{1}') must be a generative constructor, "
               "but factory found.",
           correction: "Try adding an explicit constructor that has a different "
               "superinitializer or changing the superclass constructor '{2}' "

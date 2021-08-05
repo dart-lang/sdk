@@ -1946,8 +1946,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   // additional functions can cause strain on the VM. They are therefore skipped
   // in jit mode and their associated origin function is used instead as
   // interface call target.
-  if (procedure_helper.IsRedirectingFactory() ||
-      (!FLAG_precompiled_mode && procedure_helper.IsMemberSignature())) {
+  if (!FLAG_precompiled_mode && procedure_helper.IsMemberSignature()) {
     helper_.SetOffset(procedure_end);
     return;
   }

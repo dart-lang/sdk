@@ -1944,6 +1944,12 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   }
 
   @override
+  visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant constant) {
+    shaker.addUsedMember(constant.target);
+  }
+
+  @override
   visitInstantiationConstant(InstantiationConstant constant) {
     analyzeConstant(constant.tearOffConstant);
   }
