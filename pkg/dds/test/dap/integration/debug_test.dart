@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -49,6 +52,53 @@ void main(List<String> args) async {
         '',
         'Exited.',
       ]);
+    });
+
+    test('runs a simple script using runInTerminal request', () async {
+      final testFile = dap.createTestFile(emptyProgram);
+
+      // Set up a handler to handle the server calling the clients runInTerminal
+      // request and capture the args.
+      RunInTerminalRequestArguments? runInTerminalArgs;
+      Process? proc;
+      var processExited = false;
+      dap.client.handleRequest(
+        'runInTerminal',
+        (args) async {
+          runInTerminalArgs = RunInTerminalRequestArguments.fromJson(
+            args as Map<String, Object?>,
+          );
+
+          // Run the requested process (emulating what the editor would do) so
+          // that the DA will pick up the service info file, connect to the VM,
+          // resume, and then detect its termination.
+          final runArgs = runInTerminalArgs!;
+          proc = await Process.start(
+            runArgs.args.first,
+            runArgs.args.skip(1).toList(),
+            workingDirectory: runArgs.cwd,
+          );
+          unawaited(proc!.exitCode.then((_) => processExited = true));
+
+          return RunInTerminalResponseBody(processId: proc!.pid);
+        },
+      );
+
+      // Run the script until we get a TerminatedEvent.
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.initialize(supportsRunInTerminalRequest: true),
+        dap.client.launch(testFile.path, console: "terminal"),
+      ], eagerError: true);
+
+      expect(runInTerminalArgs, isNotNull);
+      expect(proc, isNotNull);
+      expect(
+        runInTerminalArgs!.args,
+        containsAllInOrder([Platform.resolvedExecutable, testFile.path]),
+      );
+      expect(proc!.pid, isPositive);
+      expect(processExited, isTrue);
     });
 
     test('provides a list of threads', () async {

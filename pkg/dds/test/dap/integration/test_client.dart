@@ -31,6 +31,11 @@ class DapTestClient {
   final _eventController = StreamController<Event>.broadcast();
   int _seq = 1;
 
+  /// Functions provided by tests to handle requests that may come from the
+  /// server (such as `runInTerminal`).
+  final _serverRequestHandlers =
+      <String, FutureOr<Object?> Function(Object?)>{};
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -97,14 +102,28 @@ class DapTestClient {
     return _eventController.stream.where((e) => e.event == event);
   }
 
+  /// Records a handler for when the server sends a [request] request.
+  void handleRequest(
+    String request,
+    FutureOr<Object?> Function(Object?) handler,
+  ) {
+    _serverRequestHandlers[request] = handler;
+  }
+
   /// Send an initialize request to the server.
   ///
   /// This occurs before the request to start running/debugging a script and is
   /// used to exchange capabilities and send breakpoints and other settings.
-  Future<Response> initialize({String exceptionPauseMode = 'None'}) async {
+  Future<Response> initialize({
+    String exceptionPauseMode = 'None',
+    bool? supportsRunInTerminalRequest,
+  }) async {
     final responses = await Future.wait([
       event('initialized'),
-      sendRequest(InitializeRequestArguments(adapterID: 'test')),
+      sendRequest(InitializeRequestArguments(
+        adapterID: 'test',
+        supportsRunInTerminalRequest: supportsRunInTerminalRequest,
+      )),
       sendRequest(
         SetExceptionBreakpointsArguments(
           filters: [exceptionPauseMode],
@@ -122,6 +141,7 @@ class DapTestClient {
     String? cwd,
     bool? noDebug,
     List<String>? additionalProjectPaths,
+    String? console,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
@@ -134,6 +154,7 @@ class DapTestClient {
         cwd: cwd,
         args: args,
         additionalProjectPaths: additionalProjectPaths,
+        console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
@@ -181,6 +202,21 @@ class DapTestClient {
     return _logIfSlow('Request "$command"', completer.future);
   }
 
+  /// Sends a response to the server.
+  ///
+  /// This is used to respond to server-to-client requests such as
+  /// `runInTerminal`.
+  void sendResponse(Request request, Object? responseBody) {
+    final response = Response(
+      success: true,
+      requestSeq: request.seq,
+      seq: _seq++,
+      command: request.command,
+      body: responseBody,
+    );
+    _channel.sendResponse(response);
+  }
+
   /// Sends a stackTrace request to the server to request the call stack for a
   /// given thread.
   ///
@@ -200,7 +236,6 @@ class DapTestClient {
     File? file,
     Future<Response> Function()? launch,
   }) {
-    // Launch script and wait for termination.
     return Future.wait([
       initialize(),
       launch?.call() ?? this.launch(file!.path),
@@ -258,7 +293,7 @@ class DapTestClient {
 
   /// Handles an incoming message from the server, completing the relevant request
   /// of raising the appropriate event.
-  void _handleMessage(message) {
+  Future<void> _handleMessage(message) async {
     if (message is Response) {
       final pendingRequest = _pendingRequests.remove(message.requestSeq);
       if (pendingRequest == null) {
@@ -277,8 +312,19 @@ class DapTestClient {
       // tests are waiting on something that will never come, they fail at
       // a useful location.
       if (message.event == 'terminated') {
-        _eventController.close();
+        unawaited(_eventController.close());
       }
+    } else if (message is Request) {
+      // The server sent a request to the client. Call the handler and then send
+      // back its result in a response.
+      final command = message.command;
+      final args = message.arguments;
+      final handler = _serverRequestHandlers[command];
+      if (handler == null) {
+        throw 'Test did not configure a handler for servers request: $command';
+      }
+      final result = await handler(args);
+      sendResponse(message, result);
     }
   }
 

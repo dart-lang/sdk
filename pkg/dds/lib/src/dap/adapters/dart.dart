@@ -107,6 +107,12 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// yet been made.
   DartDevelopmentService? _dds;
 
+  /// The [InitializeRequestArguments] provided by the client in the
+  /// `initialize` request.
+  ///
+  /// `null` if the `initialize` request has not yet been made.
+  InitializeRequestArguments? _initializeArgs;
+
   /// Whether to use IPv6 for DAP/Debugger services.
   final bool ipv6;
 
@@ -135,6 +141,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     ...?args.additionalProjectPaths,
   ].whereNotNull().toList();
 
+  /// Whether we have already sent the [TerminatedEvent] to the client.
+  ///
+  /// This is tracked so that we don't send multiple if there are multiple
+  /// events that suggest the session ended (such as a process exiting and the
+  /// VM Service closing).
+  bool _hasSentTerminatedEvent = false;
+
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
@@ -154,6 +167,12 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
   bool get evaluateToStringInDebugViews =>
       args.evaluateToStringInDebugViews ?? false;
+
+  /// The [InitializeRequestArguments] provided by the client in the
+  /// `initialize` request.
+  ///
+  /// `null` if the `initialize` request has not yet been made.
+  InitializeRequestArguments? get initializeArgs => _initializeArgs;
 
   /// [attachRequest] is called by the client when it wants us to to attach to
   /// an existing app. This will only be called once (and only one of this or
@@ -236,6 +255,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // perhaps gated on a capability/argument).
     this.vmService = vmService;
 
+    unawaited(vmService.onDone.then((_) => _handleVmServiceClosed()));
     _subscriptions.addAll([
       vmService.onIsolateEvent.listen(_handleIsolateEvent),
       vmService.onDebugEvent.listen(_handleDebugEvent),
@@ -464,6 +484,16 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     }
   }
 
+  /// Sends a [TerminatedEvent] if one has not already been sent.
+  void handleSessionTerminate() {
+    if (_hasSentTerminatedEvent) {
+      return;
+    }
+
+    _hasSentTerminatedEvent = true;
+    sendEvent(TerminatedEventBody());
+  }
+
   /// [initializeRequest] is the first call from the client during
   /// initialization and allows exchanging capabilities and configuration
   /// between client and server.
@@ -474,9 +504,12 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   @override
   Future<void> initializeRequest(
     Request request,
-    InitializeRequestArguments? args,
+    InitializeRequestArguments args,
     void Function(Capabilities) sendResponse,
   ) async {
+    // Capture args so we can read capabilities later.
+    _initializeArgs = args;
+
     // TODO(dantup): Capture/honor editor-specific settings like linesStartAt1
     sendResponse(Capabilities(
       exceptionBreakpointFilters: [
@@ -1052,6 +1085,16 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     }
   }
 
+  Future<void> _handleVmServiceClosed() async {
+    // Usually termination is handled by the subclass, but we use VM Service
+    // termination as a fallback for cases where this isn't possible (such as
+    // using `runInTerminal`). However, if we end the session too quickly, the
+    // editor might drop messages from stdout that haven't yet been processed
+    // so we use a short delay before handling termination this way.
+    await Future.delayed(const Duration(seconds: 1));
+    handleSessionTerminate();
+  }
+
   /// Performs some setup that is common to both [launchRequest] and
   /// [attachRequest].
   Future<void> _prepareForLaunchOrAttach() async {
@@ -1130,6 +1173,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 /// Specialised adapters (such as Flutter) will likely extend this class with
 /// their own additional fields.
 class DartLaunchRequestArguments extends LaunchRequestArguments {
+  final String? name;
   final String program;
   final List<String>? args;
   final String? cwd;
@@ -1145,6 +1189,18 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   /// support debugging "just my code" where SDK/Pub package code will be marked
   /// as not-debuggable.
   final List<String>? additionalProjectPaths;
+
+  /// Which console to run the program in.
+  ///
+  /// If "terminal" or "externalTerminal" will cause the program to be run by
+  /// the client by having the server call the `runInTerminal` request on the
+  /// client (as long as the client advertises support for
+  /// `runInTerminalRequest`).
+  ///
+  /// Otherwise will run inside the debug adapter and stdout/stderr will be
+  /// routed to the client using [OutputEvent]s. This is the default (and
+  /// simplest) way, but prevents the user from being able to type into `stdin`.
+  final String? console;
 
   /// Whether SDK libraries should be marked as debuggable.
   ///
@@ -1187,12 +1243,14 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   DartLaunchRequestArguments({
     Object? restart,
     bool? noDebug,
+    this.name,
     required this.program,
     this.args,
     this.cwd,
     this.vmServiceInfoFile,
     this.vmServicePort,
     this.vmAdditionalArgs,
+    this.console,
     this.enableAsserts,
     this.additionalProjectPaths,
     this.debugSdkLibraries,
@@ -1203,12 +1261,14 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   }) : super(restart: restart, noDebug: noDebug);
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
-      : program = obj['program'] as String,
+      : name = obj['name'] as String?,
+        program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
         cwd = obj['cwd'] as String?,
         vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
         vmServicePort = obj['vmServicePort'] as int?,
         vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
+        console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
@@ -1225,12 +1285,14 @@ class DartLaunchRequestArguments extends LaunchRequestArguments {
   @override
   Map<String, Object?> toJson() => {
         ...super.toJson(),
+        if (name != null) 'name': name,
         'program': program,
         if (args != null) 'args': args,
         if (cwd != null) 'cwd': cwd,
         if (vmServiceInfoFile != null) 'vmServiceInfoFile': vmServiceInfoFile,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
+        if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,
         if (additionalProjectPaths != null)
           'additionalProjectPaths': additionalProjectPaths,

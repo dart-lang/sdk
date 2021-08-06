@@ -30,6 +30,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
 
+  /// Completers for requests that are sent from the server back to the editor
+  /// such as `runInTerminal`.
+  final _serverToClientRequestCompleters = <int, Completer<Object?>>{};
+
   BaseDebugAdapter(this._channel) {
     _channel.listen(_handleIncomingMessage);
   }
@@ -174,13 +178,19 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   /// Sends a request to the client, looking up the request type based on the
   /// runtimeType of [arguments].
-  void sendRequest(RequestArguments arguments) {
+  Future<Object?> sendRequest(RequestArguments arguments) {
     final request = Request(
       seq: _sequence++,
       command: commandTypes[arguments.runtimeType]!,
       arguments: arguments,
     );
+
+    // Store a completer to be used when a response comes back.
+    final completer = Completer<Object?>();
+    _serverToClientRequestCompleters[request.seq] = completer;
     _channel.sendRequest(request);
+
+    return completer.future;
   }
 
   Future<void> setBreakpointsRequest(
@@ -318,8 +328,16 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
   }
 
   void _handleIncomingResponse(Response response) {
-    // TODO(dantup): Implement this when the server sends requests to the client
-    // (for example runInTerminalRequest).
+    final completer =
+        _serverToClientRequestCompleters.remove(response.requestSeq);
+
+    if (response.success) {
+      completer?.complete(response.body);
+    } else {
+      completer?.completeError(
+        response.message ?? 'Request ${response.requestSeq} failed',
+      );
+    }
   }
 
   /// Helpers for requests that have `void` arguments. The supplied args are

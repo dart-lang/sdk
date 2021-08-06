@@ -141,6 +141,80 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
       this.usePackageConfigFile(packageConfig);
     }
 
+    // If the client supports runInTerminal and args.console is set to either
+    // 'terminal' or 'runInTerminal' we won't run the process ourselves, but
+    // instead call the client to run it for us (this allows it to run in a
+    // terminal where the user can interact with `stdin`).
+    final canRunInTerminal =
+        initializeArgs?.supportsRunInTerminalRequest ?? false;
+
+    // The terminal kinds used by DAP are 'integrated' and 'external'.
+    final terminalKind = canRunInTerminal
+        ? args.console == 'terminal'
+            ? 'integrated'
+            : args.console == 'externalTerminal'
+                ? 'external'
+                : null
+        : null;
+
+    // TODO(dantup): Support passing env to both of these.
+
+    if (terminalKind != null) {
+      await launchInEditorTerminal(debug, terminalKind, vmPath, processArgs);
+    } else {
+      await launchAsProcess(vmPath, processArgs);
+    }
+  }
+
+  /// Calls the client (via a `runInTerminal` request) to spawn the process so
+  /// that it can run in a local terminal that the user can interact with.
+  Future<void> launchInEditorTerminal(
+    bool debug,
+    String terminalKind,
+    String vmPath,
+    List<String> processArgs,
+  ) async {
+    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}'
+        ' via client ${terminalKind} terminal');
+
+    // runInTerminal is a DAP request that goes from server-to-client that
+    // allows the DA to ask the client editor to run the debugee for us. In this
+    // case we will have no access to the process (although we get the PID) so
+    // for debugging will rely on the process writing the service-info file that
+    // we can detect with the normal watching code.
+    final requestArgs = RunInTerminalRequestArguments(
+      args: [vmPath, ...processArgs],
+      cwd: args.cwd ?? path.dirname(args.program),
+      kind: terminalKind,
+      title: args.name ?? 'Dart',
+    );
+    try {
+      final response = await sendRequest(requestArgs);
+      final body =
+          RunInTerminalResponseBody.fromJson(response as Map<String, Object?>);
+      logger?.call(
+        'Client spawned process'
+        ' (proc: ${body.processId}, shell: ${body.shellProcessId})',
+      );
+    } catch (e) {
+      logger?.call('Client failed to spawn process $e');
+      sendOutput('console', '\nFailed to spawn process: $e');
+      handleSessionTerminate();
+    }
+
+    // When using `runInTerminal` and `noDebug`, we will not connect to the VM
+    // Service so we will have no way of knowing when the process completes, so
+    // we just send the termination event right away.
+    if (!debug) {
+      handleSessionTerminate();
+    }
+  }
+
+  /// Launches the program as a process controlled by the debug adapter.
+  ///
+  /// Output to `stdout`/`stderr` will be sent to the editor using
+  /// [OutputEvent]s.
+  Future<void> launchAsProcess(String vmPath, List<String> processArgs) async {
     logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}');
     final process = await Process.start(
       vmPath,
@@ -204,7 +278,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     // Always add a leading newline since the last written text might not have
     // had one.
     sendOutput('console', '\nExited$codeSuffix.');
-    sendEvent(TerminatedEventBody());
+    handleSessionTerminate();
   }
 
   void _handleStderr(List<int> data) {
