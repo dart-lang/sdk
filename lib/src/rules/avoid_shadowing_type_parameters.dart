@@ -29,7 +29,7 @@ class A<T> {
 
 ''';
 
-class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
+class AvoidShadowingTypeParameters extends LintRule {
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',

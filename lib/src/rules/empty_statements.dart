@@ -41,7 +41,7 @@ if (complicated.expression.foo())
 
 ''';
 
-class EmptyStatements extends LintRule implements NodeLintRule {
+class EmptyStatements extends LintRule {
   EmptyStatements()
       : super(
             name: 'empty_statements',

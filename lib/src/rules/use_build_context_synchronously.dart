@@ -53,7 +53,7 @@ class _MyWidgetState extends State<MyWidget> {
 ```
 ''';
 
-class UseBuildContextSynchronously extends LintRule implements NodeLintRule {
+class UseBuildContextSynchronously extends LintRule {
   /// Flag to short-circuit `inTestDir` checking when running tests.
   final bool inTestMode;
 

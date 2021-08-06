@@ -206,7 +206,7 @@ class NonNullableFunction {
       other is NonNullableFunction && other.hashCode == hashCode;
 }
 
-class NullClosures extends LintRule implements NodeLintRule {
+class NullClosures extends LintRule {
   NullClosures()
       : super(
             name: 'null_closures',

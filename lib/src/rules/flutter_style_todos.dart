@@ -27,7 +27,7 @@ From the [Flutter docs](https://github.com/flutter/flutter/wiki/Style-guide-for-
 
 ''';
 
-class FlutterStyleTodos extends LintRule implements NodeLintRule {
+class FlutterStyleTodos extends LintRule {
   FlutterStyleTodos()
       : super(
             name: 'flutter_style_todos',

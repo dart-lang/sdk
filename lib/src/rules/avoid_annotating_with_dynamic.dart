@@ -36,7 +36,7 @@ lookUpOrDefault(String name, Map map, defaultValue) {
 
 ''';
 
-class AvoidAnnotatingWithDynamic extends LintRule implements NodeLintRule {
+class AvoidAnnotatingWithDynamic extends LintRule {
   AvoidAnnotatingWithDynamic()
       : super(
             name: 'avoid_annotating_with_dynamic',

@@ -49,7 +49,7 @@ try {
 
 ''';
 
-class EmptyCatches extends LintRule implements NodeLintRule {
+class EmptyCatches extends LintRule {
   EmptyCatches()
       : super(
             name: 'empty_catches',

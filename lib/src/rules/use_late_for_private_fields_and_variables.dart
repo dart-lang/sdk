@@ -46,8 +46,7 @@ bool _isPrivateExtension(AstNode parent) {
   return parentName == null || Identifier.isPrivateName(parentName);
 }
 
-class UseLateForPrivateFieldsAndVariables extends LintRule
-    implements NodeLintRule {
+class UseLateForPrivateFieldsAndVariables extends LintRule {
   UseLateForPrivateFieldsAndVariables()
       : super(
           name: 'use_late_for_private_fields_and_variables',

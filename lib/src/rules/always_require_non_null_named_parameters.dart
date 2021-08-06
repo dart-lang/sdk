@@ -39,8 +39,7 @@ NOTE: Only asserts at the start of the bodies will be taken into account.
 
 ''';
 
-class AlwaysRequireNonNullNamedParameters extends LintRule
-    implements NodeLintRule {
+class AlwaysRequireNonNullNamedParameters extends LintRule {
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',

@@ -51,8 +51,7 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) {
       .any(_isInstanceCreationExpression);
 }
 
-class PreferConstructorsInsteadOfStaticMethods extends LintRule
-    implements NodeLintRule {
+class PreferConstructorsInsteadOfStaticMethods extends LintRule {
   PreferConstructorsInsteadOfStaticMethods()
       : super(
             name: 'prefer_constructors_over_static_methods',

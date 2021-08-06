@@ -27,7 +27,7 @@ b {
 ```    
 ''';
 
-class EolAtEndOfFile extends LintRule implements NodeLintRule {
+class EolAtEndOfFile extends LintRule {
   EolAtEndOfFile()
       : super(
             name: 'eol_at_end_of_file',

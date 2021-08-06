@@ -41,7 +41,7 @@ const _mapMixinName = 'MapMixin';
 const _setMixinName = 'SetMixin';
 const _stringConversionSinkName = 'StringConversionSinkMixin';
 
-class PreferMixin extends LintRule implements NodeLintRule {
+class PreferMixin extends LintRule {
   PreferMixin()
       : super(
             name: 'prefer_mixin',

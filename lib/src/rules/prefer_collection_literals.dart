@@ -57,7 +57,7 @@ void printHashMap(LinkedHashMap map) => printMap(map);
 ```
 ''';
 
-class PreferCollectionLiterals extends LintRule implements NodeLintRule {
+class PreferCollectionLiterals extends LintRule {
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',

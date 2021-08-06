@@ -49,8 +49,7 @@ bool _isImmutable(Element? element) =>
     element.name == _immutableVarName &&
     element.library.name == _metaLibName;
 
-class PreferConstConstructorsInImmutables extends LintRule
-    implements NodeLintRule {
+class PreferConstConstructorsInImmutables extends LintRule {
   PreferConstConstructorsInImmutables()
       : super(
             name: 'prefer_const_constructors_in_immutables',

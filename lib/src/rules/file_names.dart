@@ -43,7 +43,7 @@ library.
 
 ''';
 
-class FileNames extends LintRule implements NodeLintRule {
+class FileNames extends LintRule {
   FileNames()
       : super(
             name: 'file_names',

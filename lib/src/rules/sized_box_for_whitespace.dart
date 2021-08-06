@@ -46,7 +46,7 @@ Widget buildRow() {
 ```
 ''';
 
-class SizedBoxForWhitespace extends LintRule implements NodeLintRule {
+class SizedBoxForWhitespace extends LintRule {
   SizedBoxForWhitespace()
       : super(
             name: 'sized_box_for_whitespace',

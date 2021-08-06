@@ -35,8 +35,7 @@ m({b, c, @required a}) ;
 
 ''';
 
-class AlwaysPutRequiredNamedParametersFirst extends LintRule
-    implements NodeLintRule {
+class AlwaysPutRequiredNamedParametersFirst extends LintRule {
   AlwaysPutRequiredNamedParametersFirst()
       : super(
             name: 'always_put_required_named_parameters_first',

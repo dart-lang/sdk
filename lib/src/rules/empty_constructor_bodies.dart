@@ -37,7 +37,7 @@ class Point {
 
 ''';
 
-class EmptyConstructorBodies extends LintRule implements NodeLintRule {
+class EmptyConstructorBodies extends LintRule {
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',

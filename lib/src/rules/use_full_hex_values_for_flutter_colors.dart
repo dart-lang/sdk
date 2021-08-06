@@ -30,8 +30,7 @@ Color(0x00000001);
 
 ''';
 
-class UseFullHexValuesForFlutterColors extends LintRule
-    implements NodeLintRule {
+class UseFullHexValuesForFlutterColors extends LintRule {
   UseFullHexValuesForFlutterColors()
       : super(
             name: 'use_full_hex_values_for_flutter_colors',

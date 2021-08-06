@@ -30,7 +30,7 @@ void main() {
 ```
 ''';
 
-class VoidChecks extends LintRule implements NodeLintRule {
+class VoidChecks extends LintRule {
   VoidChecks()
       : super(
             name: 'void_checks',

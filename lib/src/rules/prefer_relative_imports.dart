@@ -33,7 +33,7 @@ import 'package:my_package/bar.dart';
 
 ''';
 
-class PreferRelativeImports extends LintRule implements NodeLintRule {
+class PreferRelativeImports extends LintRule {
   PreferRelativeImports()
       : super(
             name: 'prefer_relative_imports',

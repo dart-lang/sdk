@@ -37,8 +37,7 @@ Button(ButtonState.enabled);
 
 ''';
 
-class AvoidPositionalBooleanParameters extends LintRule
-    implements NodeLintRule {
+class AvoidPositionalBooleanParameters extends LintRule {
   AvoidPositionalBooleanParameters()
       : super(
             name: 'avoid_positional_boolean_parameters',

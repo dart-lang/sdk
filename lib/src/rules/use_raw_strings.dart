@@ -25,7 +25,7 @@ var s = r'A string with only \ and $';
 
 ''';
 
-class UseRawStrings extends LintRule implements NodeLintRule {
+class UseRawStrings extends LintRule {
   UseRawStrings()
       : super(
             name: 'use_raw_strings',

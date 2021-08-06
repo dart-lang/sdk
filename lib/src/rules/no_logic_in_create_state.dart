@@ -58,7 +58,7 @@ class MyStateful extends StatefulWidget {
 ```
 ''';
 
-class NoLogicInCreateState extends LintRule implements NodeLintRule {
+class NoLogicInCreateState extends LintRule {
   NoLogicInCreateState()
       : super(
             name: 'no_logic_in_create_state',

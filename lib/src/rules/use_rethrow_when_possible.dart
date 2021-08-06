@@ -39,7 +39,7 @@ try {
 
 ''';
 
-class UseRethrowWhenPossible extends LintRule implements NodeLintRule {
+class UseRethrowWhenPossible extends LintRule {
   UseRethrowWhenPossible()
       : super(
             name: 'use_rethrow_when_possible',

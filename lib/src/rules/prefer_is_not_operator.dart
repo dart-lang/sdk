@@ -29,7 +29,7 @@ if (foo is! Foo) {
 
 ''';
 
-class PreferIsNotOperator extends LintRule implements NodeLintRule {
+class PreferIsNotOperator extends LintRule {
   PreferIsNotOperator()
       : super(
             name: 'prefer_is_not_operator',

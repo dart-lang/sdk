@@ -22,7 +22,7 @@ void f(int x) {
 ```
 ''';
 
-class AvoidPrint extends LintRule implements NodeLintRule {
+class AvoidPrint extends LintRule {
   AvoidPrint()
       : super(
             name: 'avoid_print',

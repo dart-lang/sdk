@@ -44,7 +44,7 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 
 ''';
 
-class PreferForeach extends LintRule implements NodeLintRule {
+class PreferForeach extends LintRule {
   PreferForeach()
       : super(
             name: 'prefer_foreach',

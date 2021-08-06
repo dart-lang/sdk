@@ -38,7 +38,7 @@ class A {
 
 ''';
 
-class PreferAssertsWithMessage extends LintRule implements NodeLintRule {
+class PreferAssertsWithMessage extends LintRule {
   PreferAssertsWithMessage()
       : super(
             name: 'prefer_asserts_with_message',

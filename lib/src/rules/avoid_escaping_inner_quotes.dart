@@ -25,7 +25,7 @@ var s = "It's not fun";
 
 ''';
 
-class AvoidEscapingInnerQuotes extends LintRule implements NodeLintRule {
+class AvoidEscapingInnerQuotes extends LintRule {
   AvoidEscapingInnerQuotes()
       : super(
             name: 'avoid_escaping_inner_quotes',

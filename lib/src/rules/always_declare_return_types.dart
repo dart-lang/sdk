@@ -45,7 +45,7 @@ typedef predicate = bool Function(Object o);
 
 ''';
 
-class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
+class AlwaysDeclareReturnTypes extends LintRule {
   AlwaysDeclareReturnTypes()
       : super(
             name: 'always_declare_return_types',

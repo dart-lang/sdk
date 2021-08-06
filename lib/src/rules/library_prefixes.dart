@@ -33,7 +33,7 @@ import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 
 ''';
 
-class LibraryPrefixes extends LintRule implements NodeLintRule {
+class LibraryPrefixes extends LintRule {
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',

@@ -56,7 +56,7 @@ bool _beginsWithAsOrTo(String name) {
 bool _isVoid(TypeAnnotation? returnType) =>
     returnType is TypeName && returnType.name.name == 'void';
 
-class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
+class UseToAndAsIfApplicable extends LintRule {
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',

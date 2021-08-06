@@ -40,7 +40,7 @@ necessary.
 The rule will be removed in a future Linter release.
 ''';
 
-class PreferBoolInAsserts extends LintRule implements NodeLintRule {
+class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',

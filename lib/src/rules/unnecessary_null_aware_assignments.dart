@@ -32,7 +32,7 @@ x ??= null;
 
 ''';
 
-class UnnecessaryNullAwareAssignments extends LintRule implements NodeLintRule {
+class UnnecessaryNullAwareAssignments extends LintRule {
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',

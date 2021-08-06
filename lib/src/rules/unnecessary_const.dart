@@ -34,7 +34,7 @@ m(){
 
 ''';
 
-class UnnecessaryConst extends LintRule implements NodeLintRule {
+class UnnecessaryConst extends LintRule {
   UnnecessaryConst()
       : super(
             name: 'unnecessary_const',

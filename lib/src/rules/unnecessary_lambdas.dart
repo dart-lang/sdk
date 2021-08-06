@@ -46,7 +46,7 @@ Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
         .whereType<SimpleIdentifier>()
         .map((e) => e.staticElement);
 
-class UnnecessaryLambdas extends LintRule implements NodeLintRule {
+class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',

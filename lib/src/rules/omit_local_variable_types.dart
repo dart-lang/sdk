@@ -44,7 +44,7 @@ Map<int, List<Person>> groupByZip(Iterable<Person> people) {
 
 ''';
 
-class OmitLocalVariableTypes extends LintRule implements NodeLintRule {
+class OmitLocalVariableTypes extends LintRule {
   OmitLocalVariableTypes()
       : super(
             name: 'omit_local_variable_types',

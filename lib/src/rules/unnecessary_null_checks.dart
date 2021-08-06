@@ -82,7 +82,7 @@ DartType? getExpectedType(PostfixExpression node) {
   return null;
 }
 
-class UnnecessaryNullChecks extends LintRule implements NodeLintRule {
+class UnnecessaryNullChecks extends LintRule {
   UnnecessaryNullChecks()
       : super(
             name: 'unnecessary_null_checks',

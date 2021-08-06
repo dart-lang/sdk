@@ -29,8 +29,7 @@ raiseAlarm(
 
 ''';
 
-class PreferAdjacentStringConcatenation extends LintRule
-    implements NodeLintRule {
+class PreferAdjacentStringConcatenation extends LintRule {
   PreferAdjacentStringConcatenation()
       : super(
             name: 'prefer_adjacent_string_concatenation',

@@ -35,7 +35,7 @@ void goodMethod() {
 ```
 ''';
 
-class UnnecessaryFinal extends LintRule implements NodeLintRule {
+class UnnecessaryFinal extends LintRule {
   UnnecessaryFinal()
       : super(
             name: 'unnecessary_final',

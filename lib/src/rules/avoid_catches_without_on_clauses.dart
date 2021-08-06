@@ -38,7 +38,7 @@ on Exception catch(e) {
 
 ''';
 
-class AvoidCatchesWithoutOnClauses extends LintRule implements NodeLintRule {
+class AvoidCatchesWithoutOnClauses extends LintRule {
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',

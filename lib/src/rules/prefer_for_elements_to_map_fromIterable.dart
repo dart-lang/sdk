@@ -32,8 +32,7 @@ return {
 ```
 ''';
 
-class PreferForElementsToMapFromIterable extends LintRule
-    implements NodeLintRule {
+class PreferForElementsToMapFromIterable extends LintRule {
   PreferForElementsToMapFromIterable()
       : super(
             name: 'prefer_for_elements_to_map_fromIterable',

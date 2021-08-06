@@ -27,7 +27,7 @@ Duration.zero;
 ''';
 const lintName = 'use_named_constants';
 
-class UseNamedConstants extends LintRule implements NodeLintRule {
+class UseNamedConstants extends LintRule {
   UseNamedConstants()
       : super(
           name: lintName,

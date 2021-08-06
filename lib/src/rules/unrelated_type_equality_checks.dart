@@ -156,7 +156,7 @@ bool _isFixNumIntX(DartType type) {
       element.library?.name == 'fixnum';
 }
 
-class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
+class UnrelatedTypeEqualityChecks extends LintRule {
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',

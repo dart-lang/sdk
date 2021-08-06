@@ -66,7 +66,7 @@ Expression? _getExpressionCondition(Expression rawExpression) {
   return null;
 }
 
-class PreferConditionalAssignment extends LintRule implements NodeLintRule {
+class PreferConditionalAssignment extends LintRule {
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',

@@ -51,7 +51,7 @@ bool _isReturnStatement(AstNode node) => node is ReturnStatement;
 bool _returnsThis(AstNode node) =>
     (node as ReturnStatement).expression is ThisExpression;
 
-class AvoidReturningThis extends LintRule implements NodeLintRule {
+class AvoidReturningThis extends LintRule {
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',

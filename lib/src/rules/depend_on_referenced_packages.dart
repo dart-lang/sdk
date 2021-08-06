@@ -45,7 +45,7 @@ dependencies:
 
 ''';
 
-class DependOnReferencedPackages extends LintRule implements NodeLintRule {
+class DependOnReferencedPackages extends LintRule {
   DependOnReferencedPackages()
       : super(
             name: 'depend_on_referenced_packages',

@@ -76,7 +76,7 @@ bool _isOptionalTypeArgs(Element? element) =>
     element.name == _optionalTypeArgsVarName &&
     element.library.name == _metaLibName;
 
-class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
+class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
       : super(
             name: 'always_specify_types',

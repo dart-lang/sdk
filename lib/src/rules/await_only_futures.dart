@@ -34,7 +34,7 @@ main() async {
 ```
 ''';
 
-class AwaitOnlyFutures extends LintRule implements NodeLintRule {
+class AwaitOnlyFutures extends LintRule {
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',

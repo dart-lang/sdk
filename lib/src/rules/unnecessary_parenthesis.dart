@@ -25,7 +25,7 @@ a = (b);
 
 ''';
 
-class UnnecessaryParenthesis extends LintRule implements NodeLintRule {
+class UnnecessaryParenthesis extends LintRule {
   UnnecessaryParenthesis()
       : super(
             name: 'unnecessary_parenthesis',

@@ -52,7 +52,7 @@ necessary.
 The rule will be removed in a future Linter release.
 ''';
 
-class SuperGoesLast extends LintRule implements NodeLintRule {
+class SuperGoesLast extends LintRule {
   SuperGoesLast()
       : super(
             name: 'super_goes_last',

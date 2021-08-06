@@ -91,7 +91,7 @@ void functionTypeWithParameters(Function() function) {
 
 ''';
 
-class AvoidDynamicCalls extends LintRule implements NodeLintRule {
+class AvoidDynamicCalls extends LintRule {
   AvoidDynamicCalls()
       : super(
           name: 'avoid_dynamic_calls',

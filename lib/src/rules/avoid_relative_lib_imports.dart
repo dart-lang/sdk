@@ -38,7 +38,7 @@ import '../lib/baz.dart';
 
 ''';
 
-class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
+class AvoidRelativeLibImports extends LintRule {
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',

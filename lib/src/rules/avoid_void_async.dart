@@ -31,7 +31,7 @@ Future<void> f2() async => null;
 
 ''';
 
-class AvoidVoidAsync extends LintRule implements NodeLintRule {
+class AvoidVoidAsync extends LintRule {
   AvoidVoidAsync()
       : super(
             name: 'avoid_void_async',

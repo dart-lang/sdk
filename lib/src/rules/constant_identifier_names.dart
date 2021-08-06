@@ -44,7 +44,7 @@ class Dice {
 
 ''';
 
-class ConstantIdentifierNames extends LintRule implements NodeLintRule {
+class ConstantIdentifierNames extends LintRule {
   ConstantIdentifierNames()
       : super(
             name: 'constant_identifier_names',

@@ -51,7 +51,7 @@ await expectLater(
 
 ''';
 
-class UseTestThrowsMatchers extends LintRule implements NodeLintRule {
+class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
       : super(
           name: 'use_test_throws_matchers',

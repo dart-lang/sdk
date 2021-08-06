@@ -35,7 +35,7 @@ if (!sources.isEmpty) {
 
 ''';
 
-class PreferIsNotEmpty extends LintRule implements NodeLintRule {
+class PreferIsNotEmpty extends LintRule {
   PreferIsNotEmpty()
       : super(
             name: 'prefer_is_not_empty',

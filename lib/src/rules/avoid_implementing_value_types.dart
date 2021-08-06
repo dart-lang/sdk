@@ -86,7 +86,7 @@ void main() {
 
 ''';
 
-class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
+class AvoidImplementingValueTypes extends LintRule {
   AvoidImplementingValueTypes()
       : super(
             name: 'avoid_implementing_value_types',

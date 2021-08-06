@@ -36,7 +36,7 @@ class Point {
 
 ''';
 
-class TypeInitFormals extends LintRule implements NodeLintRule {
+class TypeInitFormals extends LintRule {
   TypeInitFormals()
       : super(
             name: 'type_init_formals',

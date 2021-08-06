@@ -61,7 +61,7 @@ void someFunctionOK() {
 bool _isSubscription(DartType type) => DartTypeUtilities.implementsInterface(
     type, 'StreamSubscription', 'dart.async');
 
-class CancelSubscriptions extends LintRule implements NodeLintRule {
+class CancelSubscriptions extends LintRule {
   CancelSubscriptions()
       : super(
             name: 'cancel_subscriptions',

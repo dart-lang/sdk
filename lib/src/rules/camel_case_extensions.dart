@@ -31,7 +31,7 @@ extension SmartIterable<T> on Iterable<T> {
 ```
 ''';
 
-class CamelCaseExtensions extends LintRule implements NodeLintRule {
+class CamelCaseExtensions extends LintRule {
   CamelCaseExtensions()
       : super(
             name: 'camel_case_extensions',

@@ -33,7 +33,7 @@ class A {
 
 ''';
 
-class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
+class PreferAssertsInInitializerLists extends LintRule {
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',

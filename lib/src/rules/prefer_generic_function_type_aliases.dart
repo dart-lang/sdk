@@ -33,8 +33,7 @@ typedef F = void Function();
 
 ''';
 
-class PreferGenericFunctionTypeAliases extends LintRule
-    implements NodeLintRule {
+class PreferGenericFunctionTypeAliases extends LintRule {
   PreferGenericFunctionTypeAliases()
       : super(
             name: 'prefer_generic_function_type_aliases',

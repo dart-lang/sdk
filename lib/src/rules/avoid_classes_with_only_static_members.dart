@@ -54,8 +54,7 @@ bool _isStaticMember(ClassMember classMember) {
   return false;
 }
 
-class AvoidClassesWithOnlyStaticMembers extends LintRule
-    implements NodeLintRule {
+class AvoidClassesWithOnlyStaticMembers extends LintRule {
   AvoidClassesWithOnlyStaticMembers()
       : super(
             name: 'avoid_classes_with_only_static_members',

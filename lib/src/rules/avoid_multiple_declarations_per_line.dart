@@ -27,8 +27,7 @@ String? baz;
 
 ''';
 
-class AvoidMultipleDeclarationsPerLine extends LintRule
-    implements NodeLintRule {
+class AvoidMultipleDeclarationsPerLine extends LintRule {
   AvoidMultipleDeclarationsPerLine()
       : super(
             name: 'avoid_multiple_declarations_per_line',

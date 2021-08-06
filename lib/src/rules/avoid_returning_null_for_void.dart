@@ -42,7 +42,7 @@ Future<void> f2() async {
 
 ''';
 
-class AvoidReturningNullForVoid extends LintRule implements NodeLintRule {
+class AvoidReturningNullForVoid extends LintRule {
   AvoidReturningNullForVoid()
       : super(
             name: 'avoid_returning_null_for_void',

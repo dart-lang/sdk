@@ -52,7 +52,7 @@ containsValue(String value) => getValues().contains(value);
 
 ''';
 
-class PreferExpressionFunctionBodies extends LintRule implements NodeLintRule {
+class PreferExpressionFunctionBodies extends LintRule {
   PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',

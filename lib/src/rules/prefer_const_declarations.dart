@@ -38,7 +38,7 @@ class A {
 
 ''';
 
-class PreferConstDeclarations extends LintRule implements NodeLintRule {
+class PreferConstDeclarations extends LintRule {
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',

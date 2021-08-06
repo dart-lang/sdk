@@ -31,7 +31,7 @@ string = 'hello\n'
 ```
 ''';
 
-class NoopPrimitiveOperations extends LintRule implements NodeLintRule {
+class NoopPrimitiveOperations extends LintRule {
   NoopPrimitiveOperations()
       : super(
           name: 'noop_primitive_operations',

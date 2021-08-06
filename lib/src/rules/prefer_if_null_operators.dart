@@ -27,7 +27,7 @@ v = a ?? b;
 
 ''';
 
-class PreferIfNullOperators extends LintRule implements NodeLintRule {
+class PreferIfNullOperators extends LintRule {
   PreferIfNullOperators()
       : super(
             name: 'prefer_if_null_operators',

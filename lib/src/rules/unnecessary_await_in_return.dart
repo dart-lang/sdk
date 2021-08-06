@@ -36,7 +36,7 @@ Future<int> f2() {
 
 ''';
 
-class UnnecessaryAwaitInReturn extends LintRule implements NodeLintRule {
+class UnnecessaryAwaitInReturn extends LintRule {
   UnnecessaryAwaitInReturn()
       : super(
             name: 'unnecessary_await_in_return',

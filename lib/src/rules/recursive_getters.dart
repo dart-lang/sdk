@@ -37,7 +37,7 @@ int get field => _field;
 
 ''';
 
-class RecursiveGetters extends LintRule implements NodeLintRule {
+class RecursiveGetters extends LintRule {
   RecursiveGetters()
       : super(
             name: 'recursive_getters',

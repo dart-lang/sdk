@@ -47,7 +47,7 @@ for any type of map or list:
 ```
 ''';
 
-class PreferVoidToNull extends LintRule implements NodeLintRule {
+class PreferVoidToNull extends LintRule {
   PreferVoidToNull()
       : super(
             name: 'prefer_void_to_null',

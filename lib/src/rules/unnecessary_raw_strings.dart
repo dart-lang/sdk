@@ -27,7 +27,7 @@ var s3 = r'\a';
 
 ''';
 
-class UnnecessaryRawStrings extends LintRule implements NodeLintRule {
+class UnnecessaryRawStrings extends LintRule {
   UnnecessaryRawStrings()
       : super(
             name: 'unnecessary_raw_strings',

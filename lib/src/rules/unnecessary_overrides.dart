@@ -49,7 +49,7 @@ super method,
 
 ''';
 
-class UnnecessaryOverrides extends LintRule implements NodeLintRule {
+class UnnecessaryOverrides extends LintRule {
   UnnecessaryOverrides()
       : super(
             name: 'unnecessary_overrides',

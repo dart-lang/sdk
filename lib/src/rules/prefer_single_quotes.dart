@@ -43,7 +43,7 @@ useStrings(
 
 ''';
 
-class PreferSingleQuotes extends LintRule implements NodeLintRule {
+class PreferSingleQuotes extends LintRule {
   PreferSingleQuotes()
       : super(
             name: 'prefer_single_quotes',

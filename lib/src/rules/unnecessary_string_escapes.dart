@@ -28,7 +28,7 @@ Remove unnecessary backslashes in strings.
 
 ''';
 
-class UnnecessaryStringEscapes extends LintRule implements NodeLintRule {
+class UnnecessaryStringEscapes extends LintRule {
   UnnecessaryStringEscapes()
       : super(
             name: 'unnecessary_string_escapes',

@@ -57,7 +57,7 @@ class LazyId {
 
 ''';
 
-class AvoidInitToNull extends LintRule implements NodeLintRule {
+class AvoidInitToNull extends LintRule {
   AvoidInitToNull()
       : super(
             name: 'avoid_init_to_null',

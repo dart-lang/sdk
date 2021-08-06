@@ -69,7 +69,7 @@ const List<String> _fileSystemEntityMethodNames = <String>[
   'type',
 ];
 
-class AvoidSlowAsyncIo extends LintRule implements NodeLintRule {
+class AvoidSlowAsyncIo extends LintRule {
   AvoidSlowAsyncIo()
       : super(
             name: 'avoid_slow_async_io',

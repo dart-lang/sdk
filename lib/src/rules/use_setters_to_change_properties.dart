@@ -31,7 +31,7 @@ button.visible = false;
 
 ''';
 
-class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
+class UseSettersToChangeAProperty extends LintRule {
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',

@@ -40,7 +40,7 @@ extension on DartType? {
       DartTypeUtilities.extendsClass(this, className, 'dart.dom.html');
 }
 
-class UnsafeHtml extends LintRule implements NodeLintRule {
+class UnsafeHtml extends LintRule {
   UnsafeHtml()
       : super(
             name: 'unsafe_html',

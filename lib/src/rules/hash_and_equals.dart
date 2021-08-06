@@ -47,7 +47,7 @@ class Better {
 ```
 ''';
 
-class HashAndEquals extends LintRule implements NodeLintRule {
+class HashAndEquals extends LintRule {
   HashAndEquals()
       : super(
             name: 'hash_and_equals',

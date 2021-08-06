@@ -23,7 +23,7 @@ else ;
 
 ''';
 
-class AvoidEmptyElse extends LintRule implements NodeLintRule {
+class AvoidEmptyElse extends LintRule {
   AvoidEmptyElse()
       : super(
             name: 'avoid_empty_else',

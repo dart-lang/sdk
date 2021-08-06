@@ -51,7 +51,7 @@ Object baz(Thing myThing) {
 
 ''';
 
-class AvoidTypeToString extends LintRule implements NodeLintRule {
+class AvoidTypeToString extends LintRule {
   AvoidTypeToString()
       : super(
             name: 'avoid_type_to_string',

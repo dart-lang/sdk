@@ -36,8 +36,7 @@ void main() {
 
 ''';
 
-class PreferFunctionDeclarationsOverVariables extends LintRule
-    implements NodeLintRule {
+class PreferFunctionDeclarationsOverVariables extends LintRule {
   PreferFunctionDeclarationsOverVariables()
       : super(
             name: 'prefer_function_declarations_over_variables',

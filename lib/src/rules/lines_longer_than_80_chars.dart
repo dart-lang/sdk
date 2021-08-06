@@ -42,7 +42,7 @@ const _lf = '\n';
 final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
-class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
+class LinesLongerThan80Chars extends LintRule {
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',

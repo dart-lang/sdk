@@ -74,7 +74,7 @@ void ok(EnumLike e) {
 ```
 ''';
 
-class ExhaustiveCases extends LintRule implements NodeLintRule {
+class ExhaustiveCases extends LintRule {
   ExhaustiveCases()
       : super(
             name: 'exhaustive_cases',

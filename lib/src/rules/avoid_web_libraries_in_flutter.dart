@@ -40,7 +40,7 @@ YamlMap _parseYaml(String content) {
   return YamlMap();
 }
 
-class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
+class AvoidWebLibrariesInFlutter extends LintRule {
   /// Cache of most recent analysis root to parsed "hasFlutter" state.
   static final Map<String, bool> _rootHasFlutterCache = {};
 

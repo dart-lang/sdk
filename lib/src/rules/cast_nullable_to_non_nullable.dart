@@ -37,7 +37,7 @@ var v = a!;
 
 ''';
 
-class CastNullableToNonNullable extends LintRule implements NodeLintRule {
+class CastNullableToNonNullable extends LintRule {
   CastNullableToNonNullable()
       : super(
           name: 'cast_nullable_to_non_nullable',

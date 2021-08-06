@@ -119,7 +119,7 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 
 ''';
 
-class IterableContainsUnrelatedType extends LintRule implements NodeLintRule {
+class IterableContainsUnrelatedType extends LintRule {
   IterableContainsUnrelatedType()
       : super(
             name: 'iterable_contains_unrelated_type',

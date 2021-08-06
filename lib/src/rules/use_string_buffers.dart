@@ -52,7 +52,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule implements NodeLintRule {
+class UseStringBuffers extends LintRule {
   UseStringBuffers()
       : super(
             name: 'use_string_buffers',

@@ -32,7 +32,7 @@ void oldFunction(arg1, arg2) {}
 
 ''';
 
-class ProvideDeprecationMessage extends LintRule implements NodeLintRule {
+class ProvideDeprecationMessage extends LintRule {
   ProvideDeprecationMessage()
       : super(
             name: 'provide_deprecation_message',

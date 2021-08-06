@@ -33,7 +33,7 @@ class _PriorityItem {
 
 ''';
 
-class SortUnnamedConstructorsFirst extends LintRule implements NodeLintRule {
+class SortUnnamedConstructorsFirst extends LintRule {
   SortUnnamedConstructorsFirst()
       : super(
             name: 'sort_unnamed_constructors_first',

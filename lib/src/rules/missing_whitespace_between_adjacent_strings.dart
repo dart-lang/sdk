@@ -33,8 +33,7 @@ var s =
 
 ''';
 
-class MissingWhitespaceBetweenAdjacentStrings extends LintRule
-    implements NodeLintRule {
+class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
             name: 'missing_whitespace_between_adjacent_strings',

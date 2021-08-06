@@ -108,7 +108,7 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
-class CascadeInvocations extends LintRule implements NodeLintRule {
+class CascadeInvocations extends LintRule {
   /// Default constructor.
   CascadeInvocations()
       : super(

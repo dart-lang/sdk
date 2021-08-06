@@ -63,7 +63,7 @@ void mutableParameter(String label) { // OK
 
 ''';
 
-class PreferFinalParameters extends LintRule implements NodeLintRule {
+class PreferFinalParameters extends LintRule {
   PreferFinalParameters()
       : super(
             name: 'prefer_final_parameters',

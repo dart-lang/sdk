@@ -52,7 +52,7 @@ bool _isPrimitiveType(DartType type) =>
 bool _isReturnNull(AstNode node) =>
     node is ReturnStatement && DartTypeUtilities.isNullLiteral(node.expression);
 
-class AvoidReturningNull extends LintRule implements NodeLintRule {
+class AvoidReturningNull extends LintRule {
   AvoidReturningNull()
       : super(
             name: 'avoid_returning_null',

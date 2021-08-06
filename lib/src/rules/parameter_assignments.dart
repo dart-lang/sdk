@@ -108,7 +108,7 @@ bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
         (n.operand as SimpleIdentifier).staticElement ==
             parameter.declaredElement;
 
-class ParameterAssignments extends LintRule implements NodeLintRule {
+class ParameterAssignments extends LintRule {
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',

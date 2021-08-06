@@ -29,7 +29,7 @@ print(RegExp(r'\(').hasMatch('foo()'));
 
 ''';
 
-class ValidRegExps extends LintRule implements NodeLintRule {
+class ValidRegExps extends LintRule {
   ValidRegExps()
       : super(
             name: 'valid_regexps',

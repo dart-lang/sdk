@@ -33,7 +33,7 @@ abstract class Visitor {
 
 ''';
 
-class SortConstructorsFirst extends LintRule implements NodeLintRule {
+class SortConstructorsFirst extends LintRule {
   SortConstructorsFirst()
       : super(
             name: 'sort_constructors_first',

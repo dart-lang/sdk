@@ -54,8 +54,7 @@ bool _isNonNullableIterable(DartType? type) =>
     type.nullabilitySuffix != NullabilitySuffix.question &&
     DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core');
 
-class AvoidFunctionLiteralInForeachMethod extends LintRule
-    implements NodeLintRule {
+class AvoidFunctionLiteralInForeachMethod extends LintRule {
   AvoidFunctionLiteralInForeachMethod()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',

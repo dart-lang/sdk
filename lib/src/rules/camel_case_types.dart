@@ -34,7 +34,7 @@ typedef num Adder(num x, num y);
 
 ''';
 
-class CamelCaseTypes extends LintRule implements NodeLintRule {
+class CamelCaseTypes extends LintRule {
   CamelCaseTypes()
       : super(
             name: 'camel_case_types',

@@ -44,8 +44,7 @@ T run<T>(T callback()) {
 
 ''';
 
-class NullCheckOnNullableTypeParameter extends LintRule
-    implements NodeLintRule {
+class NullCheckOnNullableTypeParameter extends LintRule {
   NullCheckOnNullableTypeParameter()
       : super(
           name: 'null_check_on_nullable_type_parameter',

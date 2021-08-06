@@ -97,7 +97,7 @@ Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
   return supertypes;
 }
 
-class OverriddenFields extends LintRule implements NodeLintRule {
+class OverriddenFields extends LintRule {
   OverriddenFields()
       : super(
             name: 'overridden_fields',

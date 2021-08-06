@@ -36,8 +36,7 @@ class A {
 
 ''';
 
-class AvoidFieldInitializersInConstClasses extends LintRule
-    implements NodeLintRule {
+class AvoidFieldInitializersInConstClasses extends LintRule {
   AvoidFieldInitializersInConstClasses()
       : super(
             name: 'avoid_field_initializers_in_const_classes',

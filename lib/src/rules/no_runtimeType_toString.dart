@@ -41,7 +41,7 @@ type information is more important than performance:
 
 ''';
 
-class NoRuntimeTypeToString extends LintRule implements NodeLintRule {
+class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
       : super(
             name: 'no_runtimeType_toString',

@@ -28,8 +28,7 @@ final int i = 1;
 
 ''';
 
-class UnnecessaryNullableForFinalVariableDeclarations extends LintRule
-    implements NodeLintRule {
+class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
   UnnecessaryNullableForFinalVariableDeclarations()
       : super(
             name: 'unnecessary_nullable_for_final_variable_declarations',

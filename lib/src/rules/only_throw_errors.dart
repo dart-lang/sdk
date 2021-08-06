@@ -60,7 +60,7 @@ bool _isThrowable(DartType? type) {
           typeForInterfaceCheck, _interfaceDefinitions);
 }
 
-class OnlyThrowErrors extends LintRule implements NodeLintRule {
+class OnlyThrowErrors extends LintRule {
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',

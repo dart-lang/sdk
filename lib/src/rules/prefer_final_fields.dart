@@ -97,7 +97,7 @@ bool _containedInInitializer(
             initializer.fieldName) ==
         element;
 
-class PreferFinalFields extends LintRule implements NodeLintRule {
+class PreferFinalFields extends LintRule {
   PreferFinalFields()
       : super(
             name: 'prefer_final_fields',

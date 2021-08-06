@@ -71,8 +71,7 @@ bool _isParameterWithQuestionQuestion(
     node.operator.type == TokenType.QUESTION_QUESTION &&
     _isParameter(node.leftOperand, parameter);
 
-class AvoidNullChecksInEqualityOperators extends LintRule
-    implements NodeLintRule {
+class AvoidNullChecksInEqualityOperators extends LintRule {
   AvoidNullChecksInEqualityOperators()
       : super(
             name: 'avoid_null_checks_in_equality_operators',

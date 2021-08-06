@@ -51,7 +51,7 @@ void accessA() {
 
 ''';
 
-class PreferConstConstructors extends LintRule implements NodeLintRule {
+class PreferConstConstructors extends LintRule {
   PreferConstConstructors()
       : super(
             name: 'prefer_const_constructors',

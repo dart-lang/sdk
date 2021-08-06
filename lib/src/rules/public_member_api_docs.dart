@@ -67,7 +67,7 @@ setters inherit the docs from the getters.
 // of the actual API surface area of a package - including that defined by
 // exports - and linting against that.
 
-class PublicMemberApiDocs extends LintRule implements NodeLintRule {
+class PublicMemberApiDocs extends LintRule {
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',

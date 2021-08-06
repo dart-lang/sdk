@@ -29,7 +29,7 @@ bool isOdd = 13.isOdd;
 
 ''';
 
-class UseIsEvenRatherThanModuloCheck extends LintRule implements NodeLintRule {
+class UseIsEvenRatherThanModuloCheck extends LintRule {
   UseIsEvenRatherThanModuloCheck()
       : super(
             name: 'use_is_even_rather_than_modulo',

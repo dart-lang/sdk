@@ -59,7 +59,7 @@ bool samePackage(Uri? uri1, Uri? uri2) {
   return segments1[0] == segments2[0];
 }
 
-class ImplementationImports extends LintRule implements NodeLintRule {
+class ImplementationImports extends LintRule {
   ImplementationImports()
       : super(
             name: 'implementation_imports',

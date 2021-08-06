@@ -46,7 +46,7 @@ import '../lib/baz.dart';
 
 ''';
 
-class AlwaysUsePackageImports extends LintRule implements NodeLintRule {
+class AlwaysUsePackageImports extends LintRule {
   AlwaysUsePackageImports()
       : super(
             name: 'always_use_package_imports',

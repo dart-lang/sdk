@@ -38,7 +38,7 @@ void main() {
 ```
 ''';
 
-class AvoidRedundantArgumentValues extends LintRule implements NodeLintRule {
+class AvoidRedundantArgumentValues extends LintRule {
   AvoidRedundantArgumentValues()
       : super(
             name: 'avoid_redundant_argument_values',

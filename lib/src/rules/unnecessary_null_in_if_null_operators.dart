@@ -31,8 +31,7 @@ var y = null ?? 1;
 
 ''';
 
-class UnnecessaryNullInIfNullOperators extends LintRule
-    implements NodeLintRule {
+class UnnecessaryNullInIfNullOperators extends LintRule {
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',

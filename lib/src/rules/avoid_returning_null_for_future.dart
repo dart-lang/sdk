@@ -20,7 +20,7 @@ developer simply forgot to put an `async` keyword on the function.
 
 ''';
 
-class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
+class AvoidReturningNullForFuture extends LintRule {
   AvoidReturningNullForFuture()
       : super(
             name: 'avoid_returning_null_for_future',

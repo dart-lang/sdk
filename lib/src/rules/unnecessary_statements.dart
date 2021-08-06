@@ -46,7 +46,7 @@ return myvar;
 
 ''';
 
-class UnnecessaryStatements extends LintRule implements NodeLintRule {
+class UnnecessaryStatements extends LintRule {
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',

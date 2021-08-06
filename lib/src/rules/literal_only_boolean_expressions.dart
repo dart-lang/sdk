@@ -99,7 +99,7 @@ bool _onlyLiterals(Expression? rawExpression) {
   return false;
 }
 
-class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
+class LiteralOnlyBooleanExpressions extends LintRule {
   LiteralOnlyBooleanExpressions()
       : super(
             name: 'literal_only_boolean_expressions',

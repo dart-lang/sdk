@@ -44,7 +44,7 @@ Expression? _getExpressionFromAssignmentStatement(Statement node) {
 Expression? _getExpressionFromReturnStatement(Statement node) =>
     node is ReturnStatement ? node.expression : null;
 
-class JoinReturnWithAssignment extends LintRule implements NodeLintRule {
+class JoinReturnWithAssignment extends LintRule {
   JoinReturnWithAssignment()
       : super(
             name: 'join_return_with_assignment',

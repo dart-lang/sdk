@@ -41,7 +41,7 @@ switch (v) {
 String message(String value1, String value2) =>
     'Do not use more than one case with same value ($value1 and $value2)';
 
-class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
+class NoDuplicateCaseValues extends LintRule {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',

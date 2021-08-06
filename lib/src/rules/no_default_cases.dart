@@ -47,7 +47,7 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 ```
 ''';
 
-class NoDefaultCases extends LintRule implements NodeLintRule {
+class NoDefaultCases extends LintRule {
   NoDefaultCases()
       : super(
             name: 'no_default_cases',

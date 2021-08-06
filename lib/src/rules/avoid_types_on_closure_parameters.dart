@@ -29,7 +29,7 @@ var names = people.map((person) => person.name);
 
 ''';
 
-class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
+class AvoidTypesOnClosureParameters extends LintRule {
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',

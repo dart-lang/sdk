@@ -68,7 +68,7 @@ class Bad {
 
 ''';
 
-class TestTypesInEquals extends LintRule implements NodeLintRule {
+class TestTypesInEquals extends LintRule {
   TestTypesInEquals()
       : super(
             name: 'test_types_in_equals',

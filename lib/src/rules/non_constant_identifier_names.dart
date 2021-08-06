@@ -31,7 +31,7 @@ align(clearItems) {
 
 ''';
 
-class NonConstantIdentifierNames extends LintRule implements NodeLintRule {
+class NonConstantIdentifierNames extends LintRule {
   NonConstantIdentifierNames()
       : super(
             name: 'non_constant_identifier_names',

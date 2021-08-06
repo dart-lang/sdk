@@ -37,7 +37,7 @@ try {
 
 ''';
 
-class AvoidCatchingErrors extends LintRule implements NodeLintRule {
+class AvoidCatchingErrors extends LintRule {
   AvoidCatchingErrors()
       : super(
             name: 'avoid_catching_errors',

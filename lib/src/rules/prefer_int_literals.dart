@@ -34,7 +34,7 @@ main() {
 
 ''';
 
-class PreferIntLiterals extends LintRule implements NodeLintRule {
+class PreferIntLiterals extends LintRule {
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',

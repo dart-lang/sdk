@@ -52,7 +52,7 @@ HasScrollDirection scrollable = renderObject as dynamic;
 The rule will be removed in a future Linter release.
 ''';
 
-class AvoidAs extends LintRule implements NodeLintRule {
+class AvoidAs extends LintRule {
   AvoidAs()
       : super(
           name: 'avoid_as',

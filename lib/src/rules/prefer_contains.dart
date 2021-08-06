@@ -37,7 +37,7 @@ if (lunchBox.indexOf('sandwich') == -1) return 'so hungry...';
 
 ''';
 
-class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
+class PreferContainsOverIndexOf extends LintRule {
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',

@@ -45,7 +45,7 @@ class Lucky extends Cat {
 
 ''';
 
-class AnnotateOverrides extends LintRule implements NodeLintRule {
+class AnnotateOverrides extends LintRule {
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',

@@ -32,7 +32,7 @@ m(){
 
 ''';
 
-class UnnecessaryNew extends LintRule implements NodeLintRule {
+class UnnecessaryNew extends LintRule {
   UnnecessaryNew()
       : super(
             name: 'unnecessary_new',

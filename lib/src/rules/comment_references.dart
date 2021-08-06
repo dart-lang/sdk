@@ -46,7 +46,7 @@ references within square brackets can consist of either
 
 ''';
 
-class CommentReferences extends LintRule implements NodeLintRule {
+class CommentReferences extends LintRule {
   CommentReferences()
       : super(
             name: 'comment_references',

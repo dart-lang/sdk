@@ -37,8 +37,7 @@ class A {
 
 ''';
 
-class TightenTypeOfInitializingFormals extends LintRule
-    implements NodeLintRule {
+class TightenTypeOfInitializingFormals extends LintRule {
   TightenTypeOfInitializingFormals()
       : super(
           name: 'tighten_type_of_initializing_formals',

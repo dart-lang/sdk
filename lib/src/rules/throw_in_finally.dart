@@ -49,7 +49,7 @@ class BadThrow {
 
 ''';
 
-class ThrowInFinally extends LintRule implements NodeLintRule {
+class ThrowInFinally extends LintRule {
   ThrowInFinally()
       : super(
             name: 'throw_in_finally',

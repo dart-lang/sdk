@@ -50,7 +50,7 @@ class Box {
 
 ''';
 
-class UnnecessaryGettersSetters extends LintRule implements NodeLintRule {
+class UnnecessaryGettersSetters extends LintRule {
   UnnecessaryGettersSetters()
       : super(
             name: 'unnecessary_getters_setters',

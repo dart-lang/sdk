@@ -49,7 +49,7 @@ class B {
 
 ''';
 
-class DeprecatedConsistency extends LintRule implements NodeLintRule {
+class DeprecatedConsistency extends LintRule {
   DeprecatedConsistency()
       : super(
           name: 'deprecated_consistency',

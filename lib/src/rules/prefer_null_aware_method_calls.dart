@@ -27,7 +27,7 @@ f?.call();
 
 ''';
 
-class PreferNullAwareMethodCalls extends LintRule implements NodeLintRule {
+class PreferNullAwareMethodCalls extends LintRule {
   PreferNullAwareMethodCalls()
       : super(
           name: 'prefer_null_aware_method_calls',

@@ -48,8 +48,7 @@ bool _isImmutable(Element? element) =>
     element.name == _immutableVarName &&
     element.library.name == _metaLibName;
 
-class PreferConstLiteralsToCreateImmutables extends LintRule
-    implements NodeLintRule {
+class PreferConstLiteralsToCreateImmutables extends LintRule {
   PreferConstLiteralsToCreateImmutables()
       : super(
             name: 'prefer_const_literals_to_create_immutables',

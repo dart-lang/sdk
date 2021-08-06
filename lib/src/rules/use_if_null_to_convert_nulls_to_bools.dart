@@ -34,7 +34,7 @@ if (nullableBool ?? true) {
 
 ''';
 
-class UseIfNullToConvertNullsToBools extends LintRule implements NodeLintRule {
+class UseIfNullToConvertNullsToBools extends LintRule {
   UseIfNullToConvertNullsToBools()
       : super(
           name: 'use_if_null_to_convert_nulls_to_bools',

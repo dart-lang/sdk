@@ -28,7 +28,7 @@ String o = message;
 
 ''';
 
-class UnnecessaryStringInterpolations extends LintRule implements NodeLintRule {
+class UnnecessaryStringInterpolations extends LintRule {
   UnnecessaryStringInterpolations()
       : super(
             name: 'unnecessary_string_interpolations',

@@ -44,7 +44,7 @@ abstract class B extends A {
 
 ''';
 
-class AvoidRenamingMethodParameters extends LintRule implements NodeLintRule {
+class AvoidRenamingMethodParameters extends LintRule {
   AvoidRenamingMethodParameters()
       : super(
             name: 'avoid_renaming_method_parameters',

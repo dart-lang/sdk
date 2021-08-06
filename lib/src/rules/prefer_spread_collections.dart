@@ -69,7 +69,7 @@ var l = ['a', ...?things];
 ```
 ''';
 
-class PreferSpreadCollections extends LintRule implements NodeLintRule {
+class PreferSpreadCollections extends LintRule {
   PreferSpreadCollections()
       : super(
             name: 'prefer_spread_collections',

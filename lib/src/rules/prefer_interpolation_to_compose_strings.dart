@@ -30,8 +30,7 @@ and read than concatenation.
 
 ''';
 
-class PreferInterpolationToComposeStrings extends LintRule
-    implements NodeLintRule {
+class PreferInterpolationToComposeStrings extends LintRule {
   PreferInterpolationToComposeStrings()
       : super(
             name: 'prefer_interpolation_to_compose_strings',

@@ -127,7 +127,7 @@ const _details = r'''
 
 ''';
 
-class $className extends LintRule implements NodeLintRule {
+class $className extends LintRule {
   $className()
       : super(
             name: '$ruleName',

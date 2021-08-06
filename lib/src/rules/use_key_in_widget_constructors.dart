@@ -33,7 +33,7 @@ class MyPublicWidget extends StatelessWidget {
 ```
 ''';
 
-class UseKeyInWidgetConstructors extends LintRule implements NodeLintRule {
+class UseKeyInWidgetConstructors extends LintRule {
   UseKeyInWidgetConstructors()
       : super(
             name: 'use_key_in_widget_constructors',

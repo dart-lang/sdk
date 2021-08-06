@@ -46,7 +46,7 @@ void mutableCase() {
 
 ''';
 
-class PreferFinalLocals extends LintRule implements NodeLintRule {
+class PreferFinalLocals extends LintRule {
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',

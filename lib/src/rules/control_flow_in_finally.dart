@@ -84,7 +84,7 @@ class BadBreak {
 
 ''';
 
-class ControlFlowInFinally extends LintRule implements NodeLintRule {
+class ControlFlowInFinally extends LintRule {
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',

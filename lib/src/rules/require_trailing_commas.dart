@@ -44,7 +44,7 @@ produce false positives until that has happened.
 
 ''';
 
-class RequireTrailingCommas extends LintRule implements NodeLintRule {
+class RequireTrailingCommas extends LintRule {
   RequireTrailingCommas()
       : super(
           name: 'require_trailing_commas',

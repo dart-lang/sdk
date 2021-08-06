@@ -27,7 +27,7 @@ var 2 = ['a', 'b', 'c'];
 ```
 ''';
 
-class PreferInlinedAdds extends LintRule implements NodeLintRule {
+class PreferInlinedAdds extends LintRule {
   PreferInlinedAdds()
       : super(
             name: 'prefer_inlined_adds',

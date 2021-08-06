@@ -65,8 +65,7 @@ class Absorber extends Widget {
 ```
 ''';
 
-class DiagnosticsDescribeAllProperties extends LintRule
-    implements NodeLintRule {
+class DiagnosticsDescribeAllProperties extends LintRule {
   DiagnosticsDescribeAllProperties()
       : super(
           name: 'diagnostic_describe_all_properties',

@@ -35,7 +35,7 @@ List<String> list = <String>[
 
 ''';
 
-class NoAdjacentStringsInList extends LintRule implements NodeLintRule {
+class NoAdjacentStringsInList extends LintRule {
   NoAdjacentStringsInList()
       : super(
             name: 'no_adjacent_strings_in_list',

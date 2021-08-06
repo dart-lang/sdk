@@ -46,7 +46,7 @@ while (condition) i += 1;
 
 ''';
 
-class AlwaysPutControlBodyOnNewLine extends LintRule implements NodeLintRule {
+class AlwaysPutControlBodyOnNewLine extends LintRule {
   AlwaysPutControlBodyOnNewLine()
       : super(
             name: 'always_put_control_body_on_new_line',

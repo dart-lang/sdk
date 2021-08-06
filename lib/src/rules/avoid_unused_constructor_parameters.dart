@@ -32,8 +32,7 @@ class BadTwo {
 
 ''';
 
-class AvoidUnusedConstructorParameters extends LintRule
-    implements NodeLintRule {
+class AvoidUnusedConstructorParameters extends LintRule {
   AvoidUnusedConstructorParameters()
       : super(
             name: 'avoid_unused_constructor_parameters',

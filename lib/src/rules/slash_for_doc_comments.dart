@@ -43,7 +43,7 @@ bool isJavaStyle(Comment comment) {
   return comment.tokens[0].lexeme.startsWith('/**');
 }
 
-class SlashForDocComments extends LintRule implements NodeLintRule {
+class SlashForDocComments extends LintRule {
   SlashForDocComments()
       : super(
             name: 'slash_for_doc_comments',

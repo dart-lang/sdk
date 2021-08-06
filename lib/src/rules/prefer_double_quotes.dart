@@ -42,7 +42,7 @@ useStrings(
 
 ''';
 
-class PreferDoubleQuotes extends LintRule implements NodeLintRule {
+class PreferDoubleQuotes extends LintRule {
   PreferDoubleQuotes()
       : super(
             name: 'prefer_double_quotes',

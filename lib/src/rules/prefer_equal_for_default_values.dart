@@ -28,7 +28,7 @@ m({a = 1})
 
 ''';
 
-class PreferEqualForDefaultValues extends LintRule implements NodeLintRule {
+class PreferEqualForDefaultValues extends LintRule {
   PreferEqualForDefaultValues()
       : super(
             name: 'prefer_equal_for_default_values',

@@ -36,7 +36,7 @@ abstract class Predicate {
 
 ''';
 
-class OneMemberAbstracts extends LintRule implements NodeLintRule {
+class OneMemberAbstracts extends LintRule {
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',

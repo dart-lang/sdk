@@ -46,7 +46,7 @@ Widget buildRow() {
 ```
 ''';
 
-class AvoidUnnecessaryContainers extends LintRule implements NodeLintRule {
+class AvoidUnnecessaryContainers extends LintRule {
   AvoidUnnecessaryContainers()
       : super(
             name: 'avoid_unnecessary_containers',

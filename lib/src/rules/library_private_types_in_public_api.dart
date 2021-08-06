@@ -40,7 +40,7 @@ class _Private {}
 
 ''';
 
-class LibraryPrivateTypesInPublicAPI extends LintRule implements NodeLintRule {
+class LibraryPrivateTypesInPublicAPI extends LintRule {
   LibraryPrivateTypesInPublicAPI()
       : super(
             name: 'library_private_types_in_public_api',

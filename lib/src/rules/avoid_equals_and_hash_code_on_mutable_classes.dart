@@ -75,8 +75,7 @@ bool _isImmutable(Element? element) =>
     element.name == _immutableVarName &&
     element.library.name == _metaLibName;
 
-class AvoidOperatorEqualsOnMutableClasses extends LintRule
-    implements NodeLintRule {
+class AvoidOperatorEqualsOnMutableClasses extends LintRule {
   AvoidOperatorEqualsOnMutableClasses()
       : super(
             name: 'avoid_equals_and_hash_code_on_mutable_classes',

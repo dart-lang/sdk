@@ -49,7 +49,7 @@ class Box {
 
 ''';
 
-class UnnecessaryThis extends LintRule implements NodeLintRule {
+class UnnecessaryThis extends LintRule {
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',

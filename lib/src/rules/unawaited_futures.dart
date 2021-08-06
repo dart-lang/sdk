@@ -43,7 +43,7 @@ void main() async {
 
 ''';
 
-class UnawaitedFutures extends LintRule implements NodeLintRule {
+class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',

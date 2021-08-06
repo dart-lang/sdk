@@ -43,7 +43,7 @@ if (words.length != 0) return words.join(' ');
 
 ''';
 
-class PreferIsEmpty extends LintRule implements NodeLintRule {
+class PreferIsEmpty extends LintRule {
   PreferIsEmpty()
       : super(
             name: 'prefer_is_empty',

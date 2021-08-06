@@ -43,7 +43,7 @@ for (var element in elements) {
 
 ''';
 
-class PreferFinalInForEach extends LintRule implements NodeLintRule {
+class PreferFinalInForEach extends LintRule {
   PreferFinalInForEach()
       : super(
             name: 'prefer_final_in_for_each',
