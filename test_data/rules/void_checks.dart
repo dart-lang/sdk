@@ -8,6 +8,14 @@
 
 import 'dart:async';
 
+
+void m() {
+  // https://github.com/dart-lang/linter/issues/2794
+  Future<void> f = Future.value(1).then<void>((_) { // OK
+    throw 'sad';
+  });
+}
+
 void foo(FutureOr<void> x) {}
 
 void main() {
