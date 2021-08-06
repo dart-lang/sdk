@@ -3218,8 +3218,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     _helper.buildDartTypeArguments(typeArguments);
               }
               if (isGenericTypedefTearOff) {
-                if (isProperRenameForClass(
-                    _helper.typeEnvironment, aliasBuilder!.typedef)) {
+                if (isProperRenameForClass(_helper.typeEnvironment,
+                    aliasBuilder!.typedef, aliasBuilder.library.library)) {
                   return tearOffExpression;
                 }
                 Procedure? tearOffLowering =

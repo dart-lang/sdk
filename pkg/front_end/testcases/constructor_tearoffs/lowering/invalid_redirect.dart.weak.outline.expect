@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:11:11: Error: The name of a constructor must match the name of the enclosing class.
+//   factory Link.create() {
+//           ^^^^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:10:7: Context: The name of the enclosing class is 'LinkFactory'.
+// class LinkFactory {
+//       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
+//   factory Link.create() = LinkFactory<T>.create;
+//                           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
+//   factory Link.create2() = LinkFactory<T, T>.create;
+//                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Link<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Link::create, self::Link::create2]/*isLegacy*/;
+  static factory create<T extends core::Object? = dynamic>() → self::Link<self::Link::create::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
+  factory Link.create() = LinkFactory<T>.create;
+                          ^";
+  static method _#create#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create#tearOff::T%>
+    return self::LinkFactory::create();
+  static factory create2<T extends core::Object? = dynamic>() → self::Link<self::Link::create2::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
+  factory Link.create2() = LinkFactory<T, T>.create;
+                           ^";
+  static method _#create2#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create2#tearOff::T%>
+    return self::LinkFactory::create();
+}
+class LinkFactory extends core::Object {
+  static factory create() → self::LinkFactory
+    ;
+  static method _#create#tearOff() → self::LinkFactory
+    return self::LinkFactory::create();
+}
+static method main() → dynamic
+  ;

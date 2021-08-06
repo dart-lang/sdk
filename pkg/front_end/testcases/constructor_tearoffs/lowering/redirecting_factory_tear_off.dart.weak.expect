@@ -2,43 +2,43 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:99:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f3a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:100:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:102:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f3a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:115:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:117:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f4a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:131:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f5a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:132:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 // Try removing the extra positional arguments.
 //     f5a(42, 87, 123); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Required named parameter 'field3' must be provided.
 //     f6a(42); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:146:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //     f6a(42, 87); // error
 //        ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:147:8: Error: Too few positional arguments: 1 required, 0 given.
 //     f6a(field1: 87, field2: 87); // error
 //        ^
 //
@@ -148,13 +148,21 @@ class Class8a<T extends core::Object? = dynamic> extends core::Object implements
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8a::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::fact::T%>
+    return new self::Class8a::•<self::Class8a::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#fact#tearOff::T%>
+    return self::Class8a::fact<self::Class8a::_#fact#tearOff::T%>();
 }
 class Class8b<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•, self::Class8b::fact]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
     return new self::Class8a::•<self::Class8b::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8b::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::fact::T%>
+    return self::Class8a::fact<self::Class8b::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#fact#tearOff::T%>
+    return self::Class8a::fact<self::Class8b::_#fact#tearOff::T%>();
 }
 static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
 static method main() → dynamic {
@@ -183,10 +191,10 @@ static method testArgs() → dynamic {
   self::Class3 c3a = f3a(42){(core::int) → self::Class3};
   self::expect(42, c3a.{self::Class3::field}{core::int});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:99:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:101:8: Error: Too few positional arguments: 1 required, 0 given.
     f3a(); // error
        ^" in f3a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:100:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:102:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f3a(42, 87); // error
        ^" in f3a{<inapplicable>}.(42, 87);
@@ -202,7 +210,7 @@ Try removing the extra positional arguments.
   self::Class4 c4b = f4a(42){([core::int?]) → self::Class4};
   self::expect(42, c4b.{self::Class4::field}{core::int?});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:115:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:117:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f4a(42, 87); // error
        ^" in f4a{<inapplicable>}.(42, 87);
@@ -217,10 +225,10 @@ Try removing the extra positional arguments.
   self::expect(87, c5b.{self::Class5::field1}{core::int});
   self::expect(42, c5b.{self::Class5::field2}{core::int?});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:131:8: Error: Too few positional arguments: 1 required, 0 given.
     f5a(); // error
        ^" in f5a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:132:8: Error: Too many positional arguments: 2 allowed, but 3 found.
 Try removing the extra positional arguments.
     f5a(42, 87, 123); // error
        ^" in f5a{<inapplicable>}.(42, 87, 123);
@@ -234,17 +242,17 @@ Try removing the extra positional arguments.
   self::expect(null, c6a.{self::Class6::field2}{core::int?});
   self::expect(87, c6a.{self::Class6::field3}{core::int});
   () → Null {
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(); // error
        ^" in f6a{<inapplicable>}.();
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Required named parameter 'field3' must be provided.
     f6a(42); // error
        ^" in f6a{<inapplicable>}.(42);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:146:8: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
     f6a(42, 87); // error
        ^" in f6a{<inapplicable>}.(42, 87);
-    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off.dart:147:8: Error: Too few positional arguments: 1 required, 0 given.
     f6a(field1: 87, field2: 87); // error
        ^" in f6a{<inapplicable>}.(field1: 87, field2: 87);
   };
@@ -273,12 +281,20 @@ Try removing the extra positional arguments.
   self::expect(true, c8b is{ForNonNullableByDefault} self::Class8a<core::int>);
   self::expect(true, c8b is{ForNonNullableByDefault} self::Class8b<core::int>);
   self::expect(false, c8b is{ForNonNullableByDefault} self::Class8b<core::String>);
+  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8b = #C10;
+  self::Class8b<dynamic> c8c = f8b<dynamic>(){() → self::Class8b<dynamic>};
+  self::expect(true, c8c is{ForNonNullableByDefault} self::Class8a<dynamic>);
+  self::expect(true, c8c is{ForNonNullableByDefault} self::Class8b<dynamic>);
+  self::Class8b<core::int> c8d = f8b<core::int>(){() → self::Class8b<core::int>};
+  self::expect(true, c8d is{ForNonNullableByDefault} self::Class8a<core::int>);
+  self::expect(true, c8d is{ForNonNullableByDefault} self::Class8b<core::int>);
+  self::expect(false, c8d is{ForNonNullableByDefault} self::Class8b<core::String>);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
 }
-static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C10}) → dynamic {
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C11}) → dynamic {
   try {
     f(){() → dynamic};
   }
@@ -302,5 +318,6 @@ constants  {
   #C7 = static-tearoff self::Class6::_#new#tearOff
   #C8 = static-tearoff self::Class7b::_#new#tearOff
   #C9 = static-tearoff self::Class8b::_#new#tearOff
-  #C10 = false
+  #C10 = static-tearoff self::Class8b::_#fact#tearOff
+  #C11 = false
 }

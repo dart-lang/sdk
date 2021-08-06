@@ -144,6 +144,8 @@ c6c
 c7a
 c8a
 c8b
+c8c
+c8d
 ca
 cafebabe
 calloc
@@ -386,6 +388,7 @@ f6a
 f6b
 f7a
 f8a
+f8b
 fac
 faking
 falling

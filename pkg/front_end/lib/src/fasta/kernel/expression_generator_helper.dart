@@ -33,6 +33,7 @@ import 'kernel_ast_api.dart'
         FunctionNode,
         Initializer,
         InterfaceType,
+        Library,
         Member,
         Name,
         Procedure,
@@ -186,7 +187,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 }
 
 /// Checks that a generic [typedef] for a generic class.
-bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
+bool isProperRenameForClass(
+    TypeEnvironment typeEnvironment, Typedef typedef, Library typedefLibrary) {
   DartType? rhsType = typedef.type;
   if (rhsType is! InterfaceType) {
     return false;
@@ -201,7 +203,7 @@ bool isProperRenameForClass(TypeEnvironment typeEnvironment, Typedef typedef) {
   for (int i = 0; i < fromParameters.length; ++i) {
     if (typeArguments[i] !=
         new TypeParameterType.withDefaultNullabilityForLibrary(
-            fromParameters[i], typedef.enclosingLibrary)) {
+            fromParameters[i], typedefLibrary)) {
       return false;
     }
   }

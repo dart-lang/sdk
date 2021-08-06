@@ -282,7 +282,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (declaration is ClassBuilder &&
         targetType is InterfaceType &&
         typedef.typeParameters.isNotEmpty &&
-        !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
+        !isProperRenameForClass(
+            library.loader.typeEnvironment, typedef, library.library)) {
       tearOffs = {};
       _tearOffDependencies = {};
       declaration
