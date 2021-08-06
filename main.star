@@ -1147,7 +1147,7 @@ dart_vm_extra_builder(
     "cross-vm-linux-release-arm64",
     category = "vm|kernel|cra",
     channels = [],
-    properties = {"shard_timeout": (90 * time.minute) // time.second},
+    properties = {"shard_timeout": (120 * time.minute) // time.second},
 )
 
 # vm|kernel-precomp
