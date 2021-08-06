@@ -109,7 +109,9 @@ bool containsFreeTypeVariables(DartType type) {
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
-      typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
+      typeParameters.length,
+      (i) => new TypeParameter(typeParameters[i].name)
+        ..flags = typeParameters[i].flags,
       growable: true);
   List<DartType> freshTypeArguments =
       new List<DartType>.generate(typeParameters.length, (int i) {
@@ -138,8 +140,10 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
 class FreshTypeParameters {
   /// The newly created type parameters.
   final List<TypeParameter> freshTypeParameters;
+
   /// List of [TypeParameterType]s for [TypeParameter].
   final List<DartType> freshTypeArguments;
+
   /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
@@ -389,7 +393,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   }
 
   TypeParameter freshTypeParameter(TypeParameter node) {
-    TypeParameter fresh = new TypeParameter(node.name);
+    TypeParameter fresh = new TypeParameter(node.name)..flags = node.flags;
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
