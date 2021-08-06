@@ -58,8 +58,7 @@ class FunctionExpressionResolver {
     node.visitChildren(_resolver);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
-      // in scope, so we can visit the documentation coment now.
-      // TODO(paulberry): why is a cast needed here?
+      // in scope, so we can visit the documentation comment now.
       parent.documentationComment?.accept(_resolver);
     }
     _resolve2(node);
