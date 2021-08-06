@@ -391,8 +391,8 @@ enforce
 enforced
 enforces
 enforcing
-enters
 engineered
+enters
 enumerates
 env
 eof
@@ -896,6 +896,7 @@ permits
 physically
 pi
 picking
+pipe
 pkg
 play
 player
@@ -911,6 +912,7 @@ popped
 pos
 possibility
 postfix
+pound
 pow
 pragma
 pre
