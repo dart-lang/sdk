@@ -98,7 +98,7 @@ class AvoidDynamicCalls extends LintRule {
           description: _desc,
           details: _details,
           group: Group.errors,
-          maturity: Maturity.experimental,
+          maturity: Maturity.stable,
         );
 
   @override
