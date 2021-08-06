@@ -4,6 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
@@ -56,15 +58,57 @@ class PreferVoidToNull extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addTypeName(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
+  _Visitor(this.rule, this.context);
 
-  _Visitor(this.rule);
+  /// todo(pq): pull up to a utili
+  Element? getOverriddenMember(Element? member) {
+    if (member == null) {
+      return null;
+    }
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
+    if (classElement == null) {
+      return null;
+    }
+    var name = member.name;
+    if (name == null) {
+      return null;
+    }
+
+    var libraryUri = classElement.library.source.uri;
+    return context.inheritanceManager.getInherited(
+      classElement.thisType,
+      Name(libraryUri, name),
+    );
+  }
+
+  bool isFutureOrVoid(DartType type) {
+    if (!type.isDartAsyncFutureOr) return false;
+    if (type is! InterfaceType) return false;
+    return type.typeArguments.first.isVoid;
+  }
+
+  bool isVoidIncompatibleOverride(MethodDeclaration parent, AstNode node) {
+    // Make sure we're checking a return type.
+    if (parent.returnType?.offset != node.offset) return false;
+
+    var member = getOverriddenMember(parent.declaredElement);
+    if (member is! MethodElement) return false;
+
+    var returnType = member.returnType;
+    if (returnType.isVoid) return false;
+    if (isFutureOrVoid(returnType)) return false;
+    if (returnType.element is NeverType) return false;
+
+    return true;
+  }
 
   @override
   void visitTypeName(TypeName node) {
@@ -99,6 +143,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // extension _ on Null {}
     if (parent is ExtensionDeclaration) {
+      return;
+    }
+
+    // https://github.com/dart-lang/linter/issues/2792
+    if (parent is MethodDeclaration &&
+        isVoidIncompatibleOverride(parent, node)) {
       return;
     }
 
