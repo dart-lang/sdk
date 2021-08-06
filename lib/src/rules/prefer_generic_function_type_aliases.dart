@@ -57,6 +57,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    //https://github.com/dart-lang/linter/issues/2777
+    if (node.semicolon.isSynthetic) return;
+
     rule.reportLint(node.name);
   }
 }
