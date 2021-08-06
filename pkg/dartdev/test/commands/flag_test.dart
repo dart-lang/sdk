@@ -82,8 +82,8 @@ void help() {
     var result = p.runSync(['--help', '--verbose']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, isEmpty);
-    expect(result.stderr,
+    expect(result.stderr, isEmpty);
+    expect(result.stdout,
         contains('The following options are only used for VM development'));
   });
 
@@ -92,8 +92,8 @@ void help() {
     var result = p.runSync(['--help', '-v']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, isEmpty);
-    expect(result.stderr,
+    expect(result.stderr, isEmpty);
+    expect(result.stdout,
         contains('The following options are only used for VM development'));
   });
 
