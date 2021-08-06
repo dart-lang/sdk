@@ -43,3 +43,18 @@ class D with Mix1, Mix2 {
 class F extends B with Mix1, Mix2 {
   F();
 }
+
+// Test class with interface
+class E implements A {
+  E();
+
+  @override
+  getValue() {
+    return "E Value";
+  }
+}
+
+// Test class with unoverriden superclass method
+class G extends A {
+  G();
+}

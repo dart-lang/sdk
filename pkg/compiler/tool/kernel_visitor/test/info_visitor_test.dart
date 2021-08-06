@@ -84,4 +84,13 @@ main() async {
     Expect.equals(visitor.classInfo["F"].mixed, true);
     Expect.deepEquals(visitor.classInfo["F"].mixins, ["Mix1", "Mix2"]);
   });
+
+  test("Class E implements A", () {
+    Expect.equals(visitor.classInfo["E"].implementedTypes.contains("A"), true);
+  });
+
+  test("Class G extends A but fails to override getValue()", () {
+    Expect.equals(
+        visitor.classInfo["G"].notOverriddenMethods.contains("getValue"), true);
+  });
 }
