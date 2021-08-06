@@ -8,8 +8,22 @@
 
 import 'dart:async';
 
+Never fail() { throw 'nope'; }
+void foo(FutureOr<void> Function() f2) {}
 
-void m() {
+/// https://github.com/dart-lang/linter/issues/2685
+void m3() {
+  foo(() {
+    fail(); // OK
+  });
+
+  var f = Future.value(0);
+  f.then<void>((_) {
+    fail(); // OK
+  });
+}
+
+void m2() {
   // https://github.com/dart-lang/linter/issues/2794
   Future<void> f = Future.value(1).then<void>((_) { // OK
     throw 'sad';
