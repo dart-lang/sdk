@@ -11,6 +11,16 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:core' as core;
 
+abstract class X {
+  dynamic get foo;
+}
+
+/// https://github.com/dart-lang/linter/issues/1523
+class Y extends X {
+  @override
+  Null get foo => null; // OK
+}
+
 /// https://github.com/dart-lang/linter/issues/2792
 class A<T> {
   Future<T>? something() {}

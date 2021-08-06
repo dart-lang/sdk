@@ -68,8 +68,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LinterContext context;
   _Visitor(this.rule, this.context);
 
-  /// todo(pq): pull up to a utili
-  Element? getOverriddenMember(Element? member) {
+  /// todo(pq): pull up to a utility.
+  ExecutableElement? getOverriddenMember(Element? member) {
     if (member == null) {
       return null;
     }
@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent.returnType?.offset != node.offset) return false;
 
     var member = getOverriddenMember(parent.declaredElement);
-    if (member is! MethodElement) return false;
+    if (member == null) return false;
 
     var returnType = member.returnType;
     if (returnType.isVoid) return false;
