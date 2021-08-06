@@ -39,6 +39,7 @@ dev_dependencies:
   path: any
   source_maps: any
   test: any
+  cli_util: any
   # Unpublished packages that can be used via path dependency
   async_helper:
     path: ../async_helper

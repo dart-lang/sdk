@@ -2507,6 +2507,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
+      _setNodeNameScope(node, nameScope);
       visitClassDeclarationInScope(node);
 
       nameScope = ClassScope(nameScope, element);
@@ -2669,6 +2670,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
+      _setNodeNameScope(node, nameScope);
       visitExtensionDeclarationInScope(node);
 
       nameScope = ExtensionScope(nameScope, element);
@@ -2788,6 +2790,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
+      _setNodeNameScope(node, nameScope);
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2895,6 +2898,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       GenericFunctionTypeElement element =
           (node as GenericFunctionTypeImpl).declaredElement!;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      _setNodeNameScope(node, nameScope);
       super.visitGenericFunctionType(node);
     } finally {
       nameScope = outerScope;
@@ -2908,6 +2912,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredElement as TypeAliasElement;
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      _setNodeNameScope(node, nameScope);
       visitGenericTypeAliasInScope(node);
 
       var aliasedElement = element.aliasedElement;
@@ -2962,6 +2967,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.typeParameters,
       );
+      _setNodeNameScope(node, nameScope);
       visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
@@ -2990,6 +2996,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       node.metadata.accept(this);
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
+      _setNodeNameScope(node, nameScope);
       visitMixinDeclarationInScope(node);
 
       nameScope = ClassScope(nameScope, element);

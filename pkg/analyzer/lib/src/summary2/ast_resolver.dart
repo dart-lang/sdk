@@ -66,14 +66,11 @@ class AstResolver {
   }
 
   void resolveConstructorNode(ConstructorDeclarationImpl node) {
-    var isConst = node.constKeyword != null;
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
     void visit(AstVisitor<Object?> visitor) {
-      if (isConst) {
-        node.initializers.accept(visitor);
-      }
+      node.initializers.accept(visitor);
       node.redirectedConstructor?.accept(visitor);
     }
 

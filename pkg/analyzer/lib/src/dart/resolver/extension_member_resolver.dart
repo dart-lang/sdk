@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -19,7 +18,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/util/either.dart';
@@ -36,8 +34,6 @@ class ExtensionMemberResolver {
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
-
-  Scope get _nameScope => _resolver.nameScope;
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
@@ -397,7 +393,7 @@ class ExtensionMemberResolver {
       }
     }
 
-    for (var extension in _nameScope.extensions) {
+    for (var extension in _resolver.definingLibrary.accessibleExtensions) {
       checkExtension(extension);
     }
     return candidates;

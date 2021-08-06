@@ -3689,6 +3689,9 @@ class LibraryElementImpl extends _ExistingElementImpl
         super(name, offset);
 
   @override
+  List<ExtensionElement> get accessibleExtensions => scope.extensions;
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       _definingCompilationUnit;
 
@@ -3942,7 +3945,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   }
 
   @override
-  Scope get scope {
+  LibraryScope get scope {
     return _scope ??= LibraryScope(this);
   }
 

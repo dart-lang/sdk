@@ -165,10 +165,8 @@ class BundleWriter {
     try {
       _writeList(element.parameters, _writeParameterElement);
       _writeMacro(element.macro);
-      if (element.isConst || element.isFactory) {
-        _resolutionSink.writeElement(element.redirectedConstructor);
-        _resolutionSink._writeNodeList(element.constantInitializers);
-      }
+      _resolutionSink.writeElement(element.redirectedConstructor);
+      _resolutionSink._writeNodeList(element.constantInitializers);
     } finally {
       _resolutionSink.localElements.popScope();
     }

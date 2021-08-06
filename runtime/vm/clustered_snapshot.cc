@@ -59,7 +59,7 @@ namespace {
 // StorageTrait for HashTable which allows to create hash tables backed by
 // zone memory. Used to compute cluster order for canonical clusters.
 struct GrowableArrayStorageTraits {
-  class Array {
+  class Array : public ZoneAllocated {
    public:
     explicit Array(Zone* zone, intptr_t length)
         : length_(length), array_(zone->Alloc<ObjectPtr>(length)) {}

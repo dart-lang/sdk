@@ -21,7 +21,7 @@ Generates an executable or an AOT snapshot from <main-dart-file>.
 
 Future<void> main(List<String> args) async {
   // If we're outputting to a terminal, wrap usage text to that width.
-  int outputLineWidth;
+  int? outputLineWidth;
   try {
     outputLineWidth = stdout.terminalColumns;
   } catch (_) {/* Ignore. */}

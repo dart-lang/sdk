@@ -780,13 +780,17 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
     objects_.Add(instance);
 
     const intptr_t next_field_offset = next_field_offset_;
+#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+#endif
     for (intptr_t offset = Instance::NextFieldOffset();
          offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
       if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
         continue;
       }
+#endif
       s->Push(reinterpret_cast<CompressedObjectPtr*>(
                   reinterpret_cast<uword>(instance->untag()) + offset)
                   ->Decompress(instance->untag()->heap_base()));
@@ -810,20 +814,24 @@ class InstanceMessageSerializationCluster : public MessageSerializationCluster {
       Instance* instance = objects_[i];
 
       const intptr_t next_field_offset = next_field_offset_;
+#if defined(DART_PRECOMPILED_RUNTIME)
       const auto unboxed_fields_bitmap =
           s->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
+#endif
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           // Writes 32 bits of the unboxed value at a time
           const uword value = *reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance->untag()) + offset);
           s->WriteWordWith32BitWrites(value);
-        } else {
-          s->WriteRef(reinterpret_cast<CompressedObjectPtr*>(
-                          reinterpret_cast<uword>(instance->untag()) + offset)
-                          ->Decompress(instance->untag()->heap_base()));
+          continue;
         }
+#endif
+        s->WriteRef(reinterpret_cast<CompressedObjectPtr*>(
+                        reinterpret_cast<uword>(instance->untag()) + offset)
+                        ->Decompress(instance->untag()->heap_base()));
       }
     }
   }
@@ -853,37 +861,44 @@ class InstanceMessageDeserializationCluster
 
   void ReadEdges(MessageDeserializer* d) {
     const intptr_t next_field_offset = cls_.host_next_field_offset();
-    const intptr_t type_argument_field_offset =
-        cls_.host_type_arguments_field_offset();
+#if defined(DART_PRECOMPILED_RUNTIME)
     const auto unboxed_fields_bitmap =
         d->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cls_.id());
+#else
+    const intptr_t type_argument_field_offset =
+        cls_.host_type_arguments_field_offset();
     const bool use_field_guards = d->isolate_group()->use_field_guards();
     const Array& field_map = Array::Handle(d->zone(), cls_.OffsetToFieldMap());
+    Field& field = Field::Handle(d->zone());
+#endif
     Instance& instance = Instance::Handle(d->zone());
     Object& value = Object::Handle(d->zone());
-    Field& field = Field::Handle(d->zone());
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       instance ^= d->Ref(id);
       for (intptr_t offset = Instance::NextFieldOffset();
            offset < next_field_offset; offset += kCompressedWordSize) {
+#if defined(DART_PRECOMPILED_RUNTIME)
         if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
           compressed_uword* p = reinterpret_cast<compressed_uword*>(
               reinterpret_cast<uword>(instance.untag()) + offset);
           // Reads 32 bits of the unboxed value at a time
           *p = d->ReadWordWith32BitReads();
-        } else {
-          value = d->ReadRef();
-          instance.SetFieldAtOffset(offset, value);
-          if (use_field_guards && (offset != type_argument_field_offset) &&
-              (value.ptr() != Object::sentinel().ptr())) {
-            field ^= field_map.At(offset >> kCompressedWordSizeLog2);
-            ASSERT(!field.IsNull());
-            ASSERT(field.HostOffset() == offset);
-            field.RecordStore(value);
-          }
+          continue;
         }
+#endif
+        value = d->ReadRef();
+        instance.SetFieldAtOffset(offset, value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        if (use_field_guards && (offset != type_argument_field_offset) &&
+            (value.ptr() != Object::sentinel().ptr())) {
+          field ^= field_map.At(offset >> kCompressedWordSizeLog2);
+          ASSERT(!field.IsNull());
+          ASSERT(field.HostOffset() == offset);
+          field.RecordStore(value);
+        }
+#endif
       }
     }
   }

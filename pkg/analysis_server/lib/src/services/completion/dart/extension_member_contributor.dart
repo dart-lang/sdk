@@ -10,7 +10,6 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A contributor that produces suggestions based on the members of an
 /// extension.
@@ -113,8 +112,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   void _addExtensionMembers(LibraryElement containingLibrary,
       CompletionSuggestionKind? kind, DartType type) {
     var typeSystem = containingLibrary.typeSystem;
-    var nameScope = containingLibrary.scope;
-    for (var extension in nameScope.extensions) {
+    for (var extension in containingLibrary.accessibleExtensions) {
       var extendedType =
           extension.resolvedExtendedType(containingLibrary, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
