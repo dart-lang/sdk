@@ -1348,8 +1348,9 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of InstanceCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
   CompileType* inferred_type = result_type();
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
     TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
@@ -1441,8 +1442,11 @@ CompileType StaticCallInstr::ComputeType() const {
   if (is_known_list_constructor()) {
     return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
   }
-  if ((inferred_type != NULL) &&
-      (inferred_type->ToNullableCid() != kDynamicCid)) {
+
+  if ((inferred_type != nullptr) &&
+      ((inferred_type->ToNullableCid() != kDynamicCid) ||
+       (!inferred_type->ToAbstractType()->IsDynamicType()))) {
+    TraceStrongModeType(this, inferred_type);
     return *inferred_type;
   }
 
