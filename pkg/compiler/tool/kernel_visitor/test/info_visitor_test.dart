@@ -55,4 +55,33 @@ main() async {
   test("Class C does not call super", () {
     Expect.equals(visitor.classInfo["C"].invokesSuper, false);
   });
+
+  test("Class A inherited by B", () {
+    Expect.equals(visitor.classInfo["A"].inheritedBy.contains("B"), true);
+    Expect.equals(visitor.classInfo["B"].parent, "A");
+  });
+
+  test("Class B inherited by C", () {
+    Expect.equals(visitor.classInfo["B"].inheritedBy.contains("C"), true);
+    Expect.equals(visitor.classInfo["C"].parent, "B");
+  });
+
+  test("Class B inherited by F", () {
+    Expect.equals(visitor.classInfo["B"].inheritedBy.contains("F"), true);
+    Expect.equals(visitor.classInfo["F"].parent, "B");
+  });
+
+  test("Class C inherited by nothing", () {
+    Expect.equals(visitor.classInfo["C"].inheritedBy.length, 0);
+  });
+
+  test("Class D mixed with Mix1 and Mix2", () {
+    Expect.equals(visitor.classInfo["D"].mixed, true);
+    Expect.deepEquals(visitor.classInfo["D"].mixins, ["Mix1", "Mix2"]);
+  });
+
+  test("Class F mixed with Mix1 and Mix2", () {
+    Expect.equals(visitor.classInfo["F"].mixed, true);
+    Expect.deepEquals(visitor.classInfo["F"].mixins, ["Mix1", "Mix2"]);
+  });
 }

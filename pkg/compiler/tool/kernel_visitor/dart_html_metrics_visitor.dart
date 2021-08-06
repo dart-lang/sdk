@@ -35,6 +35,12 @@ class MetricsVisitor extends RecursiveVisitor {
   }
 
   @override
+  void visitComponent(Component node) {
+    super.visitComponent(node);
+    _processData();
+  }
+
+  @override
   void visitLibrary(Library node) {
     // Check if this is a library we want to visit.
     var visit = libraryFilter.isNotEmpty
@@ -59,19 +65,74 @@ class MetricsVisitor extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    currentClass = node.name;
-    classInfo[currentClass] = ClassMetrics();
+    // Dont want to add duplicate info.
+    // When mixed, anonymous mixin class generated so we want to ignore.
+    if (!node.isAnonymousMixin) {
+      currentClass = node.name;
+      var metrics = ClassMetrics();
 
-    super.visitClass(node);
+      // Check if Mixed.
+      if (node.superclass?.isAnonymousMixin ?? false) {
+        metrics.mixed = true;
+        metrics.mixins = _filterMixins(node.superclass.demangledName);
+      }
+
+      // Add parents.
+      if (node.superclass != null) {
+        var unmangledParent = _getParent(node.superclass);
+        metrics.parent = unmangledParent;
+      }
+
+      classInfo[currentClass] = metrics;
+      super.visitClass(node);
+    }
+  }
+
+  // Returns List of parsed mixins from superclass name.
+  List<String> _filterMixins(String superWithMixins) {
+    var start = superWithMixins.indexOf('with') + 4;
+    var mixins = superWithMixins.substring(start);
+    mixins = mixins.replaceAll(' ', '');
+
+    return mixins.split(',');
+  }
+
+  // Recursively searches superclasses, filtering anonymous mixins,
+  // and returns parent class name.
+  String _getParent(Class node) {
+    if (node.isAnonymousMixin) {
+      return _getParent(node.superclass);
+    }
+
+    return node.name;
+  }
+
+  // Passes through the aggregated data and does post processing,
+  // adding classes that inherit.
+  void _processData() {
+    classInfo.keys.forEach((className) {
+      var parentName = classInfo[className].parent;
+
+      if (classInfo[parentName] != null) {
+        classInfo[parentName].inheritedBy.add(className);
+      }
+    });
   }
 }
 
 /// Tracks info compiled for a class.
 class ClassMetrics {
   List<ClassMetricsMethod> methods;
+  List<String> mixins;
+  List<String> inheritedBy;
+  String parent;
+  bool mixed;
 
-  ClassMetrics([methods]) {
+  ClassMetrics(
+      {this.parent, this.mixed = false, mixins, methods, inheritedBy}) {
+    this.mixins = mixins ?? [];
     this.methods = methods ?? [];
+    this.inheritedBy = inheritedBy ?? [];
   }
 
   bool get invokesSuper {
@@ -83,7 +144,14 @@ class ClassMetrics {
   }
 
   Map<String, dynamic> toJson() {
-    return {"invokesSuper": invokesSuper, "methods": methods};
+    return {
+      "invokesSuper": invokesSuper,
+      "methods": methods,
+      "mixed": mixed,
+      "mixins": mixins,
+      "parent": parent,
+      "inheritedBy": inheritedBy,
+    };
   }
 }
 

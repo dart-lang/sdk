@@ -30,3 +30,16 @@ class C extends B {
     return "Value";
   }
 }
+
+// Test class with mixins.
+class Mix1 {}
+
+class Mix2 {}
+
+class D with Mix1, Mix2 {
+  D();
+}
+
+class F extends B with Mix1, Mix2 {
+  F();
+}
