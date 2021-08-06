@@ -739,13 +739,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     }
   }
 
-  /// Visit the given [comment] if it is not `null`.
-  void safelyVisitComment(Comment? comment) {
-    if (comment != null) {
-      super.visitComment(comment);
-    }
-  }
-
   void setReadElement(Expression node, Element? element) {
     DartType readType = DynamicTypeImpl.instance;
     if (node is IndexExpression) {
@@ -1097,52 +1090,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
-  void visitComment(Comment node) {
-    var parent = node.parent;
-    if (parent is FunctionDeclaration ||
-        parent is FunctionTypeAlias ||
-        parent is ConstructorDeclaration) {
-      return;
-    }
-
-    // TODO(scheglov) Change corresponding visiting places to visit comments
-    // with name scopes set for correct comments resolution.
-    if (parent is GenericTypeAlias) {
-      var element = parent.declaredElement as TypeAliasElement;
-      var outerScope = nameScope;
-      try {
-        nameScope = TypeParameterScope(nameScope, element.typeParameters);
-
-        var aliasedElement = element.aliasedElement;
-        if (aliasedElement is GenericFunctionTypeElement) {
-          nameScope = FormalParameterScope(
-            TypeParameterScope(nameScope, aliasedElement.typeParameters),
-            aliasedElement.parameters,
-          );
-        }
-
-        super.visitComment(node);
-        return;
-      } finally {
-        nameScope = outerScope;
-      }
-    } else if (parent is MethodDeclaration) {
-      var outerScope = nameScope;
-      try {
-        var element = parent.declaredElement!;
-        nameScope = FormalParameterScope(nameScope, element.parameters);
-
-        super.visitComment(node);
-        return;
-      } finally {
-        nameScope = outerScope;
-      }
-    }
-
-    super.visitComment(node);
-  }
-
-  @override
   void visitCommentReference(CommentReference node) {
     //
     // We do not visit the identifier because it needs to be visited in the
@@ -1246,7 +1193,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // element resolver and type analyzer to visit the constructor declaration.
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -1480,12 +1426,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
-  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
-    super.visitFunctionDeclarationInScope(node);
-    safelyVisitComment(node.documentationComment);
-  }
-
-  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     // Note: we have to update _enclosingFunction because we don't make use of
     // super.visitFunctionExpression.
@@ -1536,12 +1476,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
-  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
-    super.visitFunctionTypeAliasInScope(node);
-    safelyVisitComment(node.documentationComment);
-  }
-
-  @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     super.visitFunctionTypedFormalParameter(node);
     node.accept(elementResolver);
@@ -1555,12 +1489,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     node.accept(elementResolver);
     // Note: no need to call the typeAnalyzer since it does not override
     // visitGenericTypeAlias.
-  }
-
-  @override
-  void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
-    super.visitGenericTypeAliasInFunctionScope(node);
-    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -2574,7 +2502,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     try {
       ConstructorElement element = node.declaredElement!;
 
-      node.documentationComment?.accept(this);
       node.metadata.accept(this);
       node.returnType.accept(this);
       node.name?.accept(this);
@@ -2604,6 +2531,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
+    node.documentationComment?.accept(this);
     node.body.accept(this);
   }
 
@@ -2801,7 +2729,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitFunctionDeclarationInScope(FunctionDeclaration node) {
     // Note: we don't visit metadata because it's not inside the function's type
     // parameter scope.  It was already visited in [visitFunctionDeclaration].
-    node.documentationComment?.accept(this);
     node.returnType?.accept(this);
     node.name.accept(this);
     node.functionExpression.accept(this);
@@ -2809,9 +2736,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is FunctionDeclaration) {
+    var parent = node.parent;
+    if (parent is FunctionDeclaration) {
       // We have already created a function scope and don't need to do so again.
       super.visitFunctionExpression(node);
+      parent.documentationComment?.accept(this);
       return;
     }
 
@@ -2848,11 +2777,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     // Note: we don't visit metadata because it's not inside the function type
     // alias's type parameter scope.  It was already visited in
     // [visitFunctionTypeAlias].
-    node.documentationComment?.accept(this);
     node.returnType?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
+    // Visiting the parameters added them to the scope as a side effect.  So it
+    // is safe to visit the documentation comment now.
+    node.documentationComment?.accept(this);
   }
 
   @override
@@ -2917,21 +2848,20 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
 
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
-        nameScope = FormalParameterScope(nameScope, aliasedElement.parameters);
-        visitGenericTypeAliasInFunctionScope(node);
+        nameScope = FormalParameterScope(
+            TypeParameterScope(nameScope, aliasedElement.typeParameters),
+            aliasedElement.parameters);
       }
+      node.documentationComment?.accept(this);
     } finally {
       nameScope = outerScope;
     }
   }
 
-  void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {}
-
   void visitGenericTypeAliasInScope(GenericTypeAlias node) {
     // Note: we don't visit metadata because it's not inside the generic type
     // alias's type parameter scope.  It was already visited in
     // [visitGenericTypeAlias].
-    node.documentationComment?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
     node.type.accept(this);
@@ -2978,11 +2908,13 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   void visitMethodDeclarationInScope(MethodDeclaration node) {
     // Note: we don't visit metadata because it's not inside the method's type
     // parameter scope.  It was already visited in [visitMethodDeclaration].
-    node.documentationComment?.accept(this);
     node.returnType?.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);
+    // Visiting the parameters added them to the scope as a side effect.  So it
+    // is safe to visit the documentation comment now.
+    node.documentationComment?.accept(this);
     node.body.accept(this);
   }
 
