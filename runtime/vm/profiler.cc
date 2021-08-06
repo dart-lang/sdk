@@ -306,6 +306,12 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
   Sample* sample = nullptr;
   if (block != nullptr) {
     sample = block->ReserveSample();
+    if (sample != nullptr && block->is_full()) {
+      // TODO(bkonyi): remove once streaming is re-enabled.
+      // https://github.com/dart-lang/sdk/issues/46825
+      block->evictable_ = true;
+      FreeBlock(block);
+    }
   }
   if (sample != nullptr) {
     return sample;
@@ -330,8 +336,11 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
     isolate->set_current_sample_block(next);
   }
   next->set_is_allocation_block(allocation_sample);
+
   can_process_block_.store(true);
-  isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
+  // TODO(bkonyi): re-enable after block streaming is fixed.
+  // See https://github.com/dart-lang/sdk/issues/46825
+  // isolate->mutator_thread()->ScheduleInterrupts(Thread::kVMInterrupt);
   return ReserveSampleImpl(isolate, allocation_sample);
 }
 
