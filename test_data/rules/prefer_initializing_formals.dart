@@ -4,6 +4,13 @@
 
 // test w/ `dart test -N prefer_initializing_formals`
 
+class D {
+  /// https://github.com/dart-lang/linter/issues/2664
+  D(int initialValue) : value = initialValue;
+
+  int? value;
+}
+
 class C {
   String? value;
   C._();
