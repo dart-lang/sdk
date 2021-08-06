@@ -4790,7 +4790,8 @@ class InferenceVisitor
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
                     interfaceMember.enclosingClass!,
-                    interfaceMember.function.returnType);
+                    interfaceMember.function
+                        .computeFunctionType(inferrer.library.nonNullable));
           } else if (interfaceMember is Field) {
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(

@@ -40,6 +40,26 @@ class A {
 
   void instanceMethod() {}
   X? genericInstanceMethod<X>() => null;
+
+  // Enable a mixed-in method in `M` that has a superinvocation.
+  int mixedInSuperMethod() => 0;
+}
+
+mixin M on A {
+  void mixedInMethod() {}
+  int mixedInSuperMethod() => super.mixedInSuperMethod() + 1;
+}
+
+class AM extends A with M {
+  int Function() get tearoffSuperMethod => super.mixedInSuperMethod;
+}
+
+class AMM extends AM with M {
+  // Tear off the second copy of M.mixedInSuperMethod
+  // (`tearoffSuperMethod` still tears off the first copy).
+  int Function() get tearoffSuperMethodSecond => super.mixedInSuperMethod;
+  // In this case, `super.` should not make a difference.
+  int Function() get tearoffSuperMethodSecondNoSuper => mixedInSuperMethod;
 }
 
 const cTopLevelFunction = topLevelFunction;
@@ -104,6 +124,7 @@ void main() {
   checkIdentical(cIntStaticMethod1, vIntStaticMethod2);
   checkIdentical(vIntTopLevelFunction1, vIntTopLevelFunction2);
   checkIdentical(vIntStaticMethod1, vIntStaticMethod2);
+  checkEqual(vIntInstanceMethod1, vIntInstanceMethod2);
 
   const CheckIdentical(topLevelFunction, topLevelFunction);
   const CheckIdentical(A.staticMethod, A.staticMethod);
@@ -268,6 +289,56 @@ void main() {
   const CheckNotIdentical(cIntTopLevelFunction1, cStringTopLevelFunction);
   const CheckNotIdentical(cIntStaticMethod1, cStringStaticMethod);
 
+  {
+    var am = AM();
+    void Function() vMixedInMethod1 = am.mixedInMethod;
+    void Function() vMixedInMethod2 = am.mixedInMethod;
+    int Function() vMixedInSuperMethod1 = am.mixedInSuperMethod;
+    int Function() vMixedInSuperMethod2 = am.mixedInSuperMethod;
+
+    checkEqual(am.mixedInMethod, am.mixedInMethod);
+    checkEqual(vMixedInMethod1, vMixedInMethod2);
+    checkEqual(am.mixedInSuperMethod, am.mixedInSuperMethod);
+    checkEqual(vMixedInSuperMethod1, vMixedInSuperMethod2);
+  }
+  {
+    var amm = AMM();
+    void Function() vMixedInMethod1 = amm.mixedInMethod;
+    void Function() vMixedInMethod2 = amm.mixedInMethod;
+    int Function() vMixedInSuperMethod1 = amm.tearoffSuperMethod;
+    int Function() vMixedInSuperMethod2 = amm.tearoffSuperMethod;
+    int Function() vMixedInSuperMethodSecond1 = amm.tearoffSuperMethodSecond;
+    int Function() vMixedInSuperMethodSecond2 = amm.tearoffSuperMethodSecond;
+    int Function() vMixedInSuperMethodSecondNoSuper1 =
+        amm.tearoffSuperMethodSecondNoSuper;
+    int Function() vMixedInSuperMethodSecondNoSuper2 =
+        amm.tearoffSuperMethodSecondNoSuper;
+
+    checkEqual(amm.mixedInMethod, amm.mixedInMethod);
+    checkEqual(vMixedInMethod1, vMixedInMethod2);
+
+    checkEqual(amm.tearoffSuperMethod, amm.tearoffSuperMethod);
+    checkEqual(vMixedInSuperMethod1, vMixedInSuperMethod2);
+    checkEqual(amm.tearoffSuperMethodSecond, amm.tearoffSuperMethodSecond);
+    checkEqual(vMixedInSuperMethodSecond1, vMixedInSuperMethodSecond2);
+    checkUnequal(amm.tearoffSuperMethod, amm.tearoffSuperMethodSecond);
+    checkUnequal(vMixedInSuperMethod1, vMixedInSuperMethodSecond2);
+    checkUnequal(amm.tearoffSuperMethodSecond, amm.tearoffSuperMethod);
+    checkUnequal(vMixedInSuperMethodSecond1, vMixedInSuperMethod2);
+
+    checkEqual(amm.tearoffSuperMethodSecondNoSuper,
+        amm.tearoffSuperMethodSecondNoSuper);
+    checkEqual(
+        vMixedInSuperMethodSecondNoSuper1, vMixedInSuperMethodSecondNoSuper2);
+    checkUnequal(amm.tearoffSuperMethod, amm.tearoffSuperMethodSecondNoSuper);
+    checkUnequal(vMixedInSuperMethod1, vMixedInSuperMethodSecondNoSuper2);
+    checkUnequal(amm.tearoffSuperMethodSecondNoSuper, amm.tearoffSuperMethod);
+    checkUnequal(vMixedInSuperMethodSecondNoSuper1, vMixedInSuperMethod2);
+
+    checkEqual(
+        amm.tearoffSuperMethodSecond, amm.tearoffSuperMethodSecondNoSuper);
+  }
+
   <X>() {
     X? Function() vXTopLevelFunction1 = genericTopLevelFunction;
     X? Function() vXStaticMethod1 = A.genericStaticMethod;
@@ -275,6 +346,14 @@ void main() {
     X? Function() vXStaticMethod2 = A.genericStaticMethod;
     X? Function() vXInstanceMethod1 = a.genericInstanceMethod;
     X? Function() vXInstanceMethod2 = a.genericInstanceMethod;
+
+    checkEqual(vXTopLevelFunction1, vXTopLevelFunction2);
+    checkEqual(vXStaticMethod1, vXStaticMethod2);
+    checkEqual(vXInstanceMethod1, vXInstanceMethod2);
+
+    checkEqual(vXTopLevelFunction1, vIntTopLevelFunction1);
+    checkEqual(vXStaticMethod1, vIntStaticMethod1);
+    checkEqual(vXInstanceMethod1, vIntInstanceMethod2);
 
     checkUnequal(vXTopLevelFunction1, vXStaticMethod1);
     checkUnequal(vXTopLevelFunction1, vXInstanceMethod1);

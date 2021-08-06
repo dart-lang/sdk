@@ -930,12 +930,14 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
@@ -1045,7 +1047,7 @@ class FixProcessor extends BaseProcessor {
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      ReplaceWithNullAware.newInstance,
+      ReplaceWithNullAware.inChain,
     ],
     HintCode.DEAD_CODE: [
       RemoveDeadCode.newInstance,

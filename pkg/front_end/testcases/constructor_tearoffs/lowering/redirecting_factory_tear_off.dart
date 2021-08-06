@@ -85,10 +85,12 @@ class Class7b {
 
 class Class8a<T> implements Class8b<T> {
   Class8a();
+  factory Class8a.fact() => new Class8a();
 }
 
 class Class8b<T> {
   factory Class8b() = Class8a<T>;
+  factory Class8b.fact() = Class8a<T>.fact;
 }
 
 testArgs() {
@@ -174,6 +176,15 @@ testArgs() {
   expect(true, c8b is Class8a<int>);
   expect(true, c8b is Class8b<int>);
   expect(false, c8b is Class8b<String>);
+
+  var f8b = Class8b.fact;
+  var c8c = f8b();
+  expect(true, c8c is Class8a);
+  expect(true, c8c is Class8b);
+  var c8d = f8b<int>();
+  expect(true, c8d is Class8a<int>);
+  expect(true, c8d is Class8b<int>);
+  expect(false, c8d is Class8b<String>);
 }
 
 expect(expected, actual) {

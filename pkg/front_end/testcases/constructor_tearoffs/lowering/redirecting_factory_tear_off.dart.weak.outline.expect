@@ -97,13 +97,21 @@ class Class8a<T extends core::Object? = dynamic> extends core::Object implements
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8a::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::fact::T%>
+    ;
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8a<self::Class8a::_#fact#tearOff::T%>
+    return self::Class8a::fact<self::Class8a::_#fact#tearOff::T%>();
 }
 class Class8b<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•]/*isLegacy*/;
+  static final field dynamic _redirecting# = <dynamic>[self::Class8b::•, self::Class8b::fact]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
     return new self::Class8a::•<self::Class8b::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#new#tearOff::T%>
     return new self::Class8a::•<self::Class8b::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::fact::T%>
+    return self::Class8a::fact<self::Class8b::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::_#fact#tearOff::T%>
+    return self::Class8a::fact<self::Class8b::_#fact#tearOff::T%>();
 }
 static final field core::bool inSoundMode;
 static method main() → dynamic

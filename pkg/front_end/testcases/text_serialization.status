@@ -8,6 +8,7 @@
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/const_tear_off: RuntimeError
+constructor_tearoffs/lowering/invalid_redirect: VerificationError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple: ExpectationFileMismatchSerialized # Expected.

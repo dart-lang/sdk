@@ -127,19 +127,19 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Syslog::PrintErr("Dart SDK version: %s\n", Dart_VersionString());
+  Syslog::Print("Dart SDK version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
 void Options::PrintUsage() {
-  Syslog::PrintErr(
+  Syslog::Print(
       "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
       "Executes the Dart script <dart-script-file> with "
       "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
-    Syslog::PrintErr(
+    Syslog::Print(
 "Common VM flags:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
@@ -176,7 +176,7 @@ void Options::PrintUsage() {
 "--version\n"
 "  Print the SDK version.\n");
   } else {
-    Syslog::PrintErr(
+    Syslog::Print(
 "Supported options:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"

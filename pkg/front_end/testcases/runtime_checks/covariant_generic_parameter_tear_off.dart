@@ -15,7 +15,7 @@ class C<T> {
 }
 
 F<num> g1(C<num> c) {
-  return c.f1;
+  return c. /*@ checkReturn=(num*) ->* void*/ f1;
 }
 
 void g2(C<int> c, Object x) {
@@ -24,7 +24,7 @@ void g2(C<int> c, Object x) {
 }
 
 G<List<num>, num> g3(C<num> c) {
-  return c.f2;
+  return c. /*@ checkReturn=(List<num*>*) ->* num**/ f2;
 }
 
 void test() {
