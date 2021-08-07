@@ -40,14 +40,6 @@ static bool ClosureEqualsHelper(Zone* zone,
     return false;
   }
   const auto& other_closure = Closure::Cast(other);
-  // Check that the delayed type argument vectors match.
-  if (receiver.delayed_type_arguments() !=
-      other_closure.delayed_type_arguments()) {
-    // Mismatches should only happen when a generic function is involved.
-    ASSERT(Function::Handle(receiver.function()).IsGeneric() ||
-           Function::Handle(other_closure.function()).IsGeneric());
-    return false;
-  }
   // Closures that are not implicit closures (tear-offs) are unique.
   const auto& func_a = Function::Handle(zone, receiver.function());
   if (!func_a.IsImplicitClosureFunction()) {
@@ -64,6 +56,21 @@ static bool ClosureEqualsHelper(Zone* zone,
       (func_a.name() != func_b.name() || func_a.Owner() != func_b.Owner() ||
        func_a.is_static() != func_b.is_static())) {
     return false;
+  }
+  // Check that the delayed type argument vectors match.
+  if (receiver.delayed_type_arguments() !=
+      other_closure.delayed_type_arguments()) {
+    // Mismatches should only happen when a generic function is involved.
+    ASSERT(func_a.IsGeneric() || func_b.IsGeneric());
+    const auto& type_args_a =
+        TypeArguments::Handle(zone, receiver.delayed_type_arguments());
+    const auto& type_args_b =
+        TypeArguments::Handle(zone, other_closure.delayed_type_arguments());
+    if (type_args_a.IsNull() || type_args_b.IsNull() ||
+        (type_args_a.Length() != type_args_b.Length()) ||
+        !type_args_a.IsEquivalent(type_args_b, TypeEquality::kSyntactical)) {
+      return false;
+    }
   }
   if (!func_a.is_static()) {
     // Check that the both receiver instances are the same.
