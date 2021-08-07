@@ -19,8 +19,6 @@ class bool {
   /// In all other cases, including when there is no declaration for `name`,
   /// the result is the [defaultValue].
   ///
-  /// The value must be assigned to a constant.
-  ///
   /// The result is the same as would be returned by:
   /// ```dart
   /// (const String.fromEnvironment(name) == "true")
@@ -43,6 +41,8 @@ class bool {
   /// must be consistent across all calls to [String.fromEnvironment],
   /// [int.fromEnvironment], `bool.fromEnvironment` and [bool.hasEnvironment]
   /// in a single program.
+  /// 
+  /// The bool.fromEnvironment() constructor must be constant.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
