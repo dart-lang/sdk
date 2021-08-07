@@ -127,7 +127,7 @@ class DartFixKind {
   static const ADD_NE_NULL_MULTI = FixKind('dart.fix.add.neNull.multi',
       DartFixKindPriority.IN_FILE, 'Add != null everywhere in file');
   static const ADD_NULL_CHECK = FixKind('dart.fix.add.nullCheck',
-      DartFixKindPriority.DEFAULT, 'Add a null check (!)');
+      DartFixKindPriority.DEFAULT - 1, 'Add a null check (!)',);
   static const ADD_OVERRIDE = FixKind('dart.fix.add.override',
       DartFixKindPriority.DEFAULT, "Add '@override' annotation");
   static const ADD_OVERRIDE_MULTI = FixKind(

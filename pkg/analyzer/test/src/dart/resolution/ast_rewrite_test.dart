@@ -14,9 +14,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstRewriteMethodInvocationTest);
-    defineReflectiveTests(
-      AstRewriteMethodInvocationWithNonFunctionTypeAliasesTest,
-    );
   });
 }
 
@@ -97,6 +94,46 @@ f() {
     assertElement(invocation, findElement.topFunction('A'));
     assertInvokeType(invocation, 'void Function(int)');
     _assertArgumentList(invocation.argumentList, ['0']);
+  }
+
+  test_targetNull_typeAlias_interfaceType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  A(int _);
+}
+
+typedef X<T, U> = A<T, U>;
+
+void f() {
+  X<int, String>(0);
+}
+''');
+
+    var creation = findNode.instanceCreation('X<int, String>(0);');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int, String>',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int', 'U': 'String'},
+      expectedTypeNameElement: findElement.typeAlias('X'),
+    );
+    _assertArgumentList(creation.argumentList, ['0']);
+  }
+
+  test_targetNull_typeAlias_Never() async {
+    await assertErrorsInCode(r'''
+typedef X = Never;
+
+void f() {
+  X(0);
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION, 33, 1),
+    ]);
+
+    // Not rewritten.
+    findNode.methodInvocation('X(0)');
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
@@ -190,6 +227,39 @@ f() {
     assertElement(invocation, importFind.class_('A').getMethod('bar'));
     assertInvokeType(invocation, 'void Function(int)');
     _assertArgumentList(invocation.argumentList, ['0']);
+  }
+
+  test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A<T> {
+  A.named(T a);
+}
+
+typedef X<T> = A<T>;
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.X.named(0);
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+
+    var creation = findNode.instanceCreation('X.named(0);');
+    assertInstanceCreation(
+      creation,
+      importFind.class_('A'),
+      'A<int>',
+      constructorName: 'named',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+      expectedPrefix: findElement.prefix('prefix'),
+      expectedTypeNameElement: importFind.typeAlias('X'),
+    );
+    _assertArgumentList(creation.argumentList, ['0']);
   }
 
   test_targetSimpleIdentifier_class_constructor() async {
@@ -346,6 +416,32 @@ f() {
     _assertArgumentList(invocation.argumentList, ['0']);
   }
 
+  test_targetSimpleIdentifier_typeAlias_interfaceType_constructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  A.named(T a);
+}
+
+typedef X<T> = A<T>;
+
+void f() {
+  X.named(0);
+}
+''');
+
+    var creation = findNode.instanceCreation('X.named(0);');
+    assertInstanceCreation(
+      creation,
+      findElement.class_('A'),
+      'A<int>',
+      constructorName: 'named',
+      expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'int'},
+      expectedTypeNameElement: findElement.typeAlias('X'),
+    );
+    _assertArgumentList(creation.argumentList, ['0']);
+  }
+
   void _assertArgumentList(
     ArgumentList argumentList,
     List<String> expectedArguments,
@@ -386,108 +482,5 @@ f() {
         .map((e) => result.content.substring(e.offset, e.end))
         .toList();
     expect(argumentStrings, expectedArguments);
-  }
-}
-
-@reflectiveTest
-class AstRewriteMethodInvocationWithNonFunctionTypeAliasesTest
-    extends PubPackageResolutionTest with AstRewriteMethodInvocationTestCases {
-  test_targetNull_typeAlias_interfaceType() async {
-    await assertNoErrorsInCode(r'''
-class A<T, U> {
-  A(int _);
-}
-
-typedef X<T, U> = A<T, U>;
-
-void f() {
-  X<int, String>(0);
-}
-''');
-
-    var creation = findNode.instanceCreation('X<int, String>(0);');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int, String>',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int', 'U': 'String'},
-      expectedTypeNameElement: findElement.typeAlias('X'),
-    );
-    _assertArgumentList(creation.argumentList, ['0']);
-  }
-
-  test_targetNull_typeAlias_Never() async {
-    await assertErrorsInCode(r'''
-typedef X = Never;
-
-void f() {
-  X(0);
-}
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION, 33, 1),
-    ]);
-
-    // Not rewritten.
-    findNode.methodInvocation('X(0)');
-  }
-
-  test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-class A<T> {
-  A.named(T a);
-}
-
-typedef X<T> = A<T>;
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.X.named(0);
-}
-''');
-
-    var importFind = findElement.importFind('package:test/a.dart');
-
-    var creation = findNode.instanceCreation('X.named(0);');
-    assertInstanceCreation(
-      creation,
-      importFind.class_('A'),
-      'A<int>',
-      constructorName: 'named',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-      expectedPrefix: findElement.prefix('prefix'),
-      expectedTypeNameElement: importFind.typeAlias('X'),
-    );
-    _assertArgumentList(creation.argumentList, ['0']);
-  }
-
-  test_targetSimpleIdentifier_typeAlias_interfaceType_constructor() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {
-  A.named(T a);
-}
-
-typedef X<T> = A<T>;
-
-void f() {
-  X.named(0);
-}
-''');
-
-    var creation = findNode.instanceCreation('X.named(0);');
-    assertInstanceCreation(
-      creation,
-      findElement.class_('A'),
-      'A<int>',
-      constructorName: 'named',
-      expectedConstructorMember: true,
-      expectedSubstitution: {'T': 'int'},
-      expectedTypeNameElement: findElement.typeAlias('X'),
-    );
-    _assertArgumentList(creation.argumentList, ['0']);
   }
 }

@@ -32,7 +32,10 @@ class FunctionExpressionResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(FunctionExpressionImpl node) {
-    var isFunctionDeclaration = node.parent is FunctionDeclaration;
+    var parent = node.parent;
+    // Note: `isFunctionDeclaration` must have an explicit type to work around
+    // https://github.com/dart-lang/language/issues/1785.
+    bool isFunctionDeclaration = parent is FunctionDeclaration;
     var body = node.body;
 
     if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
@@ -53,6 +56,11 @@ class FunctionExpressionResolver {
     }
 
     node.visitChildren(_resolver);
+    if (isFunctionDeclaration) {
+      // A side effect of visiting the children is that the parameters are now
+      // in scope, so we can visit the documentation comment now.
+      parent.documentationComment?.accept(_resolver);
+    }
     _resolve2(node);
 
     if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
