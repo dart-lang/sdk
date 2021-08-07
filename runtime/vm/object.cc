@@ -8949,9 +8949,11 @@ bool FunctionType::HasSameTypeParametersAndBounds(const FunctionType& other,
         }
       }
     }
-    // Compare flags (IsGenericCovariantImpl).
-    if (!Array::Equals(type_params.flags(), other_type_params.flags())) {
-      return false;
+    if (kind != TypeEquality::kInSubtypeTest) {
+      // Compare flags (IsGenericCovariantImpl).
+      if (!Array::Equals(type_params.flags(), other_type_params.flags())) {
+        return false;
+      }
     }
   }
   return true;
