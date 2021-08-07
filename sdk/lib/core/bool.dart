@@ -19,6 +19,8 @@ class bool {
   /// In all other cases, including when there is no declaration for `name`,
   /// the result is the [defaultValue].
   ///
+  /// The value must be assigned to a constant.
+  ///
   /// The result is the same as would be returned by:
   /// ```dart
   /// (const String.fromEnvironment(name) == "true")

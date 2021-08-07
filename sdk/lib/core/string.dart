@@ -135,6 +135,8 @@ abstract class String implements Comparable<String>, Pattern {
   /// If [name] is not declared in the environment, the result is instead
   /// [defaultValue].
   ///
+  /// The value must be assigned to a constant.
+  ///
   /// Example of getting a value:
   /// ```dart
   /// const String.fromEnvironment("defaultFloo", defaultValue: "no floo")

@@ -23,6 +23,8 @@ part of dart.core;
 abstract class int extends num {
   /// Returns the integer value of the given environment declaration [name].
   ///
+  /// The value must be assigned to a constant.
+  ///
   /// The result is the same as would be returned by:
   /// ```dart
   /// int.tryParse(const String.fromEnvironment(name, defaultValue: ""))
