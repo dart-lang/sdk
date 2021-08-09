@@ -1041,7 +1041,7 @@ void _asyncCompleteWithErrorCallback(
 
 /// Convenience methods on FutureOr<T>.
 ///
-/// Adds functionality makes it easier to
+/// Adds functionality that makes it easier to
 /// write well-typed asynchronous code.
 extension FutureOrExtensions<T> on FutureOr<T> {
 
