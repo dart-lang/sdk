@@ -30,12 +30,14 @@ class OffsetsTable : public ZoneAllocated {
   const char* FieldNameForOffset(intptr_t cid, intptr_t offset);
 
   struct OffsetsTableEntry {
-    const intptr_t class_id;
-    const char* const field_name;
-    const intptr_t offset;
+    intptr_t class_id;
+    const char* field_name;
+    intptr_t offset;
   };
 
-  static const OffsetsTableEntry offsets_table[];
+  static const MallocGrowableArray<OffsetsTableEntry>& offsets_table();
+  static void Init();
+  static void Cleanup();
 
  private:
   struct IntAndIntToStringMapTraits {
@@ -71,6 +73,9 @@ class OffsetsTable : public ZoneAllocated {
   const char* FieldNameForOffset(intptr_t cid, intptr_t offset) {
     return nullptr;
   }
+
+  static void Init() {}
+  static void Cleanup() {}
 };
 
 #endif

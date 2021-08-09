@@ -246,13 +246,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
 
     var session = workspace.getSession(path);
-    var result = await session?.getResolvedUnit2(path);
+    var result = await session?.getResolvedUnit(path);
     if (result is! ResolvedUnitResult) {
       throw AnalysisException('Cannot analyze "$path"');
     }
     var timeStamp = result.exists ? 0 : -1;
 
-    var declaredUnit = result.unit?.declaredElement;
+    var declaredUnit = result.unit.declaredElement;
     var libraryUnit = declaredUnit?.library.definingCompilationUnit;
 
     DartFileEditBuilderImpl? libraryEditBuilder;

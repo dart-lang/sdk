@@ -1,0 +1,10 @@
+import 'package:js/js.dart';
+
+@JS()
+@anonymous
+class ParallaxOptions {
+  external const ParallaxOptions();
+}
+
+test() => const ParallaxOptions();
+main() {}

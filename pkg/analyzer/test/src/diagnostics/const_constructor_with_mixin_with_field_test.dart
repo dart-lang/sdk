@@ -15,6 +15,37 @@ main() {
 
 @reflectiveTest
 class ConstConstructorWithMixinWithFieldTest extends PubPackageResolutionTest {
+  test_class_instance_abstract() async {
+    await assertErrorsInCode('''
+mixin A {
+  abstract int a;
+}
+
+class B with A {
+  @override
+  int a;
+  const B(this.a);
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 77, 1),
+    ]);
+  }
+
+  test_class_instance_abstract_final() async {
+    await assertNoErrorsInCode('''
+mixin A {
+  abstract final int a;
+}
+
+class B with A {
+  @override
+  final int a;
+  const B(this.a);
+}
+''');
+  }
+
   test_class_instance_final() async {
     await assertErrorsInCode('''
 class A {
@@ -64,7 +95,6 @@ class B extends Object with A {
   const B();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 62, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);
@@ -81,7 +111,6 @@ class B extends Object with A {
   const B();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 71, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS, 71, 1),
     ]);
@@ -119,7 +148,6 @@ class X extends Object with M {
   const X();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, 62, 1),
       error(
           CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD, 62, 1),
     ]);

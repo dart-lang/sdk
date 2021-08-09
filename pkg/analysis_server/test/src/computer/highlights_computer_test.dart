@@ -114,7 +114,7 @@ void main() {
     this.content = content;
     newFile(sourcePath, content: content);
     var result =
-        await session.getResolvedUnit2(sourcePath) as ResolvedUnitResult;
+        await session.getResolvedUnit(sourcePath) as ResolvedUnitResult;
 
     if (hasErrors) {
       expect(result.errors, isNotEmpty);
@@ -122,7 +122,7 @@ void main() {
       expect(result.errors, isEmpty);
     }
 
-    var computer = DartUnitHighlightsComputer(result.unit!);
+    var computer = DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();
   }
 }

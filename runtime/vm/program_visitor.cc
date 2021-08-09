@@ -1436,7 +1436,7 @@ void ProgramVisitor::AssignUnits(Thread* thread) {
   ObjectPtr* from = object_store->from();
   ObjectPtr* to = object_store->to_snapshot(Snapshot::kFullAOT);
   for (ObjectPtr* p = from; p <= to; p++) {
-    if ((*p)->IsCode()) {
+    if ((*p)->IsHeapObject() && (*p)->IsCode()) {
       code ^= *p;
       inst = code.instructions();
       thread->heap()->SetLoadingUnit(inst.ptr(), LoadingUnit::kRootId);

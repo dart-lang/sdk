@@ -74,6 +74,8 @@ class RwLock;
 class SafepointRwLock;
 class SafepointHandler;
 class SampleBuffer;
+class SampleBlock;
+class SampleBlockBuffer;
 class SendPort;
 class SerializedObjectBuffer;
 class ServiceIdZone;
@@ -134,16 +136,6 @@ class LambdaCallable : public Callable {
   DISALLOW_COPY_AND_ASSIGN(LambdaCallable);
 };
 
-// Disallow OOB message handling within this scope.
-class NoOOBMessageScope : public ThreadStackResource {
- public:
-  explicit NoOOBMessageScope(Thread* thread);
-  ~NoOOBMessageScope();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
-};
-
 // Fixed cache for exception handler lookup.
 typedef FixedCache<intptr_t, ExceptionHandlerInfo, 16> HandlerInfoCache;
 // Fixed cache for catch entry state lookup.
@@ -182,21 +174,8 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
   V(PRODUCT, null_safety, NullSafety, null_safety, false)
 
 // Represents the information used for spawning the first isolate within an
-// isolate group.
-//
-// Any subsequent isolates created via `Isolate.spawn()` will be created using
-// the same [IsolateGroupSource] (the object itself is shared among all isolates
-// within the same group).
-//
-// Issue(http://dartbug.com/36097): It is still possible to run into issues if
-// an isolate has spawned another one and then loads more code into the first
-// one, which the latter will not get. Though it makes the status quo better
-// than what we had before (where the embedder needed to maintain the
-// same-source guarantee).
-//
-// => This is only the first step towards having multiple isolates share the
-//    same heap (and therefore the same program structure).
-//
+// isolate group. All isolates within a group will refer to this
+// [IsolateGroupSource].
 class IsolateGroupSource {
  public:
   IsolateGroupSource(const char* script_uri,
@@ -238,11 +217,6 @@ class IsolateGroupSource {
   // The kernel buffer used in `Dart_LoadScriptFromKernel`.
   const uint8_t* script_kernel_buffer;
   intptr_t script_kernel_size;
-
-  // During AppJit training we perform a permutation of the class ids before
-  // invoking the "main" script.
-  // Any newly spawned isolates need to use this permutation map.
-  std::unique_ptr<intptr_t[]> cid_permutation_map;
 
   // List of weak pointers to external typed data for loaded blobs.
   ArrayPtr loaded_blobs_;
@@ -534,7 +508,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
-  SafepointRwLock* symbols_lock() { return symbols_lock_.get(); }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
   Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
   Mutex* type_arguments_canonicalization_mutex() {
     return &type_arguments_canonicalization_mutex_;
@@ -789,20 +763,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
-  static bool AreIsolateGroupsEnabled() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return FLAG_enable_isolate_groups;
-#else
-    return FLAG_enable_isolate_groups &&
-           FLAG_experimental_enable_isolate_groups_jit;
-#endif
-  }
-
-  static void ForceEnableIsolateGroupsForTesting() {
-    FLAG_enable_isolate_groups = true;
-    FLAG_experimental_enable_isolate_groups_jit = true;
-  }
-
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -908,7 +868,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   NOT_IN_PRECOMPILED(std::unique_ptr<BackgroundCompiler> background_compiler_);
 
-  std::unique_ptr<SafepointRwLock> symbols_lock_;
+  Mutex symbols_mutex_;
   Mutex type_canonicalization_mutex_;
   Mutex type_arguments_canonicalization_mutex_;
   Mutex subtype_test_cache_mutex_;
@@ -1125,6 +1085,27 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
   Debugger* debugger() const { return debugger_; }
+
+  // NOTE: this lock should only be acquired within the profiler signal handler.
+  Mutex* current_sample_block_lock() const {
+    return const_cast<Mutex*>(&current_sample_block_lock_);
+  }
+
+  // Returns the current SampleBlock used to track CPU profiling samples.
+  //
+  // NOTE: current_sample_block_lock() should be held when accessing this
+  // block.
+  SampleBlock* current_sample_block() const { return current_sample_block_; }
+  void set_current_sample_block(SampleBlock* current);
+
+  // Returns the current SampleBlock used to track Dart allocation samples.
+  //
+  // Allocations should only occur on the mutator thread for an isolate, so we
+  // don't need to worry about grabbing a lock while accessing this block.
+  SampleBlock* current_allocation_sample_block() const {
+    return current_allocation_sample_block_;
+  }
+  void set_current_allocation_sample_block(SampleBlock* current);
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -1570,6 +1551,21 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 // the top.
 #if !defined(PRODUCT)
   Debugger* debugger_ = nullptr;
+
+  // SampleBlock containing CPU profiling samples.
+  //
+  // Can be accessed by multiple threads, so current_sample_block_lock_ should
+  // be acquired before accessing.
+  SampleBlock* current_sample_block_ = nullptr;
+  Mutex current_sample_block_lock_;
+
+  // SampleBlock containing Dart allocation profiling samples.
+  //
+  // Allocations should only occur on the mutator thread for an isolate, so we
+  // shouldn't need to worry about grabbing a lock for the allocation sample
+  // block.
+  SampleBlock* current_allocation_sample_block_ = nullptr;
+
   int64_t last_resume_timestamp_;
 
   VMTagCounters vm_tag_counters_;

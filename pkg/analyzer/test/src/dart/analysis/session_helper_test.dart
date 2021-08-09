@@ -91,7 +91,7 @@ class B {}
 ''');
     var element = findNode.classDeclaration('A').declaredElement!;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
-    expect(resolvedUnit.unit!.declarations, hasLength(2));
+    expect(resolvedUnit.unit.declarations, hasLength(2));
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {

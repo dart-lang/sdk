@@ -12,7 +12,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 
 class FixAllCommandHandler extends SimpleEditCommandHandler {
   FixAllCommandHandler(LspAnalysisServer server) : super(server);
@@ -48,14 +47,13 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
       final processor =
           BulkFixProcessor(server.instrumentationService, workspace);
 
-      final collection = AnalysisContextCollectionImpl(
-        includedPaths: [path],
-        resourceProvider: server.resourceProvider,
-        sdkPath: server.sdkManager.defaultSdkDirectory,
-      );
-      final changeBuilder = await processor.fixErrors(collection.contexts);
-      final change = changeBuilder.sourceChange;
+      final context = server.contextManager.getContextFor(path);
+      if (context == null) {
+        return success(null);
+      }
 
+      final changeBuilder = await processor.fixErrorsForFile(context, path);
+      final change = changeBuilder.sourceChange;
       if (change.edits.isEmpty) {
         return success(null);
       }

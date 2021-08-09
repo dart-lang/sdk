@@ -108,7 +108,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   ImportDirective? _findNode() {
     var library = element.library;
     var path = library.source.fullName;
-    var unitResult = session.getParsedUnit2(path);
+    var unitResult = session.getParsedUnit(path);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }
@@ -122,7 +122,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   /// it. Otherwise return `null`.
   SimpleIdentifier? _getInterpolationIdentifier(SourceReference reference) {
     var source = reference.element.source!;
-    var unitResult = session.getParsedUnit2(source.fullName);
+    var unitResult = session.getParsedUnit(source.fullName);
     if (unitResult is! ParsedUnitResult) {
       return null;
     }

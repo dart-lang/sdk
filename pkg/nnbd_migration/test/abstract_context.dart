@@ -45,6 +45,17 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get testsPath => '$homePath/tests';
 
+  void addBuiltValuePackage() {
+    addPackageFile('built_value', 'built_value.dart', '''
+abstract class Built<V extends Built<V, B>, B extends Builder<V, B>> {}
+abstract class Builder<V extends Built<V, B>, B extends Builder<V, B>> {}
+const String nullable = 'nullable';
+class BuiltValueNullFieldError extends Error {
+  static T checkNotNull<T>(T? value, String type, String field) => value!;
+}
+''');
+  }
+
   void addMetaPackage() {
     addPackageFile('meta', 'meta.dart', r'''
 library meta;
@@ -120,7 +131,7 @@ export 'package:test_core/test_core.dart';
   }
 
   LineInfo getLineInfo(String path) =>
-      (session.getFile2(path) as FileResult).lineInfo;
+      (session.getFile(path) as FileResult).lineInfo;
 
   void setUp() {
     setupResourceProvider();

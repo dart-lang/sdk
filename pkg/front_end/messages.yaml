@@ -219,6 +219,12 @@ ConstEvalExtension:
   template: "Extension operations can't be used in constant expressions."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
+ConstEvalExternalConstructor:
+  template: "External constructors can't be evaluated in constant expressions."
+
+ConstEvalExternalFactory:
+  template: "External factory constructors can't be evaluated in constant expressions."
+
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
 
@@ -4537,6 +4543,11 @@ FfiLeafCallMustNotReturnHandle:
   template: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
+FfiNativeAnnotationMustAnnotateStatic:
+  # Used by dart:ffi
+  template: "FfiNative annotations can only be used on static functions."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:
@@ -4902,6 +4913,10 @@ JsInteropEnclosingClassJSAnnotation:
 JsInteropEnclosingClassJSAnnotationContext:
   template: "This is the enclosing class."
   severity: CONTEXT
+
+JsInteropExternalExtensionMemberOnTypeInvalid:
+  template: "JS interop or Native class required for 'external' extension members."
+  tip: "Try adding a JS interop annotation to the on type class of the extension."
 
 JsInteropExternalMemberNotJSAnnotated:
   template: "Only JS interop members may be 'external'."

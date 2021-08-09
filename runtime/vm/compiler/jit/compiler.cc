@@ -212,7 +212,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
-  if (IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (FLAG_enable_isolate_groups) {
     // Another isolate's mutator thread may have created [function] and
     // published it via an ICData, MegamorphicCache etc. Entering the lock below
     // is an acquire operation that pairs with the release operation when the
@@ -225,7 +225,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   // there's no existing code. In multi-isolate scenarios with shared JITed code
   // we can end up in the lazy compile runtime entry here with code being
   // installed.
-  ASSERT(!function.HasCode() || IsolateGroup::AreIsolateGroupsEnabled());
+  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
 
   // Will throw if compilation failed (e.g. with compile-time error).
   function.EnsureHasCode();
@@ -514,14 +514,6 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                    CompilerState::ShouldTrace(function));
 
       {
-        if (optimized()) {
-          // In background compilation the deoptimization counter may have
-          // already reached the limit.
-          ASSERT(Compiler::IsBackgroundCompilation() ||
-                 (function.deoptimization_counter() <
-                  FLAG_max_deoptimization_counter_threshold));
-        }
-
         // Extract type feedback before the graph is built, as the graph
         // builder uses it to attach it to nodes.
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();

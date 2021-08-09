@@ -1,0 +1,18 @@
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+
+class Class1 {
+  final int field;
+  Class1._([this.field = 42]);
+  factory Class1([int field]) = Class1._;
+}
+
+class Class2 {
+  final int field;
+  Class2._({this.field: 42});
+  factory Class2({int field}) = Class2._;
+}
+
+void testDefaultValues() {}
+expect(expected, actual) {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

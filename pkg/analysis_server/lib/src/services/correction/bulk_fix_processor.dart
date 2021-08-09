@@ -172,10 +172,26 @@ class BulkFixProcessor {
             file_paths.isGenerated(path)) {
           continue;
         }
-        var library = await context.currentSession.getResolvedLibrary2(path);
+        var library = await context.currentSession.getResolvedLibrary(path);
         if (library is ResolvedLibraryResult) {
           await _fixErrorsInLibrary(library);
         }
+      }
+    }
+
+    return builder;
+  }
+
+  /// Return a change builder that has been used to create fixes for the
+  /// diagnostics in [file] in the given [context].
+  Future<ChangeBuilder> fixErrorsForFile(
+      AnalysisContext context, String path) async {
+    var pathContext = context.contextRoot.resourceProvider.pathContext;
+
+    if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
+      var library = await context.currentSession.getResolvedLibrary(path);
+      if (library is ResolvedLibraryResult) {
+        await _fixErrorsInLibrary(library);
       }
     }
 
@@ -269,7 +285,7 @@ class BulkFixProcessor {
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-    for (var unitResult in result.units!) {
+    for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in unitResult.errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
@@ -336,7 +352,7 @@ class BulkFixProcessor {
       await compute(producer);
       var newHash = computeChangeHash();
       if (newHash != oldHash) {
-        changeMap.add(result.path!, code);
+        changeMap.add(result.path, code);
       }
     }
 
@@ -401,7 +417,7 @@ class BulkFixProcessor {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;
-      var dartFileName = result.path!;
+      var dartFileName = result.path;
       var configFileName = '${context.withoutExtension(dartFileName)}.config';
       var configFile = provider.getFile(configFileName);
       try {

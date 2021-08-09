@@ -128,6 +128,8 @@ static ErrorPtr BootstrapFromKernel(Thread* thread,
     // Finish bootstrapping, including class finalization.
     Finish(thread);
 
+    isolate_group->object_store()->InitKnownObjects();
+
     // The platform binary may contain other libraries (e.g., dart:_builtin or
     // dart:io) that will not be bundled with application.  Load them now.
     const Object& result = Object::Handle(zone, loader.LoadProgram());

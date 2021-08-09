@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropAnonymousFactoryPositionalParameters,
         messageJsInteropEnclosingClassJSAnnotation,
         messageJsInteropEnclosingClassJSAnnotationContext,
+        messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalMemberNotJSAnnotated,
         messageJsInteropIndexNotSupported,
         messageJsInteropNamedParameters,
@@ -30,6 +31,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _libraryHasJSAnnotation = false;
+  Map<Reference, Extension>? _libraryExtensionsIndex;
 
   /// Libraries that use `external` to exclude from checks on external.
   static final Iterable<String> _pathsWithAllowedDartExternalUsage = <String>[
@@ -86,7 +88,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
   @override
   void defaultMember(Member member) {
-    _checkJSInteropAnnotation(member);
+    _checkInstanceMemberJSAnnotation(member);
+    if (!_isJSInteropMember(member)) _checkDisallowedExternal(member);
     // TODO(43530): Disallow having JS interop annotations on non-external
     // members (class members or otherwise). Currently, they're being ignored.
     super.defaultMember(member);
@@ -105,14 +108,14 @@ class JsInteropChecks extends RecursiveVisitor {
                 cls.name, superclass.name),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       } else if (!_classHasJSAnnotation && superHasJSAnnotation) {
         _diagnosticsReporter.report(
             templateJsInteropDartClassExtendsJSClass.withArguments(
                 cls.name, superclass.name),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       }
     }
     // Since this is a breaking check, it is language-versioned.
@@ -129,10 +132,10 @@ class JsInteropChecks extends RecursiveVisitor {
         // a value for `className` that doesn't start with 'self.' or 'window.'.
         var classRegexp = new RegExp(r'^((self|window)\.)*(?<className>.*)$');
         var matches = classRegexp.allMatches(jsClass);
-        jsClass = matches.first.namedGroup('className');
+        jsClass = matches.first.namedGroup('className')!;
       }
-      if (_nativeClasses.containsKey(jsClass)) {
-        var nativeClass = _nativeClasses[jsClass];
+      var nativeClass = _nativeClasses[jsClass];
+      if (nativeClass != null) {
         _diagnosticsReporter.report(
             templateJsInteropNativeClassInAnnotation.withArguments(
                 cls.name,
@@ -140,7 +143,7 @@ class JsInteropChecks extends RecursiveVisitor {
                 nativeClass.enclosingLibrary.importUri.toString()),
             cls.fileOffset,
             cls.name.length,
-            cls.location.file);
+            cls.fileUri);
       }
     }
     super.visitClass(cls);
@@ -165,11 +168,12 @@ class JsInteropChecks extends RecursiveVisitor {
     super.visitLibrary(lib);
     _libraryIsGlobalNamespace = false;
     _libraryHasJSAnnotation = false;
+    _libraryExtensionsIndex = null;
   }
 
   @override
   void visitProcedure(Procedure procedure) {
-    _checkJSInteropAnnotation(procedure);
+    _checkInstanceMemberJSAnnotation(procedure);
     if (_classHasJSAnnotation && !procedure.isExternal) {
       // If not one of few exceptions, member is not allowed to exclude
       // `external` inside of a JS interop class.
@@ -180,43 +184,48 @@ class JsInteropChecks extends RecursiveVisitor {
             messageJsInteropNonExternalMember,
             procedure.fileOffset,
             procedure.name.text.length,
-            procedure.location.file);
+            procedure.fileUri);
       }
     }
-    if (!_isJSInteropMember(procedure)) return;
 
-    if (!procedure.isStatic &&
-        (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
-      _diagnosticsReporter.report(
-          messageJsInteropIndexNotSupported,
-          procedure.fileOffset,
-          procedure.name.text.length,
-          procedure.location.file);
-    }
-
-    var isAnonymousFactory =
-        _classHasAnonymousAnnotation && procedure.isFactory;
-
-    if (isAnonymousFactory) {
-      if (procedure.function != null &&
-          !procedure.function.positionalParameters.isEmpty) {
-        var firstPositionalParam = procedure.function.positionalParameters[0];
-        _diagnosticsReporter.report(
-            messageJsInteropAnonymousFactoryPositionalParameters,
-            firstPositionalParam.fileOffset,
-            firstPositionalParam.name.length,
-            firstPositionalParam.location.file);
-      }
+    if (!_isJSInteropMember(procedure)) {
+      _checkDisallowedExternal(procedure);
     } else {
-      // Only factory constructors for anonymous classes are allowed to have
-      // named parameters.
-      _checkNoNamedParameters(procedure.function);
+      // Check JS interop indexing.
+      if (!procedure.isStatic &&
+          (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
+        _diagnosticsReporter.report(
+            messageJsInteropIndexNotSupported,
+            procedure.fileOffset,
+            procedure.name.text.length,
+            procedure.fileUri);
+      }
+
+      // Check JS Interop positional and named parameters.
+      var isAnonymousFactory =
+          _classHasAnonymousAnnotation && procedure.isFactory;
+      if (isAnonymousFactory) {
+        // ignore: unnecessary_null_comparison
+        if (procedure.function != null &&
+            !procedure.function.positionalParameters.isEmpty) {
+          var firstPositionalParam = procedure.function.positionalParameters[0];
+          _diagnosticsReporter.report(
+              messageJsInteropAnonymousFactoryPositionalParameters,
+              firstPositionalParam.fileOffset,
+              firstPositionalParam.name!.length,
+              firstPositionalParam.location!.file);
+        }
+      } else {
+        // Only factory constructors for anonymous classes are allowed to have
+        // named parameters.
+        _checkNoNamedParameters(procedure.function);
+      }
     }
   }
 
   @override
   void visitConstructor(Constructor constructor) {
-    _checkJSInteropAnnotation(constructor);
+    _checkInstanceMemberJSAnnotation(constructor);
     if (_classHasJSAnnotation &&
         !constructor.isExternal &&
         !constructor.isSynthetic) {
@@ -225,28 +234,32 @@ class JsInteropChecks extends RecursiveVisitor {
           messageJsInteropNonExternalConstructor,
           constructor.fileOffset,
           constructor.name.text.length,
-          constructor.location.file);
+          constructor.fileUri);
     }
-    if (!_isJSInteropMember(constructor)) return;
 
-    _checkNoNamedParameters(constructor.function);
+    if (!_isJSInteropMember(constructor)) {
+      _checkDisallowedExternal(constructor);
+    } else {
+      _checkNoNamedParameters(constructor.function);
+    }
   }
 
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
+    // ignore: unnecessary_null_comparison
     if (functionNode != null && !functionNode.namedParameters.isEmpty) {
       var firstNamedParam = functionNode.namedParameters[0];
       _diagnosticsReporter.report(
           messageJsInteropNamedParameters,
           firstNamedParam.fileOffset,
-          firstNamedParam.name.length,
-          firstNamedParam.location.file);
+          firstNamedParam.name!.length,
+          firstNamedParam.location!.file);
     }
   }
 
-  /// Reports an error if [member] does not correctly use the JS interop
-  /// annotation or the keyword `external`.
-  void _checkJSInteropAnnotation(Member member) {
+  /// Reports an error if given instance [member] is JS interop, but inside a
+  /// non JS interop class.
+  void _checkInstanceMemberJSAnnotation(Member member) {
     var enclosingClass = member.enclosingClass;
 
     if (!_classHasJSAnnotation &&
@@ -255,26 +268,38 @@ class JsInteropChecks extends RecursiveVisitor {
       // If in a class that is not JS interop, this member is not allowed to be
       // JS interop.
       _diagnosticsReporter.report(messageJsInteropEnclosingClassJSAnnotation,
-          member.fileOffset, member.name.text.length, member.location.file,
+          member.fileOffset, member.name.text.length, member.fileUri,
           context: <LocatedMessage>[
             messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
-                enclosingClass.location.file,
+                enclosingClass.fileUri,
                 enclosingClass.fileOffset,
                 enclosingClass.name.length)
           ]);
     }
+  }
 
-    // Check for correct `external` usage.
-    if (member.isExternal &&
-        !_isAllowedExternalUsage(member) &&
-        !hasJSInteropAnnotation(member)) {
-      if (member.enclosingClass != null && !_classHasJSAnnotation ||
-          member.enclosingClass == null && !_libraryHasJSAnnotation) {
+  /// Assumes given [member] is not JS interop, and reports an error if
+  /// [member] is `external` and not an allowed `external` usage.
+  void _checkDisallowedExternal(Member member) {
+    if (member.isExternal) {
+      if (member.isExtensionMember) {
+        if (!_isNativeExtensionMember(member)) {
+          _diagnosticsReporter.report(
+              messageJsInteropExternalExtensionMemberOnTypeInvalid,
+              member.fileOffset,
+              member.name.text.length,
+              member.fileUri);
+        }
+      } else if (!hasJSInteropAnnotation(member) &&
+          !_isAllowedExternalUsage(member)) {
+        // Member could be JS annotated and not considered a JS interop member
+        // if inside a non-JS interop class. Should not report an error in this
+        // case, since a different error will already be produced.
         _diagnosticsReporter.report(
             messageJsInteropExternalMemberNotJSAnnotated,
             member.fileOffset,
             member.name.text.length,
-            member.location.file);
+            member.fileUri);
       }
     }
   }
@@ -290,18 +315,51 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   /// Returns whether [member] is considered to be a JS interop member.
+  ///
+  /// A JS interop member is `external`, and is in a valid JS interop context,
+  /// which can be:
+  ///   - inside a JS interop class
+  ///   - inside an extension on a JS interop class
+  ///   - a top level member that is JS interop annotated or in a JS interop
+  ///     library
+  /// If a member belongs to a class, the class must be JS interop annotated.
   bool _isJSInteropMember(Member member) {
     if (member.isExternal) {
       if (_classHasJSAnnotation) return true;
+      if (member.isExtensionMember) return _isJSExtensionMember(member);
       if (member.enclosingClass == null) {
-        // In the case where the member does not belong to any class, a JS
-        // annotation is not needed on the library to be considered JS interop
-        // as long as the member has an annotation.
         return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
       }
     }
 
     // Otherwise, not JS interop.
     return false;
+  }
+
+  /// Returns whether given extension [member] is in an extension that is on a
+  /// JS interop class.
+  bool _isJSExtensionMember(Member member) {
+    return _checkExtensionMember(member, hasJSInteropAnnotation);
+  }
+
+  /// Returns whether given extension [member] is in an extension on a Native
+  /// class.
+  bool _isNativeExtensionMember(Member member) {
+    return _checkExtensionMember(member, _nativeClasses.containsValue);
+  }
+
+  /// Returns whether given extension [member] is on a class that passses the
+  /// given [validateExtensionClass].
+  bool _checkExtensionMember(Member member, Function validateExtensionClass) {
+    assert(member.isExtensionMember);
+    if (_libraryExtensionsIndex == null) {
+      _libraryExtensionsIndex = {};
+      member.enclosingLibrary.extensions.forEach((extension) =>
+          extension.members.forEach((memberDescriptor) =>
+              _libraryExtensionsIndex![memberDescriptor.member] = extension));
+    }
+
+    var onType = _libraryExtensionsIndex![member.reference]!.onType;
+    return onType is InterfaceType && validateExtensionClass(onType.classNode);
   }
 }

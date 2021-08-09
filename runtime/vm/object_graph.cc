@@ -944,6 +944,10 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
+    } else if (cid == kLinkedHashSetCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
     } else if (cid == kObjectPoolCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(static_cast<ObjectPoolPtr>(obj)->untag()->length_);
@@ -1158,11 +1162,10 @@ void HeapSnapshotWriter::Write() {
 
         intptr_t field_count = 0;
         intptr_t min_offset = kIntptrMax;
-        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
-             j++) {
-          if (OffsetsTable::offsets_table[j].class_id == cid) {
+        for (const auto& entry : OffsetsTable::offsets_table()) {
+          if (entry.class_id == cid) {
             field_count++;
-            intptr_t offset = OffsetsTable::offsets_table[j].offset;
+            intptr_t offset = entry.offset;
             min_offset = Utils::Minimum(min_offset, offset);
           }
         }
@@ -1183,16 +1186,15 @@ void HeapSnapshotWriter::Write() {
         }
 
         WriteUnsigned(field_count);
-        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
-             j++) {
-          if (OffsetsTable::offsets_table[j].class_id == cid) {
+        for (const auto& entry : OffsetsTable::offsets_table()) {
+          if (entry.class_id == cid) {
             intptr_t flags = 1;  // Strong.
             WriteUnsigned(flags);
-            intptr_t offset = OffsetsTable::offsets_table[j].offset;
+            intptr_t offset = entry.offset;
             intptr_t index = (offset - min_offset) / kCompressedWordSize;
             ASSERT(index >= 0);
             WriteUnsigned(index);
-            WriteUtf8(OffsetsTable::offsets_table[j].field_name);
+            WriteUtf8(entry.field_name);
             WriteUtf8("");  // Reserved
           }
         }
@@ -1308,6 +1310,7 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
     case kLinkedHashMapCid:
+    case kLinkedHashSetCid:
     case kMintCid:
     case kNeverCid:
     case kSentinelCid:

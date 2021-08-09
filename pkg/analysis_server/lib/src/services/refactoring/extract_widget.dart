@@ -85,7 +85,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   FeatureSet get _featureSet {
-    return resolveResult.unit!.featureSet;
+    return resolveResult.unit.featureSet;
   }
 
   Flutter get _flutter => Flutter.instance;
@@ -144,7 +144,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     var builder =
         ChangeBuilder(session: sessionHelper.session, eol: utils.endOfLine);
-    await builder.addDartFileEdit(resolveResult.path!, (builder) {
+    await builder.addDartFileEdit(resolveResult.path, (builder) {
       final expression = _expression;
       final statements = _statements;
       if (expression != null) {

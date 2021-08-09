@@ -32,9 +32,12 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
 import '../combinator.dart';
+import '../configuration.dart';
 import '../identifiers.dart';
 import '../source/source_library_builder.dart';
 import 'body_builder.dart';
@@ -159,6 +162,7 @@ class ByteSink implements Sink<List<int>> {
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new Identifier(dummyToken);
 final Combinator dummyCombinator = new Combinator(false, {}, -1, dummyUri);
+final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(dummyToken);
 final TypeBuilder dummyTypeBuilder =
     new FixedTypeBuilder(dummyDartType, dummyUri, -1);
 final FormalParameterBuilder dummyFormalParameterBuilder =
@@ -167,3 +171,6 @@ final TypeVariableBuilder dummyTypeVariableBuilder =
     new TypeVariableBuilder(TypeVariableBuilder.noNameSentinel, null, -1, null);
 final Label dummyLabel = new Label('', -1);
 final FieldInfo dummyFieldInfo = new FieldInfo('', -1, null, dummyToken, -1);
+final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
+final UnresolvedType dummyUnresolvedType =
+    new UnresolvedType(dummyTypeBuilder, -1, dummyUri);

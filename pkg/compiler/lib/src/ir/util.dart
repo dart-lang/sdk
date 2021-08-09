@@ -119,18 +119,7 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
     if (node.variable.name == null &&
         node.variable.isFinal &&
         body is ir.ConditionalExpression) {
-      if (body.condition is ir.MethodInvocation && isNullLiteral(body.then)) {
-        ir.MethodInvocation invocation = body.condition;
-        ir.Expression receiver = invocation.receiver;
-        if (invocation.name.text == '==' &&
-            receiver is ir.VariableGet &&
-            receiver.variable == node.variable &&
-            isNullLiteral(invocation.arguments.positional.single)) {
-          // We have
-          //   let #t1 = e0 in #t1 == null ? null : e1
-          return new NullAwareExpression(node.variable, body.otherwise);
-        }
-      } else if (body.condition is ir.EqualsNull) {
+      if (body.condition is ir.EqualsNull) {
         ir.EqualsNull equalsNull = body.condition;
         ir.Expression receiver = equalsNull.expression;
         if (receiver is ir.VariableGet && receiver.variable == node.variable) {
@@ -161,12 +150,10 @@ ir.LibraryDependency getDeferredImport(ir.TreeNode node) {
   //
   //   (let _ = check(prefix) in prefix::field).property
   if (node is ir.StaticGet || node is ir.ConstantExpression) {
-    while (parent is ir.PropertyGet ||
-        parent is ir.InstanceGet ||
+    while (parent is ir.InstanceGet ||
         parent is ir.DynamicGet ||
         parent is ir.InstanceTearOff ||
         parent is ir.FunctionTearOff ||
-        parent is ir.MethodInvocation ||
         parent is ir.InstanceInvocation ||
         parent is ir.InstanceGetterInvocation ||
         parent is ir.DynamicInvocation ||

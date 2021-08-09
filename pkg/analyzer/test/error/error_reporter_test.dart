@@ -166,7 +166,7 @@ main() {
     var fa = findNode.topLevelVariableDeclaration('fa');
     var fb = findNode.topLevelVariableDeclaration('fb');
 
-    var source = result.unit!.declaredElement!.source;
+    var source = result.unit.declaredElement!.source;
     var reporter = ErrorReporter(
       listener,
       source,
@@ -201,7 +201,7 @@ main() {
     var ba = findNode.topLevelVariableDeclaration('ba');
     var bb = findNode.topLevelVariableDeclaration('bb');
 
-    var source = result.unit!.declaredElement!.source;
+    var source = result.unit.declaredElement!.source;
     var reporter = ErrorReporter(
       listener,
       source,

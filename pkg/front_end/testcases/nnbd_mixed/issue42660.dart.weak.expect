@@ -61,5 +61,5 @@ static get p() → core::int?
   return 4;
 
 constants  {
-  #C1 = tearoff iss::f
+  #C1 = static-tearoff iss::f
 }

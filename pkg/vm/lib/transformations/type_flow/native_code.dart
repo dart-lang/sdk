@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Handling of native code and entry points.
-library vm.transformations.type_flow.native_code;
 
 import 'dart:core' hide Type;
 
@@ -33,24 +32,21 @@ abstract class EntryPointsListener {
   /// Record the fact that given member is called from this.
   void recordMemberCalledViaThis(Member target);
 
-  /// Record the fact that given method is torn off.
-  void recordTearOff(Procedure target) {}
+  /// Record the fact that given member is torn off.
+  void recordTearOff(Member target) {}
 }
 
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final EntryPointsListener entryPoints;
   final NativeCodeOracle nativeCodeOracle;
   final PragmaAnnotationParser matcher;
-  Class currentClass = null;
 
   PragmaEntryPointsVisitor(
-      this.entryPoints, this.nativeCodeOracle, this.matcher) {
-    assert(matcher != null);
-  }
+      this.entryPoints, this.nativeCodeOracle, this.matcher);
 
-  PragmaEntryPointType _annotationsDefineRoot(List<Expression> annotations) {
+  PragmaEntryPointType? _annotationsDefineRoot(List<Expression> annotations) {
     for (var annotation in annotations) {
-      ParsedPragma pragma = matcher.parsePragma(annotation);
+      ParsedPragma? pragma = matcher.parsePragma(annotation);
       if (pragma == null) continue;
       if (pragma is ParsedEntryPointPragma) return pragma.type;
     }
@@ -70,7 +66,6 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       }
       nativeCodeOracle.addClassReferencedFromNativeCode(klass);
     }
-    currentClass = klass;
     klass.visitChildren(this);
   }
 
@@ -79,15 +74,14 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
     var type = _annotationsDefineRoot(proc.annotations);
     if (type == null) return;
 
-    if (proc.isRedirectingFactoryConstructor) {
+    if (proc.isRedirectingFactory) {
       if (type != PragmaEntryPointType.CallOnly &&
           type != PragmaEntryPointType.Default) {
         throw "Error: factory $proc doesn't have a setter or getter";
       }
       Member target = proc;
-      while (target is Procedure && target.isRedirectingFactoryConstructor) {
-        target = getRedirectingFactoryBody(target).target;
-        assert(target != null);
+      while (target is Procedure && target.isRedirectingFactory) {
+        target = getRedirectingFactoryBody(target)!.target!;
         assert(
             (target is Procedure && target.isFactory) || target is Constructor);
       }
@@ -150,7 +144,7 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
       }
       entryPoints
           .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
-      entryPoints.addAllocatedClass(currentClass);
+      entryPoints.addAllocatedClass(ctor.enclosingClass);
       nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
   }
@@ -199,9 +193,7 @@ class NativeCodeOracle {
   final Set<Class> _classesReferencedFromNativeCode = new Set<Class>();
   final PragmaAnnotationParser _matcher;
 
-  NativeCodeOracle(this._libraryIndex, this._matcher) {
-    assert(_matcher != null);
-  }
+  NativeCodeOracle(this._libraryIndex, this._matcher);
 
   void addClassReferencedFromNativeCode(Class klass) {
     _classesReferencedFromNativeCode.add(klass);
@@ -217,9 +209,9 @@ class NativeCodeOracle {
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
 
-  PragmaRecognizedType recognizedType(Member member) {
+  PragmaRecognizedType? recognizedType(Member member) {
     for (var annotation in member.annotations) {
-      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      ParsedPragma? pragma = _matcher.parsePragma(annotation);
       if (pragma is ParsedRecognized) {
         return pragma.type;
       }
@@ -227,15 +219,16 @@ class NativeCodeOracle {
     return null;
   }
 
-  bool isRecognized(Member member, [List<PragmaRecognizedType> expectedTypes]) {
-    PragmaRecognizedType type = recognizedType(member);
+  bool isRecognized(Member member,
+      [List<PragmaRecognizedType>? expectedTypes]) {
+    PragmaRecognizedType? type = recognizedType(member);
     return type != null &&
         (expectedTypes == null || expectedTypes.contains(type));
   }
 
   bool hasDisableUnboxedParameters(Member member) {
     for (var annotation in member.annotations) {
-      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      ParsedPragma? pragma = _matcher.parsePragma(annotation);
       if (pragma is ParsedDisableUnboxedParameters) {
         if (member.enclosingLibrary.importUri.scheme != "dart") {
           throw "ERROR: Cannot use @pragma(vm:disable-unboxed-parameters) outside core libraries.";
@@ -253,11 +246,11 @@ class NativeCodeOracle {
       EntryPointsListener entryPointsListener,
       TypesBuilder typesBuilder,
       RuntimeTypeTranslator translator) {
-    TypeExpr returnType = null;
-    bool nullable = null;
+    TypeExpr? returnType = null;
+    bool? nullable = null;
 
     for (var annotation in member.annotations) {
-      ParsedPragma pragma = _matcher.parsePragma(annotation);
+      ParsedPragma? pragma = _matcher.parsePragma(annotation);
       if (pragma == null) continue;
       if (pragma is ParsedResultTypeByTypePragma ||
           pragma is ParsedResultTypeByPathPragma ||
@@ -276,8 +269,8 @@ class NativeCodeOracle {
           returnType = entryPointsListener.addAllocatedClass(type.classNode);
           if (pragma.resultTypeUsesPassedTypeArguments) {
             returnType = translator.instantiateConcreteType(
-                returnType,
-                member.function.typeParameters
+                returnType as ConcreteType,
+                member.function!.typeParameters
                     .map((t) => TypeParameterType(
                         t, TypeParameterType.computeNullabilityFromBound(t)))
                     .toList());
@@ -312,7 +305,7 @@ class NativeCodeOracle {
       return returnType;
     } else {
       return typesBuilder.fromStaticType(
-          member.function.returnType, nullable ?? true);
+          member.function!.returnType, nullable ?? true);
     }
   }
 }

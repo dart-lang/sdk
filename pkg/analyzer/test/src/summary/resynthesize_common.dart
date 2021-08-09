@@ -16762,8 +16762,8 @@ F<int> a;
     var unit = library.definingCompilationUnit;
     var type = unit.topLevelVariables[0].type as FunctionType;
 
-    expect(type.aliasElement, same(unit.typeAliases[0]));
-    _assertTypeStrings(type.aliasArguments!, ['int']);
+    expect(type.alias!.element, same(unit.typeAliases[0]));
+    _assertTypeStrings(type.alias!.typeArguments, ['int']);
   }
 
   test_functionTypeAlias_typeParameters_variance_contravariant() async {
@@ -21243,6 +21243,359 @@ library
     functions
       main @0
         returnType: dynamic
+''');
+  }
+
+  test_macro_autoConstructor() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const autoConstructor = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+@autoConstructor
+class A {
+  final int a;
+  final int? b;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @56
+        metadata
+          Annotation
+            atSign: @ @33
+            element: macro_annotations.dart::@getter::autoConstructor
+            name: SimpleIdentifier
+              staticElement: macro_annotations.dart::@getter::autoConstructor
+              staticType: null
+              token: autoConstructor @34
+        fields
+          final a @72
+            type: int
+          final b @88
+            type: int?
+        constructors
+          @0
+            macro
+              id: 0
+              code: A({required this.a, this.b});
+            parameters
+              requiredName final this.a @17
+                type: int
+              optionalNamed final this.b @25
+                type: int?
+        accessors
+          synthetic get a @-1
+            returnType: int
+          synthetic get b @-1
+            returnType: int?
+''');
+  }
+
+  test_macro_hashCode() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const hashCode = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+@hashCode
+class A {
+  final int a;
+  final int b;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @49
+        metadata
+          Annotation
+            atSign: @ @33
+            element: macro_annotations.dart::@getter::hashCode
+            name: SimpleIdentifier
+              staticElement: macro_annotations.dart::@getter::hashCode
+              staticType: null
+              token: hashCode @34
+        fields
+          final a @65
+            type: int
+          final b @80
+            type: int
+          synthetic hashCode @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @-1
+            returnType: int
+          synthetic get b @-1
+            returnType: int
+          get hashCode @18
+            macro
+              id: 0
+              code: @override\nint get hashCode => a.hashCode ^ b.hashCode;
+            metadata
+              Annotation
+                atSign: @ @0
+                element: dart:core::@getter::override
+                name: SimpleIdentifier
+                  staticElement: dart:core::@getter::override
+                  staticType: null
+                  token: override @1
+            returnType: int
+''');
+  }
+
+  test_macro_hashCode_withSuper() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const hashCode = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+
+class A {
+  final int a;
+}
+
+@hashCode
+class B extends A {
+  final int b;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @40
+        fields
+          final a @56
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @-1
+            returnType: int
+      class B @78
+        metadata
+          Annotation
+            atSign: @ @62
+            element: macro_annotations.dart::@getter::hashCode
+            name: SimpleIdentifier
+              staticElement: macro_annotations.dart::@getter::hashCode
+              staticType: null
+              token: hashCode @63
+        supertype: A
+        fields
+          final b @104
+            type: int
+          synthetic hashCode @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get b @-1
+            returnType: int
+          get hashCode @18
+            macro
+              id: 0
+              code: @override\nint get hashCode => b.hashCode ^ a.hashCode;
+            metadata
+              Annotation
+                atSign: @ @0
+                element: dart:core::@getter::override
+                name: SimpleIdentifier
+                  staticElement: dart:core::@getter::override
+                  staticType: null
+                  token: override @1
+            returnType: int
+''');
+  }
+
+  test_macro_observable() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const observable = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+class A {
+  @observable
+  int _f = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @39
+        fields
+          _f @63
+            metadata
+              Annotation
+                atSign: @ @45
+                element: macro_annotations.dart::@getter::observable
+                name: SimpleIdentifier
+                  staticElement: macro_annotations.dart::@getter::observable
+                  staticType: null
+                  token: observable @46
+            type: int
+          synthetic f @-1
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get _f @-1
+            returnType: int
+          synthetic set _f @-1
+            parameters
+              requiredPositional __f @-1
+                type: int
+            returnType: void
+          get f @8
+            macro
+              id: 0
+              code: int get f => _f;
+            returnType: int
+          set f @4
+            macro
+              id: 1
+              code: set f(int val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
+            parameters
+              requiredPositional val @10
+                type: int
+            returnType: void
+''');
+  }
+
+  test_macro_observable_generic() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const observable = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+class A<T> {
+  @observable
+  T _f;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @39
+        typeParameters
+          covariant T @41
+            defaultType: dynamic
+        fields
+          _f @64
+            metadata
+              Annotation
+                atSign: @ @48
+                element: macro_annotations.dart::@getter::observable
+                name: SimpleIdentifier
+                  staticElement: macro_annotations.dart::@getter::observable
+                  staticType: null
+                  token: observable @49
+            type: T
+          synthetic f @-1
+            type: T
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get _f @-1
+            returnType: T
+          synthetic set _f @-1
+            parameters
+              requiredPositional __f @-1
+                type: T
+            returnType: void
+          get f @6
+            macro
+              id: 0
+              code: T get f => _f;
+            returnType: T
+          set f @4
+            macro
+              id: 1
+              code: set f(T val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
+            parameters
+              requiredPositional val @8
+                type: T
+            returnType: void
+''');
+  }
+
+  test_macro_toString() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const toString = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+@toString
+class A {
+  final int a;
+  final int b;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @49
+        metadata
+          Annotation
+            atSign: @ @33
+            element: macro_annotations.dart::@getter::toString
+            name: SimpleIdentifier
+              staticElement: macro_annotations.dart::@getter::toString
+              staticType: null
+              token: toString @34
+        fields
+          final a @65
+            type: int
+          final b @80
+            type: int
+        constructors
+          synthetic @-1
+        accessors
+          synthetic get a @-1
+            returnType: int
+          synthetic get b @-1
+            returnType: int
+        methods
+          toString @17
+            macro
+              id: 0
+              code: @override\nString toString() => 'A(a: $a, b: $b)';
+            metadata
+              Annotation
+                atSign: @ @0
+                element: dart:core::@getter::override
+                name: SimpleIdentifier
+                  staticElement: dart:core::@getter::override
+                  staticType: null
+                  token: override @1
+            returnType: String
 ''');
   }
 

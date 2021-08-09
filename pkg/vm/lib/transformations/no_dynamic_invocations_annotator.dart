@@ -46,7 +46,6 @@ class Selector {
       case Action.invoke:
         return '${target}';
     }
-    return '?';
   }
 }
 

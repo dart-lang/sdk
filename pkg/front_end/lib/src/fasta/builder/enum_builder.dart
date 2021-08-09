@@ -21,7 +21,6 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Name,
         ProcedureKind,
-        PropertyGet,
         Reference,
         ReturnStatement,
         StaticGet,
@@ -41,6 +40,8 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationCause,
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
+
+import '../kernel/kernel_helper.dart';
 
 import '../util/helpers.dart';
 
@@ -460,15 +461,10 @@ class EnumBuilder extends SourceClassBuilder {
     Field nameField = nameFieldBuilder.field;
     ProcedureBuilder toStringBuilder =
         firstMemberNamed("toString") as ProcedureBuilder;
-    if (libraryBuilder
-        .loader.target.backendTarget.supportsNewMethodInvocationEncoding) {
-      toStringBuilder.body = new ReturnStatement(new InstanceGet(
-          InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
-          interfaceTarget: nameField, resultType: nameField.type));
-    } else {
-      toStringBuilder.body = new ReturnStatement(
-          new PropertyGet(new ThisExpression(), nameField.name, nameField));
-    }
+    toStringBuilder.body = new ReturnStatement(new InstanceGet(
+        InstanceAccessKind.Instance, new ThisExpression(), nameField.name,
+        interfaceTarget: nameField, resultType: nameField.type));
+
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -520,7 +516,8 @@ class EnumBuilder extends SourceClassBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<Expression> values = <Expression>[];
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
@@ -564,7 +561,8 @@ class EnumBuilder extends SourceClassBuilder {
         }
       }
     }
-    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
   }
 
   @override

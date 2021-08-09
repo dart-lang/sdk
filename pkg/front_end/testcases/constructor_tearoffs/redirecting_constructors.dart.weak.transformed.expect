@@ -2,55 +2,20 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:6:5: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-//   A.new();
-//     ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:7:38: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-//   factory A.redirectingFactory() = A.new;
-//                                      ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:8:43: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
-// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.14 or higher, and running 'pub get'.
-//   factory A.redirectingFactoryChild() = B.new;
-//                                           ^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:7:36: Error: Redirection constructor target not found: 'A.new'
-//   factory A.redirectingFactory() = A.new;
-//                                    ^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:15:23: Error: Getter not found: 'redirectingFactory'.
-//   A Function() f1 = A.redirectingFactory;
-//                       ^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:16:23: Error: Getter not found: 'redirectingFactoryChild'.
-//   A Function() f2 = A.redirectingFactoryChild;
-//                       ^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:17:23: Error: Getter not found: 'redirectingTwice'.
-//   A Function() f3 = A.redirectingTwice;
-//                       ^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:20:5: Error: Expected ';' after this.
 //   A x3 f3();
 //     ^^
-//
-// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:12:7: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
-// class B extends A {}
-//       ^
 //
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self::A::redirectingFactory, self::A::redirectingFactoryChild, self::A::redirectingTwice]/*isLegacy*/;
-  constructor new() → self::A
+  constructor •() → self::A
     : super core::Object::•()
     ;
   static factory redirectingFactory() → self::A
-    let core::String* #redirecting_factory = "A.new" in invalid-expression;
+    let Never #redirecting_factory = self::A::• in invalid-expression;
   static factory redirectingFactoryChild() → self::A
     let Never #redirecting_factory = self::B::• in invalid-expression;
   static factory redirectingTwice() → self::A
@@ -58,19 +23,13 @@ class A extends core::Object {
 }
 class B extends self::A {
   synthetic constructor •() → self::B
-    : invalid-initializer
+    : super self::A::•()
     ;
 }
 static method test() → dynamic {
-  () → self::A f1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:15:23: Error: Getter not found: 'redirectingFactory'.
-  A Function() f1 = A.redirectingFactory;
-                      ^^^^^^^^^^^^^^^^^^";
-  () → self::A f2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:16:23: Error: Getter not found: 'redirectingFactoryChild'.
-  A Function() f2 = A.redirectingFactoryChild;
-                      ^^^^^^^^^^^^^^^^^^^^^^^";
-  () → self::A f3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:17:23: Error: Getter not found: 'redirectingTwice'.
-  A Function() f3 = A.redirectingTwice;
-                      ^^^^^^^^^^^^^^^^";
+  () → self::A f1 = #C1;
+  () → self::A f2 = #C2;
+  () → self::A f3 = #C3;
   self::A x1 = f1(){() → self::A};
   self::B x2 = f2(){() → self::A} as{ForNonNullableByDefault} self::B;
   self::A x3;
@@ -78,3 +37,9 @@ static method test() → dynamic {
 }
 static method main() → dynamic
   return self::test();
+
+constants  {
+  #C1 = redirecting-factory-tearoff self::A::redirectingFactory
+  #C2 = redirecting-factory-tearoff self::A::redirectingFactoryChild
+  #C3 = redirecting-factory-tearoff self::A::redirectingTwice
+}

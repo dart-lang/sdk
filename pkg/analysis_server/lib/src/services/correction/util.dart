@@ -37,7 +37,7 @@ Future<void> addLibraryImports(AnalysisSession session, SourceChange change,
     LibraryElement targetLibrary, Set<Source> libraries) async {
   var libraryPath = targetLibrary.source.fullName;
 
-  var resolveResult = await session.getResolvedUnit2(libraryPath);
+  var resolveResult = await session.getResolvedUnit(libraryPath);
   if (resolveResult is! ResolvedUnitResult) {
     return;
   }
@@ -537,9 +537,9 @@ class CorrectionUtils {
   String? _endOfLine;
 
   CorrectionUtils(ResolvedUnitResult result)
-      : unit = result.unit!,
+      : unit = result.unit,
         _library = result.libraryElement,
-        _buffer = result.content!;
+        _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
   String get endOfLine {
@@ -860,14 +860,13 @@ class CorrectionUtils {
   /// used by the generated source, but not imported.
   String? getTypeSource(DartType type, Set<Source> librariesToImport,
       {StringBuffer? parametersBuffer}) {
-    var aliasElement = type.aliasElement;
-    var aliasArguments = type.aliasArguments;
-    if (aliasElement != null && aliasArguments != null) {
+    var alias = type.alias;
+    if (alias != null) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: aliasElement,
+        element: alias.element,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
-        typeArguments: aliasArguments,
+        typeArguments: alias.typeArguments,
       );
     }
 

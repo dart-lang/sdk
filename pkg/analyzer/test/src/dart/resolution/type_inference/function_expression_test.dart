@@ -10,13 +10,129 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionTest);
-    defineReflectiveTests(FunctionExpressionWithNullSafetyTest);
+    defineReflectiveTests(FunctionExpressionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class FunctionExpressionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with FunctionExpressionTestCases {
+  test_contextFunctionType_nonNullify() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+
+int Function(int a) v;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+T foo<T>() => throw 0;
+
+void f() {
+  v = (a) {
+    return foo();
+  };
+}
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+    assertType(findElement.parameter('a').type, 'int');
+    _assertReturnType('(a) {', 'int');
+  }
+
+  test_contextFunctionType_nonNullify_returnType_takeActual() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertErrorsInCode('''
+import 'a.dart';
+
+void test(int? a) {
+  foo(() => a);
+}
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+    _assertReturnType('() => a', 'int?');
+  }
+
+  test_contextFunctionType_nonNullify_returnType_takeContext() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+// @dart = 2.7
+
+void foo(int Function() x) {}
+''');
+    await assertErrorsInCode('''
+import 'a.dart';
+
+void test(dynamic a) {
+  foo(() => a);
+}
+''', [
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
+    _assertReturnType('() => a', 'int');
+  }
+
+  test_contextFunctionType_returnType_async_blockBody_objectQ() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Object? Function() v = () async {
+  return foo();
+};
+''');
+    assertTypeArgumentTypes(
+      findNode.methodInvocation('foo();'),
+      ['FutureOr<Object?>'],
+    );
+    _assertReturnType('() async', 'Future<Object?>');
+  }
+
+  test_contextFunctionType_returnType_async_blockBody_objectQ2() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Object? Function() v = () async {
+  return;
+};
+''');
+    _assertReturnType('() async', 'Future<Null>');
+  }
+
+  test_contextFunctionType_returnType_async_expressionBody_objectQ() async {
+    await assertNoErrorsInCode('''
+T foo<T>() => throw 0;
+
+Object? Function() v = () async => foo();
+''');
+    assertTypeArgumentTypes(
+      findNode.methodInvocation('foo();'),
+      ['FutureOr<Object?>'],
+    );
+    _assertReturnType('() async => foo', 'Future<Object?>');
+  }
+
+  test_optOut_downward_returnType_expressionBody_Null() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+void foo(Map<String, String> Function() f) {}
+''');
+    await resolveTestCode('''
+// @dart = 2.5
+import 'a.dart';
+
+void main() {
+  foo(() => null);
+}
+''');
+    _assertReturnType('() =>', 'Null*');
+  }
+}
+
+mixin FunctionExpressionTestCases on PubPackageResolutionTest {
   test_contextFunctionType_returnType_async_blockBody_futureOrVoid() async {
     var expectedErrors = expectedErrorsByNullability(
       nullable: [
@@ -460,119 +576,5 @@ var v = () sync* {
 }
 
 @reflectiveTest
-class FunctionExpressionWithNullSafetyTest extends FunctionExpressionTest
-    with WithNullSafetyMixin {
-  test_contextFunctionType_nonNullify() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-
-int Function(int a) v;
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-T foo<T>() => throw 0;
-
-void f() {
-  v = (a) {
-    return foo();
-  };
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    assertType(findElement.parameter('a').type, 'int');
-    _assertReturnType('(a) {', 'int');
-  }
-
-  test_contextFunctionType_nonNullify_returnType_takeActual() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-
-void foo(int Function() x) {}
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-void test(int? a) {
-  foo(() => a);
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    _assertReturnType('() => a', 'int?');
-  }
-
-  test_contextFunctionType_nonNullify_returnType_takeContext() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-// @dart = 2.7
-
-void foo(int Function() x) {}
-''');
-    await assertErrorsInCode('''
-import 'a.dart';
-
-void test(dynamic a) {
-  foo(() => a);
-}
-''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
-    _assertReturnType('() => a', 'int');
-  }
-
-  test_contextFunctionType_returnType_async_blockBody_objectQ() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Object? Function() v = () async {
-  return foo();
-};
-''');
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo();'),
-      ['FutureOr<Object?>'],
-    );
-    _assertReturnType('() async', 'Future<Object?>');
-  }
-
-  test_contextFunctionType_returnType_async_blockBody_objectQ2() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Object? Function() v = () async {
-  return;
-};
-''');
-    _assertReturnType('() async', 'Future<Null>');
-  }
-
-  test_contextFunctionType_returnType_async_expressionBody_objectQ() async {
-    await assertNoErrorsInCode('''
-T foo<T>() => throw 0;
-
-Object? Function() v = () async => foo();
-''');
-    assertTypeArgumentTypes(
-      findNode.methodInvocation('foo();'),
-      ['FutureOr<Object?>'],
-    );
-    _assertReturnType('() async => foo', 'Future<Object?>');
-  }
-
-  test_optOut_downward_returnType_expressionBody_Null() async {
-    newFile('$testPackageLibPath/a.dart', content: r'''
-void foo(Map<String, String> Function() f) {}
-''');
-    await resolveTestCode('''
-// @dart = 2.5
-import 'a.dart';
-
-void main() {
-  foo(() => null);
-}
-''');
-    _assertReturnType('() =>', 'Null*');
-  }
-}
+class FunctionExpressionWithoutNullSafetyTest extends PubPackageResolutionTest
+    with FunctionExpressionTestCases, WithoutNullSafetyMixin {}

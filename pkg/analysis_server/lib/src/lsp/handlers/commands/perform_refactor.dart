@@ -14,6 +14,8 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 final _manager = _RefactorManager();
 
@@ -172,6 +174,32 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         final refactor =
             InlineMethodRefactoring(server.searchEngine, result, offset);
         return success(refactor);
+
+      case RefactoringKind.CONVERT_GETTER_TO_METHOD:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is PropertyAccessorElement) {
+            final refactor = ConvertGetterToMethodRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
+
+      case RefactoringKind.CONVERT_METHOD_TO_GETTER:
+        final node = NodeLocator(offset).searchWithin(result.unit);
+        final element = server.getElementOfNode(node);
+        if (element != null) {
+          if (element is ExecutableElement) {
+            final refactor = ConvertMethodToGetterRefactoring(
+                server.searchEngine, result.session, element);
+            return success(refactor);
+          }
+        }
+        return error(ServerErrorCodes.InvalidCommandArguments,
+            'Location supplied to $commandName $kind is not longer valid');
 
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,

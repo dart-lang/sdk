@@ -43,9 +43,9 @@ static method applyTakesNullableNamed({required (core::int?) → void f = #C5}) 
 static method applyTakesNonNullableNamed({required (core::int) → void f = #C5}) → dynamic {}
 
 constants  {
-  #C1 = tearoff cal::takesNever
-  #C2 = tearoff cal::takesNull
-  #C3 = tearoff cal::takesNonNullable
-  #C4 = tearoff cal::takesNullable
+  #C1 = static-tearoff cal::takesNever
+  #C2 = static-tearoff cal::takesNull
+  #C3 = static-tearoff cal::takesNonNullable
+  #C4 = static-tearoff cal::takesNullable
   #C5 = null
 }

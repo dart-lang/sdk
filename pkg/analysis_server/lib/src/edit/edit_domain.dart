@@ -32,7 +32,6 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -402,7 +401,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var libraryUnit = result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit!.declaredElement) {
+    if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getResolvedUnit(libraryUnit.source.fullName);
@@ -484,8 +483,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     var fileStamp = -1;
-    var code = result.content!;
-    var unit = result.unit!;
+    var code = result.content;
+    var unit = result.unit;
     var errors = result.errors;
     // check if there are scan/parse errors in the file
     var numScanParseErrors = _getNumberOfScanParseErrors(errors);
@@ -575,8 +574,8 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -611,7 +610,7 @@ class EditDomainHandler extends AbstractRequestHandler {
             var provider = TopLevelDeclarationsProvider(tracker);
             return provider.get(
               result.session.analysisContext,
-              result.path!,
+              result.path,
               name,
             );
           }, extensionCache: server.getExtensionCacheFor(result));
@@ -628,7 +627,7 @@ error: $error
 error.errorCode: ${error.errorCode}
 ''';
             throw CaughtExceptionWithFiles(exception, stackTrace, {
-              file: result.content!,
+              file: result.content,
               'parameters': parametersFile,
             });
           }
@@ -674,8 +673,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -723,8 +722,8 @@ error.errorCode: ${error.errorCode}
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         var lineInfo = LineInfo.fromContent(content);
-        ResolvedUnitResult result = engine.ResolvedUnitResultImpl(session, file,
-            Uri.file(file), true, content, lineInfo, false, null, errors);
+        var result = engine.ErrorsResultImpl(
+            session, file, Uri.file(file), lineInfo, false, errors);
         var serverError = newAnalysisError_fromEngine(result, error);
         var errorFixes = AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
@@ -767,7 +766,7 @@ offset: $offset
 length: $length
       ''';
         throw CaughtExceptionWithFiles(exception, stackTrace, {
-          file: result.content!,
+          file: result.content,
           'parameters': parametersFile,
         });
       }

@@ -88,11 +88,6 @@ void FieldTable::Free(intptr_t field_id) {
   free_head_ = field_id;
 }
 
-void FieldTable::SetAt(intptr_t index, ObjectPtr raw_instance) {
-  ASSERT(index < capacity_);
-  table_[index] = raw_instance;
-}
-
 void FieldTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
     const intptr_t new_capacity = index + kCapacityIncrement;

@@ -71,7 +71,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() async {
     var changeBuilder = ChangeBuilder(session: resolvedUnit.session);
-    var element = resolvedUnit.unit!.declaredElement;
+    var element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
@@ -85,21 +85,21 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
       var libraryResult = await driver.currentSession
-          .getResolvedLibraryByElement2(libraryElement);
+          .getResolvedLibraryByElement(libraryElement);
       if (libraryResult is! ResolvedLibraryResult) {
         return changeBuilder.sourceChange;
       }
-      var definingUnitResult = libraryResult.units!.first;
-      for (var result in libraryResult.units!) {
+      var definingUnitResult = libraryResult.units.first;
+      for (var result in libraryResult.units) {
         if (result.isPart) {
-          var partOfs = result.unit!.directives
+          var partOfs = result.unit.directives
               .whereType<PartOfDirective>()
               .map((e) => e.uri)
               .whereNotNull()
               .where((uri) => _isRelativeUri(uri.stringValue));
           if (partOfs.isNotEmpty) {
             await changeBuilder.addDartFileEdit(
-                result.unit!.declaredElement!.source.fullName, (builder) {
+                result.unit.declaredElement!.source.fullName, (builder) {
               partOfs.forEach((uri) {
                 var newLocation =
                     pathContext.join(newDir, pathos.basename(newFile));
@@ -113,9 +113,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       }
 
       if (newDir != oldDir) {
-        await changeBuilder.addDartFileEdit(definingUnitResult.path!,
-            (builder) {
-          for (var directive in definingUnitResult.unit!.directives) {
+        await changeBuilder.addDartFileEdit(definingUnitResult.path, (builder) {
+          for (var directive in definingUnitResult.unit.directives) {
             if (directive is UriBasedDirective) {
               _updateUriReference(builder, directive, oldDir, newDir);
             }
@@ -124,7 +123,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       }
     } else if (newDir != oldDir) {
       // Otherwise, we need to update any relative part-of references.
-      var partOfs = resolvedUnit.unit!.directives
+      var partOfs = resolvedUnit.unit.directives
           .whereType<PartOfDirective>()
           .map((e) => e.uri)
           .whereNotNull()

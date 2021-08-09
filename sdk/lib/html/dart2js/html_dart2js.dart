@@ -13442,7 +13442,7 @@ class Element extends Node
    *     var createdElement = document.body.children[0];
    *     print(createdElement.classes[0]); // Prints 'something'
    * ```
-   * 
+   *
    * See also:
    *
    * * [insertAdjacentText]
@@ -36529,7 +36529,7 @@ abstract class CssRect implements Rectangle<num> {
    * This is equivalent to the `height` function in jQuery and the calculated
    * `height` CSS value, converted to a dimensionless num in pixels. Unlike
    * [Element.getBoundingClientRect], `height` will return the same numerical
-   * width if the element is hidden or not.
+   * height if the element is hidden or not.
    */
   num get height;
 
@@ -37100,7 +37100,7 @@ class EventStreamProvider<T extends Event> {
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
-   * Gets an [Stream] for this event type, on the specified element.
+   * Gets a [Stream] for this event type, on the specified element.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.
@@ -37126,7 +37126,7 @@ class EventStreamProvider<T extends Event> {
   }
 
   /**
-   * Gets an [ElementEventStream] for this event type, on the list of elements.
+   * Gets a [Stream] for this event type, on the list of elements.
    *
    * This will always return a broadcast stream so multiple listeners can be
    * used simultaneously.

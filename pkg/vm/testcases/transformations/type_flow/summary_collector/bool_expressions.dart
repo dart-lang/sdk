@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 dynamic foo() => null;
-bool bar() => null;
+bool bar() => false;
 
 void bool_expressions() {
   if (foo()) {}

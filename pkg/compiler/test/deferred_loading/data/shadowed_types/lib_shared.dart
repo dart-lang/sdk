@@ -4,7 +4,7 @@
 
 /*class: A:
  class_unit=1{libb},
- type_unit=2{libb, liba}
+ type_unit=2{liba, libb}
 */
 /*member: A.:member_unit=1{libb}*/
 class A {}
@@ -25,7 +25,7 @@ class C_Parent {}
 
 /*class: D:
  class_unit=1{libb},
- type_unit=2{libb, liba}
+ type_unit=2{liba, libb}
 */
 /*member: D.:member_unit=1{libb}*/
 class D {}

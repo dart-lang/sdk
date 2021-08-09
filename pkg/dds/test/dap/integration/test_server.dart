@@ -13,10 +13,9 @@ import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 
 abstract class DapTestServer {
-  List<String> get errorLogs;
-  String get host;
-  int get port;
   Future<void> stop();
+  StreamSink<List<int>> get sink;
+  Stream<List<int>> get stream;
 }
 
 /// An instance of a DAP server running in-process (to aid debugging).
@@ -25,22 +24,27 @@ abstract class DapTestServer {
 /// serialized and deserialized but it's not quite the same running out of
 /// process.
 class InProcessDapTestServer extends DapTestServer {
-  final DapServer _server;
+  late final DapServer _server;
+  final stdinController = StreamController<List<int>>();
+  final stdoutController = StreamController<List<int>>();
 
-  InProcessDapTestServer._(this._server);
+  StreamSink<List<int>> get sink => stdinController.sink;
+  Stream<List<int>> get stream => stdoutController.stream;
 
-  String get host => _server.host;
-  int get port => _server.port;
-  List<String> get errorLogs => const []; // In-proc errors just throw in-line.
+  InProcessDapTestServer._() {
+    _server = DapServer(stdinController.stream, stdoutController.sink);
+  }
 
   @override
   Future<void> stop() async {
-    await _server.stop();
+    _server.stop();
   }
 
-  static Future<InProcessDapTestServer> create({Logger? logger}) async {
-    final DapServer server = await DapServer.create(logger: logger);
-    return InProcessDapTestServer._(server);
+  static Future<InProcessDapTestServer> create({
+    Logger? logger,
+    List<String>? additionalArgs,
+  }) async {
+    return InProcessDapTestServer._();
   }
 }
 
@@ -52,28 +56,22 @@ class InProcessDapTestServer extends DapTestServer {
 class OutOfProcessDapTestServer extends DapTestServer {
   var _isShuttingDown = false;
   final Process _process;
-  final int port;
-  final String host;
-  final List<String> _errors = [];
 
-  List<String> get errorLogs => _errors;
+  StreamSink<List<int>> get sink => _process.stdin;
+  Stream<List<int>> get stream => _process.stdout;
 
   OutOfProcessDapTestServer._(
     this._process,
-    this.host,
-    this.port,
     Logger? logger,
   ) {
     // Treat anything written to stderr as the DAP crashing and fail the test.
     _process.stderr.transform(utf8.decoder).listen((error) {
       logger?.call(error);
-      _errors.add(error);
       throw error;
     });
     unawaited(_process.exitCode.then((code) {
       final message = 'Out-of-process DAP server terminated with code $code';
       logger?.call(message);
-      _errors.add(message);
       if (!_isShuttingDown && code != 0) {
         throw message;
       }
@@ -107,27 +105,6 @@ class OutOfProcessDapTestServer extends DapTestServer {
       ],
     );
 
-    final startedCompleter = Completer<void>();
-    late String host;
-    late int port;
-
-    // Scrape the `started` event to get the host/port. Any other output
-    // should be sent to the logger (as it may be verbose output for diagnostic
-    // purposes).
-    _process.stdout.transform(utf8.decoder).listen((text) {
-      if (!startedCompleter.isCompleted) {
-        final event = jsonDecode(text);
-        if (event['state'] == 'started') {
-          host = event['dapHost'];
-          port = event['dapPort'];
-          startedCompleter.complete();
-          return;
-        }
-      }
-      logger?.call(text);
-    });
-    await startedCompleter.future;
-
-    return OutOfProcessDapTestServer._(_process, host, port, logger);
+    return OutOfProcessDapTestServer._(_process, logger);
   }
 }

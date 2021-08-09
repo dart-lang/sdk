@@ -19,7 +19,9 @@
 #include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
@@ -111,10 +113,22 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
     PortMap::PostMessage(
         Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
   } else {
-    MessageWriter writer(can_send_any_object);
-    // TODO(turnidge): Throw an exception when the return value is false?
-    PortMap::PostMessage(writer.WriteMessage(obj, destination_port_id,
-                                             Message::kNormalPriority));
+    const bool same_group = FLAG_enable_isolate_groups &&
+                            PortMap::IsReceiverInThisIsolateGroup(
+                                destination_port_id, isolate->group());
+    if (same_group) {
+      const auto& copy = Object::Handle(CopyMutableObjectGraph(obj));
+      auto handle = isolate->group()->api_state()->AllocatePersistentHandle();
+      handle->set_ptr(copy.ptr());
+      std::unique_ptr<Message> message(
+          new Message(destination_port_id, handle, Message::kNormalPriority));
+      PortMap::PostMessage(std::move(message));
+    } else {
+      // TODO(turnidge): Throw an exception when the return value is false?
+      PortMap::PostMessage(WriteMessage(can_send_any_object, obj,
+                                        destination_port_id,
+                                        Message::kNormalPriority));
+    }
   }
   return Object::null();
 }
@@ -559,8 +573,7 @@ static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return Instance::RawCast(message->raw_obj());
   } else {
-    MessageSnapshotReader reader(message, thread);
-    const Object& obj = Object::Handle(zone, reader.ReadObject());
+    const Object& obj = Object::Handle(zone, ReadMessage(thread, message));
     ASSERT(!obj.IsError());
     return Instance::RawCast(obj.ptr());
   }
@@ -601,7 +614,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != nullptr);
 
     auto group = state_->isolate_group();
-    if (!IsolateGroup::AreIsolateGroupsEnabled() || group == nullptr) {
+    if (!FLAG_enable_isolate_groups || group == nullptr) {
       RunHeavyweight(name);
     } else {
       RunLightweight(name);
@@ -621,6 +634,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
 
     // Make a copy of the state's isolate flags and hand it to the callback.
     Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    api_flags.is_system_isolate = false;
     Dart_Isolate isolate = (create_group_callback)(
         state_->script_url(), name, nullptr, state_->package_config(),
         &api_flags, parent_isolate_->init_callback_data(), &error);
@@ -778,10 +792,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
       isolate->message_handler()->increment_paused();
     }
     {
-      MessageWriter writer(/*can_send_any_object=*/false);
       // If parent isolate died, we ignore the fact that we cannot notify it.
-      PortMap::PostMessage(writer.WriteMessage(message, state_->parent_port(),
-                                               Message::kNormalPriority));
+      PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                        message, state_->parent_port(),
+                                        Message::kNormalPriority));
     }
 
     return true;
@@ -852,9 +866,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       // serializable this will throw an exception.
       SerializedObjectBuffer message_buffer;
       {
-        MessageWriter writer(/* can_send_any_object = */ true);
-        message_buffer.set_message(writer.WriteMessage(
-            message, ILLEGAL_PORT, Message::kNormalPriority));
+        message_buffer.set_message(WriteMessage(
+            /* can_send_any_object */ true, message, ILLEGAL_PORT,
+            Message::kNormalPriority));
       }
 
       const char* utf8_package_config =
@@ -937,14 +951,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   SerializedObjectBuffer arguments_buffer;
   SerializedObjectBuffer message_buffer;
   {
-    MessageWriter writer(/* can_send_any_object = */ false);
-    arguments_buffer.set_message(
-        writer.WriteMessage(args, ILLEGAL_PORT, Message::kNormalPriority));
+    arguments_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
+                                              args, ILLEGAL_PORT,
+                                              Message::kNormalPriority));
   }
   {
-    MessageWriter writer(/* can_send_any_object = */ false);
-    message_buffer.set_message(
-        writer.WriteMessage(message, ILLEGAL_PORT, Message::kNormalPriority));
+    message_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
+                                            message, ILLEGAL_PORT,
+                                            Message::kNormalPriority));
   }
 
   // Canonicalize the uri with respect to the current isolate.
@@ -1017,9 +1031,8 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
   // cleaned up before handling interrupts.
   {
-    MessageWriter writer(false);
-    PortMap::PostMessage(
-        writer.WriteMessage(msg, port.Id(), Message::kOOBPriority));
+    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
+                                      port.Id(), Message::kOOBPriority));
   }
 
   // Drain interrupts before running so any IMMEDIATE operations on the current

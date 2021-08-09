@@ -420,7 +420,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField',
-          expectedError: "Error: Getter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('access field', () async {
@@ -476,7 +476,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'C._staticField = 2',
-          expectedError: "Setter not found: '_staticField'.");
+          expectedResult: '2');
     });
 
     test('static field modification', () async {

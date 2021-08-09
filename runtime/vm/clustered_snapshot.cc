@@ -16,6 +16,7 @@
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/dart.h"
+#include "vm/dart_entry.h"
 #include "vm/dispatch_table.h"
 #include "vm/flag_list.h"
 #include "vm/growable_array.h"
@@ -114,6 +115,14 @@ struct GrowableArrayStorageTraits {
   }
 
   static bool IsImmutable(const ArrayHandle& handle) { return false; }
+
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->At(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAt(index, value);
+  }
 };
 }  // namespace
 
@@ -3245,25 +3254,6 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
       cache->untag()->filled_entry_count_ = d->Read<int32_t>();
     }
   }
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (FLAG_use_bare_instructions) {
-      // By default, every megamorphic call site will load the target
-      // [Function] from the hash table and call indirectly via loading the
-      // entrypoint from the function.
-      //
-      // In --use-bare-instruction we reduce the extra indirection via the
-      // [Function] object by storing the entry point directly into the hashmap.
-      //
-      auto& cache = MegamorphicCache::Handle(d->zone());
-      for (intptr_t i = start_index_; i < stop_index_; ++i) {
-        cache ^= refs.At(i);
-        cache.SwitchToBareInstructions();
-      }
-    }
-  }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5600,6 +5590,10 @@ static const char* const kObjectStoreFieldNames[] = {
     OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
                             DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
 };
@@ -5743,7 +5737,10 @@ class ProgramDeserializationRoots : public DeserializationRoots {
 
   void PostLoad(Deserializer* d, const Array& refs) {
     auto isolate_group = d->isolate_group();
-    isolate_group->class_table()->CopySizesFromClassObjects();
+    {
+      SafepointWriteRwLocker ml(d->thread(), isolate_group->program_lock());
+      isolate_group->class_table()->CopySizesFromClassObjects();
+    }
     d->heap()->old_space()->EvaluateAfterLoading();
 
     const Array& units =
@@ -6473,7 +6470,11 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kWeakPropertyCid:
       return new (Z) WeakPropertySerializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapSerializationCluster();
+      // We do not have mutable hash maps in snapshots.
+      UNREACHABLE();
+    case kLinkedHashSetCid:
+      // We do not have mutable hash sets in snapshots.
+      UNREACHABLE();
     case kArrayCid:
       return new (Z) ArraySerializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:
@@ -7113,6 +7114,7 @@ void Serializer::PrintSnapshotSizes() {
     buffer.Printf(" %10s", "Cumulative");
     buffer.Printf(" %8s", "HeapSize");
     buffer.Printf(" %5s", "Cid");
+    buffer.Printf(" %9s", "Canonical");
     buffer.AddString("\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
@@ -7178,6 +7180,11 @@ void Serializer::PrintSnapshotSizes() {
         buffer.Printf(" %5" Pd "", cluster->cid());
       } else {
         buffer.Printf(" %5s", "");
+      }
+      if (cluster->is_canonical()) {
+        buffer.Printf(" %9s", "canonical");
+      } else {
+        buffer.Printf(" %9s", "");
       }
       buffer.AddString("\n");
     }
@@ -7380,7 +7387,11 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       return new (Z) WeakPropertyDeserializationCluster();
     case kLinkedHashMapCid:
-      return new (Z) LinkedHashMapDeserializationCluster(is_canonical);
+      // We do not have mutable hash maps in snapshots.
+      UNREACHABLE();
+    case kLinkedHashSetCid:
+      // We do not have mutable hash sets in snapshots.
+      UNREACHABLE();
     case kArrayCid:
       return new (Z) ArrayDeserializationCluster(is_canonical, kArrayCid);
     case kImmutableArrayCid:
@@ -7805,6 +7816,7 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
     {
       TIMELINE_DURATION(thread(), Isolate, "ReadFill");
+      SafepointWriteRwLocker ml(thread(), isolate_group()->program_lock());
       for (intptr_t i = 0; i < num_clusters_; i++) {
         TIMELINE_DURATION(thread(), Isolate, clusters_[i]->name());
         clusters_[i]->ReadFill(this, primary);

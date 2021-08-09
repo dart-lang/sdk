@@ -287,7 +287,7 @@ class DocumentationValidator {
   /// [path] and return the result.
   ParsedUnitResult _parse(AnalysisContextCollection collection, String path) {
     AnalysisSession session = collection.contextFor(path).currentSession;
-    var result = session.getParsedUnit2(path);
+    var result = session.getParsedUnit(path);
     if (result is! ParsedUnitResult) {
       throw StateError('Unable to parse "$path"');
     }
@@ -321,7 +321,7 @@ class DocumentationValidator {
   /// Extract documentation from the file that was parsed to produce the given
   /// [result].
   Future<void> _validateFile(ParsedUnitResult result) async {
-    filePath = result.path!;
+    filePath = result.path;
     hasWrittenFilePath = false;
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
@@ -420,6 +420,7 @@ class DocumentationValidator {
 /// codes.
 @reflectiveTest
 class VerifyDiagnosticsTest {
+  @TestTimeout(Timeout.factor(4))
   test_diagnostics() async {
     Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
     List<CodePath> codePaths = computeCodePaths();

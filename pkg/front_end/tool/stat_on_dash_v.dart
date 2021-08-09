@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import "dart:io";
 
 import "../test/simple_stats.dart";
 
-void usage([String extraMessage]) {
+void usage([String? extraMessage]) {
   print("Usage:");
   print("On Linux via bash you can do something like");
   print("dart pkg/front_end/tool/stat_on_dash_v.dart \ "
@@ -68,12 +66,12 @@ main(List<String> args) {
 
   bool printedAnything = false;
   for (String part in data.keys) {
-    Map<String, List<int>> partData = data[part];
-    List<int> prevRuntimes;
-    String prevGroup;
+    Map<String, List<int>> partData = data[part]!;
+    List<int>? prevRuntimes;
+    String? prevGroup;
     bool printed = false;
     for (String group in allGroups) {
-      List<int> runtimes = partData[group];
+      List<int>? runtimes = partData[group];
       if (runtimes == null) {
         // Fake it to be a small list of 0s.
         runtimes = new List<int>.filled(5, 0);
@@ -101,7 +99,8 @@ main(List<String> args) {
             leastConfidentChange = result.diff - result.confidence;
           }
 
-          combinedChange["$prevGroup => $group"] += leastConfidentChange;
+          combinedChange["$prevGroup => $group"] =
+              combinedChange["$prevGroup => $group"]! + leastConfidentChange;
         }
       }
       prevRuntimes = runtimes;
@@ -115,7 +114,7 @@ main(List<String> args) {
   if (printedAnything) {
     for (String part in combinedChange.keys) {
       print("Combined least change for $part: "
-          "${combinedChange[part].toStringAsFixed(2)} ms.");
+          "${combinedChange[part]!.toStringAsFixed(2)} ms.");
     }
   } else {
     print("Nothing significant found.");

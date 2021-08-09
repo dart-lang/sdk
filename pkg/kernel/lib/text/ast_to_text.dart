@@ -1243,20 +1243,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
         name: node.name, initializers: node.initializers);
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  visitRedirectingFactory(RedirectingFactory node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
     writeWord('redirecting_factory');
-
-    // ignore: unnecessary_null_comparison
-    if (node.name != null) {
-      writeName(node.name);
-    }
-    writeTypeParameterList(node.typeParameters);
-    writeParameterList(node.positionalParameters, node.namedParameters,
-        node.requiredParameterCount);
+    writeFunction(node.function, name: node.name);
     writeSpaced('=');
     writeMemberReferenceFromReference(node.targetReference!);
     if (node.typeArguments.isNotEmpty) {
@@ -1327,7 +1320,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
-    node.redirectingFactoryConstructors.forEach(writeNode);
+    node.redirectingFactories.forEach(writeNode);
     --indentation;
     writeIndentation();
     endLine('}');
@@ -1543,23 +1536,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('==');
     writeSpace();
     writeSymbol('null');
-  }
-
-  visitMethodInvocation(MethodInvocation node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-    List<String> flags = <String>[];
-    if (node.isInvariant) {
-      flags.add('Invariant');
-    }
-    if (node.isBoundsSafe) {
-      flags.add('BoundsSafe');
-    }
-    if (flags.isNotEmpty) {
-      write('{${flags.join(',')}}');
-    }
-    writeNode(node.arguments);
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
@@ -1992,12 +1968,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('}');
   }
 
-  visitPropertyGet(PropertyGet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
-  }
-
   visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
@@ -2011,14 +1981,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
     _writeInstanceAccessKind(node.kind);
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitPropertySet(PropertySet node) {
-    writeExpression(node.receiver, Precedence.PRIMARY);
-    writeSymbol('.');
-    writeInterfaceTarget(node.name, node.interfaceTargetReference);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2052,7 +2014,25 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   visitConstructorTearOff(ConstructorTearOff node) {
-    writeMemberReferenceFromReference(node.constructorReference);
+    writeMemberReferenceFromReference(node.targetReference);
+  }
+
+  visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    writeMemberReferenceFromReference(node.targetReference);
+  }
+
+  visitTypedefTearOff(TypedefTearOff node) {
+    writeTypeParameterList(node.typeParameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeNode(node.expression);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
   }
 
   visitExpressionStatement(ExpressionStatement node) {
@@ -2667,9 +2647,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('partial-instantiation');
+    writeWord('instantiation');
     writeSpace();
-    writeMemberReferenceFromReference(node.tearOffConstant.memberReference);
+    Constant tearOffConstant = node.tearOffConstant;
+    if (tearOffConstant is TearOffConstant) {
+      writeMemberReferenceFromReference(tearOffConstant.targetReference);
+    } else {
+      writeConstantReference(tearOffConstant);
+    }
     writeSpace();
     writeSymbol('<');
     writeList(node.types, writeType);
@@ -2688,9 +2673,29 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('tearoff');
+    writeWord('static-tearoff');
     writeSpace();
-    writeMemberReferenceFromReference(node.memberReference);
+    writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('typedef-tearoff');
+    writeSpace();
+    writeTypeParameterList(node.parameters);
+    state = SYMBOL;
+    writeSymbol('.(');
+    writeConstantReference(node.tearOffConstant);
+    if (node.types.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.types, writeType);
+      writeSymbol('>');
+    }
+    writeSymbol(')');
+    state = WORD;
     endLine();
   }
 
@@ -2701,6 +2706,27 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeSymbol('eval');
     writeSpace();
     writeExpression(node.expression);
+    endLine();
+  }
+
+  visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('constructor-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
+    endLine();
+  }
+
+  visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('redirecting-factory-tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.targetReference);
     endLine();
   }
 
@@ -2766,9 +2792,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitInvalidExpression(InvalidExpression node) => CALLEE;
-
-  @override
-  int visitMethodInvocation(MethodInvocation node) => CALLEE;
 
   @override
   int visitInstanceInvocation(InstanceInvocation node) => CALLEE;
@@ -2874,9 +2897,6 @@ class Precedence implements ExpressionVisitor<int> {
   int visitVariableSet(VariableSet node) => EXPRESSION;
 
   @override
-  int visitPropertyGet(PropertyGet node) => PRIMARY;
-
-  @override
   int visitInstanceGet(InstanceGet node) => PRIMARY;
 
   @override
@@ -2887,9 +2907,6 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitFunctionTearOff(FunctionTearOff node) => PRIMARY;
-
-  @override
-  int visitPropertySet(PropertySet node) => EXPRESSION;
 
   @override
   int visitSuperPropertyGet(SuperPropertyGet node) => PRIMARY;
@@ -2908,6 +2925,9 @@ class Precedence implements ExpressionVisitor<int> {
 
   @override
   int visitConstructorTearOff(ConstructorTearOff node) => PRIMARY;
+
+  @override
+  int visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) => PRIMARY;
 
   @override
   int visitTypedefTearOff(TypedefTearOff node) => EXPRESSION;

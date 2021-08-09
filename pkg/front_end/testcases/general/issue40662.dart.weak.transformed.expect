@@ -17,10 +17,10 @@ static method foo(core::int* x) → dynamic /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
+  core::int* :async_temporary_0;
+  core::int* :async_temporary_1;
   core::List<core::int*>* :async_temporary_2;
-  dynamic :async_temporary_3;
+  core::int* :async_temporary_3;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -35,7 +35,7 @@ static method foo(core::int* x) → dynamic /* originally async */ {
         else {
           :async_temporary_2 = null;
         }
-        :return_value = self::bar(_in::unsafeCast<core::int*>(:async_temporary_3), :async_temporary_2);
+        :return_value = self::bar(_in::unsafeCast<core::int*>(:async_temporary_3), _in::unsafeCast<core::List<core::int*>*>(:async_temporary_2));
         break #L1;
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
@@ -86,6 +86,6 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue40662.dart:8:10 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue40662.dart:9:10 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 93, effectively constant: 2
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue40662.dart:10:10 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue40662.dart:11:10 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 94, effectively constant: 2

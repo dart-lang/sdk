@@ -58,7 +58,7 @@ export 'compiler_state.dart' show InitializedCompilerState;
 /// Re-uses cached components from [oldState.workerInputCache], and reloads them
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
-    InitializedCompilerState oldState,
+    InitializedCompilerState? oldState,
     Set<String> tags,
     Uri sdkSummary,
     Uri packagesFile,
@@ -99,7 +99,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 }
 
 Future<InitializedCompilerState> initializeCompiler(
-  InitializedCompilerState oldState,
+  InitializedCompilerState? oldState,
   Uri sdkSummary,
   Uri librariesSpecificationUri,
   Uri packagesFile,

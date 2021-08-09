@@ -51,8 +51,8 @@ class MultitestTransformer
 
     nextTest:
     await for (TestDescription test in stream) {
-      FileBasedTestDescription multitest;
-      String contents;
+      FileBasedTestDescription? multitest;
+      String? contents;
       if (test is FileBasedTestDescription) {
         contents = await test.file.readAsString();
         if (contents.contains(multitestMarker)) {
@@ -73,11 +73,11 @@ class MultitestTransformer
         "none": new Set<String>(),
       };
       int lineNumber = 0;
-      for (String line in splitLines(contents)) {
+      for (String line in splitLines(contents!)) {
         lineNumber++;
         int index = line.indexOf(multitestMarker);
-        String subtestName;
-        List<String> subtestOutcomesList;
+        String? subtestName;
+        List<String>? subtestOutcomesList;
         if (index != -1) {
           String annotationText =
               line.substring(index + _multitestMarkerLength).trim();
@@ -102,7 +102,7 @@ class MultitestTransformer
           lines.add(line);
           Set<String> subtestOutcomes =
               outcomes.putIfAbsent(subtestName, () => new Set<String>());
-          if (subtestOutcomesList.length != 1 ||
+          if (subtestOutcomesList!.length != 1 ||
               subtestOutcomesList.single != "continued") {
             for (String outcome in subtestOutcomesList) {
               if (validOutcomes.contains(outcome)) {
@@ -125,8 +125,9 @@ class MultitestTransformer
       Directory generated =
           new Directory.fromUri(root.resolve(multitest.shortName));
       generated = await generated.create(recursive: true);
-      for (String name in testsAsLines.keys) {
-        List<String> lines = testsAsLines[name];
+      for (MapEntry<String, List<String>> entry in testsAsLines.entries) {
+        String name = entry.key;
+        List<String> lines = entry.value;
         Uri uri = generated.uri.resolve("${name}_generated.dart");
         FileBasedTestDescription subtest =
             new FileBasedTestDescription(root, new File.fromUri(uri));

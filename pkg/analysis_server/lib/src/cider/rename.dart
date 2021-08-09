@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -15,6 +17,14 @@ class CanRenameResponse {
   final String oldName;
 
   CanRenameResponse(this.lineInfo, this.refactoringElement, this.oldName);
+}
+
+class CheckNameResponse {
+  final LineInfo lineInfo;
+  final RefactoringStatus status;
+  final String oldName;
+
+  CheckNameResponse(this.lineInfo, this.status, this.oldName);
 }
 
 class CiderRenameComputer {
@@ -49,6 +59,32 @@ class CiderRenameComputer {
       return CanRenameResponse(lineInfo, refactoring, element.displayName);
     }
     return null;
+  }
+
+  CheckNameResponse? checkNewName(String filePath, int line, int column, String name) {
+    var resolvedUnit = _fileResolver.resolve(path: filePath);
+    var lineInfo = resolvedUnit.lineInfo;
+    var offset = lineInfo.getOffsetOfLine(line) + column;
+
+    var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
+    var element = getElementOfNode(node);
+
+    if (node == null || element == null) {
+      return null;
+    }
+
+    RefactoringStatus? status;
+    if (element is LocalVariableElement) {
+      status = validateVariableName(name);
+    } else if (element is ParameterElement) {
+      status = validateParameterName(name);
+    } else if (element is FunctionElement) {
+      status = validateFunctionName(name);
+    }
+    if (status == null){
+      return null;
+    }
+    return CheckNameResponse(lineInfo, status, element.displayName);
   }
 
   bool _canRenameElement(Element element) {

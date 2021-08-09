@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+part constructor_tear_off_uri_part.dart;
+class Class extends core::Object { // from org-dartlang-testcase:///constructor_tear_off_uri_part.dart
+  synthetic constructor •() → self::Class
+    ;
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
+}
+static method main() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///constructor_tear_off_uri_part.dart */ test() → dynamic
+  ;

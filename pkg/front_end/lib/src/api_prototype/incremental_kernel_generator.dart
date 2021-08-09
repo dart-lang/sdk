@@ -42,7 +42,7 @@ abstract class IncrementalKernelGenerator {
   /// Notice that the component has to include the platform, and that no other
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
-      CompilerOptions options, Uri entryPoint, Component component,
+      CompilerOptions options, Uri entryPoint, Component? component,
       [bool? outlineOnly, IncrementalSerializer? incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
@@ -72,7 +72,7 @@ abstract class IncrementalKernelGenerator {
 
   /// Returns a component whose libraries are the recompiled libraries,
   /// or - in the case of [fullComponent] - a full Component.
-  Future<Component> computeDelta({List<Uri> entryPoints, bool fullComponent});
+  Future<Component> computeDelta({List<Uri>? entryPoints, bool fullComponent});
 
   /// Returns [CoreTypes] used during compilation.
   /// Valid after [computeDelta] is called.
@@ -136,7 +136,7 @@ abstract class IncrementalKernelGenerator {
       List<TypeParameter> typeDefinitions,
       String syntheticProcedureName,
       Uri libraryUri,
-      [String className,
+      [String? className,
       bool isStatic = false]);
 
   /// Sets experimental features.

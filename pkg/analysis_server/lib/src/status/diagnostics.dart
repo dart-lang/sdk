@@ -246,7 +246,7 @@ class AstPage extends DiagnosticPageWithNav {
     var result = await driver.getResult2(filePath);
     if (result is ResolvedUnitResult) {
       var writer = AstWriter(buf);
-      result.unit!.accept(writer);
+      result.unit.accept(writer);
     } else {
       p(
           'An AST could not be produced for the file '
@@ -836,7 +836,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
     var result = await driver.getResult2(filePath);
     CompilationUnitElement? compilationUnitElement;
     if (result is ResolvedUnitResult) {
-      compilationUnitElement = result.unit?.declaredElement;
+      compilationUnitElement = result.unit.declaredElement;
     }
     if (compilationUnitElement != null) {
       var writer = ElementWriter(buf);

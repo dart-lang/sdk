@@ -16,7 +16,7 @@ class C {
   const C.new(this.x);
 }
 
-class D extend C {
+class D extends C {
   D(int x) : super.new(x * 2);
 }
 

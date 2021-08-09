@@ -20,7 +20,7 @@ import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 import '../kernel/kernel_builder.dart'
     show isRedirectingGenerativeConstructorImplementation;
-import '../kernel/kernel_target.dart' show ClonedFunctionNode;
+import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 
 import '../loader.dart' show Loader;
 
@@ -51,7 +51,6 @@ import 'type_variable_builder.dart';
 abstract class ConstructorBuilder implements FunctionBuilder {
   abstract Token? beginInitializers;
 
-  @override
   ConstructorBuilder? get actualOrigin;
 
   ConstructorBuilder? get patchForTesting;
@@ -139,7 +138,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
           ..fileEndOffset = charEndOffset
           ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         _constructorTearOff = createConstructorTearOffProcedure(
-            name, compilationUnit, charOffset,
+            name, compilationUnit, compilationUnit.fileUri, charOffset,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
@@ -230,8 +229,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
             library == libraryBuilder,
             "Unexpected library builder ${libraryBuilder} for"
             " constructor $this in ${library}.");
-        libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
-            this;
+        libraryBuilder.loader
+            .registerConstructorToBeInferred(_constructor, this);
       }
     }
     return _constructor;
@@ -248,12 +247,21 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     }
   }
 
+  bool _hasBuiltOutlines = false;
+
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
-    super.buildOutlineExpressions(library, coreTypes, delayedActionPerformers);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    if (_hasBuiltOutlines) return;
+    if (isConst && isPatch) {
+      origin.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
+    }
+    super.buildOutlineExpressions(
+        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
 
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline.
@@ -265,11 +273,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       bodyBuilder.parseInitializers(beginInitializers!);
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
-    if (_constructorTearOff != null) {
-      buildConstructorTearOffOutline(
-          _constructorTearOff!, constructor, classBuilder!.cls);
-    }
     beginInitializers = null;
+    if (isConst && isPatch) {
+      _finishPatch();
+    }
+    _hasBuiltOutlines = true;
   }
 
   @override
@@ -391,10 +399,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     return null;
   }
 
-  @override
-  int finishPatch() {
-    if (!isPatch) return 0;
-
+  void _finishPatch() {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.constructor.fileUri = fileUri;
@@ -409,6 +414,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     origin.constructor.function.parent = origin.constructor;
     origin.constructor.initializers = _constructor.initializers;
     setParents(origin.constructor.initializers, origin.constructor);
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    _finishPatch();
     return 1;
   }
 
@@ -441,7 +452,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _constructor.initializers.length = 0;
+    _constructor.initializers = [];
     redirectingInitializer = null;
     superInitializer = null;
     hasMovedSuperInitializer = false;
@@ -470,31 +481,33 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
 
 class SyntheticConstructorBuilder extends DillConstructorBuilder {
   MemberBuilderImpl? _origin;
-  ClonedFunctionNode? _clonedFunctionNode;
+  SynthesizedFunctionNode? _synthesizedFunctionNode;
 
   SyntheticConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
-      {MemberBuilderImpl? origin, ClonedFunctionNode? clonedFunctionNode})
+      {MemberBuilderImpl? origin,
+      SynthesizedFunctionNode? synthesizedFunctionNode})
       : _origin = origin,
-        _clonedFunctionNode = clonedFunctionNode,
+        _synthesizedFunctionNode = synthesizedFunctionNode,
         super(constructor, constructorTearOff, parent);
 
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_origin != null) {
       // Ensure that default value expressions have been created for [_origin].
       LibraryBuilder originLibraryBuilder = _origin!.library;
       if (originLibraryBuilder is SourceLibraryBuilder) {
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
-        _origin!.buildOutlineExpressions(
-            originLibraryBuilder, coreTypes, delayedActionPerformers);
+        _origin!.buildOutlineExpressions(originLibraryBuilder, coreTypes,
+            delayedActionPerformers, synthesizedFunctionNodes);
       }
-      _clonedFunctionNode!.cloneDefaultValues();
-      _clonedFunctionNode = null;
+      _synthesizedFunctionNode!.cloneDefaultValues();
+      _synthesizedFunctionNode = null;
       _origin = null;
     }
   }

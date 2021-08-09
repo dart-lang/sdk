@@ -265,7 +265,7 @@ static method fisk() → dynamic /* originally async */ {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::fisk
+  #C1 = static-tearoff self::fisk
 }
 
 Extra constant evaluation status:

@@ -28,7 +28,7 @@ runTestCase(Uri source) async {
   component = transformComponent(component, /* enableAsserts = */ false);
   verifyComponent(component);
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   compareResultWithExpectationsFile(source, actual);
 }

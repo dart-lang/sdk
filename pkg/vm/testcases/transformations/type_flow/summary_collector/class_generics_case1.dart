@@ -30,10 +30,10 @@ class _NotRealHashMap<K, V> implements MockHashMap<K, V> {
 class InheritedElement extends Element {
   // The inferred type for '_dependents' needs to be concrete and have exact
   // type arguments.
-  final MockHashMap<Element, Object> _dependents =
-      MockHashMap<Element, Object>();
+  final MockHashMap<Element, Object?> _dependents =
+      MockHashMap<Element, Object?>();
 
-  void setDependencies(Element dependent, Object value) {
+  void setDependencies(Element dependent, Object? value) {
     _dependents.setEntry(dependent, value);
   }
 }

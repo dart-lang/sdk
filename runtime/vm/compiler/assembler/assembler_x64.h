@@ -1027,10 +1027,19 @@ class Assembler : public AssemblerBase {
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     movq(Address(base, offset), src);
   }
+
+#if defined(USING_THREAD_SANITIZER)
+  void TsanLoadAcquire(Address addr);
+  void TsanStoreRelease(Address addr);
+#endif
+
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movq(dst, Address(address, offset));
+#if defined(USING_THREAD_SANITIZER)
+    TsanLoadAcquire(Address(address, offset));
+#endif
   }
   void LoadAcquireCompressed(Register dst,
                              Register address,
@@ -1038,11 +1047,17 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
+#if defined(USING_THREAD_SANITIZER)
+    TsanLoadAcquire(Address(address, offset));
+#endif
   }
   void StoreRelease(Register src, Register address, int32_t offset = 0) {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movq(Address(address, offset), src);
+#if defined(USING_THREAD_SANITIZER)
+    TsanStoreRelease(Address(address, offset));
+#endif
   }
 
   void CompareWithFieldValue(Register value, FieldAddress address) {

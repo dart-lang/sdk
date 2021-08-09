@@ -239,33 +239,35 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #if defined(DEBUG)
   // Basic checking.
   cls = object_store->object_class();
-  ASSERT(Instance::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Instance::InstanceSize(), cls.host_instance_size());
   cls = object_store->integer_implementation_class();
-  ASSERT(Integer::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Integer::InstanceSize(), cls.host_instance_size());
   cls = object_store->smi_class();
-  ASSERT(Smi::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Smi::InstanceSize(), cls.host_instance_size());
   cls = object_store->mint_class();
-  ASSERT(Mint::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Mint::InstanceSize(), cls.host_instance_size());
   cls = object_store->one_byte_string_class();
-  ASSERT(OneByteString::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(OneByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->two_byte_string_class();
-  ASSERT(TwoByteString::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(TwoByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->external_one_byte_string_class();
-  ASSERT(ExternalOneByteString::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(ExternalOneByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->external_two_byte_string_class();
-  ASSERT(ExternalTwoByteString::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(ExternalTwoByteString::InstanceSize(), cls.host_instance_size());
   cls = object_store->double_class();
-  ASSERT(Double::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Double::InstanceSize(), cls.host_instance_size());
   cls = object_store->bool_class();
-  ASSERT(Bool::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Bool::InstanceSize(), cls.host_instance_size());
   cls = object_store->array_class();
-  ASSERT(Array::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(Array::InstanceSize(), cls.host_instance_size());
   cls = object_store->immutable_array_class();
-  ASSERT(ImmutableArray::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(ImmutableArray::InstanceSize(), cls.host_instance_size());
   cls = object_store->weak_property_class();
-  ASSERT(WeakProperty::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(WeakProperty::InstanceSize(), cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
-  ASSERT(LinkedHashMap::InstanceSize() == cls.host_instance_size());
+  ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
+  cls = object_store->linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -1455,10 +1457,6 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
-
-  // Ensure any newly spawned isolate will apply this permutation map right
-  // after kernel loading.
-  IG->source()->cid_permutation_map = std::move(old_to_new_cid);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1759,7 +1757,8 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   if (including_nonchanging_cids) {
     auto object_store = isolate_group->object_store();
     auto& null_code = Code::Handle(zone);
-    object_store->set_build_method_extractor_code(null_code);
+    object_store->set_build_generic_method_extractor_code(null_code);
+    object_store->set_build_nongeneric_method_extractor_code(null_code);
   }
 }
 

@@ -58,4 +58,13 @@ abstract class Qux {
   // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
+extension ExtensionFoo on Foo {
+  external int singleNamedArg({int? a});
+  //                                ^
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+  external int mixedNamedArgs(int a, {int? b});
+  //                                       ^
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
+}
+
 main() {}

@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -203,7 +202,8 @@ class SimpleIdentifierResolver {
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,
         );
-      } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
+      } else if (!_resolver.definingLibrary
+          .shouldIgnoreUndefinedIdentifier(node)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           node,

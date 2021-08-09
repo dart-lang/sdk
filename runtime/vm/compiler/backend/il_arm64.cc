@@ -699,7 +699,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
-      Utils::SignedNBitMask(kNumberOfFpuRegisters) & ~(1l << FpuTMP);
+      Utils::NBitMask<intptr_t>(kNumberOfFpuRegisters) & ~(1l << FpuTMP);
 
   const intptr_t kNumTemps = (Utils::CountOneBits64(kCpuRegistersToPreserve) +
                               Utils::CountOneBits64(kFpuRegistersToPreserve));
@@ -1496,11 +1496,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load the code object.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R0, R0,
-                         compiler::target::GrowableObjectArray::data_offset());
-  __ LoadFieldFromOffset(CODE_REG, R0,
-                         compiler::target::Array::data_offset() +
-                             callback_id_ * compiler::target::kWordSize);
+  __ LoadCompressedFieldFromOffset(
+      R0, R0, compiler::target::GrowableObjectArray::data_offset());
+  __ LoadCompressedFieldFromOffset(
+      CODE_REG, R0,
+      compiler::target::Array::data_offset() +
+          callback_id_ * compiler::target::kCompressedWordSize);
 
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,

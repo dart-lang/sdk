@@ -38,4 +38,3 @@ cipd create \
   -install-mode copy \
   -preserve-writable \
   -tag git_revision:$1
-

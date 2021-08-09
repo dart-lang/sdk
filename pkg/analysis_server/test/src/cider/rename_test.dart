@@ -107,6 +107,65 @@ void foo(int ^bar) {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
+  void test_checkName_function() {
+    var result = _checkName(r'''
+int ^foo() => 2;
+''', 'bar');
+
+    expect(result, isNotNull);
+    expect(result?.status.problems.length, 0);
+    expect(result?.oldName, 'foo');
+  }
+
+  void test_checkName_local() {
+    var result = _checkName(r'''
+void foo() {
+  var ^a = 0; var b = a + 1;
+}
+''', 'bar');
+
+    expect(result, isNotNull);
+    expect(result?.status.problems.length, 0);
+    expect(result?.oldName, 'a');
+  }
+
+  void test_checkName_local_invalid() {
+    var result = _checkName(r'''
+void foo() {
+  var ^a = 0; var b = a + 1;
+}
+''', 'Aa');
+
+    expect(result, isNotNull);
+    expect(result?.status.problems.length, 1);
+    expect(result?.oldName, 'a');
+  }
+
+  void test_checkName_parameter() {
+    var result = _checkName(r'''
+void foo(String ^a) {
+  var b = a + 1;
+}
+''', 'bar');
+
+    expect(result, isNotNull);
+    expect(result?.status.problems.length, 0);
+    expect(result?.oldName, 'a');
+  }
+
+  CheckNameResponse? _checkName(String content, String newName) {
+    _updateFile(content);
+
+    return CiderRenameComputer(
+      fileResolver,
+    ).checkNewName(
+      convertPath(testPath),
+      _correctionContext.line,
+      _correctionContext.character,
+      newName,
+    );
+  }
+
   CanRenameResponse? _compute(String content) {
     _updateFile(content);
 

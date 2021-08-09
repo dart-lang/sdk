@@ -650,20 +650,17 @@ class InferrerEngine {
     // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer? This
     // mimicks that ast inferrer which return `true` for [ast.Send] and
     // non-const [ast.NewExpression].
-    if (initializer is ir.MethodInvocation ||
-        initializer is ir.InstanceInvocation ||
+    if (initializer is ir.InstanceInvocation ||
         initializer is ir.InstanceGetterInvocation ||
         initializer is ir.DynamicInvocation ||
         initializer is ir.FunctionInvocation ||
         initializer is ir.LocalFunctionInvocation ||
         initializer is ir.EqualsNull ||
         initializer is ir.EqualsCall ||
-        initializer is ir.PropertyGet ||
         initializer is ir.InstanceGet ||
         initializer is ir.DynamicGet ||
         initializer is ir.InstanceTearOff ||
         initializer is ir.FunctionTearOff ||
-        initializer is ir.PropertySet ||
         initializer is ir.InstanceSet ||
         initializer is ir.DynamicSet ||
         initializer is ir.StaticInvocation ||

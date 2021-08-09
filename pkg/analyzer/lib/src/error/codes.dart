@@ -10505,6 +10505,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode DISALLOWED_TYPE_INSTANTIATION_EXPRESSION =
+      CompileTimeErrorCode(
+          'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
+          'Only a generic type, generic function, generic instance method, or '
+              'generic constructor can be type instantiated.',
+          correction:
+              'Try instantiating the type(s) of a generic type, generic '
+              'function, generic instance method, or generic constructor.');
+
+  /**
+   * No parameters.
+   */
   // #### Description
   //
   // The analyzer produces this diagnostic when the static type of the
@@ -14629,6 +14641,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try adjusting the number of type arguments to match the number "
               "of type parameters.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the number of type parameters that were declared
+   * 1: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode
+      WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION = CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
+          "This function is declared with {0} type parameters, "
+              "but {1} type arguments were given.",
+          correction:
+              "Try adjusting the number of type arguments to match the number "
+              "of type parameters.",
+          hasPublishedDocs: true,
+          uniqueName: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION');
 
   /**
    * Parameters:

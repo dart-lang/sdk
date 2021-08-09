@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44007.dart:16:35: Error: Expected ',' before this.
+//   print(DateTime.parse(2019-01-17 00:00:00.000));
+//                                   ^^
+//
+// pkg/front_end/testcases/general/issue44007.dart:16:35: Error: Expected an identifier, but got '00'.
+// Try inserting an identifier before '00'.
+//   print(DateTime.parse(2019-01-17 00:00:00.000));
+//                                   ^^
+//
+// pkg/front_end/testcases/general/issue44007.dart:16:40: Error: Expected ')' before this.
+//   print(DateTime.parse(2019-01-17 00:00:00.000));
+//                                        ^
+//
+// pkg/front_end/testcases/general/issue44007.dart:16:18: Error: Expected an identifier, but got 'parse'.
+// Try inserting an identifier before 'parse'.
+//   print(DateTime.parse(2019-01-17 00:00:00.000));
+//                  ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::List<core::DateTime> list = core::_GrowableList::_literal4<core::DateTime>(new core::DateTime::now().{core::DateTime::add}(new core::Duration::•(days: 3)){(core::Duration) → core::DateTime}, new core::DateTime::now().{core::DateTime::add}(new core::Duration::•(days: 2)){(core::Duration) → core::DateTime}, new core::DateTime::now(), new core::DateTime::now().{core::DateTime::subtract}(new core::Duration::•(days: 1)){(core::Duration) → core::DateTime});
+  list.{core::List::sort}((core::DateTime a, core::DateTime b) → core::int => a.{core::DateTime::compareTo}(b){(core::DateTime) → core::int}){([(core::DateTime, core::DateTime) →? core::int]) → void};
+  core::print(list);
+  core::print(invalid-expression "pkg/front_end/testcases/general/issue44007.dart:16:18: Error: Expected an identifier, but got 'parse'.
+Try inserting an identifier before 'parse'.
+  print(DateTime.parse(2019-01-17 00:00:00.000));
+                 ^^^^^");
+}
+static method main() → dynamic {}

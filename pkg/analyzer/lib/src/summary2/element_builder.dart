@@ -89,6 +89,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
+  /// Build elements for [members] and add into the [element].
+  void buildMacroClassMembers(
+    ClassElementImpl element,
+    List<ClassMember> members,
+  ) {
+    var holder = _buildClassMembers(element, members);
+
+    element.accessors.addAll(holder.propertyAccessors);
+    element.constructors.addAll(holder.constructors);
+    element.fields.addAll(holder.properties.whereType<FieldElementImpl>());
+    element.methods.addAll(holder.methods);
+  }
+
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameNode = node.name;
@@ -159,6 +172,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   ) {
     var nameNode = node.name ?? node.returnType;
     var name = node.name?.name ?? '';
+    if (name == 'new') {
+      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      name = '';
+    }
     var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
@@ -868,7 +885,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, NodeList<ClassMember> members) {
+      ElementImpl element, List<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -884,29 +901,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var element = node.declaredElement as ClassElementImpl;
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
-
-    var constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      var containerRef = element.reference!.getChild('@constructor');
-      constructors = [
-        ConstructorElementImpl('', -1)
-          ..isSynthetic = true
-          ..reference = containerRef.getChild(''),
-      ];
-    }
-    element.constructors = constructors;
-
-    // We have all fields and constructors.
-    // Now we can resolve field formal parameters.
-    for (var constructor in constructors) {
-      for (var parameter in constructor.parameters) {
-        if (parameter is FieldFormalParameterElementImpl) {
-          parameter.field = element.getField(parameter.name);
-        }
-      }
-    }
   }
 
   void _buildExecutableElementChildren({

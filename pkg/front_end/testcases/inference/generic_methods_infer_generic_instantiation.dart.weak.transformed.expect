@@ -176,8 +176,8 @@ static method takeDDO((core::double*, core::double*) →* core::Object* fn) → 
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff math::max
-  #C2 = tearoff math::min
+  #C1 = static-tearoff math::max
+  #C2 = static-tearoff math::min
 }
 
 Extra constant evaluation status:

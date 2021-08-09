@@ -44,6 +44,9 @@ main() {
   _testFunctionDeclarationImpl();
   _testIfNullExpression();
   _testIntLiterals();
+  _testInternalMethodInvocation();
+  _testInternalPropertyGet();
+  _testInternalPropertySet();
   _testExpressionInvocation();
   _testNamedFunctionExpressionJudgment();
   _testNullAwareMethodInvocation();
@@ -284,7 +287,7 @@ void _testCascade() {
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {} => #0''');
 
-  cascade.addCascadeExpression(new PropertySet(
+  cascade.addCascadeExpression(new DynamicSet(DynamicAccessKind.Dynamic,
       new VariableGet(variable), new Name('foo'), new IntLiteral(1)));
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {
@@ -292,7 +295,7 @@ let final dynamic #0 = 0 in cascade {
 } => #0''', limited: '''
 let final dynamic #0 = 0 in cascade { #0.foo = 1; } => #0''');
 
-  cascade.addCascadeExpression(new PropertySet(
+  cascade.addCascadeExpression(new DynamicSet(DynamicAccessKind.Dynamic,
       new VariableGet(variable), new Name('bar'), new IntLiteral(2)));
   testExpression(cascade, '''
 let final dynamic #0 = 0 in cascade {
@@ -372,6 +375,44 @@ void _testIntLiterals() {
   testExpression(new ShadowLargeIntLiteral('bar', TreeNode.noOffset), 'bar');
 }
 
+void _testInternalMethodInvocation() {
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0), new Name('boz'), new ArgumentsImpl([])),
+      '''
+0.boz()''');
+  testExpression(
+      new MethodInvocation(
+          new IntLiteral(0),
+          new Name('boz'),
+          new ArgumentsImpl([
+            new IntLiteral(1)
+          ], types: [
+            const VoidType(),
+            const DynamicType()
+          ], named: [
+            new NamedExpression('foo', new IntLiteral(2)),
+            new NamedExpression('bar', new IntLiteral(3))
+          ])),
+      '''
+0.boz<void, dynamic>(1, foo: 2, bar: 3)''');
+}
+
+void _testInternalPropertyGet() {
+  testExpression(
+      new PropertyGet(new IntLiteral(0), new Name('boz')), '''
+0.boz''');
+}
+
+void _testInternalPropertySet() {
+  testExpression(
+      new PropertySet(
+          new IntLiteral(0), new Name('boz'), new IntLiteral(1),
+          forEffect: false, readOnlyReceiver: false),
+      '''
+0.boz = 1''');
+}
+
 void _testExpressionInvocation() {
   testExpression(
       new ExpressionInvocation(new IntLiteral(0), new ArgumentsImpl([])), '''
@@ -409,10 +450,16 @@ void _testNullAwareMethodInvocation() {
   testExpression(
       new NullAwareMethodInvocation(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 0?.foo()''');
+
+  // TODO(johnniwinther): Add a test using InstanceInvocation instead of
+  // DynamicInvocation.
 
   // An unusual use of this node.
   testExpression(
@@ -437,7 +484,10 @@ void _testNullAwarePropertyGet() {
   testExpression(
       new NullAwarePropertyGet(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 let final dynamic #0 = 0 in null-aware #0.foo()''');
@@ -450,15 +500,20 @@ void _testNullAwarePropertySet() {
   testExpression(
       new NullAwarePropertySet(
           variable,
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1))),
+          new DynamicSet(DynamicAccessKind.Dynamic, new VariableGet(variable),
+              new Name('foo'), new IntLiteral(1))),
       '''
 0?.foo = 1''');
+
+  // TODO(johnniwinther): Add a test using InstanceSet instead of DynamicSet.
 
   testExpression(
       new NullAwarePropertySet(
           variable,
-          new MethodInvocation(new VariableGet(variable), new Name('foo'),
+          new DynamicInvocation(
+              DynamicAccessKind.Dynamic,
+              new VariableGet(variable),
+              new Name('foo'),
               new ArgumentsImpl([]))),
       '''
 let final dynamic #0 = 0 in null-aware #0.foo()''');

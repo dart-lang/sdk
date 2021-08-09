@@ -9,13 +9,13 @@
 // inlined.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 class A {
   var foo;
   var bar;
 
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   A() {
     // Currently defeat inlining by using a closure.
     bar = () => 42;
@@ -35,7 +35,8 @@ main() {
 class B {
   var bar;
   var closure;
-  @DontInline()
+  @pragma('vm:never-inline')
+  @pragma('dart2js:noInline')
   B() {
     // Currently defeat inlining by using a closure.
     closure = () => 42;
@@ -43,7 +44,8 @@ class B {
   }
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 bar() {
   // Make sure B's constructor is analyzed first by surrounding the
   // body by two allocations.
@@ -54,7 +56,8 @@ bar() {
   new B();
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 codegenLast() {
   // This assignment currently defeats simple type inference, but not
   // the optimistic inferrer.

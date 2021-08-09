@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups
 // VMOptions=--no-enable-isolate-groups
 
 // Test starting isolate with static functions (and toplevel ones, for sanity).

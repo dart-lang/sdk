@@ -301,6 +301,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->isolate_object_store()->Init();
     TargetCPUFeatures::Init();
     Object::Init(vm_isolate_->group());
+    OffsetsTable::Init();
     ArgumentsDescriptor::Init();
     ICData::Init();
     SubtypeTestCache::Init();
@@ -635,6 +636,7 @@ char* Dart::Cleanup() {
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
+  OffsetsTable::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
   StoreBuffer::Cleanup();
@@ -869,16 +871,32 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 
   if (kIsAotRuntime || was_child_cloned_into_existing_isolate) {
 #if !defined(TARGET_ARCH_IA32)
-    ASSERT(IG->object_store()->build_method_extractor_code() != Code::null());
+    ASSERT(IG->object_store()->build_generic_method_extractor_code() !=
+           Code::null());
+    ASSERT(IG->object_store()->build_nongeneric_method_extractor_code() !=
+           Code::null());
 #endif
   } else {
 #if !defined(TARGET_ARCH_IA32)
     if (I != Dart::vm_isolate()) {
-      if (IG->object_store()->build_method_extractor_code() != nullptr) {
+      if (IG->object_store()->build_generic_method_extractor_code() !=
+          nullptr) {
         SafepointWriteRwLocker ml(T, IG->program_lock());
-        if (IG->object_store()->build_method_extractor_code() != nullptr) {
-          IG->object_store()->set_build_method_extractor_code(
-              Code::Handle(StubCode::GetBuildMethodExtractorStub(nullptr)));
+        if (IG->object_store()->build_generic_method_extractor_code() !=
+            nullptr) {
+          IG->object_store()->set_build_generic_method_extractor_code(
+              Code::Handle(
+                  StubCode::GetBuildGenericMethodExtractorStub(nullptr)));
+        }
+      }
+      if (IG->object_store()->build_nongeneric_method_extractor_code() !=
+          nullptr) {
+        SafepointWriteRwLocker ml(T, IG->program_lock());
+        if (IG->object_store()->build_nongeneric_method_extractor_code() !=
+            nullptr) {
+          IG->object_store()->set_build_nongeneric_method_extractor_code(
+              Code::Handle(
+                  StubCode::GetBuildNonGenericMethodExtractorStub(nullptr)));
         }
       }
     }

@@ -68,7 +68,8 @@ extension E on C {
 
     Expect.identical(staticMethod<int, String>, staticTearOff);
 
-    Expect.equals(
+    // Extension instance methods are not equal unless identical.
+    Expect.notEquals(
         extInstanceMethod<int, String>, this.extInstanceMethod<int, String>);
   }
 }
@@ -132,7 +133,9 @@ void main() {
       o.instanceMethod<int, String>, o.instanceMethod<int, String>);
   Expect.equals(
       o.mixinInstanceMethod<int, String>, o.mixinInstanceMethod<int, String>);
-  Expect.equals(
+
+  // Instantiated extension methods are not equal unless they are identical.
+  Expect.notEquals(
       o.extInstanceMethod<int, String>, o.extInstanceMethod<int, String>);
 
   // And not canonicalized where they shouldn't (different types).

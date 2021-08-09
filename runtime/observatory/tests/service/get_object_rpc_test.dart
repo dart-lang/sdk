@@ -14,15 +14,20 @@ import 'test_helper.dart';
 class _DummyClass {
   static var dummyVar = 11;
   final List<String> dummyList = new List<String>.filled(20, '');
-  void dummyFunction() {}
+  void dummyFunction(int a, [bool b = false]) {}
+  void dummyGenericFunction<K, V>(K a, {required V param}) {}
 }
 
 class _DummySubClass extends _DummyClass {}
 
+class _DummyGenericSubClass<T> extends _DummyClass {}
+
 void warmup() {
   // Silence analyzer.
   new _DummySubClass();
-  new _DummyClass().dummyFunction();
+  new _DummyGenericSubClass<Object>();
+  new _DummyClass().dummyFunction(0);
+  new _DummyClass().dummyGenericFunction<Object, dynamic>(0, param: 0);
 }
 
 @pragma("vm:entry-point")
@@ -42,6 +47,9 @@ getUint64List() => uint64List;
 
 @pragma("vm:entry-point")
 getDummyClass() => new _DummyClass();
+
+@pragma("vm:entry-point")
+getDummyGenericSubClass() => new _DummyGenericSubClass<Object>();
 
 invoke(Isolate isolate, String selector) async {
   Map params = {
@@ -766,6 +774,7 @@ var tests = <IsolateTest>[
     expect(result['_finalized'], equals(true));
     expect(result['_implemented'], equals(false));
     expect(result['_patch'], equals(false));
+    expect(result['typeParameters'], isNull);
     expect(result['library']['type'], equals('@Library'));
     expect(result['location']['type'], equals('SourceLocation'));
     expect(result['super']['type'], equals('@Class'));
@@ -776,6 +785,30 @@ var tests = <IsolateTest>[
     expect(result['functions'][0]['type'], equals('@Function'));
     expect(result['subclasses'].length, isPositive);
     expect(result['subclasses'][0]['type'], equals('@Class'));
+  },
+
+  // generic class
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyGenericSubClass');
+    var params = {
+      'objectId': evalResult['class']['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Class'));
+    expect(result['id'], startsWith('classes/'));
+    expect(result['name'], equals('_DummyGenericSubClass'));
+    expect(result['_vmName'], startsWith('_DummyGenericSubClass@'));
+    expect(result['abstract'], equals(false));
+    expect(result['const'], equals(false));
+    expect(result['_finalized'], equals(true));
+    expect(result['_implemented'], equals(false));
+    expect(result['_patch'], equals(false));
+    expect(result['typeParameters'].length, equals(1));
+    expect(result['library']['type'], equals('@Library'));
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['super']['type'], equals('@Class'));
+    expect(result['interfaces'].length, isZero);
   },
 
   // invalid class.
@@ -851,6 +884,52 @@ var tests = <IsolateTest>[
     expect(result['_kind'], equals('RegularFunction'));
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
+    expect(result['implicit'], equals(false));
+    expect(result['signature']['typeParameters'], isNull);
+    expect(result['signature']['returnType'], isNotNull);
+    expect(result['signature']['parameters'].length, 3);
+    expect(result['signature']['parameters'][1]['parameterType']['name'],
+        equals('int'));
+    expect(result['signature']['parameters'][1]['fixed'], isTrue);
+    expect(result['signature']['parameters'][2]['parameterType']['name'],
+        equals('bool'));
+    expect(result['signature']['parameters'][2]['fixed'], isFalse);
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['code']['type'], equals('@Code'));
+    expect(result['_optimizable'], equals(true));
+    expect(result['_inlinable'], equals(true));
+    expect(result['_usageCounter'], isPositive);
+    expect(result['_optimizedCallSiteCount'], isZero);
+    expect(result['_deoptimizations'], isZero);
+  },
+
+  // generic function.
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var id = "${evalResult['class']['id']}/functions/dummyGenericFunction";
+    var params = {
+      'objectId': id,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Function'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyGenericFunction'));
+    expect(result['_kind'], equals('RegularFunction'));
+    expect(result['static'], equals(false));
+    expect(result['const'], equals(false));
+    expect(result['implicit'], equals(false));
+    expect(result['signature']['typeParameters'].length, 2);
+    expect(result['signature']['returnType'], isNotNull);
+    expect(result['signature']['parameters'].length, 3);
+    expect(result['signature']['parameters'][1]['parameterType']['name'],
+        isNotNull);
+    expect(result['signature']['parameters'][1]['fixed'], isTrue);
+    expect(result['signature']['parameters'][2]['parameterType']['name'],
+        isNotNull);
+    expect(result['signature']['parameters'][2]['name'], 'param');
+    expect(result['signature']['parameters'][2]['fixed'], isFalse);
+    expect(result['signature']['parameters'][2]['required'], isTrue);
     expect(result['location']['type'], equals('SourceLocation'));
     expect(result['code']['type'], equals('@Code'));
     expect(result['_optimizable'], equals(true));

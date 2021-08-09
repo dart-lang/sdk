@@ -22,23 +22,24 @@ class ListLiteralsLowering {
   final Procedure _defaultFactory;
 
   // Specialized _GrowableList._literalN(e1, ..., eN) factories.
-  final List<Procedure> _specializedFactories =
-      List<Procedure>.filled(numSpecializedFactories, null);
+  final List<Procedure?> _specializedFactories =
+      List<Procedure?>.filled(numSpecializedFactories, null);
 
   ListLiteralsLowering(this.coreTypes)
       : _defaultFactory =
-            coreTypes.index.getMember('dart:core', '_GrowableList', '');
+            coreTypes.index.getProcedure('dart:core', '_GrowableList', '');
 
   Procedure getSpecializedFactory(int length) =>
       (_specializedFactories[length - 1] ??= coreTypes.index
-          .getMember('dart:core', '_GrowableList', '_literal$length'));
+          .getProcedure('dart:core', '_GrowableList', '_literal$length'));
 
   Expression transformListLiteral(ListLiteral node) {
     if (node.isConst) {
       throw 'Unexpected constant ListLiteral node'
           ' (such nodes should be converted to ConstantExpression): $node';
     }
-    if (node.parent is Field && isRedirectingFactoryField(node.parent)) {
+    final parent = node.parent;
+    if (parent is Field && isRedirectingFactoryField(parent)) {
       // Do not transform list literals which are used to represent
       // redirecting factories.
       return node;

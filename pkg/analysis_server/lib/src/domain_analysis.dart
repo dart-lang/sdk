@@ -63,7 +63,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       server.sendResponse(Response.fileNotAnalyzed(request, file));
       return;
     }
-    var unit = result.unit!;
+    var unit = result.unit;
 
     // Prepare the hovers.
     var hovers = <HoverInformation>[];
@@ -105,7 +105,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       elements = <ImportedElements>[];
     } else {
       elements =
-          ImportedElementsComputer(result.unit!, params.offset, params.length)
+          ImportedElementsComputer(result.unit, params.offset, params.length)
               .compute();
     }
 
@@ -166,7 +166,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       var allResults = <AnalysisNavigationParams>[];
       var result = await server.getResolvedUnit(file);
       if (result != null && result.state == ResultState.VALID) {
-        var unit = result.unit!;
+        var unit = result.unit;
         var collector = NavigationCollectorImpl();
         computeDartNavigation(
             server.resourceProvider, collector, unit, offset, length);
@@ -237,7 +237,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     }
 
     // Ensure the offset provided is a valid location in the file.
-    final unit = result.unit!;
+    final unit = result.unit;
     final computer = DartUnitSignatureComputer(
         server.getDartdocDirectiveInfoFor(result), unit, params.offset);
     if (!computer.offsetIsValid) {

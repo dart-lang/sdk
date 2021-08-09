@@ -1,3 +1,20 @@
+## 2.1.0-dev
+* Changed `AnalysisResult.path` to be non-nullable.
+* Changed `ParsedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedLibraryResult.element` to be non-nullable.
+* Changed `ResolvedLibraryResult.units` to be non-nullable.
+* Changed `ResolvedUnitResult.content` to be non-nullable.
+* Changed `ResolvedUnitResult.unit` to be non-nullable.
+* Deprecated and renamed `AnalysisSession.getXyz2()` into `getXyz()`.
+* Changed `AnalysisDriver.results` to `Stream<Object>`.
+  It used to always produce `ResolvedUnitResult`s, but sometimes its
+  `content` and `unit` were `null`, when the result actually had only errors.
+  Now it produces either `ResolvedUnitResult`, or `ErrorsResult`, or
+  some other results that might be added in the future.
+* Added `DartType.alias` with information about instantiated type alias.
+  The type alias element and arguments are present or absent together.
+* Deprecated `DartType.aliasElement` and `DartType.aliasArguments`.
+
 ## 2.0.0
 * Removed deprecated `Scope.lookup2()`.
 * Removed deprecated setters in API of AST.

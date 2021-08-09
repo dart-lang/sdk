@@ -14,4 +14,3 @@ export 'native_emitter.dart';
 export 'native_generator.dart';
 export 'parameter_stub_generator.dart';
 export 'runtime_type_generator.dart';
-export 'type_test_registry.dart';

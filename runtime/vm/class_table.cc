@@ -519,10 +519,17 @@ void ClassTable::SetAt(intptr_t cid, ClassPtr raw_cls) {
 
   // This is called by snapshot reader and class finalizer.
   ASSERT(cid < capacity_);
+  UpdateClassSize(cid, raw_cls);
+  table_.load()[cid] = raw_cls;
+}
+
+void ClassTable::UpdateClassSize(intptr_t cid, ClassPtr raw_cls) {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!IsTopLevelCid(cid));  // "top-level" classes don't get instantiated
+  ASSERT(cid < capacity_);
   const intptr_t size =
       raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
   shared_class_table_->SetSizeAt(cid, size);
-  table_.load()[cid] = raw_cls;
 }
 
 #ifndef PRODUCT

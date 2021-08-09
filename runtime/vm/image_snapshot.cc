@@ -613,7 +613,6 @@ void ImageWriter::WriteText(bool vm) {
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
 
   // Start snapshot at page boundary.
-  ASSERT(ImageWriter::kTextAlignment >= VirtualMemory::PageSize());
   if (!EnterSection(ProgramSection::Text, vm, ImageWriter::kTextAlignment)) {
     return;
   }
@@ -693,7 +692,7 @@ void ImageWriter::WriteText(bool vm) {
     // 2) The BSS offset from this section.
     text_offset += Relocation(text_offset, instructions_symbol, bss_symbol);
     // 3) The relocated address of the instructions.
-    text_offset += Relocation(text_offset, instructions_symbol);
+    text_offset += RelocatedAddress(text_offset, instructions_symbol);
     // 4) The GNU build ID note offset from this section.
     text_offset += Relocation(text_offset, instructions_symbol,
                               SectionSymbol(ProgramSection::BuildId, vm));
@@ -1222,10 +1221,7 @@ intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
                                          intptr_t source_offset,
                                          const char* target_symbol,
                                          intptr_t target_offset) {
-  if (source_symbol == nullptr || target_symbol == nullptr) {
-    // We can't use absolute addresses in assembly relocations.
-    return WriteTargetWord(Image::kNoRelocatedAddress);
-  }
+  ASSERT(source_symbol != nullptr);
   ASSERT(target_symbol != nullptr);
 
   // TODO(dartbug.com/43274): Remove once we generate consistent build IDs
@@ -1238,23 +1234,24 @@ intptr_t AssemblyImageWriter::Relocation(intptr_t section_offset,
 
   // All relocations are word-sized.
   assembly_stream_->Printf("%s ", kWordDirective);
-  if (strcmp(target_symbol, current_section_symbol_) == 0 &&
-      target_offset == section_offset) {
+  if (strcmp(target_symbol, current_section_symbol_) == 0) {
     assembly_stream_->WriteString("(.)");
+    target_offset -= section_offset;
   } else {
     assembly_stream_->Printf("%s", target_symbol);
-    if (target_offset != 0) {
-      assembly_stream_->Printf(" + %" Pd "", target_offset);
-    }
   }
-  if (strcmp(source_symbol, current_section_symbol_) == 0 &&
-      source_offset == section_offset) {
+  if (target_offset != 0) {
+    assembly_stream_->Printf(" + %" Pd "", target_offset);
+  }
+
+  if (strcmp(source_symbol, current_section_symbol_) == 0) {
     assembly_stream_->WriteString(" - (.)");
+    source_offset -= section_offset;
   } else {
     assembly_stream_->Printf(" - %s", source_symbol);
-    if (source_offset != 0) {
-      assembly_stream_->Printf(" - %" Pd "", source_offset);
-    }
+  }
+  if (source_offset != 0) {
+    assembly_stream_->Printf(" - %" Pd "", source_offset);
   }
   assembly_stream_->WriteString("\n");
   return compiler::target::kWordSize;

@@ -35,6 +35,7 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart'
     show CompletionPerformance;
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
+import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -126,6 +127,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService, {
     http.Client? httpClient,
+    ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
     // Disable to avoid using this in unit tests.
     bool enableBazelWatcher = false,
@@ -137,6 +139,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           baseResourceProvider,
           instrumentationService,
           httpClient,
+          processRunner,
           LspNotificationManager(channel, baseResourceProvider.pathContext),
           enableBazelWatcher: enableBazelWatcher,
         ) {
@@ -184,10 +187,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       RefactoringWorkspace(driverMap.values, searchEngine);
 
   void addPriorityFile(String filePath) {
-    // When a pubspec is opened, trigger package name caching for completion.
-    if (!pubPackageService.isRunning &&
-        file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
-      pubPackageService.beginPackageNamePreload();
+    // When pubspecs are opened, trigger pre-loading of pub package names and
+    // versions.
+    if (file_paths.isPubspecYaml(resourceProvider.pathContext, filePath)) {
+      pubPackageService.beginCachePreloads([filePath]);
     }
 
     final didAdd = priorityFiles.add(filePath);
@@ -205,33 +208,49 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
     if (clientCapabilities?.configuration ?? false) {
+      // Take a copy of workspace folders because we need to match up the
+      // responses to the request by index and it's possible _workspaceFolders
+      // will change after we sent the request but before we get the response.
+      final folders = _workspaceFolders.toList();
+
       // Fetch all configuration we care about from the client. This is just
       // "dart" for now, but in future this may be extended to include
       // others (for example "flutter").
       final response = await sendRequest(
           Method.workspace_configuration,
           ConfigurationParams(items: [
+            // Dart settings for each workspace folder.
+            for (final folder in folders)
+              ConfigurationItem(
+                scopeUri: Uri.file(folder).toString(),
+                section: 'dart',
+              ),
+            // Global Dart settings. This comes last to simplify matching up the
+            // indexes in the results (folder[i] is the i'th item).
             ConfigurationItem(section: 'dart'),
           ]));
 
       final result = response.result;
 
-      // Expect the result to be a single list (to match the single
-      // ConfigurationItem we requested above) and that it should be
-      // a standard map of settings.
+      // Expect the result to be a list with 1 + folders.length items to
+      // match the request above, and each should be a standard map of settings.
       // If the above code is extended to support multiple sets of config
-      // this will need tweaking to handle each group appropriately.
+      // this will need tweaking to handle the item for each section.
       if (result != null &&
           result is List<dynamic> &&
-          result.length == 1 &&
-          result.first is Map<String, dynamic>) {
-        final newConfig = result.first;
-        final refreshRoots =
-            clientConfiguration.affectsAnalysisRoots(newConfig);
+          result.length == 1 + folders.length) {
+        // Config is stored as a map keyed by the workspace folder, and a key of
+        // null for the global config
+        final workspaceFolderConfig = {
+          for (var i = 0; i < folders.length; i++)
+            folders[i]: result[i] as Map<String, Object?>? ?? {},
+        };
+        final newGlobalConfig = result.last as Map<String, Object?>? ?? {};
 
-        clientConfiguration.replace(newConfig);
+        final oldGlobalConfig = clientConfiguration.global;
+        clientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
 
-        if (refreshRoots) {
+        if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           _refreshAnalysisRoots();
         }
       }
@@ -638,13 +657,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendServerErrorNotification('Socket error', error, stack);
   }
 
-  void updateWorkspaceFolders(
-      List<String> addedPaths, List<String> removedPaths) {
+  Future<void> updateWorkspaceFolders(
+      List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
     _workspaceFolders
       ..addAll(addedPaths)
       ..removeAll(removedPaths);
+
+    await fetchClientConfigurationAndPerformDynamicRegistration();
 
     _refreshAnalysisRoots();
   }
@@ -699,7 +720,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
         ? _workspaceFolders.toSet()
         : _getRootsForOpenFiles();
 
-    final excludedPaths = clientConfiguration.analysisExcludedFolders
+    final excludedPaths = clientConfiguration.global.analysisExcludedFolders
         .expand((excludePath) => resourceProvider.pathContext
                 .isAbsolute(excludePath)
             ? [excludePath]
@@ -825,46 +846,24 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
 
     analysisDriver.results.listen((result) {
-      var path = result.path;
-      if (path == null) {
-        // This shouldn't occur - result.path is marked with a TODO to become
-        // non-nullable.
-        return;
-      }
-      filesToFlush.add(path);
-      if (analysisServer.isAnalyzed(path)) {
-        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
-        recordAnalysisErrors(path, serverErrors);
-      }
-      analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-      analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
-      final unit = result.unit;
-      if (unit != null) {
-        if (analysisServer.shouldSendClosingLabelsFor(path)) {
-          final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
-              .compute()
-              .map((l) => toClosingLabel(result.lineInfo, l))
-              .toList();
-
-          analysisServer.publishClosingLabels(path, labels);
-        }
-        if (analysisServer.shouldSendOutlineFor(path)) {
-          final outline = DartUnitOutlineComputer(
-            result,
-            withBasicFlutter: true,
-          ).compute();
-          final lspOutline = toOutline(result.lineInfo, outline);
-          analysisServer.publishOutline(path, lspOutline);
-        }
-        if (analysisServer.shouldSendFlutterOutlineFor(path)) {
-          final outline = FlutterOutlineComputer(result).compute();
-          final lspOutline = toFlutterOutline(result.lineInfo, outline);
-          analysisServer.publishFlutterOutline(path, lspOutline);
-        }
+      if (result is FileResult) {
+        _handleFileResult(result);
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
     analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
+  }
+
+  @override
+  void pubspecChanged(String pubspecPath) {
+    analysisServer.pubPackageService.fetchPackageVersionsViaPubOutdated(
+        pubspecPath,
+        pubspecWasModified: true);
+  }
+
+  @override
+  void pubspecRemoved(String pubspecPath) {
+    analysisServer.pubPackageService.flushPackageCaches(pubspecPath);
   }
 
   @override
@@ -875,7 +874,53 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
         .recordAnalysisErrors(NotificationManager.serverId, path, errorsToSend);
   }
 
+  void _handleFileResult(FileResult result) {
+    var path = result.path;
+    filesToFlush.add(path);
+
+    if (result is AnalysisResultWithErrors) {
+      if (analysisServer.isAnalyzed(path)) {
+        final serverErrors = protocol.doAnalysisError_listFromEngine(result);
+        recordAnalysisErrors(path, serverErrors);
+      }
+    }
+
+    if (result is ResolvedUnitResult) {
+      _handleResolvedUnitResult(result);
+    }
+  }
+
+  void _handleResolvedUnitResult(ResolvedUnitResult result) {
+    var path = result.path;
+
+    analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
+    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
+
+    final unit = result.unit;
+    if (analysisServer.shouldSendClosingLabelsFor(path)) {
+      final labels = DartUnitClosingLabelsComputer(result.lineInfo, unit)
+          .compute()
+          .map((l) => toClosingLabel(result.lineInfo, l))
+          .toList();
+
+      analysisServer.publishClosingLabels(path, labels);
+    }
+    if (analysisServer.shouldSendOutlineFor(path)) {
+      final outline = DartUnitOutlineComputer(
+        result,
+        withBasicFlutter: true,
+      ).compute();
+      final lspOutline = toOutline(result.lineInfo, outline);
+      analysisServer.publishOutline(path, lspOutline);
+    }
+    if (analysisServer.shouldSendFlutterOutlineFor(path)) {
+      final outline = FlutterOutlineComputer(result).compute();
+      final lspOutline = toFlutterOutline(result.lineInfo, outline);
+      analysisServer.publishFlutterOutline(path, lspOutline);
+    }
+  }
+
   bool _shouldSendError(protocol.AnalysisError error) =>
       error.code != ErrorType.TODO.name.toLowerCase() ||
-      analysisServer.clientConfiguration.showTodos;
+      analysisServer.clientConfiguration.global.showTodos;
 }

@@ -210,6 +210,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kArgumentsDescriptor_count:
     case Slot::Kind::kArgumentsDescriptor_size:
     case Slot::Kind::kArrayElement:
+    case Slot::Kind::kInstance_native_fields_array:
     case Slot::Kind::kTypeArguments:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
     case Slot::Kind::kTypedDataView_data:

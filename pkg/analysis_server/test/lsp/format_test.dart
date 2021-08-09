@@ -309,6 +309,97 @@ main3  ()
     await expectFormattedContents(mainFileUri, contents, expectedLongLines);
   }
 
+  Future<void> test_lineLength_outsideWorkspaceFolders() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+        // Use empty roots so the test file is not inside any known
+        // WorkspaceFolder.
+        allowEmptyRootUri: true,
+        workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      ),
+      // Global config (this should be used).
+      {'lineLength': 10},
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
+  Future<void> test_lineLength_workspaceFolderSpecified() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      // Global config.
+      {'lineLength': 200},
+      folderConfig: {
+        // WorkspaceFolder config for this project (this should be used).
+        projectFolderPath: {'lineLength': 10},
+      },
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
+  Future<void> test_lineLength_workspaceFolderUnspecified() async {
+    const contents = '''
+main() {
+  print('123456789 ''123456789 ''123456789 ');
+}
+''';
+    const expectedContents = '''
+main() {
+  print(
+      '123456789 '
+      '123456789 '
+      '123456789 ');
+}
+''';
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities: withDidChangeConfigurationDynamicRegistration(
+              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
+      // Global config (this should be used).
+      {'lineLength': 10},
+      folderConfig: {
+        // WorkspaceFolder config for this project that doesn't specific
+        // lineLength.
+        projectFolderPath: {'someOtherValue': 'foo'},
+      },
+    );
+    await openFile(mainFileUri, contents);
+    await expectFormattedContents(mainFileUri, contents, expectedContents);
+  }
+
   Future<void> test_minimalEdits_addWhitespace() async {
     // Check we only get one edit to add the required whitespace and not
     // an entire document replacement.

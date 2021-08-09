@@ -366,7 +366,7 @@ class VMService extends MessageRouter {
           return;
         }
         final uri = await webServerControl(enable, silenceOutput);
-        sp.send(uri);
+        sp.send(uri?.toString());
         break;
       case Constants.SERVER_INFO_MESSAGE_ID:
         final serverInformation = VMServiceEmbedderHooks.serverInformation;
@@ -375,7 +375,7 @@ class VMService extends MessageRouter {
           return;
         }
         final uri = await serverInformation();
-        sp.send(uri);
+        sp.send(uri?.toString());
         break;
     }
   }

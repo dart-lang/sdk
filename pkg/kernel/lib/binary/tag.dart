@@ -17,7 +17,7 @@ class Tag {
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
-  static const int RedirectingFactoryConstructor = 108;
+  static const int RedirectingFactory = 108;
 
   // Initializers
   static const int InvalidInitializer = 7;
@@ -37,13 +37,10 @@ class Tag {
   static const int InvalidExpression = 19;
   static const int VariableGet = 20;
   static const int VariableSet = 21;
-  static const int PropertyGet = 22;
-  static const int PropertySet = 23;
   static const int SuperPropertyGet = 24;
   static const int SuperPropertySet = 25;
   static const int StaticGet = 26;
   static const int StaticSet = 27;
-  static const int MethodInvocation = 28;
   static const int SuperMethodInvocation = 29;
   static const int StaticInvocation = 30;
   static const int ConstructorInvocation = 31;
@@ -78,6 +75,7 @@ class Tag {
   static const int ConstMapLiteral = 59;
   static const int ConstructorTearOff = 60;
   static const int TypedefTearOff = 83;
+  static const int RedirectingFactoryTearOff = 84;
 
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
@@ -125,6 +123,7 @@ class Tag {
   static const int AssertBlock = 81;
   // 82 is occupied by [BlockExpression] (expression).
   // 83 is occupied by [TypedefTearOff] (expression).
+  // 84 is occupied by [RedirectingFactoryTearOff] (expression).
 
   // Types
   static const int TypedefType = 87;
@@ -141,7 +140,7 @@ class Tag {
 
   static const int ConstantExpression = 106;
 
-  /// 108 is occupied by [RedirectingFactoryConstructor] (member).
+  /// 108 is occupied by [RedirectingFactory] (member).
   /// 109 is occupied by [SetLiteral] (expression).
   /// 110 is occupied by [ConstSetLiteral] (expression).
   /// 111 is occupied by [ListConcatenation] (expression).
@@ -177,7 +176,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 67;
+  static const int BinaryFormatVersion = 69;
 }
 
 abstract class ConstantTag {
@@ -198,6 +197,7 @@ abstract class ConstantTag {
   // 13 is occupied by [SetConstant]
   static const int TypedefTearOffConstant = 14;
   static const int ConstructorTearOffConstant = 15;
+  static const int RedirectingFactoryTearOffConstant = 16;
 }
 
 const int sdkHashLength = 10; // Bytes, a Git "short hash".

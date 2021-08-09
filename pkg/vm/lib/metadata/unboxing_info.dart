@@ -14,11 +14,12 @@ class UnboxingInfoMetadata {
   final List<int> unboxedArgsInfo;
   int returnInfo;
 
-  UnboxingInfoMetadata(int argsLen) : unboxedArgsInfo = [] {
+  UnboxingInfoMetadata(int argsLen)
+      : unboxedArgsInfo = [],
+        returnInfo = kUnboxingCandidate {
     for (int i = 0; i < argsLen; i++) {
       unboxedArgsInfo.add(kUnboxingCandidate);
     }
-    returnInfo = kUnboxingCandidate;
   }
 
   UnboxingInfoMetadata.readFromBinary(BinarySource source)

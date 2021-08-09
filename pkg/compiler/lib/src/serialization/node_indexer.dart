@@ -106,12 +106,6 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
   }
 
   @override
-  void visitPropertyGet(ir.PropertyGet node) {
-    registerNode(node);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   void visitInstanceGet(ir.InstanceGet node) {
     registerNode(node);
     super.visitInstanceGet(node);
@@ -136,12 +130,6 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
   }
 
   @override
-  void visitPropertySet(ir.PropertySet node) {
-    registerNode(node);
-    super.visitPropertySet(node);
-  }
-
-  @override
   void visitInstanceSet(ir.InstanceSet node) {
     registerNode(node);
     super.visitInstanceSet(node);
@@ -151,12 +139,6 @@ class _TreeNodeIndexerVisitor extends ir.Visitor<void>
   void visitDynamicSet(ir.DynamicSet node) {
     registerNode(node);
     super.visitDynamicSet(node);
-  }
-
-  @override
-  void visitMethodInvocation(ir.MethodInvocation node) {
-    registerNode(node);
-    super.visitMethodInvocation(node);
   }
 
   @override
@@ -311,6 +293,10 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   @override
   void visitConstructorTearOffConstant(ir.ConstructorTearOffConstant node) {}
+
+  @override
+  void visitRedirectingFactoryTearOffConstant(
+      ir.RedirectingFactoryTearOffConstant node) {}
 
   @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {

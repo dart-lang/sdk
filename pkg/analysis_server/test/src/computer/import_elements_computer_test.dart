@@ -50,7 +50,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   Future<void> createBuilder(String content) async {
     originalContent = content;
     newFile(path, content: content);
-    var result = await session.getResolvedUnit2(path) as ResolvedUnitResult;
+    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
     computer = ImportElementsComputer(resourceProvider, result);
   }
 

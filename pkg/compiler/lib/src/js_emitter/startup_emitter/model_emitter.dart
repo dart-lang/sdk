@@ -37,7 +37,7 @@ import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
 import '../../common_elements.dart' show CommonElements, JElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load/deferred_load.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
 import '../../elements/types.dart';
@@ -352,17 +352,17 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    StringBuffer flavor = new StringBuffer();
-    flavor.write('fast startup emitter');
-    // TODO(johnniwinther): Remove this flavor.
-    flavor.write(', strong');
+    final flavor = StringBuffer();
+    flavor.write(_options.nullSafetyMode);
     if (_options.trustPrimitives) flavor.write(', trust primitives');
     if (_options.omitImplicitChecks) flavor.write(', omit checks');
     if (_options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');
     }
     if (_options.useContentSecurityPolicy) flavor.write(', CSP');
-    return new js.Comment(generatedBy(_options, flavor: '$flavor'));
+    var featureString = _options.features.flavorString();
+    if (featureString.isNotEmpty) flavor.write(', $featureString');
+    return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
   js.Statement buildDeferredInitializerGlobal() {

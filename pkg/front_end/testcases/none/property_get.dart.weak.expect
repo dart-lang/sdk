@@ -145,6 +145,6 @@ static method main() → dynamic {}
 constants  {
   #C1 = "foo"
   #C2 = 3
-  #C3 = tearoff self::Class1::staticMethod
-  #C4 = tearoff self::topLevelMethod
+  #C3 = static-tearoff self::Class1::staticMethod
+  #C4 = static-tearoff self::topLevelMethod
 }

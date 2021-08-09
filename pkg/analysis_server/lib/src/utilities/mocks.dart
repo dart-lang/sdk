@@ -146,6 +146,8 @@ class TestPluginManager implements PluginManager {
   plugin.AnalysisUpdateContentParams? analysisUpdateContentParams;
   plugin.RequestParams? broadcastedRequest;
   Map<PluginInfo, Future<plugin.Response>>? broadcastResults;
+  Map<PluginInfo, Future<plugin.Response>>? Function(plugin.RequestParams)?
+      handleRequest;
 
   @override
   List<PluginInfo> plugins = [];
@@ -192,7 +194,9 @@ class TestPluginManager implements PluginManager {
       plugin.RequestParams params,
       {analyzer.ContextRoot? contextRoot}) {
     broadcastedRequest = params;
-    return broadcastResults ?? <PluginInfo, Future<plugin.Response>>{};
+    return handleRequest?.call(params) ??
+        broadcastResults ??
+        <PluginInfo, Future<plugin.Response>>{};
   }
 
   @override

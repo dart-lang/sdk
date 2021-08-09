@@ -854,6 +854,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
+    case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -1485,11 +1486,25 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Box(kUnboxedFfiIntPtr);
     } break;
     case MethodRecognizer::kHas63BitSmis: {
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
       body += Constant(Bool::True());
 #else
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
+    } break;
+    case MethodRecognizer::kGetNativeField: {
+      auto& name = String::ZoneHandle(Z, function.name());
+      // Note: This method is force optimized so we can push untagged, etc.
+      // Load TypedDataArray from Instance Handle implementing
+      // NativeFieldWrapper.
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Object.
+      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      body += LoadNativeField(Slot::Instance_native_fields_array());  // Fields.
+      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      // Load the native field at index.
+      body += IntConstant(0);  // Index.
+      body += LoadIndexed(kIntPtrCid);
+      body += Box(kUnboxedIntPtr);
     } break;
     default: {
       UNREACHABLE();
@@ -3410,13 +3425,45 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   intptr_t type_args_len = 0;
   if (function.IsGeneric()) {
-    type_args_len = function.NumTypeParameters();
-    ASSERT(parsed_function_->function_type_arguments() != NULL);
-    closure += LoadLocal(parsed_function_->function_type_arguments());
+    if (target.IsConstructor()) {
+      const auto& result_type = AbstractType::Handle(Z, function.result_type());
+      ASSERT(result_type.IsFinalized());
+      // Instantiate a flattened type arguments vector which
+      // includes type arguments corresponding to superclasses.
+      // TranslateInstantiatedTypeArguments is smart enough to
+      // avoid instantiation and resuse passed function type arguments
+      // if there are no extra type arguments in the flattened vector.
+      const auto& instantiated_type_arguments =
+          TypeArguments::ZoneHandle(Z, result_type.arguments());
+      closure +=
+          TranslateInstantiatedTypeArguments(instantiated_type_arguments);
+    } else {
+      type_args_len = function.NumTypeParameters();
+      ASSERT(parsed_function_->function_type_arguments() != NULL);
+      closure += LoadLocal(parsed_function_->function_type_arguments());
+    }
+  } else if (target.IsFactory()) {
+    // Factories always take an extra implicit argument for
+    // type arguments even if their classes don't have type parameters.
+    closure += NullConstant();
   }
 
   // Push receiver.
-  if (!target.is_static()) {
+  if (target.IsGenerativeConstructor()) {
+    const Class& cls = Class::Handle(Z, target.Owner());
+    if (cls.NumTypeArguments() > 0) {
+      if (!function.IsGeneric()) {
+        Type& cls_type = Type::Handle(Z, cls.DeclarationType());
+        closure += Constant(TypeArguments::ZoneHandle(Z, cls_type.arguments()));
+      }
+      closure += AllocateObject(function.token_pos(), cls, 1);
+    } else {
+      ASSERT(!function.IsGeneric());
+      closure += AllocateObject(function.token_pos(), cls, 0);
+    }
+    LocalVariable* receiver = MakeTemporary();
+    closure += LoadLocal(receiver);
+  } else if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
     // closed-over receiver.
     closure += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -3430,7 +3477,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Forward parameters to the target.
   intptr_t argument_count = function.NumParameters() -
                             function.NumImplicitParameters() +
-                            (target.is_static() ? 0 : 1);
+                            target.NumImplicitParameters();
   ASSERT(argument_count == target.NumParameters());
 
   Array& argument_names =
@@ -3439,6 +3486,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   closure += StaticCall(TokenPosition::kNoSource, target, argument_count,
                         argument_names, ICData::kNoRebind,
                         /* result_type = */ NULL, type_args_len);
+
+  if (target.IsGenerativeConstructor()) {
+    // Drop result of constructor invocation, leave receiver
+    // instance on the stack.
+    closure += Drop();
+  }
 
   // Return the result.
   closure += Return(function.end_token_pos());

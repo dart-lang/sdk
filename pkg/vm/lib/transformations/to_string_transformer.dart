@@ -13,7 +13,7 @@ transformComponent(Component component, List<String> packageUris) {
 /// `super.toString()`.
 class ToStringVisitor extends RecursiveVisitor {
   /// The [packageUris] must not be null.
-  ToStringVisitor(this._packageUris) : assert(_packageUris != null);
+  ToStringVisitor(this._packageUris);
 
   /// A set of package URIs to apply this transformer to, e.g. 'dart:ui' and
   /// 'package:flutter/foundation.dart'.
@@ -42,7 +42,7 @@ class ToStringVisitor extends RecursiveVisitor {
       if (className == 'pragma' && libraryUri == 'dart:core') {
         for (var fieldRef in constant.fieldValues.keys) {
           if (fieldRef.asField.name.text == 'name') {
-            Constant name = constant.fieldValues[fieldRef];
+            Constant? name = constant.fieldValues[fieldRef];
             return name is StringConstant &&
                 name.value == 'flutter:keep-to-string';
           }
@@ -57,13 +57,12 @@ class ToStringVisitor extends RecursiveVisitor {
   void visitProcedure(Procedure node) {
     if (node.name.text == 'toString' &&
         node.enclosingClass != null &&
-        node.enclosingLibrary != null &&
         !node.isStatic &&
         !node.isAbstract &&
-        !node.enclosingClass.isEnum &&
+        !node.enclosingClass!.isEnum &&
         _isInTargetPackage(node) &&
         !_hasKeepAnnotation(node)) {
-      node.function.body.replaceWith(
+      node.function.body!.replaceWith(
         ReturnStatement(
           SuperMethodInvocation(
             node.name,

@@ -30,12 +30,15 @@ String b = "Test";
     final pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0, 0, 6),
+      plugin.Location(pluginAnalyzedFilePath, 0, 6, 0, 0,
+          endLine: 0, endColumn: 6),
       'Test error from plugin',
       'ERR1',
       contextMessages: [
-        plugin.DiagnosticMessage('Related error',
-            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12, 1, 16))
+        plugin.DiagnosticMessage(
+            'Related error',
+            plugin.Location(pluginAnalyzedFilePath, 31, 4, 1, 12,
+                endLine: 1, endColumn: 16))
       ],
     );
     final pluginResult =
@@ -317,7 +320,7 @@ version: latest
     final pluginError = plugin.AnalysisError(
       plugin.AnalysisErrorSeverity.ERROR,
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
-      plugin.Location(mainFilePath, 0, 1, 0, 0, 0, 1),
+      plugin.Location(mainFilePath, 0, 1, 0, 0, endLine: 0, endColumn: 1),
       pluginErrorMessage,
       'ERR1',
     );

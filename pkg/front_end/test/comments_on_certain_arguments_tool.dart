@@ -181,13 +181,6 @@ class InvocationVisitor extends RecursiveVisitor {
     super.visitProcedure(node);
   }
 
-  void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-    if (node.interfaceTargetReference?.node != null) {
-      note(node.interfaceTargetReference?.node, node.arguments, node);
-    }
-  }
-
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
     note(node.interfaceTargetReference.node, node.arguments, node);
@@ -226,8 +219,15 @@ class InvocationVisitor extends RecursiveVisitor {
       } else if (arguments.positional[i] is ListLiteral) {
         ListLiteral literal = arguments.positional[i];
         if (literal.expressions.isEmpty) wantComment = true;
-      } else if (arguments.positional[i] is MethodInvocation) {
-        MethodInvocation methodInvocation = arguments.positional[i];
+      } else if (arguments.positional[i] is InstanceInvocation) {
+        InstanceInvocation methodInvocation = arguments.positional[i];
+        if (methodInvocation.receiver is NullLiteral ||
+            methodInvocation.receiver is IntLiteral ||
+            methodInvocation.receiver is BoolLiteral) {
+          wantComment = true;
+        }
+      } else if (arguments.positional[i] is DynamicInvocation) {
+        DynamicInvocation methodInvocation = arguments.positional[i];
         if (methodInvocation.receiver is NullLiteral ||
             methodInvocation.receiver is IntLiteral ||
             methodInvocation.receiver is BoolLiteral) {

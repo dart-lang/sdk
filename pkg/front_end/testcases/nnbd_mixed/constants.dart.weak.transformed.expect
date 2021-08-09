@@ -81,8 +81,8 @@ static method id<T extends core::Object* = dynamic>(con::id::T* t) → con::id::
   return t;
 
 constants  {
-  #C1 = tearoff con::id
-  #C2 = partial-instantiation con::id <core::int*>
+  #C1 = static-tearoff con::id
+  #C2 = instantiation con::id <core::int*>
   #C3 = 0
   #C4 = con::Class<core::int*> {field:#C3}
   #C5 = <core::int*>[#C3]
@@ -94,7 +94,7 @@ constants  {
   #C11 = <dynamic>[#C3, #C10]
   #C12 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C11}
   #C13 = true
-  #C14 = tearoff core::identical
+  #C14 = static-tearoff core::identical
 }
 
 

@@ -48,5 +48,5 @@ static method Extension|staticMethod() → void {}
 
 constants  {
   #C1 = 42
-  #C2 = tearoff mai::Extension|staticMethod
+  #C2 = static-tearoff mai::Extension|staticMethod
 }

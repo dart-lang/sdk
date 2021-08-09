@@ -34,5 +34,5 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::make
+  #C1 = static-tearoff self::make
 }

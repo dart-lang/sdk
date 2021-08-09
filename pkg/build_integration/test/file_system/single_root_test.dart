@@ -13,7 +13,7 @@ main() {
       'single-root', root.resolve('A/B'), new MemoryFileSystem(root));
 
   SingleRootFileSystemEntity entityOf(String uri) =>
-      fileSystem.entityForUri(Uri.parse(uri));
+      fileSystem.entityForUri(Uri.parse(uri)) as SingleRootFileSystemEntity;
 
   String effectiveUriOf(String uri) => '${entityOf(uri).delegate.uri}';
 

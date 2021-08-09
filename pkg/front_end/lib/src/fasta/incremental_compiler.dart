@@ -1918,7 +1918,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (cls == null) return null;
       }
 
-      userCode!.loader.seenMessages.clear();
+      userCode!.loader.resetSeenMessages();
 
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {

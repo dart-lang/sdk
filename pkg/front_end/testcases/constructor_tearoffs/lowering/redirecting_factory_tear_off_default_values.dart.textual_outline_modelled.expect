@@ -1,0 +1,17 @@
+class Class1 {
+  Class1._([this.field = 42]);
+  factory Class1([int field]) = Class1._;
+  final int field;
+}
+
+class Class2 {
+  Class2._({this.field: 42});
+  factory Class2({int field}) = Class2._;
+  final int field;
+}
+
+expect(expected, actual) {}
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}
+void testDefaultValues() {}

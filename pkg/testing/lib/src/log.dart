@@ -78,19 +78,19 @@ abstract class Logger {
 class StdoutLogger implements Logger {
   const StdoutLogger();
 
-  void logTestStart(int completed, int failed, int total, Suite suite,
-      TestDescription description) {}
+  void logTestStart(int completed, int failed, int total, Suite? suite,
+      TestDescription? description) {}
 
-  void logTestComplete(int completed, int failed, int total, Suite suite,
-      TestDescription description) {
+  void logTestComplete(int completed, int failed, int total, Suite? suite,
+      TestDescription? description) {
     String message = formatProgress(completed, failed, total);
     if (suite != null) {
-      message += ": ${formatTestDescription(suite, description)}";
+      message += ": ${formatTestDescription(suite, description!)}";
     }
     logProgress(message);
   }
 
-  void logStepStart(int completed, int failed, int total, Suite suite,
+  void logStepStart(int completed, int failed, int total, Suite? suite,
       TestDescription description, Step step) {
     String message = formatProgress(completed, failed, total);
     if (suite != null) {
@@ -102,7 +102,7 @@ class StdoutLogger implements Logger {
     logProgress(message);
   }
 
-  void logStepComplete(int completed, int failed, int total, Suite suite,
+  void logStepComplete(int completed, int failed, int total, Suite? suite,
       TestDescription description, Step step) {
     if (!step.isAsync) return;
     String message = formatProgress(completed, failed, total);
@@ -152,7 +152,7 @@ class StdoutLogger implements Logger {
   void logUnexpectedResult(Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {
     print("${eraseLine}UNEXPECTED: ${suite.name}/${description.shortName}");
-    Uri statusFile = suite.statusFile;
+    Uri? statusFile = suite.statusFile;
     if (statusFile != null) {
       String path = statusFile.toFilePath();
       if (result.outcome == Expectation.Pass) {
@@ -186,6 +186,7 @@ class StdoutLogger implements Logger {
 
   void logUncaughtError(error, StackTrace stackTrace) {
     logMessage(error);
+    // ignore: unnecessary_null_comparison
     if (stackTrace != null) {
       logMessage(stackTrace);
     }

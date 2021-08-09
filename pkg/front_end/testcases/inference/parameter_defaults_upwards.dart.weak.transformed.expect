@@ -34,6 +34,6 @@ static method main() → dynamic {
 constants  {
   #C1 = 0
   #C2 = <core::int*>[#C1]
-  #C3 = tearoff self::optional_toplevel
-  #C4 = tearoff self::named_toplevel
+  #C3 = static-tearoff self::optional_toplevel
+  #C4 = static-tearoff self::named_toplevel
 }

@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -24,6 +23,7 @@ import 'package:analyzer/src/error/codes.dart';
 ///
 /// The client must set [nameScope] before calling [resolveTypeName].
 class TypeNameResolver {
+  final LibraryElementImpl _libraryElement;
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
@@ -56,9 +56,10 @@ class TypeNameResolver {
   /// If [resolveTypeName] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
+  TypeNameResolver(this._libraryElement, TypeProvider typeProvider,
       this.isNonNullableByDefault, this.errorReporter)
-      : dynamicType = typeProvider.dynamicType;
+      : typeSystem = _libraryElement.typeSystem,
+        dynamicType = typeProvider.dynamicType;
 
   bool get _genericMetadataIsEnabled =>
       enclosingClass!.library.featureSet.isEnabled(Feature.generic_metadata);
@@ -285,7 +286,7 @@ class TypeNameResolver {
   void _resolveToElement(TypeNameImpl node, Element? element) {
     if (element == null) {
       node.type = dynamicType;
-      if (!nameScope.shouldIgnoreUndefined(node.name)) {
+      if (!_libraryElement.shouldIgnoreUndefinedIdentifier(node.name)) {
         _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
       return;

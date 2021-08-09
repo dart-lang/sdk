@@ -19,7 +19,7 @@ List<int> buffer = <int>[
 main() {
   FooKeep foo = FooKeep.fromBuffer(buffer);
   test('Kept values are restored correctly', () {
-    expect(foo.mapKeep['foo'].aKeep, 42);
+    expect(foo.mapKeep['foo']!.aKeep, 42);
     expect(foo.barKeep.aKeep, 5);
     expect(foo.aKeep, 43);
     expect(foo.hasHasKeep(), true);

@@ -45,14 +45,14 @@ class ProtobufHandler {
   final Procedure _builderInfoAddMethod;
 
   // Type of BuilderInfo.add<Null>().
-  FunctionType _typeOfBuilderInfoAddOfNull;
+  late FunctionType _typeOfBuilderInfoAddOfNull;
 
   final _messageClasses = <Class, _MessageClass>{};
   final _invalidatedClasses = <_MessageClass>{};
 
   /// Creates [ProtobufHandler] instance for [component].
   /// Returns null if protobuf library is not used.
-  static ProtobufHandler forComponent(
+  static ProtobufHandler? forComponent(
       Component component, CoreTypes coreTypes) {
     final libraryIndex = LibraryIndex(component, [protobufLibraryUri]);
     if (!libraryIndex.containsLibrary(protobufLibraryUri)) {
@@ -66,12 +66,12 @@ class ProtobufHandler {
             libraryIndex.getClass(protobufLibraryUri, 'GeneratedMessage'),
         _tagNumberClass =
             libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
-        _tagNumberField = libraryIndex.getMember(
-            protobufLibraryUri, 'TagNumber', 'tagNumber'),
+        _tagNumberField =
+            libraryIndex.getField(protobufLibraryUri, 'TagNumber', 'tagNumber'),
         _builderInfoClass =
             libraryIndex.getClass(protobufLibraryUri, 'BuilderInfo'),
-        _builderInfoAddMethod =
-            libraryIndex.getMember(protobufLibraryUri, 'BuilderInfo', 'add') {
+        _builderInfoAddMethod = libraryIndex.getProcedure(
+            protobufLibraryUri, 'BuilderInfo', 'add') {
     final functionType = _builderInfoAddMethod.getterType as FunctionType;
     _typeOfBuilderInfoAddOfNull = Substitution.fromPairs(
             functionType.typeParameters, const <DartType>[NullType()])
@@ -128,8 +128,9 @@ class ProtobufHandler {
   List<Field> getInvalidatedFields() {
     final fields = <Field>[];
     for (var cls in _invalidatedClasses) {
-      if (cls._metadataField != null) {
-        fields.add(cls._metadataField);
+      final field = cls._metadataField;
+      if (field != null) {
+        fields.add(field);
       }
     }
     _invalidatedClasses.clear();
@@ -141,14 +142,15 @@ class ProtobufHandler {
     ++Statistics.protobufMetadataInitializersUpdated;
     Statistics.protobufMetadataFieldsPruned -= cls.numberOfFieldsPruned;
 
-    final field = cls._metadataField;
-    if (cls._originalInitializer == null) {
-      cls._originalInitializer = field.initializer;
+    final field = cls._metadataField!;
+    Expression? originalInitializer = cls._originalInitializer;
+    if (originalInitializer == null) {
+      cls._originalInitializer = originalInitializer = field.initializer!;
     }
     final cloner = CloneVisitorNotMembers();
-    field.initializer = cloner.clone(cls._originalInitializer)..parent = field;
+    field.initializer = cloner.clone(originalInitializer)..parent = field;
     final transformer = _MetadataTransformer(this, cls);
-    field.initializer.accept(transformer);
+    field.initializer!.accept(transformer);
     _invalidatedClasses.remove(cls);
 
     cls.numberOfFieldsPruned = transformer.numberOfFieldsPruned;
@@ -166,8 +168,8 @@ class ProtobufHandler {
 }
 
 class _MessageClass {
-  Field _metadataField;
-  Expression _originalInitializer;
+  Field? _metadataField;
+  Expression? _originalInitializer;
   final _usedTags = <int>{};
   int numberOfFieldsPruned = 0;
 }

@@ -279,7 +279,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
       this.severity, this.uri, this.involvedFiles, this.codeName);
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
-    Map<String, Object> decoded = json.decode(jsonString);
+    Map<String, Object?> decoded = json.decode(jsonString);
     List<String> ansiFormatted =
         new List<String>.from(_asListOfString(decoded["ansiFormatted"]));
     List<String> plainTextFormatted =

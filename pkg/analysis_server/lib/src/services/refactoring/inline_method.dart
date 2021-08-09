@@ -363,7 +363,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     _methodNode = methodNode;
 
     var resolvedUnit = declaration.resolvedUnit!;
-    _methodUnit = resolvedUnit.unit!;
+    _methodUnit = resolvedUnit.unit;
     _methodUtils = CorrectionUtils(resolvedUnit);
 
     if (methodNode is MethodDeclaration) {

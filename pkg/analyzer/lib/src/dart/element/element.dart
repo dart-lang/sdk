@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -610,6 +612,42 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   bool get isDartCoreObject => !isMixin && supertype == null;
 
+  bool get isEnumLike {
+    // Must be a concrete class.
+    if (isAbstract || isMixin) {
+      return false;
+    }
+
+    // With only private non-factory constructors.
+    for (var constructor in constructors) {
+      if (constructor.isPublic || constructor.isFactory) {
+        return false;
+      }
+    }
+
+    // With 2+ static const fields with the type of this class.
+    var numberOfElements = 0;
+    for (var field in fields) {
+      if (field.isStatic && field.isConst && field.type == thisType) {
+        numberOfElements++;
+      }
+    }
+    if (numberOfElements < 2) {
+      return false;
+    }
+
+    // No subclasses in the library.
+    for (var unit in library.units) {
+      for (var class_ in unit.classes) {
+        if (class_.supertype?.element == this) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   @override
   bool get isMixinApplication {
     return hasModifier(Modifier.MIXIN_APPLICATION);
@@ -910,6 +948,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   static ConstructorElement? getNamedConstructorFromList(
       String name, List<ConstructorElement> constructors) {
+    if (name == 'new') {
+      // An unnamed constructor declared with `C.new(` is modeled as unnamed.
+      name = '';
+    }
     for (ConstructorElement element in constructors) {
       if (element.name == name) {
         return element;
@@ -1367,13 +1409,16 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
-    implements ConstructorElement {
+    implements ConstructorElement, HasMacroGenerationData {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
   /// The initializers for this constructor (used for evaluating constant
   /// instance creation expressions).
   List<ConstructorInitializer> _constantInitializers = const [];
+
+  @override
+  MacroGenerationData? macro;
 
   @override
   int? periodOffset;
@@ -2009,9 +2054,6 @@ abstract class ElementImpl implements Element {
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? _codeLength;
-
-  /// The language version for the library.
-  LibraryLanguageVersion? _languageVersion;
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
@@ -3435,6 +3477,13 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   }
 }
 
+/// This interface is implemented by [Element]s that can be added by macros.
+abstract class HasMacroGenerationData {
+  /// If this element was added by a macro, the code of a declaration that
+  /// was produced by the macro.
+  MacroGenerationData? macro;
+}
+
 /// A concrete implementation of a [HideElementCombinator].
 class HideElementCombinatorImpl implements HideElementCombinator {
   @override
@@ -3574,6 +3623,9 @@ class LibraryElementImpl extends _ExistingElementImpl
 
   @override
   final AnalysisSession session;
+
+  /// The language version for the library.
+  LibraryLanguageVersion? _languageVersion;
 
   bool hasTypeProviderSystemSet = false;
 
@@ -3958,6 +4010,64 @@ class LibraryElementImpl extends _ExistingElementImpl
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
+  /// Indicates whether it is unnecessary to report an undefined identifier
+  /// error for an identifier reference with the given [name] and optional
+  /// [prefix].
+  ///
+  /// This method is intended to reduce spurious errors in circumstances where
+  /// an undefined identifier occurs as the result of a missing (most likely
+  /// code generated) file.  It will only return `true` in a circumstance where
+  /// the current library is guaranteed to have at least one other error (due to
+  /// a missing part or import), so there is no risk that ignoring the undefined
+  /// identifier would cause an invalid program to be treated as valid.
+  bool shouldIgnoreUndefined({
+    required String? prefix,
+    required String name,
+  }) {
+    for (var importElement in imports) {
+      if (importElement.prefix?.name == prefix &&
+          importElement.importedLibrary?.isSynthetic != false) {
+        var showCombinators = importElement.combinators
+            .whereType<ShowElementCombinator>()
+            .toList();
+        if (prefix != null && showCombinators.isEmpty) {
+          return true;
+        }
+        for (var combinator in showCombinators) {
+          if (combinator.shownNames.contains(name)) {
+            return true;
+          }
+        }
+      }
+    }
+
+    if (prefix == null && name.startsWith(r'_$')) {
+      for (var partElement in parts) {
+        if (partElement.isSynthetic && isGeneratedSource(partElement.source)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
+  /// given (possibly prefixed) identifier [node].
+  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
+    if (node is PrefixedIdentifier) {
+      return shouldIgnoreUndefined(
+        prefix: node.prefix.name,
+        name: node.identifier.name,
+      );
+    }
+
+    return shouldIgnoreUndefined(
+      prefix: null,
+      name: (node as SimpleIdentifier).name,
+    );
+  }
+
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
     if (isNonNullableByDefault) return element;
@@ -4049,8 +4159,36 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
       visitor.visitLocalVariableElement(this);
 }
 
+/// Information about a macro-produced [Element].
+class MacroGenerationData {
+  /// The sequential id of this macro-produced element, for an element created
+  /// for a declaration that was macro-generated later this value is greater.
+  ///
+  /// This is different from [ElementImpl.id], which is also incrementing,
+  /// but shows the order in which elements were built from declarations,
+  /// not the order of declarations, and we process all field declarations
+  /// before method declarations.
+  final int id;
+
+  /// The code that was produced by the macro. It is used to compose full
+  /// code of a unit to display to the user, so that new declarations are
+  /// added to the unit or existing classes.
+  ///
+  /// When a class is generated, its code might have some members, or might
+  /// be empty, and new elements might be macro-generated into it.
+  final String code;
+
+  /// When we build elements from macro-produced code, we remember informative
+  /// data, such as offsets - to store it into bytes. This field is set to
+  /// an empty list when reading from bytes.
+  final Uint8List informative;
+
+  MacroGenerationData(this.id, this.code, this.informative);
+}
+
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+class MethodElementImpl extends ExecutableElementImpl
+    implements MethodElement, HasMacroGenerationData {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4059,6 +4197,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
+
+  @override
+  MacroGenerationData? macro;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
@@ -4863,10 +5004,13 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement {
+    implements PropertyAccessorElement, HasMacroGenerationData {
   /// The variable associated with this accessor.
   @override
   late PropertyInducingElement variable;
+
+  @override
+  MacroGenerationData? macro;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -5423,23 +5567,29 @@ class TypeAliasElementImpl extends _ExistingElementImpl
         parameters: type.parameters,
         returnType: type.returnType,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is InterfaceType) {
       return InterfaceTypeImpl(
         element: type.element,
         typeArguments: type.typeArguments,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else if (type is TypeParameterType) {
       return TypeParameterTypeImpl(
         element: type.element,
         nullabilitySuffix: resultNullability,
-        aliasElement: this,
-        aliasArguments: typeArguments,
+        alias: InstantiatedTypeAliasElementImpl(
+          element: this,
+          typeArguments: typeArguments,
+        ),
       );
     } else {
       return (type as TypeImpl).withNullability(resultNullability);

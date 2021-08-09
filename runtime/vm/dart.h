@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 #include "include/dart_tools_api.h"
 #include "vm/allocation.h"
+#include "vm/isolate.h"
 #include "vm/snapshot.h"
 
 namespace dart {

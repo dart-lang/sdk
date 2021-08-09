@@ -1049,32 +1049,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
         node, node.receiver, receiverType, selector, arguments, null);
   }
 
-  @override
-  TypeInformation visitMethodInvocation(ir.MethodInvocation node) {
-    Selector selector = _elementMap.getSelector(node);
-    ir.Expression receiver = node.receiver;
-    if (receiver is ir.VariableGet &&
-        receiver.variable.parent is ir.FunctionDeclaration) {
-      // TODO(johnniwinther). This triggers the computation of the mask for the
-      // receiver of the call to `call`. Remove this when the ssa builder
-      // recognizes local function invocation directly.
-      _typeOfReceiver(node, node.receiver);
-      // This is an invocation of a named local function.
-      return _handleLocalFunctionInvocation(
-          node, receiver.variable.parent, node.arguments, selector);
-    }
-
-    TypeInformation receiverType = visit(receiver);
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (selector.name == '==') {
-      return _handleEqualsCall(node, node.receiver, receiverType,
-          node.arguments.positional.first, arguments.positional[0]);
-    }
-
-    return _handleMethodInvocation(node, node.receiver, receiverType, selector,
-        arguments, node.interfaceTarget);
-  }
-
   ir.VariableDeclaration _getVariableDeclaration(ir.Expression node) {
     return node is ir.VariableGet ? node.variable : null;
   }
@@ -1671,12 +1645,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     return _handlePropertyGet(node, node.receiver);
   }
 
-  @override
-  TypeInformation visitPropertyGet(ir.PropertyGet node) {
-    return _handlePropertyGet(node, node.receiver,
-        interfaceTarget: node.interfaceTarget);
-  }
-
   TypeInformation _handlePropertySet(
       ir.Expression node, ir.Expression receiver, ir.Expression value,
       {ir.Member interfaceTarget}) {
@@ -1713,12 +1681,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation>
     handleDynamicSet(node, selector, mask, receiverType, rhsType,
         _getVariableDeclaration(receiver));
     return rhsType;
-  }
-
-  @override
-  TypeInformation visitPropertySet(ir.PropertySet node) {
-    return _handlePropertySet(node, node.receiver, node.value,
-        interfaceTarget: node.interfaceTarget);
   }
 
   @override
@@ -2314,7 +2276,7 @@ class TypeInformationConstantVisitor
 
   @override
   TypeInformation visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
-    return builder.createStaticGetTypeInformation(node, node.procedure);
+    return builder.createStaticGetTypeInformation(node, node.target);
   }
 
   @override

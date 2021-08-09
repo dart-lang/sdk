@@ -9,7 +9,6 @@
 // work for Object methods.
 
 import "package:expect/expect.dart";
-import "../compiler_annotations.dart";
 
 main() {
   var a = true ? null : 42;
@@ -17,7 +16,8 @@ main() {
   foo(a);
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 foo(a) {
   var f = () => 42;
   Expect.throwsNoSuchMethodError(() => a + 42);

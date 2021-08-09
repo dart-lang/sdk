@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 library fasta.tool.entry_points;
 
 import "dart:convert" show JsonEncoder;
@@ -49,8 +47,10 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   final List<TypeParameter> usedTypeParameters = <TypeParameter>[];
 
   String serializeTypeChecks(List<Object> typeChecks) {
-    for (List<Object> list in typeChecks) {
-      writeTypeCheck(list[0], list[1], list[2]);
+    for (Object list in typeChecks) {
+      List<Object> typeCheck = list as List<Object>;
+      writeTypeCheck(typeCheck[0] as DartType, typeCheck[1] as DartType,
+          typeCheck[2] as bool);
     }
     writeClasses();
     return jsonEncode(this);
@@ -133,11 +133,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
   }
 
-  void writeClass(Class cls, Set<Class> writtenClasses) {
+  void writeClass(Class? cls, Set<Class> writtenClasses) {
     if (cls == null || !writtenClasses.add(cls)) return;
-    Supertype supertype = cls.supertype;
+    Supertype? supertype = cls.supertype;
     writeClass(supertype?.classNode, writtenClasses);
-    Supertype mixedInType = cls.mixedInType;
+    Supertype? mixedInType = cls.mixedInType;
     writeClass(mixedInType?.classNode, writtenClasses);
     for (Supertype implementedType in cls.implementedTypes) {
       writeClass(implementedType.classNode, writtenClasses);
@@ -164,7 +164,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       implementedType.asInterfaceType.accept1(this, sb);
       first = false;
     }
-    Procedure callOperator;
+    Procedure? callOperator;
     for (Procedure procedure in cls.procedures) {
       if (procedure.name.text == "call") {
         callOperator = procedure;
@@ -183,11 +183,11 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   String computeName(TreeNode node) {
-    String name = nodeNames[node];
+    String? name = nodeNames[node];
     if (name != null) return name;
     if (node is Class) {
       Library library = node.enclosingLibrary;
-      String uriString = "${library?.importUri}";
+      String uriString = "${library.importUri}";
       if (uriString == "dart:core" || uriString == "dart:async") {
         if (!usedNames.add(node.name)) {
           throw "Class name conflict for $node";
@@ -336,7 +336,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     sb.write(name);
     if (node.promotedBound != null) {
       sb.write(" & ");
-      node.promotedBound.accept1(this, sb);
+      node.promotedBound!.accept1(this, sb);
     }
   }
 

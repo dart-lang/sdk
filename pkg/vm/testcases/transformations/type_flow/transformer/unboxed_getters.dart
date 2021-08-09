@@ -13,58 +13,58 @@ void use(dynamic object) {
 }
 
 abstract class BI1 {
-  int get value;
+  int? get value;
 }
 
 class BI1A implements BI1 {
-  final int value;
+  final int? value;
   BI1A(this.value);
 }
 
 class BI1B implements BI1 {
-  int get value => null;
+  int? get value => null;
 }
 
 abstract class BI2 {
-  int get value;
+  int? get value;
 }
 
 class BI2A implements BI2 {
-  final int value;
+  final int? value;
   BI2A(this.value);
 }
 
 class BI2B implements BI2 {
-  int get value => smiOrMint;
+  int? get value => smiOrMint;
 }
 
 abstract class BI3 {
-  int get value;
-  set value(int value);
+  int? get value;
+  set value(int? value);
 }
 
 class BI3A implements BI3 {
-  int value;
+  int? value;
   BI3A(this.value);
 }
 
 class BI3B implements BI3 {
-  int get value => smiOrMint;
-  set value(int v) {}
+  int? get value => smiOrMint;
+  set value(int? v) {}
 }
 
 abstract class UBI {
-  int value;
+  int? value;
 }
 
 class UBIA implements UBI {
-  int value;
+  int? value;
   UBIA(this.value);
 }
 
 class UBIB implements UBI {
-  int get value => smiOrMint;
-  set value(int v) {}
+  int? get value => smiOrMint;
+  set value(int? v) {}
 }
 
 main() {

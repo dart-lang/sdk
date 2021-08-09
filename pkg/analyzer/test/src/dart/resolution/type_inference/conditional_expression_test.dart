@@ -9,27 +9,13 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConditionalExpressionTest);
-    defineReflectiveTests(ConditionalExpressionWithNullSafetyTest);
+    defineReflectiveTests(ConditionalExpressionWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ConditionalExpressionTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  test_upward() async {
-    await resolveTestCode('''
-void f(bool a, int b, int c) {
-  var d = a ? b : c;
-  print(d);
-}
-''');
-    assertType(findNode.simple('d)'), 'int');
-  }
-}
-
-@reflectiveTest
-class ConditionalExpressionWithNullSafetyTest extends ConditionalExpressionTest
-    with WithNullSafetyMixin {
+    with ConditionalExpressionTestCases {
   @failingTest
   test_downward() async {
     await resolveTestCode('''
@@ -51,3 +37,20 @@ void f(bool b) {
     assertType(findNode.conditionalExpression('b ?'), 'int?');
   }
 }
+
+mixin ConditionalExpressionTestCases on PubPackageResolutionTest {
+  test_upward() async {
+    await resolveTestCode('''
+void f(bool a, int b, int c) {
+  var d = a ? b : c;
+  print(d);
+}
+''');
+    assertType(findNode.simple('d)'), 'int');
+  }
+}
+
+@reflectiveTest
+class ConditionalExpressionWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ConditionalExpressionTestCases, WithoutNullSafetyMixin {}

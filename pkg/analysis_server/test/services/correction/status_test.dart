@@ -98,7 +98,7 @@ class RefactoringStatusTest {
   }
 
   void test_addFatalError_withLocation() {
-    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
+    var location = Location('/test.dart', 1, 2, 3, 4, endLine: 5, endColumn: 6);
     var refactoringStatus = RefactoringStatus();
     // initial state
     expect(refactoringStatus.severity, null);
@@ -210,7 +210,7 @@ class RefactoringStatusTest {
   }
 
   void test_newError() {
-    var location = Location('/test.dart', 1, 2, 3, 4, 5, 6);
+    var location = Location('/test.dart', 1, 2, 3, 4, endLine: 5, endColumn: 6);
     var refactoringStatus = RefactoringStatus.error('msg', location);
     var problem = refactoringStatus.problem!;
     var problemLocation = problem.location!;

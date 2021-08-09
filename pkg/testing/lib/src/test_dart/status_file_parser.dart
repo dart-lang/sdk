@@ -29,7 +29,7 @@ class StatusFile {
 class Section {
   final StatusFile statusFile;
 
-  final BooleanExpression condition;
+  final BooleanExpression? condition;
   final List<TestRule> testRules;
   final int lineNumber;
 
@@ -40,7 +40,7 @@ class Section {
       : testRules = <TestRule>[];
 
   bool isEnabled(Map<String, String> environment) =>
-      condition == null || condition.evaluate(environment);
+      condition == null || condition!.evaluate(environment);
 
   String toString() {
     return "Section: $condition";
@@ -93,17 +93,17 @@ void ReadConfigurationInto(Path path, List<Section> sections, void onDone()) {
 
   lines.listen((String line) {
     lineNumber++;
-    Match match = SplitComment.firstMatch(line);
-    line = (match == null) ? "" : match[1];
+    Match? match = SplitComment.firstMatch(line);
+    line = (match == null) ? "" : match[1]!;
     line = line.trim();
     if (line.isEmpty) return;
 
     // Extract the comment to get the issue number if needed.
-    String comment = (match == null || match[2] == null) ? "" : match[2];
+    String comment = (match == null || match[2] == null) ? "" : match[2]!;
 
     match = HeaderPattern.firstMatch(line);
     if (match != null) {
-      String condition_string = match[1].trim();
+      String condition_string = match[1]!.trim();
       List<String> tokens = new Tokenizer(condition_string).tokenize();
       ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
       currentSection =
@@ -114,21 +114,21 @@ void ReadConfigurationInto(Path path, List<Section> sections, void onDone()) {
 
     match = RulePattern.firstMatch(line);
     if (match != null) {
-      String name = match[1].trim();
+      String name = match[1]!.trim();
       // TODO(whesse): Handle test names ending in a wildcard (*).
-      String expression_string = match[2].trim();
+      String expression_string = match[2]!.trim();
       List<String> tokens = new Tokenizer(expression_string).tokenize();
       SetExpression expression =
           new ExpressionParser(new Scanner(tokens)).parseSetExpression();
 
       // Look for issue number in comment.
-      String issueString = null;
+      String? issueString = null;
       match = IssueNumberPattern.firstMatch(comment);
       if (match != null) {
         issueString = match[1];
         if (issueString == null) issueString = match[2];
       }
-      int issue = issueString != null ? int.parse(issueString) : null;
+      int? issue = issueString != null ? int.parse(issueString) : null;
       currentSection.testRules
           .add(new TestRule(name, expression, issue, lineNumber));
       return;
@@ -141,7 +141,7 @@ void ReadConfigurationInto(Path path, List<Section> sections, void onDone()) {
 class TestRule {
   String name;
   SetExpression expression;
-  int issue;
+  int? issue;
   int lineNumber;
 
   TestRule(this.name, this.expression, this.issue, this.lineNumber);
@@ -161,8 +161,8 @@ class TestExpectations {
 
   Map<String, Set<Expectation>> _map;
   bool _preprocessed = false;
-  Map<String, RegExp> _regExpCache;
-  Map<String, List<RegExp>> _keyToRegExps;
+  Map<String, RegExp>? _regExpCache;
+  Map<String, List<RegExp>>? _keyToRegExps;
 
   /**
    * Create a TestExpectations object. See the [expectations] method
@@ -203,7 +203,7 @@ class TestExpectations {
     _preprocessForMatching();
 
     _map.forEach((key, expectation) {
-      List regExps = _keyToRegExps[key];
+      List<RegExp> regExps = _keyToRegExps![key]!;
       if (regExps.length > splitFilename.length) return;
       for (var i = 0; i < regExps.length; i++) {
         if (!regExps[i].hasMatch(splitFilename[i])) return;
@@ -231,20 +231,19 @@ class TestExpectations {
     _regExpCache = {};
 
     _map.forEach((key, expectations) {
-      if (_keyToRegExps[key] != null) return;
+      if (_keyToRegExps![key] != null) return;
       var splitKey = key.split('/');
-      var regExps = new List<RegExp>.filled(splitKey.length, null);
-      for (var i = 0; i < splitKey.length; i++) {
+      var regExps = new List<RegExp>.generate(splitKey.length, (int i) {
         var component = splitKey[i];
-        var regExp = _regExpCache[component];
+        var regExp = _regExpCache![component];
         if (regExp == null) {
           var pattern = "^${splitKey[i]}\$".replaceAll('*', '.*');
           regExp = new RegExp(pattern);
-          _regExpCache[component] = regExp;
+          _regExpCache![component] = regExp;
         }
-        regExps[i] = regExp;
-      }
-      _keyToRegExps[key] = regExps;
+        return regExp;
+      }, growable: false);
+      _keyToRegExps![key] = regExps;
     });
 
     _regExpCache = null;

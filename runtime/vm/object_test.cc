@@ -2532,8 +2532,8 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const VariableIndex first_local_index(-1);
   bool found_captured_vars = false;
   VariableIndex next_index = parent_scope->AllocateVariables(
-      first_parameter_index, num_parameters, first_local_index, NULL,
-      &found_captured_vars);
+      Function::null_function(), first_parameter_index, num_parameters,
+      first_local_index, NULL, &found_captured_vars);
   // Variables a, c and var_ta are captured, therefore are not allocated in
   // frame.
   EXPECT_EQ(0, next_index.value() -
@@ -4345,7 +4345,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSON) {
 
 ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   // WARNING: This MUST be big enough for the serialised JSON string.
-  const int kBufferSize = 1024;
+  const int kBufferSize = 4096;
   char buffer[kBufferSize];
   Isolate* isolate = Isolate::Current();
 
@@ -4396,6 +4396,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
+        "\"implicit\":false,"
         "\"_intrinsic\":false,\"_native\":false,"
         "\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -4543,18 +4544,42 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("objects", buffer, buffer);
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_List@", buffer, buffer);
-    StripTokenPositions(buffer);
-    EXPECT_STREQ(
+    ElideJSONSubstring("_TypeParameter@", buffer, buffer);
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"Array\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_List\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
-        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
-        "patch\\/array.dart\",\"_kind\":\"kernel\"}"
-        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-patch\\/"
+        "array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":"
+        "7758},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"},\"typeParameters\":[{"
+        "\"type\":\"@"
+        "Instance\",\"_vmType\":\"TypeParameter\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_TypeParameter\",\"_"
+        "vmName\":\"\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
+        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1584,"
+        "\"endTokenPos\":1729},\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":",
+        buffer);
+
+    EXPECT_SUBSTRING(
+        "\"kind\":\"TypeParameter\",\"id\":\"\",\"name\":\"X0\","
+        "\"parameterizedClass\":{\"type\":\"@Instance\",\"_vmType\":\"Class\","
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":"
+        "\"Null\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
+        "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:"
+        "core\\/"
+        "null.dart\",\"_kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":"
+        "1165},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
+        "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
         "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
         buffer);
   }
+  OS::PrintErr("\n\n\n");
   // GrowableObjectArray reference
   {
     JSONStream js;
@@ -4568,16 +4593,40 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_GrowableList@", buffer, buffer);
     StripTokenPositions(buffer);
-    EXPECT_STREQ(
+    ElideJSONSubstring("_TypeParameter@", buffer, buffer);
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"GrowableObjectArray\",\"class\":"
         "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
         "GrowableList\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"\",\"uri\":\"dart:core-patch\\/growable_array.dart\",\"_"
-        "kind\":\"kernel\"}},"
-        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"identityHashCode\":0,"
-        "\"kind\":\"List\",\"id\":\"\",\"length\":0}",
+        "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
+        "growable_array.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"},"
+        "\"typeParameters\":[{\"type\":\"@Instance\",\"_vmType\":"
+        "\"TypeParameter\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"_TypeParameter\",\"_vmName\":\""
+        "\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
+        "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/"
+        "type_patch.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":",
+        buffer);
+
+    EXPECT_SUBSTRING(
+        "\"kind\":\"TypeParameter\",\"id\":"
+        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core\\/"
+        "null.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
+        "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
+        "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",
         buffer);
   }
   // LinkedHashMap reference
@@ -4593,15 +4642,61 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_InternalLinkedHashMap@", buffer, buffer);
     StripTokenPositions(buffer);
-    EXPECT_STREQ(
+    ElideJSONSubstring("_TypeParameter@", buffer, buffer);
+    EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"LinkedHashMap\",\"class\":{"
         "\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_"
         "InternalLinkedHashMap\",\"_vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/compact_hash.dart\",\"_"
-        "kind\":\"kernel\"}},"
-        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"dart.collection\",\"uri\":\"dart:collection\"}},"
+        "\"id\":\"\",\"uri\":\"dart:collection-patch\\/"
+        "compact_hash.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.collection\",\"uri\":\"dart:"
+        "collection\"},\"typeParameters\":[{\"type\":\"@Instance\",\"_vmType\":"
+        "\"TypeParameter\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"_TypeParameter\",\"_vmName\":\""
+        "\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
+        "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-"
+        "patch\\/"
+        "type_patch.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":",
+        buffer);
+
+    EXPECT_SUBSTRING(
+        "\"kind\":\"TypeParameter\",\"id\":"
+        "\"\",\"name\":\"X0\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core\\/"
+        "null.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
+        "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}},{\"type\":"
+        "\"@Instance\",\"_vmType\":\"TypeParameter\",\"class\":{\"type\":\"@"
+        "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_TypeParameter\",\"_"
+        "vmName\":\"\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
+        "type_patch.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
+        "\"identityHashCode\":",
+        buffer);
+
+    EXPECT_SUBSTRING(
+        "\"kind\":\"TypeParameter\",\"id\":"
+        "\"\",\"name\":\"X1\",\"parameterizedClass\":{\"type\":\"@Instance\","
+        "\"_vmType\":\"Class\",\"class\":{\"type\":\"@Class\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"Null\",\"location\":{\"type\":"
+        "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+        "\"id\":\"\",\"uri\":\"dart:core\\/"
+        "null.dart\",\"_kind\":\"kernel\"}"
+        "},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
+        "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
         "\"identityHashCode\":0,\"kind\":\"Map\",\"id\":\"\",\"length\":0}",
         buffer);
   }
@@ -4779,8 +4874,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     const char* value_script,
     uint32_t hashcode_canonicalize_vm = kCalculateCanonizalizeHash,
     bool check_identity = true,
-    bool check_hashcode = true,
-    bool print_failure = true) {
+    bool check_hashcode = true) {
   auto kScriptChars = Utils::CStringUniquePtr(
       OS::SCreate(nullptr,
                   "%s"
@@ -4834,7 +4928,7 @@ static bool HashCodeEqualsCanonicalizeHash(
     success &= identity_hashcode_dart == hashcode_canonicalize_vm;
   }
 
-  if (!success && print_failure) {
+  if (!success) {
     LogBlock lb;
     THR_Print(
         "Dart hashCode or Dart identityHashCode does not equal VM "
@@ -4896,6 +4990,15 @@ TEST_CASE(HashCode_String) {
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript));
 }
 
+TEST_CASE(HashCode_Symbol) {
+  const char* kScript =
+      "value() {\n"
+      "  return #A;\n"
+      "}\n";
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+                                        /*check_identity=*/false));
+}
+
 TEST_CASE(HashCode_True) {
   const char* kScript =
       "value() {\n"
@@ -4924,6 +5027,64 @@ TEST_CASE(HashCode_Type_Int) {
       "}\n";
   EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
                                         /*check_identity=*/false));
+}
+
+// Because we want to reuse CanonicalizeHash for hashCode, we should not have
+// collisions.
+TEST_CASE(CanonicalizeHash_Const_Instances) {
+  const char* kScript =
+      "class A {\n"
+      "  final int n;\n"
+      "  \n"
+      "  const A(this.n);\n"
+      "}\n"
+      "\n"
+      "class B {\n"
+      "  final int n;\n"
+      "  \n"
+      "  const B(this.n);\n"
+      "}\n"
+      "\n"
+      "valueA() {\n"
+      "  return const A(5);\n"
+      "}\n"
+      "\n"
+      "valueB() {\n"
+      "  return const B(5);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  Dart_Handle value_a_result =
+      Dart_Invoke(lib, NewString("valueA"), 0, nullptr);
+  EXPECT_VALID(value_a_result);
+  Dart_Handle value_b_result =
+      Dart_Invoke(lib, NewString("valueB"), 0, nullptr);
+  EXPECT_VALID(value_b_result);
+
+  TransitionNativeToVM transition(Thread::Current());
+
+  const auto& value_a_dart = Instance::CheckedHandle(
+      Thread::Current()->zone(), Api::UnwrapHandle(value_a_result));
+  const auto& value_b_dart = Instance::CheckedHandle(
+      Thread::Current()->zone(), Api::UnwrapHandle(value_b_result));
+
+  const uint32_t canonicalize_hash_a = value_a_dart.CanonicalizeHash();
+  const uint32_t canonicalize_hash_b = value_b_dart.CanonicalizeHash();
+
+  bool success = canonicalize_hash_a != canonicalize_hash_b;
+
+  if (!success) {
+    LogBlock lb;
+    THR_Print("Hash collision between %s and %s\n", value_a_dart.ToCString(),
+              value_b_dart.ToCString());
+    THR_Print("VM CanonicalizeHash a %" Px32 " %" Pd32 "\n",
+              canonicalize_hash_a, canonicalize_hash_a);
+    THR_Print("VM CanonicalizeHash b %" Px32 " %" Pd32 "\n",
+              canonicalize_hash_b, canonicalize_hash_b);
+  }
+  EXPECT(success);
 }
 
 TEST_CASE(LinkedHashMap_iteration) {
@@ -4961,6 +5122,41 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT_STREQ("z", object.ToCString());
   object = iterator.CurrentValue();
   EXPECT_STREQ("5", object.ToCString());
+
+  EXPECT(!iterator.MoveNext());
+}
+
+TEST_CASE(LinkedHashSet_iteration) {
+  const char* kScript =
+      "makeSet() {\n"
+      "  var set = {'x', 'y', 'z', 'w'};\n"
+      "  set.remove('y');\n"
+      "  set.remove('w');\n"
+      "  return set;\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
+  EXPECT_VALID(h_result);
+
+  TransitionNativeToVM transition(thread);
+  Instance& dart_set = Instance::Handle();
+  dart_set ^= Api::UnwrapHandle(h_result);
+  ASSERT(dart_set.IsLinkedHashSet());
+  const LinkedHashSet& cc_set = LinkedHashSet::Cast(dart_set);
+
+  EXPECT_EQ(2, cc_set.Length());
+
+  LinkedHashSet::Iterator iterator(cc_set);
+  Object& object = Object::Handle();
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("x", object.ToCString());
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("z", object.ToCString());
 
   EXPECT(!iterator.MoveNext());
 }

@@ -282,33 +282,6 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   }
 
   @override
-  void visitPropertyGet(PropertyGet node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType && node.interfaceTarget == null) {
-      registerError(node, "Dynamic access of '${node.name}'.");
-    }
-    super.visitPropertyGet(node);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType) {
-      registerError(node, "Dynamic update to '${node.name}'.");
-    }
-    super.visitPropertySet(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    DartType receiverType = node.receiver.getStaticType(staticTypeContext);
-    if (receiverType is DynamicType && node.interfaceTarget == null) {
-      registerError(node, "Dynamic invocation of '${node.name}'.");
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (checkReturnTypes && node.function.returnType is DynamicType) {
       registerError(node, "Dynamic return type");

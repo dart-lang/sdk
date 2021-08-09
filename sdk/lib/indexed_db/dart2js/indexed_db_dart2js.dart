@@ -89,13 +89,11 @@ class _KeyRangeFactoryProvider {
   static KeyRange createKeyRange_only(/*Key*/ value) =>
       _only(_class(), _translateKey(value));
 
-  static KeyRange createKeyRange_lowerBound(
-          /*Key*/ bound,
+  static KeyRange createKeyRange_lowerBound(/*Key*/ bound,
           [bool open = false]) =>
       _lowerBound(_class(), _translateKey(bound), open);
 
-  static KeyRange createKeyRange_upperBound(
-          /*Key*/ bound,
+  static KeyRange createKeyRange_upperBound(/*Key*/ bound,
           [bool open = false]) =>
       _upperBound(_class(), _translateKey(bound), open);
 

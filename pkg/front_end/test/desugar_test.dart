@@ -67,7 +67,7 @@ void checkIsRedirectingFactory(ir.Component component, String uriPath,
   Expect.isTrue(
       member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
   Expect.isTrue(api.isRedirectingFactory(member));
-  Expect.isTrue(member.isRedirectingFactoryConstructor);
+  Expect.isTrue(member.isRedirectingFactory);
 }
 
 const aSource = '''

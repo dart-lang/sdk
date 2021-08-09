@@ -129,9 +129,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   List<String>? popIdentifierList(int count) {
     if (count == 0) return null;
-    List<String> list = new List<String>.filled(
-        count,
-        /* dummyValue = */ '');
+    List<String> list = new List<String>.filled(count, /* dummyValue = */ '');
     bool isParserRecovery = false;
     for (int i = count - 1; i >= 0; i--) {
       popCharOffset();
@@ -164,7 +162,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(const FixedNullableList<MetadataBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<MetadataBuilder>()
+            .popNonNullable(stack, count, dummyMetadataBuilder) ??
         NullValue.Metadata);
   }
 
@@ -261,7 +260,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endConditionalUris(int count) {
     debugEvent("EndConditionalUris");
-    push(const FixedNullableList<Configuration>().pop(stack, count) ??
+    push(const FixedNullableList<Configuration>()
+            .popNonNullable(stack, count, dummyConfiguration) ??
         NullValue.ConditionalUris);
   }
 
@@ -1371,7 +1371,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(const FixedNullableList<TypeBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<TypeBuilder>()
+            .popNonNullable(stack, count, dummyTypeBuilder) ??
         NullValue.TypeArguments);
   }
 
@@ -1470,8 +1471,14 @@ class OutlineBuilder extends StackListenerImpl {
     if (name is ParserRecovery) {
       push(name);
     } else {
-      push(libraryBuilder.addFormalParameter(metadata, modifiers, type,
-          name as String, thisKeyword != null, charOffset, initializerStart));
+      push(libraryBuilder.addFormalParameter(
+          metadata,
+          modifiers,
+          type,
+          name == null ? FormalParameterBuilder.noNameSentinel : name as String,
+          thisKeyword != null,
+          charOffset,
+          initializerStart));
     }
   }
 
@@ -1559,8 +1566,8 @@ class OutlineBuilder extends StackListenerImpl {
       assert(formals.isNotEmpty);
       if (formals.length == 2) {
         // The name may be null for generalized function types.
-        // ignore: unnecessary_null_comparison
-        if (formals[0].name != null && formals[0].name == formals[1].name) {
+        if (formals[0].name != FormalParameterBuilder.noNameSentinel &&
+            formals[0].name == formals[1].name) {
           addProblem(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
@@ -1576,8 +1583,7 @@ class OutlineBuilder extends StackListenerImpl {
         Map<String, FormalParameterBuilder> seenNames =
             <String, FormalParameterBuilder>{};
         for (FormalParameterBuilder formal in formals) {
-          // ignore: unnecessary_null_comparison
-          if (formal.name == null) continue;
+          if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
             addProblem(
                 templateDuplicatedParameterName.withArguments(formal.name),
@@ -1808,11 +1814,7 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (fieldInfos == null) return;
     libraryBuilder.addFields(
-        metadata,
-        modifiers,
-        /* isTopLevel = */ true,
-        type,
-        fieldInfos);
+        metadata, modifiers, /* isTopLevel = */ true, type, fieldInfos);
   }
 
   @override
@@ -1873,11 +1875,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (fieldInfos == null) return;
     libraryBuilder.addFields(
-        metadata,
-        modifiers,
-        /* isTopLevel = */ false,
-        type,
-        fieldInfos);
+        metadata, modifiers, /* isTopLevel = */ false, type, fieldInfos);
   }
 
   List<FieldInfo>? popFieldInfos(int count) {
@@ -1887,7 +1885,7 @@ class OutlineBuilder extends StackListenerImpl {
     bool isParserRecovery = false;
     for (int i = count - 1; i != -1; i--) {
       int charEndOffset = popCharOffset();
-      Token beforeLast = pop() as Token;
+      Token? beforeLast = pop() as Token?;
       Token? initializerTokenForInference = pop() as Token?;
       int charOffset = popCharOffset();
       Object? name = pop(NullValue.Identifier);
@@ -1919,7 +1917,8 @@ class OutlineBuilder extends StackListenerImpl {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("TypeVariablesDefined");
     assert(count > 0);
-    push(const FixedNullableList<TypeVariableBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<TypeVariableBuilder>()
+            .popNonNullable(stack, count, dummyTypeVariableBuilder) ??
         NullValue.TypeVariables);
   }
 
@@ -2232,13 +2231,15 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNewAsIdentifier(Token token) {
-    // TODO(johnniwinther, paulberry): disable this error when the
-    // "constructor-tearoffs" feature is enabled.
-    addProblem(
-        templateExperimentNotEnabled.withArguments('constructor-tearoffs',
-            libraryBuilder.enableConstructorTearOffsVersionInLibrary.toText()),
-        token.charOffset,
-        token.length);
+    if (!libraryBuilder.enableConstructorTearOffsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'constructor-tearoffs',
+              libraryBuilder.enableConstructorTearOffsVersionInLibrary
+                  .toText()),
+          token.charOffset,
+          token.length);
+    }
   }
 }
 

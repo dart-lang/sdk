@@ -215,7 +215,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   CssStyleDeclarationBase get style;
 
   /**
-   * Access dimensions and position of the Elements in this list.
+   * Access dimensions and position of the [Element]s in this list.
    *
    * Setting the height or width properties will set the height or width
    * property for all elements in the list. This returns a rectangle with the
@@ -224,46 +224,48 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    * property. Getting the height or width returns the height or width of the
    * first Element in this list.
    *
-   * Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * Unlike [Element.getBoundingClientRect], the dimensions of this rectangle
    * will return the same numerical height if the element is hidden or not.
    */
   CssRect get contentEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding box
-   * in this list.
+   * Access dimensions and position of the first [Element]'s content + padding
+   * box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `innerHeight` value for an element. This
-   * is also a rectangle equalling the dimensions of clientHeight and
-   * clientWidth.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `innerHeight` value for an
+   * element. This is also a rectangle equalling the dimensions of clientHeight
+   * and clientWidth.
    */
   CssRect get paddingEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding +
+   * Access dimensions and position of the first [Element]'s content + padding +
    * border box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
    */
   CssRect get borderEdge;
 
   /**
-   * Access dimensions and position of the first Element's content + padding +
+   * Access dimensions and position of the first [Element]'s content + padding +
    * border + margin box in this list.
    *
    * This returns a rectangle with the dimensions actually available for content
    * in this element, in pixels, regardless of this element's box-sizing
-   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
-   * will return the same numerical height if the element is hidden or not. This
-   * can be used to retrieve jQuery's `outerHeight` value for an element.
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
    */
   CssRect get marginEdge;
 $!STREAM_GETTER_SIGNATURES
@@ -927,9 +929,9 @@ $endif
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
-   * [timing] paramter can be a double, representing the number of milliseconds
-   * for the transition, or a Map with fields corresponding to those
-   * of the [Timing] object.
+   * [timing] parameter can be a double, representing the number of
+   * milliseconds for the transition, or a Map with fields corresponding to
+   * those of the [timing] object.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
@@ -1081,11 +1083,13 @@ $endif
    * * 'beforeEnd': As the last child of this element.
    * * 'afterEnd': Immediately after this element.
    *
+   * ```dart
    *     var html = '<div class="something">content</div>';
    *     // Inserts as the first child
    *     document.body.insertAdjacentHtml('afterBegin', html);
    *     var createdElement = document.body.children[0];
    *     print(createdElement.classes[0]); // Prints 'something'
+   * ```
    *
    * See also:
    *

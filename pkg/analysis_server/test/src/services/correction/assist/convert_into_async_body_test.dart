@@ -136,6 +136,17 @@ class C {
 ''');
   }
 
+  Future<void> test_sync() async {
+    // This code is erroneous; the test ensures there is no error thrown when
+    // computing assists.
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+Iterable<String> f() sync {}
+''');
+    await assertNoAssistAt('{}');
+  }
+
+
   Future<void> test_syncStar() async {
     await resolveTestCode('''
 Iterable<String> f() sync* {}

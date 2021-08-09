@@ -249,12 +249,12 @@ class CorrectionProducerContext {
     this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
-  })  : file = resolvedResult.path!,
+  })  : file = resolvedResult.path,
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
         selectionEnd = selectionOffset + selectionLength,
-        unit = resolvedResult.unit!,
+        unit = resolvedResult.unit,
         utils = CorrectionUtils(resolvedResult);
 
   /// Return `true` if the lint with the given [name] is enabled.

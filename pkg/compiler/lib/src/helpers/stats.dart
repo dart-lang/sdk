@@ -6,6 +6,8 @@ import 'dart:async' show EventSink;
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:kernel/text/indentation.dart' show Indentation;
+
 import '../../compiler.dart';
 import '../common.dart';
 import '../compiler.dart' show Compiler;

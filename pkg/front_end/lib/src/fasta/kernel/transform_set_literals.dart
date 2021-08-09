@@ -22,7 +22,6 @@ class SetLiteralTransformer extends Transformer {
   final Procedure setFactory;
   final Procedure addMethod;
   late final FunctionType _addMethodFunctionType;
-  final bool useNewMethodInvocationEncoding;
 
   /// Library that contains the transformed nodes.
   ///
@@ -44,9 +43,7 @@ class SetLiteralTransformer extends Transformer {
   SetLiteralTransformer(SourceLoader loader)
       : coreTypes = loader.coreTypes,
         setFactory = _findSetFactory(loader.coreTypes),
-        addMethod = _findAddMethod(loader.coreTypes),
-        useNewMethodInvocationEncoding =
-            loader.target.backendTarget.supportsNewMethodInvocationEncoding {
+        addMethod = _findAddMethod(loader.coreTypes) {
     _addMethodFunctionType = addMethod.getterType as FunctionType;
   }
 
@@ -65,25 +62,20 @@ class SetLiteralTransformer extends Transformer {
     List<Statement> statements = [setVar];
     for (int i = 0; i < node.expressions.length; i++) {
       Expression entry = transform(node.expressions[i]);
-      Expression methodInvocation;
-      if (useNewMethodInvocationEncoding) {
-        DartType functionType = Substitution.fromInterfaceType(receiverType)
-            .substituteType(_addMethodFunctionType);
-        if (!_currentLibrary!.isNonNullableByDefault) {
-          functionType = legacyErasure(functionType);
-        }
-        methodInvocation = new InstanceInvocation(InstanceAccessKind.Instance,
-            new VariableGet(setVar), new Name("add"), new Arguments([entry]),
-            functionType: functionType as FunctionType,
-            interfaceTarget: addMethod)
-          ..fileOffset = entry.fileOffset
-          ..isInvariant = true;
-      } else {
-        methodInvocation = new MethodInvocation(new VariableGet(setVar),
-            new Name("add"), new Arguments([entry]), addMethod)
-          ..fileOffset = entry.fileOffset
-          ..isInvariant = true;
+      DartType functionType = Substitution.fromInterfaceType(receiverType)
+          .substituteType(_addMethodFunctionType);
+      if (!_currentLibrary!.isNonNullableByDefault) {
+        functionType = legacyErasure(functionType);
       }
+      Expression methodInvocation = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          new VariableGet(setVar),
+          new Name("add"),
+          new Arguments([entry]),
+          functionType: functionType as FunctionType,
+          interfaceTarget: addMethod)
+        ..fileOffset = entry.fileOffset
+        ..isInvariant = true;
       statements.add(new ExpressionStatement(methodInvocation)
         ..fileOffset = methodInvocation.fileOffset);
     }

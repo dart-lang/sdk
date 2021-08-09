@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests elimination of type casts.
-// This test requires non-nullable experiment.
-
-// @dart = 2.10
 
 class A<T> {}
 

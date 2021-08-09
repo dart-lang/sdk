@@ -12,8 +12,8 @@ import 'type_builder.dart';
 
 class FixedTypeBuilder extends TypeBuilder {
   final DartType type;
-  final Uri fileUri;
-  final int charOffset;
+  final Uri? fileUri;
+  final int? charOffset;
 
   const FixedTypeBuilder(this.type, this.fileUri, this.charOffset);
 

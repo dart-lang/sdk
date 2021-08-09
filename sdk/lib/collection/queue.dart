@@ -52,6 +52,11 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// and if all elements stored into the returned queue are actually instance
   /// of [S],
   /// then the returned queue can be used as a `Queue<T>`.
+  ///
+  /// Methods like [contains] and [remove]
+  /// which accept one `Object?` as argument,
+  /// will pass the argument directly to the this queue's method
+  /// without any checks.
   static Queue<T> castFrom<S, T>(Queue<S> source) => CastQueue<S, T>(source);
 
   /// Provides a view of this queue as a queue of [R] instances, if necessary.
@@ -64,6 +69,13 @@ abstract class Queue<E> implements EfficientLengthIterable<E> {
   /// must be instance of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this queue as well.
+  ///
+  /// Methods like [contains] and [remove]
+  /// which accept one `Object?` as argument,
+  /// will pass the argument directly to the this queue's method
+  /// without any checks.
+  /// That means that you can do `queueOfStrings.cast<int>().remove("a")`
+  /// successfully, even if it looks like it shouldn't have any effect.
   Queue<R> cast<R>();
 
   /// Removes and returns the first element of this queue.
@@ -304,6 +316,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
       DoubleLinkedQueue<E>()..addAll(elements);
 
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
+
   int get length => _elementCount;
 
   void addLast(E value) {

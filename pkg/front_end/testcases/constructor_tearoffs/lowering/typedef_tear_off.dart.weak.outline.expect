@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef DA1 = self::A;
+typedef DA2<unrelated X extends core::num> = self::A;
+typedef DB1 = self::B<core::String>;
+typedef DB2<X extends core::num> = self::B<X>;
+typedef DB3<X extends core::num, unrelated Y extends core::String> = self::B<X>;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  field core::int field1;
+  field core::String field2;
+  constructor _(core::int field1, core::String field2) → self::B<self::B::X%>
+    ;
+  constructor •() → self::B<self::B::X%>
+    ;
+  constructor foo(core::int field1) → self::B<self::B::X%>
+    ;
+  static method _#_#tearOff<X extends core::Object? = dynamic>(core::int field1, core::String field2) → self::B<self::B::_#_#tearOff::X%>
+    return new self::B::_<self::B::_#_#tearOff::X%>(field1, field2);
+  static method _#new#tearOff<X extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::X%>
+    return new self::B::•<self::B::_#new#tearOff::X%>();
+  static method _#foo#tearOff<X extends core::Object? = dynamic>(core::int field1) → self::B<self::B::_#foo#tearOff::X%>
+    return new self::B::foo<self::B::_#foo#tearOff::X%>(field1);
+  static factory bar<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::bar::X%>
+    ;
+  static method _#bar#tearOff<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::_#bar#tearOff::X%>
+    return self::B::bar<self::B::_#bar#tearOff::X%>(i, j);
+}
+static final field core::bool inSoundMode;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → dynamic f, {core::bool inSoundModeOnly}) → dynamic
+  ;
+static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
+  return new self::A::•();
+static method _#DB2#_#tearOff<X extends core::num>(core::int field1, core::String field2) → self::B<self::_#DB2#_#tearOff::X>
+  return new self::B::_<self::_#DB2#_#tearOff::X>(field1, field2);
+static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
+  return new self::B::•<self::_#DB2#new#tearOff::X>();
+static method _#DB2#foo#tearOff<X extends core::num>(core::int field1) → self::B<self::_#DB2#foo#tearOff::X>
+  return new self::B::foo<self::_#DB2#foo#tearOff::X>(field1);
+static method _#DB2#bar#tearOff<X extends core::num>(core::int i, core::String j) → self::B<self::_#DB2#bar#tearOff::X>
+  return self::B::bar<self::_#DB2#bar#tearOff::X>(i, j);
+static method _#DB3#_#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1, core::String field2) → self::B<self::_#DB3#_#tearOff::X>
+  return new self::B::_<self::_#DB3#_#tearOff::X>(field1, field2);
+static method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
+  return new self::B::•<self::_#DB3#new#tearOff::X>();
+static method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1) → self::B<self::_#DB3#foo#tearOff::X>
+  return new self::B::foo<self::_#DB3#foo#tearOff::X>(field1);
+static method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>(core::int i, core::String j) → self::B<self::_#DB3#bar#tearOff::X>
+  return self::B::bar<self::_#DB3#bar#tearOff::X>(i, j);

@@ -543,6 +543,6 @@ constants  {
   #C3 = dart.core::pragma {name:#C1, options:#C2}
   #C4 = ""
   #C5 = true
-  #C6 = tearoff dart.collection::ListMixin::_compareAny
+  #C6 = static-tearoff dart.collection::ListMixin::_compareAny
   #C7 = 0
 }

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -123,7 +124,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -132,7 +133,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       _propagated = true;
       _graph.propagate();
     }
-    var unit = result.unit!;
+    var unit = result.unit;
     var compilationUnit = unit.declaredElement!;
     var library = compilationUnit.library;
     var source = compilationUnit.source;
@@ -146,7 +147,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         result.typeProvider,
         library.typeSystem as TypeSystemImpl,
         _variables,
-        library,
+        library as LibraryElementImpl,
         _permissive! ? listener : null,
         unit,
         warnOnWeakCode,
@@ -188,7 +189,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         !_queriedUnmigratedDependencies,
         'Should only query unmigratedDependencies after all calls to '
         'prepareInput');
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
@@ -202,7 +203,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
           instrumentation: _instrumentation);
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
-    var unit = result.unit!;
+    var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(NodeBuilder(
@@ -219,12 +220,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   void processInput(ResolvedUnitResult result) {
-    if (result.unit!.featureSet.isEnabled(Feature.non_nullable)) {
+    if (result.unit.featureSet.isEnabled(Feature.non_nullable)) {
       // This library has already been migrated; nothing more to do.
       return;
     }
     ExperimentStatusException.sanityCheck(result);
-    var unit = result.unit!;
+    var unit = result.unit;
     try {
       DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
       unit.accept(EdgeBuilder(
@@ -270,8 +271,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       edit.length,
       startLocation.lineNumber,
       startLocation.columnNumber,
-      endLocation.lineNumber,
-      endLocation.columnNumber,
+      endLine: endLocation.lineNumber,
+      endColumn: endLocation.columnNumber,
     );
     return location;
   }

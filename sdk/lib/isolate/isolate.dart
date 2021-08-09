@@ -567,10 +567,16 @@ abstract class SendPort implements Capability {
   /// Sends an asynchronous [message] through this send port, to its
   /// corresponding `ReceivePort`.
   ///
-  /// The content of [message] can be: primitive values
-  /// (null, num, bool, double, String), instances of [SendPort],
-  /// and lists and maps whose elements are any of these.
-  /// List and maps are also allowed to contain cyclic references.
+  /// The content of [message] can be:
+  ///   - [Null]
+  ///   - [bool]
+  ///   - [int]
+  ///   - [double]
+  ///   - [String]
+  ///   - [List] or [Map] (whose elements are any of these)
+  ///   - [TransferableTypedData]
+  ///   - [SendPort]
+  ///   - [Capability]
   ///
   /// In the special circumstances when two isolates share the same code and are
   /// running in the same process (e.g. isolates created via [Isolate.spawn]),

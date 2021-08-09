@@ -10,13 +10,98 @@ import '../context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListLiteralTest);
-    defineReflectiveTests(ListLiteralWithNullSafetyTest);
+    defineReflectiveTests(ListLiteralWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ListLiteralTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ListLiteralTestCases {
+  test_context_spread_nullAware() async {
+    await assertNoErrorsInCode('''
+T f<T>(T t) => t;
+
+main() {
+  <int>[...?f(null)];
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['Iterable<int>?'],
+      invokeType: 'Iterable<int>? Function(Iterable<int>?)',
+      type: 'Iterable<int>?',
+    );
+  }
+
+  test_nested_hasNull_1() async {
+    await assertNoErrorsInCode('''
+main() {
+  [[0], null];
+}
+''');
+    assertType(findNode.listLiteral('[0'), 'List<int>');
+    assertType(findNode.listLiteral('[[0'), 'List<List<int>?>');
+  }
+
+  test_nested_hasNull_2() async {
+    await assertNoErrorsInCode('''
+main() {
+  [[0], [1, null]];
+}
+''');
+    assertType(findNode.listLiteral('[0'), 'List<int>');
+    assertType(findNode.listLiteral('[1,'), 'List<int?>');
+    assertType(findNode.listLiteral('[[0'), 'List<List<int?>>');
+  }
+
+  test_noContext_noTypeArgs_spread_never() async {
+    await assertNoErrorsInCode('''
+void f(Never a) async {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_never() async {
+    await assertErrorsInCode('''
+void f(Never a) async {
+  // ignore:unused_local_variable
+  var v = [...?a];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 69, 4),
+    ]);
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
+    await assertErrorsInCode('''
+void f<T extends Never>(T a) async {
+  // ignore:unused_local_variable
+  var v = [...?a];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 82, 4),
+    ]);
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+
+  test_noContext_noTypeArgs_spread_typeParameter_implementsNever() async {
+    await assertNoErrorsInCode('''
+void f<T extends Never>(T a) async {
+  // ignore:unused_local_variable
+  var v = [...a];
+}
+''');
+    assertType(findNode.listLiteral('['), 'List<Never>');
+  }
+}
+
+mixin ListLiteralTestCases on PubPackageResolutionTest {
   test_context_noTypeArgs_expression_conflict() async {
     await assertErrorsInCode('''
 List<int> a = ['a'];
@@ -415,88 +500,5 @@ var a = <num>[];
 }
 
 @reflectiveTest
-class ListLiteralWithNullSafetyTest extends ListLiteralTest
-    with WithNullSafetyMixin {
-  test_context_spread_nullAware() async {
-    await assertNoErrorsInCode('''
-T f<T>(T t) => t;
-
-main() {
-  <int>[...?f(null)];
-}
-''');
-
-    assertMethodInvocation2(
-      findNode.methodInvocation('f(null)'),
-      element: findElement.topFunction('f'),
-      typeArgumentTypes: ['Iterable<int>?'],
-      invokeType: 'Iterable<int>? Function(Iterable<int>?)',
-      type: 'Iterable<int>?',
-    );
-  }
-
-  test_nested_hasNull_1() async {
-    await assertNoErrorsInCode('''
-main() {
-  [[0], null];
-}
-''');
-    assertType(findNode.listLiteral('[0'), 'List<int>');
-    assertType(findNode.listLiteral('[[0'), 'List<List<int>?>');
-  }
-
-  test_nested_hasNull_2() async {
-    await assertNoErrorsInCode('''
-main() {
-  [[0], [1, null]];
-}
-''');
-    assertType(findNode.listLiteral('[0'), 'List<int>');
-    assertType(findNode.listLiteral('[1,'), 'List<int?>');
-    assertType(findNode.listLiteral('[[0'), 'List<List<int?>>');
-  }
-
-  test_noContext_noTypeArgs_spread_never() async {
-    await assertNoErrorsInCode('''
-void f(Never a) async {
-  // ignore:unused_local_variable
-  var v = [...a];
-}
-''');
-    assertType(findNode.listLiteral('['), 'List<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_never() async {
-    await assertErrorsInCode('''
-void f(Never a) async {
-  // ignore:unused_local_variable
-  var v = [...?a];
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 69, 4),
-    ]);
-    assertType(findNode.listLiteral('['), 'List<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_nullAware_typeParameter_implementsNever() async {
-    await assertErrorsInCode('''
-void f<T extends Never>(T a) async {
-  // ignore:unused_local_variable
-  var v = [...?a];
-}
-''', [
-      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 82, 4),
-    ]);
-    assertType(findNode.listLiteral('['), 'List<Never>');
-  }
-
-  test_noContext_noTypeArgs_spread_typeParameter_implementsNever() async {
-    await assertNoErrorsInCode('''
-void f<T extends Never>(T a) async {
-  // ignore:unused_local_variable
-  var v = [...a];
-}
-''');
-    assertType(findNode.listLiteral('['), 'List<Never>');
-  }
-}
+class ListLiteralWithoutNullSafetyTest extends PubPackageResolutionTest
+    with ListLiteralTestCases, WithoutNullSafetyMixin {}

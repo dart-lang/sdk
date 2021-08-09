@@ -27,7 +27,7 @@ runTestCase(List<String> packageUris, String expectationName) async {
   transformComponent(component, packageUris);
   verifyComponent(component);
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
 
   compareResultWithExpectationsFile(
       testCasesUri.resolve(expectationName), actual);

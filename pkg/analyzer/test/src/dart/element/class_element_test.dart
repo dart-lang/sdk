@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../resolution/context_collection_resolution.dart';
@@ -16,6 +18,132 @@ main() {
 
 @reflectiveTest
 class ClassElementTest extends PubPackageResolutionTest {
+  test_isEnumLike_false_constructors_hasFactory() async {
+    await assertNoErrorsInCode('''
+class A {
+  factory A._foo() => A._bar();
+  A._bar();
+}
+
+void f() {
+  A._foo();
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), false);
+  }
+
+  test_isEnumLike_false_constructors_hasPublic() async {
+    await assertNoErrorsInCode('''
+class A {}
+''');
+    _assertIsEnumLike(findElement.class_('A'), false);
+  }
+
+  test_isEnumLike_false_fields_empty() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A._();
+}
+
+void f() {
+  A._();
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), false);
+  }
+
+  test_isEnumLike_false_isAbstract() async {
+    await assertNoErrorsInCode('''
+abstract class A {}
+''');
+    _assertIsEnumLike(findElement.class_('A'), false);
+  }
+
+  test_isEnumLike_false_isExtended() async {
+    await assertNoErrorsInCode('''
+class A {
+  static const one = A._();
+  static const two = A._();
+  const A._();
+}
+
+class B extends A {
+  B() : super._();
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), false);
+  }
+
+  test_isEnumLike_false_isMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {}
+''');
+    _assertIsEnumLike(findElement.mixin('M'), false);
+  }
+
+  test_isEnumLike_true() async {
+    await assertNoErrorsInCode('''
+class A {
+  static const one = A._();
+  static const two = A._();
+  const A._();
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), true);
+  }
+
+  test_isEnumLike_true_hasInstanceField() async {
+    await assertNoErrorsInCode('''
+class A {
+  static const one = A._(1);
+  static const two = A._(2);
+  final int f;
+  const A._(this.f);
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), true);
+  }
+
+  test_isEnumLike_true_hasSuperclass() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+class B extends A {
+  static const one = B._();
+  static const two = B._();
+  const B._();
+}
+''');
+    _assertIsEnumLike(findElement.class_('B'), true);
+  }
+
+  test_isEnumLike_true_hasSyntheticField() async {
+    await assertNoErrorsInCode('''
+class A {
+  static const one = A._();
+  static const two = A._();
+  const A._();
+  int get foo => 0;
+}
+''');
+    _assertIsEnumLike(findElement.class_('A'), true);
+  }
+
+  test_isEnumLike_true_isImplemented() async {
+    await assertNoErrorsInCode('''
+class A {
+  static const one = A._();
+  static const two = A._();
+  const A._();
+}
+
+class B implements A {}
+''');
+    _assertIsEnumLike(findElement.class_('A'), true);
+  }
+
   test_lookUpInheritedConcreteGetter_declared() async {
     await assertNoErrorsInCode('''
 class A {
@@ -1195,6 +1323,10 @@ class A {}
     assertElementNull(
       A._lookUpInheritedMethod('foo'),
     );
+  }
+
+  static void _assertIsEnumLike(ClassElement element, bool expected) {
+    expect((element as ClassElementImpl).isEnumLike, expected);
   }
 }
 

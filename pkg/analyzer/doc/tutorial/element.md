@@ -46,7 +46,7 @@ ask the analysis session for the compilation unit representing that file.
 
 ```dart
 void analyzeSingleFile(AnalysisSession session, String path) async {
-  var result = await session.getUnitElement2(path);
+  var result = await session.getUnitElement(path);
   if (result is UnitElementResult) {
     CompilationUnitElement element = result.element;
   }

@@ -152,7 +152,7 @@ const x = p.C<int>();
   }
 
   void _fillLibraries([LibraryElement? library]) {
-    library ??= result.unit!.declaredElement!.library;
+    library ??= result.unit.declaredElement!.library;
     var uriStr = library.source.uri.toString();
     if (!libraries.containsKey(uriStr)) {
       libraries[uriStr] = library;

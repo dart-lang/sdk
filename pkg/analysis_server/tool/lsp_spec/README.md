@@ -94,8 +94,8 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (fixAll) | ✅ | ✅ | | ✅ | ✅ |
 | textDocument/codeAction (refactors) | ✅ | ✅ | | ✅ | ✅ |
-| textDocument/codeAction (assists) | ✅ | ✅ | | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
-| textDocument/codeAction (fixes) | ✅ | ✅ | | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
+| textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
+| textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
 | textDocument/codeLens | | | | | |
 | codeLens/resolve | | | | | |
 | textDocument/documentLink | | | | | |

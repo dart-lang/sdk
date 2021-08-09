@@ -15,6 +15,6 @@ static method test() → dynamic {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::add
-  #C2 = tearoff self::add2
+  #C1 = static-tearoff self::add
+  #C2 = static-tearoff self::add2
 }

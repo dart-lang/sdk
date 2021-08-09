@@ -4774,8 +4774,8 @@ void _upgradeList(List list, ServiceObjectOwner? owner) {
 
   for (var i = 0; i < list.length; i++) {
     var v = list[i];
-    if ((v is Map) && _isServiceMap(v)) {
-      list[i] = owner!.getFromMap(v);
+    if ((v is Map) && owner != null && _isServiceMap(v)) {
+      list[i] = owner.getFromMap(v);
     } else if (v is List) {
       _upgradeList(v, owner);
     } else if (v is Map) {

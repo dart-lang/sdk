@@ -136,9 +136,11 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
 }
 
 class FreshTypeParameters {
-  ///
+  /// The newly created type parameters.
   final List<TypeParameter> freshTypeParameters;
+  /// List of [TypeParameterType]s for [TypeParameter].
   final List<DartType> freshTypeArguments;
+  /// Substitution from the original type parameters to [freshTypeArguments].
   final Substitution substitution;
 
   FreshTypeParameters(
@@ -174,6 +176,8 @@ abstract class Substitution {
   const Substitution();
 
   static const Substitution empty = _NullSubstitution.instance;
+
+  bool get isEmpty => identical(this, empty);
 
   /// Substitutes each parameter to the type it maps to in [map].
   static Substitution fromMap(Map<TypeParameter, DartType> map) {

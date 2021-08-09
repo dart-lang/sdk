@@ -1,0 +1,62 @@
+final bool inSoundMode = <int?>[] is! List<int>;
+main() {}
+
+class Class1 {
+  Class1._();
+  factory Class1() = Class1._;
+}
+
+class Class2 {
+  Class2.__();
+  factory Class2._() => Class2.__();
+  factory Class2.named() = Class2._;
+}
+
+testNoArgs() {}
+
+class Class3 {
+  final int field;
+  Class3._(this.field);
+  factory Class3(int field) = Class3._;
+}
+
+class Class4 {
+  final int? field;
+  Class4._([this.field]);
+  factory Class4([int? field]) = Class4._;
+}
+
+class Class5 {
+  final int field1;
+  final int? field2;
+  Class5._(this.field1, [this.field2]);
+  factory Class5(int field1, [int? field2]) = Class5._;
+}
+
+class Class6 {
+  final int field1;
+  final int? field2;
+  final int field3;
+  Class6._(this.field1, {this.field2, required this.field3});
+  factory Class6(int field1, {int? field2, required int field3}) = Class6._;
+}
+
+class Class7a implements Class7b {
+  Class7a();
+}
+
+class Class7b {
+  factory Class7b() = Class7a;
+}
+
+class Class8a<T> implements Class8b<T> {
+  Class8a();
+}
+
+class Class8b<T> {
+  factory Class8b() = Class8a<T>;
+}
+
+testArgs() {}
+expect(expected, actual) {}
+throws(Function() f, {bool inSoundModeOnly: false}) {}

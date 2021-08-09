@@ -678,7 +678,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    new ConstantImpactVisitor(this, import, node).visitConstant(node.constant);
+    new ConstantImpactVisitor(this, import, node, staticTypeContext)
+        .visitConstant(node.constant);
   }
 }
 
@@ -727,8 +728,10 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   final ImpactRegistry registry;
   final ir.LibraryDependency import;
   final ir.ConstantExpression expression;
+  final ir.StaticTypeContext staticTypeContext;
 
-  ConstantImpactVisitor(this.registry, this.import, this.expression);
+  ConstantImpactVisitor(
+      this.registry, this.import, this.expression, this.staticTypeContext);
 
   @override
   void defaultConstant(ir.Constant node) {
@@ -749,20 +752,13 @@ class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
 
   @override
   void visitStaticTearOffConstant(ir.StaticTearOffConstant node) {
-    ir.Member member = node.procedure;
-    if (member is ir.Procedure) {
-      registry.registerStaticTearOff(member, import);
-    } else {
-      throw new UnsupportedError("Unexpected member (${member.runtimeType}).");
-    }
+    registry.registerStaticTearOff(node.target, import);
   }
 
   @override
   void visitInstantiationConstant(ir.InstantiationConstant node) {
     registry.registerGenericInstantiation(
-        node.tearOffConstant.function.computeFunctionType(
-            node.tearOffConstant.member.enclosingLibrary.nonNullable),
-        node.types);
+        node.tearOffConstant.getType(staticTypeContext), node.types);
     visitConstant(node.tearOffConstant);
   }
 

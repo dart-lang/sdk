@@ -6,65 +6,65 @@ import 'dart:ffi';
 
 /// Retained because of being by-value return type in FFI call.
 class Struct1 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Retained because of being by-value return type in FFI call.
 class Struct2 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Retained because of being by-value argument type in FFI callback.
 class Struct3 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Class not retained, not referenced at all.
 class Struct4 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as argument type in FFI
 /// call but never instantiated in Dart code.
 class Struct5 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as argument type in FFI
 /// call but never instantiated in Dart code.
 class Struct6 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Constructor not retained, only referenced as return value type in FFI
 /// callback but never instantiated in Dart code.
 class Struct7 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Not retained because of FFI call not being reachable.
 class Struct8 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Not retained because of FFI call not being reachable.
 class Struct9 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Not tetained because of FFI callback not being reachable.
 class Struct10 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 /// Retained by CFE rewrite of load from pointer.
 class Struct11 extends Struct {
-  Struct12 nested;
+  external Struct12 nested;
 }
 
 /// Retained by rewrite of load from surrounding struct.
 class Struct12 extends Struct {
-  Pointer notEmpty;
+  external Pointer notEmpty;
 }
 
 void main() {

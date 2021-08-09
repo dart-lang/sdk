@@ -27,9 +27,9 @@ static method fnWithNullBound<T extends Null>() → void
   return null;
 
 constants  {
-  #C1 = tearoff self2::fnWithNonNullObjectBound
+  #C1 = static-tearoff self2::fnWithNonNullObjectBound
   #C2 = true
-  #C3 = tearoff self2::fnWithNullBound
+  #C3 = static-tearoff self2::fnWithNullBound
 }
 
 Extra constant evaluation status:

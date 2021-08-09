@@ -28,12 +28,19 @@ import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartType {
+  /// If this type is an instantiation of a type alias, information about
+  /// the alias element, and the type arguments.
+  /// Otherwise return `null`.
+  InstantiatedTypeAliasElement? get alias;
+
   /// If this type is an instantiation of a type alias, return the type
   /// arguments used for the instantiation. Otherwise return `null`.
+  @Deprecated('Use alias instead')
   List<DartType>? get aliasArguments;
 
   /// If this type is an instantiation of a type alias, return it.
   /// Otherwise return `null`.
+  @Deprecated('Use alias instead')
   TypeAliasElement? get aliasElement;
 
   /// Return the name of this type as it should appear when presented to users
@@ -243,6 +250,17 @@ abstract class FunctionType implements DartType {
   /// function type with the given [argumentTypes]. The resulting function
   /// type will have no type parameters.
   FunctionType instantiate(List<DartType> argumentTypes);
+}
+
+/// Information about an instantiated [TypeAliasElement] and the type
+/// arguments with which it is instantiated.
+abstract class InstantiatedTypeAliasElement {
+  /// The alias element that is instantiated to produce a [DartType].
+  TypeAliasElement get element;
+
+  /// The type arguments with which the [element] was instantiated.
+  /// This list will be empty if the [element] is not generic.
+  List<DartType> get typeArguments;
 }
 
 /// The type introduced by either a class or an interface, or a reference to

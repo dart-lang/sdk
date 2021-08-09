@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -24,6 +25,7 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -61,7 +63,8 @@ import 'body_builder.dart' show noLocation;
 
 import 'constness.dart' show Constness;
 
-import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+import 'expression_generator_helper.dart'
+    show ExpressionGeneratorHelper, isProperRenameForClass;
 
 import 'forest.dart';
 
@@ -749,7 +752,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildSimpleRead() {
     VariableDeclarationImpl variable =
         _helper.createVariableDeclarationForValue(receiverExpression);
-    PropertyGet read = _forest.createPropertyGet(
+    Expression read = _forest.createPropertyGet(
         fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset,
             forNullGuardedAccess: true),
@@ -762,7 +765,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     VariableDeclarationImpl variable =
         _helper.createVariableDeclarationForValue(receiverExpression);
-    PropertySet read = _helper.forest.createPropertySet(
+    Expression read = _helper.forest.createPropertySet(
         fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset,
             forNullGuardedAccess: true),
@@ -3099,6 +3102,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     TypeDeclarationBuilder? declarationBuilder = declaration;
     TypeAliasBuilder? aliasBuilder;
     List<TypeBuilder>? unaliasedTypeArguments;
+    bool isGenericTypedefTearOff = false;
     if (declarationBuilder is TypeAliasBuilder) {
       aliasBuilder = declarationBuilder;
       declarationBuilder = aliasBuilder.unaliasDeclaration(null,
@@ -3117,8 +3121,6 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             _uri);
       } else {
         if (declarationBuilder is DeclarationBuilder) {
-          unaliasedTypeArguments =
-              aliasBuilder.unaliasTypeArguments(aliasedTypeArguments);
           if (aliasedTypeArguments != null) {
             _helper.libraryBuilder.uncheckedTypedefTypes.add(
                 new UncheckedTypedefType(new TypedefType(
@@ -3129,6 +3131,23 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   ..fileUri = _uri
                   ..offset = fileOffset);
           }
+
+          // If the arguments weren't supplied, the tear off is treated as
+          // generic, and the aliased type arguments match type parameters of
+          // the type alias.
+          if (aliasedTypeArguments == null &&
+              aliasBuilder.typeVariablesCount != 0) {
+            isGenericTypedefTearOff = true;
+            aliasedTypeArguments = <TypeBuilder>[];
+            for (TypeVariableBuilder typeVariable
+                in aliasBuilder.typeVariables!) {
+              aliasedTypeArguments.add(new NamedTypeBuilder(typeVariable.name,
+                  const NullabilityBuilder.omitted(), null, _uri, fileOffset)
+                ..bind(typeVariable));
+            }
+          }
+          unaliasedTypeArguments =
+              aliasBuilder.unaliasTypeArguments(aliasedTypeArguments);
         }
       }
     }
@@ -3162,8 +3181,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               tearOffExpression = _helper.forest
                   .createConstructorTearOff(token.charOffset, tearOff);
             } else if (tearOff is Procedure) {
-              tearOffExpression =
-                  _helper.forest.createStaticTearOff(token.charOffset, tearOff);
+              if (tearOff.isRedirectingFactory) {
+                tearOffExpression = _helper.forest
+                    .createRedirectingFactoryTearOff(token.charOffset, tearOff);
+              } else {
+                tearOffExpression = _helper.forest
+                    .createStaticTearOff(token.charOffset, tearOff);
+              }
             } else if (tearOff != null) {
               unhandled("${tearOff.runtimeType}", "buildPropertyAccess",
                   operatorOffset, _helper.uri);
@@ -3171,16 +3195,64 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             if (tearOffExpression != null) {
               List<DartType>? builtTypeArguments;
               if (unaliasedTypeArguments != null) {
-                builtTypeArguments = declarationBuilder.buildTypeArguments(
-                    _helper.libraryBuilder, unaliasedTypeArguments);
+                if (unaliasedTypeArguments.length !=
+                    declarationBuilder.typeVariablesCount) {
+                  // The type arguments are either aren't provided or mismatch
+                  // in number with the type variables of the RHS declaration.
+                  // We substitute them with the default types here: in the
+                  // first case that would be exactly what type inference fills
+                  // in for the RHS, and in the second case it's a reasonable
+                  // fallback, as the error is reported during a check on the
+                  // typedef.
+                  builtTypeArguments = <DartType>[];
+                  for (TypeParameter typeParameter
+                      in declarationBuilder.cls.typeParameters) {
+                    builtTypeArguments.add(typeParameter.defaultType);
+                  }
+                } else {
+                  builtTypeArguments = declarationBuilder.buildTypeArguments(
+                      _helper.libraryBuilder, unaliasedTypeArguments);
+                }
               } else if (typeArguments != null) {
                 builtTypeArguments =
                     _helper.buildDartTypeArguments(typeArguments);
               }
-              return builtTypeArguments != null && builtTypeArguments.isNotEmpty
-                  ? _helper.forest.createInstantiation(
-                      token.charOffset, tearOffExpression, builtTypeArguments)
-                  : tearOffExpression;
+              if (isGenericTypedefTearOff) {
+                if (isProperRenameForClass(
+                    _helper.typeEnvironment, aliasBuilder!.typedef)) {
+                  return tearOffExpression;
+                }
+                Procedure? tearOffLowering =
+                    aliasBuilder.findConstructorOrFactory(
+                        name.text, nameOffset, _uri, _helper.libraryBuilder);
+                if (tearOffLowering != null) {
+                  return _helper.forest
+                      .createStaticTearOff(token.charOffset, tearOffLowering);
+                }
+                FreshTypeParameters freshTypeParameters =
+                    getFreshTypeParameters(aliasBuilder.typedef.typeParameters);
+                List<DartType>? substitutedTypeArguments;
+                if (builtTypeArguments != null) {
+                  substitutedTypeArguments = <DartType>[];
+                  for (DartType builtTypeArgument in builtTypeArguments) {
+                    substitutedTypeArguments
+                        .add(freshTypeParameters.substitute(builtTypeArgument));
+                  }
+                }
+
+                tearOffExpression = _helper.forest.createTypedefTearOff(
+                    token.charOffset,
+                    freshTypeParameters.freshTypeParameters,
+                    tearOffExpression,
+                    substitutedTypeArguments ?? const <DartType>[]);
+              } else {
+                if (builtTypeArguments != null &&
+                    builtTypeArguments.isNotEmpty) {
+                  tearOffExpression = _helper.forest.createInstantiation(
+                      token.charOffset, tearOffExpression, builtTypeArguments);
+                }
+              }
+              return tearOffExpression;
             }
           }
           generator = new UnresolvedNameGenerator(_helper, send.token, name);

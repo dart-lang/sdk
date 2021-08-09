@@ -14,7 +14,6 @@
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
 #include "vm/reusable_handles.h"
-#include "vm/snapshot_ids.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -357,7 +356,9 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
 
     // Most common case: The symbol is already in the table.
     {
-      SafepointReadRwLocker sl(thread, group->symbols_lock());
+      // We do allow lock-free concurrent read access to the symbol table.
+      // Both, the array in the ObjectStore as well as elements in the array
+      // are accessed via store-release/load-acquire barriers.
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
@@ -365,7 +366,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
     }
     // Otherwise we'll have to get exclusive access and get-or-insert it.
     if (symbol.IsNull()) {
-      SafepointWriteRwLocker sl(thread, group->symbols_lock());
+      SafepointMutexLocker ml(group->symbols_mutex());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.InsertNewOrGet(str);
@@ -403,14 +404,13 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
       // In DEBUG mode the snapshot writer also calls this method inside a
       // safepoint.
 #if !defined(DEBUG)
-      RELEASE_ASSERT(IsolateGroup::AreIsolateGroupsEnabled() || !USING_PRODUCT);
+      RELEASE_ASSERT(FLAG_enable_isolate_groups || !USING_PRODUCT);
 #endif
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
       table.Release();
     } else {
-      SafepointReadRwLocker sl(thread, group->symbols_lock());
       data = object_store->symbol_table();
       CanonicalStringSet table(&key, &value, &data);
       symbol ^= table.GetOrNull(str);
@@ -511,24 +511,6 @@ void Symbols::DumpTable(IsolateGroup* isolate_group) {
   CanonicalStringSet table(isolate_group->object_store()->symbol_table());
   table.Dump();
   table.Release();
-}
-
-intptr_t Symbols::LookupPredefinedSymbol(ObjectPtr obj) {
-  for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
-    if (symbol_handles_[i]->ptr() == obj) {
-      return (i + kMaxPredefinedObjectIds);
-    }
-  }
-  return kInvalidIndex;
-}
-
-ObjectPtr Symbols::GetPredefinedSymbol(intptr_t object_id) {
-  ASSERT(IsPredefinedSymbolId(object_id));
-  intptr_t i = (object_id - kMaxPredefinedObjectIds);
-  if ((i > kIllegal) && (i < Symbols::kMaxPredefinedId)) {
-    return symbol_handles_[i]->ptr();
-  }
-  return Object::null();
 }
 
 }  // namespace dart

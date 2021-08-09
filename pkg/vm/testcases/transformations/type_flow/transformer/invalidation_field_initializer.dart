@@ -18,7 +18,7 @@ class C implements A {
   Object foo() => new T2();
 }
 
-Function unknown;
+late Function unknown;
 
 getDynamic() => unknown.call();
 

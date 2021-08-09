@@ -15,23 +15,24 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
   /// last element in the list represents the current scope.
   final _scopes = <ScopeSymbol>[];
 
-  final _moduleSymbols = ModuleSymbols(
-      // TODO(nshahan) version
-      // TODO(nshahan) moduleName
-      libraries: <LibrarySymbol>[],
-      scripts: <Script>[],
-      classes: <ClassSymbol>[],
-      // TODO(nshahan) functionTypes
-      // TODO(nshahan) functions
-      // TODO(nshahan) scopes
-      variables: <VariableSymbol>[]);
-
+  final ModuleSymbols _moduleSymbols;
   final Map<Class, String> _classJsNames;
   final Map<Member, String> _memberJsNames;
+  final Map<Procedure, String> _procedureJsNames;
   final Map<VariableDeclaration, String> _variableJsNames;
 
-  ModuleSymbolsCollector(
-      this._classJsNames, this._memberJsNames, this._variableJsNames);
+  ModuleSymbolsCollector(String moduleName, this._classJsNames,
+      this._memberJsNames, this._procedureJsNames, this._variableJsNames)
+      : _moduleSymbols = ModuleSymbols(
+            version: ModuleSymbols.current.version,
+            moduleName: moduleName,
+            libraries: <LibrarySymbol>[],
+            scripts: <Script>[],
+            classes: <ClassSymbol>[],
+            // TODO(nshahan) functionTypes
+            functions: <FunctionSymbol>[],
+            // TODO(nshahan) scopes
+            variables: <VariableSymbol>[]);
 
   ModuleSymbols collectSymbolInfo(Component node) {
     node.accept(this);
@@ -143,8 +144,27 @@ class ModuleSymbolsCollector extends RecursiveVisitor {
     // Legacy libraries contain procedures with no bodies for all Object methods
     // in every class. We can ignore these unless they actually contain a body.
     if (node.function.body == null) return;
-    // TODO(nshahan) implement visitProcedure
-    super.visitProcedure(node);
+    var functionSymbol = FunctionSymbol(
+        name: node.name.text,
+        // TODO(nshahan) typeId - probably should canonicalize but keep original
+        // type argument names.
+        isStatic: node.isStatic,
+        isConst: node.isConst,
+        localId: _memberJsNames[node] ?? _procedureJsNames[node],
+        scopeId: _scopes.last.id,
+        variableIds: <String>[],
+        scopeIds: <String>[],
+        location: SourceLocation(
+            scriptId: _scriptId(node.location.file),
+            tokenPos: node.fileOffset,
+            endTokenPos: node.fileEndOffset));
+
+    _scopes.add(functionSymbol);
+    node.visitChildren(this);
+    _scopes
+      ..removeLast()
+      ..last.scopeIds.add(functionSymbol.id);
+    _moduleSymbols.functions.add(functionSymbol);
   }
 
   @override

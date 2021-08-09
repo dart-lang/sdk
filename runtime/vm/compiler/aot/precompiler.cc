@@ -522,10 +522,18 @@ void Precompiler::DoCompileAll() {
 
         {
           SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
-          stub_code = StubCode::GetBuildMethodExtractorStub(
+          stub_code = StubCode::GetBuildGenericMethodExtractorStub(
               global_object_pool_builder());
         }
-        IG->object_store()->set_build_method_extractor_code(stub_code);
+        IG->object_store()->set_build_generic_method_extractor_code(stub_code);
+
+        {
+          SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+          stub_code = StubCode::GetBuildNonGenericMethodExtractorStub(
+              global_object_pool_builder());
+        }
+        IG->object_store()->set_build_nongeneric_method_extractor_code(
+            stub_code);
       }
 
       CollectDynamicFunctionNames();
@@ -604,7 +612,6 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_pragma_name(null_field);
         IG->object_store()->set_pragma_options(null_field);
         IG->object_store()->set_completer_class(null_class);
-        IG->object_store()->set_symbol_class(null_class);
         IG->object_store()->set_compiletime_error_class(null_class);
         IG->object_store()->set_growable_list_factory(null_function);
         IG->object_store()->set_simple_instance_of_function(null_function);

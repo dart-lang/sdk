@@ -12,4 +12,5 @@ testBarArgs() => A<int>.bar;
 testFooExtraArgs() => A<int, String>.foo;
 testNewExtraArgs() => A<int, String>.new;
 testBarExtraArgs() => A<int, String>.bar;
+method() {}
 main() {}

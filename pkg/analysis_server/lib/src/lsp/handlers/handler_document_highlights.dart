@@ -34,7 +34,7 @@ class DocumentHighlightsHandler extends MessageHandler<
 
     return offset.mapResult((requestedOffset) {
       final collector = OccurrencesCollectorImpl();
-      addDartOccurrences(collector, unit.result.unit!);
+      addDartOccurrences(collector, unit.result.unit);
 
       // Find an occurrence that has an instance that spans the position.
       for (final occurrence in collector.allOccurrences) {

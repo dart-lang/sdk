@@ -1141,6 +1141,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
 }
 
 void ProcessInfoList::Init() {
+  active_processes_ = NULL;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
   ProcessInfoList::mutex_ = new Mutex();
 }
@@ -1152,6 +1153,9 @@ void ProcessInfoList::Cleanup() {
 }
 
 void ExitCodeHandler::Init() {
+  running_ = false;
+  process_count_ = 0;
+  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
@@ -1168,6 +1172,7 @@ void Process::Init() {
 
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
+  signal_handlers = NULL;
 
   ASSERT(Process::global_exit_code_mutex_ == nullptr);
   Process::global_exit_code_mutex_ = new Mutex();

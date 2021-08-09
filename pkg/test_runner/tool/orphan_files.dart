@@ -74,7 +74,7 @@ void _checkTestDirectory(Directory directory) {
 
 void _parseReferences(Set<String> importedPaths, String filePath) {
   var absolute = Path(filePath).absolute.toNativePath();
-  var parseResult = _analysisContext.currentSession.getParsedUnit2(absolute);
+  var parseResult = _analysisContext.currentSession.getParsedUnit(absolute);
   var unit = (parseResult as ParsedUnitResult).unit;
 
   void add(String importPath) {

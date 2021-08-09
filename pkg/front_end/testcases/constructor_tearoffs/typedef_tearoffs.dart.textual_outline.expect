@@ -30,6 +30,7 @@ B<num> Function() test18() => DB3<num, String>.new;
 B<num> Function() test19() => DB3<num, String>.foo;
 B<num> Function() test20() => DB3<num, String>.bar;
 B<num> Function() test21() => DB3.new;
-B<Y> Function<Y extends num, Z extends String>() test22() => DB2.new;
-B<Y> Function<Y, Z>() test23() => DB2.new;
+B<Y> Function<Y extends num, Z extends String>() test22() => DB3.new;
+B<Y> Function<Y, Z>() test23() => DB3.new;
+B<String> Function() test24() => DB2.new;
 main() {}

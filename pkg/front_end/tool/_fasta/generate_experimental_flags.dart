@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
@@ -50,7 +48,7 @@ String generateKernelFile(Uri repoDir) {
   int currentVersionMajor;
   int currentVersionMinor;
   {
-    String currentVersion = getAsVersionNumberString(yaml['current-version']);
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
     List<String> split = currentVersion.split(".");
     currentVersionMajor = int.parse(split[0]);
     currentVersionMinor = int.parse(split[1]);
@@ -84,7 +82,7 @@ String generateCfeFile(Uri repoDir) {
   int currentVersionMajor;
   int currentVersionMinor;
   {
-    String currentVersion = getAsVersionNumberString(yaml['current-version']);
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
     List<String> split = currentVersion.split(".");
     currentVersionMajor = int.parse(split[0]);
     currentVersionMinor = int.parse(split[1]);
@@ -135,7 +133,7 @@ enum ExperimentalFlag {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn == null) {
       major = currentVersionMajor;
@@ -192,7 +190,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn != null) {
       List<String> split = enabledIn.split(".");
@@ -213,9 +211,9 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   for (String key in keys) {
     int major;
     int minor;
-    String enabledIn =
+    String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
-    String experimentalReleaseVersion = getAsVersionNumberString(
+    String? experimentalReleaseVersion = getAsVersionNumberString(
         (features[key] as YamlMap)['experimentalReleaseVersion']);
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
@@ -296,7 +294,7 @@ keyToIdentifier(String key, {bool upperCaseFirst = false}) {
   return identifier.toString();
 }
 
-String getAsVersionNumberString(dynamic value) {
+String? getAsVersionNumberString(dynamic value) {
   if (value == null) return null;
   if (value is String) return value;
   if (value is double) return "$value";

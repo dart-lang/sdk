@@ -4166,6 +4166,61 @@ TEST_CASE(DartAPI_WeakPersistentHandleUpdateSize) {
   EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, NULL));
 }
 
+void FUNCTION_NAME(SecretKeeper_KeepSecret)(Dart_NativeArguments native_args) {
+  Dart_Handle receiver = Dart_GetNativeArgument(native_args, 0);
+  int64_t secret = 0;
+  Dart_GetNativeIntegerArgument(native_args, 1, &secret);
+  EXPECT_VALID(Dart_SetNativeInstanceField(receiver, 0, secret));
+}
+
+static Dart_NativeFunction SecretKeeperNativeResolver(Dart_Handle name,
+                                                      int argument_count,
+                                                      bool* auto_setup_scope) {
+  return reinterpret_cast<Dart_NativeFunction>(Builtin_SecretKeeper_KeepSecret);
+}
+
+TEST_CASE(DartAPI_NativeFieldAccess) {
+  const char* kScriptChars = R"(
+    import 'dart:nativewrappers';
+    class SecretKeeper extends NativeFieldWrapperClass1 {
+      SecretKeeper(int secret) { _keepSecret(secret); }
+      void _keepSecret(int secret) native "SecretKeeper_KeepSecret";
+    }
+    main() => getNativeField(SecretKeeper(321));
+  )";
+
+  Dart_Handle result;
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(321, value);
+}
+
+TEST_CASE(DartAPI_NativeFieldAccess_Throws) {
+  const char* kScriptChars = R"(
+    import 'dart:nativewrappers';
+    class ForgetfulSecretKeeper extends NativeFieldWrapperClass1 {
+      ForgetfulSecretKeeper(int secret) { /* Forget to init. native field. */ }
+    }
+    main() => getNativeField(ForgetfulSecretKeeper(321));
+  )";
+
+  Dart_Handle result;
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, SecretKeeperNativeResolver);
+
+  result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_IsUnhandledExceptionError(result));
+}
+
 static Dart_WeakPersistentHandle weak1 = NULL;
 static Dart_WeakPersistentHandle weak2 = NULL;
 static Dart_WeakPersistentHandle weak3 = NULL;
@@ -9082,6 +9137,19 @@ TEST_CASE(DartAPI_TimelineAsync) {
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
+TEST_CASE(DartAPI_TimelineClock) {
+  int64_t micros1 = Dart_TimelineGetMicros();
+  int64_t ticks1 = Dart_TimelineGetTicks();
+  int64_t frequency1 = Dart_TimelineGetTicksFrequency();
+  OS::Sleep(1);
+  int64_t micros2 = Dart_TimelineGetMicros();
+  int64_t ticks2 = Dart_TimelineGetTicks();
+  int64_t frequency2 = Dart_TimelineGetTicksFrequency();
+  EXPECT_NE(micros1, micros2);
+  EXPECT_NE(ticks1, ticks2);
+  EXPECT_EQ(frequency1, frequency2);
+}
+
 static void HintFreedNative(Dart_NativeArguments args) {
   int64_t size = 0;
   EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));
@@ -9305,7 +9373,7 @@ static void* FfiNativeResolver(const char* name) {
 TEST_CASE(Dart_SetFfiNativeResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";
@@ -9327,7 +9395,7 @@ TEST_CASE(Dart_SetFfiNativeResolver) {
 TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt')
+    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";

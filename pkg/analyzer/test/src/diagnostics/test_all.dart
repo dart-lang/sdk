@@ -193,6 +193,7 @@ import 'ffi_array_multi_non_positive_input_test.dart'
     as ffi_array_multi_non_positive_input_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
+import 'ffi_native_test.dart' as ffi_native_test;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -844,6 +845,7 @@ main() {
     extra_size_annotation_carray.main();
     ffi_array_multi_non_positive_input_test.main();
     ffi_leaf_call_must_not_use_handle.main();
+    ffi_native_test.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();

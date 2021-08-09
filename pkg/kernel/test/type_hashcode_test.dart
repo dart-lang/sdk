@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/kernel.dart';
 import 'type_parser.dart';
 import 'package:test/test.dart';
@@ -55,11 +53,13 @@ class TestCase {
   String type1;
   String type2;
   Iterable<String> quantifiedVariables;
-  Map<String, String> expectedSubstitution; // Null if unification should fail.
+  Map<String, String?>?
+      expectedSubstitution; // Null if unification should fail.
 
-  TestCase.success(this.type1, this.type2, this.expectedSubstitution) {
-    quantifiedVariables = expectedSubstitution.keys;
-  }
+  TestCase.success(
+      this.type1, this.type2, Map<String, String?> expectedSubstitution)
+      : this.expectedSubstitution = expectedSubstitution,
+        this.quantifiedVariables = expectedSubstitution.keys;
 
   TestCase.fail(this.type1, this.type2, this.quantifiedVariables);
 
@@ -68,7 +68,7 @@ class TestCase {
   String toString() => '∃ ${quantifiedVariables.join(',')}. $type1 = $type2';
 }
 
-TestCase successCase(String type1, String type2, Map<String, String> expected,
+TestCase successCase(String type1, String type2, Map<String, String?> expected,
     {bool debug: false}) {
   return new TestCase.success(type1, type2, expected);
 }

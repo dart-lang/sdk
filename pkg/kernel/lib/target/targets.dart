@@ -74,7 +74,7 @@ Target? getTarget(String name, TargetFlags flags) {
 }
 
 abstract class DiagnosticReporter<M, C> {
-  void report(M message, int charOffset, int length, Uri fileUri,
+  void report(M message, int charOffset, int length, Uri? fileUri,
       {List<C> context});
 }
 
@@ -256,7 +256,7 @@ abstract class Target {
       Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex? referenceFromIndex,
-      {void logger(String msg),
+      {void Function(String msg)? logger,
       ChangedStructureNotifier? changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
@@ -354,12 +354,29 @@ abstract class Target {
   /// synthesized top level functions.
   int get enabledConstructorTearOffLowerings;
 
-  /// Returns `true` if lowering of constructor tear offs is enabled.
+  /// Returns `true` if lowering of generative constructor tear offs is enabled.
   ///
   /// This is determined by the [enabledConstructorTearOffLowerings] mask.
   bool get isConstructorTearOffLoweringEnabled =>
       (enabledConstructorTearOffLowerings &
           ConstructorTearOffLowering.constructors) !=
+      0;
+
+  /// Returns `true` if lowering of non-redirecting factory tear offs is
+  /// enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isFactoryTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.factories) !=
+      0;
+
+  /// Returns `true` if lowering of redirecting factory tear offs is enabled.
+  ///
+  /// This is determined by the [enabledConstructorTearOffLowerings] mask.
+  bool get isRedirectingFactoryTearOffLoweringEnabled =>
+      (enabledConstructorTearOffLowerings &
+          ConstructorTearOffLowering.redirectingFactories) !=
       0;
 
   /// Returns `true` if lowering of typedef tear offs is enabled.
@@ -408,8 +425,6 @@ abstract class Target {
   /// If `false`, calls to getters and fields are encoded as method invocations
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
-
-  bool get supportsNewMethodInvocationEncoding;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
@@ -476,9 +491,6 @@ class NoneTarget extends Target {
   @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
-
-  @override
-  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   int get enabledConstructorTearOffLowerings =>
@@ -635,13 +647,19 @@ class LateLowering {
 }
 
 class ConstructorTearOffLowering {
-  /// Create top level functions to use as tear offs of constructors.
+  /// Create static functions to use as tear offs of generative constructors.
   static const int constructors = 1 << 0;
 
-  /// Create top level functions to use as tear offs of non trivial redirecting
-  /// factory constructors and typedefs.
-  static const int typedefs = 1 << 1;
+  /// Create static functions to use as tear offs of non-redirecting factories.
+  static const int factories = 1 << 1;
+
+  /// Create static functions to use as tear offs of redirecting factories.
+  static const int redirectingFactories = 1 << 2;
+
+  /// Create top level functions to use as tear offs of typedefs that are not
+  /// proper renames.
+  static const int typedefs = 1 << 3;
 
   static const int none = 0;
-  static const int all = (1 << 2) - 1;
+  static const int all = (1 << 4) - 1;
 }

@@ -118,7 +118,7 @@ class PropertyDescription {
       );
     }
 
-    await builder.addDartFileEdit(resolvedUnit.path!, (builder) {
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) {
       _changeCode(builder, (builder) {
         var expression = value.expression;
         if (expression != null) {
@@ -155,7 +155,7 @@ class PropertyDescription {
       }
 
       var beginOffset = argumentExpression.offset;
-      await builder.addDartFileEdit(resolvedUnit.path!, (builder) {
+      await builder.addDartFileEdit(resolvedUnit.path, (builder) {
         builder.addDeletion(
           SourceRange(beginOffset, endOffset - beginOffset),
         );
@@ -559,7 +559,7 @@ class _EdgeInsetsProperty {
 
     var builder = ChangeBuilder(session: property.resolvedUnit.session);
 
-    await builder.addDartFileEdit(property.resolvedUnit.path!, (builder) {
+    await builder.addDartFileEdit(property.resolvedUnit.path, (builder) {
       property._changeCode(builder, (builder) {
         if (leftCode == rightCode && topCode == bottomCode) {
           builder.writeReference(classEdgeInsets);
@@ -659,7 +659,7 @@ class _EdgeInsetsProperty {
 
   String? _expressionCode(Expression? expression) {
     if (expression != null) {
-      var content = property.resolvedUnit.content!;
+      var content = property.resolvedUnit.content;
       return content.substring(expression.offset, expression.end);
     }
     return null;

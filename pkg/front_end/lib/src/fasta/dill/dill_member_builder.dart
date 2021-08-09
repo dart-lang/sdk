@@ -188,13 +188,15 @@ class DillOperatorBuilder extends DillMemberBuilder {
 
 class DillFactoryBuilder extends DillMemberBuilder {
   final Procedure procedure;
+  final Procedure? _factoryTearOff;
 
-  DillFactoryBuilder(this.procedure, Builder parent) : super(procedure, parent);
+  DillFactoryBuilder(this.procedure, this._factoryTearOff, Builder parent)
+      : super(procedure, parent);
 
   Member get member => procedure;
 
   @override
-  Member? get readTarget => null;
+  Member? get readTarget => _factoryTearOff ?? procedure;
 
   @override
   Member? get writeTarget => null;

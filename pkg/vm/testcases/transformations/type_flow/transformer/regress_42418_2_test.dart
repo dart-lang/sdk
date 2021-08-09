@@ -10,12 +10,12 @@ final bool alwaysFalse = int.parse('1') == 2;
 
 class A {
   @pragma("vm:never-inline")
-  void bar(/* unboxed */ int x) => Expect.isTrue(x.isOdd);
+  void bar(/* unboxed */ int? x) => Expect.isTrue(x!.isOdd);
 }
 
 class B {
   @pragma("vm:never-inline")
-  void bar(/* boxed */ int x) => Expect.isTrue(x.isOdd);
+  void bar(/* boxed */ int? x) => Expect.isTrue(x!.isOdd);
 }
 
 class C extends A implements B {}

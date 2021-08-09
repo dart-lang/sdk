@@ -232,7 +232,7 @@ constants  {
   #C38 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A*>{(self::A{}) as{ForNonNullableByDefault} self::A*}
   #C39 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
   #C40 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)
-  #C41 = tearoff self::procedure
+  #C41 = static-tearoff self::procedure
   #C42 = self::ConstClassWithF {foo:#C41}
   #C43 = eval const core::bool::fromEnvironment(#C1)
   #C44 = eval !const core::bool::fromEnvironment(#C1)

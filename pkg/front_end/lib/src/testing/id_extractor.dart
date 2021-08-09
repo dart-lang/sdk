@@ -208,24 +208,6 @@ abstract class DataExtractor<T> extends Visitor<void>
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    TreeNode receiver = node.receiver;
-    if (receiver is VariableGet &&
-        receiver.variable.parent is FunctionDeclaration) {
-      // This is an invocation of a named local function.
-      computeForNode(node, createInvokeId(node.receiver));
-      node.arguments.accept(this);
-    } else if (node.name.text == '==' &&
-        receiver is VariableGet &&
-        receiver.variable.name == null) {
-      // This is a desugared `?.`.
-    } else {
-      _visitInvocation(node, node.name);
-      super.visitMethodInvocation(node);
-    }
-  }
-
-  @override
   visitDynamicInvocation(DynamicInvocation node) {
     _visitInvocation(node, node.name);
     super.visitDynamicInvocation(node);
@@ -275,12 +257,6 @@ abstract class DataExtractor<T> extends Visitor<void>
   @override
   visitLoadLibrary(LoadLibrary node) {
     computeForNode(node, createInvokeId(node));
-  }
-
-  @override
-  visitPropertyGet(PropertyGet node) {
-    computeForNode(node, computeDefaultNodeId(node));
-    super.visitPropertyGet(node);
   }
 
   @override
@@ -341,12 +317,6 @@ abstract class DataExtractor<T> extends Visitor<void>
       computeForNode(node, computeDefaultNodeId(node));
     }
     super.visitVariableGet(node);
-  }
-
-  @override
-  visitPropertySet(PropertySet node) {
-    computeForNode(node, createUpdateId(node));
-    super.visitPropertySet(node);
   }
 
   @override
@@ -529,11 +499,8 @@ abstract class DataExtractor<T> extends Visitor<void>
   visitThisExpression(ThisExpression node) {
     TreeNode parent = node.parent!;
     if (node.fileOffset == TreeNode.noOffset ||
-        (parent is PropertyGet ||
-                parent is InstanceGet ||
-                parent is PropertySet ||
+        (parent is InstanceGet ||
                 parent is InstanceSet ||
-                parent is MethodInvocation ||
                 parent is InstanceInvocation) &&
             parent.fileOffset == node.fileOffset) {
       // Skip implicit this expressions.

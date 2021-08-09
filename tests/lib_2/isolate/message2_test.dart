@@ -4,7 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --experimental-enable-isolate-groups-jit
+// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
+// VMOptions=--enable-isolate-groups --enable-fast-object-copy
 // VMOptions=--no-enable-isolate-groups
 
 // Dart test program for testing serialization of messages.

@@ -7,7 +7,7 @@ import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart'
@@ -191,6 +191,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitStaticTearOff(
       StaticTearOff node, DartType typeContext) {
+    inferrer.ensureMemberType(node.target);
     DartType type =
         node.target.function.computeFunctionType(inferrer.library.nonNullable);
     return inferrer.instantiateTearOff(type, typeContext, node);
@@ -217,15 +218,53 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitConstructorTearOff(
       ConstructorTearOff node, DartType typeContext) {
-    DartType type = node.constructor.function
-        .computeFunctionType(inferrer.library.nonNullable);
+    inferrer.ensureMemberType(node.target);
+    DartType type =
+        node.target.function!.computeFunctionType(inferrer.library.nonNullable);
+    return inferrer.instantiateTearOff(type, typeContext, node);
+  }
+
+  @override
+  ExpressionInferenceResult visitRedirectingFactoryTearOff(
+      RedirectingFactoryTearOff node, DartType typeContext) {
+    DartType type =
+        node.target.function.computeFunctionType(inferrer.library.nonNullable);
     return inferrer.instantiateTearOff(type, typeContext, node);
   }
 
   @override
   ExpressionInferenceResult visitTypedefTearOff(
       TypedefTearOff node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    ExpressionInferenceResult expressionResult = inferrer.inferExpression(
+        node.expression, const UnknownType(), true,
+        isVoidAllowed: true);
+    node.expression = expressionResult.expression..parent = node;
+    assert(
+        expressionResult.inferredType is FunctionType,
+        "Expected a FunctionType from tearing off a constructor from "
+        "a typedef, but got '${expressionResult.inferredType.runtimeType}'.");
+    FunctionType expressionType = expressionResult.inferredType as FunctionType;
+
+    assert(expressionType.typeParameters.length == node.typeArguments.length);
+    Substitution substitution = Substitution.fromPairs(
+        expressionType.typeParameters, node.typeArguments);
+    FunctionType resultType = substitution
+        .substituteType(expressionType.withoutTypeParameters) as FunctionType;
+    FreshTypeParameters freshTypeParameters =
+        getFreshTypeParameters(node.typeParameters);
+    resultType = freshTypeParameters.substitute(resultType) as FunctionType;
+    resultType = new FunctionType(resultType.positionalParameters,
+        resultType.returnType, resultType.declaredNullability,
+        namedParameters: resultType.namedParameters,
+        typeParameters: freshTypeParameters.freshTypeParameters,
+        requiredParameterCount: resultType.requiredParameterCount,
+        typedefType: null);
+    ExpressionInferenceResult inferredResult =
+        inferrer.instantiateTearOff(resultType, typeContext, node);
+    Expression ensuredResultExpression =
+        inferrer.ensureAssignableResult(typeContext, inferredResult);
+    return new ExpressionInferenceResult(
+        inferredResult.inferredType, ensuredResultExpression);
   }
 
   @override
@@ -283,7 +322,7 @@ class InferenceVisitor
   }
 
   @override
-  void visitInvalidInitializer(Initializer node) {
+  void visitInvalidInitializer(InvalidInitializer node) {
     _unhandledInitializer(node);
   }
 
@@ -2039,7 +2078,7 @@ class InferenceVisitor
       DartType inferredKeyType,
       DartType inferredValueType,
       DartType spreadContext,
-      List<DartType?> actualTypes,
+      List<DartType> actualTypes,
       List<DartType> actualTypesForSet,
       Map<TreeNode, DartType> inferredSpreadTypes,
       Map<Expression, DartType> inferredConditionTypes,
@@ -2057,8 +2096,8 @@ class InferenceVisitor
       DartType spreadType = spreadResult.inferredType;
       inferredSpreadTypes[entry.expression] = spreadType;
       int length = actualTypes.length;
-      actualTypes.add(null);
-      actualTypes.add(null);
+      actualTypes.add(noInferredType);
+      actualTypes.add(noInferredType);
       storeSpreadMapEntryElementTypes(
           spreadType, entry.isNullAware, actualTypes, length);
       DartType? actualKeyType = actualTypes[length];
@@ -2069,7 +2108,7 @@ class InferenceVisitor
 
       MapLiteralEntry replacement = entry;
       if (typeChecksNeeded) {
-        if (actualKeyType == null) {
+        if (actualKeyType == noInferredType) {
           if (inferrer.coreTypes.isNull(spreadTypeBound) &&
               !entry.isNullAware) {
             replacement = new MapLiteralEntry(
@@ -2165,7 +2204,7 @@ class InferenceVisitor
                   1);
             }
           }
-          if (!inferrer.isAssignable(inferredValueType, actualValueType!)) {
+          if (!inferrer.isAssignable(inferredValueType, actualValueType)) {
             if (inferrer.isNonNullableByDefault) {
               IsSubtypeOf subtypeCheckResult = inferrer.typeSchemaEnvironment
                   .performNullabilityAwareSubtypeCheck(
@@ -2234,7 +2273,7 @@ class InferenceVisitor
       }
 
       // Use 'dynamic' for error recovery.
-      if (actualKeyType == null) {
+      if (actualKeyType == noInferredType) {
         actualKeyType = actualTypes[length] = const DynamicType();
         actualValueType = actualTypes[length + 1] = const DynamicType();
       }
@@ -2248,7 +2287,7 @@ class InferenceVisitor
       entry.entryType = new InterfaceType(
           mapEntryClass!,
           inferrer.library.nonNullable,
-          <DartType>[actualKeyType, actualValueType!]);
+          <DartType>[actualKeyType, actualValueType]);
 
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
@@ -2315,10 +2354,10 @@ class InferenceVisitor
             typeChecksNeeded);
         int length = actualTypes.length;
         actualTypes[length - 2] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualKeyType!, actualTypes[length - 2]!,
+            .getStandardUpperBound(actualKeyType, actualTypes[length - 2],
                 inferrer.library.library);
         actualTypes[length - 1] = inferrer.typeSchemaEnvironment
-            .getStandardUpperBound(actualValueType!, actualTypes[length - 1]!,
+            .getStandardUpperBound(actualValueType, actualTypes[length - 1],
                 inferrer.library.library);
         int lengthForSet = actualTypesForSet.length;
         actualTypesForSet[lengthForSet - 1] = inferrer.typeSchemaEnvironment
@@ -2583,7 +2622,7 @@ class InferenceVisitor
       inferredConditionTypes = new Map<Expression, DartType>.identity();
     }
     if (inferenceNeeded) {
-      inferredTypes = [const UnknownType(), const UnknownType()];
+      inferredTypes = [noInferredType, noInferredType];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
           mapType,
           mapClass.typeParameters,
@@ -2662,7 +2701,7 @@ class InferenceVisitor
           formalTypesForSet.add(setType.typeArguments[0]);
         }
 
-        List<DartType> inferredTypesForSet = <DartType>[const UnknownType()];
+        List<DartType> inferredTypesForSet = <DartType>[noInferredType];
         inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(
             setType,
             inferrer.coreTypes.setClass.typeParameters,
@@ -2767,7 +2806,6 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  @override
   ExpressionInferenceResult visitMethodInvocation(
       MethodInvocation node, DartType typeContext) {
     assert(node.name != unaryMinusName);
@@ -3987,24 +4025,20 @@ class InferenceVisitor
         right, const UnknownType(), typeNeeded,
         isVoidAllowed: false);
 
-    if (inferrer.useNewMethodInvocationEncoding) {
-      if (_isNull(right)) {
-        equals = new EqualsNull(left)..fileOffset = fileOffset;
-      } else if (_isNull(left)) {
-        equals = new EqualsNull(rightResult.expression)
-          ..fileOffset = fileOffset;
+    if (_isNull(right)) {
+      equals = new EqualsNull(left)..fileOffset = fileOffset;
+    } else if (_isNull(left)) {
+      equals = new EqualsNull(rightResult.expression)..fileOffset = fileOffset;
+    }
+    if (equals != null) {
+      if (isNot) {
+        equals = new Not(equals)..fileOffset = fileOffset;
       }
-      if (equals != null) {
-        if (isNot) {
-          equals = new Not(equals)..fileOffset = fileOffset;
-        }
-        inferrer.flowAnalysis.equalityOp_end(
-            equals, rightResult.expression, rightResult.inferredType,
-            notEqual: isNot);
-        return new ExpressionInferenceResult(
-            inferrer.coreTypes.boolRawType(inferrer.library.nonNullable),
-            equals);
-      }
+      inferrer.flowAnalysis.equalityOp_end(
+          equals, rightResult.expression, rightResult.inferredType,
+          notEqual: isNot);
+      return new ExpressionInferenceResult(
+          inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), equals);
     }
 
     ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
@@ -4038,47 +4072,33 @@ class InferenceVisitor
         nullabilityNullTypeErrorTemplate:
             templateArgumentTypeNotAssignableNullabilityNullType);
 
-    if (inferrer.useNewMethodInvocationEncoding) {
-      if (equalsTarget.isInstanceMember || equalsTarget.isObjectMember) {
-        FunctionType functionType =
-            inferrer.getFunctionType(equalsTarget, leftType);
-        equals = new EqualsCall(left, right,
-            functionType: functionType,
-            interfaceTarget: equalsTarget.member as Procedure)
-          ..fileOffset = fileOffset;
-        if (isNot) {
-          equals = new Not(equals)..fileOffset = fileOffset;
-        }
-      } else {
-        assert(equalsTarget.isNever);
-        FunctionType functionType = new FunctionType([const DynamicType()],
-            const NeverType.nonNullable(), inferrer.library.nonNullable);
-        // Ensure operator == member even for `Never`.
-        Member target = inferrer
-            .findInterfaceMember(const DynamicType(), equalsName, -1,
-                instrumented: false)
-            .member!;
-        equals = new EqualsCall(left, right,
-            functionType: functionType, interfaceTarget: target as Procedure)
-          ..fileOffset = fileOffset;
-        if (isNot) {
-          equals = new Not(equals)..fileOffset = fileOffset;
-        }
+    if (equalsTarget.isInstanceMember || equalsTarget.isObjectMember) {
+      FunctionType functionType =
+          inferrer.getFunctionType(equalsTarget, leftType);
+      equals = new EqualsCall(left, right,
+          functionType: functionType,
+          interfaceTarget: equalsTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+      if (isNot) {
+        equals = new Not(equals)..fileOffset = fileOffset;
       }
     } else {
-      equals = new MethodInvocation(
-          left,
-          equalsName,
-          new Arguments(<Expression>[
-            right,
-          ])
-            ..fileOffset = fileOffset,
-          equalsTarget.member)
+      assert(equalsTarget.isNever);
+      FunctionType functionType = new FunctionType([const DynamicType()],
+          const NeverType.nonNullable(), inferrer.library.nonNullable);
+      // Ensure operator == member even for `Never`.
+      Member target = inferrer
+          .findInterfaceMember(const DynamicType(), equalsName, -1,
+              instrumented: false)
+          .member!;
+      equals = new EqualsCall(left, right,
+          functionType: functionType, interfaceTarget: target as Procedure)
         ..fileOffset = fileOffset;
       if (isNot) {
         equals = new Not(equals)..fileOffset = fileOffset;
       }
     }
+
     inferrer.flowAnalysis.equalityOp_end(
         equals, right, rightResult.inferredType,
         notEqual: isNot);
@@ -4179,75 +4199,39 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          binary = new DynamicInvocation(
-              DynamicAccessKind.Invalid,
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          binary = new MethodInvocation(
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset,
-              binaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        binary = new DynamicInvocation(
+            DynamicAccessKind.Invalid,
+            left,
+            binaryName,
+            new Arguments(<Expression>[
+              right,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          binary = new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          binary = new MethodInvocation(
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset,
-              binaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        binary = new DynamicInvocation(
+            DynamicAccessKind.Dynamic,
+            left,
+            binaryName,
+            new Arguments(<Expression>[
+              right,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          binary = new DynamicInvocation(
-              DynamicAccessKind.Never,
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          binary = new MethodInvocation(
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset,
-              binaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        binary = new DynamicInvocation(
+            DynamicAccessKind.Never,
+            left,
+            binaryName,
+            new Arguments(<Expression>[
+              right,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
@@ -4262,30 +4246,18 @@ class InferenceVisitor
               new InstrumentationValueForMember(binaryTarget.member!));
         }
 
-        if (inferrer.useNewMethodInvocationEncoding) {
-          binary = new InstanceInvocation(
-              InstanceAccessKind.Instance,
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset,
-              functionType: new FunctionType(
-                  [rightType], binaryType, inferrer.library.nonNullable),
-              interfaceTarget: binaryTarget.member as Procedure)
-            ..fileOffset = fileOffset;
-        } else {
-          binary = new MethodInvocation(
-              left,
-              binaryName,
-              new Arguments(<Expression>[
-                right,
-              ])
-                ..fileOffset = fileOffset,
-              binaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        binary = new InstanceInvocation(
+            InstanceAccessKind.Instance,
+            left,
+            binaryName,
+            new Arguments(<Expression>[
+              right,
+            ])
+              ..fileOffset = fileOffset,
+            functionType: new FunctionType(
+                [rightType], binaryType, inferrer.library.nonNullable),
+            interfaceTarget: binaryTarget.member as Procedure)
+          ..fileOffset = fileOffset;
 
         if (binaryCheckKind ==
             MethodContravarianceCheckKind.checkMethodReturn) {
@@ -4367,48 +4339,21 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          unary = new DynamicInvocation(DynamicAccessKind.Invalid, expression,
-              unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          unary = new MethodInvocation(
-              expression,
-              unaryName,
-              new Arguments(<Expression>[])..fileOffset = fileOffset,
-              unaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        unary = new DynamicInvocation(DynamicAccessKind.Invalid, expression,
+            unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          unary = new DynamicInvocation(DynamicAccessKind.Never, expression,
-              unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          unary = new MethodInvocation(
-              expression,
-              unaryName,
-              new Arguments(<Expression>[])..fileOffset = fileOffset,
-              unaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        unary = new DynamicInvocation(DynamicAccessKind.Never, expression,
+            unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          unary = new DynamicInvocation(DynamicAccessKind.Dynamic, expression,
-              unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          unary = new MethodInvocation(
-              expression,
-              unaryName,
-              new Arguments(<Expression>[])..fileOffset = fileOffset,
-              unaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        unary = new DynamicInvocation(DynamicAccessKind.Dynamic, expression,
+            unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
@@ -4423,24 +4368,12 @@ class InferenceVisitor
               new InstrumentationValueForMember(unaryTarget.member!));
         }
 
-        if (inferrer.useNewMethodInvocationEncoding) {
-          unary = new InstanceInvocation(
-              InstanceAccessKind.Instance,
-              expression,
-              unaryName,
-              new Arguments(<Expression>[])..fileOffset = fileOffset,
-              functionType: new FunctionType(
-                  <DartType>[], unaryType, inferrer.library.nonNullable),
-              interfaceTarget: unaryTarget.member as Procedure)
-            ..fileOffset = fileOffset;
-        } else {
-          unary = new MethodInvocation(
-              expression,
-              unaryName,
-              new Arguments(<Expression>[])..fileOffset = fileOffset,
-              unaryTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        unary = new InstanceInvocation(InstanceAccessKind.Instance, expression,
+            unaryName, new Arguments(<Expression>[])..fileOffset = fileOffset,
+            functionType: new FunctionType(
+                <DartType>[], unaryType, inferrer.library.nonNullable),
+            interfaceTarget: unaryTarget.member as Procedure)
+          ..fileOffset = fileOffset;
 
         if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
           if (inferrer.instrumentation != null) {
@@ -4519,117 +4452,69 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read = new DynamicInvocation(
-              DynamicAccessKind.Invalid,
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          read = new MethodInvocation(
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset,
-              readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicInvocation(
+            DynamicAccessKind.Invalid,
+            readReceiver,
+            indexGetName,
+            new Arguments(<Expression>[
+              readIndex,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read = new DynamicInvocation(
-              DynamicAccessKind.Never,
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          read = new MethodInvocation(
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset,
-              readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicInvocation(
+            DynamicAccessKind.Never,
+            readReceiver,
+            indexGetName,
+            new Arguments(<Expression>[
+              readIndex,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read = new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          read = new MethodInvocation(
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset,
-              readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicInvocation(
+            DynamicAccessKind.Dynamic,
+            readReceiver,
+            indexGetName,
+            new Arguments(<Expression>[
+              readIndex,
+            ])
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          InstanceAccessKind kind;
-          switch (readTarget.kind) {
-            case ObjectAccessTargetKind.instanceMember:
-              kind = InstanceAccessKind.Instance;
-              break;
-            case ObjectAccessTargetKind.nullableInstanceMember:
-              kind = InstanceAccessKind.Nullable;
-              break;
-            case ObjectAccessTargetKind.objectMember:
-              kind = InstanceAccessKind.Object;
-              break;
-            default:
-              throw new UnsupportedError('Unexpected target kind $readTarget');
-          }
-          read = new InstanceInvocation(
-              kind,
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset,
-              functionType: new FunctionType(
-                  [indexType], readType, inferrer.library.nonNullable),
-              interfaceTarget: readTarget.member as Procedure)
-            ..fileOffset = fileOffset;
-        } else {
-          read = new MethodInvocation(
-              readReceiver,
-              indexGetName,
-              new Arguments(<Expression>[
-                readIndex,
-              ])
-                ..fileOffset = fileOffset,
-              readTarget.member)
-            ..fileOffset = fileOffset;
+        InstanceAccessKind kind;
+        switch (readTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          default:
+            throw new UnsupportedError('Unexpected target kind $readTarget');
         }
+        read = new InstanceInvocation(
+            kind,
+            readReceiver,
+            indexGetName,
+            new Arguments(<Expression>[
+              readIndex,
+            ])
+              ..fileOffset = fileOffset,
+            functionType: new FunctionType(
+                [indexType], readType, inferrer.library.nonNullable),
+            interfaceTarget: readTarget.member as Procedure)
+          ..fileOffset = fileOffset;
         if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
           if (inferrer.instrumentation != null) {
             inferrer.instrumentation!.record(
@@ -4702,102 +4587,54 @@ class InferenceVisitor
           ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicInvocation(
-              DynamicAccessKind.Invalid,
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          write = new MethodInvocation(
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset,
-              writeTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        write = new DynamicInvocation(
+            DynamicAccessKind.Invalid,
+            receiver,
+            indexSetName,
+            new Arguments(<Expression>[index, value])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicInvocation(
-              DynamicAccessKind.Never,
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-        } else {
-          write = new MethodInvocation(
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset,
-              writeTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        write = new DynamicInvocation(
+            DynamicAccessKind.Never,
+            receiver,
+            indexSetName,
+            new Arguments(<Expression>[index, value])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicInvocation(
-              DynamicAccessKind.Dynamic,
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset)
-            ..fileOffset = fileOffset;
-          break;
-        } else {
-          write = new MethodInvocation(
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset,
-              writeTarget.member)
-            ..fileOffset = fileOffset;
-          break;
-        }
+        write = new DynamicInvocation(
+            DynamicAccessKind.Dynamic,
+            receiver,
+            indexSetName,
+            new Arguments(<Expression>[index, value])..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
+        break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          InstanceAccessKind kind;
-          switch (writeTarget.kind) {
-            case ObjectAccessTargetKind.instanceMember:
-              kind = InstanceAccessKind.Instance;
-              break;
-            case ObjectAccessTargetKind.nullableInstanceMember:
-              kind = InstanceAccessKind.Nullable;
-              break;
-            case ObjectAccessTargetKind.objectMember:
-              kind = InstanceAccessKind.Object;
-              break;
-            default:
-              throw new UnsupportedError('Unexpected target kind $writeTarget');
-          }
-          write = new InstanceInvocation(
-              kind,
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset,
-              functionType: new FunctionType([indexType, valueType],
-                  const VoidType(), inferrer.library.nonNullable),
-              interfaceTarget: writeTarget.member as Procedure)
-            ..fileOffset = fileOffset;
-        } else {
-          write = new MethodInvocation(
-              receiver,
-              indexSetName,
-              new Arguments(<Expression>[index, value])
-                ..fileOffset = fileOffset,
-              writeTarget.member)
-            ..fileOffset = fileOffset;
+        InstanceAccessKind kind;
+        switch (writeTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          default:
+            throw new UnsupportedError('Unexpected target kind $writeTarget');
         }
+        write = new InstanceInvocation(kind, receiver, indexSetName,
+            new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+            functionType: new FunctionType([indexType, valueType],
+                const VoidType(), inferrer.library.nonNullable),
+            interfaceTarget: writeTarget.member as Procedure)
+          ..fileOffset = fileOffset;
         break;
     }
     if (!inferrer.isTopLevel && writeTarget.isNullable) {
@@ -4877,42 +4714,20 @@ class InferenceVisitor
         }
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read = new DynamicGet(DynamicAccessKind.Never, receiver, propertyName)
-            ..fileOffset = fileOffset;
-        } else {
-          read = new PropertyGet(receiver, propertyName, readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicGet(DynamicAccessKind.Never, receiver, propertyName)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read =
-              new DynamicGet(DynamicAccessKind.Dynamic, receiver, propertyName)
-                ..fileOffset = fileOffset;
-        } else {
-          read = new PropertyGet(receiver, propertyName, readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicGet(DynamicAccessKind.Dynamic, receiver, propertyName)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read =
-              new DynamicGet(DynamicAccessKind.Invalid, receiver, propertyName)
-                ..fileOffset = fileOffset;
-        } else {
-          read = new PropertyGet(receiver, propertyName, readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new DynamicGet(DynamicAccessKind.Invalid, receiver, propertyName)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          read = new FunctionTearOff(receiver)..fileOffset = fileOffset;
-        } else {
-          read = new PropertyGet(receiver, propertyName, readTarget.member)
-            ..fileOffset = fileOffset;
-        }
+        read = new FunctionTearOff(receiver)..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
@@ -4924,32 +4739,28 @@ class InferenceVisitor
           inferrer.instrumentation!.record(inferrer.uriForInstrumentation,
               fileOffset, 'target', new InstrumentationValueForMember(member));
         }
-        if (inferrer.useNewMethodInvocationEncoding) {
-          InstanceAccessKind kind;
-          switch (readTarget.kind) {
-            case ObjectAccessTargetKind.instanceMember:
-              kind = InstanceAccessKind.Instance;
-              break;
-            case ObjectAccessTargetKind.nullableInstanceMember:
-              kind = InstanceAccessKind.Nullable;
-              break;
-            case ObjectAccessTargetKind.objectMember:
-              kind = InstanceAccessKind.Object;
-              break;
-            default:
-              throw new UnsupportedError('Unexpected target kind $readTarget');
-          }
-          if (member is Procedure && member.kind == ProcedureKind.Method) {
-            read = new InstanceTearOff(kind, receiver, propertyName,
-                interfaceTarget: member, resultType: readType)
-              ..fileOffset = fileOffset;
-          } else {
-            read = new InstanceGet(kind, receiver, propertyName,
-                interfaceTarget: member, resultType: readType)
-              ..fileOffset = fileOffset;
-          }
+
+        InstanceAccessKind kind;
+        switch (readTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          default:
+            throw new UnsupportedError('Unexpected target kind $readTarget');
+        }
+        if (member is Procedure && member.kind == ProcedureKind.Method) {
+          read = new InstanceTearOff(kind, receiver, propertyName,
+              interfaceTarget: member, resultType: readType)
+            ..fileOffset = fileOffset;
         } else {
-          read = new PropertyGet(receiver, propertyName, readTarget.member)
+          read = new InstanceGet(kind, receiver, propertyName,
+              interfaceTarget: member, resultType: readType)
             ..fileOffset = fileOffset;
         }
         bool checkReturn = false;
@@ -5070,66 +4881,42 @@ class InferenceVisitor
         }
         break;
       case ObjectAccessTargetKind.invalid:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicSet(
-              DynamicAccessKind.Invalid, receiver, propertyName, value)
-            ..fileOffset = fileOffset;
-        } else {
-          write =
-              new PropertySet(receiver, propertyName, value, writeTarget.member)
-                ..fileOffset = fileOffset;
-        }
+        write = new DynamicSet(
+            DynamicAccessKind.Invalid, receiver, propertyName, value)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicSet(
-              DynamicAccessKind.Never, receiver, propertyName, value)
-            ..fileOffset = fileOffset;
-        } else {
-          write =
-              new PropertySet(receiver, propertyName, value, writeTarget.member)
-                ..fileOffset = fileOffset;
-        }
+        write = new DynamicSet(
+            DynamicAccessKind.Never, receiver, propertyName, value)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.nullableCallFunction:
       case ObjectAccessTargetKind.dynamic:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          write = new DynamicSet(
-              DynamicAccessKind.Dynamic, receiver, propertyName, value)
-            ..fileOffset = fileOffset;
-        } else {
-          write =
-              new PropertySet(receiver, propertyName, value, writeTarget.member)
-                ..fileOffset = fileOffset;
-        }
+        write = new DynamicSet(
+            DynamicAccessKind.Dynamic, receiver, propertyName, value)
+          ..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
       case ObjectAccessTargetKind.nullableInstanceMember:
-        if (inferrer.useNewMethodInvocationEncoding) {
-          InstanceAccessKind kind;
-          switch (writeTarget.kind) {
-            case ObjectAccessTargetKind.instanceMember:
-              kind = InstanceAccessKind.Instance;
-              break;
-            case ObjectAccessTargetKind.nullableInstanceMember:
-              kind = InstanceAccessKind.Nullable;
-              break;
-            case ObjectAccessTargetKind.objectMember:
-              kind = InstanceAccessKind.Object;
-              break;
-            default:
-              throw new UnsupportedError('Unexpected target kind $writeTarget');
-          }
-          write = new InstanceSet(kind, receiver, propertyName, value,
-              interfaceTarget: writeTarget.member!)
-            ..fileOffset = fileOffset;
-        } else {
-          write =
-              new PropertySet(receiver, propertyName, value, writeTarget.member)
-                ..fileOffset = fileOffset;
+        InstanceAccessKind kind;
+        switch (writeTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          default:
+            throw new UnsupportedError('Unexpected target kind $writeTarget');
         }
+        write = new InstanceSet(kind, receiver, propertyName, value,
+            interfaceTarget: writeTarget.member!)
+          ..fileOffset = fileOffset;
         break;
     }
     if (!inferrer.isTopLevel && writeTarget.isNullable) {
@@ -5821,9 +5608,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
-  @override
   ExpressionInferenceResult visitPropertySet(
-      covariant PropertySetImpl node, DartType typeContext) {
+      PropertySet node, DartType typeContext) {
     ExpressionInferenceResult receiverResult = inferrer
         .inferNullAwareExpression(node.receiver, const UnknownType(), true,
             isVoidAllowed: false);
@@ -5844,7 +5630,6 @@ class InferenceVisitor
             'target',
             new InstrumentationValueForMember(target.member!));
       }
-      node.interfaceTarget = target.member;
     }
     DartType writeContext = inferrer.getSetterType(target, receiverType);
     ExpressionInferenceResult rhsResult = inferrer
@@ -5965,7 +5750,6 @@ class InferenceVisitor
         inferredType, replacement, nullAwareGuards.prepend(nullAwareGuard));
   }
 
-  @override
   ExpressionInferenceResult visitPropertyGet(
       PropertyGet node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferNullAwareExpression(
@@ -6167,11 +5951,8 @@ class InferenceVisitor
     }
 
     if (target is Procedure && target.kind == ProcedureKind.Method) {
-      Expression tearOff = node;
-      if (inferrer.useNewMethodInvocationEncoding) {
-        tearOff = new StaticTearOff(node.target as Procedure)
-          ..fileOffset = node.fileOffset;
-      }
+      Expression tearOff = new StaticTearOff(node.target as Procedure)
+        ..fileOffset = node.fileOffset;
       return inferrer.instantiateTearOff(type, typeContext, tearOff);
     } else {
       return new ExpressionInferenceResult(type, node);
@@ -6304,9 +6085,10 @@ class InferenceVisitor
 
     Set<Field?>? enumFields;
     if (expressionType is InterfaceType && expressionType.classNode.isEnum) {
-      enumFields = expressionType.classNode.fields
-          .where((Field field) => field.isConst && field.type == expressionType)
-          .toSet();
+      enumFields = <Field?>{
+        ...expressionType.classNode.fields.where(
+            (Field field) => field.isConst && field.type == expressionType)
+      };
       if (expressionType.isPotentiallyNullable) {
         enumFields.add(null);
       }
@@ -6569,18 +6351,10 @@ class InferenceVisitor
     DartType resultType = rhsResult.inferredType;
     Expression resultExpression;
     if (variable.lateSetter != null) {
-      if (inferrer.useNewMethodInvocationEncoding) {
-        resultExpression = new LocalFunctionInvocation(variable.lateSetter!,
-            new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset,
-            functionType: variable.lateSetter!.type as FunctionType)
-          ..fileOffset = node.fileOffset;
-      } else {
-        resultExpression = new MethodInvocation(
-            new VariableGet(variable.lateSetter!)..fileOffset = node.fileOffset,
-            callName,
-            new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset)
-          ..fileOffset = node.fileOffset;
-      }
+      resultExpression = new LocalFunctionInvocation(variable.lateSetter!,
+          new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset,
+          functionType: variable.lateSetter!.type as FunctionType)
+        ..fileOffset = node.fileOffset;
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable set, so instruct flow analysis to forward the
       // expression information.
@@ -6714,8 +6488,7 @@ class InferenceVisitor
         result.add(isSetVariable);
       }
 
-      Expression createVariableRead(bool useNewMethodInvocationEncoding,
-          {bool needsPromotion: false}) {
+      Expression createVariableRead({bool needsPromotion: false}) {
         if (needsPromotion) {
           return new VariableGet(node, node.type)..fileOffset = fileOffset;
         } else {
@@ -6739,11 +6512,7 @@ class InferenceVisitor
           new FunctionNode(
               node.initializer == null
                   ? late_lowering.createGetterBodyWithoutInitializer(
-                      inferrer.coreTypes,
-                      fileOffset,
-                      node.name!,
-                      node.type,
-                      inferrer.useNewMethodInvocationEncoding,
+                      inferrer.coreTypes, fileOffset, node.name!, node.type,
                       createVariableRead: createVariableRead,
                       createIsSetRead: createIsSetRead,
                       isSetEncoding: isSetEncoding,
@@ -6755,7 +6524,6 @@ class InferenceVisitor
                           node.name!,
                           node.type,
                           node.initializer!,
-                          inferrer.useNewMethodInvocationEncoding,
                           createVariableRead: createVariableRead,
                           createVariableWrite: createVariableWrite,
                           createIsSetRead: createIsSetRead,
@@ -6768,7 +6536,6 @@ class InferenceVisitor
                           node.name!,
                           node.type,
                           node.initializer!,
-                          inferrer.useNewMethodInvocationEncoding,
                           createVariableRead: createVariableRead,
                           createVariableWrite: createVariableWrite,
                           createIsSetRead: createIsSetRead,
@@ -6801,7 +6568,6 @@ class InferenceVisitor
                             node.name!,
                             setterParameter,
                             node.type,
-                            inferrer.useNewMethodInvocationEncoding,
                             shouldReturnValue: true,
                             createVariableRead: createVariableRead,
                             createVariableWrite: createVariableWrite,
@@ -6878,18 +6644,10 @@ class InferenceVisitor
     if (variable.isLocalFunction) {
       return inferrer.instantiateTearOff(resultType, typeContext, node);
     } else if (variable.lateGetter != null) {
-      if (inferrer.useNewMethodInvocationEncoding) {
-        resultExpression = new LocalFunctionInvocation(variable.lateGetter!,
-            new Arguments(<Expression>[])..fileOffset = node.fileOffset,
-            functionType: variable.lateGetter!.type as FunctionType)
-          ..fileOffset = node.fileOffset;
-      } else {
-        resultExpression = new MethodInvocation(
-            new VariableGet(variable.lateGetter!)..fileOffset = node.fileOffset,
-            callName,
-            new Arguments(<Expression>[])..fileOffset = node.fileOffset)
-          ..fileOffset = node.fileOffset;
-      }
+      resultExpression = new LocalFunctionInvocation(variable.lateGetter!,
+          new Arguments(<Expression>[])..fileOffset = node.fileOffset,
+          functionType: variable.lateGetter!.type as FunctionType)
+        ..fileOffset = node.fileOffset;
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable get, so instruct flow analysis to forward the
       // expression information.
@@ -7250,7 +7008,6 @@ class PropertyForInVariable implements ForInVariable {
               'target',
               new InstrumentationValueForMember(writeTarget.member!));
         }
-        propertySet.interfaceTarget = writeTarget.member;
       }
       _rhs = propertySet.value;
     }

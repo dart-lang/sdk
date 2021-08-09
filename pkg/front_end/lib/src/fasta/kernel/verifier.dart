@@ -283,7 +283,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     // the shape, but aren't of the RedirectingFactoryBody type.
     bool hasBody = isRedirectingFactory(node) ||
         RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
-    bool hasFlag = node.isRedirectingFactoryConstructor;
+    bool hasFlag = node.isRedirectingFactory;
     if (hasBody != hasFlag) {
       String hasBodyString = hasBody ? "has" : "doesn't have";
       String hasFlagString = hasFlag ? "has" : "doesn't have";
@@ -291,7 +291,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           node,
           "Procedure '${node.name}' ${hasBodyString} a body "
           "of a redirecting factory, but ${hasFlagString} the "
-          "'isRedirectingFactoryConstructor' bit set.");
+          "'isRedirectingFactory' bit set.");
     }
 
     super.visitProcedure(node);
@@ -434,39 +434,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
       problem(node, "Attempt to invoke redirecting factory.");
     }
     exitTreeNode(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a MethodInvocation.");
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitPropertyGet(PropertyGet node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a PropertyGet.");
-    }
-    super.visitPropertyGet(node);
-  }
-
-  @override
-  void visitPropertySet(PropertySet node) {
-    if (target.supportsNewMethodInvocationEncoding) {
-      problem(
-          node,
-          "New method invocation encoding is supported, "
-          "but found a PropertySet.");
-    }
-    super.visitPropertySet(node);
   }
 
   @override

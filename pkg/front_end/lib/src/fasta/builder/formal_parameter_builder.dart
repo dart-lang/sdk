@@ -14,7 +14,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-import 'package:front_end/src/fasta/builder/procedure_builder.dart';
 
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, VariableDeclaration;
@@ -40,6 +39,7 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
+import 'factory_builder.dart';
 import 'field_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
@@ -51,6 +51,8 @@ import 'variable_builder.dart';
 /// constructor.
 class FormalParameterBuilder extends ModifierBuilderImpl
     implements VariableBuilder {
+  static const String noNameSentinel = 'no name sentinel';
+
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder>? metadata;
 
@@ -130,7 +132,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       if (!library.isNonNullableByDefault && builtType != null) {
         builtType = legacyErasure(builtType);
       }
-      variable = new VariableDeclarationImpl(name, functionNestingLevel,
+      variable = new VariableDeclarationImpl(
+          name == noNameSentinel ? null : name, functionNestingLevel,
           type: builtType,
           isFinal: isFinal,
           isConst: isConst,
@@ -202,7 +205,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
       bool isConstConstructorParameter = false;
       if (parent is ConstructorBuilder) {
         isConstConstructorParameter = parent!.isConst;
-      } else if (parent is ProcedureBuilder) {
+      } else if (parent is SourceFactoryBuilder) {
         isConstConstructorParameter = parent!.isFactory && parent!.isConst;
       }
       if (isConstConstructorParameter || parent!.isClassInstanceMember) {

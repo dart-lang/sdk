@@ -26,6 +26,8 @@ import '../fasta_codes.dart'
         noLength,
         templateExtensionMemberConflictsWithObjectMember;
 
+import '../kernel/kernel_helper.dart';
+
 import '../problems.dart';
 
 import '../scope.dart';
@@ -254,7 +256,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
         library.checkTypesInField(builder, typeEnvironment);
       } else if (builder is ProcedureBuilder) {
         // Check procedures
-        library.checkTypesInProcedureBuilder(builder, typeEnvironment);
+        library.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(builder.name, setter: true);
@@ -273,7 +275,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
         metadata, library, this, null, fileUri);
     if (typeParameters != null) {
@@ -285,8 +288,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration as MemberBuilder;
-      member.buildOutlineExpressions(
-          library, coreTypes, delayedActionPerformers);
+      member.buildOutlineExpressions(library, coreTypes,
+          delayedActionPerformers, synthesizedFunctionNodes);
     }
 
     scope.forEach(build);

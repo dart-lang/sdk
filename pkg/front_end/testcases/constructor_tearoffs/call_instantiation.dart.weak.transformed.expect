@@ -18,5 +18,5 @@ static method func<T extends core::Object? = dynamic>(self::func::T% value) → 
 static method main() → dynamic {}
 
 constants  {
-  #C1 = tearoff self::func
+  #C1 = static-tearoff self::func
 }

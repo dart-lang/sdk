@@ -6,7 +6,7 @@ The Dart VM has a generational garbage collector with two generations. The new g
 
 Object pointers refer either to immediate objects or heap objects, distinguished by a tag in the low bits of the pointer. The Dart VM has only one kind of immediate object, Smis (small integers), whose pointers have a tag of 0. Heap objects have a pointer tag of 1. The upper bits of a Smi pointer are its value, and the upper bits of a heap object pointer are the most significant bits of its address (the least significant bit is always 0 because heap objects always have greater than 2-byte alignment).
 
-A tag of 0 allows many operations to be performed on Smis without untagging and retagging. It also allows hiding aligned addresses to the C heap from the GC.
+A tag of 0 allows many operations to be performed on Smis without untagging and retagging.
 
 A tag of 1 has no penalty on heap object access because removing the tag can be folded into the offset used by load and store instructions.
 

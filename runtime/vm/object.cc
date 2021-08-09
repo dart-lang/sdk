@@ -606,7 +606,23 @@ void Object::InitVtables() {
     clazz fake_handle;                                                         \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
-  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(INIT_VTABLE)
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    LinkedHashMap fake_handle;                                                 \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_MAPS(INIT_VTABLE)
+#undef INIT_VTABLE
+
+#define INIT_VTABLE(clazz)                                                     \
+  {                                                                            \
+    LinkedHashSet fake_handle;                                                 \
+    builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
+  }
+  CLASS_LIST_SETS(INIT_VTABLE)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -1948,6 +1964,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
+    object_store->set_linked_hash_set_class(cls);
+    cls.set_type_arguments_field_offset(
+        LinkedHashSet::type_arguments_offset(),
+        RTN::LinkedHashSet::type_arguments_offset());
+    cls.set_num_type_arguments_unsafe(1);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashSet(), lib);
+    pending_classes.Add(cls);
+
     // Pre-register the async library so we can place the vm class
     // FutureOr there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartAsync());
@@ -2372,8 +2397,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     const bool injected = cls.InjectCIDFields();
     ASSERT(injected);
 
-    isolate_group->object_store()->InitKnownObjects();
-
     // Set up recognized state of all functions (core, math and typed data).
     MethodRecognizer::InitializeState();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -2413,6 +2436,9 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
     object_store->set_linked_hash_map_class(cls);
+
+    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
+    object_store->set_linked_hash_set_class(cls);
 
     cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     object_store->set_float32x4_class(cls);
@@ -2995,8 +3021,11 @@ void Class::InitEmptyFields() {
 }
 
 ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
-  if (untag()->offset_in_words_to_field() == Array::null()) {
-    ASSERT(is_finalized());
+  ASSERT(is_finalized());
+  if (untag()->offset_in_words_to_field<std::memory_order_acquire>() ==
+      Array::null()) {
+    // Even if multiple threads are calling this concurrently, all of them would
+    // compute the same array, so we intentionally don't acquire any locks here.
     const intptr_t length = untag()->host_instance_size_in_words_;
     const Array& array = Array::Handle(Array::New(length, Heap::kOld));
     Class& cls = Class::Handle(this->ptr());
@@ -3012,9 +3041,10 @@ ArrayPtr Class::OffsetToFieldMap(bool original_classes) const {
       }
       cls = cls.SuperClass(original_classes);
     }
-    untag()->set_offset_in_words_to_field(array.ptr());
+    untag()->set_offset_in_words_to_field<std::memory_order_release>(
+        array.ptr());
   }
-  return untag()->offset_in_words_to_field();
+  return untag()->offset_in_words_to_field<std::memory_order_acquire>();
 }
 
 bool Class::HasInstanceFields() const {
@@ -3995,8 +4025,11 @@ void Class::Finalize() const {
     // fields.
     const auto host_bitmap = CalculateFieldOffsets();
     if (ptr() == isolate_group->class_table()->At(id())) {
-      // Sets the new size in the class table.
-      isolate_group->class_table()->SetAt(id(), ptr());
+      if (!ClassTable::IsTopLevelCid(id())) {
+        // Unless class is top-level, which don't get instantiated,
+        // sets the new size in the class table.
+        isolate_group->class_table()->UpdateClassSize(id(), ptr());
+      }
       if (FLAG_precompiled_mode && !ClassTable::IsTopLevelCid(id())) {
         isolate_group->shared_class_table()->SetUnboxedFieldsMapAt(id(),
                                                                    host_bitmap);
@@ -7486,7 +7519,7 @@ FunctionPtr Function::GetOutermostFunction() const {
 }
 
 FunctionPtr Function::implicit_closure_function() const {
-  if (IsClosureFunction() || IsFactory() || IsDispatcherOrImplicitAccessor() ||
+  if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
       IsFieldInitializer() || IsFfiTrampoline()) {
     return Function::null();
   }
@@ -7656,6 +7689,7 @@ void Function::SetForwardingChecks(const Array& checks) const {
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
+//   constructor, factory:    Function for implicit closure function
 //   ffi trampoline function: FfiTrampolineData  (Dart->C)
 //   dyn inv forwarder:       Array[0] = Function target
 //                            Array[1] = TypeArguments default type args
@@ -7928,19 +7962,11 @@ intptr_t FunctionType::GetRequiredFlagIndex(intptr_t index,
 bool Function::HasRequiredNamedParameters() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (signature() == FunctionType::null()) {
-    // Signature is not dropped in aot when any named parameter is required.
+    // Signatures for functions with required named parameters are not dropped.
     return false;
   }
 #endif
-  if (!HasOptionalNamedParameters()) {
-    return false;
-  }
-  const FunctionType& sig = FunctionType::Handle(signature());
-  const Array& parameter_names = Array::Handle(sig.named_parameter_names());
-  if (parameter_names.IsNull()) {
-    return false;
-  }
-  return parameter_names.Length() > NumOptionalNamedParameters();
+  return FunctionType::Handle(signature()).HasRequiredNamedParameters();
 }
 
 bool Function::IsRequiredAt(intptr_t index) const {
@@ -8010,6 +8036,15 @@ void FunctionType::FinalizeNameArray() const {
 #endif
 }
 
+bool FunctionType::HasRequiredNamedParameters() const {
+  const intptr_t num_named_params = NumOptionalNamedParameters();
+  if (num_named_params == 0) return false;
+  // Check for flag slots in the named parameter names array.
+  const auto& parameter_names = Array::Handle(named_parameter_names());
+  ASSERT(!parameter_names.IsNull());
+  return parameter_names.Length() > num_named_params;
+}
+
 static void ReportTooManyTypeParameters(const FunctionType& sig) {
   Report::MessageF(Report::kError, Script::Handle(), TokenPosition::kNoSource,
                    Report::AtLocation,
@@ -8037,10 +8072,41 @@ void FunctionType::SetNumParentTypeArguments(intptr_t value) const {
       value);
 }
 
+bool Function::IsGeneric() const {
+  return FunctionType::IsGeneric(signature());
+}
+intptr_t Function::NumTypeParameters() const {
+  return FunctionType::NumTypeParametersOf(signature());
+}
 intptr_t Function::NumParentTypeArguments() const {
-  // Don't allocate handle in cases where we know it is 0.
-  if (!IsClosureFunction()) return 0;
-  return FunctionType::Handle(signature()).NumParentTypeArguments();
+  return FunctionType::NumParentTypeArgumentsOf(signature());
+}
+intptr_t Function::NumTypeArguments() const {
+  return FunctionType::NumTypeArgumentsOf(signature());
+}
+intptr_t Function::num_fixed_parameters() const {
+  return FunctionType::NumFixedParametersOf(signature());
+}
+bool Function::HasOptionalParameters() const {
+  return FunctionType::HasOptionalParameters(signature());
+}
+bool Function::HasOptionalNamedParameters() const {
+  return FunctionType::HasOptionalNamedParameters(signature());
+}
+bool Function::HasOptionalPositionalParameters() const {
+  return FunctionType::HasOptionalPositionalParameters(signature());
+}
+intptr_t Function::NumOptionalParameters() const {
+  return FunctionType::NumOptionalParametersOf(signature());
+}
+intptr_t Function::NumOptionalPositionalParameters() const {
+  return FunctionType::NumOptionalPositionalParametersOf(signature());
+}
+intptr_t Function::NumOptionalNamedParameters() const {
+  return FunctionType::NumOptionalNamedParametersOf(signature());
+}
+intptr_t Function::NumParameters() const {
+  return FunctionType::NumParametersOf(signature());
 }
 
 TypeParameterPtr Function::TypeParameterAt(intptr_t index,
@@ -8133,10 +8199,6 @@ bool Function::CanBeInlined() const {
   return is_inlinable() && !is_external() && !is_generated_body();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-intptr_t Function::NumParameters() const {
-  return num_fixed_parameters() + NumOptionalParameters();
-}
 
 intptr_t Function::NumImplicitParameters() const {
   const UntaggedFunction::Kind k = kind();
@@ -9099,6 +9161,7 @@ FunctionPtr Function::New(const FunctionType& signature,
 FunctionPtr Function::NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                  const String& name,
                                                  const Function& parent,
+                                                 bool is_static,
                                                  TokenPosition token_pos,
                                                  const Object& owner) {
   ASSERT((kind == UntaggedFunction::kClosureFunction) ||
@@ -9110,7 +9173,7 @@ FunctionPtr Function::NewClosureFunctionWithKind(UntaggedFunction::Kind kind,
                                                  : 0));
   const Function& result = Function::Handle(
       Function::New(signature, name, kind,
-                    /* is_static = */ parent.is_static(),
+                    /* is_static = */ is_static,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
@@ -9125,7 +9188,8 @@ FunctionPtr Function::NewClosureFunction(const String& name,
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.RawOwner());
   return NewClosureFunctionWithKind(UntaggedFunction::kClosureFunction, name,
-                                    parent, token_pos, parent_owner);
+                                    parent, parent.is_static(), token_pos,
+                                    parent_owner);
 }
 
 FunctionPtr Function::NewImplicitClosureFunction(const String& name,
@@ -9133,8 +9197,9 @@ FunctionPtr Function::NewImplicitClosureFunction(const String& name,
                                                  TokenPosition token_pos) {
   // Use the owner defining the parent function and not the class containing it.
   const Object& parent_owner = Object::Handle(parent.RawOwner());
-  return NewClosureFunctionWithKind(UntaggedFunction::kImplicitClosureFunction,
-                                    name, parent, token_pos, parent_owner);
+  return NewClosureFunctionWithKind(
+      UntaggedFunction::kImplicitClosureFunction, name, parent,
+      parent.is_static() || parent.IsConstructor(), token_pos, parent_owner);
 }
 
 bool Function::SafeToClosurize() const {
@@ -9180,7 +9245,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       zone, NewImplicitClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
-  if (is_static()) {
+  if (is_static() || IsConstructor()) {
     closure_function.set_context_scope(Object::empty_context_scope());
   } else {
     const ContextScope& context_scope = ContextScope::Handle(
@@ -9191,15 +9256,46 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   FunctionType& closure_signature =
       FunctionType::Handle(zone, closure_function.signature());
 
-  // Set closure function's type parameters.
-  // This function cannot be local, therefore it has no generic parent.
-  // Its implicit closure function therefore has no generic parent function
-  // either. That is why it is safe to simply copy the type parameters.
-  closure_signature.SetTypeParameters(
-      TypeParameters::Handle(zone, type_parameters()));
+  // Set closure function's type parameters and result type.
+  if (IsConstructor()) {
+    // Inherit type parameters from owner class.
+    const auto& cls = Class::Handle(zone, Owner());
+    closure_signature.SetTypeParameters(
+        TypeParameters::Handle(zone, cls.type_parameters()));
+    ASSERT(closure_signature.NumTypeParameters() == cls.NumTypeParameters());
 
-  // Set closure function's result type to this result type.
-  closure_signature.set_result_type(AbstractType::Handle(zone, result_type()));
+    Type& result_type = Type::Handle(zone);
+    const Nullability result_nullability =
+        (nnbd_mode() == NNBDMode::kOptedInLib) ? Nullability::kNonNullable
+                                               : Nullability::kLegacy;
+    if (cls.IsGeneric()) {
+      TypeArguments& type_args = TypeArguments::Handle(zone);
+      const intptr_t num_type_params = cls.NumTypeParameters();
+      ASSERT(num_type_params > 0);
+      type_args = TypeArguments::New(num_type_params);
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param = closure_signature.TypeParameterAt(i);
+        type_args.SetTypeAt(i, type_param);
+      }
+      result_type = Type::New(cls, type_args, result_nullability);
+      result_type ^= ClassFinalizer::FinalizeType(result_type);
+    } else {
+      result_type = cls.DeclarationType();
+      result_type = result_type.ToNullability(result_nullability, Heap::kOld);
+    }
+    closure_signature.set_result_type(result_type);
+  } else {
+    // This function cannot be local, therefore it has no generic parent.
+    // Its implicit closure function therefore has no generic parent function
+    // either. That is why it is safe to simply copy the type parameters.
+    closure_signature.SetTypeParameters(
+        TypeParameters::Handle(zone, type_parameters()));
+
+    // Set closure function's result type to this result type.
+    closure_signature.set_result_type(
+        AbstractType::Handle(zone, result_type()));
+  }
 
   // Set closure function's end token to this end token.
   closure_function.set_end_token_pos(end_token_pos());
@@ -9213,8 +9309,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   // removing the receiver if this is an instance method and adding the closure
   // object as first parameter.
   const int kClosure = 1;
-  const int has_receiver = is_static() ? 0 : 1;
-  const int num_fixed_params = kClosure - has_receiver + num_fixed_parameters();
+  const int num_implicit_params = NumImplicitParameters();
+  const int num_fixed_params =
+      kClosure - num_implicit_params + num_fixed_parameters();
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
@@ -9233,19 +9330,19 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.SetParameterTypeAt(0, param_type);
   closure_function.SetParameterNameAt(0, Symbols::ClosureParameter());
   for (int i = kClosure; i < num_pos_params; i++) {
-    param_type = ParameterTypeAt(has_receiver - kClosure + i);
+    param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     closure_signature.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(has_receiver - kClosure + i);
+    param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the function for positional parameters.
     closure_function.SetParameterNameAt(i, param_name);
   }
   for (int i = num_pos_params; i < num_params; i++) {
-    param_type = ParameterTypeAt(has_receiver - kClosure + i);
+    param_type = ParameterTypeAt(num_implicit_params - kClosure + i);
     closure_signature.SetParameterTypeAt(i, param_type);
-    param_name = ParameterNameAt(has_receiver - kClosure + i);
+    param_name = ParameterNameAt(num_implicit_params - kClosure + i);
     // Set the name in the signature for named parameters.
     closure_signature.SetParameterNameAt(i, param_name);
-    if (IsRequiredAt(has_receiver - kClosure + i)) {
+    if (IsRequiredAt(num_implicit_params - kClosure + i)) {
       closure_signature.SetIsRequiredAt(i);
     }
   }
@@ -9254,7 +9351,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 
   // Change covariant parameter types to either Object? for an opted-in implicit
   // closure or to Object* for a legacy implicit closure.
-  if (!is_static()) {
+  if (!is_static() && !IsConstructor()) {
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
     kernel::ReadParameterCovariance(*this, &is_covariant,
@@ -9267,7 +9364,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
                       : object_store->legacy_object_type();
     ASSERT(object_type.IsCanonical());
     for (intptr_t i = kClosure; i < num_params; ++i) {
-      const intptr_t original_param_index = has_receiver - kClosure + i;
+      const intptr_t original_param_index = num_implicit_params - kClosure + i;
       if (is_covariant.Contains(original_param_index) ||
           is_generic_covariant_impl.Contains(original_param_index)) {
         closure_signature.SetParameterTypeAt(i, object_type);
@@ -9279,6 +9376,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_function.SetSignature(closure_signature);
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
+  ASSERT(HasImplicitClosureFunction());
   return closure_function.ptr();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -10206,10 +10304,6 @@ void FunctionType::set_packed_type_parameter_counts(
   untag()->packed_type_parameter_counts_ = packed_type_parameter_counts;
 }
 
-intptr_t FunctionType::NumParameters() const {
-  return num_fixed_parameters() + NumOptionalParameters();
-}
-
 void FunctionType::set_num_implicit_parameters(intptr_t value) const {
   ASSERT(value >= 0);
   untag()->packed_parameter_counts_.Update<PackedNumImplicitParameters>(value);
@@ -10264,6 +10358,8 @@ void FfiTrampolineData::set_callback_target(const Function& value) const {
 void FunctionType::SetNumOptionalParameters(
     intptr_t value,
     bool are_optional_positional) const {
+  // HasOptionalNamedParameters only checks this bit, so only set it if there
+  // are actual named parameters.
   untag()->packed_parameter_counts_.Update<PackedHasNamedOptionalParameters>(
       (value > 0) && !are_optional_positional);
   untag()->packed_parameter_counts_.Update<PackedNumOptionalParameters>(value);
@@ -10735,7 +10831,9 @@ FieldPtr Field::Clone(const Field& original) const {
   }
   ASSERT(original.IsOriginal());
   Field& clone = Field::Handle();
-  clone ^= Object::Clone(*this, Heap::kOld);
+  // Using relaxed loading is fine because concurrent fields changes are all
+  // guarded, will be reconciled during optimized code installation.
+  clone ^= Object::Clone(*this, Heap::kOld, /*load_with_relaxed_atomics=*/true);
   clone.SetOriginal(original);
   clone.InheritKernelOffsetFrom(original);
   return clone.ptr();
@@ -11097,7 +11195,8 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
   // We can safely cache the value of the static const field in the initial
   // field table.
-  auto& value = Object::Handle(zone, initial_field_table->At(field_id()));
+  auto& value = Object::Handle(
+      zone, initial_field_table->At(field_id(), /*concurrent_use=*/true));
   if (value.ptr() == Object::sentinel().ptr()) {
     ASSERT(has_initializer());
     value = EvaluateInitializer();
@@ -11119,14 +11218,14 @@ void Field::SetStaticConstFieldValue(const Instance& value,
   ASSERT(initial_field_table->At(field_id()) == Object::sentinel().ptr() ||
          initial_field_table->At(field_id()) == value.ptr() ||
          !assert_initializing_store);
-  initial_field_table->SetAt(field_id(), value.IsNull()
-                                             ? Instance::null_instance().ptr()
-                                             : Instance::Cast(value).ptr());
+  initial_field_table->SetAt(field_id(),
+                             value.IsNull() ? Instance::null_instance().ptr()
+                                            : Instance::Cast(value).ptr(),
+                             /*concurrent_use=*/true);
 }
 
 ObjectPtr Field::EvaluateInitializer() const {
-  Thread* const thread = Thread::Current();
-  ASSERT(thread->IsMutatorThread());
+  ASSERT(Thread::Current()->IsMutatorThread());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
@@ -11134,8 +11233,6 @@ ObjectPtr Field::EvaluateInitializer() const {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  NoOOBMessageScope no_msg_scope(thread);
-  NoReloadScope no_reload_scope(thread);
   const Function& initializer = Function::Handle(EnsureInitializerFunction());
   return DartEntry::InvokeFunction(initializer, Object::empty_array());
 }
@@ -11550,14 +11647,14 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
 
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
-  if (!IsolateGroup::Current()->use_field_guards()) {
+  Thread* const thread = Thread::Current();
+  if (!thread->isolate_group()->use_field_guards()) {
     return;
   }
 
   // We should never try to record a sentinel.
   ASSERT(value.ptr() != Object::sentinel().ptr());
 
-  Thread* const thread = Thread::Current();
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   if ((guarded_cid() == kDynamicCid) ||
       (is_nullable() && value.ptr() == Object::null())) {
@@ -14333,6 +14430,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::ConvertLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::NativeWrappersLibrary()));
   INTERNAL_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS_OTHER);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
@@ -15464,10 +15562,8 @@ void ICData::SetTargetAtPos(const Array& data,
   // AOT
   ASSERT(target.HasCode());
   const Code& code = Code::Handle(target.CurrentCode());
-  const Smi& entry_point =
-      Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
   data.SetAt(data_pos + CodeIndexFor(num_args_tested), code);
-  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), entry_point);
+  data.SetAt(data_pos + EntryPointIndexFor(num_args_tested), target);
 #endif
 }
 
@@ -17852,16 +17948,7 @@ void MegamorphicCache::EnsureContains(const Smi& class_id,
   }
 
 #if defined(DEBUG)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    if (target.IsFunction()) {
-      const auto& function = Function::Cast(target);
-      const auto& entry_point = Smi::Handle(
-          Smi::FromAlignedAddress(Code::EntryPointOf(function.CurrentCode())));
-      ASSERT(LookupLocked(class_id) == entry_point.ptr());
-    }
-  } else {
-    ASSERT(LookupLocked(class_id) == target.ptr());
-  }
+  ASSERT(LookupLocked(class_id) == target.ptr());
 #endif  // define(DEBUG)
 }
 
@@ -17975,25 +18062,6 @@ const char* MegamorphicCache::ToCString() const {
   const String& name = String::Handle(target_name());
   return OS::SCreate(Thread::Current()->zone(), "MegamorphicCache(%s)",
                      name.ToCString());
-}
-
-void MegamorphicCache::SwitchToBareInstructions() {
-  NoSafepointScope no_safepoint_scope;
-
-  intptr_t capacity = mask() + 1;
-  for (intptr_t i = 0; i < capacity; ++i) {
-    const intptr_t target_index = i * kEntryLength + kTargetFunctionIndex;
-    CompressedObjectPtr* slot = &Array::DataOf(buckets())[target_index];
-    ObjectPtr decompressed_slot = slot->Decompress(buckets()->heap_base());
-    const intptr_t cid = decompressed_slot->GetClassIdMayBeSmi();
-    if (cid == kFunctionCid) {
-      CodePtr code =
-          Function::CurrentCodeOf(Function::RawCast(decompressed_slot));
-      *slot = Smi::FromAlignedAddress(Code::EntryPointOf(code));
-    } else {
-      ASSERT(cid == kSmiCid || cid == kNullCid);
-    }
-  }
 }
 
 void SubtypeTestCache::Init() {
@@ -18213,7 +18281,6 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
     buffer->Printf("%sclass id: %" Pd "", separator,
                    Smi::Cast(instance_class_id_or_signature).Value());
   } else {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf(
         "%ssignature: %s", separator,
         FunctionType::Cast(instance_class_id_or_signature).ToCString());
@@ -18252,12 +18319,10 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
                    function_type_arguments.ToCString());
   }
   if (!instance_parent_function_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure parent function type arguments: %s", separator,
                    instance_parent_function_type_arguments.ToCString());
   }
   if (!instance_delayed_type_arguments.IsNull()) {
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     buffer->Printf("%sclosure delayed function type arguments: %s", separator,
                    instance_delayed_type_arguments.ToCString());
   }
@@ -18875,6 +18940,29 @@ bool Instance::CanonicalizeEquals(const Instance& other) const {
   return true;
 }
 
+bool Symbol::IsSymbolCid(Thread* thread, classid_t class_id) {
+  auto object_store = thread->isolate_group()->object_store();
+  return Class::GetClassId(object_store->symbol_class()) == class_id;
+}
+
+// Must be kept in sync with Symbol.hashCode in symbol_patch.dart
+uint32_t Symbol::CanonicalizeHash(Thread* thread, const Instance& instance) {
+  ASSERT(IsSymbolCid(thread, instance.GetClassId()));
+
+  auto zone = thread->zone();
+  auto object_store = thread->isolate_group()->object_store();
+
+  const auto& symbol_name_field =
+      Field::Handle(zone, object_store->symbol_name_field());
+  ASSERT(!symbol_name_field.IsNull());
+
+  // Keep in sync with sdk/lib/_internal/vm/lib/symbol_patch.dart.
+  const auto& name =
+      String::Cast(Object::Handle(zone, instance.GetField(symbol_name_field)));
+  const uint32_t arbitrary_prime = 664597;
+  return 0x1fffffff & (arbitrary_prime * name.CanonicalizeHash());
+}
+
 uint32_t Instance::CanonicalizeHash() const {
   if (GetClassId() == kNullCid) {
     return 2011;  // Matches null_patch.dart.
@@ -18886,42 +18974,49 @@ uint32_t Instance::CanonicalizeHash() const {
   }
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, clazz());
+  const bool is_symbol = Symbol::IsSymbolCid(thread, cls.id());
+
   NoSafepointScope no_safepoint(thread);
-  const intptr_t instance_size = SizeFromClass();
-  ASSERT(instance_size != 0);
-  hash = instance_size / kCompressedWordSize;
-  uword this_addr = reinterpret_cast<uword>(this->untag());
-  Object& obj = Object::Handle(zone);
-  Instance& instance = Instance::Handle(zone);
 
-  const auto unboxed_fields_bitmap =
-      thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
-          GetClassId());
+  if (is_symbol) {
+    hash = Symbol::CanonicalizeHash(thread, *this);
+  } else {
+    const intptr_t class_id = cls.id();
+    ASSERT(class_id != 0);
+    hash = class_id;
+    uword this_addr = reinterpret_cast<uword>(this->untag());
+    Object& obj = Object::Handle(zone);
+    Instance& instance = Instance::Handle(zone);
 
-  for (intptr_t offset = Instance::NextFieldOffset();
-       offset < cls.host_next_field_offset(); offset += kCompressedWordSize) {
-    if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
-      if (kCompressedWordSize == 8) {
-        hash = CombineHashes(hash,
-                             *reinterpret_cast<uint32_t*>(this_addr + offset));
-        hash = CombineHashes(
-            hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+    const auto unboxed_fields_bitmap =
+        thread->isolate_group()->shared_class_table()->GetUnboxedFieldsMapAt(
+            GetClassId());
+
+    for (intptr_t offset = Instance::NextFieldOffset();
+         offset < cls.host_next_field_offset(); offset += kCompressedWordSize) {
+      if (unboxed_fields_bitmap.Get(offset / kCompressedWordSize)) {
+        if (kCompressedWordSize == 8) {
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset));
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset + 4));
+        } else {
+          hash = CombineHashes(
+              hash, *reinterpret_cast<uint32_t*>(this_addr + offset));
+        }
       } else {
-        hash = CombineHashes(hash,
-                             *reinterpret_cast<uint32_t*>(this_addr + offset));
-      }
-    } else {
-      obj = reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
-                ->Decompress(untag()->heap_base());
-      if (obj.IsSentinel()) {
-        hash = CombineHashes(hash, 11);
-      } else {
-        instance ^= obj.ptr();
-        hash = CombineHashes(hash, instance.CanonicalizeHash());
+        obj = reinterpret_cast<CompressedObjectPtr*>(this_addr + offset)
+                  ->Decompress(untag()->heap_base());
+        if (obj.IsSentinel()) {
+          hash = CombineHashes(hash, 11);
+        } else {
+          instance ^= obj.ptr();
+          hash = CombineHashes(hash, instance.CanonicalizeHash());
+        }
       }
     }
+    hash = FinalizeHash(hash, String::kHashBits);
   }
-  hash = FinalizeHash(hash, String::kHashBits);
   thread->heap()->SetCanonicalHash(ptr(), hash);
   return hash;
 }
@@ -19027,8 +19122,9 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   Zone* zone = thread->zone();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
+  ASSERT(thread->isolate_group()
+             ->constant_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
   result ^= cls.LookupCanonicalInstance(zone, *this);
   return (result.ptr() == this->ptr());
 }
@@ -21005,7 +21101,9 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalTypeSet table(zone, object_store->canonical_types());
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     object_store->set_canonical_types(table.Release());
@@ -21362,7 +21460,9 @@ bool FunctionType::CheckIsCanonical(Thread* thread) const {
   FunctionType& type = FunctionType::Handle(zone);
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalFunctionTypeSet table(zone,
                                    object_store->canonical_function_types());
     type ^= table.GetOrNull(CanonicalFunctionTypeKey(*this));
@@ -21913,7 +22013,9 @@ bool TypeParameter::CheckIsCanonical(Thread* thread) const {
   TypeParameter& type_parameter = TypeParameter::Handle(zone);
   ObjectStore* object_store = isolate_group->object_store();
   {
-    SafepointMutexLocker ml(isolate_group->type_canonicalization_mutex());
+    ASSERT(thread->isolate_group()
+               ->constant_canonicalization_mutex()
+               ->IsOwnedByCurrentThread());
     CanonicalTypeParameterSet table(zone,
                                     object_store->canonical_type_parameters());
     type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
@@ -24417,6 +24519,54 @@ const char* LinkedHashMap::ToCString() const {
   return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
 }
 
+LinkedHashSetPtr LinkedHashSet::New(const Array& data,
+                                    const TypedData& index,
+                                    intptr_t hash_mask,
+                                    intptr_t used_data,
+                                    intptr_t deleted_keys,
+                                    Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+         Class::null());
+  LinkedHashSet& result =
+      LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(space));
+  result.SetData(data);
+  result.SetIndex(index);
+  result.SetHashMask(hash_mask);
+  result.SetUsedData(used_data);
+  result.SetDeletedKeys(deleted_keys);
+  return result.ptr();
+}
+
+LinkedHashSetPtr LinkedHashSet::NewDefault(Heap::Space space) {
+  const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
+  const TypedData& index = TypedData::Handle(
+      TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
+  static const intptr_t kInitialHashMask =
+      (1 << (kAvailableBits - kInitialIndexBits)) - 1;
+  return LinkedHashSet::New(data, index, kInitialHashMask, 0, 0, space);
+}
+
+LinkedHashSetPtr LinkedHashSet::NewUninitialized(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+         Class::null());
+  LinkedHashSet& result = LinkedHashSet::Handle();
+  {
+    ObjectPtr raw =
+        Object::Allocate(kLinkedHashSetCid, LinkedHashSet::InstanceSize(),
+                         space, LinkedHashSet::ContainsCompressedPointers());
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  return result.ptr();
+}
+
+const char* LinkedHashSet::ToCString() const {
+  Zone* zone = Thread::Current()->zone();
+  return zone->PrintToString("LinkedHashSet len:%" Pd, Length());
+}
+
 const char* FutureOr::ToCString() const {
   // FutureOr is an abstract class.
   UNREACHABLE();
@@ -25030,17 +25180,6 @@ void Closure::CanonicalizeFieldsLocked(Thread* thread) const {
   // Ignore function, context, hash.
 }
 
-intptr_t Closure::NumTypeParameters(Thread* thread) const {
-  // Only check for empty here, as the null TAV is used to mean that the
-  // closed-over delayed type parameters were all of dynamic type.
-  if (delayed_type_arguments() != Object::empty_type_arguments().ptr()) {
-    return 0;
-  } else {
-    const auto& closure_function = Function::Handle(thread->zone(), function());
-    return closure_function.NumTypeParameters();
-  }
-}
-
 const char* Closure::ToCString() const {
   auto const thread = Thread::Current();
   auto const zone = thread->zone();
@@ -25101,6 +25240,10 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const Function& function,
                         const Context& context,
                         Heap::Space space) {
+  // We store null delayed type arguments, not empty ones, in closures with
+  // non-generic functions a) to make method extraction slightly faster and
+  // b) to make the Closure::IsGeneric check fast.
+  // Keep in sync with StubCodeCompiler::GenerateBuildMethodExtractorStub.
   return Closure::New(instantiator_type_arguments, function_type_arguments,
                       function.IsGeneric() ? Object::empty_type_arguments()
                                            : Object::null_type_arguments(),
@@ -25158,7 +25301,7 @@ FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
   // We detect the case of a partial tearoff type application and substitute the
   // type arguments for the type parameters of the function.
   intptr_t num_free_params;
-  if (delayed_type_args.ptr() != Object::empty_type_arguments().ptr()) {
+  if (!IsGeneric() && fun.IsGeneric()) {
     num_free_params = kCurrentAndEnclosingFree;
     fn_type_args = delayed_type_args.Prepend(
         zone, fn_type_args, sig.NumParentTypeArguments(),

@@ -755,7 +755,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       // not report synthetic `dynamic` in place of an unresolved type.
       if ((type.element == _nullType.element ||
               (type.isDynamic && name == 'dynamic')) &&
-          type.aliasElement == null) {
+          type.alias == null) {
         _errorReporter.reportErrorForNode(
             HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
       }
@@ -1048,7 +1048,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           ...element.typeParameters.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {
-          var aliasElement = type?.aliasElement;
+          var aliasElement = type?.alias?.element;
           if (aliasElement != null && aliasElement.hasInternal) {
             _errorReporter.reportErrorForNode(
                 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY,

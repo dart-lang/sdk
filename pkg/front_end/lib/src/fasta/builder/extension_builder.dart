@@ -7,6 +7,7 @@ import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
+import '../kernel/kernel_helper.dart';
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../problems.dart';
@@ -36,7 +37,8 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers);
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
   /// Looks up extension member by [name] taking privacy into account.
   ///

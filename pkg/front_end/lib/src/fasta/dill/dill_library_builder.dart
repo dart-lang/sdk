@@ -6,28 +6,7 @@ library fasta.dill_library_builder;
 
 import 'dart:convert' show jsonDecode;
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        ConstantExpression,
-        DartType,
-        DynamicType,
-        Expression,
-        Extension,
-        Field,
-        FunctionType,
-        Library,
-        ListLiteral,
-        Member,
-        NamedNode,
-        NeverType,
-        Procedure,
-        ProcedureKind,
-        Reference,
-        StaticGet,
-        StringConstant,
-        StringLiteral,
-        Typedef;
+import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -48,6 +27,7 @@ import '../fasta_codes.dart'
         templateTypeNotFound,
         templateUnspecified;
 
+import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody, isRedirectingFactoryField;
 
@@ -120,8 +100,23 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuilt = true;
     library.classes.forEach(addClass);
     library.extensions.forEach(addExtension);
+
+    Map<String, Map<Name, Procedure>> tearOffs = {};
+    List<Procedure> nonTearOffs = [];
+    for (Procedure procedure in library.procedures) {
+      List<Object>? names = extractTypedefNameFromTearOff(procedure.name);
+      if (names != null) {
+        Map<Name, Procedure> map = tearOffs[names[0] as String] ??= {};
+        map[names[1] as Name] = procedure;
+      } else {
+        nonTearOffs.add(procedure);
+      }
+    }
+    nonTearOffs.forEach(addMember);
     library.procedures.forEach(addMember);
-    library.typedefs.forEach(addTypedef);
+    for (Typedef typedef in library.typedefs) {
+      addTypedef(typedef, tearOffs[typedef.name]);
+    }
     library.fields.forEach(addMember);
 
     if (isReadyToFinalizeExports) {
@@ -167,10 +162,28 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addClass(Class cls) {
-    DillClassBuilder classBulder = new DillClassBuilder(cls, this);
-    addBuilder(cls.name, classBulder, cls.fileOffset);
-    cls.procedures.forEach(classBulder.addMember);
-    cls.constructors.forEach(classBulder.addMember);
+    DillClassBuilder classBuilder = new DillClassBuilder(cls, this);
+    addBuilder(cls.name, classBuilder, cls.fileOffset);
+    Map<String, Procedure> tearOffs = {};
+    List<Procedure> nonTearOffs = [];
+    for (Procedure procedure in cls.procedures) {
+      String? name = extractConstructorNameFromTearOff(procedure.name);
+      if (name != null) {
+        tearOffs[name] = procedure;
+      } else {
+        nonTearOffs.add(procedure);
+      }
+    }
+    for (Procedure procedure in nonTearOffs) {
+      if (procedure.kind == ProcedureKind.Factory) {
+        classBuilder.addFactory(procedure, tearOffs[procedure.name.text]);
+      } else {
+        classBuilder.addProcedure(procedure);
+      }
+    }
+    for (Constructor constructor in cls.constructors) {
+      classBuilder.addConstructor(constructor, tearOffs[constructor.name.text]);
+    }
     for (Field field in cls.fields) {
       if (isRedirectingFactoryField(field)) {
         ListLiteral initializer = field.initializer as ListLiteral;
@@ -179,7 +192,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           RedirectingFactoryBody.restoreFromDill(get.target as Procedure);
         }
       } else {
-        classBulder.addMember(field);
+        classBuilder.addField(field);
       }
     }
   }
@@ -215,10 +228,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         addBuilder(name, new DillFieldBuilder(member, this), member.fileOffset);
       } else if (member is Procedure) {
         switch (member.kind) {
-          case ProcedureKind.Factory:
-            addBuilder(
-                name, new DillFactoryBuilder(member, this), member.fileOffset);
-            break;
           case ProcedureKind.Setter:
             addBuilder(
                 name, new DillSetterBuilder(member, this), member.fileOffset);
@@ -269,12 +278,12 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     return declaration;
   }
 
-  void addTypedef(Typedef typedef) {
+  void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
     DartType? type = typedef.type;
     if (type is FunctionType && type.typedefType == null) {
       unhandled("null", "addTypedef", typedef.fileOffset, typedef.fileUri);
     }
-    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, this),
+    addBuilder(typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this),
         typedef.fileOffset);
   }
 

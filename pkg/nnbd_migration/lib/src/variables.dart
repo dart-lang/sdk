@@ -214,7 +214,8 @@ class Variables {
   }
 
   /// Associates decorated type information with the given [element].
-  void recordDecoratedElementType(Element? element, DecoratedType? type) {
+  void recordDecoratedElementType(Element? element, DecoratedType? type,
+      {bool soft = false}) {
     assert(() {
       assert(element is! TypeParameterElement,
           'Use recordDecoratedTypeParameterBound instead');
@@ -227,6 +228,9 @@ class Variables {
       }
       return true;
     }());
+    if (soft && _decoratedElementTypes.containsKey(element)) {
+      return;
+    }
     _decoratedElementTypes[element] = type;
   }
 

@@ -754,8 +754,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     required TypeAliasElement element,
     required List<String> typeArguments,
   }) {
-    assertElement2(type.aliasElement, declaration: element);
-    assertElementTypeStrings(type.aliasArguments, typeArguments);
+    assertElement2(type.alias?.element, declaration: element);
+    assertElementTypeStrings(type.alias?.typeArguments, typeArguments);
   }
 
   /// Assert that the given [identifier] is a reference to a type alias, in the
@@ -924,8 +924,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     result = await resolveFile(path);
     expect(result.state, ResultState.VALID);
 
-    findNode = FindNode(result.content!, result.unit!);
-    findElement = FindElement(result.unit!);
+    findNode = FindNode(result.content, result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Create a new file with the [path] and [content], resolve it into [result].

@@ -28,7 +28,7 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
   void _addIfEntryPoint(
       List<Expression> annotations, String name, TreeNode node) {
     for (var ann in annotations) {
-      ParsedPragma pragma = parser.parsePragma(ann);
+      ParsedPragma? pragma = parser.parsePragma(ann);
       if (pragma is ParsedEntryPointPragma) {
         metadata.protectedNames.add(name);
         if (node is Field) {

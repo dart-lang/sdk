@@ -23,8 +23,8 @@ class WorkspaceFoldersHandler
       DidChangeWorkspaceFoldersParams.jsonHandler;
 
   @override
-  ErrorOr<void> handle(
-      DidChangeWorkspaceFoldersParams params, CancellationToken token) {
+  Future<ErrorOr<void>> handle(
+      DidChangeWorkspaceFoldersParams params, CancellationToken token) async {
     // Don't do anything if our analysis roots are not based on open workspaces.
     if (!updateAnalysisRoots) {
       return success(null);
@@ -37,7 +37,7 @@ class WorkspaceFoldersHandler
         .map((wf) => Uri.parse(wf.uri).toFilePath())
         .toList();
 
-    server.updateWorkspaceFolders(added, removed);
+    await server.updateWorkspaceFolders(added, removed);
 
     return success(null);
   }

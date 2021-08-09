@@ -14,7 +14,7 @@ main() {
   test('Freezing a message works', () {
     foo.freeze();
     expect(foo.barKeep.aKeep, 5);
-    expect(foo.mapKeep['foo'].aKeep, 2);
+    expect(foo.mapKeep['foo']!.aKeep, 2);
     expect(foo.hasHasKeep(), false);
     expect(foo.aKeep, 43);
     expect(() => foo.clearClearKeep(),

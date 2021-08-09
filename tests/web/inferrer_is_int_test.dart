@@ -6,16 +6,17 @@
 // literal might become an int at runtime.
 
 import "package:expect/expect.dart";
-import '../language/compiler_annotations.dart';
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 callWithStringAndDouble(value) {
   () => 42;
   if (value is! int) throw new ArgumentError(value);
   return 42;
 }
 
-@DontInline()
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
 callWithDouble(value) {
   () => 42;
   if (value is! int) throw new ArgumentError(value);

@@ -30,12 +30,14 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         Class,
         Component,
+        Constructor,
         DartType,
         Expression,
         FunctionNode,
         InterfaceType,
         Library,
         LibraryDependency,
+        Member,
         NeverType,
         Nullability,
         Procedure,
@@ -70,6 +72,7 @@ import '../denylisted_classes.dart'
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
@@ -89,17 +92,14 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart';
 
+import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ClassMember, DelayedCheck;
-
+import '../kernel/kernel_helper.dart'
+    show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
-
-import '../kernel/body_builder.dart' show BodyBuilder;
-
 import '../kernel/transform_collections.dart' show CollectionTransformer;
-
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
-
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
 import '../loader.dart' show Loader, untranslatableUriScheme;
@@ -109,20 +109,16 @@ import '../problems.dart' show internalProblem;
 import '../source/stack_listener_impl.dart' show offsetForToken;
 
 import '../type_inference/type_inference_engine.dart';
-
 import '../type_inference/type_inferrer.dart';
 
 import '../util/helpers.dart';
 
 import 'diet_listener.dart' show DietListener;
-
 import 'diet_parser.dart' show DietParser;
-
 import 'outline_builder.dart' show OutlineBuilder;
-
 import 'source_class_builder.dart' show SourceClassBuilder;
-
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_type_alias_builder.dart';
 
 class SourceLoader extends Loader {
   /// The [FileSystem] which should be used to access files.
@@ -364,6 +360,15 @@ class SourceLoader extends Loader {
     _nnbdMismatchLibraries ??= {};
     _nnbdMismatchLibraries![libraryBuilder] = message;
     hasInvalidNnbdModeLibrary = true;
+  }
+
+  void registerConstructorToBeInferred(
+      Constructor constructor, ConstructorBuilder builder) {
+    _typeInferenceEngine!.toBeInferred[constructor] = builder;
+  }
+
+  void registerTypeDependency(Member member, TypeDependency typeDependency) {
+    _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
   @override
@@ -716,6 +721,16 @@ class SourceLoader extends Loader {
       }
     }
     ticker.logMs("Resolved $count constructors");
+  }
+
+  void installTypedefTearOffs() {
+    if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
+      for (LibraryBuilder library in builders.values) {
+        if (library.loader == this && library is SourceLibraryBuilder) {
+          library.installTypedefTearOffs();
+        }
+      }
+    }
   }
 
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
@@ -1182,7 +1197,8 @@ class SourceLoader extends Loader {
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(CoreTypes coreTypes) {
+  void buildOutlineExpressions(CoreTypes coreTypes,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (LibraryBuilder library in builders.values) {
@@ -1192,17 +1208,17 @@ class SourceLoader extends Loader {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
+            declaration.buildOutlineExpressions(library, coreTypes,
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
+            declaration.buildOutlineExpressions(library, coreTypes,
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
-          } else if (declaration is TypeAliasBuilder) {
-            declaration.buildOutlineExpressions(
-                library, coreTypes, delayedActionPerformers);
+            declaration.buildOutlineExpressions(library, coreTypes,
+                delayedActionPerformers, synthesizedFunctionNodes);
+          } else if (declaration is SourceTypeAliasBuilder) {
+            declaration.buildOutlineExpressions(library, coreTypes,
+                delayedActionPerformers, synthesizedFunctionNodes);
           } else {
             assert(
                 declaration is PrefixBuilder ||

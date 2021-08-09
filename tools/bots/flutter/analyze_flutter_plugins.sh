@@ -36,4 +36,6 @@ cd plugins
 (cd script/tool; dart analyze --fatal-infos)
 
 # Invoke the repo's analysis script.
-./script/tool_runner.sh analyze --analysis-sdk $sdk
+./script/tool_runner.sh analyze \
+  --analysis-sdk $sdk \
+  --custom-analysis=script/configs/custom_analysis.yaml

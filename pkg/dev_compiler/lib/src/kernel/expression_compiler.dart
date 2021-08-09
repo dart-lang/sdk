@@ -28,7 +28,7 @@ import 'package:kernel/ast.dart'
         Member,
         Node,
         Procedure,
-        RedirectingFactoryConstructor,
+        RedirectingFactory,
         TreeNode,
         TypeParameter,
         VariableDeclaration,
@@ -253,7 +253,7 @@ class FileEndOffsetCalculator extends Visitor<int> with VisitorNullMixin<int> {
     if (node is Constructor) return node.fileEndOffset;
     if (node is Procedure) return node.fileEndOffset;
     if (node is Field) return node.fileEndOffset;
-    if (node is RedirectingFactoryConstructor) return node.fileEndOffset;
+    if (node is RedirectingFactory) return node.fileEndOffset;
     if (node is FunctionNode) return node.fileEndOffset;
     return noOffset;
   }

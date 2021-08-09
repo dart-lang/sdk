@@ -348,7 +348,7 @@ Future<void> visitLibraryAtUri(AnalysisSession session, String uri) async {
   final libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   var result = await session.getResolvedLibrary2(libPath!);
   if (result is ResolvedLibraryResult) {
-    visitLibrary(result.element!);
+    visitLibrary(result.element);
   } else {
     throw StateError('Unable to resolve "$uri"');
   }

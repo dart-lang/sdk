@@ -12,7 +12,7 @@ abstract class Heap<T> {
 
   void add(T item) {
     int index = _items.length;
-    _items.length += 1;
+    _items.add(item);
     while (index > 0) {
       T parent = _items[_parentIndex(index)];
       if (sortsBefore(parent, item)) break;

@@ -43,6 +43,7 @@ class UnitRenderer {
     NullabilityFixKind.removeAs,
     NullabilityFixKind.addLate,
     NullabilityFixKind.addLateDueToTestSetup,
+    NullabilityFixKind.removeNullableAnnotation,
     NullabilityFixKind.addLateDueToHint,
     NullabilityFixKind.addLateFinalDueToHint,
     NullabilityFixKind.checkExpressionDueToHint,
@@ -337,6 +338,8 @@ class UnitRenderer {
         return '$count type$s not made nullable';
       case NullabilityFixKind.typeNotMadeNullableDueToHint:
         return '$count type$s not made nullable due to hint$s';
+      case NullabilityFixKind.removeNullableAnnotation:
+        return '$count @nullable annotation$s removed';
     }
   }
 

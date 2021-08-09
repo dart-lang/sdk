@@ -230,7 +230,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
       if (PeekTag() == kRedirectingInitializer ||
-          PeekTag() == kRedirectingFactoryConstructor) {
+          PeekTag() == kRedirectingFactory) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;
@@ -2855,7 +2855,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   // read flags.
   const uint8_t flags = is_dynamic ? 0 : ReadFlags();
-  const bool is_invariant = (flags & kMethodInvocationFlagInvariant) != 0;
+  const bool is_invariant = (flags & kInstanceInvocationFlagInvariant) != 0;
 
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
@@ -5299,7 +5299,9 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         if (!closure_owner_.IsNull()) {
           function = Function::NewClosureFunctionWithKind(
               UntaggedFunction::kClosureFunction, *name,
-              parsed_function()->function(), position, closure_owner_);
+              parsed_function()->function(),
+              parsed_function()->function().is_static(), position,
+              closure_owner_);
         } else {
           function = Function::NewClosureFunction(
               *name, parsed_function()->function(), position);

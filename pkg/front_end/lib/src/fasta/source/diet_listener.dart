@@ -339,7 +339,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("TopLevelMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) return;
 
@@ -509,7 +509,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("Import");
     Object? name = pop(NullValue.Prefix);
 
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     checkEmpty(importKeyword.charOffset);
     if (name is ParserRecovery) return;
 
@@ -535,7 +535,7 @@ class DietListener extends StackListenerImpl {
   void endExport(Token exportKeyword, Token semicolon) {
     debugEvent("Export");
 
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
@@ -546,7 +546,7 @@ class DietListener extends StackListenerImpl {
   void endPart(Token partKeyword, Token semicolon) {
     debugEvent("Part");
 
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     Library libraryNode = libraryBuilder.library;
     if (libraryNode.parts.length > partDirectiveIndex) {
       // If partDirectiveIndex >= libraryNode.parts.length we are in a case of
@@ -588,7 +588,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("ClassFactoryMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
@@ -699,7 +699,7 @@ class DietListener extends StackListenerImpl {
     // in handleNoFormalParameters rather than the supplied token.
     pop(); // bodyToken
     Object? name = pop();
-    Token metadata = pop() as Token;
+    Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
     FunctionBuilderImpl builder;
@@ -1053,6 +1053,9 @@ class DietListener extends StackListenerImpl {
       suffix = nameOrQualified == currentClass!.name
           ? ""
           : nameOrQualified as String;
+    }
+    if (libraryBuilder.enableConstructorTearOffsInLibrary) {
+      suffix = suffix == "new" ? "" : suffix;
     }
     declaration = currentClass!.constructors.local[suffix];
     declaration = handleDuplicatedName(declaration, token);

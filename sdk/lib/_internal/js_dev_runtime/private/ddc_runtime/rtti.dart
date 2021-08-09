@@ -92,13 +92,13 @@ getReifiedType(obj) {
         return JS('', '#.constructor', obj);
       }
       var result = JS('', '#[#]', obj, _extensionType);
-      if (result == null) return JS('', '#', jsobject);
+      if (result == null) return typeRep<JavaScriptObject>();
       return result;
     case "function":
       // All Dart functions and callable classes must set _runtimeType
       var result = JS('', '#[#]', obj, _runtimeType);
       if (result != null) return result;
-      return JS('', '#', jsobject);
+      return typeRep<JavaScriptObject>();
     case "undefined":
       return JS('', '#', Null);
     case "number":
@@ -109,7 +109,7 @@ getReifiedType(obj) {
       return JS('', '#', String);
     case "symbol":
     default:
-      return JS('', '#', jsobject);
+      return typeRep<JavaScriptObject>();
   }
 }
 

@@ -37,7 +37,7 @@ class TypedLiteralResolver {
       TypeSystemImpl typeSystem, TypeProviderImpl typeProvider,
       {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()}) {
-    var library = resolver.definingLibrary as LibraryElementImpl;
+    var library = resolver.definingLibrary;
     var analysisOptions = library.context.analysisOptions;
     var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
     return TypedLiteralResolver._(

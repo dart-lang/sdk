@@ -420,7 +420,6 @@ class DartFuzzTest {
           timeoutSeeds.add(seed);
           break;
         default:
-          reportDivergence(result1, result2);
           // Both had an error.
           numSkipped++;
           skippedSeeds.add(seed);
@@ -472,9 +471,7 @@ class DartFuzzTest {
     var report = generateReport(result1, result2);
     print('\n$isolate: !DIVERGENCE! $version:$seed ($report)');
     if (result1.exitCode == result2.exitCode) {
-      if (result1.exitCode == 254) {
-        print('\ncompile-time error:\n${result1.output}\n${result1.stderr}\n');
-      } else if (numOutputLines > 0) {
+      if (numOutputLines > 0) {
         // Only report the actual output divergence details up to
         // numOutputLines, since this output may be lengthy and should be
         // reproducable anyway.

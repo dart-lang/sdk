@@ -104,6 +104,7 @@ class WeakTable {
   }
 
   void SetValueExclusive(ObjectPtr key, intptr_t val);
+  bool MarkValueExclusive(ObjectPtr key, intptr_t val);
 
   intptr_t GetValueExclusive(ObjectPtr key) const {
     intptr_t mask = size() - 1;
@@ -203,7 +204,9 @@ class WeakTable {
 
   void Rehash();
 
-  static uword Hash(ObjectPtr key) { return static_cast<uword>(key) * 92821; }
+  static uword Hash(ObjectPtr key) {
+    return (static_cast<uword>(key) * 92821) ^ (static_cast<uword>(key) >> 8);
+  }
 
   Mutex mutex_;
 

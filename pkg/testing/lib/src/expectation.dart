@@ -42,7 +42,7 @@ class Expectation {
 
   String toString() => name;
 
-  static Expectation fromGroup(ExpectationGroup group) {
+  static Expectation? fromGroup(ExpectationGroup group) {
     switch (group) {
       case ExpectationGroup.Crash:
         return Expectation.Crash;
@@ -57,7 +57,6 @@ class Expectation {
       case ExpectationGroup.Timeout:
         return Expectation.Timeout;
     }
-    throw "Unhandled group: '$group'.";
   }
 }
 
@@ -89,8 +88,8 @@ class ExpectationSet {
     Map<String, Expectation> internalMap =
         new Map<String, Expectation>.from(Default.internalMap);
     for (Map map in data) {
-      String name;
-      String group;
+      String? name;
+      String? group;
       map.forEach((_key, _value) {
         String key = _key;
         String value = _value;
@@ -113,12 +112,12 @@ class ExpectationSet {
       if (group == null) {
         throw "No group provided in '$map'";
       }
-      Expectation expectation = new Expectation(name, groupFromString(group));
-      name = name.toLowerCase();
+      Expectation expectation = new Expectation(name!, groupFromString(group!));
+      name = name!.toLowerCase();
       if (internalMap.containsKey(name)) {
         throw "Duplicated expectation name: '$name'.";
       }
-      internalMap[name] = expectation;
+      internalMap[name!] = expectation;
     }
     return new ExpectationSet(internalMap);
   }

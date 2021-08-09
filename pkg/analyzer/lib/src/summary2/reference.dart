@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 
@@ -32,14 +31,6 @@ class Reference {
   /// The simple name of the reference in its [parent].
   final String name;
 
-  /// The node accessor, used to read nodes lazily.
-  /// Or `null` if a named container.
-  ReferenceNodeAccessor? nodeAccessor;
-
-  /// The corresponding [AstNode], or `null` if a named container.
-  /// TODO(scheglov) remove it
-  AstNode? node;
-
   /// The corresponding [Element], or `null` if a named container.
   Element? element;
 
@@ -62,29 +53,13 @@ class Reference {
     return const [];
   }
 
-  bool get isClass => parent != null && parent!.name == '@class';
-
-  bool get isConstructor => parent != null && parent!.name == '@constructor';
-
-  bool get isDynamic => name == 'dynamic' && parent?.name == 'dart:core';
-
-  bool get isEnum => parent != null && parent!.name == '@enum';
-
-  bool get isGetter => parent != null && parent!.name == '@getter';
-
   bool get isLibrary => parent != null && parent!.isRoot;
-
-  bool get isParameter => parent != null && parent!.name == '@parameter';
 
   bool get isPrefix => parent != null && parent!.name == '@prefix';
 
   bool get isRoot => parent == null;
 
   bool get isSetter => parent != null && parent!.name == '@setter';
-
-  bool get isTypeAlias => parent != null && parent!.name == '@typeAlias';
-
-  bool get isUnit => parent != null && parent!.name == '@unit';
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
@@ -97,35 +72,10 @@ class Reference {
     return map[name] ??= Reference._(this, name);
   }
 
-  /// If the reference has element, and it is for the [node], return `true`.
-  ///
-  /// The element might be not `null`, but the node is different in case of
-  /// duplicate declarations.
-  bool hasElementFor(AstNode node) {
-    if (element != null && this.node == node) {
-      return true;
-    } else {
-      if (this.node == null) {
-        this.node = node;
-      }
-      return false;
-    }
-  }
-
   void removeChild(String name) {
     _children!.remove(name);
   }
 
   @override
   String toString() => parent == null ? 'root' : '$parent::$name';
-}
-
-abstract class ReferenceNodeAccessor {
-  /// Return the node that corresponds to this [Reference], read it if not yet.
-  AstNode get node;
-
-  /// Fill [Reference.nodeAccessor] for children.
-  ///
-  /// TODO(scheglov) only class reader has a meaningful implementation.
-  void readIndex();
 }

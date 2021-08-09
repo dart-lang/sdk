@@ -762,6 +762,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   Dart_Isolate isolate = NULL;
 
+  IsolateData* isolate_data = nullptr;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
     const uint8_t* platform_kernel_buffer = NULL;
@@ -783,18 +784,18 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     // TODO(sivachandra): When the platform program is unavailable, check if
     // application kernel binary is self contained or an incremental binary.
     // Isolate should be created only if it is a self contained kernel binary.
-    auto isolate_data = new IsolateData(isolate_group_data);
+    isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroupFromKernel(
         script_uri, name, platform_kernel_buffer, platform_kernel_buffer_size,
         flags, isolate_group_data, isolate_data, error);
   } else {
-    auto isolate_data = new IsolateData(isolate_group_data);
+    isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
                                       isolate_snapshot_instructions, flags,
                                       isolate_group_data, isolate_data, error);
   }
 #else
-  auto isolate_data = new IsolateData(isolate_group_data);
+  isolate_data = new IsolateData(isolate_group_data);
   isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
                                     isolate_snapshot_instructions, flags,
                                     isolate_group_data, isolate_data, error);
@@ -802,6 +803,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
 
   Dart_Isolate created_isolate = NULL;
   if (isolate == NULL) {
+    delete isolate_data;
     delete isolate_group_data;
   } else {
     created_isolate = IsolateSetupHelper(
@@ -932,6 +934,7 @@ void RunMainIsolate(const char* script_name,
   int exit_code = 0;
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
+  flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",

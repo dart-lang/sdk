@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vm.dominators;
-
 class Vertex<T extends Vertex<T>> {
   // Input: vertices directly reachable from this vertex.
   final List<T> successors = <T>[];
 
   // Output: the nearest vertex that all paths from the root must go through to
   // reach this vertex.
-  T dominator;
+  T? dominator;
 
   bool isDominatedBy(T other) {
-    var d = this;
+    Vertex<T>? d = this;
     while (d != null) {
       if (d == other) {
         return true;
@@ -26,17 +24,17 @@ class Vertex<T extends Vertex<T>> {
   // Temporaries. See Lengauer and Tarjan.
   final List<T> _predecessors = <T>[];
   int _semi = 0;
-  T _label;
-  T _ancestor;
-  T _parent;
-  List<T> _bucket;
+  T? _label;
+  T? _ancestor;
+  T? _parent;
+  List<T>? _bucket;
 }
 
 // T. Lengauer and R. E. Tarjan. "A Fast Algorithm for Finding Dominators
 // in a Flowgraph."
 computeDominators<T extends Vertex<T>>(T root) {
   // Lengauer and Tarjan Step 1.
-  final vertex = <T>[];
+  final vertex = <T?>[];
   vertex.add(null);
 
   var n = 0;
@@ -60,33 +58,35 @@ computeDominators<T extends Vertex<T>>(T root) {
   dfs(root);
 
   forestCompress(T v) {
-    if (v._ancestor._ancestor != null) {
-      forestCompress(v._ancestor);
-      if (v._ancestor._label._semi < v._label._semi) {
-        v._label = v._ancestor._label;
+    T ancestor = v._ancestor!;
+    if (ancestor._ancestor != null) {
+      forestCompress(ancestor);
+      ancestor = v._ancestor!;
+      if (ancestor._label!._semi < v._label!._semi) {
+        v._label = ancestor._label;
       }
-      v._ancestor = v._ancestor._ancestor;
+      v._ancestor = ancestor._ancestor;
     }
   }
 
-  forestEval(T v) {
+  T forestEval(T v) {
     if (v._ancestor == null) {
       return v;
     } else {
       forestCompress(v);
-      return v._label;
+      return v._label!;
     }
   }
 
-  forestLink(T v, T w) {
+  forestLink(T? v, T w) {
     w._ancestor = v;
   }
 
   for (var i = vertex.length - 1; i > 1; i--) {
-    Vertex<T> w = vertex[i];
+    final T w = vertex[i]!;
 
     // Lengauer and Tarjan Step 2.
-    for (Vertex<T> v in w._predecessors) {
+    for (T v in w._predecessors) {
       if (v._semi == 0) continue; // Unreachable
 
       final u = forestEval(v);
@@ -95,7 +95,7 @@ computeDominators<T extends Vertex<T>>(T root) {
       }
     }
 
-    Vertex<T> z = vertex[w._semi];
+    Vertex<T> z = vertex[w._semi]!;
     var b = z._bucket;
     if (b == null) {
       z._bucket = b = <T>[];
@@ -104,8 +104,7 @@ computeDominators<T extends Vertex<T>>(T root) {
     forestLink(w._parent, w);
 
     // Lengauer and Tarjan Step 3.
-    z = w._parent;
-    assert(z != null);
+    z = w._parent!;
     b = z._bucket;
     z._bucket = null;
     if (b != null) {
@@ -118,9 +117,9 @@ computeDominators<T extends Vertex<T>>(T root) {
 
   // Lengauer and Tarjan Step 4.
   for (var i = 2; i < vertex.length; i++) {
-    final w = vertex[i];
+    final T w = vertex[i]!;
     if (w.dominator != vertex[w._semi]) {
-      w.dominator = w.dominator.dominator;
+      w.dominator = w.dominator!.dominator;
     }
   }
 }

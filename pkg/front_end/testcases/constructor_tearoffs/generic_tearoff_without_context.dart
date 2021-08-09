@@ -19,4 +19,17 @@ testFooExtraArgs() => A<int, String>.foo; // Error.
 testNewExtraArgs() => A<int, String>.new; // Error.
 testBarExtraArgs() => A<int, String>.bar; // Error.
 
+method() {
+  var foo = A.foo; // Ok.
+  var fooArgs = A<int>.foo; // Ok.
+  var _new = A.new; // Ok.
+  var newArgs  = A<int>.new; // Ok.
+  var bar = A.bar; // Ok.
+  var barArgs = A<int>.bar; // Ok.
+
+  var fooExtraArgs = A<int, String>.foo; // Error.
+  var newExtraArgs = A<int, String>.new; // Error.
+  var barExtraArgs = A<int, String>.bar; // Error.
+}
+
 main() {}

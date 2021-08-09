@@ -1156,7 +1156,7 @@ bool LoadStaticFieldInstr::IsFieldInitialized(Object* field_value) const {
 
   // Since new isolates will be spawned, the JITed code cannot depend on whether
   // global field was initialized when running with --enable-isolate-groups.
-  if (IsolateGroup::AreIsolateGroupsEnabled()) return false;
+  if (FLAG_enable_isolate_groups) return false;
 
   const Field& field = this->field();
   Isolate* only_isolate = IsolateGroup::Current()->FirstIsolate();
@@ -3736,7 +3736,7 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
   switch (from) {
     case kUnboxedUint8:
     case kUnboxedUint16:
-#if defined(TARGET_ARCH_IS_64_BIT) && !defined(DART_COMPRESSED_POINTERS)
+#if defined(HAS_SMI_63_BITS)
     case kUnboxedInt32:
     case kUnboxedUint32:
 #endif

@@ -65,12 +65,12 @@ static method staticMembers() → dynamic /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
-  dynamic :async_temporary_2;
-  dynamic :async_temporary_3;
-  dynamic :async_temporary_4;
-  dynamic :async_temporary_5;
+  core::int* :async_temporary_0;
+  core::int* :async_temporary_1;
+  core::int* :async_temporary_2;
+  core::int* :async_temporary_3;
+  core::int* :async_temporary_4;
+  core::int* :async_temporary_5;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L1:
@@ -121,11 +121,11 @@ static method topLevelMembers() → dynamic /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
-  dynamic :async_temporary_2;
-  dynamic :async_temporary_3;
-  dynamic :async_temporary_4;
+  core::int* :async_temporary_0;
+  core::int* :async_temporary_1;
+  core::int* :async_temporary_2;
+  core::int* :async_temporary_3;
+  core::int* :async_temporary_4;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L2:
@@ -172,11 +172,11 @@ static method instanceMembers() → dynamic /* originally async */ {
   core::int* :await_jump_var = 0;
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
-  dynamic :async_temporary_2;
-  dynamic :async_temporary_3;
-  dynamic :async_temporary_4;
+  core::int* :async_temporary_0;
+  core::int* :async_temporary_1;
+  core::int* :async_temporary_2;
+  core::int* :async_temporary_3;
+  core::int* :async_temporary_4;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L3:
@@ -225,10 +225,10 @@ static method others() → dynamic /* originally async */ {
   dynamic :await_ctx_var;
   dynamic :saved_try_context_var0;
   dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
-  dynamic :async_temporary_2;
-  dynamic :async_temporary_3;
-  dynamic :async_temporary_4;
+  core::int* :async_temporary_1;
+  core::int* :async_temporary_2;
+  core::List<core::int*>* :async_temporary_3;
+  core::int* :async_temporary_4;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L4:
@@ -288,13 +288,13 @@ static method conditionals() → dynamic /* originally async */ {
         core::bool* a = false;
         core::bool* b = true;
         :async_temporary_0 = (a || b) =={core::Object::==}{(core::Object) → core::bool} true;
-        if(:async_temporary_0)
+        if(_in::unsafeCast<core::bool*>(:async_temporary_0))
           ;
         else {
           [yield] let dynamic #t22 = asy::_awaitHelper(self::dummy(), :async_op_then, :async_op_error, :async_op) in null;
           :async_temporary_0 = :result as{TypeError,ForDynamic} core::bool* =={core::Object::==}{(core::Object) → core::bool} true;
         }
-        core::bool* c = :async_temporary_0;
+        core::bool* c = _in::unsafeCast<core::bool*>(:async_temporary_0);
         self::expect(true, c);
         if(a || b) {
           :async_temporary_1 = a;
@@ -426,8 +426,8 @@ static method controlFlow() → dynamic /* originally async */ {
   dynamic :saved_try_context_var3;
   dynamic :exception0;
   dynamic :stack_trace0;
-  dynamic :async_temporary_0;
-  dynamic :async_temporary_1;
+  core::List<dynamic>* :async_temporary_0;
+  core::List<dynamic>* :async_temporary_1;
   function :async_op([dynamic :result, dynamic :exception, dynamic :stack_trace]) → dynamic yielding 
     try {
       #L7:
@@ -811,7 +811,7 @@ static method expectList(core::List<dynamic>* expected, core::List<dynamic>* act
 }
 
 constants  {
-  #C1 = tearoff self::id
-  #C2 = tearoff self::future
+  #C1 = static-tearoff self::id
+  #C2 = static-tearoff self::future
   #C3 = 2
 }

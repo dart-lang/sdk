@@ -11,11 +11,11 @@ abstract class A {
 }
 
 class B extends A {
-  int foo() => 1 + knownResult().foo(); // Should have metadata.
+  int foo() => 1 + knownResult().foo() as int; // Should have metadata.
 }
 
 class C implements A {
-  int foo() => 2 + knownResult().foo(); // Should be unreachable.
+  int foo() => 2 + knownResult().foo() as int; // Should be unreachable.
 }
 
 class TearOffDynamicMethod {

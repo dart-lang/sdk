@@ -10,12 +10,12 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -42,7 +42,7 @@ class MethodInvocationResolver {
   final InheritanceManager3 _inheritance;
 
   /// The element for the library containing the compilation unit being visited.
-  final LibraryElement _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
 
   /// The URI of [_definingLibrary].
   final Uri _definingLibraryUri;
@@ -271,7 +271,7 @@ class MethodInvocationResolver {
   }) {
     _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
 
-    if (nameScope.shouldIgnoreUndefined2(prefix: prefix, name: name)) {
+    if (_definingLibrary.shouldIgnoreUndefined(prefix: prefix, name: name)) {
       return;
     }
 
@@ -279,19 +279,6 @@ class MethodInvocationResolver {
       CompileTimeErrorCode.UNDEFINED_FUNCTION,
       node.methodName,
       [node.methodName.name],
-    );
-  }
-
-  void _reportUndefinedMethod(
-      MethodInvocationImpl node,
-      String name,
-      ClassElement typeReference,
-      List<WhyNotPromotedGetter> whyNotPromotedList) {
-    _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.UNDEFINED_METHOD,
-      node.methodName,
-      [name, typeReference.displayName],
     );
   }
 
@@ -779,7 +766,26 @@ class MethodInvocationResolver {
       return;
     }
 
-    _reportUndefinedMethod(node, name, receiver, whyNotPromotedList);
+    _setDynamicResolution(node, whyNotPromotedList: whyNotPromotedList);
+    if (nameNode.name == 'new') {
+      // Attempting to invoke the unnamed constructor via `C.new(`.
+      if (_resolver.isConstructorTearoffsEnabled) {
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          nameNode,
+          [receiver.displayName],
+        );
+      } else {
+        // [ParserErrorCode.EXPERIMENT_NOT_ENABLED] is reported by the parser.
+        // Do not report extra errors.
+      }
+    } else {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_METHOD,
+        node.methodName,
+        [name, receiver.displayName],
+      );
+    }
   }
 
   /// If the given [type] is a type parameter, replace with its bound.

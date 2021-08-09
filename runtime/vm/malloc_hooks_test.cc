@@ -176,7 +176,7 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   EnableMallocHooksAndStacksScope scope;
 
   ClearProfileVisitor cpv(Isolate::Current());
-  Profiler::sample_buffer()->VisitSamples(&cpv);
+  Profiler::sample_block_buffer()->VisitSamples(&cpv);
 
   char* var = static_cast<char*>(malloc(16 * sizeof(char)));
   JSONStream js;

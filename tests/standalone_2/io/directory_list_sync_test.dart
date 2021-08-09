@@ -6,10 +6,11 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 void testList() {
-  File script = new File.fromUri(Platform.script);
-  // tests/standalone/io/../..
-  Directory startingDir = script.parent.parent.parent;
+  final startingDir =
+      Directory(path.normalize(path.join(Platform.executable, '../../../')));
   print("Recursively listing entries in directory ${startingDir.path} ...");
   List<FileSystemEntity> each =
       startingDir.listSync(recursive: true, followLinks: false);

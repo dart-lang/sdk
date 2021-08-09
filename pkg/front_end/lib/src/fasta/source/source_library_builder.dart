@@ -12,9 +12,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
 
-import 'package:front_end/src/fasta/dill/dill_library_builder.dart'
-    show DillLibraryBuilder;
-
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -47,6 +44,7 @@ import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
@@ -72,6 +70,8 @@ import '../builder/void_type_declaration_builder.dart';
 import '../combinator.dart' show Combinator;
 
 import '../configuration.dart' show Configuration;
+
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import '../export.dart' show Export;
 
@@ -642,6 +642,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       prefix = name as String;
       suffix = null;
     }
+    if (enableConstructorTearOffsInLibrary) {
+      suffix = suffix == "new" ? "" : suffix;
+    }
     if (prefix == className) {
       return suffix ?? "";
     }
@@ -800,7 +803,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
-        Token endToken = info.beforeLast;
+        Token endToken = info.beforeLast!;
         endToken.setNext(new Token.eof(endToken.next!.offset));
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
@@ -2503,7 +2506,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             procedureName, _currentClassReferencesFromIndexed!.library))
         ?.reference;
 
-    ProcedureBuilder procedureBuilder;
+    SourceFactoryBuilder procedureBuilder;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
           metadata,
@@ -2525,7 +2528,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           nativeMethodName,
           redirectionTarget);
     } else {
-      procedureBuilder = new SourceProcedureBuilder(
+      procedureBuilder = new SourceFactoryBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
@@ -2535,18 +2538,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   const <TypeVariableBuilder>[],
               factoryDeclaration),
           formals,
-          ProcedureKind.Factory,
           this,
           startCharOffset,
           charOffset,
           charOpenParenOffset,
           charEndOffset,
           reference,
-          /* tearOffReference = */ null,
           asyncModifier,
           procedureNameScheme,
-          isExtensionMember: false,
-          isInstanceMember: false,
           nativeMethodName: nativeMethodName);
     }
 
@@ -3272,7 +3271,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
           declaration.constructors.forEach((String name, Builder member) {
             List<FormalParameterBuilder>? formals;
-            if (member is ProcedureBuilder) {
+            if (member is SourceFactoryBuilder) {
               assert(member.isFactory,
                   "Unexpected constructor member (${member.runtimeType}).");
               count += computeDefaultTypesForVariables(member.typeVariables,
@@ -3828,10 +3827,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkTypesInProcedureBuilder(
-      ProcedureBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(procedureBuilder.procedure.function,
-        typeEnvironment, procedureBuilder.fileUri!);
+  void checkTypesInFunctionBuilder(
+      FunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+    checkBoundsInFunctionNode(
+        procedureBuilder.function, typeEnvironment, procedureBuilder.fileUri!);
     if (procedureBuilder.formals != null &&
         !(procedureBuilder.isAbstract || procedureBuilder.isExternal)) {
       checkInitializersInFormals(procedureBuilder.formals!, typeEnvironment);
@@ -3850,7 +3849,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void checkTypesInRedirectingFactoryBuilder(
       RedirectingFactoryBuilder redirectingFactoryBuilder,
       TypeEnvironment typeEnvironment) {
-    checkBoundsInFunctionNode(redirectingFactoryBuilder.procedure.function,
+    checkBoundsInFunctionNode(redirectingFactoryBuilder.function,
         typeEnvironment, redirectingFactoryBuilder.fileUri);
     // Default values are not required on redirecting factory constructors so
     // we don't call [checkInitializersInFormals].
@@ -4137,7 +4136,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
-        checkTypesInProcedureBuilder(declaration, typeEnvironment);
+        checkTypesInFunctionBuilder(declaration, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =
               scope.lookupLocalMember(declaration.name, setter: true);
@@ -4234,6 +4233,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           uncheckedTypedefType.fileUri!, uncheckedTypedefType.offset!);
     }
     uncheckedTypedefTypes.clear();
+  }
+
+  void installTypedefTearOffs() {
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder? declaration = iterator.current;
+      while (declaration != null) {
+        if (declaration is SourceTypeAliasBuilder) {
+          declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+            procedure.isStatic = true;
+            if (!declaration!.isPatch && !declaration.isDuplicate) {
+              library.addProcedure(procedure);
+            }
+          });
+        }
+        declaration = declaration.next;
+      }
+    }
   }
 }
 
@@ -4505,7 +4522,7 @@ class FieldInfo {
   final String name;
   final int charOffset;
   final Token? initializerToken;
-  final Token beforeLast;
+  final Token? beforeLast;
   final int charEndOffset;
 
   const FieldInfo(this.name, this.charOffset, this.initializerToken,

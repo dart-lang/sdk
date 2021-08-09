@@ -21,8 +21,6 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
-class SnapshotReader;
-class SnapshotWriter;
 
 DECLARE_FLAG(bool, disassemble_stubs);
 
@@ -72,7 +70,14 @@ class StubCode : public AllStatic {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(TARGET_ARCH_IA32)
-  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);
+  static CodePtr GetBuildGenericMethodExtractorStub(
+      compiler::ObjectPoolBuilder* pool) {
+    return GetBuildMethodExtractorStub(pool, /*generic=*/true);
+  }
+  static CodePtr GetBuildNonGenericMethodExtractorStub(
+      compiler::ObjectPoolBuilder* pool) {
+    return GetBuildMethodExtractorStub(pool, /*generic=*/false);
+  }
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -109,6 +114,9 @@ class StubCode : public AllStatic {
 
  private:
   friend class MegamorphicCacheTable;
+
+  static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
+                                             bool generic);
 
   enum {
 #define STUB_CODE_ENTRY(name) k##name##Index,

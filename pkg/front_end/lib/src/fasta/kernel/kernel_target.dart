@@ -6,7 +6,6 @@ library fasta.kernel_target;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -82,6 +81,7 @@ import 'constant_evaluator.dart' as constants
         transformProcedure,
         ConstantCoverage;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
+import 'kernel_helper.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -139,7 +139,8 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final List<ClonedFunctionNode> clonedFunctionNodes = <ClonedFunctionNode>[];
+  final List<SynthesizedFunctionNode> synthesizedFunctionNodes =
+      <SynthesizedFunctionNode>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator)
@@ -330,13 +331,15 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
       loader.buildClassHierarchy(myClasses, objectClassBuilder);
       loader.computeHierarchy();
+      loader.installTypedefTearOffs();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
-      loader.buildOutlineExpressions(loader.coreTypes);
+      loader.buildOutlineExpressions(
+          loader.coreTypes, synthesizedFunctionNodes);
       loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       loader.checkMainMethods();
@@ -361,7 +364,7 @@ class KernelTarget extends TargetImplementation {
     return withCrashReporting<Component?>(() async {
       ticker.logMs("Building component");
       await loader.buildBodies();
-      finishClonedParameters();
+      finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
       List<SourceClassBuilder> myClasses = collectMyClasses();
@@ -598,7 +601,7 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.cls.constructors.isNotEmpty) return;
-    if (builder.cls.redirectingFactoryConstructors.isNotEmpty) return;
+    if (builder.cls.redirectingFactories.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }
@@ -713,7 +716,9 @@ class KernelTarget extends TargetImplementation {
       Constructor? referenceFrom) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
-          isFinal: formal.isFinal, isConst: formal.isConst);
+          isFinal: formal.isFinal,
+          isConst: formal.isConst,
+          type: const UnknownType());
       if (formal.type is! UnknownType) {
         copy.type = substitute(formal.type, substitutionMap);
       } else {
@@ -757,16 +762,17 @@ class KernelTarget extends TargetImplementation {
         returnType: makeConstructorReturnType(cls));
     SuperInitializer initializer = new SuperInitializer(
         constructor, new Arguments(positional, named: named));
-    ClonedFunctionNode clonedFunctionNode =
-        new ClonedFunctionNode(substitutionMap, constructor.function, function);
+    SynthesizedFunctionNode synthesizedFunctionNode =
+        new SynthesizedFunctionNode(
+            substitutionMap, constructor.function, function);
     if (!isConst) {
       // For constant constructors default values are computed and cloned part
       // of the outline expression and therefore passed to the
       // [SyntheticConstructorBuilder] below.
       //
       // For non-constant constructors default values are cloned as part of the
-      // full compilation using [clonedFunctionNodes].
-      clonedFunctionNodes.add(clonedFunctionNode);
+      // full compilation using [synthesizedFunctionNodes].
+      synthesizedFunctionNodes.add(synthesizedFunctionNode);
     }
     return new SyntheticConstructorBuilder(
         classBuilder,
@@ -785,14 +791,15 @@ class KernelTarget extends TargetImplementation {
         // cloned function nodes to ensure that the default values are computed
         // and cloned for the outline.
         origin: isConst ? memberBuilder : null,
-        clonedFunctionNode: isConst ? clonedFunctionNode : null);
+        synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
   }
 
-  void finishClonedParameters() {
-    for (ClonedFunctionNode clonedFunctionNode in clonedFunctionNodes) {
-      clonedFunctionNode.cloneDefaultValues();
+  void finishSynthesizedParameters() {
+    for (SynthesizedFunctionNode synthesizedFunctionNode
+        in synthesizedFunctionNodes) {
+      synthesizedFunctionNode.cloneDefaultValues();
     }
-    clonedFunctionNodes.clear();
+    synthesizedFunctionNodes.clear();
     ticker.logMs("Cloned default values of formals");
   }
 
@@ -810,7 +817,7 @@ class KernelTarget extends TargetImplementation {
       ..isNonNullableByDefault =
           enclosingClass.enclosingLibrary.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        '', classBuilder.library, constructor.fileOffset,
+        '', classBuilder.library, classBuilder.fileUri, constructor.fileOffset,
         forAbstractClassOrEnum:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
@@ -1046,8 +1053,12 @@ class KernelTarget extends TargetImplementation {
       // To report errors on the first definition of a constructor, we need to
       // iterate until that last element.
       ConstructorBuilder earliest = constructorBuilder;
-      while (earliest.next != null) {
-        earliest = earliest.next as ConstructorBuilder;
+      Builder earliestBuilder = constructorBuilder;
+      while (earliestBuilder.next != null) {
+        earliestBuilder = earliestBuilder.next!;
+        if (earliestBuilder is ConstructorBuilder) {
+          earliest = earliestBuilder;
+        }
       }
 
       bool isRedirecting = false;
@@ -1246,9 +1257,7 @@ class KernelTarget extends TargetImplementation {
     if (loader.target.context.options
         .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
       valueClass.transformComponent(
-          component!, loader.coreTypes, loader.hierarchy, environment,
-          useNewMethodInvocationEncoding:
-              backendTarget.supportsNewMethodInvocationEncoding);
+          component!, loader.coreTypes, loader.hierarchy, environment);
       ticker.logMs("Lowered value classes");
     }
 
@@ -1399,7 +1408,7 @@ class KernelDiagnosticReporter
 
   KernelDiagnosticReporter(this.loader);
 
-  void report(Message message, int charOffset, int length, Uri fileUri,
+  void report(Message message, int charOffset, int length, Uri? fileUri,
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
   }
@@ -1419,43 +1428,7 @@ class DelayedParameterType {
 
   void updateType() {
     // ignore: unnecessary_null_comparison
-    assert(source.type != null, "No type computed for $source.");
+    assert(source.type is! UnknownType, "No type computed for $source.");
     target.type = substitute(source.type, substitutionMap);
-  }
-}
-
-class ClonedFunctionNode {
-  final Map<TypeParameter, DartType> _typeSubstitution;
-  final FunctionNode _original;
-  final FunctionNode _clone;
-
-  ClonedFunctionNode(this._typeSubstitution, this._original, this._clone);
-
-  void cloneDefaultValues() {
-    // TODO(ahe): It is unclear if it is legal to use type variables in
-    // default values, but Fasta is currently allowing it, and the VM
-    // accepts it. If it isn't legal, the we can speed this up by using a
-    // single cloner without substitution.
-    CloneVisitorNotMembers? cloner;
-
-    void cloneInitializer(VariableDeclaration originalParameter,
-        VariableDeclaration clonedParameter) {
-      if (originalParameter.initializer != null) {
-        cloner ??=
-            new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
-        clonedParameter.initializer = cloner!
-            .clone(originalParameter.initializer!)
-              ..parent = clonedParameter;
-      }
-    }
-
-    for (int i = 0; i < _original.positionalParameters.length; i++) {
-      cloneInitializer(
-          _original.positionalParameters[i], _clone.positionalParameters[i]);
-    }
-
-    for (int i = 0; i < _original.namedParameters.length; i++) {
-      cloneInitializer(_original.namedParameters[i], _clone.namedParameters[i]);
-    }
   }
 }

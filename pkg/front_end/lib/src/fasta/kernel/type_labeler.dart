@@ -361,7 +361,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitStaticTearOffConstant(StaticTearOffConstant node) {
-    Procedure procedure = node.procedure;
+    Procedure procedure = node.target;
     Class? classNode = procedure.enclosingClass;
     if (classNode != null) {
       result.add(nameForEntity(
@@ -375,8 +375,21 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
-    Constructor constructor = node.constructor;
-    Class? classNode = constructor.enclosingClass;
+    Member constructor = node.target;
+    Class classNode = constructor.enclosingClass!;
+    result.add(nameForEntity(
+        classNode,
+        classNode.name,
+        classNode.enclosingLibrary.importUri,
+        classNode.enclosingLibrary.fileUri));
+    result.add(".");
+    result.add(constructor.name.text);
+  }
+
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    Member constructor = node.target;
+    Class classNode = constructor.enclosingClass!;
     result.add(nameForEntity(
         classNode,
         classNode.name,

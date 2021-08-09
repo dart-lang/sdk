@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/src/server/driver.dart' show Driver;
 import 'package:analysis_server_client/protocol.dart'
     show EditBulkFixesResult, ResponseDecoder;
+import 'package:args/args.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -16,17 +17,23 @@ import 'core.dart';
 import 'sdk.dart';
 import 'utils.dart';
 
+/// When set, this function is executed just before the Analysis Server starts.
+void Function(String cmdName, List<FileSystemEntity> analysisRoots,
+    ArgResults argResults) preAnalysisServerStart;
+
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
   AnalysisServer(
     this.sdkPath,
     this.analysisRoots, {
     @required this.commandName,
+    @required this.argResults,
   });
 
   final Directory sdkPath;
   final List<FileSystemEntity> analysisRoots;
   final String commandName;
+  final ArgResults argResults;
 
   Process _process;
 
@@ -69,6 +76,7 @@ class AnalysisServer {
   final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
 
   Future<void> start() async {
+    preAnalysisServerStart?.call(commandName, analysisRoots, argResults);
     final List<String> command = <String>[
       sdk.analysisServerSnapshot,
       '--${Driver.SUPPRESS_ANALYTICS_FLAG}',
@@ -285,23 +293,20 @@ class AnalysisError implements Comparable<AnalysisError> {
     return messages.map((message) => DiagnosticMessage(message)).toList();
   }
 
-  // TODO(jwren) add some tests to verify that the results are what we are
-  // expecting, 'other' is not always on the RHS of the subtraction in the
-  // implementation.
   @override
   int compareTo(AnalysisError other) {
-    // Sort in order of file path, error location, severity, and message.
+    // Sort in order of severity, file path, error location, and message.
+    final int diff = _severityLevel.index - other._severityLevel.index;
+    if (diff != 0) {
+      return diff;
+    }
+
     if (file != other.file) {
       return file.compareTo(other.file);
     }
 
     if (offset != other.offset) {
       return offset - other.offset;
-    }
-
-    final int diff = other._severityLevel.index - _severityLevel.index;
-    if (diff != 0) {
-      return diff;
     }
 
     return message.compareTo(other.message);

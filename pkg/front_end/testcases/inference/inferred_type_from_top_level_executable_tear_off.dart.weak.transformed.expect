@@ -8,5 +8,5 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = tearoff core::print
+  #C1 = static-tearoff core::print
 }

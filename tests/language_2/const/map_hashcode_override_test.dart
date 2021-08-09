@@ -9,9 +9,13 @@ import 'package:expect/expect.dart';
 /// Returns its argument.
 ///
 /// Prevents static optimizations and inlining.
-getValueNonOptimized(x) {
-  // DateTime.now() cannot be predicted statically, never equal to ASCII 42 '*'.
-  if (new DateTime.now() == 42) return getValueNonOptimized(2);
+@pragma('vm:never-inline')
+@pragma('dart2js:noInline')
+dynamic getValueNonOptimized(dynamic x) {
+  // DateTime.now() cannot be predicted statically, never equal to 42.
+  if (DateTime.now().millisecondsSinceEpoch == 42) {
+    return getValueNonOptimized(2);
+  }
   return x;
 }
 

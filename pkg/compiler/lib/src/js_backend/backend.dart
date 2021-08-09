@@ -6,7 +6,7 @@ library js_backend.backend;
 
 import '../common.dart';
 import '../common/codegen.dart';
-import '../deferred_load.dart' show DeferredLoadTask;
+import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;

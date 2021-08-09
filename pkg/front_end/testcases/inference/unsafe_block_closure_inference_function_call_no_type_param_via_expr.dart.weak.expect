@@ -11,5 +11,5 @@ static method f(dynamic x) → core::double*
   return 1.0;
 
 constants  {
-  #C1 = tearoff self::f
+  #C1 = static-tearoff self::f
 }

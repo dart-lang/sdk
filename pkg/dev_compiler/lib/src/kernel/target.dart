@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
@@ -28,9 +26,9 @@ class DevCompilerTarget extends Target {
   @override
   final TargetFlags flags;
 
-  WidgetCreatorTracker _widgetTracker;
+  WidgetCreatorTracker? _widgetTracker;
 
-  Map<String, Class> _nativeClasses;
+  Map<String, Class>? _nativeClasses;
 
   @override
   bool get enableSuperMixins => true;
@@ -48,9 +46,6 @@ class DevCompilerTarget extends Target {
   //  calls encoded with an explicit property get or disallows getter calls.
   @override
   bool get supportsExplicitGetterCalls => false;
-
-  @override
-  bool get supportsNewMethodInvocationEncoding => true;
 
   @override
   int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
@@ -156,11 +151,11 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
     for (var library in libraries) {
@@ -169,7 +164,7 @@ class DevCompilerTarget extends Target {
       JsInteropChecks(
               coreTypes,
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>,
-              _nativeClasses)
+              _nativeClasses!)
           .visitLibrary(library);
     }
   }
@@ -180,11 +175,11 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void Function(String msg) logger,
-      ChangedStructureNotifier changedStructureNotifier}) {
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker.transform(component, libraries, changedStructureNotifier);
+      _widgetTracker!.transform(component, libraries, changedStructureNotifier);
     }
   }
 
@@ -352,7 +347,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
   /// If the member needs a check it will be stored in [_checkedMembers].
   ///
   /// See [transform] for more information.
-  void _checkTarget(Expression receiver, Member target) {
+  void _checkTarget(Expression receiver, Member? target) {
     if (target != null &&
         target.name.isPrivate &&
         target.isInstanceMember &&
@@ -370,7 +365,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
   /// escape, and it also has a different runtime type.
   ///
   /// See [transform] for more information.
-  void _checkTearoff(Member target) {
+  void _checkTearoff(Member? target) {
     if (target != null &&
         target.name.isPrivate &&
         target.isInstanceMember &&
@@ -411,33 +406,15 @@ class _CovarianceTransformer extends RecursiveVisitor {
   }
 
   @override
-  void visitPropertyGet(PropertyGet node) {
-    _checkTearoff(node.interfaceTarget);
-    super.visitPropertyGet(node);
-  }
-
-  @override
   void visitInstanceGet(InstanceGet node) {
     _checkTearoff(node.interfaceTarget);
     super.visitInstanceGet(node);
   }
 
   @override
-  void visitPropertySet(PropertySet node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitPropertySet(node);
-  }
-
-  @override
   void visitInstanceSet(InstanceSet node) {
     _checkTarget(node.receiver, node.interfaceTarget);
     super.visitInstanceSet(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _checkTarget(node.receiver, node.interfaceTarget);
-    super.visitMethodInvocation(node);
   }
 
   @override

@@ -1,0 +1,8 @@
+class A {
+  final int field;
+  A([this.field = 42]);
+  factory A.redirect([int field = 87]) = A;
+}
+
+main() {}
+expect(expected, actual) {}

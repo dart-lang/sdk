@@ -15,12 +15,10 @@ class A {
 
 class B implements A {
   const B();
-
-
 }
 
 confuse(x) {
-  if (new DateTime.now() == 42) return confuse(2);
+  if (DateTime.now().millisecondsSinceEpoch == 42) return confuse(2);
   return x;
 }
 

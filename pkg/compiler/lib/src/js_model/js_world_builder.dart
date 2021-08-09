@@ -9,7 +9,7 @@ import '../common.dart';
 import '../common_elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../deferred_load.dart';
+import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/names.dart';
@@ -944,15 +944,13 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     ListConstantValue keys = constant.keyList.accept(this, null);
     List<ConstantValue> values = _handleValues(constant.values);
-    ConstantValue protoValue = constant.protoValue?.accept(this, null);
     if (identical(keys, constant.keys) &&
         identical(values, constant.values) &&
-        type == constant.type &&
-        protoValue == constant.protoValue) {
+        type == constant.type) {
       return constant;
     }
     return new constant_system.JavaScriptMapConstant(
-        type, keys, values, protoValue, constant.onlyStringKeys);
+        type, keys, values, constant.onlyStringKeys);
   }
 
   @override

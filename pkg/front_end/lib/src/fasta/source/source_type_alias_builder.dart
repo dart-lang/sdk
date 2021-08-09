@@ -4,17 +4,8 @@
 
 library fasta.source_type_alias_builder;
 
-import 'package:kernel/ast.dart'
-    show
-        DartType,
-        DynamicType,
-        InvalidType,
-        TypeParameter,
-        TypeParameterType,
-        Typedef,
-        TypedefType,
-        VariableDeclaration,
-        getAsTypeArguments;
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart';
 
@@ -33,12 +24,16 @@ import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+
+import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/kernel_helper.dart';
 
 import '../util/helpers.dart';
 
@@ -53,6 +48,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   final Typedef typedef;
 
   DartType? thisType;
+
+  Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
       List<MetadataBuilder>? metadata,
@@ -253,11 +250,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         allowSuperBounded: false);
   }
 
-  @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(
         typedef, metadata, library, null, null, fileUri);
     if (typeVariables != null) {
@@ -265,6 +262,46 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         typeVariables![i].buildOutlineExpressions(
             library, null, null, coreTypes, delayedActionPerformers);
       }
+    }
+    _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
+      InterfaceType targetType = typedef.type as InterfaceType;
+      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+          new Map<TypeParameter, DartType>.fromIterables(
+              target.enclosingClass!.typeParameters, targetType.typeArguments),
+          target.function!,
+          tearOff.function));
+    });
+  }
+
+  Map<Procedure, Member>? _tearOffDependencies;
+
+  void buildTypedefTearOffs(
+      SourceLibraryBuilder library, void Function(Procedure) f) {
+    TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
+    if (declaration is ClassBuilder &&
+        typedef.typeParameters.isNotEmpty &&
+        !isProperRenameForClass(library.loader.typeEnvironment, typedef)) {
+      tearOffs = {};
+      _tearOffDependencies = {};
+      declaration
+          .forEachConstructor((String constructorName, MemberBuilder builder) {
+        Member? target = builder.invokeTarget;
+        if (target != null) {
+          if (target is Procedure && target.isRedirectingFactory) {
+            target = builder.readTarget!;
+          }
+          Name targetName =
+              new Name(constructorName, declaration.library.library);
+          Procedure tearOff = tearOffs![targetName] =
+              createTypedefTearOffProcedure(
+                  name, constructorName, library, fileUri, charOffset);
+          _tearOffDependencies![tearOff] = target;
+          InterfaceType targetType = typedef.type as InterfaceType;
+          buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
+              typedef.typeParameters, targetType.typeArguments, library);
+          f(tearOff);
+        }
+      });
     }
   }
 }

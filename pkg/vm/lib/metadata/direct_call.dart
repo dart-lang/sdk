@@ -14,7 +14,7 @@ class DirectCallMetadata {
 
   DirectCallMetadata(Member target, bool checkReceiverForNull)
       : this.byReference(
-            getMemberReferenceGetter(target), checkReceiverForNull);
+            getNonNullableMemberReferenceGetter(target), checkReceiverForNull);
 
   DirectCallMetadata.byReference(
       this._targetReference, this.checkReceiverForNull);

@@ -722,7 +722,7 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
-  MethodInvocation createMethodInvocation(
+  Expression createMethodInvocation(
       int fileOffset, Expression expression, Name name, Arguments arguments) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
@@ -758,19 +758,18 @@ class Forest {
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
-  PropertyGet createPropertyGet(
-      int fileOffset, Expression receiver, Name name) {
+  Expression createPropertyGet(int fileOffset, Expression receiver, Name name) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new PropertyGet(receiver, name)..fileOffset = fileOffset;
   }
 
-  PropertySet createPropertySet(
+  Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
       {required bool forEffect, bool readOnlyReceiver: false}) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
-    return new PropertySetImpl(receiver, name, value,
+    return new PropertySet(receiver, name, value,
         forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = fileOffset;
   }
@@ -836,7 +835,15 @@ class Forest {
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
+    assert(!procedure.isRedirectingFactory);
     return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  }
+
+  RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+      int fileOffset, Procedure procedure) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
   }
 
   Instantiation createInstantiation(
@@ -844,6 +851,17 @@ class Forest {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new Instantiation(expression, typeArguments)
+      ..fileOffset = fileOffset;
+  }
+
+  TypedefTearOff createTypedefTearOff(
+      int fileOffset,
+      List<TypeParameter> typeParameters,
+      Expression expression,
+      List<DartType> typeArguments) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new TypedefTearOff(typeParameters, expression, typeArguments)
       ..fileOffset = fileOffset;
   }
 }

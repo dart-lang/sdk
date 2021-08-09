@@ -20,14 +20,14 @@ const String mainScriptPackageUri = 'package:vm/kernel_front_end.dart';
 const String packagesFile = '.packages';
 const String packageConfigFile = '.dart_tool/package_config.json';
 
-void testCompile(List<String> args) async {
+Future<void> testCompile(List<String> args) async {
   final compilerExitCode =
       await runCompiler(createCompilerArgParser().parse(args), '');
   expect(compilerExitCode, successExitCode);
 }
 
 main() {
-  Directory tempDir;
+  late Directory tempDir;
   setUp(() {
     var systemTempDir = Directory.systemTemp;
     tempDir = systemTempDir.createTempSync('kernel_front_end_test');

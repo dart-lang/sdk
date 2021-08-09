@@ -164,6 +164,7 @@ class BundleWriter {
     _resolutionSink.localElements.declareAll(element.parameters);
     try {
       _writeList(element.parameters, _writeParameterElement);
+      _writeMacro(element.macro);
       if (element.isConst || element.isFactory) {
         _resolutionSink.writeElement(element.redirectedConstructor);
         _resolutionSink._writeNodeList(element.constantInitializers);
@@ -280,6 +281,15 @@ class BundleWriter {
     }
   }
 
+  void _writeMacro(MacroGenerationData? macro) {
+    _sink.writeBool(macro != null);
+    if (macro != null) {
+      _sink.writeUInt30(macro.id);
+      _sink.writeStringUtf8(macro.code);
+      _sink.writeUint8List(macro.informative);
+    }
+  }
+
   void _writeMethodElement(MethodElement element) {
     element as MethodElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
@@ -293,6 +303,8 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType);
     });
+
+    _writeMacro(element.macro);
   }
 
   void _writeMixinElement(ClassElement element) {
@@ -367,7 +379,9 @@ class BundleWriter {
 
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.returnType);
+
     _writeList(element.parameters, _writeParameterElement);
+    _writeMacro(element.macro);
   }
 
   void _writeReferences(List<Reference> references) {
@@ -706,10 +720,10 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeTypeAliasElementArguments(DartType type) {
-    var aliasElement = type.aliasElement;
-    _writeElement(aliasElement);
-    if (aliasElement != null) {
-      _writeTypeList(type.aliasArguments!);
+    var alias = type.alias;
+    _writeElement(alias?.element);
+    if (alias != null) {
+      _writeTypeList(alias.typeArguments);
     }
   }
 

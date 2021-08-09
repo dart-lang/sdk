@@ -1657,8 +1657,9 @@ class _BigIntImpl implements BigInt {
    */
   int get bitLength {
     if (_used == 0) return 0;
-    if (_isNegative) return (~this).bitLength;
-    return _digitBits * (_used - 1) + _digits[_used - 1].bitLength;
+    var highBits = _digits[_used - 1];
+    if (_isNegative) highBits -= 1;
+    return _digitBits * (_used - 1) + highBits.bitLength;
   }
 
   /**

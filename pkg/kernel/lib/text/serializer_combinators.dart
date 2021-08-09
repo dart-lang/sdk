@@ -714,7 +714,7 @@ class Optional<T> extends TextSerializer<T?> {
 /// Serializes an object and uses it as a binder for the name that is retrieved
 /// from the object using [nameGetter] and (temporarily) modified using
 /// [nameSetter].  The binder is added to the enclosing environment.
-class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
+class Binder<T extends Node> extends TextSerializer<Tuple2<String?, T>> {
   final Tuple2Serializer<String, T> namedContents;
 
   Binder(TextSerializer<T> contents)
@@ -733,13 +733,13 @@ class Binder<T extends Node> extends TextSerializer<Tuple2<String, T>> {
     return new Tuple2(name, object);
   }
 
-  void writeTo(StringBuffer buffer, Tuple2<String, T> namedObject,
+  void writeTo(StringBuffer buffer, Tuple2<String?, T> namedObject,
       SerializationState? state) {
     if (state == null) {
       throw StateError(
           "No serialization state provided for ${runtimeType}.writeTo.");
     }
-    String nameClue = namedObject.first;
+    String? nameClue = namedObject.first;
     T object = namedObject.second;
     String distinctName =
         state.environment.addBinder(object, nameClue: nameClue);

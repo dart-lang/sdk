@@ -58,11 +58,11 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordMemberCalledViaThis(Member target) {}
 
   @override
-  void recordTearOff(Procedure target) {}
+  void recordTearOff(Member target) {}
 }
 
 class PrintSummaries extends RecursiveVisitor {
-  SummaryCollector _summaryCollector;
+  late SummaryCollector _summaryCollector;
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(Target target, TypeEnvironment environment,
@@ -75,12 +75,12 @@ class PrintSummaries extends RecursiveVisitor {
         new FakeEntryPointsListener(typesBuilder),
         typesBuilder,
         new NativeCodeOracle(
-            null, new ConstantPragmaAnnotationParser(coreTypes)),
-        new GenericInterfacesInfoImpl(hierarchy),
+            coreTypes.index, new ConstantPragmaAnnotationParser(coreTypes)),
+        new GenericInterfacesInfoImpl(coreTypes, hierarchy),
         /*_protobufHandler=*/ null);
   }
 
-  String print(TreeNode node) {
+  String print(Library node) {
     visitLibrary(node);
     return _buf.toString();
   }
@@ -99,10 +99,11 @@ class PrintSummaries extends RecursiveVisitor {
 runTestCase(Uri source) async {
   final Target target = new TestingVmTarget(new TargetFlags());
   final Component component = await compileTestCaseToKernelProgram(source);
-  final Library library = component.mainMethod.enclosingLibrary;
+  final Library library = component.mainMethod!.enclosingLibrary;
   final CoreTypes coreTypes = new CoreTypes(component);
 
-  final ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
+  final ClosedWorldClassHierarchy hierarchy =
+      new ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
 
   final actual =

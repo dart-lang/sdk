@@ -72,7 +72,7 @@ void f() {
 }
 void g(int x, int y) {}
 ''');
-    var unit = testAnalysisResult.unit!;
+    var unit = testAnalysisResult.unit;
     var function = unit.declarations[0] as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;

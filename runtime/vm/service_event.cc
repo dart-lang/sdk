@@ -64,7 +64,8 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
            event_kind == ServiceEvent::kNone ||
            // VM service can print Observatory information to Stdout or Stderr
            // which are embedder streams.
-           event_kind == ServiceEvent::kEmbedder)));
+           event_kind == ServiceEvent::kEmbedder ||
+           event_kind == ServiceEvent::kCpuSamples)));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -141,6 +142,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "TimelineStreamSubscriptionsUpdate";
     case kUserTagChanged:
       return "UserTagChanged";
+    case kCpuSamples:
+      return "CpuSamples";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -193,6 +196,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kEmbedder:
       return nullptr;
 
+    case kCpuSamples:
     case kUserTagChanged:
       return &Service::profiler_stream;
 
@@ -299,6 +303,11 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (kind() == kExtension) {
     js->AppendSerializedObject("extensionData",
                                extension_event_.event_data->ToCString());
+  }
+
+  if (kind() == kCpuSamples) {
+    JSONObject cpu_profile(&jsobj, "cpuSamples");
+    cpu_profile_->PrintProfileJSON(&cpu_profile, false);
   }
 }
 

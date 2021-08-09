@@ -18,5 +18,5 @@ static method foo() → dynamic
   return null;
 
 constants  {
-  #C1 = tearoff self::_#loadLibrary_lib
+  #C1 = static-tearoff self::_#loadLibrary_lib
 }

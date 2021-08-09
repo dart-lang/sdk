@@ -158,7 +158,8 @@ protocol.Element createLocalElement(
     bool isDeprecated = false}) {
   var name = id.name;
   // TODO(danrubel) use lineInfo to determine startLine and startColumn
-  var location = Location(source.fullName, id.offset, id.length, 0, 0, 0, 0);
+  var location = Location(source.fullName, id.offset, id.length, 0, 0,
+      endLine: 0, endColumn: 0);
   var flags = protocol.Element.makeFlags(
       isAbstract: isAbstract,
       isDeprecated: isDeprecated,
@@ -194,7 +195,7 @@ DefaultArgument? getDefaultStringParameterValue(ParameterElement parameter,
 }
 
 String getRequestLineIndent(DartCompletionRequest request) {
-  var content = request.result.content!;
+  var content = request.result.content;
   var lineStartOffset = request.offset;
   var notWhitespaceOffset = request.offset;
   for (; lineStartOffset > 0; lineStartOffset--) {

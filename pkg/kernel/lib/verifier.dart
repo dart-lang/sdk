@@ -72,6 +72,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   bool inUnevaluatedConstant = false;
 
+  bool inConstant = false;
+
   Library? currentLibrary;
 
   Member? currentMember;
@@ -635,6 +637,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    declareTypeParameters(node.typeParameters);
+    super.visitTypedefTearOff(node);
+    undeclareTypeParameters(node.typeParameters);
+  }
+
   void checkTargetedInvocation(Member target, InvocationExpression node) {
     visitChildren(node);
     // ignore: unnecessary_null_comparison
@@ -821,10 +830,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     if (!typeParametersInScope.contains(parameter)) {
+      TreeNode? owner = parameter.parent is FunctionNode
+          ? parameter.parent!.parent
+          : parameter.parent;
       problem(
           currentParent,
           "Type parameter '$parameter' referenced out of"
-          " scope, parent is: '${parameter.parent}'.");
+          " scope, owner is: '${owner}'.");
     }
     if (parameter.parent is Class && !classTypeParametersAreInScope) {
       problem(
@@ -875,6 +887,31 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           " type arguments, but the typedef declares"
           " ${node.typedefNode.typeParameters.length} parameters.");
     }
+  }
+
+  @override
+  void visitConstantExpression(ConstantExpression node) {
+    bool oldInConstant = inConstant;
+    inConstant = true;
+    visitChildren(node);
+    inConstant = oldInConstant;
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    if (inConstant) {
+      // Don't expect the type parameters to have the current parent as parent.
+      node.visitChildren(this);
+    } else {
+      visitChildren(node);
+    }
+  }
+
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    declareTypeParameters(node.parameters);
+    super.visitTypedefTearOffConstant(node);
+    undeclareTypeParameters(node.parameters);
   }
 }
 

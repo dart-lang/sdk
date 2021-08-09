@@ -361,6 +361,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -395,17 +396,14 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
       expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
-      expect(e.nameOffset, isPositive);
+      expect(e.nameOffset, isNonNegative);
     }
   }
 
   void _writeDocumentation(Element element) {
     var documentation = element.documentationComment;
     if (documentation != null) {
-      var str = documentation;
-      str = str.replaceAll('\n', r'\n');
-      str = str.replaceAll('\r', r'\r');
-      _writelnWithIndent('documentationComment: $str');
+      _writelnMultiLineWithIndent('documentationComment: $documentation');
     }
   }
 
@@ -521,9 +519,28 @@ class _ElementWriter {
     buffer.writeln();
   }
 
+  void _writelnMultiLineWithIndent(String str) {
+    str = str.replaceAll('\n', r'\n');
+    str = str.replaceAll('\r', r'\r');
+    _writelnWithIndent(str);
+  }
+
   void _writelnWithIndent(String line) {
     buffer.write(indent);
     buffer.writeln(line);
+  }
+
+  void _writeMacro(Element e) {
+    if (e is HasMacroGenerationData) {
+      var macro = (e as HasMacroGenerationData).macro;
+      if (macro != null) {
+        _writelnWithIndent('macro');
+        _withIndent(() {
+          _writelnWithIndent('id: ${macro.id}');
+          _writelnMultiLineWithIndent('code: ${macro.code}');
+        });
+      }
+    }
   }
 
   void _writeMetadata(Element element) {
@@ -551,6 +568,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -645,6 +663,8 @@ class _ElementWriter {
   }
 
   void _writePropertyAccessorElement(PropertyAccessorElement e) {
+    e as PropertyAccessorElementImpl;
+
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
@@ -691,6 +711,7 @@ class _ElementWriter {
     });
 
     _withIndent(() {
+      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -752,15 +773,14 @@ class _ElementWriter {
       _writelnWithIndent('$typeStr');
     }
 
-    var aliasElement = type.aliasElement;
-    var aliasArguments = type.aliasArguments;
-    if (aliasElement is TypeAliasElementImpl && aliasArguments != null) {
+    var alias = type.alias;
+    if (alias != null) {
       _withIndent(() {
-        _createAstPrinter().writeElement('aliasElement', aliasElement);
+        _createAstPrinter().writeElement('aliasElement', alias.element);
 
         _writeElements<DartType>(
           'aliasArguments',
-          aliasArguments,
+          alias.typeArguments,
           _writeType,
         );
       });

@@ -498,7 +498,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var superclassName = declaration?.extendsClause?.superclass.name;
     if (superclassName != null &&
-        _resolver.nameScope.shouldIgnoreUndefined(superclassName)) {
+        _resolver.definingLibrary
+            .shouldIgnoreUndefinedIdentifier(superclassName)) {
       return;
     }
     var argumentList = node.argumentList;

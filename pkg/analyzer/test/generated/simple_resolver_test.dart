@@ -1264,7 +1264,7 @@ main() {
   /// Verify that all of the identifiers in the [result] have been resolved.
   void verifyTestResolved() {
     var verifier = ResolutionVerifier();
-    result.unit!.accept(verifier);
+    result.unit.accept(verifier);
     verifier.assertResolved();
   }
 

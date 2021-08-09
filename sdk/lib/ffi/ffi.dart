@@ -806,7 +806,7 @@ abstract class NativeApi {
 ///
 /// Example:
 ///```dart
-/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum")
+/// @FfiNative<Int64 Function(Int64, Int64)>("FfiNative_Sum", isLeaf:true)
 /// external int sum(int a, int b);
 ///```
 /// Calling such functions will throw an exception if no resolver
@@ -817,7 +817,8 @@ abstract class NativeApi {
 /// NOTE: This is an experimental feature and may change in the future.
 class FfiNative<T> {
   final String nativeName;
-  const FfiNative(this.nativeName);
+  final bool isLeaf;
+  const FfiNative(this.nativeName, {this.isLeaf: false});
 }
 
 // Bootstrapping native for getting the FFI native C function pointer to look

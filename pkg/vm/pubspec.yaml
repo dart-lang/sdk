@@ -4,7 +4,7 @@ description: VM specific Dart code and helper scripts
 publish_to: none
 
 environment:
-  sdk: "^2.7.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   args: ^1.4.4
@@ -15,9 +15,8 @@ dependencies:
     path: ../front_end
   kernel:
     path: ../kernel
-  meta:
-    path: ../meta
   package_config: any
+  collection: ^1.15.0
 
 dev_dependencies:
   expect:

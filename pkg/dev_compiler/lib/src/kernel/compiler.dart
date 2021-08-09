@@ -61,6 +61,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// module.
   final memberNames = <Member, String>{};
 
+  /// Maps each `Procedure` node compiled in the module to the `Identifier`s
+  /// used to name the class in JavaScript.
+  ///
+  /// This mapping is used when generating the symbol information for the
+  /// module.
+  final procedureIdentifiers = <Procedure, js_ast.Identifier>{};
+
   /// Maps each `VariableDeclaration` node compiled in the module to the name
   /// used for the variable in JavaScript.
   ///
@@ -1670,7 +1677,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ctorFields = ctor.initializers
           .map((c) => c is FieldInitializer ? c.field : null)
           .toSet()
-            ..remove(null);
+        ..remove(null);
     }
 
     var body = <js_ast.Statement>[];
@@ -2368,8 +2375,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Class memberClass}) {
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
-      // TODO(nshahan) Record the name for this member in memberNames.
-      return _emitStaticMemberName(name, member);
+      var memberName = _emitStaticMemberName(name, member);
+      memberNames[member] = memberName.valueWithoutQuotes;
+      return memberName;
     }
 
     // We allow some (illegal in Dart) member names to be used in our private
@@ -2379,6 +2387,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var runtimeName = _jsExportName(member);
       if (runtimeName != null) {
         var parts = runtimeName.split('.');
+        // TODO(nshahan) Record the name for this member in memberNames.
         if (parts.length < 2) return propertyName(runtimeName);
 
         js_ast.Expression result = _emitIdentifier(parts[0]);
@@ -2652,8 +2661,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentUri = node.fileUri;
 
     var name = node.name.text;
+    memberNames[node] = name;
     var result = js_ast.Method(
-        propertyName(name), _emitFunction(node.function, node.name.text),
+        propertyName(name), _emitFunction(node.function, name),
         isGetter: node.isGetter, isSetter: node.isSetter)
       ..sourceInformation = _nodeEnd(node.fileEndOffset);
 
@@ -2678,8 +2688,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var nameExpr = _emitTopLevelName(p);
     var jsName = _safeFunctionNameForSafari(p.name.text, fn);
-    body.add(js.statement('# = #',
-        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(jsName), fn)]));
+    var functionName = _emitTemporaryId(jsName);
+    procedureIdentifiers[p] = functionName;
+    body.add(js.statement(
+        '# = #', [nameExpr, js_ast.NamedFunction(functionName, fn)]));
 
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
@@ -2872,27 +2884,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     js_ast.Expression typeRep;
 
     // Type parameters don't matter as JS interop types cannot be reified.
-    // We have to use lazy JS types because until we have proper module
-    // loading for JS libraries bundled with Dart libraries, we will sometimes
-    // need to load Dart libraries before the corresponding JS libraries are
-    // actually loaded.
-    // Given a JS type such as:
-    //     @JS('google.maps.Location')
-    //     class Location { ... }
-    // We can't emit a reference to MyType because the JS library that defines
-    // it may be loaded after our code. So for now, we use a special lazy type
-    // object to represent MyType.
-    // Anonymous JS types do not have a corresponding concrete JS type so we
-    // have to use a helper to define them.
-    if (isJSAnonymousType(c)) {
-      typeRep = runtimeCall(
-          'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
-    } else {
-      var jsName = _emitJsNameWithoutGlobal(c);
-      if (jsName != null) {
-        typeRep = runtimeCall('lazyJSType(() => #, #)',
-            [_emitJSInteropForGlobal(jsName), js.escapedString(jsName)]);
-      }
+    // package:js types fall under either named or anonymous types. Named types
+    // are used to correspond to JS types that exist, but we do not use the
+    // underlying type for type checks, so they operate virtually the same as
+    // anonymous types. We represent package:js types with a corresponding type
+    // object.
+    var jsName = isJSAnonymousType(c) ?
+        getLocalClassName(c) : _emitJsNameWithoutGlobal(c);
+    if (jsName != null) {
+      typeRep = runtimeCall('packageJSType(#)', [js.escapedString(jsName)]);
     }
 
     if (typeRep != null) {
@@ -3605,7 +3605,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     for (var p in f.positionalParameters) {
-      var jsParam = _emitVariableDef(p);
+      var jsParam = _emitVariableRef(p);
       if (_checkParameters) {
         initParameter(p, jsParam);
       }
@@ -4510,13 +4510,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var name = v.name;
     if (name == null || name.startsWith('#')) {
       name = name == null ? 't${_tempVariables.length}' : name.substring(1);
-      // TODO(nshahan) Record the Identifier for this variable in
-      // variableIdentifiers.
       return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name));
     }
-    var identifier = _emitIdentifier(name);
-    variableIdentifiers[v] = identifier;
-    return identifier;
+    return _emitIdentifier(name);
   }
 
   /// Emits the declaration of a variable.
@@ -4524,7 +4520,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is similar to [_emitVariableRef] but it also attaches source
   /// location information, so hover will work as expected.
   js_ast.Identifier _emitVariableDef(VariableDeclaration v) {
-    return _emitVariableRef(v)..sourceInformation = _nodeStart(v);
+    var identifier = _emitVariableRef(v)..sourceInformation = _nodeStart(v);
+    variableIdentifiers[v] = identifier;
+    return identifier;
   }
 
   js_ast.Statement _initLetVariables() {
@@ -4563,24 +4561,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitPropertyGet(PropertyGet node) {
-    return _emitPropertyGet(
-        node.receiver, node.interfaceTarget, node.name.text);
-  }
-
-  @override
   js_ast.Expression visitDynamicSet(DynamicSet node) {
     return _emitPropertySet(node.receiver, null, node.value, node.name.text);
   }
 
   @override
   js_ast.Expression visitInstanceSet(InstanceSet node) {
-    return _emitPropertySet(
-        node.receiver, node.interfaceTarget, node.value, node.name.text);
-  }
-
-  @override
-  js_ast.Expression visitPropertySet(PropertySet node) {
     return _emitPropertySet(
         node.receiver, node.interfaceTarget, node.value, node.name.text);
   }
@@ -4757,12 +4743,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitEqualsNull(EqualsNull node) {
     return _emitCoreIdenticalCall([node.expression, NullLiteral()],
         negated: false);
-  }
-
-  @override
-  js_ast.Expression visitMethodInvocation(MethodInvocation node) {
-    return _emitMethodCall(
-        node.receiver, node.interfaceTarget, node.arguments, node);
   }
 
   js_ast.Expression _emitMethodCall(Expression receiver, Member target,
@@ -5749,11 +5729,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitNot(Not node) {
     var operand = node.operand;
-    if (operand is MethodInvocation && operand.name.text == '==') {
-      return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
-          operand.arguments.positional[0],
-          negated: true);
-    } else if (operand is EqualsCall) {
+    if (operand is EqualsCall) {
       return _emitEqualityOperator(
           operand.left, operand.interfaceTarget, operand.right,
           negated: true);
@@ -5850,6 +5826,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConstructorTearOff(ConstructorTearOff node) {
     throw UnsupportedError('Constructor tear off');
+  }
+
+  @override
+  js_ast.Expression visitRedirectingFactoryTearOff(
+      RedirectingFactoryTearOff node) {
+    throw UnsupportedError('RedirectingFactory tear off');
   }
 
   @override
@@ -6241,13 +6223,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitConstant(Constant node) {
     if (node is StaticTearOffConstant) {
       // JS() or external JS consts should not be lazily loaded.
-      var isSdk = node.procedure.enclosingLibrary.importUri.scheme == 'dart';
+      var isSdk = node.target.enclosingLibrary.importUri.scheme == 'dart';
       if (_isInForeignJS) {
-        return _emitStaticTarget(node.procedure);
+        return _emitStaticTarget(node.target);
       }
-      if (node.procedure.isExternal && !isSdk) {
+      if (node.target.isExternal && !isSdk) {
         return runtimeCall(
-            'tearoffInterop(#)', [_emitStaticTarget(node.procedure)]);
+            'tearoffInterop(#)', [_emitStaticTarget(node.target)]);
       }
     }
     if (node is TypeLiteralConstant) {
@@ -6419,15 +6401,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Library library, String className, Member member,
       [js_ast.TemporaryId id]) {
     var name = '$className.${member.name.text}';
-    // Names used in the symbols for the public fields
-    // memberNames[member] = 'Symbol($name)';
+    // Wrap the name as a symbol here so it matches what you would find at
+    // runtime when you get all properties and symbols from an instance.
+    memberNames[member] = 'Symbol($name)';
     return emitPrivateNameSymbol(library, name, id);
   }
 
   @override
   js_ast.Expression visitStaticTearOffConstant(StaticTearOffConstant node) {
-    _declareBeforeUse(node.procedure.enclosingClass);
-    return _emitStaticGet(node.procedure);
+    _declareBeforeUse(node.target.enclosingClass);
+    return _emitStaticGet(node.target);
   }
 
   @override

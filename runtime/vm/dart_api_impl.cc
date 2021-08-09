@@ -32,6 +32,7 @@
 #include "vm/lockers.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/message_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -1453,16 +1454,14 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
 
   *error = nullptr;
 
-  if (!IsolateGroup::AreIsolateGroupsEnabled()) {
+  if (!FLAG_enable_isolate_groups) {
     *error = Utils::StrDup(
-        "Lightweight isolates are only implemented in AOT "
-        "mode and need to be explicitly enabled by passing "
+        "Lightweight isolates need to be explicitly enabled by passing "
         "--enable-isolate-groups.");
     return nullptr;
   }
 
   Isolate* isolate;
-#if defined(DART_PRECOMPILED_RUNTIME)
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
   if (isolate != nullptr) {
     isolate->set_origin_id(member->origin_id());
@@ -1470,10 +1469,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
     isolate->set_on_shutdown_callback(shutdown_callback);
     isolate->set_on_cleanup_callback(cleanup_callback);
   }
-#else
-  *error = Utils::StrDup("Lightweight isolates are not yet ready in JIT mode.");
-  isolate = nullptr;
-#endif
 
   return Api::CastIsolate(isolate);
 }
@@ -2167,17 +2162,10 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
     return false;
   }
 
-  // Smis and null can be sent without serialization.
-  ObjectPtr raw_obj = Api::UnwrapHandle(handle);
-  if (ApiObjectConverter::CanConvert(raw_obj)) {
-    return PortMap::PostMessage(
-        Message::New(port_id, raw_obj, Message::kNormalPriority));
-  }
-
-  const Object& object = Object::Handle(Z, raw_obj);
-  MessageWriter writer(false);
-  return PortMap::PostMessage(
-      writer.WriteMessage(object, port_id, Message::kNormalPriority));
+  const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
+  return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                           object, port_id,
+                                           Message::kNormalPriority));
 }
 
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
@@ -6169,10 +6157,6 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate) {
   return ServiceIsolate::IsServiceIsolate(iso);
 }
 
-DART_EXPORT int64_t Dart_TimelineGetMicros() {
-  return OS::GetCurrentMonotonicMicros();
-}
-
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     const char* name,
     Dart_ServiceRequestCallback callback,
@@ -6312,6 +6296,18 @@ DART_EXPORT bool Dart_IsReloading() {
   CHECK_ISOLATE(isolate);
   return isolate->group()->IsReloading();
 #endif
+}
+
+DART_EXPORT int64_t Dart_TimelineGetMicros() {
+  return OS::GetCurrentMonotonicMicros();
+}
+
+DART_EXPORT int64_t Dart_TimelineGetTicks() {
+  return OS::GetCurrentMonotonicTicks();
+}
+
+DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
+  return OS::GetCurrentMonotonicFrequency();
 }
 
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {

@@ -17,9 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 abstract class AnalysisResult {
   /// The absolute and normalized path of the file that was analyzed.
   /// If [state] is not [ResultState.VALID], throws [StateError].
-  ///
-  /// TODO(migration): should not be nullable
-  String? get path;
+  String get path;
 
   /// Return the session used to compute this result.
   /// If [state] is not [ResultState.VALID], throws [StateError].
@@ -164,9 +162,7 @@ class NotPathOfUriResult
 abstract class ParsedLibraryResult
     implements SomeParsedLibraryResult, AnalysisResult {
   /// The parsed units of the library.
-  ///
-  /// TODO(migration): should not be null, probably empty list
-  List<ParsedUnitResult>? get units;
+  List<ParsedUnitResult> get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
@@ -214,13 +210,13 @@ abstract class ParseStringResult {
 abstract class ResolvedLibraryResult
     implements SomeResolvedLibraryResult, AnalysisResult {
   /// The element representing this library.
-  LibraryElement? get element;
+  LibraryElement get element;
 
   /// The type provider used when resolving the library.
   TypeProvider get typeProvider;
 
   /// The resolved units of the library.
-  List<ResolvedUnitResult>? get units;
+  List<ResolvedUnitResult> get units;
 
   /// Return the declaration of the [element], or `null` if the [element]
   /// is synthetic. Throw [ArgumentError] if the [element] is not defined in
@@ -235,7 +231,7 @@ abstract class ResolvedLibraryResult
 abstract class ResolvedUnitResult
     implements SomeResolvedUnitResult, AnalysisResultWithErrors {
   /// The content of the file that was scanned, parsed and resolved.
-  String? get content;
+  String get content;
 
   /// Return `true` if the file exists.
   bool get exists;
@@ -250,7 +246,7 @@ abstract class ResolvedUnitResult
   TypeSystem get typeSystem;
 
   /// The fully resolved compilation unit for the [content].
-  CompilationUnit? get unit;
+  CompilationUnit get unit;
 }
 
 /// An indication of whether an analysis result is valid, and if not why.

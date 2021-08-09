@@ -6,7 +6,7 @@
 Type typeOf<T>() => T;
 
 /// Ensures a context type of [T] for the operand.
-void context<T>(T x) {}
+Object? context<T>(T x) => x;
 
 /// Captures the context type of the call and returns the same type.
 ///

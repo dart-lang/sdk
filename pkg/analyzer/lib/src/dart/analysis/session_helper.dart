@@ -22,7 +22,7 @@ class AnalysisSessionHelper {
   /// from the library with the given [libraryUri], or `null` if the library
   /// does not export a class with such name.
   Future<ClassElement?> getClass(String libraryUri, String className) async {
-    var libraryResult = await session.getLibraryByUri2(libraryUri);
+    var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element.exportNamespace.get(className);
       if (element is ClassElement) {
@@ -50,7 +50,7 @@ class AnalysisSessionHelper {
     }
 
     var unitPath = element.source!.fullName;
-    return resolvedLibrary.units!.singleWhere((resolvedUnit) {
+    return resolvedLibrary.units.singleWhere((resolvedUnit) {
       return resolvedUnit.path == unitPath;
     });
   }
@@ -60,7 +60,7 @@ class AnalysisSessionHelper {
   /// library does not export a top-level accessor with such name.
   Future<PropertyAccessorElement?> getTopLevelPropertyAccessor(
       String uri, String name) async {
-    var libraryResult = await session.getLibraryByUri2(uri);
+    var libraryResult = await session.getLibraryByUri(uri);
     if (libraryResult is LibraryElementResult) {
       var element = libraryResult.element.exportNamespace.get(name);
       if (element is PropertyAccessorElement) {
@@ -74,7 +74,7 @@ class AnalysisSessionHelper {
   Future<ResolvedLibraryResult?> _getResolvedLibrary(String path) async {
     var result = _resolvedLibraries[path];
     if (result == null) {
-      var some = await session.getResolvedLibrary2(path);
+      var some = await session.getResolvedLibrary(path);
       if (some is ResolvedLibraryResult) {
         result = _resolvedLibraries[path] = some;
       }

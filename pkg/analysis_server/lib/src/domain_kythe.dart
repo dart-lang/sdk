@@ -47,8 +47,8 @@ class KytheDomainHandler extends AbstractRequestHandler {
         var entries = <KytheEntry>[];
         // TODO(brianwilkerson) Figure out how to get the list of files.
         var files = <String>[];
-        result.unit!.accept(KytheDartVisitor(server.resourceProvider, entries,
-            file, InheritanceManager3(), result.content!));
+        result.unit.accept(KytheDartVisitor(server.resourceProvider, entries,
+            file, InheritanceManager3(), result.content));
         allResults.add(KytheGetKytheEntriesResult(entries, files));
       }
       //

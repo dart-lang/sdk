@@ -2,5 +2,6 @@ include: package:pedantic/analysis_options.1.8.0.yaml
 
 linter:
   rules:
+    - depend_on_referenced_packages
     - directives_ordering
     - prefer_generic_function_type_aliases

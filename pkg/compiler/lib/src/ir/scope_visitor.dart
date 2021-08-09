@@ -1026,35 +1026,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitMethodInvocation(ir.MethodInvocation node) {
-    node.receiver = _handleExpression(node.receiver);
-    EvaluationComplexity receiverComplexity = _lastExpressionComplexity;
-    ir.TreeNode receiver = node.receiver;
-    if (node.arguments.types.isNotEmpty) {
-      VariableUse usage;
-      if (receiver is ir.VariableGet &&
-          (receiver.variable.parent is ir.LocalFunction)) {
-        usage =
-            new VariableUse.localTypeArgument(receiver.variable.parent, node);
-      } else {
-        usage = new VariableUse.instanceTypeArgument(node);
-      }
-      visitNodesInContext(node.arguments.types, usage);
-    }
-    EvaluationComplexity complexity = visitArguments(node.arguments);
-    ir.Member interfaceTarget = node.interfaceTarget;
-    if (receiverComplexity.combine(complexity).isConstant &&
-        interfaceTarget is ir.Procedure &&
-        interfaceTarget.kind == ir.ProcedureKind.Operator) {
-      // Only operator invocations can be part of constant expressions so we
-      // only try to compute an implicit constant when the receiver and all
-      // arguments are constant - and are used in an operator call.
-      return _evaluateImplicitConstant(node);
-    }
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
   EvaluationComplexity visitInstanceInvocation(ir.InstanceInvocation node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity receiverComplexity = _lastExpressionComplexity;
@@ -1169,16 +1140,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitPropertyGet(ir.PropertyGet node) {
-    node.receiver = _handleExpression(node.receiver);
-    EvaluationComplexity complexity = _lastExpressionComplexity;
-    if (complexity.isConstant && node.name.text == 'length') {
-      return _evaluateImplicitConstant(node);
-    }
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
   EvaluationComplexity visitInstanceGet(ir.InstanceGet node) {
     node.receiver = _handleExpression(node.receiver);
     EvaluationComplexity complexity = _lastExpressionComplexity;
@@ -1207,13 +1168,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   @override
   EvaluationComplexity visitFunctionTearOff(ir.FunctionTearOff node) {
     node.receiver = _handleExpression(node.receiver);
-    return const EvaluationComplexity.lazy();
-  }
-
-  @override
-  EvaluationComplexity visitPropertySet(ir.PropertySet node) {
-    node.receiver = _handleExpression(node.receiver);
-    node.value = _handleExpression(node.value);
     return const EvaluationComplexity.lazy();
   }
 

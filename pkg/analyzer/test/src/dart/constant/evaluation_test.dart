@@ -1218,9 +1218,6 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var expression = findNode.topVariableDeclarationByName(name).initializer!;
 
     var unit = this.result.unit;
-    if (unit == null) {
-      throw StateError('analysis result unit is null');
-    }
     var source = unit.declaredElement!.source;
     var errorListener = GatheringErrorListener();
     var errorReporter = ErrorReporter(
