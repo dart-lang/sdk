@@ -10,13 +10,61 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImplicitThisReferenceInInitializerTest);
-    defineReflectiveTests(ImplicitThisReferenceInInitializerWithNullSafetyTest);
+    defineReflectiveTests(
+        ImplicitThisReferenceInInitializerWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class ImplicitThisReferenceInInitializerTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with ImplicitThisReferenceInInitializerTestCases {
+  test_class_field_late_invokeInstanceMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  int foo() => 0;
+}
+''');
+  }
+
+  test_class_field_late_invokeStaticMethod() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  late int x = foo();
+  static int foo() => 0;
+}
+''');
+  }
+
+  test_class_field_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int a = 0;
+  late int x = a;
+}
+''');
+  }
+
+  test_class_field_late_readStaticField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static int a = 0;
+  late int x = a;
+}
+''');
+  }
+
+  test_mixin_field_late_readInstanceField() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  int a = 0;
+  late int x = a;
+}
+''');
+  }
+}
+
+mixin ImplicitThisReferenceInInitializerTestCases on PubPackageResolutionTest {
   test_class_field_commentReference_prefixedIdentifier() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -272,50 +320,6 @@ class A<T> {
 }
 
 @reflectiveTest
-class ImplicitThisReferenceInInitializerWithNullSafetyTest
-    extends ImplicitThisReferenceInInitializerTest with WithNullSafetyMixin {
-  test_class_field_late_invokeInstanceMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  late int x = foo();
-  int foo() => 0;
-}
-''');
-  }
-
-  test_class_field_late_invokeStaticMethod() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  late int x = foo();
-  static int foo() => 0;
-}
-''');
-  }
-
-  test_class_field_late_readInstanceField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int a = 0;
-  late int x = a;
-}
-''');
-  }
-
-  test_class_field_late_readStaticField() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  static int a = 0;
-  late int x = a;
-}
-''');
-  }
-
-  test_mixin_field_late_readInstanceField() async {
-    await assertNoErrorsInCode(r'''
-mixin M {
-  int a = 0;
-  late int x = a;
-}
-''');
-  }
-}
+class ImplicitThisReferenceInInitializerWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with ImplicitThisReferenceInInitializerTestCases, WithoutNullSafetyMixin {}
