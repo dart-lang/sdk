@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-typedef _LockRequest = Completer<void>;
-
 /// Used to protect global state accessed in blocks containing calls to
 /// asynchronous methods.
 class Mutex {
@@ -30,7 +28,7 @@ class Mutex {
       _locked = true;
       return;
     }
-    final request = _LockRequest();
+    final request = Completer<void>();
     _outstandingRequests.add(request);
     await request.future;
   }
@@ -44,5 +42,5 @@ class Mutex {
   }
 
   bool _locked = false;
-  final _outstandingRequests = Queue<_LockRequest>();
+  final _outstandingRequests = Queue<Completer<void>>();
 }
