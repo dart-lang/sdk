@@ -370,8 +370,15 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = "$receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
+    final attributes = {
+      if (invoke.isInvariant) 'Invariant',
+      if (invoke.isBoundsSafe) 'BoundSafe',
+    };
+    String attributesText = attributes.isEmpty ? '' : ' $attributes';
+
     return handleGenericInvoke(kind, target, arguments) +
-        "(${invoke.receiverType})";
+        "(${invoke.receiverType})" +
+        attributesText;
   }
 
   @override
