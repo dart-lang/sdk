@@ -10,6 +10,7 @@ import 'client.dart';
 import 'dds_impl.dart';
 import 'logging_repository.dart';
 import 'rpc_error_codes.dart';
+import 'utils/mutex.dart';
 
 class StreamManager {
   StreamManager(this.dds);
@@ -133,51 +134,56 @@ class StreamManager {
     DartDevelopmentServiceClient? client,
     String stream,
   ) async {
-    assert(stream.isNotEmpty);
-    if (!streamListeners.containsKey(stream)) {
-      // Initialize the list of clients for the new stream before we do
-      // anything else to ensure multiple clients registering for the same
-      // stream in quick succession doesn't result in multiple streamListen
-      // requests being sent to the VM service.
-      streamListeners[stream] = <DartDevelopmentServiceClient>[];
-      if ((stream == kDebugStream && client == null) ||
-          stream != kDebugStream) {
-        // This will return an RPC exception if the stream doesn't exist. This
-        // will throw and the exception will be forwarded to the client.
-        final result = await dds.vmServiceClient.sendRequest('streamListen', {
-          'streamId': stream,
-        });
-        assert(result['type'] == 'Success');
-      }
-    }
-    if (streamListeners[stream]!.contains(client)) {
-      throw kStreamAlreadySubscribedException;
-    }
-    if (client != null) {
-      streamListeners[stream]!.add(client);
-      if (loggingRepositories.containsKey(stream)) {
-        loggingRepositories[stream]!.sendHistoricalLogs(client);
-      } else if (stream == kServiceStream) {
-        // Send all previously registered service extensions when a client
-        // subscribes to the Service stream.
-        for (final c in dds.clientManager.clients) {
-          if (c == client) {
-            continue;
-          }
-          final namespace = dds.getNamespace(c);
-          for (final service in c.services.keys) {
-            client.sendNotification(
-              'streamNotify',
-              _buildStreamRegisteredEvent(
-                namespace!,
-                service,
-                c.services[service]!,
-              ),
-            );
+    await _mutex.runGuarded(
+      () async {
+        assert(stream.isNotEmpty);
+        if (!streamListeners.containsKey(stream)) {
+          // Initialize the list of clients for the new stream before we do
+          // anything else to ensure multiple clients registering for the same
+          // stream in quick succession doesn't result in multiple streamListen
+          // requests being sent to the VM service.
+          streamListeners[stream] = <DartDevelopmentServiceClient>[];
+          if ((stream == kDebugStream && client == null) ||
+              stream != kDebugStream) {
+            // This will return an RPC exception if the stream doesn't exist. This
+            // will throw and the exception will be forwarded to the client.
+            final result =
+                await dds.vmServiceClient.sendRequest('streamListen', {
+              'streamId': stream,
+            });
+            assert(result['type'] == 'Success');
           }
         }
-      }
-    }
+        if (streamListeners[stream]!.contains(client)) {
+          throw kStreamAlreadySubscribedException;
+        }
+        if (client != null) {
+          streamListeners[stream]!.add(client);
+          if (loggingRepositories.containsKey(stream)) {
+            loggingRepositories[stream]!.sendHistoricalLogs(client);
+          } else if (stream == kServiceStream) {
+            // Send all previously registered service extensions when a client
+            // subscribes to the Service stream.
+            for (final c in dds.clientManager.clients) {
+              if (c == client) {
+                continue;
+              }
+              final namespace = dds.getNamespace(c);
+              for (final service in c.services.keys) {
+                client.sendNotification(
+                  'streamNotify',
+                  _buildStreamRegisteredEvent(
+                    namespace!,
+                    service,
+                    c.services[service]!,
+                  ),
+                );
+              }
+            }
+          }
+        }
+      },
+    );
   }
 
   List<Map<String, dynamic>>? getStreamHistory(String stream) {
@@ -198,27 +204,32 @@ class StreamManager {
     String stream, {
     bool cancelCoreStream = false,
   }) async {
-    assert(stream.isNotEmpty);
-    final listeners = streamListeners[stream];
-    if (listeners == null || client != null && !listeners.contains(client)) {
-      throw kStreamNotSubscribedException;
-    }
-    listeners.remove(client);
-    // Don't cancel streams DDS needs to function.
-    if (listeners.isEmpty &&
-        (!ddsCoreStreams.contains(stream) || cancelCoreStream)) {
-      streamListeners.remove(stream);
-      // Ensure the VM service hasn't shutdown.
-      if (dds.vmServiceClient.isClosed) {
-        return;
-      }
-      final result = await dds.vmServiceClient.sendRequest('streamCancel', {
-        'streamId': stream,
-      });
-      assert(result['type'] == 'Success');
-    } else {
-      streamListeners[stream] = listeners;
-    }
+    await _mutex.runGuarded(
+      () async {
+        assert(stream.isNotEmpty);
+        final listeners = streamListeners[stream];
+        if (listeners == null ||
+            client != null && !listeners.contains(client)) {
+          throw kStreamNotSubscribedException;
+        }
+        listeners.remove(client);
+        // Don't cancel streams DDS needs to function.
+        if (listeners.isEmpty &&
+            (!ddsCoreStreams.contains(stream) || cancelCoreStream)) {
+          streamListeners.remove(stream);
+          // Ensure the VM service hasn't shutdown.
+          if (dds.vmServiceClient.isClosed) {
+            return;
+          }
+          final result = await dds.vmServiceClient.sendRequest('streamCancel', {
+            'streamId': stream,
+          });
+          assert(result['type'] == 'Success');
+        } else {
+          streamListeners[stream] = listeners;
+        }
+      },
+    );
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
@@ -280,4 +291,5 @@ class StreamManager {
 
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
+  final _mutex = Mutex();
 }
