@@ -63,6 +63,7 @@ linter:
 #    - prefer_mixin
     - prefer_null_aware_method_calls
     - prefer_relative_imports
+    - prefer_single_quotes
 #    - public_member_api_docs
 #    - sort_constructors_first
     - sort_pub_dependencies

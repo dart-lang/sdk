@@ -8,7 +8,7 @@
 /// See: https://github.com/dart-lang/linter/issues/1828
 library ascii_utils;
 
-import "charcodes.dart";
+import 'charcodes.dart';
 
 /// Return `true` if the given [character] is the ASCII '.' character.
 bool isDot(int character) => character == $dot;
