@@ -21,6 +21,14 @@ import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
 
+/// The mime type to send with source responses to the client.
+///
+/// This is used so if the source name does not end with ".dart" the client can
+/// still tell which language to use (for syntax highlighting, etc.).
+///
+/// https://github.com/microsoft/vscode/issues/8182#issuecomment-231151640
+const dartMimeType = 'text/x-dart';
+
 /// Maximum number of toString()s to be called when responding to variables
 /// requests from the client.
 ///
@@ -721,6 +729,44 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   @mustCallSuper
   Future<void> shutdown() async {
     await _dds?.shutdown();
+  }
+
+  /// [sourceRequest] is called by the client to request source code for a given
+  /// source.
+  ///
+  /// The client may provide a whole source or just an int sourceReference (the
+  /// spec originally had only sourceReference but now supports whole sources).
+  ///
+  /// The supplied sourceReference should correspond to a ScriptRef instance
+  /// that was stored to generate the sourceReference when sent to the client.
+  @override
+  Future<void> sourceRequest(
+    Request request,
+    SourceArguments args,
+    void Function(SourceResponseBody) sendResponse,
+  ) async {
+    final storedData = _isolateManager.getStoredData(
+      args.source?.sourceReference ?? args.sourceReference,
+    );
+    if (storedData == null) {
+      throw StateError('source reference is no longer valid');
+    }
+    final thread = storedData.thread;
+    final data = storedData.data;
+    final scriptRef = data is vm.ScriptRef ? data : null;
+    if (scriptRef == null) {
+      throw StateError('source reference was not a valid script');
+    }
+
+    final script = await thread.getScript(scriptRef);
+    final scriptSource = script.source;
+    if (scriptSource == null) {
+      throw DebugAdapterException('<source not available>');
+    }
+
+    sendResponse(
+      SourceResponseBody(content: scriptSource, mimeType: dartMimeType),
+    );
   }
 
   /// Handles a request from the client for the call stack for [args.threadId].
