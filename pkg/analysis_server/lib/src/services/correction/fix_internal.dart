@@ -344,6 +344,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_init_to_null: [
       RemoveInitializer.newInstance,
     ],
+    LintNames.avoid_null_checks_in_equality_operators: [
+      RemoveComparison.newInstanceBulkFixable,
+    ],
     LintNames.avoid_private_typedef_functions: [
       InlineTypedef.newInstance,
     ],

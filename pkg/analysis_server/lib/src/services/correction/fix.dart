@@ -126,8 +126,11 @@ class DartFixKind {
       'dart.fix.add.neNull', DartFixKindPriority.DEFAULT, 'Add != null');
   static const ADD_NE_NULL_MULTI = FixKind('dart.fix.add.neNull.multi',
       DartFixKindPriority.IN_FILE, 'Add != null everywhere in file');
-  static const ADD_NULL_CHECK = FixKind('dart.fix.add.nullCheck',
-      DartFixKindPriority.DEFAULT - 1, 'Add a null check (!)',);
+  static const ADD_NULL_CHECK = FixKind(
+    'dart.fix.add.nullCheck',
+    DartFixKindPriority.DEFAULT - 1,
+    'Add a null check (!)',
+  );
   static const ADD_OVERRIDE = FixKind('dart.fix.add.override',
       DartFixKindPriority.DEFAULT, "Add '@override' annotation");
   static const ADD_OVERRIDE_MULTI = FixKind(
@@ -454,6 +457,10 @@ class DartFixKind {
       DartFixKindPriority.IN_FILE, 'Remove awaits in file');
   static const REMOVE_COMPARISON = FixKind('dart.fix.remove.comparison',
       DartFixKindPriority.DEFAULT, 'Remove comparison');
+  static const REMOVE_COMPARISON_MULTI = FixKind(
+      'dart.fix.remove.comparison.multi',
+      DartFixKindPriority.IN_FILE,
+      'Remove comparisons in file');
   static const REMOVE_CONST = FixKind(
       'dart.fix.remove.const', DartFixKindPriority.DEFAULT, 'Remove const');
   static const REMOVE_DEAD_CODE = FixKind('dart.fix.remove.deadCode',
