@@ -4,6 +4,8 @@
 
 library nativewrappers;
 
+import 'dart:ffi';
+
 class NativeFieldWrapperClass1 {}
 
 class NativeFieldWrapperClass2 extends NativeFieldWrapperClass1 {}
@@ -21,3 +23,6 @@ class NativeFieldWrapperClass4 extends NativeFieldWrapperClass3 {}
 @pragma("vm:recognized", "other")
 int getNativeField(NativeFieldWrapperClass1 object)
     native "FullyRecognizedMethod_NoNative";
+
+Pointer getNativeFieldPtr(NativeFieldWrapperClass1 object) =>
+    Pointer.fromAddress(getNativeField(object));
