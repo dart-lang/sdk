@@ -1329,14 +1329,29 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   // Parse the message.
   Object& msg_obj = Object::Handle(zone);
   if (message->IsPersistentHandle()) {
-    // msg_array = [<message>, <object-in-message-to-rehash>]
+    // msg_array = [
+    //     <message>,
+    //     <collection-lib-objects-to-rehash>,
+    //     <core-lib-objects-to-rehash>,
+    // ]
     const auto& msg_array = Array::Handle(
         zone, Array::RawCast(message->persistent_handle()->ptr()));
+    ASSERT(msg_array.Length() == 3);
     msg_obj = msg_array.At(0);
     if (msg_array.At(1) != Object::null()) {
       const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
-      const auto& result = Object::Handle(
-          zone, DartLibraryCalls::RehashObjects(thread, objects_to_rehash));
+      auto& result = Object::Handle(zone);
+      result = DartLibraryCalls::RehashObjectsInDartCollection(
+          thread, objects_to_rehash);
+      if (result.ptr() != Object::null()) {
+        msg_obj = result.ptr();
+      }
+    }
+    if (msg_array.At(2) != Object::null()) {
+      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
+      auto& result = Object::Handle(zone);
+      result =
+          DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
       if (result.ptr() != Object::null()) {
         msg_obj = result.ptr();
       }

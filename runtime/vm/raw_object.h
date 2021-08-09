@@ -3206,6 +3206,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
   friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
+  friend class FastObjectCopy;  // For OFFSET_OF
+  friend class SlowObjectCopy;  // For OFFSET_OF
 };
 
 // MirrorReferences are used by mirrors to hold reflectees that are VM

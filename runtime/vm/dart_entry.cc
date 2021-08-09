@@ -786,24 +786,36 @@ ObjectPtr DartLibraryCalls::EnsureScheduleImmediate() {
   return result.ptr();
 }
 
-ObjectPtr DartLibraryCalls::RehashObjects(
-    Thread* thread,
-    const Object& array_or_growable_array) {
+static ObjectPtr RehashObjects(Zone* zone,
+                               const Library& library,
+                               const Object& array_or_growable_array) {
   ASSERT(array_or_growable_array.IsArray() ||
          array_or_growable_array.IsGrowableObjectArray());
-
-  auto zone = thread->zone();
-  const Library& collections_lib =
-      Library::Handle(zone, Library::CollectionLibrary());
-  const Function& rehashing_function = Function::Handle(
-      zone,
-      collections_lib.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
+  const auto& rehashing_function = Function::Handle(
+      zone, library.LookupFunctionAllowPrivate(Symbols::_rehashObjects()));
   ASSERT(!rehashing_function.IsNull());
 
-  const Array& arguments = Array::Handle(zone, Array::New(1));
+  const auto& arguments = Array::Handle(zone, Array::New(1));
   arguments.SetAt(0, array_or_growable_array);
 
   return DartEntry::InvokeFunction(rehashing_function, arguments);
+}
+
+ObjectPtr DartLibraryCalls::RehashObjectsInDartCollection(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  auto zone = thread->zone();
+  const auto& collections_lib =
+      Library::Handle(zone, Library::CollectionLibrary());
+  return RehashObjects(zone, collections_lib, array_or_growable_array);
+}
+
+ObjectPtr DartLibraryCalls::RehashObjectsInDartCore(
+    Thread* thread,
+    const Object& array_or_growable_array) {
+  auto zone = thread->zone();
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  return RehashObjects(zone, core_lib, array_or_growable_array);
 }
 
 }  // namespace dart

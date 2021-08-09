@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/object_graph_copy.h"
+
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/heap/weak_table.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
 
@@ -79,7 +81,6 @@
   V(UnlinkedCall)                                                              \
   V(UnwindError)                                                               \
   V(UserTag)                                                                   \
-  V(WeakProperty)                                                              \
   V(WeakSerializationReference)
 
 namespace dart {
@@ -353,7 +354,8 @@ class FastForwardMap : public ForwardMapBase {
       : ForwardMapBase(thread),
         raw_from_to_(thread->zone(), 20),
         raw_transferables_from_to_(thread->zone(), 0),
-        raw_objects_to_rehash_(thread->zone(), 0) {
+        raw_objects_to_rehash_(thread->zone(), 0),
+        raw_expandos_to_rehash_(thread->zone(), 0) {
     raw_from_to_.Resize(2);
     raw_from_to_[0] = Object::null();
     raw_from_to_[1] = Object::null();
@@ -381,11 +383,13 @@ class FastForwardMap : public ForwardMapBase {
     raw_transferables_from_to_.Add(from);
     raw_transferables_from_to_.Add(to);
   }
+  void AddWeakProperty(WeakPropertyPtr from) { raw_weak_properties_.Add(from); }
   void AddExternalTypedData(ExternalTypedDataPtr to) {
     raw_external_typed_data_to_.Add(to);
   }
 
   void AddObjectToRehash(ObjectPtr to) { raw_objects_to_rehash_.Add(to); }
+  void AddExpandoToRehash(ObjectPtr to) { raw_expandos_to_rehash_.Add(to); }
 
  private:
   friend class FastObjectCopy;
@@ -395,6 +399,8 @@ class FastForwardMap : public ForwardMapBase {
   GrowableArray<TransferableTypedDataPtr> raw_transferables_from_to_;
   GrowableArray<ExternalTypedDataPtr> raw_external_typed_data_to_;
   GrowableArray<ObjectPtr> raw_objects_to_rehash_;
+  GrowableArray<ObjectPtr> raw_expandos_to_rehash_;
+  GrowableArray<WeakPropertyPtr> raw_weak_properties_;
   intptr_t fill_cursor_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(FastForwardMap);
@@ -432,13 +438,17 @@ class SlowForwardMap : public ForwardMapBase {
     transferables_from_to_.Add(&TransferableTypedData::Handle(from.ptr()));
     transferables_from_to_.Add(&TransferableTypedData::Handle(to.ptr()));
   }
-
+  void AddWeakProperty(const WeakProperty& from) {
+    weak_properties_.Add(&WeakProperty::Handle(from.ptr()));
+  }
   void AddExternalTypedData(ExternalTypedDataPtr to) {
     external_typed_data_.Add(&ExternalTypedData::Handle(to));
   }
-
   void AddObjectToRehash(const Object& to) {
     objects_to_rehash_.Add(&Object::Handle(to.ptr()));
+  }
+  void AddExpandoToRehash(const Object& to) {
+    expandos_to_rehash_.Add(&Object::Handle(to.ptr()));
   }
 
   void FinalizeTransferables() {
@@ -464,6 +474,8 @@ class SlowForwardMap : public ForwardMapBase {
   GrowableArray<const TransferableTypedData*> transferables_from_to_;
   GrowableArray<const ExternalTypedData*> external_typed_data_;
   GrowableArray<const Object*> objects_to_rehash_;
+  GrowableArray<const Object*> expandos_to_rehash_;
+  GrowableArray<const WeakProperty*> weak_properties_;
   intptr_t fill_cursor_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(SlowForwardMap);
@@ -478,7 +490,9 @@ class ObjectCopyBase {
         heap_(thread->isolate_group()->heap()),
         class_table_(thread->isolate_group()->class_table()),
         new_space_(heap_->new_space()),
-        tmp_(Object::Handle(thread->zone())) {}
+        tmp_(Object::Handle(thread->zone())),
+        expando_cid_(Class::GetClassId(
+            thread->isolate_group()->object_store()->expando_class())) {}
   ~ObjectCopyBase() {}
 
  protected:
@@ -590,6 +604,7 @@ class ObjectCopyBase {
   ClassTable* class_table_;
   Scavenger* new_space_;
   Object& tmp_;
+  intptr_t expando_cid_;
 
   const char* exception_msg_ = nullptr;
 };
@@ -670,7 +685,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
       return;
     }
 
-    auto to = Forward(tags, value.Decompress(heap_base_));
+    auto to = Forward(tags, value_decompressed);
     StoreCompressedPointerNoBarrier(dst, offset, to);
   }
 
@@ -708,8 +723,14 @@ class FastObjectCopyBase : public ObjectCopyBase {
                            TransferableTypedDataPtr to) {
     fast_forward_map_.AddTransferable(from, to);
   }
+  void EnqueueWeakProperty(WeakPropertyPtr from) {
+    fast_forward_map_.AddWeakProperty(from);
+  }
   void EnqueueObjectToRehash(ObjectPtr to) {
     fast_forward_map_.AddObjectToRehash(to);
+  }
+  void EnqueueExpandoToRehash(ObjectPtr to) {
+    fast_forward_map_.AddExpandoToRehash(to);
   }
 
   static void StoreCompressedArrayPointers(intptr_t array_length,
@@ -888,8 +909,14 @@ class SlowObjectCopyBase : public ObjectCopyBase {
                            const TransferableTypedData& to) {
     slow_forward_map_.AddTransferable(from, to);
   }
+  void EnqueueWeakProperty(const WeakProperty& from) {
+    slow_forward_map_.AddWeakProperty(from);
+  }
   void EnqueueObjectToRehash(const Object& to) {
     slow_forward_map_.AddObjectToRehash(to);
+  }
+  void EnqueueExpandoToRehash(const Object& to) {
+    slow_forward_map_.AddExpandoToRehash(to);
   }
 
   void StoreCompressedArrayPointers(intptr_t array_length,
@@ -1136,6 +1163,7 @@ class ObjectCopy : public Base {
     CopyLinkedHashBase<2, typename Types::LinkedHashMap>(
         from, to, UntagLinkedHashMap(from), UntagLinkedHashMap(to));
   }
+
   void CopyLinkedHashSet(typename Types::LinkedHashSet from,
                          typename Types::LinkedHashSet to) {
     CopyLinkedHashBase<1, typename Types::LinkedHashSet>(
@@ -1205,7 +1233,17 @@ class ObjectCopy : public Base {
     raw_to->offset_in_bytes_ = raw_from->offset_in_bytes_;
     raw_to->data_ = nullptr;
 
-    if (raw_to->typed_data_.Decompress(Base::heap_base_) == Object::null()) {
+    auto forwarded_backing_store =
+        raw_to->typed_data_.Decompress(Base::heap_base_);
+    if (forwarded_backing_store == Marker() ||
+        forwarded_backing_store == Object::null()) {
+      // Ensure the backing store is never "sentinel" - the scavenger doesn't
+      // like it.
+      Base::StoreCompressedPointerNoBarrier(
+          Types::GetTypedDataViewPtr(to),
+          OFFSET_OF(UntaggedTypedDataView, typed_data_), Object::null());
+      raw_to->length_ = 0;
+      raw_to->offset_in_bytes_ = 0;
       ASSERT(Base::exception_msg_ != nullptr);
       return;
     }
@@ -1257,6 +1295,20 @@ class ObjectCopy : public Base {
     Base::EnqueueTransferable(from, to);
   }
 
+  void CopyWeakProperty(typename Types::WeakProperty from,
+                        typename Types::WeakProperty to) {
+    // We store `null`s as keys/values and let the main algorithm know that
+    // we should check reachability of the key again after the fixpoint (if it
+    // became reachable, forward the key/value).
+    Base::StoreCompressedPointerNoBarrier(Types::GetWeakPropertyPtr(to),
+                                          OFFSET_OF(UntaggedWeakProperty, key_),
+                                          Object::null());
+    Base::StoreCompressedPointerNoBarrier(
+        Types::GetWeakPropertyPtr(to), OFFSET_OF(UntaggedWeakProperty, value_),
+        Object::null());
+    Base::EnqueueWeakProperty(from);
+  }
+
 #define DEFINE_UNSUPPORTED(clazz)                                              \
   void Copy##clazz(typename Types::clazz from, typename Types::clazz to) {     \
     FATAL("Objects of type " #clazz " should not occur in object graphs");     \
@@ -1291,33 +1343,85 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
     if (root_copy == Marker()) {
       return root_copy;
     }
-    while (fast_forward_map_.fill_cursor_ <
-           fast_forward_map_.raw_from_to_.length()) {
-      const intptr_t index = fast_forward_map_.fill_cursor_;
-      ObjectPtr from = fast_forward_map_.raw_from_to_[index];
-      ObjectPtr to = fast_forward_map_.raw_from_to_[index + 1];
-      FastCopyObject(from, to);
-      if (exception_msg_ != nullptr) {
-        return root_copy;
+    auto& from_weak_property = WeakProperty::Handle(zone_);
+    auto& to_weak_property = WeakProperty::Handle(zone_);
+    auto& weak_property_key = Object::Handle(zone_);
+    while (true) {
+      if (fast_forward_map_.fill_cursor_ ==
+          fast_forward_map_.raw_from_to_.length()) {
+        break;
       }
-      fast_forward_map_.fill_cursor_ += 2;
+
+      // Run fixpoint to copy all objects.
+      while (fast_forward_map_.fill_cursor_ <
+             fast_forward_map_.raw_from_to_.length()) {
+        const intptr_t index = fast_forward_map_.fill_cursor_;
+        ObjectPtr from = fast_forward_map_.raw_from_to_[index];
+        ObjectPtr to = fast_forward_map_.raw_from_to_[index + 1];
+        FastCopyObject(from, to);
+        if (exception_msg_ != nullptr) {
+          return root_copy;
+        }
+        fast_forward_map_.fill_cursor_ += 2;
+      }
+
+      // Possibly forward values of [WeakProperty]s if keys became reachable.
+      intptr_t i = 0;
+      auto& weak_properties = fast_forward_map_.raw_weak_properties_;
+      while (i < weak_properties.length()) {
+        from_weak_property = weak_properties[i];
+        weak_property_key =
+            fast_forward_map_.ForwardedObject(from_weak_property.key());
+        if (weak_property_key.ptr() != Marker()) {
+          to_weak_property ^=
+              fast_forward_map_.ForwardedObject(from_weak_property.ptr());
+
+          // The key became reachable so we'll change the forwarded
+          // [WeakProperty]'s key to the new key (it is `null` at this point).
+          to_weak_property.set_key(weak_property_key);
+
+          // Since the key has become strongly reachable in the copied graph,
+          // we'll also need to forward the value.
+          ForwardCompressedPointer(from_weak_property.ptr(),
+                                   to_weak_property.ptr(),
+                                   OFFSET_OF(UntaggedWeakProperty, value_));
+
+          // We don't need to process this [WeakProperty] again.
+          const intptr_t last = weak_properties.length() - 1;
+          if (i < last) {
+            weak_properties[i] = weak_properties[last];
+            weak_properties.SetLength(last);
+            continue;
+          }
+        }
+        i++;
+      }
     }
     if (root_copy != Marker()) {
-      TryBuildArrayOfObjectsToRehash();
+      ObjectPtr array;
+      array = TryBuildArrayOfObjectsToRehash(
+          fast_forward_map_.raw_objects_to_rehash_);
+      if (array == Marker()) return root_copy;
+      raw_objects_to_rehash_ = Array::RawCast(array);
+
+      array = TryBuildArrayOfObjectsToRehash(
+          fast_forward_map_.raw_expandos_to_rehash_);
+      if (array == Marker()) return root_copy;
+      raw_expandos_to_rehash_ = Array::RawCast(array);
     }
     return root_copy;
   }
 
-  void TryBuildArrayOfObjectsToRehash() {
-    const auto& objects_to_rehash = fast_forward_map_.raw_objects_to_rehash_;
+  ObjectPtr TryBuildArrayOfObjectsToRehash(
+      const GrowableArray<ObjectPtr>& objects_to_rehash) {
     const intptr_t length = objects_to_rehash.length();
-    if (length == 0) return;
+    if (length == 0) return Object::null();
 
     const intptr_t size = Array::InstanceSize(length);
     const uword array_addr = new_space_->TryAllocate(thread_, size);
     if (array_addr == 0) {
       exception_msg_ = kFastAllocationFailed;
-      return;
+      return Marker();
     }
 
     const uword header_size =
@@ -1333,7 +1437,7 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
     for (intptr_t i = 0; i < length; ++i) {
       array_data[i] = objects_to_rehash[i];
     }
-    raw_objects_to_rehash_ = array;
+    return array;
   }
 
  private:
@@ -1365,15 +1469,21 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase> {
 #else
     CopyUserdefinedInstance(Instance::RawCast(from), Instance::RawCast(to));
 #endif
+    if (cid == expando_cid_) {
+      EnqueueExpandoToRehash(to);
+    }
   }
 
   ArrayPtr raw_objects_to_rehash_ = Array::null();
+  ArrayPtr raw_expandos_to_rehash_ = Array::null();
 };
 
 class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
  public:
   explicit SlowObjectCopy(Thread* thread)
-      : ObjectCopy(thread), objects_to_rehash_(Array::Handle(thread->zone())) {}
+      : ObjectCopy(thread),
+        objects_to_rehash_(Array::Handle(thread->zone())),
+        expandos_to_rehash_(Array::Handle(thread->zone())) {}
   ~SlowObjectCopy() {}
 
   ObjectPtr ContinueCopyGraphSlow(const Object& root,
@@ -1383,32 +1493,76 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
       root_copy = Forward(TagsFromUntaggedObject(root.ptr().untag()), root);
     }
 
+    WeakProperty& weak_property = WeakProperty::Handle(Z);
     Object& from = Object::Handle(Z);
     Object& to = Object::Handle(Z);
-    while (slow_forward_map_.fill_cursor_ <
-           slow_forward_map_.from_to_.length()) {
-      const intptr_t index = slow_forward_map_.fill_cursor_;
-      from = slow_forward_map_.from_to_[index]->ptr();
-      to = slow_forward_map_.from_to_[index + 1]->ptr();
-      CopyObject(from, to);
-      slow_forward_map_.fill_cursor_ += 2;
-      if (exception_msg_ != nullptr) {
-        return Marker();
+    while (true) {
+      if (slow_forward_map_.fill_cursor_ ==
+          slow_forward_map_.from_to_.length()) {
+        break;
+      }
+
+      // Run fixpoint to copy all objects.
+      while (slow_forward_map_.fill_cursor_ <
+             slow_forward_map_.from_to_.length()) {
+        const intptr_t index = slow_forward_map_.fill_cursor_;
+        from = slow_forward_map_.from_to_[index]->ptr();
+        to = slow_forward_map_.from_to_[index + 1]->ptr();
+        CopyObject(from, to);
+        slow_forward_map_.fill_cursor_ += 2;
+        if (exception_msg_ != nullptr) {
+          return Marker();
+        }
+      }
+
+      // Possibly forward values of [WeakProperty]s if keys became reachable.
+      intptr_t i = 0;
+      auto& weak_properties = slow_forward_map_.weak_properties_;
+      while (i < weak_properties.length()) {
+        const auto& from_weak_property = *weak_properties[i];
+        to = slow_forward_map_.ForwardedObject(from_weak_property.key());
+        if (to.ptr() != Marker()) {
+          weak_property ^=
+              slow_forward_map_.ForwardedObject(from_weak_property.ptr());
+
+          // The key became reachable so we'll change the forwarded
+          // [WeakProperty]'s key to the new key (it is `null` at this point).
+          weak_property.set_key(to);
+
+          // Since the key has become strongly reachable in the copied graph,
+          // we'll also need to forward the value.
+          ForwardCompressedPointer(from_weak_property, weak_property,
+                                   OFFSET_OF(UntaggedWeakProperty, value_));
+
+          // We don't need to process this [WeakProperty] again.
+          const intptr_t last = weak_properties.length() - 1;
+          if (i < last) {
+            weak_properties[i] = weak_properties[last];
+            weak_properties.SetLength(last);
+            continue;
+          }
+        }
+        i++;
       }
     }
-    BuildArrayOfObjectsToRehash();
+
+    objects_to_rehash_ =
+        BuildArrayOfObjectsToRehash(slow_forward_map_.objects_to_rehash_);
+    expandos_to_rehash_ =
+        BuildArrayOfObjectsToRehash(slow_forward_map_.expandos_to_rehash_);
     return root_copy.ptr();
   }
 
-  void BuildArrayOfObjectsToRehash() {
-    const auto& objects_to_rehash = slow_forward_map_.objects_to_rehash_;
+  ArrayPtr BuildArrayOfObjectsToRehash(
+      const GrowableArray<const Object*>& objects_to_rehash) {
     const intptr_t length = objects_to_rehash.length();
-    if (length == 0) return;
+    if (length == 0) return Array::null();
 
-    objects_to_rehash_ = Array::New(length);
+    const auto& array = Array::Handle(zone_, Array::New(length));
     for (intptr_t i = 0; i < length; ++i) {
-      objects_to_rehash_.SetAt(i, *objects_to_rehash[i]);
+      array.SetAt(i, *objects_to_rehash[i]);
     }
+    return array.ptr();
   }
 
  private:
@@ -1429,9 +1583,13 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase> {
 #else
     CopyUserdefinedInstance(from, to);
 #endif
+    if (cid == expando_cid_) {
+      EnqueueExpandoToRehash(to);
+    }
   }
 
   Array& objects_to_rehash_;
+  Array& expandos_to_rehash_;
 };
 
 class ObjectGraphCopier {
@@ -1492,7 +1650,7 @@ class ObjectGraphCopier {
  private:
   ObjectPtr CopyObjectGraphInternal(const Object& root,
                                     const char* volatile* exception_msg) {
-    const auto& result_array = Array::Handle(zone_, Array::New(2));
+    const auto& result_array = Array::Handle(zone_, Array::New(3));
     if (!root.ptr()->IsHeapObject()) {
       result_array.SetAt(0, root);
       return result_array.ptr();
@@ -1523,6 +1681,8 @@ class ObjectGraphCopier {
             result_array.SetAt(0, result);
             fast_object_copy_.tmp_ = fast_object_copy_.raw_objects_to_rehash_;
             result_array.SetAt(1, fast_object_copy_.tmp_);
+            fast_object_copy_.tmp_ = fast_object_copy_.raw_expandos_to_rehash_;
+            result_array.SetAt(2, fast_object_copy_.tmp_);
             HandlifyExternalTypedData();
             HandlifyTransferables();
             return result_array.ptr();
@@ -1563,6 +1723,7 @@ class ObjectGraphCopier {
 
     result_array.SetAt(0, result);
     result_array.SetAt(1, slow_object_copy_.objects_to_rehash_);
+    result_array.SetAt(2, slow_object_copy_.expandos_to_rehash_);
     return result_array.ptr();
   }
 
@@ -1572,8 +1733,10 @@ class ObjectGraphCopier {
 
     MakeUninitializedNewSpaceObjectsGCSafe();
     HandlifyTransferables();
+    HandlifyWeakProperties();
     HandlifyExternalTypedData();
     HandlifyObjectsToReHash();
+    HandlifyExpandosToReHash();
     HandlifyFromToObjects();
     slow_forward_map.fill_cursor_ = fast_forward_map.fill_cursor_;
   }
@@ -1598,46 +1761,35 @@ class ObjectGraphCopier {
     }
   }
   void HandlifyTransferables() {
-    auto& raw_transferables =
-        fast_object_copy_.fast_forward_map_.raw_transferables_from_to_;
-    const auto length = raw_transferables.length();
-    if (length > 0) {
-      auto& transferables =
-          slow_object_copy_.slow_forward_map_.transferables_from_to_;
-      transferables.Resize(length);
-      for (intptr_t i = 0; i < length; i++) {
-        transferables[i] =
-            &TransferableTypedData::Handle(Z, raw_transferables[i]);
-      }
-      raw_transferables.Clear();
-    }
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_transferables_from_to_,
+             &slow_object_copy_.slow_forward_map_.transferables_from_to_);
+  }
+  void HandlifyWeakProperties() {
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_weak_properties_,
+             &slow_object_copy_.slow_forward_map_.weak_properties_);
   }
   void HandlifyExternalTypedData() {
-    auto& raw_external_typed_data =
-        fast_object_copy_.fast_forward_map_.raw_external_typed_data_to_;
-    const auto length = raw_external_typed_data.length();
-    if (length > 0) {
-      auto& external_typed_data =
-          slow_object_copy_.slow_forward_map_.external_typed_data_;
-      external_typed_data.Resize(length);
-      for (intptr_t i = 0; i < length; i++) {
-        external_typed_data[i] =
-            &ExternalTypedData::Handle(Z, raw_external_typed_data[i]);
-      }
-      raw_external_typed_data.Clear();
-    }
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_external_typed_data_to_,
+             &slow_object_copy_.slow_forward_map_.external_typed_data_);
   }
   void HandlifyObjectsToReHash() {
-    auto& fast_forward_map = fast_object_copy_.fast_forward_map_;
-    auto& slow_forward_map = slow_object_copy_.slow_forward_map_;
-    const auto length = fast_forward_map.raw_transferables_from_to_.length();
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_objects_to_rehash_,
+             &slow_object_copy_.slow_forward_map_.objects_to_rehash_);
+  }
+  void HandlifyExpandosToReHash() {
+    Handlify(&fast_object_copy_.fast_forward_map_.raw_expandos_to_rehash_,
+             &slow_object_copy_.slow_forward_map_.expandos_to_rehash_);
+  }
+  template <typename RawType, typename HandleType>
+  void Handlify(GrowableArray<RawType>* from,
+                GrowableArray<const HandleType*>* to) {
+    const auto length = from->length();
     if (length > 0) {
-      slow_forward_map.objects_to_rehash_.Resize(length);
+      to->Resize(length);
       for (intptr_t i = 0; i < length; i++) {
-        slow_forward_map.objects_to_rehash_[i] =
-            &Object::Handle(Z, fast_forward_map.raw_objects_to_rehash_[i]);
+        (*to)[i] = &HandleType::Handle(Z, (*from)[i]);
       }
-      fast_forward_map.raw_objects_to_rehash_.Clear();
+      from->Clear();
     }
   }
   void HandlifyFromToObjects() {
