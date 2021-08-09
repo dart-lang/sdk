@@ -44,6 +44,7 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 #endif
 
 uword VirtualMemory::page_size_ = 0;
+VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
 static void unmap(uword start, uword end);
 
@@ -76,29 +77,21 @@ intptr_t VirtualMemory::CalculatePageSize() {
 }
 
 void VirtualMemory::Init() {
+  page_size_ = CalculatePageSize();
+
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
-    void* address = GenericMapAligned(
-        nullptr, PROT_NONE, kCompressedHeapSize, kCompressedHeapAlignment,
-        kCompressedHeapSize + kCompressedHeapAlignment,
-        MAP_PRIVATE | MAP_ANONYMOUS);
-    if (address == nullptr) {
+  if (compressed_heap_ == nullptr) {
+    compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
+    if (compressed_heap_ == nullptr) {
       int error = errno;
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      FATAL2("Failed to reserve region for compressed heap: %d (%s)", error,
-             Utils::StrError(error, error_buf, kBufferSize));
+      FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
+            Utils::StrError(error, error_buf, kBufferSize));
     }
-    VirtualMemoryCompressedHeap::Init(address);
+    VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
-
-  if (page_size_ != 0) {
-    // Already initialized.
-    return;
-  }
-
-  page_size_ = CalculatePageSize();
 
 #if defined(DUAL_MAPPING_SUPPORTED)
 // Perf is Linux-specific and the flags aren't defined in Product.
@@ -159,9 +152,8 @@ void VirtualMemory::Init() {
 
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
-  uword heap_base =
-      reinterpret_cast<uword>(VirtualMemoryCompressedHeap::GetRegion());
-  unmap(heap_base, heap_base + kCompressedHeapSize);
+  delete compressed_heap_;
+  compressed_heap_ = nullptr;
   VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
@@ -259,7 +251,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     if (region.pointer() == nullptr) {
       return nullptr;
     }
-    mprotect(region.pointer(), region.size(), PROT_READ | PROT_WRITE);
+    Commit(region.pointer(), region.size());
     return new VirtualMemory(region, region);
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -359,10 +351,48 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   return new VirtualMemory(region, region);
 }
 
+VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(Utils::IsAligned(alignment, PageSize()));
+  intptr_t allocated_size = size + alignment - PageSize();
+  void* address =
+      GenericMapAligned(nullptr, PROT_NONE, size, alignment, allocated_size,
+                        MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE);
+  if (address == nullptr) {
+    return nullptr;
+  }
+  MemoryRegion region(address, size);
+  return new VirtualMemory(region, region);
+}
+
+void VirtualMemory::Commit(void* address, intptr_t size) {
+  ASSERT(Utils::IsAligned(address, PageSize()));
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  void* result = mmap(address, size, PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+  if (result == MAP_FAILED) {
+    int error = errno;
+    FATAL("Failed to commit: %d\n", error);
+  }
+}
+
+void VirtualMemory::Decommit(void* address, intptr_t size) {
+  ASSERT(Utils::IsAligned(address, PageSize()));
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  void* result =
+      mmap(address, size, PROT_NONE,
+           MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
+  if (result == MAP_FAILED) {
+    int error = errno;
+    FATAL("Failed to decommit: %d\n", error);
+  }
+}
+
 VirtualMemory::~VirtualMemory() {
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
-    madvise(reserved_.pointer(), reserved_.size(), MADV_DONTNEED);
+    Decommit(reserved_.pointer(), reserved_.size());
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;
   }

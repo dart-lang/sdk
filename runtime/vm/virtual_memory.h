@@ -90,6 +90,10 @@ class VirtualMemory {
   // can give back the virtual memory to the system. Returns true on success.
   static bool FreeSubSegment(void* address, intptr_t size);
 
+  static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
+  static void Commit(void* address, intptr_t size);
+  static void Decommit(void* address, intptr_t size);
+
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
   VirtualMemory(const MemoryRegion& region,
@@ -112,6 +116,7 @@ class VirtualMemory {
   MemoryRegion reserved_;
 
   static uword page_size_;
+  static VirtualMemory* compressed_heap_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };
