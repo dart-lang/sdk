@@ -161,6 +161,33 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  void assertConstructorReference(
+    ConstructorReference node,
+    Object? expectedConstructorElement,
+    ClassElement expectedClassElement,
+    String expectedType, {
+    required String expectedTypeNameType,
+    PrefixElement? expectedPrefix,
+    Element? expectedTypeNameElement,
+  }) {
+    var actualConstructorElement = getNodeElement(node) as ConstructorElement?;
+    var actualConstructorName = node.constructorName.name;
+    if (actualConstructorName != null) {
+      assertConstructorElement(
+        actualConstructorName.staticElement as ConstructorElement?,
+        actualConstructorElement,
+      );
+    }
+
+    assertElement(node, expectedConstructorElement);
+    assertType(node, expectedType);
+
+    var typeName = node.constructorName.type;
+    expectedTypeNameElement ??= expectedClassElement;
+    assertTypeName(typeName, expectedTypeNameElement, expectedTypeNameType,
+        expectedPrefix: expectedPrefix);
+  }
+
   void assertConstructors(ClassElement class_, List<String> expected) {
     expect(
       class_.constructors.map((c) {
@@ -396,6 +423,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// TODO(srawlins): Refactor to accept an `Object? expectedConstructor` which
+  /// can accept `elementMatcher` for generics, and simplify, similar to
+  /// [assertConstructorReference].
   void assertInstanceCreation(
     InstanceCreationExpression creation,
     ClassElement expectedClassElement,
@@ -406,22 +436,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
-    String expectedClassName = expectedClassElement.name;
-
-    ConstructorElement? expectedConstructorElement;
-    if (constructorName != null) {
-      expectedConstructorElement =
-          expectedClassElement.getNamedConstructor(constructorName);
-      if (expectedConstructorElement == null) {
-        fail("No constructor '$constructorName' in class"
-            " '$expectedClassName'.");
-      }
-    } else {
-      expectedConstructorElement = expectedClassElement.unnamedConstructor;
-      if (expectedConstructorElement == null) {
-        fail("No unnamed constructor in class '$expectedClassName'.");
-      }
-    }
+    var expectedConstructorElement =
+        _getConstructorElement(expectedClassElement, constructorName);
 
     var actualConstructorElement =
         getNodeElement(creation) as ConstructorElement?;
@@ -866,6 +882,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is BinaryExpression) {
       return node.staticElement;
+    } else if (node is ConstructorReference) {
+      return node.constructorName.staticElement;
     } else if (node is Declaration) {
       return node.declaredElement;
     } else if (node is ExtensionOverride) {
@@ -976,6 +994,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Never _failNotSimpleIdentifier(AstNode node) {
     fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
+  }
+
+  ConstructorElement _getConstructorElement(
+      ClassElement classElement, String? constructorName) {
+    var constructorElement = constructorName == null
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(constructorName);
+    return constructorElement ??
+        fail("No constructor '${constructorName ?? '<unnamed>'}' in class "
+            "'${classElement.name}'.");
   }
 
   static String _extractReturnType(String invokeType) {

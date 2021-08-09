@@ -2263,6 +2263,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "IntegerDivisionByZeroException.");
 
   /**
+   * A constructor cannot be torn off without the 'constructor-tearoffs'
+   * language feature.
+   *
+   * There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
+   * some cases of constructor tearoff features (like `List<int>.filled;`).
+   * Other constructor tearoff cases are not realized until resolution
+   * (like `List.filled;`).
+   */
+  static const CompileTimeErrorCode CONSTRUCTOR_TEAROFFS_NOT_ENABLED =
+      CompileTimeErrorCode(
+          'CONSTRUCTOR_TEAROFFS_NOT_ENABLED',
+          "Tearing off a constructor requires the 'constructor-tearoffs' "
+              "language feature.",
+          correction: "Try updating your pubspec.yaml to set the minimum SDK "
+              "constraint to 2.14 or higher, and running 'pub get'.");
+
+  /**
    * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
    * where e, e1 and e2 are constant expressions that evaluate to a boolean
    * value.

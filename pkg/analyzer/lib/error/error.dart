@@ -141,6 +141,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+  CompileTimeErrorCode.CONSTRUCTOR_TEAROFFS_NOT_ENABLED,
   CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH,
   CompileTimeErrorCode.COULD_NOT_INFER,
   CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,

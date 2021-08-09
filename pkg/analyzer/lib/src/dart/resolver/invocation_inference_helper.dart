@@ -50,7 +50,7 @@ class ConstructorElementToInfer {
       typeFormals: typeParameters,
       parameters: element.parameters,
       returnType: element.returnType,
-      nullabilitySuffix: NullabilitySuffix.star,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 }

@@ -87,8 +87,11 @@ main() {
   Foo.bar();
   Foo.bar.baz();
   //  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Getter not found: 'bar'.
+//^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONSTRUCTOR_TEAROFFS_NOT_ENABLED
+  //      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
@@ -111,6 +114,9 @@ main() {
   // [cfe] Method not found: 'Foo.bar.baz'.
   Foo.bar.baz<int>();
   //  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] Getter not found: 'bar'.
+//^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.CONSTRUCTOR_TEAROFFS_NOT_ENABLED
+  //      ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 }
