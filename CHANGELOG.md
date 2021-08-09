@@ -82,6 +82,7 @@
 - `convertNativeToDart_Dictionary()` now converts objects recursively, this
   fixes APIs like MediaStreamTrack.getCapabilities that convert between Maps and
   browser Dictionaries. [#44319]
+- Added some access-control HTTP header names to `HttpHeaders`.
 
 [#44319]: https://github.com/dart-lang/sdk/issues/44319
 
@@ -90,6 +91,7 @@
 - BREAKING CHANGE (for pre-migrated null safe code): `HttpClient`'s
   `.authenticate` and `.authenticateProxy` setter callbacks must now accept a
   nullable `realm` argument.
+- Added some access-control HTTP header names to `HttpHeaders`.
 
 #### `dart:typed_data`
 
