@@ -1037,3 +1037,22 @@ void _asyncCompleteWithErrorCallback(
   }
   result._asyncCompleteError(error, stackTrace);
 }
+
+
+/// Convenience methods on FutureOr<T>.
+///
+/// Adds functionality makes it easier to
+/// write well-typed asynchronous code.
+extension FutureOrExtensions<T> on FutureOr<T> {
+
+  /// Convenience method to transform FutureOr<T> values.
+  ///
+  /// Similar to [Future.then], but also handles values not
+  /// wrapped in a future.
+  FutureOr<R> then<R>(R Function(T) fun) {
+    if (this is Future<T>) {
+      return (this as Future<T>).then(fun);
+    }
+    return fun(this as T);
+  }
+}
