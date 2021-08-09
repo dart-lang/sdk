@@ -340,7 +340,7 @@ class A {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38162')
   test_method_async_block_callable_class() async {
-    if (isNullSafetySdkAndLegacyLibrary) {
+    if (isLegacyLibrary) {
       throw 'Make it fail for Null Safety as well, for now.';
     }
 

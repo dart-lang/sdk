@@ -571,7 +571,7 @@ void f() {
       findNode.binary('=='),
       element: elementMatcher(
         objectElement.getMethod('=='),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'bool',
     );
@@ -621,7 +621,7 @@ void f() {
       findNode.simple('toString'),
       element: elementMatcher(
         objectElement.getMethod('toString'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'String Function()',
     );
@@ -638,7 +638,7 @@ void f() {
       findNode.simple('hashCode'),
       element: elementMatcher(
         objectElement.getGetter('hashCode'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
       type: 'int',
     );

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -57,11 +56,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  bool get isNullSafetySdkAndLegacyLibrary {
-    if (FeatureSetProvider.isNullSafetySdk) {
-      return !result.libraryElement.isNonNullableByDefault;
-    }
-    return false;
+  bool get isLegacyLibrary {
+    return !result.libraryElement.isNonNullableByDefault;
   }
 
   ClassElement get listElement => typeProvider.listElement;

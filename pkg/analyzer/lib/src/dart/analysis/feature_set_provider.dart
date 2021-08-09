@@ -12,10 +12,6 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
-  /// This flag will be turned to `true` and inlined when we un-fork SDK,
-  /// so that the only SDK is the Null Safe SDK.
-  static const isNullSafetySdk = true;
-
   final Version _sdkLanguageVersion;
   final AllowedExperiments _allowedExperiments;
   final ResourceProvider _resourceProvider;

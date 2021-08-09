@@ -2643,7 +2643,7 @@ const c = a.codeUnitAt(b);
       invocation.methodName,
       elementMatcher(
         stringElement.getMethod('codeUnitAt'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
+        isLegacy: isLegacyLibrary,
       ),
     );
 
@@ -8532,7 +8532,7 @@ main() {
         prefixed,
         element: elementMatcher(
           objectHashCode,
-          isLegacy: isNullSafetySdkAndLegacyLibrary,
+          isLegacy: isLegacyLibrary,
         ),
         type: 'int',
       );
@@ -8546,7 +8546,7 @@ main() {
         identifier,
         element: elementMatcher(
           objectHashCode,
-          isLegacy: isNullSafetySdkAndLegacyLibrary,
+          isLegacy: isLegacyLibrary,
         ),
         type: 'int',
       );
