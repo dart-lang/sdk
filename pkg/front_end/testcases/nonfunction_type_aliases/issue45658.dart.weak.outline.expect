@@ -13,3 +13,7 @@ static method foo() → dynamic
   ;
 static method main() → dynamic
   ;
+static method _#A#new#tearOff<X extends self::C<self::_#A#new#tearOff::X> = self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();
+static method _#A#foo#tearOff<X extends self::C<self::_#A#foo#tearOff::X> = self::C<dynamic>>() → self::C<self::_#A#foo#tearOff::X>
+  return self::C::foo<self::_#A#foo#tearOff::X>();

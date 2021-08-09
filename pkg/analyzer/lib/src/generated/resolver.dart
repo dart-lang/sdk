@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/dart/resolver/constructor_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/for_resolver.dart';
@@ -186,6 +187,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver;
   late final BinaryExpressionResolver _binaryExpressionResolver;
+  late final ConstructorReferenceResolver _constructorReferenceResolver =
+      ConstructorReferenceResolver(this);
   late final FunctionExpressionInvocationResolver
       _functionExpressionInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
@@ -250,7 +253,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   late final FunctionReferenceResolver _functionReferenceResolver;
 
   late final InstanceCreationExpressionResolver
-      _instanceCreationExpressionResolver;
+      _instanceCreationExpressionResolver =
+      InstanceCreationExpressionResolver(this);
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
@@ -372,8 +376,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
     _functionReferenceResolver =
         FunctionReferenceResolver(this, _isNonNullableByDefault);
-    _instanceCreationExpressionResolver =
-        InstanceCreationExpressionResolver(this);
   }
 
   bool get isConstructorTearoffsEnabled =>
@@ -1224,6 +1226,11 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitConstructorReference(covariant ConstructorReferenceImpl node) {
+    _constructorReferenceResolver.resolve(node);
   }
 
   @override

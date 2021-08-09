@@ -204,6 +204,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     void Function(SetExceptionBreakpointsResponseBody) sendResponse,
   );
 
+  Future<void> sourceRequest(
+    Request request,
+    SourceArguments args,
+    void Function(SourceResponseBody) sendResponse,
+  );
+
   Future<void> stackTraceRequest(
     Request request,
     StackTraceArguments args,
@@ -312,6 +318,8 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
       handle(request, threadsRequest, _voidArgs);
     } else if (request.command == 'stackTrace') {
       handle(request, stackTraceRequest, StackTraceArguments.fromJson);
+    } else if (request.command == 'source') {
+      handle(request, sourceRequest, SourceArguments.fromJson);
     } else if (request.command == 'scopes') {
       handle(request, scopesRequest, ScopesArguments.fromJson);
     } else if (request.command == 'variables') {

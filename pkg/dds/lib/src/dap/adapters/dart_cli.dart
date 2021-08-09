@@ -57,6 +57,13 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     channel.closed.then((_) => shutdown());
   }
 
+  /// Whether the VM Service closing should be used as a signal to terminate the
+  /// debug session.
+  ///
+  /// If we have a process, we will instead use its termination as a signal to
+  /// terminate the debug session. Otherwise, we will use the VM Service close.
+  bool get terminateOnVmServiceClose => _process == null;
+
   Future<void> debuggerConnected(vm.VM vmInfo) async {
     if (!isAttach) {
       // Capture the PID from the VM Service so that we can terminate it when

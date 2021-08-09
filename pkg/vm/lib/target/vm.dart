@@ -65,6 +65,7 @@ class VmTarget extends Target {
 
   @override
   int get enabledConstructorTearOffLowerings =>
+      ConstructorTearOffLowering.typedefs |
       flags.forceConstructorTearOffLoweringForTesting;
 
   @override

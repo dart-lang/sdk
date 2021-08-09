@@ -92,6 +92,10 @@ class FindNode {
     return _node(search, (n) => n is ConstructorName);
   }
 
+  ConstructorReference constructorReference(String search) {
+    return _node(search, (n) => n is ConstructorReference);
+  }
+
   ContinueStatement continueStatement(String search) {
     return _node(search, (n) => n is ContinueStatement);
   }

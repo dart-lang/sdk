@@ -19,6 +19,8 @@ class AstRewriter {
 
   AstRewriter(this._errorReporter);
 
+  /// Possibly rewrites [node] as an [ExtensionOverride] or as an
+  /// [InstanceCreationExpression].
   AstNode methodInvocation(Scope nameScope, MethodInvocation node) {
     SimpleIdentifier methodName = node.methodName;
     if (methodName.isSynthetic) {
@@ -140,6 +142,44 @@ class AstRewriter {
     return node;
   }
 
+  /// Possibly rewrites [node] as a [ConstructorReference].
+  AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifier node) {
+    if (node.parent is Annotation) {
+      // An annotations which is a const constructor invocation can initially be
+      // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
+      return node;
+    }
+    if (node.parent is CommentReference) {
+      // TODO(srawlins): This probably should be rewritten to a
+      // [ConstructorReference] at some point.
+      return node;
+    }
+    var identifier = node.identifier;
+    if (identifier.isSynthetic) {
+      // This isn't a constructor reference.
+      return node;
+    }
+    var prefix = node.prefix;
+    var element = nameScope.lookup(prefix.name).getter;
+    if (element is ClassElement) {
+      // Example:
+      //     class C { C.named(); }
+      //     C.named
+      return _toConstructorReference(node: node, classElement: element);
+    } else if (element is TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      if (aliasedType is InterfaceType) {
+        // Example:
+        //     class C { C.named(); }
+        //     typedef X = C;
+        //     X.named
+        return _toConstructorReference(
+            node: node, classElement: aliasedType.element);
+      }
+    }
+    return node;
+  }
+
   AstNode _instanceCreation_prefix_type_name({
     required MethodInvocation node,
     required PrefixedIdentifier typeNameIdentifier,
@@ -168,6 +208,25 @@ class AstRewriter {
         null, constructorName, node.argumentList);
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
+  }
+
+  AstNode _toConstructorReference(
+      {required PrefixedIdentifier node, required ClassElement classElement}) {
+    var name = node.identifier.name;
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
+    if (constructorElement == null) {
+      return node;
+    }
+
+    var typeName = astFactory.typeName(node.prefix, null);
+    var constructorName =
+        astFactory.constructorName(typeName, node.period, node.identifier);
+    var constructorReference =
+        astFactory.constructorReference(constructorName: constructorName);
+    NodeReplacer.replace(node, constructorReference);
+    return constructorReference;
   }
 
   InstanceCreationExpression _toInstanceCreation_prefix_type({

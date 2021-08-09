@@ -31,3 +31,5 @@ class C<Y extends self2::A> extends core::Object {
     : super core::Object::•()
     ;
 }
+static method _#B#new#tearOff<unrelated X extends core::String>() → self2::A
+  return new self2::A::•();

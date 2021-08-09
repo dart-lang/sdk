@@ -217,6 +217,18 @@ class DapTestClient {
     _channel.sendResponse(response);
   }
 
+  /// Sends a source request to the server to request source code for a [source]
+  /// reference that may have come from a stack frame or similar.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> source(Source source) => sendRequest(
+        SourceArguments(
+          source: source,
+          sourceReference: source.sourceReference!,
+        ),
+      );
+
   /// Sends a stackTrace request to the server to request the call stack for a
   /// given thread.
   ///
@@ -473,6 +485,14 @@ extension DapTestClientExtension on DapTestClient {
     expect(response.command, equals('stackTrace'));
     return StackTraceResponseBody.fromJson(
         response.body as Map<String, Object?>);
+  }
+
+  /// Fetches source for a sourceReference and asserts it was a valid response.
+  Future<SourceResponseBody> getValidSource(Source source) async {
+    final response = await this.source(source);
+    expect(response.success, isTrue);
+    expect(response.command, equals('source'));
+    return SourceResponseBody.fromJson(response.body as Map<String, Object?>);
   }
 
   /// Fetches threads and asserts a valid response.

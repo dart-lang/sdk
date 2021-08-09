@@ -129,6 +129,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorReference(ConstructorReference node) => false;
+
+  @override
   bool visitContinueStatement(ContinueStatement node) {
     _enclosingBlockContainsContinue = true;
     return false;

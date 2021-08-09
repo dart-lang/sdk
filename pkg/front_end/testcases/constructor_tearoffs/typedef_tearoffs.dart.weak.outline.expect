@@ -69,3 +69,17 @@ static method test24() → () → self::B<core::String>
   ;
 static method main() → dynamic
   ;
+static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
+  return new self::A::•();
+static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
+  return new self::B::•<self::_#DB2#new#tearOff::X>();
+static method _#DB2#foo#tearOff<X extends core::num>() → self::B<self::_#DB2#foo#tearOff::X>
+  return new self::B::foo<self::_#DB2#foo#tearOff::X>();
+static method _#DB2#bar#tearOff<X extends core::num>() → self::B<self::_#DB2#bar#tearOff::X>
+  return self::B::bar<self::_#DB2#bar#tearOff::X>();
+static method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
+  return new self::B::•<self::_#DB3#new#tearOff::X>();
+static method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#foo#tearOff::X>
+  return new self::B::foo<self::_#DB3#foo#tearOff::X>();
+static method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#bar#tearOff::X>
+  return self::B::bar<self::_#DB3#bar#tearOff::X>();

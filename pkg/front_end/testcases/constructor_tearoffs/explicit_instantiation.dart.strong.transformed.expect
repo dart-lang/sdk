@@ -98,6 +98,20 @@ static method main() → void {
   core::String typeName = (#C7).{core::Type::toString}(){() → core::String};
   core::String functionTypeName = (local<core::int>).{core::Object::runtimeType}{core::Type}.{core::Type::toString}(){() → core::String};
 }
+static method _#ListList#new#tearOff<T extends core::Object? = dynamic>([core::int? length = #C9]) → core::List<core::List<self::_#ListList#new#tearOff::T%>>
+  return core::_List::•<core::List<self::_#ListList#new#tearOff::T%>>(length);
+static method _#ListList#filled#tearOff<T extends core::Object? = dynamic>(core::int length, core::List<self::_#ListList#filled#tearOff::T%> fill, {core::bool growable = #C10}) → core::List<core::List<self::_#ListList#filled#tearOff::T%>>
+  return core::List::filled<core::List<self::_#ListList#filled#tearOff::T%>>(length, fill, growable: growable);
+static method _#ListList#empty#tearOff<T extends core::Object? = dynamic>({core::bool growable = #C10}) → core::List<core::List<self::_#ListList#empty#tearOff::T%>>
+  return core::List::empty<core::List<self::_#ListList#empty#tearOff::T%>>(growable: growable);
+static method _#ListList#from#tearOff<T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#from#tearOff::T%>>
+  return core::List::from<core::List<self::_#ListList#from#tearOff::T%>>(elements, growable: growable);
+static method _#ListList#of#tearOff<T extends core::Object? = dynamic>(core::Iterable<core::List<self::_#ListList#of#tearOff::T%>> elements, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#of#tearOff::T%>>
+  return core::List::of<core::List<self::_#ListList#of#tearOff::T%>>(elements, growable: growable);
+static method _#ListList#generate#tearOff<T extends core::Object? = dynamic>(core::int length, (core::int) → core::List<self::_#ListList#generate#tearOff::T%> generator, {core::bool growable = #C11}) → core::List<core::List<self::_#ListList#generate#tearOff::T%>>
+  return core::List::generate<core::List<self::_#ListList#generate#tearOff::T%>>(length, generator, growable: growable);
+static method _#ListList#unmodifiable#tearOff<T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<core::List<self::_#ListList#unmodifiable#tearOff::T%>>
+  return core::List::unmodifiable<core::List<self::_#ListList#unmodifiable#tearOff::T%>>(elements);
 
 constants  {
   #C1 = static-tearoff self::C::stat
@@ -108,4 +122,7 @@ constants  {
   #C6 = instantiation self::Ext|estat <core::int>
   #C7 = TypeLiteralConstant(core::List<core::int>)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int>>)
+  #C9 = null
+  #C10 = false
+  #C11 = true
 }

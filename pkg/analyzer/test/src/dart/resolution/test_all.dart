@@ -12,6 +12,7 @@ import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
 import 'constant_test.dart' as constant;
+import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
 import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
@@ -76,6 +77,7 @@ main() {
     comment.main();
     constant.main();
     constructor.main();
+    constructor_reference.main();
     enum_resolution.main();
     export_.main();
     extension_method.main();

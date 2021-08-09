@@ -214,3 +214,5 @@ static method bar3a<X extends self::A<self::A<core::int>>>() → dynamic
 static method bar3b<X extends self::A<self::A<self::A<core::int>>>>() → dynamic
   return throw 42;
 static method main() → dynamic {}
+static method _#B#new#tearOff<X extends self::A<self::_#B#new#tearOff::X> = self::A<dynamic>>() → self::A<self::_#B#new#tearOff::X>
+  return new self::A::•<self::_#B#new#tearOff::X>();

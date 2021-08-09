@@ -21,3 +21,5 @@ class A<X extends self::A<self::A::X> = self::A<dynamic>> extends core::Object {
     ;
 }
 static method main() → void {}
+static method _#AAlias#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A<self::A<dynamic>>
+  return new self::A::•<self::A<dynamic>>();
