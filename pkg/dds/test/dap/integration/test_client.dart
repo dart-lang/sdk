@@ -409,6 +409,31 @@ extension DapTestClientExtension on DapTestClient {
     return stop;
   }
 
+  /// Sets the exception pause mode to [pauseMode] and expects to pause after
+  /// running the script.
+  ///
+  /// Launch options can be customised by passing a custom [launch] function that
+  /// will be used instead of calling `launch(file.path)`.
+  Future<StoppedEventBody> pauseOnException(
+    File file, {
+    String? exceptionPauseMode, // All, Unhandled, None
+    Future<Response> Function()? launch,
+  }) async {
+    final stop = expectStop('exception', file: file);
+
+    await Future.wait([
+      initialize(),
+      sendRequest(
+        SetExceptionBreakpointsArguments(
+          filters: [if (exceptionPauseMode != null) exceptionPauseMode],
+        ),
+      ),
+      launch?.call() ?? this.launch(file.path),
+    ], eagerError: true);
+
+    return stop;
+  }
+
   /// Returns whether DDS is available for the VM Service the debug adapter
   /// is connected to.
   Future<bool> get ddsAvailable async {
