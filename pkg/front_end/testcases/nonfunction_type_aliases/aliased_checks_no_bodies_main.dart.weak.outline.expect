@@ -30,3 +30,5 @@ class C<Y extends self2::A> extends core::Object {
   synthetic constructor •() → self2::C<self2::C::Y>
     ;
 }
+static method _#B#new#tearOff<unrelated X extends core::String>() → self2::A
+  return new self2::A::•();

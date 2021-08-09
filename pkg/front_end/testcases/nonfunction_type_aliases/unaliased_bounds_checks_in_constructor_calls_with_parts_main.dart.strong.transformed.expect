@@ -30,3 +30,5 @@ class C<X extends core::Object? = dynamic> extends core::Object { // from org-da
 static method /* from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart */ foo() → dynamic {
   new self2::C::•<dynamic>();
 }
+static method /* from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart */ _#A#new#tearOff<X extends core::num, unrelated Y extends core::Object? = dynamic>() → self2::C<self2::_#A#new#tearOff::X>
+  return new self2::C::•<self2::_#A#new#tearOff::X>();

@@ -65,6 +65,10 @@ static method test4() → dynamic
 static method test5() → dynamic
   return invalid-expression "This assertion failed.";
 static method main() → dynamic {}
+static method _#B4#new#tearOff<T extends core::int>() → self::A4<self::_#B4#new#tearOff::T>
+  return new self::A4::•<self::_#B4#new#tearOff::T>();
+static method _#B5#new#tearOff<unrelated T extends core::List<core::Object?>, unrelated S extends Null>() → self::A5<core::List<dynamic>, Never?>
+  return new self::A5::•<core::List<dynamic>, Never?>();
 
 constants  {
   #C1 = self::StaticIdentityTest {}
