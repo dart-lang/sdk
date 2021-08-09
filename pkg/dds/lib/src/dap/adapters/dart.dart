@@ -174,6 +174,19 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// `null` if the `initialize` request has not yet been made.
   InitializeRequestArguments? get initializeArgs => _initializeArgs;
 
+  /// Whether the VM Service closing should be used as a signal to terminate the
+  /// debug session.
+  ///
+  /// It is generally better to handle termination when the debuggee terminates
+  /// instead, since this ensures the stdout/stderr streams have been drained.
+  /// However, that's not possible in some cases (for example 'runInTerminal'
+  /// or attaching), so this is the only signal we have.
+  ///
+  /// It is up to the subclass DA to provide this value correctly based on
+  /// whether it will call [handleSessionTerminate] itself upon process
+  /// termination.
+  bool get terminateOnVmServiceClose;
+
   /// [attachRequest] is called by the client when it wants us to to attach to
   /// an existing app. This will only be called once (and only one of this or
   /// launchRequest will be called).
@@ -1086,13 +1099,9 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   }
 
   Future<void> _handleVmServiceClosed() async {
-    // Usually termination is handled by the subclass, but we use VM Service
-    // termination as a fallback for cases where this isn't possible (such as
-    // using `runInTerminal`). However, if we end the session too quickly, the
-    // editor might drop messages from stdout that haven't yet been processed
-    // so we use a short delay before handling termination this way.
-    await Future.delayed(const Duration(seconds: 1));
-    handleSessionTerminate();
+    if (terminateOnVmServiceClose) {
+      handleSessionTerminate();
+    }
   }
 
   /// Performs some setup that is common to both [launchRequest] and
