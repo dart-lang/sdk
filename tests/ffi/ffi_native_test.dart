@@ -48,6 +48,17 @@ class Classy {
   external int returnIntPtrMethod(int x);  //# 03: compile-time error
 }
 
+// Regression test: Ensure same-name FfiNative functions don't collide in the
+// top-level namespace, but instead live under their parent (Library, Class).
+class A {
+  @FfiNative<Void Function()>('nop')
+  external static void foo();
+}
+class B {
+  @FfiNative<Void Function()>('nop')
+  external static void foo();
+}
+
 void main() {
   // Register test resolver for top-level functions above.
   final root_lib_url = getRootLibraryUrl();
