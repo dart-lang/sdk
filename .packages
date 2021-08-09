@@ -52,7 +52,6 @@ http:third_party/pkg/http/lib
 http_io:third_party/pkg_tested/http_io/lib
 http_multi_server:third_party/pkg/http_multi_server/lib
 http_parser:third_party/pkg/http_parser/lib
-http_retry:third_party/pkg/http_retry/lib
 http_throttle:third_party/pkg/http_throttle/lib
 intl:third_party/pkg/intl/lib
 js:pkg/js/lib
