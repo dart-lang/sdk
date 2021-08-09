@@ -8,6 +8,9 @@ import 'dart:isolate';
 
 import 'internal.dart';
 
+export '../../../../../benchmarks/IsolateFibonacci/dart/IsolateFibonacci.dart'
+  show fibonacciRecursive;
+
 final bool isDebugMode = Platform.script.path.contains('Debug');
 final bool isSimulator = Platform.script.path.contains('SIM');
 final bool isArtificialReloadMode = Platform.executableArguments.any((arg) => [
@@ -42,26 +45,6 @@ Future sumRecursiveTailCall(List args) async {
   } else {
     await Isolate.spawn(sumRecursiveTailCall, [port, n - 1, s + 1]);
   }
-}
-
-// Implements recursive summation via tail calls:
-//   fib(n) => n <= 1 ? 1
-//                    : fib(n-1) + fib(n-2);
-Future fibonacciRecursive(List args) async {
-  final SendPort port = args[0];
-  final n = args[1];
-  if (n <= 1) {
-    port.send(1);
-    return;
-  }
-  final left = ReceivePort();
-  final right = ReceivePort();
-  await Future.wait([
-    Isolate.spawn(fibonacciRecursive, [left.sendPort, n - 1]),
-    Isolate.spawn(fibonacciRecursive, [right.sendPort, n - 2]),
-  ]);
-  final results = await Future.wait([left.first, right.first]);
-  port.send(results[0] + results[1]);
 }
 
 enum Command { kRun, kRunAndClose, kClose }
