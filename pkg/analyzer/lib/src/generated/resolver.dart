@@ -48,6 +48,7 @@ import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
+import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
@@ -580,16 +581,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     return null;
   }
 
-  /// Return the result of lexical lookup for the [node], not `null`.
-  ///
-  /// Implements `16.35 Lexical Lookup` from the language specification.
-  LexicalLookupResult lexicalLookup({
-    required SimpleIdentifier node,
-    required bool setter,
-  }) {
-    return LexicalLookup(this).perform(node: node, setter: setter);
-  }
-
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
   void nullShortingTermination(ExpressionImpl node,
@@ -845,6 +836,18 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         }
       }
     }
+  }
+
+  /// Returns the result of an implicit `this.` lookup for the identifier string
+  /// [id] in a getter context, or `null` if no match was found.
+  LexicalLookupResult? thisLookupGetter(SimpleIdentifier node) {
+    return ThisLookup.lookupGetter(this, node);
+  }
+
+  /// Returns the result of an implicit `this.` lookup for the identifier string
+  /// [id] in a setter context, or `null` if no match was found.
+  LexicalLookupResult? thisLookupSetter(SimpleIdentifier node) {
+    return ThisLookup.lookupSetter(this, node);
   }
 
   /// If in a legacy library, return the legacy view on the [element].

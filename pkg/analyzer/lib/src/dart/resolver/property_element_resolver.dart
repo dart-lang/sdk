@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -198,8 +199,10 @@ class PropertyElementResolver {
     Element? readElementRequested;
     Element? readElementRecovery;
     if (hasRead) {
-      var readLookup = _resolver.lexicalLookup(node: node, setter: false);
-      readElementRequested = readLookup.requested;
+      var readLookup =
+          LexicalLookup.resolveGetter(_resolver.nameScope.lookup(node.name)) ??
+              _resolver.thisLookupGetter(node);
+      readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
         _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name,
@@ -211,9 +214,11 @@ class PropertyElementResolver {
     Element? writeElementRequested;
     Element? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
-      writeElementRequested = writeLookup.requested;
-      writeElementRecovery = writeLookup.recovery;
+      var writeLookup =
+          LexicalLookup.resolveSetter(_resolver.nameScope.lookup(node.name)) ??
+              _resolver.thisLookupSetter(node);
+      writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
+      writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 
       AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
         node: node,
