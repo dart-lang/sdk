@@ -62,7 +62,6 @@ class Mutex {
   friend class MutexLocker;
   friend class SafepointMutexLocker;
   friend class OSThreadIterator;
-  friend class TimelineEventBlockIterator;
   friend class TimelineEventRecorder;
   friend class PageSpace;
   friend void Dart_TestMutex();
