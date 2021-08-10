@@ -542,6 +542,18 @@ class NullabilityCommentOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.nullabilityComment;
 }
 
+/// Edge origin resulting from the presence of an Angular `@Optional()`
+/// annotation.
+class OptionalAnnotationOrigin extends EdgeOrigin {
+  OptionalAnnotationOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description => "annotated with Angular's @Optional() annotation";
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.optionalAnnotation;
+}
+
 /// Edge origin resulting from the presence of an optional formal parameter.
 ///
 /// For example, in the following code snippet:

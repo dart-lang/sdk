@@ -45,6 +45,27 @@ class AbstractContextTest with ResourceProviderMixin {
 
   String get testsPath => '$homePath/tests';
 
+  /// Makes a mock version of the Angular package available for unit testing.
+  ///
+  /// If optional argument [internalUris] is `true`, the mock Angular package
+  /// will be located in a package called `third_party.dart_src.angular.angular`
+  /// (as it is in Google3), and `package:angular` will simply re-export it;
+  /// this allows the test to reflect usage in internal sources.
+  void addAngularPackage({bool internalUris = false}) {
+    addPackageFile(
+        internalUris ? 'third_party.dart_src.angular.angular' : 'angular',
+        'angular.dart', '''
+class Optional {
+  const Optional();
+}
+''');
+    if (internalUris) {
+      addPackageFile('angular', 'angular.dart', '''
+export 'package:third_party.dart_src.angular.angular/angular.dart';
+''');
+    }
+  }
+
   void addBuiltValuePackage() {
     addPackageFile('built_value', 'built_value.dart', '''
 abstract class Built<V extends Built<V, B>, B extends Builder<V, B>> {}

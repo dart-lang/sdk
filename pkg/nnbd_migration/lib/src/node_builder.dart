@@ -794,6 +794,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _handleNullabilityHint(node, decoratedType);
     }
     _variables!.recordDecoratedElementType(declaredElement, decoratedType);
+    for (var annotation in node.metadata) {
+      var element = annotation.element;
+      if (element is ConstructorElement &&
+          element.enclosingElement.name == 'Optional' &&
+          _isAngularUri(element.librarySource.uri)) {
+        _graph.makeNullable(
+            decoratedType!.node!, OptionalAnnotationOrigin(source, node));
+      }
+    }
     if (declaredElement.isNamed) {
       _namedParameters![declaredElement.name] = decoratedType;
     } else {
@@ -882,6 +891,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     });
     _variables!
         .recordDecoratedDirectSupertypes(declaredElement, decoratedSupertypes);
+  }
+
+  /// Determines whether the given [uri] comes from the Angular package.
+  bool _isAngularUri(Uri uri) {
+    if (uri.scheme != 'package') return false;
+    var packageName = uri.pathSegments[0];
+    if (packageName == 'angular') return true;
+    if (packageName == 'third_party.dart_src.angular.angular') {
+      // This name is used for angular development internally at Google.
+      return true;
+    }
+    return false;
   }
 
   T _pushNullabilityNodeTarget<T>(
