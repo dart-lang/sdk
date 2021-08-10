@@ -31,9 +31,21 @@ final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 final vmServiceUriPattern = RegExp(r'Connecting to VM Service at ([^\s]+)\s');
 
 /// Expects [actual] to equal the lines [expected], ignoring differences in line
-/// endings.
+/// endings and trailing whitespace.
 void expectLines(String actual, List<String> expected) {
-  expect(actual.replaceAll('\r\n', '\n'), equals(expected.join('\n')));
+  expect(
+    actual.replaceAll('\r\n', '\n').trim(),
+    equals(expected.join('\n').trim()),
+  );
+}
+
+/// Expects [actual] starts with [expected], ignoring differences in line
+/// endings and trailing whitespace.
+void expectLinesStartWith(String actual, List<String> expected) {
+  expect(
+    actual.replaceAll('\r\n', '\n').trim(),
+    startsWith(expected.join('\n').trim()),
+  );
 }
 
 /// Returns the 1-base line in [file] that contains [searchText].

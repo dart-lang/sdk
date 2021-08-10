@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +14,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveComparisonTest);
+    defineReflectiveTests(RemoveNullCheckComparisonTest);
+    defineReflectiveTests(RemoveNullCheckComparisonBulkTest);
   });
 }
 
@@ -186,5 +190,221 @@ void f(String s) {
   print(s);
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class RemoveNullCheckComparisonBulkTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.avoid_null_checks_in_equality_operators;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other != null &&
+          other is Person &&
+          name == other.name;
+}
+
+class Person2 {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other != null &&
+          other is Person &&
+          name == other.name;
+}
+''');
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other is Person &&
+          name == other.name;
+}
+
+class Person2 {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other is Person &&
+          name == other.name;
+}
+''');
+  }
+
+  @FailingTest(reason: 'Only the first comparison is removed')
+  Future<void> test_singleFile_overlapping() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other != null &&
+          other != null &&
+          other is Person &&
+          name == other.name;
+}
+''');
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other is Person &&
+          name == other.name;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveNullCheckComparisonTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_COMPARISON;
+
+  @override
+  String get lintCode => LintNames.avoid_null_checks_in_equality_operators;
+
+  Future<void> test_expressionBody() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other != null &&
+          other is Person &&
+          name == other.name;
+}
+''');
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) =>
+          other is Person &&
+          name == other.name;
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+  }
+
+  Future<void> test_functionBody() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    return other != null &&
+          other is Person &&
+          name == other.name;
+  }
+}
+''');
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    return other is Person &&
+          name == other.name;
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+  }
+
+  Future<void> test_ifNullAssignmentStatement() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    if (other is! Person) return false;
+    other ??= Person();
+    return other.name == name;
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  /// todo(pq): consider implementing
+  @FailingTest(reason: 'Fix unimplemented')
+  Future<void> test_ifNullStatement() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    if (other is! Person) return false;
+    final toCompare = other ?? Person();
+    return toCompare.name == name;
+  }
+}
+''');
+
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    if (other is! Person) return false;
+    final toCompare = other;
+    return toCompare.name == name;
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION);
+  }
+
+  /// todo(pq): implement or remove the lint (see: https://github.com/dart-lang/linter/issues/2864)
+  @FailingTest(reason: 'Fix unimplemented')
+  Future<void> test_ifStatement() async {
+    await resolveTestCode('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    if (other == null) return false;
+    return other is Person &&
+          name == other.name;
+  }
+}
+''');
+    await assertHasFix('''
+class Person {
+  final String name = '';
+
+  @override
+  operator ==(other) {
+    return other is Person &&
+          name == other.name;
+  }
+}
+''',
+        errorFilter: (error) =>
+            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_FALSE);
   }
 }

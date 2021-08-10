@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class InvalidNullAwareOperatorAfterShortCircuitTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest {
   Future<void> test_getter_previousTarget() async {
     await assertErrorsInCode('''
 void f(String? s) {

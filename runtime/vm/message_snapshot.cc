@@ -483,7 +483,7 @@ ObjectPtr MessageDeserializationCluster::PostLoadLinkedHash(
   Array& maps = Array::Handle(d->zone(), d->refs());
   maps = maps.Slice(start_index_, stop_index_ - start_index_,
                     /*with_type_argument=*/false);
-  return DartLibraryCalls::RehashObjects(d->thread(), maps);
+  return DartLibraryCalls::RehashObjectsInDartCollection(d->thread(), maps);
 }
 
 class ClassMessageSerializationCluster : public MessageSerializationCluster {
@@ -916,18 +916,14 @@ class InstanceMessageDeserializationCluster
     }
 
     if (cls_.ptr() == d->isolate_group()->object_store()->expando_class()) {
-      Instance& instance = Instance::Handle(d->zone());
-      const String& selector = Library::PrivateCoreLibName(Symbols::_rehash());
-      Array& args = Array::Handle(d->zone(), Array::New(1));
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
+      const auto& expandos =
+          Array::Handle(d->zone(), Array::New(stop_index_ - start_index_));
+      auto& instance = Instance::Handle(d->zone());
+      for (intptr_t i = start_index_, j = 0; i < stop_index_; i++, j++) {
         instance ^= d->Ref(i);
-        args.SetAt(0, instance);
-        ObjectPtr error = instance.Invoke(selector, args, Object::empty_array(),
-                                          false, false);
-        if (error != Object::null()) {
-          return error;
-        }
+        expandos.SetAt(j, instance);
       }
+      return DartLibraryCalls::RehashObjectsInDartCore(d->thread(), expandos);
     }
     return nullptr;
   }

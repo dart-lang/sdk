@@ -6,7 +6,9 @@
 
 // @dart = 2.9
 
-import "dart:async";
+// VMOptions=--no-enable-isolate-groups
+// VMOptions=--enable-isolate-groups
+
 import "dart:isolate";
 
 import "package:async_helper/async_helper.dart";
@@ -31,7 +33,6 @@ main() {
     port.close();
     asyncEnd();
   });
-
 
   var key1 = new Object();
   var key2 = new Object();

@@ -299,8 +299,12 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendAndExitInternal_, 0, 2) {
   Object& validated_result = Object::Handle(zone);
   const Object& msg_obj = Object::Handle(zone, obj.ptr());
   validated_result = ValidateMessageObject(zone, isolate, msg_obj);
-  // msg_array = [<message>, <object-in-message-to-rehash>]
-  const Array& msg_array = Array::Handle(zone, Array::New(2));
+  // msg_array = [
+  //     <message>,
+  //     <collection-lib-objects-to-rehash>,
+  //     <core-lib-objects-to-rehash>,
+  // ]
+  const Array& msg_array = Array::Handle(zone, Array::New(3));
   msg_array.SetAt(0, msg_obj);
   if (validated_result.IsUnhandledException()) {
     Exceptions::PropagateError(Error::Cast(validated_result));

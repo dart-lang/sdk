@@ -415,7 +415,6 @@ class ObjectPointerVisitor;
   V(_objectNoSuchMethod, "_objectNoSuchMethod")                                \
   V(_objectToString, "_objectToString")                                        \
   V(_onData, "_onData")                                                        \
-  V(_rehash, "_rehash")                                                        \
   V(_rehashObjects, "_rehashObjects")                                          \
   V(_resultOrListeners, "_resultOrListeners")                                  \
   V(_runExtension, "_runExtension")                                            \

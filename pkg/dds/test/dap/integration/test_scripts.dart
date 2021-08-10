@@ -15,3 +15,21 @@ const simpleBreakpointProgram = r'''
     print('Hello!'); // BREAKPOINT
   }
 ''';
+
+/// A simple Dart script that throws an error and catches it in user code.
+const simpleCaughtErrorProgram = r'''
+  void main(List<String> args) async {
+    try {
+      throw 'error';
+    } catch (e) {
+      print('Caught!');
+    }
+  }
+''';
+
+/// A simple Dart script that throws in user code.
+const simpleThrowingProgram = r'''
+  void main(List<String> args) async {
+    throw 'error';
+  }
+''';

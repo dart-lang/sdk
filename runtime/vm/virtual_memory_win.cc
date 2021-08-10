@@ -17,6 +17,7 @@ namespace dart {
 DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
+VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
 intptr_t VirtualMemory::CalculatePageSize() {
   SYSTEM_INFO info;
@@ -55,24 +56,21 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 
 #if defined(DART_COMPRESSED_POINTERS)
-  if (VirtualMemoryCompressedHeap::GetRegion() == nullptr) {
-    void* address =
-        AllocateAlignedImpl(kCompressedHeapSize, kCompressedHeapAlignment,
-                            kCompressedHeapSize + kCompressedHeapAlignment,
-                            PAGE_READWRITE, nullptr);
-    if (address == nullptr) {
+  if (compressed_heap_ == nullptr) {
+    compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
+    if (compressed_heap_ == nullptr) {
       int error = GetLastError();
       FATAL("Failed to reserve region for compressed heap: %d", error);
     }
-    VirtualMemoryCompressedHeap::Init(address);
+    VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
 void VirtualMemory::Cleanup() {
 #if defined(DART_COMPRESSED_POINTERS)
-  void* heap_base = VirtualMemoryCompressedHeap::GetRegion();
-  VirtualFree(heap_base, kCompressedHeapSize, MEM_RELEASE);
+  delete compressed_heap_;
+  compressed_heap_ = nullptr;
   VirtualMemoryCompressedHeap::Cleanup();
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
@@ -99,6 +97,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     if (region.pointer() == nullptr) {
       return nullptr;
     }
+    Commit(region.pointer(), region.size());
     return new VirtualMemory(region, region);
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
@@ -120,6 +119,44 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   return new VirtualMemory(region, reserved);
 }
 
+VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(Utils::IsAligned(alignment, PageSize()));
+  intptr_t reserved_size = size + alignment - PageSize();
+  void* reserved_address =
+      VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, PAGE_NOACCESS);
+  if (reserved_address == nullptr) {
+    return nullptr;
+  }
+
+  void* aligned_address = reinterpret_cast<void*>(
+      Utils::RoundUp(reinterpret_cast<uword>(reserved_address), alignment));
+  MemoryRegion region(aligned_address, size);
+  MemoryRegion reserved(reserved_address, reserved_size);
+  return new VirtualMemory(region, reserved);
+}
+
+void VirtualMemory::Commit(void* address, intptr_t size) {
+  ASSERT(Utils::IsAligned(address, PageSize()));
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  void* result = VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);
+  if (result == nullptr) {
+    int error = GetLastError();
+    FATAL("Failed to commit: %d\n", error);
+  }
+}
+
+void VirtualMemory::Decommit(void* address, intptr_t size) {
+  ASSERT(Utils::IsAligned(address, PageSize()));
+  ASSERT(Utils::IsAligned(size, PageSize()));
+  bool result = VirtualFree(address, size, MEM_DECOMMIT);
+  if (!result) {
+    int error = GetLastError();
+    FATAL("Failed to decommit: %d\n", error);
+  }
+}
+
 VirtualMemory::~VirtualMemory() {
   // Note that the size of the reserved region might be set to 0 by
   // Truncate(0, true) but that does not actually release the mapping
@@ -127,6 +164,7 @@ VirtualMemory::~VirtualMemory() {
   // with original base pointer and MEM_RELEASE.
 #if defined(DART_COMPRESSED_POINTERS)
   if (VirtualMemoryCompressedHeap::Contains(reserved_.pointer())) {
+    Decommit(reserved_.pointer(), reserved_.size());
     VirtualMemoryCompressedHeap::Free(reserved_.pointer(), reserved_.size());
     return;
   }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
@@ -15,7 +16,18 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveComparison extends CorrectionProducer {
   @override
+  bool canBeAppliedInBulk;
+
+  @override
+  bool canBeAppliedToFile;
+
+  RemoveComparison(this.canBeAppliedInBulk, this.canBeAppliedToFile);
+
+  @override
   FixKind get fixKind => DartFixKind.REMOVE_COMPARISON;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.REMOVE_COMPARISON_MULTI;
 
   /// Return `true` if the null comparison will always return `false`.
   bool get _conditionIsFalse =>
@@ -23,9 +35,11 @@ class RemoveComparison extends CorrectionProducer {
       HintCode.UNNECESSARY_NULL_COMPARISON_FALSE;
 
   /// Return `true` if the null comparison will always return `true`.
-  bool get _conditionIsTrue =>
-      (diagnostic as AnalysisError).errorCode ==
-      HintCode.UNNECESSARY_NULL_COMPARISON_TRUE;
+  bool get _conditionIsTrue {
+    var errorCode = (diagnostic as AnalysisError).errorCode;
+    return errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE ||
+        errorCode.name == LintNames.avoid_null_checks_in_equality_operators;
+  }
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -108,5 +122,10 @@ class RemoveComparison extends CorrectionProducer {
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static RemoveComparison newInstance() => RemoveComparison();
+  static RemoveComparison newInstance() => RemoveComparison(false, false);
+
+  /// Return an instance of this class that can apply bulk and in-file fixes.
+  /// Used as a tear-off in `FixProcessor`.
+  static RemoveComparison newInstanceBulkFixable() =>
+      RemoveComparison(true, true);
 }

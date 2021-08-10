@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=
+// VMOptions=--no-enable-isolate-groups
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --enable-fast-object-copy
 // VMOptions=--enable-isolate-groups --no-enable-fast-object-copy --gc-on-foc-slow-path --force-evacuation --verify-store-buffer
@@ -219,6 +219,8 @@ class SendReceiveTest extends SendReceiveTestBase {
 
     await testFastOnly();
     await testSlowOnly();
+
+    await testWeakProperty();
   }
 
   Future testTransferrable() async {
@@ -577,6 +579,69 @@ class SendReceiveTest extends SendReceiveTestBase {
     for (final smallContainer in smallContainers) {
       expectGraphsMatch([notAllocatableInTLAB, smallContainer],
           await sendReceive([notAllocatableInTLAB, smallContainer]));
+    }
+  }
+
+  Future testWeakProperty() async {
+    final key = Object();
+    final expando1 = Expando();
+    final expando2 = Expando();
+    final expando3 = Expando();
+    final expando4 = Expando();
+    expando1[key] = expando2;
+    expando2[expando2] = expando3;
+    expando3[expando3] = expando4;
+    expando4[expando4] = {'foo': 'bar'};
+
+    {
+      final result = await sendReceive([
+        key,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[1] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[1];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        expando1,
+        notAllocatableInTLAB,
+        key,
+      ]);
+      final expando1Copy = result[0] as Expando;
+      final keyCopy = result[2];
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+    {
+      final result = await sendReceive([
+        key,
+        notAllocatableInTLAB,
+        expando1,
+      ]);
+      final keyCopy = result[0];
+      final expando1Copy = result[2] as Expando;
+      final expando2Copy = expando1Copy[keyCopy] as Expando;
+      final expando3Copy = expando2Copy[expando2Copy] as Expando;
+      final expando4Copy = expando3Copy[expando3Copy] as Expando;
+      Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
     }
   }
 }
