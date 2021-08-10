@@ -44,7 +44,7 @@ class TypeTestingStubGenerator {
                                     bool lazy_specialize = true);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  static void SpecializeStubFor(Thread* thread, const AbstractType& type);
+  static CodePtr SpecializeStubFor(Thread* thread, const AbstractType& type);
 #endif
 
   TypeTestingStubGenerator();

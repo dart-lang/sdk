@@ -7059,6 +7059,12 @@ class SubtypeTestCache : public Object {
                                  const char* line_prefix = nullptr) const;
   void Reset() const;
 
+  // Tests that [other] contains the same entries in the same order.
+  bool Equals(const SubtypeTestCache& other) const;
+
+  // Creates a separate copy of the current STC contents.
+  SubtypeTestCachePtr Copy(Thread* thread) const;
+
   static SubtypeTestCachePtr New();
 
   static intptr_t InstanceSize() {
@@ -10019,6 +10025,10 @@ class Array : public Instance {
     return memcmp(a->untag()->data(), b->untag()->data(),
                   kBytesPerElement * length) == 0;
   }
+  bool Equals(const Array& other) const {
+    NoSafepointScope scope;
+    return Equals(ptr(), other.ptr());
+  }
 
   static CompressedObjectPtr* DataOf(ArrayPtr array) {
     return array->untag()->data();
@@ -10129,6 +10139,9 @@ class Array : public Instance {
                                   bool unique = false);
 
   ArrayPtr Slice(intptr_t start, intptr_t count, bool with_type_argument) const;
+  ArrayPtr Copy() const {
+    return Slice(0, Length(), /*with_type_argument=*/true);
+  }
 
  protected:
   static ArrayPtr New(intptr_t class_id,

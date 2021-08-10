@@ -146,13 +146,11 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
-                                                 const AbstractType& type) {
+CodePtr TypeTestingStubGenerator::SpecializeStubFor(Thread* thread,
+                                                    const AbstractType& type) {
   HierarchyInfo hi(thread);
   TypeTestingStubGenerator generator;
-  const Code& code =
-      Code::Handle(thread->zone(), generator.OptimizedCodeForType(type));
-  type.SetTypeTestingStub(code);
+  return generator.OptimizedCodeForType(type);
 }
 #endif
 
@@ -1002,43 +1000,40 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
 void DeoptimizeTypeTestingStubs() {
   class CollectTypes : public ObjectVisitor {
    public:
-    CollectTypes(GrowableArray<AbstractType*>* types, Zone* zone)
-        : types_(types), object_(Object::Handle(zone)), zone_(zone) {}
+    CollectTypes(Zone* zone, GrowableArray<AbstractType*>* types)
+        : zone_(zone), types_(types), cache_(SubtypeTestCache::Handle(zone)) {}
 
     void VisitObject(ObjectPtr object) {
-      if (object->IsPseudoObject()) {
-        // Cannot even be wrapped in handles.
-        return;
-      }
-      object_ = object;
-      if (object_.IsAbstractType()) {
-        types_->Add(
-            &AbstractType::Handle(zone_, AbstractType::RawCast(object)));
+      // Only types and function types may have optimized TTSes.
+      if (object->IsType() || object->IsFunctionType()) {
+        types_->Add(&AbstractType::CheckedHandle(zone_, object));
+      } else if (object->IsSubtypeTestCache()) {
+        cache_ ^= object;
+        cache_.Reset();
       }
     }
 
    private:
-    GrowableArray<AbstractType*>* types_;
-    Object& object_;
-    Zone* zone_;
+    Zone* const zone_;
+    GrowableArray<AbstractType*>* const types_;
+    TypeTestingStubGenerator generator_;
+    SubtypeTestCache& cache_;
   };
 
   Thread* thread = Thread::Current();
   TIMELINE_DURATION(thread, Isolate, "DeoptimizeTypeTestingStubs");
   HANDLESCOPE(thread);
   Zone* zone = thread->zone();
-  GrowableArray<AbstractType*> types;
+  GrowableArray<AbstractType*> types(zone, 0);
   {
     HeapIterationScope iter(thread);
-    CollectTypes visitor(&types, zone);
+    CollectTypes visitor(zone, &types);
     iter.IterateObjects(&visitor);
   }
-
-  TypeTestingStubGenerator generator;
-  Code& code = Code::Handle(zone);
-  for (intptr_t i = 0; i < types.length(); i++) {
-    code = generator.DefaultCodeForType(*types[i]);
-    types[i]->SetTypeTestingStub(code);
+  auto& stub = Code::Handle(zone);
+  for (auto* const type : types) {
+    stub = TypeTestingStubGenerator::DefaultCodeForType(*type);
+    type->SetTypeTestingStub(stub);
   }
 }
 

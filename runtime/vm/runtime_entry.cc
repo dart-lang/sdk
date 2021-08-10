@@ -559,21 +559,22 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
 
-  OS::PrintErr("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
-               String::Handle(subtype.Name()).ToCString(),
-               subtype.type_class_id(), result ? "is" : "is !",
-               String::Handle(supertype.Name()).ToCString(),
-               supertype.type_class_id(), caller_frame->pc());
+  LogBlock lb;
+  THR_Print("SubtypeCheck: '%s' %d %s '%s' %d (pc: %#" Px ").\n",
+            String::Handle(subtype.Name()).ToCString(), subtype.type_class_id(),
+            result ? "is" : "is !",
+            String::Handle(supertype.Name()).ToCString(),
+            supertype.type_class_id(), caller_frame->pc());
 
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
   if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
-    OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
-                 args_desc.ToCString());
+    THR_Print(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
+              args_desc.ToCString());
   } else {
-    OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+    THR_Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
 }
 
@@ -687,33 +688,34 @@ static void PrintTypeCheck(const char* message,
       AbstractType::Handle(instance.GetType(Heap::kNew));
   ASSERT(instance_type.IsInstantiated() ||
          (instance.IsClosure() && instance_type.IsInstantiated(kCurrentClass)));
+  LogBlock lb;
   if (type.IsInstantiated()) {
-    OS::PrintErr("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
-                 String::Handle(instance_type.Name()).ToCString(),
-                 instance_type.type_class_id(),
-                 (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-                 String::Handle(type.Name()).ToCString(), type.type_class_id(),
-                 caller_frame->pc());
+    THR_Print("%s: '%s' %d %s '%s' %d (pc: %#" Px ").\n", message,
+              String::Handle(instance_type.Name()).ToCString(),
+              instance_type.type_class_id(),
+              (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
+              String::Handle(type.Name()).ToCString(), type.type_class_id(),
+              caller_frame->pc());
   } else {
     // Instantiate type before printing.
     const AbstractType& instantiated_type = AbstractType::Handle(
         type.InstantiateFrom(instantiator_type_arguments,
                              function_type_arguments, kAllFree, Heap::kOld));
-    OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
-                 message, String::Handle(instance_type.Name()).ToCString(),
-                 (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
-                 String::Handle(instantiated_type.Name()).ToCString(),
-                 String::Handle(type.Name()).ToCString(), caller_frame->pc());
+    THR_Print("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
+              message, String::Handle(instance_type.Name()).ToCString(),
+              (result.ptr() == Bool::True().ptr()) ? "is" : "is !",
+              String::Handle(instantiated_type.Name()).ToCString(),
+              String::Handle(type.Name()).ToCString(), caller_frame->pc());
   }
   const Function& function =
       Function::Handle(caller_frame->LookupDartFunction());
   if (function.HasSavedArgumentsDescriptor()) {
     const auto& args_desc_array = Array::Handle(function.saved_args_desc());
     const ArgumentsDescriptor args_desc(args_desc_array);
-    OS::PrintErr(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
-                 args_desc.ToCString());
+    THR_Print(" -> Function %s [%s]\n", function.ToFullyQualifiedCString(),
+              args_desc.ToCString());
   } else {
-    OS::PrintErr(" -> Function %s\n", function.ToFullyQualifiedCString());
+    THR_Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
 }
 
@@ -799,7 +801,7 @@ static void UpdateTypeTestCache(
         static_cast<uword>(instance_parent_function_type_arguments.ptr()),
         static_cast<uword>(instance_delayed_type_arguments.ptr()),
         static_cast<uword>(result.ptr()));
-    OS::PrintErr("%s", buffer.buffer());
+    THR_Print("%s", buffer.buffer());
   }
   {
     SafepointMutexLocker ml(
@@ -808,9 +810,8 @@ static void UpdateTypeTestCache(
     const intptr_t len = new_cache.NumberOfChecks();
     if (len >= FLAG_max_subtype_cache_entries) {
       if (FLAG_trace_type_checks) {
-        OS::PrintErr(
-            "Not updating subtype test cache as its length reached %d\n",
-            FLAG_max_subtype_cache_entries);
+        THR_Print("Not updating subtype test cache as its length reached %d\n",
+                  FLAG_max_subtype_cache_entries);
       }
       return;
     }
@@ -827,7 +828,7 @@ static void UpdateTypeTestCache(
                       static_cast<uword>(new_cache.ptr()), colliding_index);
         buffer.Printf("    entry: ");
         new_cache.WriteEntryToBuffer(zone, &buffer, colliding_index, "      ");
-        OS::PrintErr("%s\n", buffer.buffer());
+        THR_Print("%s\n", buffer.buffer());
       }
       if (!FLAG_enable_isolate_groups) {
         FATAL("Duplicate subtype test cache entry");
@@ -852,7 +853,7 @@ static void UpdateTypeTestCache(
                     static_cast<uword>(new_cache.ptr()), len);
       buffer.Printf("    new entry: ");
       new_cache.WriteEntryToBuffer(zone, &buffer, len, "      ");
-      OS::PrintErr("%s\n", buffer.buffer());
+      THR_Print("%s\n", buffer.buffer());
     }
   }
 }
@@ -904,7 +905,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   const Instance& src_instance =
       Instance::CheckedHandle(zone, arguments.ArgAt(0));
-  AbstractType& dst_type =
+  const AbstractType& dst_type =
       AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1005,15 +1006,17 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
     ASSERT(!dst_name.IsNull());
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
-    const AbstractType& src_type =
+    const auto& src_type =
         AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
-    if (!dst_type.IsInstantiated()) {
+    auto& reported_type = AbstractType::Handle(zone, dst_type.ptr());
+    if (!reported_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
-      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
-                                          function_type_arguments, kAllFree,
-                                          Heap::kNew);
+      reported_type = reported_type.InstantiateFrom(instantiator_type_arguments,
+                                                    function_type_arguments,
+                                                    kAllFree, Heap::kNew);
     }
-    Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name);
+    Exceptions::CreateAndThrowTypeError(location, src_type, reported_type,
+                                        dst_name);
     UNREACHABLE();
   }
 
@@ -1021,67 +1024,74 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #if !defined(TARGET_ARCH_IA32)
   bool would_update_cache_if_not_lazy = false;
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Checks against type parameters are done by loading the corresponding type
+  // argument at runtime and calling the type argument's TTS. Thus, we install
+  // specialized TTSes on the type argument, not the parameter itself.
+  auto& tts_type = AbstractType::Handle(zone, dst_type.ptr());
+  if (tts_type.IsTypeParameter()) {
+    const auto& param = TypeParameter::Cast(tts_type);
+    tts_type = param.GetFromTypeArguments(instantiator_type_arguments,
+                                          function_type_arguments);
+  }
+  ASSERT(!tts_type.IsTypeParameter());
+
   if (mode == kTypeCheckFromLazySpecializeStub) {
-    // Checks against type parameters are done by loading the value of the type
-    // parameter and calling its type testing stub.
-    // So we have to install a specialized TTS on the value of the type
-    // parameter, not the parameter itself.
-    if (dst_type.IsTypeParameter()) {
-      dst_type = TypeParameter::Cast(dst_type).GetFromTypeArguments(
-          instantiator_type_arguments, function_type_arguments);
-    }
     if (FLAG_trace_type_checks) {
-      OS::PrintErr("  Specializing type testing stub for %s\n",
-                   dst_type.ToCString());
+      THR_Print("  Specializing type testing stub for %s\n",
+                tts_type.ToCString());
     }
-    TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
+    const Code& code = Code::Handle(
+        zone, TypeTestingStubGenerator::SpecializeStubFor(thread, tts_type));
+    tts_type.SetTypeTestingStub(code);
 
     // Only create the cache if we failed to create a specialized TTS and doing
     // the same check would cause an update to the cache.
     would_update_cache_if_not_lazy =
         (!src_instance.IsNull() &&
-         dst_type.type_test_stub() ==
+         tts_type.type_test_stub() ==
              StubCode::DefaultNullableTypeTest().ptr()) ||
-        dst_type.type_test_stub() == StubCode::DefaultTypeTest().ptr();
+        tts_type.type_test_stub() == StubCode::DefaultTypeTest().ptr();
     should_update_cache = would_update_cache_if_not_lazy && cache.IsNull();
   }
 
-  // Fast path of type testing stub wasn't able to handle given type, yet it
-  // passed the type check. It means that fast-path was using outdated cid
-  // ranges and new classes appeared since the stub was generated.
-  // Re-generate the stub.
-  if ((mode == kTypeCheckFromSlowStub) && dst_type.IsType() &&
-      (TypeTestingStubGenerator::DefaultCodeForType(dst_type, /*lazy=*/false) !=
-       dst_type.type_test_stub()) &&
-      dst_type.IsInstantiated()) {
+  // Since dst_type is not a top type or type parameter, then the only default
+  // stubs it can use are DefaultTypeTest or DefaultNullableTypeTest.
+  if ((mode == kTypeCheckFromSlowStub) &&
+      (tts_type.type_test_stub() != StubCode::DefaultNullableTypeTest().ptr() &&
+       tts_type.type_test_stub() != StubCode::DefaultTypeTest().ptr())) {
+    // The specialized type testing stub returned a false negative. That means
+    // the specialization may have been generated using outdated cid ranges and
+    // new classes appeared since the stub was generated. Try respecializing.
     if (FLAG_trace_type_checks) {
-      OS::PrintErr("  Rebuilding type testing stub for %s\n",
-                   dst_type.ToCString());
+      THR_Print("  Rebuilding type testing stub for %s\n",
+                tts_type.ToCString());
     }
-#if defined(DEBUG)
-    const auto& old_code = Code::Handle(dst_type.type_test_stub());
-#endif
-    TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
-#if defined(DEBUG)
-    ASSERT(old_code.ptr() != dst_type.type_test_stub());
+    const auto& old_code = Code::Handle(zone, tts_type.type_test_stub());
+    const auto& new_code = Code::Handle(
+        zone, TypeTestingStubGenerator::SpecializeStubFor(thread, tts_type));
+    ASSERT(old_code.ptr() != new_code.ptr());
+    // A specialized stub should always respecialize to a non-default stub.
+    ASSERT(new_code.ptr() != StubCode::DefaultNullableTypeTest().ptr() &&
+           new_code.ptr() != StubCode::DefaultTypeTest().ptr());
     const auto& old_instructions =
         Instructions::Handle(old_code.instructions());
-    const auto& new_code = Code::Handle(dst_type.type_test_stub());
     const auto& new_instructions =
         Instructions::Handle(new_code.instructions());
     // Check if specialization produced exactly the same sequence of
-    // instructions. If it did then we have a bug in the TTS code
-    // generation code: we know that old code could not handle src_instance
-    // which means new code would not be able to handle it either
-    // (because the code is exactly the same) and will fall through into
-    // runtime again given a similar instance and again ask compiler to
-    // specialize the stub, which would produce the same code again and
-    // so on - leading to a serious performance problem if this type check
-    // is hot.
-    ASSERT(!old_instructions.Equals(new_instructions));
-#endif
-    // Only create the cache when we come from a normal stub.
-    should_update_cache = false;
+    // instructions. If it did, then we have a false negative, which can
+    // happen in some cases involving uninstantiated types. In these cases,
+    // update the cache, because the only case in which these false negatives
+    // could possibly turn into true positives is with reloads, which clear
+    // all the SubtypeTestCaches.
+    should_update_cache = old_instructions.Equals(new_instructions);
+    if (FLAG_trace_type_checks) {
+      THR_Print("  %s rebuilt type testing stub for %s\n",
+                should_update_cache ? "Discarding" : "Installing",
+                tts_type.ToCString());
+    }
+    if (!should_update_cache) {
+      tts_type.SetTypeTestingStub(new_code);
+    }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(TARGET_ARCH_IA32)
@@ -1103,7 +1113,6 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
           ObjectPool::Handle(zone, caller_code.GetObjectPool());
       TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
       const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
-
       // Ensure we do have a STC (lazily create it if not) and all threads use
       // the same STC.
       {
@@ -1112,6 +1121,12 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         if (cache.IsNull()) {
           cache = SubtypeTestCache::New();
           pool.SetObjectAt<std::memory_order_release>(stc_pool_idx, cache);
+          if (FLAG_trace_type_checks) {
+            THR_Print("  Installed new subtype test cache %#" Px
+                      " at index %" Pd " of pool for %s\n",
+                      static_cast<uword>(cache.ptr()), stc_pool_idx,
+                      caller_code.ToCString());
+          }
         }
       }
 #else

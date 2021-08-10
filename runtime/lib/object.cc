@@ -175,14 +175,15 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 0, 4) {
   const bool is_instance_of = instance.IsInstanceOf(
       type, instantiator_type_arguments, function_type_arguments);
   if (FLAG_trace_type_checks) {
+    LogBlock lb;
     const char* result_str = is_instance_of ? "true" : "false";
-    OS::PrintErr("Native Object.instanceOf: result %s\n", result_str);
+    THR_Print("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
         AbstractType::Handle(zone, instance.GetType(Heap::kNew));
-    OS::PrintErr("  instance type: %s\n",
-                 String::Handle(zone, instance_type.Name()).ToCString());
-    OS::PrintErr("  test type: %s\n",
-                 String::Handle(zone, type.Name()).ToCString());
+    THR_Print("  instance type: %s\n",
+              String::Handle(zone, instance_type.Name()).ToCString());
+    THR_Print("  test type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
   }
   return Bool::Get(is_instance_of).ptr();
 }
