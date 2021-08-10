@@ -5,13 +5,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/pub.dart';
 import 'package:linter/src/analyzer.dart';
 
 class CollectingSink extends MockIOSink {
@@ -104,52 +101,6 @@ class MockReporter implements Reporter {
   void warn(String message) {
     warnings.add(message);
   }
-}
-
-class MockRule implements LintRule {
-  @override
-  late ErrorReporter reporter;
-
-  @override
-  late String description;
-
-  @override
-  late String details;
-
-  ProjectVisitor? projectVisitor;
-
-  PubspecVisitor? pubspecVisitor;
-  AstVisitor? visitor;
-
-  @override
-  late Group group;
-
-  @override
-  late LintCode lintCode;
-
-  @override
-  late Maturity maturity;
-
-  @override
-  late String name;
-
-  @override
-  int compareTo(LintRule other) => 0;
-
-  @override
-  ProjectVisitor? getProjectVisitor() => projectVisitor;
-
-  @override
-  PubspecVisitor? getPubspecVisitor() => pubspecVisitor;
-
-  @override
-  AstVisitor? getVisitor() => visitor;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  void reportPubLint(PSNode node) {}
 }
 
 class MockSource implements Source {
