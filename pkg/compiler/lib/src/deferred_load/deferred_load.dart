@@ -2,6 +2,270 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// *Overview of deferred loading*
+///
+/// Deferred loading allows developers to specify deferred imports. These
+/// imports represent explicit asynchronous splits of the application that
+/// allows code to be delivered in pieces.
+///
+/// The initial download of an application will exclude code used only by
+/// deferred imports. As the application reaches a
+/// `deferred_import.loadLibrary()` instruction, it will download and initialize
+/// any code needed by that deferred import.
+///
+/// Very often separate deferred imports access common code.  When that happens,
+/// the compiler places the shared code in separate files. At runtime, the
+/// application will only download shared code once when the first deferred
+/// import that needs that code gets loaded. To achieve this, the compiler
+/// generates _load lists_: a list of JavaScript files that need to be
+/// downloaded for every deferred import in the program.
+///
+/// Each generated JavaScript file has an initialzation within it. The files can
+/// be concatenated together in a bundle without affecting the initialization
+/// logic. This is used by customers to reduce the download latency when they
+/// know that multiple files will be loaded at once.
+///
+/// *The code splitting algorithm*
+///
+/// The goal of this library and the [DeferredLoadingTask] is to determine how
+/// to best split code in multiple files according to the principles described
+/// above.
+///
+/// We do so by partitioning code into output units ([OutputUnit]s in our
+/// implementation). The partitioning reflects how code is shared between
+/// different deferred imports. Each output unit is associated a set of deferred
+/// imports (an [ImportSet] in our implementation). These are the deferred
+/// imports that need the code that is stored in that output unit. Code that is
+/// needed by a single deferred import, will be associated with a set containing
+/// that deferred import only (a singleton set), but code that is shared by 10
+/// deferred imports will be associated with a set containing all of those
+/// imports instead.  We determine whether code is shared based on how code is
+/// accessed in the program. An element is considered to be accessed by a
+/// deferred import if it is either loaded and invoked from that import or
+/// transitively accessed by an element that was invoked by that import.
+///
+/// In theory, there could be an exponential number of output units: one per
+/// subset of deferred imports in the program. In practice, large apps do have a
+/// large number of output units, but the result is not exponential. This is
+/// both because not all deferred imports have code in common and because many
+/// deferred imports end up having the same code in common.
+///
+/// *Main output unit*:
+///
+/// The main output unit contains any code accessed directly from main. Such
+/// code may be accessed by deferred imports too, but because it is accessed
+/// from the main entrypoint of the program, possibly synchronously, we do not
+/// split out the code or defer it. Our current implementation uses an empty
+/// import-set as a sentinel value to represent this output unit.
+///
+/// *Dependency graph*:
+///
+/// We use the element model to discover dependencies between elements.
+/// We distinguish two kinds of dependencies: deferred or direct (aka.
+/// non-deferred):
+///
+///   * Deferred dependencies are only used to discover root elements. Roots
+///   are elements immediately loaded and used from deferred import prefixes in
+///   a program.
+///
+///   * Direct dependencies are used to recursively update which output unit
+///   should be associated with an element.
+///
+/// *Algorithm Principle*:
+///
+/// Conceptually the algorithm consists of associating an element with an
+/// import-set. When we discover a root, we mark it and everything it can reach
+/// as being used by that import. Marking elements as used by that import
+/// consists of adding the import to the import-set of all those reachable
+/// elements.
+///
+/// An earlier version of this algorithm was implemented with this simple
+/// approach: we kept a map from entities to a [Set] of imports and updated the
+/// sets iteratively. However, as customer applications grew, we needed a more
+/// specialized and efficient implementation.
+///
+/// *ImportSet representation and related optimizations*:
+///
+/// The most important change to scale the algorithm was to use an efficient
+/// representation of entity to import-set associations. For large apps there
+/// are a lot of entities, and the simple representation of having a [Set] per
+/// entity was too expensive. We observed that many of such sets had the same
+/// imports (which makes sense given that many elements ended up together in the
+/// same output units). This led us to design the [ImportSet] abstraction: a
+/// representation of import-sets that guarantees that each import-set has a
+/// canonical representation. Memory-wise this was a big win: we now bounded
+/// the heap utilization to one [ImportSet] instance per unique import-set.
+///
+/// This representation is not perfect. Simple operations, like adding an import
+/// to an import-set, are now worse-case linear. So it was important to add a
+/// few optimizations in the algorithm in order to adapt to the new
+/// representation.
+///
+/// The principle of our optimizations is to make bulk updates. Rather than
+/// adding an import at a time for all reachable elements, we changed the
+/// algorithm to make updates in bulk in two ways:
+///
+///   * Batch unions: when possible add more than one import at once, and
+///
+///   * Update elements in segments: when an element and its reachable
+///   dependencies would change in the same way, update them all together.
+///
+/// To achieve these bulk updates, the algorithm uses a two tier algorithm:
+///
+///   * The top tier uses a worklist to track the start of a bulk update, either
+///   from a root (entities that dominate code used by a single deferred import)
+///   or from a merge point in the dependency graph (entities that dominate
+///   shared code between multiple imports).
+///
+///   * The second tier is where bulk updates are made, these don't use a
+///   worklist, but simply a DFS recursive traversal of the dependency graph.
+///   The DFS traversal stops at merge points and makes note of them by
+///   updating the top tier worklist.
+///
+///
+/// *Example*:
+///
+/// Consider this dependency graph (ignoring elements in the main output unit):
+///
+///   deferred import A: a1 ---> s1 ---> s2  -> s3
+///                              ^       ^
+///                              |       |
+///   deferred import B: b1 -----+       |
+///                                      |
+///   deferred import C: c1 ---> c2 ---> c3
+///
+/// Here a1, b1, and c1 are roots, while s1 and s2 are merge points. The
+/// algorithm will compute a result with 5 deferred output units:
+//
+///   * unit {A}:        contains a1
+///   * unit {B}:        contains b1
+///   * unit {C}:        contains c1, c2, and c3
+///   * unit {A, B}:     contains s1
+///   * unit {A, B, C}:  contains s2, and s3
+///
+/// After marking everything reachable from main as part of the main output
+/// unit, our algorithm will work as follows:
+///
+///   * Initially all deferred elements have no mapping.
+///   * We make note of work to do, initially to mark the root of each
+///     deferred import:
+///        * a1 with A, and recurse from there.
+///        * b1 with B, and recurse from there.
+///        * c1 with C, and recurse from there.
+///   * We update a1, s1, s2, s3 in bulk, from no mapping to {A}.
+///   * We update b1 from no mapping to {B}, and when we find s1 we notice
+///     that s1 is already associated with another import set {A}. This is a
+///     merge point that can't be updated in bulk, so we make
+///     note of additional work for later to mark s1 with {A, B}
+///   * We update in bulk c1, c2, c3 to {C}, and make a note to update s2 with
+///     {A, C} (another merge point).
+///   * We update s1 to {A, B}, and update the existing note to update s2, now
+///     with {A, B, C}
+///   * Finally we update s2 and s3 with {A, B, C} in bulk, without ever
+///     updating them to the intermediate state {A, C}.
+///
+/// *How bulk segment updates work?*
+///
+/// The principle of the bulk segment update is similar to memoizing the result
+/// of a union operation. We replace a union operation with a cached result if
+/// we can tell that the inputs to the operation are the same.
+///
+/// Our implementation doesn't use a cache table to memoize arbitrary unions.
+/// Instead it only memoizes one union at a time: it tries to reuse the result
+/// of a union applied to one entity, when updating the import-sets of its
+/// transitive dependencies.
+///
+/// Consider a modification of the example above where we add s4 and s5 as
+/// additional dependencies of s3. Conceptually, we are applying this sequence
+/// of union operations:
+///
+///    importSet[s2] = importSet[s2] UNION {B, C}
+///    importSet[s3] = importSet[s3] UNION {B, C}
+///    importSet[s4] = importSet[s4] UNION {B, C}
+///    importSet[s5] = importSet[s5] UNION {B, C}
+///
+/// When the algorithm is updating s2, it checks whether any of the entities
+/// reachable from s2 also have the same import-set as s2, and if so, we know
+/// that the union result is the same.
+///
+/// Our implementation uses the term `oldSet` to represent the first input of
+/// the memoized union operation, and `newSet` to represent the result:
+///
+///    oldSet = importSet[s2]        // = A
+///    newSet = oldSet UNION {B, C}  // = {A, B, C}
+///
+/// Then the updates are encoded as:
+///
+///    update(s2, oldSet, newSet);
+///    update(s3, oldSet, newSet);
+///    update(s4, oldSet, newSet);
+///    update(s5, oldSet, newSet);
+///
+/// where:
+///
+///    update(s5, oldSet, newSet) {
+///      var currentSet = importSet[s];
+///      if (currentSet == oldSet) {
+///        // Use the memoized result, whohoo!
+///        importSet[s] = newSet;
+///      } else {
+///        // Don't use the memoized result, instead use the worklist to later
+///        // update `s` with the appropriate union operation.
+///      }
+///    }
+///
+/// As a result of this, the update to the import set for s2, s3, s4 and s5
+/// becomes a single if-check and an assignment, but the union operation was
+/// only executed once.
+///
+/// *Constraints*:
+///
+/// By default our algorithm considers all deferred imports equally and
+/// potentially occurring at any time in the application lifetime. In practice,
+/// apps use deferred imports to layer the load of their application and, often,
+/// developers know how imports will be loaded over time.
+///
+/// Dart2js accepts a configuration file to specify constraints about deferred
+/// imports. There are many kinds of constraints that help developers encode how
+/// their applications work.
+///
+/// To model constraints, the deferred loading algorithm was changed to include
+/// _set transitions_: these are changes made to import-sets to effectively
+/// encode the constraints.
+///
+/// Consider, for example, a program with two deferred imports `A` and `B`. Our
+/// unconstrained algorithm will split the code in 3 files:
+///
+///   * code unique to `A` (represented by the import set `{A}`)
+///
+///   * code unique to `B` (represented by the import set `{B}`)
+///
+///   * code shared between `A and `B (represented by the import set `{A, B}`)
+///
+/// When an end-user loads the user journey corresponding to `A`, the code for
+/// `{A}` and `{A,B}` gets loaded. When they load the user journey corresponding
+/// to `B`, `{B}` and `{A, B}` gets loaded.
+///
+/// An ordering constraint saying that `B` always loads after `A` tells our
+/// algorithm that, even though there exists code that is unique to `A`, we
+/// could merge it together with the shared code between `A` and `B`, since the
+/// user never intends to load `B` first. The result would be to have two files
+/// instead:
+///
+///   * code unique to `B` (represented by the import set `{B}`)
+///
+///   * code unique to A and code shared between A and B (represented by the
+///   import set `{A, B}`)
+///
+///
+/// In this example, the set transition is to convert any set containing `{A}`
+/// into a set containing `{A, B}`.
+///
+// TODO(joshualitt): update doc above when main is represented by a set
+// containing an implict import corresponding to `main`.
+// TODO(sigmund): investigate different heuristics for how to select the next
+// work item (e.g. we might converge faster if we pick first the update that
+// contains a bigger delta.)
 library deferred_load;
 
 import 'dart:collection' show Queue;
@@ -662,81 +926,7 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Performs the deferred loading algorithm.
   ///
-  /// The deferred loading algorithm maps elements and constants to an output
-  /// unit. Each output unit is identified by a subset of deferred imports (an
-  /// [ImportSet]), and they will contain the elements that are inherently used
-  /// by all those deferred imports. An element is used by a deferred import if
-  /// it is either loaded by that import or transitively accessed by an element
-  /// that the import loads.  An empty set represents the main output unit,
-  /// which contains any elements that are accessed directly and are not
-  /// deferred.
-  ///
-  /// The algorithm traverses the element model recursively looking for
-  /// dependencies between elements. These dependencies may be deferred or
-  /// non-deferred. Deferred dependencies are mainly used to discover the root
-  /// elements that are loaded from deferred imports, while non-deferred
-  /// dependencies are used to recursively associate more elements to output
-  /// units.
-  ///
-  /// Naively, the algorithm traverses each root of a deferred import and marks
-  /// everything it can reach as being used by that import. To reduce how many
-  /// times we visit an element, we use an algorithm that works in segments: it
-  /// marks elements with a subset of deferred imports at a time, until it
-  /// detects a merge point where more deferred imports could be considered at
-  /// once.
-  ///
-  /// For example, consider this dependency graph (ignoring elements in the main
-  /// output unit):
-  ///
-  ///   deferred import A: a1 ---> s1 ---> s2  -> s3
-  ///                              ^       ^
-  ///                              |       |
-  ///   deferred import B: b1 -----+       |
-  ///                                      |
-  ///   deferred import C: c1 ---> c2 ---> c3
-  ///
-  /// The algorithm will compute a result with 5 deferred output units:
-  //
-  ///   * unit {A}:        contains a1
-  ///   * unit {B}:        contains b1
-  ///   * unit {C}:        contains c1, c2, and c3
-  ///   * unit {A, B}:     contains s1
-  ///   * unit {A, B, C}:  contains s2, and s3
-  ///
-  /// After marking everything reachable from main as part of the main output
-  /// unit, our algorithm will work as follows:
-  ///
-  ///   * Initially all deferred elements have no mapping.
-  ///   * We make note of work to do, initially to mark the root of each
-  ///     deferred import:
-  ///        * a1 with A, and recurse from there.
-  ///        * b1 with B, and recurse from there.
-  ///        * c1 with C, and recurse from there.
-  ///   * we update a1, s1, s2, s3 from no mapping to {A}
-  ///   * we update b1 from no mapping to {B}, and when we find s1 we notice
-  ///     that s1 is already associated with another import set {A}, so we make
-  ///     note of additional work for later to mark s1 with {A, B}
-  ///   * we update c1, c2, c3 to {C}, and make a note to update s2 with {A, C}
-  ///   * we update s1 to {A, B}, and update the existing note to update s2, now
-  ///     with {A, B, C}
-  ///   * finally we update s2 and s3 with {A, B, C} in one go, without ever
-  ///     updating them to the intermediate state {A, C}.
-  ///
-  /// The implementation below does atomic updates from one import-set to
-  /// another.  At first we add one deferred import at a time, but as the
-  /// algorithm progesses it may update a small import-set with a larger
-  /// import-set in one go. The key of this algorithm is to detect when sharing
-  /// begins, so we can update those elements more efficently.
-  ///
-  /// To detect these merge points where sharing begins, the implementation
-  /// below uses `a swap operation`: we first compare what the old import-set
-  /// is, and if it matches our expectation, the swap is done and we recurse,
-  /// otherwise a merge root was detected and we enqueue a new segment of
-  /// updates for later.
-  ///
-  /// TODO(sigmund): investigate different heuristics for how to select the next
-  /// work item (e.g. we might converge faster if we pick first the update that
-  /// contains a bigger delta.)
+  /// See the top-level library comment for details.
   OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
     return metrics.time.measure(() => _run(main, closedWorld));
   }
