@@ -3097,9 +3097,12 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 }
 
-/// Instances of the class `VariableResolverVisitor` are used to resolve
-/// [SimpleIdentifier]s to local variables and formal parameters.
-class VariableResolverVisitor extends ScopedVisitor {
+/// Instances of the class `ScopeResolverVisitor` are used to resolve
+/// [SimpleIdentifier]s to declarations using scoping rules.
+///
+/// TODO(paulberry): migrate the responsibility for all scope resolution into
+/// this visitor.
+class ScopeResolverVisitor extends ScopedVisitor {
   /// The container with information about local variables.
   final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
 
@@ -3116,7 +3119,7 @@ class VariableResolverVisitor extends ScopedVisitor {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
-  VariableResolverVisitor(LibraryElementImpl definingLibrary, Source source,
+  ScopeResolverVisitor(LibraryElementImpl definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope? nameScope})
       : super(definingLibrary, source, typeProvider as TypeProviderImpl,

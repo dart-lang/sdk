@@ -31,7 +31,7 @@ class AstResolver {
     nameScope: _nameScope,
     errorListener: _errorListener,
   );
-  late final _variableResolverVisitor = VariableResolverVisitor(
+  late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
     _unitElement.source,
     _unitElement.library.typeProvider,
@@ -58,7 +58,7 @@ class AstResolver {
   void resolveAnnotation(AnnotationImpl node) {
     _resolverVisitor.shouldCloneAnnotations = false;
     node.accept(_resolutionVisitor);
-    node.accept(_variableResolverVisitor);
+    node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, null);
     node.accept(_resolverVisitor);
@@ -75,7 +75,7 @@ class AstResolver {
     }
 
     visit(_resolutionVisitor);
-    visit(_variableResolverVisitor);
+    visit(_scopeResolverVisitor);
 
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
@@ -94,7 +94,7 @@ class AstResolver {
       if (contextType != null) {
         InferenceContext.setType(node, contextType);
       }
-      node.accept(_variableResolverVisitor);
+      node.accept(_scopeResolverVisitor);
     }
     _prepareEnclosingDeclarations();
     _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
