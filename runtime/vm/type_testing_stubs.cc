@@ -322,13 +322,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &non_smi_value);
     __ Ret();
     __ Bind(&non_smi_value);
-  } else if (type.IsDartFunctionType()) {
-    compiler::Label continue_checking;
-    __ CompareImmediate(TTSInternalRegs::kScratchReg, kClosureCid);
-    __ BranchIf(NOT_EQUAL, &continue_checking);
-    __ Ret();
-    __ Bind(&continue_checking);
-
   } else if (type.IsObjectType()) {
     ASSERT(type.IsNonNullable() &&
            IsolateGroup::Current()->use_strict_null_safety_checks());
