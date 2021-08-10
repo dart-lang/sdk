@@ -73,7 +73,10 @@ class TypePropertyResolver {
     receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
 
     if (_typeSystem.isDynamicBounded(receiverType)) {
-      _lookupInterfaceType(_typeProvider.objectType);
+      _lookupInterfaceType(
+        _typeProvider.objectType,
+        recoverWithStatic: false,
+      );
       _needsGetterError = false;
       _needsSetterError = false;
       return _toResult();
@@ -207,7 +210,10 @@ class TypePropertyResolver {
     }
   }
 
-  void _lookupInterfaceType(InterfaceType type) {
+  void _lookupInterfaceType(
+    InterfaceType type, {
+    bool recoverWithStatic = true,
+  }) {
     var isSuper = _receiver is SuperExpression;
 
     var getterName = Name(_definingLibrary.source.uri, _name);
@@ -215,7 +221,7 @@ class TypePropertyResolver {
         _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
     _needsGetterError = _getterRequested == null;
 
-    if (_getterRequested == null) {
+    if (_getterRequested == null && recoverWithStatic) {
       var classElement = type.element as AbstractClassElementImpl;
       _getterRecovery ??=
           classElement.lookupStaticGetter(_name, _definingLibrary) ??
@@ -228,7 +234,7 @@ class TypePropertyResolver {
         _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
     _needsSetterError = _setterRequested == null;
 
-    if (_setterRequested == null) {
+    if (_setterRequested == null && recoverWithStatic) {
       var classElement = type.element as AbstractClassElementImpl;
       _setterRecovery ??=
           classElement.lookupStaticSetter(_name, _definingLibrary);
