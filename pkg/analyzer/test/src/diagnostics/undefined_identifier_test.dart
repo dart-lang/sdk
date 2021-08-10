@@ -11,13 +11,38 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedIdentifierTest);
-    defineReflectiveTests(UndefinedIdentifierWithNullSafetyTest);
+    defineReflectiveTests(UndefinedIdentifierWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class UndefinedIdentifierTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with UndefinedIdentifierTestCases {
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
+  test_get_from_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+int f() => x;
+''');
+  }
+
+  test_set_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+void f(int value) {
+  x = value;
+}
+''');
+  }
+}
+
+mixin UndefinedIdentifierTestCases on PubPackageResolutionTest {
   test_annotation_favors_scope_resolution_over_this_resolution_class() async {
     // If an annotation on a class type parameter cannot be resolved using the
     // normal scope resolution mechanism, it is resolved via implicit `this`.
@@ -397,28 +422,5 @@ void f(int p) {
 }
 
 @reflectiveTest
-class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
-    with WithNullSafetyMixin {
-  test_get_from_external_variable_final_valid() async {
-    await assertNoErrorsInCode('''
-external final int x;
-int f() => x;
-''');
-  }
-
-  test_get_from_external_variable_valid() async {
-    await assertNoErrorsInCode('''
-external int x;
-int f() => x;
-''');
-  }
-
-  test_set_external_variable_valid() async {
-    await assertNoErrorsInCode('''
-external int x;
-void f(int value) {
-  x = value;
-}
-''');
-  }
-}
+class UndefinedIdentifierWithoutNullSafetyTest extends PubPackageResolutionTest
+    with UndefinedIdentifierTestCases, WithoutNullSafetyMixin {}

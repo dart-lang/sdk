@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class NullSafetyExperimentGlobalTest extends _FeaturesTest
-    with WithNullSafetyMixin {
+class NullSafetyExperimentGlobalTest extends _FeaturesTest {
   test_jsonConfig_legacyContext_nonNullDependency() async {
     _configureTestWithJsonConfig('''
 {

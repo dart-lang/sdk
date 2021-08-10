@@ -10,18 +10,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinSuperClassConstraintNonInterfaceTest);
-    defineReflectiveTests(
-        MixinSuperClassConstraintNonInterfaceWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MixinSuperClassConstraintNonInterfaceTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {}
-
-@reflectiveTest
-class MixinSuperClassConstraintNonInterfaceWithNullSafetyTest
-    extends MixinSuperClassConstraintNonInterfaceTest with WithNullSafetyMixin {
+class MixinSuperClassConstraintNonInterfaceTest
+    extends PubPackageResolutionTest {
   test_Never() async {
     await assertErrorsInCode('''
 mixin M on Never {}
