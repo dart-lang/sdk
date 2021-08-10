@@ -693,7 +693,7 @@ class LibraryAnalyzer {
       ),
     );
 
-    unit.accept(VariableResolverVisitor(
+    unit.accept(ScopeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryElement.scope));
 

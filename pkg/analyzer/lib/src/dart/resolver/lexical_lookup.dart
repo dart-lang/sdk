@@ -2,94 +2,55 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
+/// Class containing static methods for performing lexical resolution of
+/// identifiers.
 class LexicalLookup {
-  final ResolverVisitor _resolver;
+  /// Do not construct
+  LexicalLookup._() {
+    assert(false, 'Do not construct instances of LexicalLookup');
+  }
 
-  LexicalLookup(this._resolver);
+  /// Interprets the result of a scope lookup, assuming we are trying to look up
+  /// a getter.  If a matching element is found, a [LexicalLookupResult] is
+  /// returned.  Otherwise `null` is returned.
+  static LexicalLookupResult? resolveGetter(ScopeLookupResult scopeResult) {
+    var scopeGetter = scopeResult.getter;
+    var scopeSetter = scopeResult.setter;
+    if (scopeGetter != null || scopeSetter != null) {
+      if (scopeGetter != null) {
+        return LexicalLookupResult(requested: scopeGetter);
+      }
+      if (scopeSetter != null && !scopeSetter.isInstanceMember) {
+        return LexicalLookupResult(recovery: scopeSetter);
+      }
+    }
 
-  LexicalLookupResult perform({
-    required SimpleIdentifier node,
-    required bool setter,
-  }) {
-    var id = node.name;
-    var scopeResult = _resolver.nameScope.lookup(id);
+    return null;
+  }
+
+  /// Interprets the result of a scope lookup, assuming we are trying to look up
+  /// a setter.  If a matching element is found, a [LexicalLookupResult] is
+  /// returned.  Otherwise `null` is returned.
+  static LexicalLookupResult? resolveSetter(ScopeLookupResult scopeResult) {
     var scopeGetter = scopeResult.getter;
     var scopeSetter = scopeResult.setter;
     if (scopeGetter != null || scopeSetter != null) {
       if (scopeGetter is VariableElement) {
         return LexicalLookupResult(requested: scopeGetter);
       }
-      if (setter) {
-        if (scopeSetter != null) {
-          return LexicalLookupResult(
-            requested: _resolver.toLegacyElement(scopeSetter),
-          );
-        }
-        if (scopeGetter != null && !scopeGetter.isInstanceMember) {
-          return LexicalLookupResult(
-            recovery: _resolver.toLegacyElement(scopeGetter),
-          );
-        }
-      } else {
-        if (scopeGetter != null) {
-          return LexicalLookupResult(
-            requested: _resolver.toLegacyElement(scopeGetter),
-          );
-        }
-        if (scopeSetter != null && !scopeSetter.isInstanceMember) {
-          return LexicalLookupResult(
-            recovery: _resolver.toLegacyElement(scopeSetter),
-          );
-        }
+      if (scopeSetter != null) {
+        return LexicalLookupResult(requested: scopeSetter);
+      }
+      if (scopeGetter != null && !scopeGetter.isInstanceMember) {
+        return LexicalLookupResult(recovery: scopeGetter);
       }
     }
 
-    var thisType = _resolver.thisType;
-    if (thisType == null) {
-      var recoveryElement = setter ? scopeGetter : scopeGetter;
-      return LexicalLookupResult(
-        recovery: _resolver.toLegacyElement(recoveryElement),
-      );
-    }
-
-    var propertyResult = _resolver.typePropertyResolver.resolve(
-      receiver: null,
-      receiverType: thisType,
-      name: id,
-      propertyErrorEntity: node,
-      nameErrorEntity: node,
-    );
-
-    if (setter) {
-      var setterElement = propertyResult.setter;
-      if (setterElement != null) {
-        return LexicalLookupResult(
-          requested: _resolver.toLegacyElement(setterElement),
-        );
-      } else {
-        var recoveryElement = scopeGetter ?? propertyResult.getter;
-        return LexicalLookupResult(
-          recovery: _resolver.toLegacyElement(recoveryElement),
-        );
-      }
-    } else {
-      var getterElement = propertyResult.getter;
-      if (getterElement != null) {
-        return LexicalLookupResult(
-          requested: _resolver.toLegacyElement(getterElement),
-        );
-      } else {
-        var recoveryElement = scopeSetter ?? propertyResult.setter;
-        return LexicalLookupResult(
-          recovery: _resolver.toLegacyElement(recoveryElement),
-        );
-      }
-    }
+    return null;
   }
 }
 
