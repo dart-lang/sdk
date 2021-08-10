@@ -141,10 +141,6 @@ class Zone {
   template <class ElementType>
   static inline void CheckLength(intptr_t len);
 
-  // Guard against `new (zone) DoesNotExtendZoneAllocated()`.
-  static constexpr uint64_t kCanary = 0x656e6f7a74726164ull;  // "dartzone"
-  uint64_t canary_;
-
   // The free region in the current (head) segment or the initial buffer is
   // represented as the half-open interval [position, limit). The 'position'
   // variable is guaranteed to be aligned as dictated by kAlignment.
