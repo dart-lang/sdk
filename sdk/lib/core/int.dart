@@ -37,6 +37,11 @@ abstract class int extends num {
   /// must be consistent across all calls to [String.fromEnvironment],
   /// `int.fromEnvironment`, [bool.fromEnvironment] and [bool.hasEnvironment]
   /// in a single program.
+  ///
+  /// This constructor is only guaranteed to work when invoked as `const`.
+  /// It may work as a non-constant invocation on some platforms which
+  /// have access to compiler options at run-time, but most ahead-of-time
+  /// compiled platforms will not have this information.
   // The .fromEnvironment() constructors are special in that we do not want
   // users to call them using "new". We prohibit that by giving them bodies
   // that throw, even though const constructors are not allowed to have bodies.
