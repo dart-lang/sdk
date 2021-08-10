@@ -101,17 +101,6 @@ DEFINE_NATIVE_ENTRY(Double_hashCode, 0, 1) {
   return Smi::New(((uval >> 32) ^ (uval)) & kSmiMax);
 }
 
-DEFINE_NATIVE_ENTRY(Double_trunc_div, 0, 2) {
-  double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
-  double right = right_object.value();
-  if (FLAG_trace_intrinsified_natives) {
-    OS::PrintErr("Double_trunc_div %f ~/ %f\n", left, right);
-  }
-  return DoubleToInteger(trunc(left / right),
-                         "Result of truncating division is Infinity or NaN");
-}
-
 DEFINE_NATIVE_ENTRY(Double_modulo, 0, 2) {
   double left = Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));

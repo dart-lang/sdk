@@ -49,11 +49,8 @@ class _Double implements double {
   double _mul(double other) native "Double_mul";
 
   int operator ~/(num other) {
-    return _trunc_div(other.toDouble());
+    return (this / other.toDouble()).truncate();
   }
-
-  @pragma("vm:non-nullable-result-type")
-  int _trunc_div(double other) native "Double_trunc_div";
 
   @pragma("vm:recognized", "asm-intrinsic")
   @pragma("vm:exact-result-type", _Double)
@@ -142,7 +139,7 @@ class _Double implements double {
   }
 
   int _truncDivFromInteger(int other) {
-    return new _Double.fromInteger(other)._trunc_div(this);
+    return (new _Double.fromInteger(other) / this).truncate();
   }
 
   double _moduloFromInteger(int other) {
