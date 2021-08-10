@@ -1410,6 +1410,21 @@ main() {
     assertType(findNode.binary('1 + 2'), 'int');
   }
 
+  test_hasReceiver_dynamic_hash() async {
+    await assertNoErrorsInCode(r'''
+void f(dynamic a) {
+  a.hash(0, 1);
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('hash('),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_hasReceiver_functionTyped() async {
     await assertNoErrorsInCode(r'''
 void foo(int _) {}
