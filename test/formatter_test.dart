@@ -33,7 +33,7 @@ void defineTests() {
 
       var code = TestErrorCode('mock_code', 'MSG')..type = type;
 
-      var source = MockSource()..fullName = '/foo/bar/baz.dart';
+      var source = MockSource('/foo/bar/baz.dart');
 
       var error = AnalysisError(source, 10, 3, code);
 
@@ -83,7 +83,7 @@ mock_code                               1
         ..errorSeverity = ErrorSeverity('MockErrorSeverity', 0, '', '')
         ..type = type;
 
-      var source = MockSource()..fullName = '/foo/bar/baz.dart';
+      var source = MockSource('/foo/bar/baz.dart');
 
       var error = AnalysisError(source, 12, 13, code);
 

@@ -9,7 +9,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:linter/src/analyzer.dart';
 
 class CollectingSink extends MockIOSink {
   final StringBuffer buffer = StringBuffer();
@@ -85,7 +84,7 @@ class MockIOSink implements IOSink {
   void writeln([Object? obj = '']) {}
 }
 
-class MockReporter implements Reporter {
+class MockReporter extends Reporter {
   List<LinterException> exceptions = <LinterException>[];
 
   List<String> warnings = <String>[];
@@ -103,36 +102,20 @@ class MockReporter implements Reporter {
   }
 }
 
-class MockSource implements Source {
+class MockSource extends BasicSource {
   @override
-  late TimestampedData<String> contents;
+  final String fullName;
+
+  MockSource(this.fullName) : super(Uri.file(fullName));
 
   @override
-  late String encoding;
+  TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
   @override
-  late String fullName;
+  int get modificationStamp => 0;
 
   @override
-  late bool isInSystemLibrary;
-
-  @override
-  late Source librarySource;
-
-  @override
-  late int modificationStamp;
-
-  @override
-  late String shortName;
-
-  @override
-  late Source source;
-
-  @override
-  late Uri uri;
-
-  @override
-  late UriKind uriKind;
+  UriKind get uriKind => UriKind.FILE_URI;
 
   @override
   bool exists() => false;
