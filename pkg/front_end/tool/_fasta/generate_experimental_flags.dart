@@ -164,12 +164,12 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 ''');
   for (String key in keys) {
-    bool expired = (features[key] as YamlMap)['expired'];
+    bool? expired = (features[key] as YamlMap)['expired'];
     bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${shipped},');
     if (shipped) {
       if (expired == false) {
-        throw 'Cannot mark shipped feature as "expired: false"';
+        throw 'Cannot mark shipped feature "$key" as "expired: false"';
       }
     }
   }
@@ -232,7 +232,7 @@ const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   }
   sb.write('''
 };
-  
+
 ''');
 
   Uri allowListFile = computeAllowListFile(repoDir);

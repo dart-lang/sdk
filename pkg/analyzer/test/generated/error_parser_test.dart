@@ -1698,7 +1698,6 @@ class Wrong<T> {
         errors: [
           expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 7),
           expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 7),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
         ]);
   }
 

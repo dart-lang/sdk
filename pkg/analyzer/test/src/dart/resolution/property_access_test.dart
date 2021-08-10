@@ -422,6 +422,105 @@ void f({a = b?..foo}) {}
     );
   }
 
+  test_ofDynamic_read_hash() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  (a).hash;
+}
+''');
+
+    var propertyAccess = findNode.propertyAccess('hash;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_ofDynamic_read_hashCode() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  (a).hashCode;
+}
+''');
+
+    var hashCodeElement = elementMatcher(
+      objectElement.getGetter('hashCode'),
+      isLegacy: isLegacyLibrary,
+    );
+
+    var propertyAccess = findNode.propertyAccess('hashCode;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: hashCodeElement,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: hashCodeElement,
+      type: 'int',
+    );
+  }
+
+  test_ofDynamic_read_runtimeType() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  (a).runtimeType;
+}
+''');
+
+    var runtimeTypeElement = elementMatcher(
+      objectElement.getGetter('runtimeType'),
+      isLegacy: isLegacyLibrary,
+    );
+
+    var propertyAccess = findNode.propertyAccess('runtimeType;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: runtimeTypeElement,
+      type: 'Type',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: runtimeTypeElement,
+      type: 'Type',
+    );
+  }
+
+  test_ofDynamic_read_toString() async {
+    await assertNoErrorsInCode('''
+void f(dynamic a) {
+  (a).toString;
+}
+''');
+
+    var toStringElement = elementMatcher(
+      objectElement.getMethod('toString'),
+      isLegacy: isLegacyLibrary,
+    );
+
+    var propertyAccess = findNode.propertyAccess('toString;');
+    assertPropertyAccess2(
+      propertyAccess,
+      element: toStringElement,
+      type: 'String Function()',
+    );
+
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      element: toStringElement,
+      type: 'String Function()',
+    );
+  }
+
   test_ofExtension_read() async {
     await assertNoErrorsInCode('''
 class A {}

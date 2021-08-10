@@ -60,8 +60,9 @@ CallSiteResetter::CallSiteResetter(Zone* zone)
       ic_data_(ICData::Handle(zone)) {}
 
 void CallSiteResetter::ResetCaches(const Code& code) {
-  // Iterate over the Code's object pool and reset all ICDatas and
-  // SubtypeTestCaches.
+  // Iterate over the Code's object pool and reset all ICDatas.
+  // SubtypeTestCaches are reset during the same heap traversal as type
+  // testing stub deoptimization.
 #ifdef TARGET_ARCH_IA32
   // IA32 does not have an object pool, but, we can iterate over all
   // embedded objects by using the variable length data section.
@@ -83,8 +84,6 @@ void CallSiteResetter::ResetCaches(const Code& code) {
     object_ = raw_object;
     if (object_.IsICData()) {
       Reset(ICData::Cast(object_));
-    } else if (object_.IsSubtypeTestCache()) {
-      SubtypeTestCache::Cast(object_).Reset();
     }
   }
 #else
@@ -186,8 +185,6 @@ void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
     object_ = pool.ObjectAt(i);
     if (object_.IsICData()) {
       Reset(ICData::Cast(object_));
-    } else if (object_.IsSubtypeTestCache()) {
-      SubtypeTestCache::Cast(object_).Reset();
     }
   }
 }

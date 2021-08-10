@@ -18335,6 +18335,32 @@ void SubtypeTestCache::Reset() const {
   set_cache(Array::Handle(cached_array_));
 }
 
+bool SubtypeTestCache::Equals(const SubtypeTestCache& other) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  if (ptr() == other.ptr()) {
+    return true;
+  }
+  return Array::Handle(cache()).Equals(Array::Handle(other.cache()));
+}
+
+SubtypeTestCachePtr SubtypeTestCache::Copy(Thread* thread) const {
+  ASSERT(thread->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  if (IsNull()) {
+    return SubtypeTestCache::null();
+  }
+  Zone* const zone = thread->zone();
+  const auto& result = SubtypeTestCache::Handle(zone, SubtypeTestCache::New());
+  // STC caches are copied on write, so no need to copy the array.
+  const auto& entry_cache = Array::Handle(zone, cache());
+  result.set_cache(entry_cache);
+  return result.ptr();
+}
+
 const char* SubtypeTestCache::ToCString() const {
   auto const zone = Thread::Current()->zone();
   ZoneTextBuffer buffer(zone);

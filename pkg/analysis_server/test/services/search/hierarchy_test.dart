@@ -363,7 +363,10 @@ class B extends A {
             'toString',
             'hashCode',
             'noSuchMethod',
-            'runtimeType'
+            'runtimeType',
+            'hash',
+            'hashAll',
+            'hashAllUnordered',
           ]));
     }
     {
@@ -380,7 +383,10 @@ class B extends A {
             'toString',
             'hashCode',
             'noSuchMethod',
-            'runtimeType'
+            'runtimeType',
+            'hash',
+            'hashAll',
+            'hashAllUnordered',
           ]));
     }
   }
