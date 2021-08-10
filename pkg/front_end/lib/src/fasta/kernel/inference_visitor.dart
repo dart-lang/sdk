@@ -4787,11 +4787,13 @@ class InferenceVisitor
             !isThisReceiver) {
           Member interfaceMember = readTarget.member!;
           if (interfaceMember is Procedure) {
+            DartType typeToCheck = inferrer.isNonNullableByDefault
+                ? interfaceMember.function
+                    .computeFunctionType(inferrer.library.nonNullable)
+                : interfaceMember.function.returnType;
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass!,
-                    interfaceMember.function
-                        .computeFunctionType(inferrer.library.nonNullable));
+                    interfaceMember.enclosingClass!, typeToCheck);
           } else if (interfaceMember is Field) {
             checkReturn =
                 TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
