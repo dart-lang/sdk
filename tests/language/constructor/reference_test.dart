@@ -98,6 +98,8 @@ main() {
   // ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   //       ^
   // [cfe] Getter not found: 'bar'.
   Foo.bar<int>();

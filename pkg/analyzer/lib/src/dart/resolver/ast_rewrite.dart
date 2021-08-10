@@ -165,7 +165,8 @@ class AstRewriter {
       // Example:
       //     class C { C.named(); }
       //     C.named
-      return _toConstructorReference(node: node, classElement: element);
+      return _toConstructorReference_prefixed(
+          node: node, classElement: element);
     } else if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
@@ -173,10 +174,95 @@ class AstRewriter {
         //     class C { C.named(); }
         //     typedef X = C;
         //     X.named
-        return _toConstructorReference(
+        return _toConstructorReference_prefixed(
             node: node, classElement: aliasedType.element);
       }
     }
+    return node;
+  }
+
+  AstNode propertyAccess(Scope nameScope, PropertyAccess node) {
+    if (node.isCascaded) {
+      // For example, `List..filled`: this is a property access on an instance
+      // `Type`.
+      return node;
+    }
+    var receiver = node.target!;
+    if (receiver is! FunctionReference) {
+      return node;
+    }
+    var propertyName = node.propertyName;
+    if (propertyName.isSynthetic) {
+      // This isn't a constructor reference.
+      return node;
+    }
+    // A [ConstructorReference] with explicit type arguments is initially parsed
+    // as a [PropertyAccess] with a [FunctionReference] target; for example:
+    // `List<int>.filled` or `core.List<int>.filled`.
+    var receiverIdentifier = receiver.function;
+    if (receiverIdentifier is! Identifier) {
+      // If [receiverIdentifier] is not an Identifier then [node] is not a
+      // ConstructorReference.
+      return node;
+    }
+
+    Element? element;
+    if (receiverIdentifier is SimpleIdentifier) {
+      element = nameScope.lookup(receiverIdentifier.name).getter;
+    } else if (receiverIdentifier is PrefixedIdentifier) {
+      var prefixElement =
+          nameScope.lookup(receiverIdentifier.prefix.name).getter;
+      if (prefixElement is PrefixElement) {
+        element = prefixElement.scope
+            .lookup(receiverIdentifier.identifier.name)
+            .getter;
+      } else {
+        // This expression is something like `foo.List<int>.filled` where `foo`
+        // is not an import prefix.
+        // TODO(srawlins): Tease out a `null` prefixElement from others for
+        // specific errors.
+        return node;
+      }
+    }
+
+    if (element is ClassElement) {
+      // Example:
+      //     class C<T> { C.named(); }
+      //     C<int>.named
+      return _toConstructorReference_propertyAccess(
+        node: node,
+        receiver: receiverIdentifier,
+        typeArguments: receiver.typeArguments!,
+        classElement: element,
+      );
+    } else if (element is TypeAliasElement) {
+      var aliasedType = element.aliasedType;
+      if (aliasedType is InterfaceType) {
+        // Example:
+        //     class C<T> { C.named(); }
+        //     typedef X<T> = C<T>;
+        //     X<int>.named
+        return _toConstructorReference_propertyAccess(
+          node: node,
+          receiver: receiverIdentifier,
+          typeArguments: receiver.typeArguments!,
+          classElement: aliasedType.element,
+        );
+      }
+    }
+
+    // If [receiverIdentifier] is an Identifier, but could not be resolved to
+    // an Element, we cannot assume [node] is a ConstructorReference.
+    //
+    // TODO(srawlins): However, take an example like `Lisst<int>.filled;`
+    // (where 'Lisst' does not resolve to any element). Possibilities include:
+    // the user tried to write a TypeLiteral or a FunctionReference, then access
+    // a property on that (these include: hashCode, runtimeType, tearoff of
+    // toString, and extension methods on Type); or the user tried to write a
+    // ConstructReference. It seems much more likely that the user is trying to
+    // do the latter. Consider doing the work so that the user gets an error in
+    // this case about `Lisst` not being a type, or `Lisst.filled` not being a
+    // known constructor.
     return node;
   }
 
@@ -210,7 +296,7 @@ class AstRewriter {
     return instanceCreationExpression;
   }
 
-  AstNode _toConstructorReference(
+  AstNode _toConstructorReference_prefixed(
       {required PrefixedIdentifier node, required ClassElement classElement}) {
     var name = node.identifier.name;
     var constructorElement = name == 'new'
@@ -223,6 +309,31 @@ class AstRewriter {
     var typeName = astFactory.typeName(node.prefix, null);
     var constructorName =
         astFactory.constructorName(typeName, node.period, node.identifier);
+    var constructorReference =
+        astFactory.constructorReference(constructorName: constructorName);
+    NodeReplacer.replace(node, constructorReference);
+    return constructorReference;
+  }
+
+  AstNode _toConstructorReference_propertyAccess({
+    required PropertyAccess node,
+    required Identifier receiver,
+    required TypeArgumentList typeArguments,
+    required ClassElement classElement,
+  }) {
+    var name = node.propertyName.name;
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
+    if (constructorElement == null) {
+      return node;
+    }
+
+    var operator = node.operator;
+
+    var typeName = astFactory.typeName(receiver, typeArguments);
+    var constructorName =
+        astFactory.constructorName(typeName, operator, node.propertyName);
     var constructorReference =
         astFactory.constructorReference(constructorName: constructorName);
     NodeReplacer.replace(node, constructorReference);

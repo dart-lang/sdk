@@ -17,7 +17,10 @@ class ConstructorReferenceResolver {
   ConstructorReferenceResolver(this._resolver);
 
   void resolve(ConstructorReferenceImpl node) {
-    if (!_resolver.isConstructorTearoffsEnabled) {
+    if (!_resolver.isConstructorTearoffsEnabled &&
+        node.constructorName.type.typeArguments == null) {
+      // Only report this if [node] has no explicit type arguments; otherwise
+      // the parser has already reported an error.
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.CONSTRUCTOR_TEAROFFS_NOT_ENABLED, node, []);
     }
