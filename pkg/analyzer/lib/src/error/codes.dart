@@ -5208,6 +5208,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "type, or using 'dynamic' as the type argument here.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC = CompileTimeErrorCode(
+    'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
+    "A method tearoff on a target whose type is 'dynamic' can't have type "
+        "arguments.",
+    correction:
+        "Specify the type of the target, or remove the type arguments from the "
+        "method tearoff.",
+  );
+
+  /**
    * 10.3 Setters: It is a compile-time error if a class has a setter named
    * `v=` with argument type `T` and a getter named `v` with return type `S`,
    * and `S` may not be assigned to `T`.
