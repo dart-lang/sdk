@@ -859,6 +859,7 @@ class Object {
   friend void UntaggedObject::Validate(IsolateGroup* isolate_group) const;
   friend class Closure;
   friend class InstanceDeserializationCluster;
+  friend class Simd128MessageDeserializationCluster;
   friend class OneByteString;
   friend class TwoByteString;
   friend class ExternalOneByteString;
