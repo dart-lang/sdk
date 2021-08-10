@@ -13,7 +13,7 @@ static method main() → void {
         final _in::JSArray<core::int*> _list = _in::JSArray::allocateGrowable<core::int*>(_length);
         for (core::int i = 0; i.{core::num::<}(_length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::int) →* core::int}) {
           core::int* i = i;
-          _list.{_in::JSArray::[]=}(i, i.{core::num::+}(1){(core::num*) →* core::int*}){(core::int, core::int*) → void};
+          _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i.{core::num::+}(1){(core::num*) →* core::int*}){(core::int, core::int*) → void};
         }
       } =>_list){(core::int, core::List<core::int*>*) → void};
     }

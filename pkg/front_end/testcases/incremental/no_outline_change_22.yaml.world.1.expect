@@ -304,7 +304,7 @@ library from "org-dartlang-test:///main.dart" as main {
     operator /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ +(generic-covariant-impl dart.core::List<dart.core::int*> other) → dart.core::List<dart.core::int*>
       return block {
         final dart.core::List<dart.core::int*> #t5 = dart.core::List::of<dart.core::int*>(this);
-        #t5.{dart.core::List::addAll}(other){(dart.core::Iterable<dart.core::int*>) → void};
+        #t5.{dart.core::List::addAll}{Invariant}(other){(dart.core::Iterable<dart.core::int*>) → void};
       } =>#t5;
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(dart.core::int start, [dart.core::int? end = #C2]) → dart.core::List<dart.core::int*> {
       dart.core::int listLength = this.{dart.core::List::length}{dart.core::int};
