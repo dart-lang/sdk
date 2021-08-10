@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:dds/src/dap/protocol_generated.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -61,7 +60,6 @@ void main(List<String> args) async {
       // request and capture the args.
       RunInTerminalRequestArguments? runInTerminalArgs;
       Process? proc;
-      var processExited = false;
       dap.client.handleRequest(
         'runInTerminal',
         (args) async {
@@ -78,7 +76,6 @@ void main(List<String> args) async {
             runArgs.args.skip(1).toList(),
             workingDirectory: runArgs.cwd,
           );
-          unawaited(proc!.exitCode.then((_) => processExited = true));
 
           return RunInTerminalResponseBody(processId: proc!.pid);
         },
@@ -98,7 +95,7 @@ void main(List<String> args) async {
         containsAllInOrder([Platform.resolvedExecutable, testFile.path]),
       );
       expect(proc!.pid, isPositive);
-      expect(processExited, isTrue);
+      expect(proc!.exitCode, completes);
     });
 
     test('provides a list of threads', () async {

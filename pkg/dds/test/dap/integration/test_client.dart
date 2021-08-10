@@ -391,6 +391,7 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
+    String? condition,
     Future<Response> Function()? launch,
   }) async {
     final stop = expectStop('breakpoint', file: file, line: line);
@@ -400,7 +401,7 @@ extension DapTestClientExtension on DapTestClient {
       sendRequest(
         SetBreakpointsArguments(
           source: Source(path: file.path),
-          breakpoints: [SourceBreakpoint(line: line)],
+          breakpoints: [SourceBreakpoint(line: line, condition: condition)],
         ),
       ),
       launch?.call() ?? this.launch(file.path),
@@ -432,6 +433,30 @@ extension DapTestClientExtension on DapTestClient {
     ], eagerError: true);
 
     return stop;
+  }
+
+  /// Sets a breakpoint at [line] in [file] and expects _not_ to hit it after
+  /// running the script (instead the script is expected to terminate).
+  ///
+  /// Launch options can be customised by passing a custom [launch] function that
+  /// will be used instead of calling `launch(file.path)`.
+  Future<void> doNotHitBreakpoint(
+    File file,
+    int line, {
+    String? condition,
+    Future<Response> Function()? launch,
+  }) async {
+    await Future.wait([
+      event('terminated'),
+      initialize(),
+      sendRequest(
+        SetBreakpointsArguments(
+          source: Source(path: file.path),
+          breakpoints: [SourceBreakpoint(line: line, condition: condition)],
+        ),
+      ),
+      launch?.call() ?? this.launch(file.path),
+    ], eagerError: true);
   }
 
   /// Returns whether DDS is available for the VM Service the debug adapter

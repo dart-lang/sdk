@@ -546,11 +546,11 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         ),
       ],
       supportsClipboardContext: true,
-      // TODO(dantup): All of these...
-      // supportsConditionalBreakpoints: true,
+      supportsConditionalBreakpoints: true,
       supportsConfigurationDoneRequest: true,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
+      // TODO(dantup): All of these...
       // supportsLogPoints: true,
       // supportsRestartFrame: true,
       supportsTerminateRequest: true,
