@@ -357,6 +357,18 @@ class ProtocolConverter {
       }
     }
 
+    // If a source would be considered not-debuggable (for example it's in the
+    // SDK and debugSdkLibraries=false) then we should also mark it as
+    // deemphasized so that the editor can jump up the stack to the first frame
+    // of debuggable code.
+    final isDebuggable = uri != null && _adapter.libaryIsDebuggable(uri);
+    final presentationHint = isDebuggable ? null : 'deemphasize';
+    final origin = uri != null && _adapter.isSdkLibrary(uri)
+        ? 'from the SDK'
+        : uri != null && _adapter.isExternalPackageLibrary(uri)
+            ? 'from external packages'
+            : null;
+
     final source = canShowSource
         ? dap.Source(
             name: uriIsPackage
@@ -366,8 +378,10 @@ class ProtocolConverter {
                     : uri?.toString() ?? '<unknown source>',
             path: sourcePath,
             sourceReference: sourceReference,
-            origin: null,
-            adapterData: location.script)
+            origin: origin,
+            adapterData: location.script,
+            presentationHint: presentationHint,
+          )
         : null;
 
     // The VM only allows us to restart from frames that are not the top frame,

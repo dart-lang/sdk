@@ -7,6 +7,43 @@ const emptyProgram = '''
   void main(List<String> args) {}
 ''';
 
+/// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
+/// will contain SDK frames in the call stack.
+const sdkStackFrameProgram = r'''
+  void main() {
+    [0].where((i) {
+      return i == 0; // BREAKPOINT
+    }).toList();
+  }
+''';
+
+/// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
+/// will contain multiple stack frames across some async boundaries.
+const simpleAsyncProgram = r'''
+  import 'dart:async';
+
+  Future<void> main() async {
+    await one();
+  }
+
+  Future<void> one() async {
+    await two();
+  }
+
+  Future<void> two() async {
+    await three();
+  }
+
+  Future<void> three() async {
+    await Future.delayed(const Duration(microseconds: 1));
+    four();
+  }
+
+  void four() {
+    print('!'); // BREAKPOINT
+  }
+''';
+
 /// A simple Dart script that should run with no errors and contains a comment
 /// marker '// BREAKPOINT' for use in tests that require stopping at a breakpoint
 /// but require no other context.
