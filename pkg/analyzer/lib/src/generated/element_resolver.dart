@@ -115,11 +115,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   @override
-  void visitBreakStatement(covariant BreakStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -273,11 +268,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
 //        // This is part of a redirecting factory constructor; not sure which error code to use
 //      }
     }
-  }
-
-  @override
-  void visitContinueStatement(covariant ContinueStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
   }
 
   @override
@@ -535,46 +525,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// Return the target of a break or continue statement, and update the static
-  /// element of its label (if any). The [parentNode] is the AST node of the
-  /// break or continue statement. The [labelNode] is the label contained in
-  /// that statement (if any). The flag [isContinue] is `true` if the node being
-  /// visited is a continue statement.
-  AstNode? _lookupBreakOrContinueTarget(
-      AstNode parentNode, SimpleIdentifierImpl? labelNode, bool isContinue) {
-    if (labelNode == null) {
-      return _resolver.implicitLabelScope.getTarget(isContinue);
-    } else {
-      var labelScope = _resolver.labelScope;
-      if (labelScope == null) {
-        // There are no labels in scope, so by definition the label is
-        // undefined.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
-        return null;
-      }
-      var definingScope = labelScope.lookup(labelNode.name);
-      if (definingScope == null) {
-        // No definition of the given label name could be found in any
-        // enclosing scope.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, [labelNode.name]);
-        return null;
-      }
-      // The target has been found.
-      labelNode.staticElement = definingScope.element;
-      ExecutableElement? labelContainer =
-          definingScope.element.thisOrAncestorOfType();
-      if (!identical(labelContainer, _resolver.enclosingFunction)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
-            labelNode,
-            [labelNode.name]);
-      }
-      return definingScope.node;
-    }
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
