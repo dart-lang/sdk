@@ -2314,6 +2314,12 @@ class ICData : public CallSiteData {
   // Generates a new ICData with descriptor and data array copied (deep clone).
   static ICDataPtr Clone(const ICData& from);
 
+  // Gets the [ICData] from the [ICData::entries_] array (which stores a back
+  // ref).
+  //
+  // May return `null` if the [ICData] is empty.
+  static ICDataPtr ICDataOfEntriesArray(const Array& array);
+
   static intptr_t TestEntryLengthFor(intptr_t num_args,
                                      bool tracking_exactness);
 
@@ -2473,7 +2479,9 @@ class ICData : public CallSiteData {
                                  RebindRule rebind_rule,
                                  const AbstractType& receiver_type);
 
-  static void WriteSentinel(const Array& data, intptr_t test_entry_length);
+  static void WriteSentinel(const Array& data,
+                            intptr_t test_entry_length,
+                            const Object& back_ref);
 
   // A cache of VM heap allocated preinitialized empty ic data entry arrays.
   static ArrayPtr cached_icdata_arrays_[kCachedICDataArrayCount];
