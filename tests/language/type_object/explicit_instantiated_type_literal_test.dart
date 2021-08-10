@@ -45,9 +45,7 @@ void main() {
   Expect.identical(C<int>, prefix.C<int>);
 
   (<T extends num>() {
-    Expect.notIdentical(C<T>, C<T>);
     Expect.equals(C<T>, C<T>);
-    Expect.notIdentical(prefix.C<T>, prefix.C<T>);
     Expect.equals(prefix.C<T>, prefix.C<T>);
   }<int>());
 }
