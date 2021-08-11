@@ -158,6 +158,32 @@ class InferenceContext {
   }
 }
 
+/// Base class for visitors that perform resolution.  This class keeps track of
+/// some of the basic information that is needed by resolution stages, such as
+/// the defining library and the error reporter.
+abstract class ResolverBase extends UnifyingAstVisitor<void> {
+  /// The element for the library containing the compilation unit being visited.
+  final LibraryElementImpl definingLibrary;
+
+  /// The source representing the compilation unit being visited.
+  final Source source;
+
+  /// The object used to access the types from the core library.
+  final TypeProviderImpl typeProvider;
+
+  /// The error reporter that will be informed of any errors that are found
+  /// during resolution.
+  final ErrorReporter errorReporter;
+
+  ResolverBase(this.definingLibrary, this.source, this.typeProvider,
+      AnalysisErrorListener errorListener)
+      : errorReporter = ErrorReporter(
+          errorListener,
+          source,
+          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
+        );
+}
+
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
 class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
@@ -2344,21 +2370,8 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 
 /// The abstract class `ScopedVisitor` maintains name and label scopes as an AST
 /// structure is being visited.
-abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
+abstract class ScopedVisitor extends ResolverBase {
   static const _nameScopeProperty = 'nameScope';
-
-  /// The element for the library containing the compilation unit being visited.
-  final LibraryElementImpl definingLibrary;
-
-  /// The source representing the compilation unit being visited.
-  final Source source;
-
-  /// The object used to access the types from the core library.
-  final TypeProviderImpl typeProvider;
-
-  /// The error reporter that will be informed of any errors that are found
-  /// during resolution.
-  final ErrorReporter errorReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -2383,16 +2396,11 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
-  ScopedVisitor(this.definingLibrary, Source source, this.typeProvider,
-      AnalysisErrorListener errorListener,
+  ScopedVisitor(LibraryElementImpl definingLibrary, Source source,
+      TypeProviderImpl typeProvider, AnalysisErrorListener errorListener,
       {Scope? nameScope})
-      : source = source,
-        errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        ),
-        nameScope = nameScope ?? LibraryScope(definingLibrary);
+      : nameScope = nameScope ?? LibraryScope(definingLibrary),
+        super(definingLibrary, source, typeProvider, errorListener);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
