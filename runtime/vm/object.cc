@@ -15774,12 +15774,15 @@ intptr_t ICData::NumberOfUsedChecks() const {
   return count;
 }
 
-void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
+void ICData::WriteSentinel(const Array& data,
+                           intptr_t test_entry_length,
+                           const Object& back_ref) {
   ASSERT(!data.IsNull());
   RELEASE_ASSERT(smi_illegal_cid().Value() == kIllegalCid);
-  for (intptr_t i = 1; i <= test_entry_length; i++) {
+  for (intptr_t i = 2; i <= test_entry_length; i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
+  data.SetAt(data.Length() - 1, back_ref);
 }
 
 #if defined(DEBUG)
@@ -15824,6 +15827,11 @@ void ICData::WriteSentinelAt(intptr_t index,
   const intptr_t end = start + TestEntryLength();
   for (intptr_t i = start; i < end; i++) {
     data.SetAt(i, smi_illegal_cid());
+  }
+  // The last slot in the last entry of the [ICData::entries_] is a back-ref to
+  // the [ICData] itself.
+  if (index == (len - 1)) {
+    data.SetAt(end - 1, *this);
   }
 }
 
@@ -15985,7 +15993,7 @@ ArrayPtr ICData::Grow(intptr_t* index) const {
   // Grow the array and write the new final sentinel into place.
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
-  WriteSentinel(data, TestEntryLength());
+  WriteSentinel(data, TestEntryLength(), *this);
   return data.ptr();
 }
 
@@ -16113,7 +16121,8 @@ bool ICData::IsSentinelAt(intptr_t index) const {
   data = entries();
   const intptr_t entry_length = TestEntryLength();
   intptr_t data_pos = index * TestEntryLength();
-  for (intptr_t i = 0; i < entry_length; i++) {
+  const intptr_t kBackRefLen = (index == (Length() - 1)) ? 1 : 0;
+  for (intptr_t i = 0; i < entry_length - kBackRefLen; i++) {
     if (data.At(data_pos++) != smi_illegal_cid().ptr()) {
       return false;
     }
@@ -16349,7 +16358,7 @@ ICDataPtr ICData::AsUnaryClassChecksSortedByCount() const {
 
     pos += result.TestEntryLength();
   }
-  WriteSentinel(data, result.TestEntryLength());
+  WriteSentinel(data, result.TestEntryLength(), result);
   result.set_entries(data);
   ASSERT(result.NumberOfChecksIs(aggregate.length()));
   return result.ptr();
@@ -16419,7 +16428,8 @@ ArrayPtr ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
   // IC data array must be null terminated (sentinel entry).
   const intptr_t len = TestEntryLengthFor(num_args_tested, tracking_exactness);
   const Array& array = Array::Handle(Array::New(len, Heap::kOld));
-  WriteSentinel(array, len);
+  // Only empty [ICData]s are allowed to have a non-ICData backref.
+  WriteSentinel(array, len, /*back_ref=*/smi_illegal_cid());
   array.MakeImmutable();
   return array.ptr();
 }
@@ -16548,7 +16558,7 @@ ICDataPtr ICData::NewWithCheck(const Function& owner,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   array.SetAt(CountIndexFor(num_args_tested), Object::smi_zero());
 #endif
-  WriteSentinel(array, entry_len);
+  WriteSentinel(array, entry_len, result);
 
   result.set_entries(array);
 
@@ -16631,6 +16641,26 @@ ICDataPtr ICData::Clone(const ICData& from) {
   return result.ptr();
 }
 #endif
+
+ICDataPtr ICData::ICDataOfEntriesArray(const Array& array) {
+  const auto& back_ref = Object::Handle(array.At(array.Length() - 1));
+  if (back_ref.ptr() == smi_illegal_cid().ptr()) {
+    // The ICData must be empty.
+#if defined(DEBUG)
+    const int kMaxTestEntryLen = TestEntryLengthFor(2, true);
+    ASSERT(array.Length() <= kMaxTestEntryLen);
+    for (intptr_t i = 0; i < array.Length(); ++i) {
+      ASSERT(array.At(i) == Object::sentinel().ptr());
+    }
+#endif
+    return ICData::null();
+  }
+  const auto& ic_data = ICData::Cast(back_ref);
+#if defined(DEBUG)
+  ic_data.IsSentinelAt(ic_data.Length() - 1);
+#endif
+  return ic_data.ptr();
+}
 
 const char* WeakSerializationReference::ToCString() const {
   return Object::Handle(target()).ToCString();

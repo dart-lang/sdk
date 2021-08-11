@@ -95,7 +95,8 @@ def GenerateFromDatabase(common_database,
                          dart2js_output_dir,
                          update_dom_metadata=False,
                          logging_level=logging.WARNING,
-                         dart_js_interop=False):
+                         dart_js_interop=False,
+                         generate_static_extensions=False):
     print('\n ----- Accessing DOM using %s -----\n' %
           ('dart:js' if dart_js_interop else 'C++'))
 
@@ -167,8 +168,9 @@ def GenerateFromDatabase(common_database,
         backend_options = GeneratorOptions(template_loader, webkit_database,
                                            type_registry, renamer, metadata,
                                            dart_js_interop)
+
         backend_factory = lambda interface:\
-            Dart2JSBackend(interface, backend_options, logging_level)
+            Dart2JSBackend(interface, backend_options, logging_level, generate_static_extensions)
 
         dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
         dart_libraries = DartLibraries(HTML_LIBRARY_NAMES, template_loader,
@@ -306,6 +308,12 @@ def main():
         action='store_true',
         default=False,
         help='Do not generate the sdk/lib/js/cached_patches.dart file')
+    parser.add_option(
+        '--generate-static-extensions',
+        dest='generate_static_extensions',
+        action='store_true',
+        default=False,
+        help='Generate static extension members for dart:html classes')
 
     (options, args) = parser.parse_args()
 
@@ -337,7 +345,8 @@ def main():
 
     GenerateFromDatabase(database, dart2js_output_dir,
                          options.update_dom_metadata, logging_level,
-                         options.dart_js_interop)
+                         options.dart_js_interop,
+                         options.generate_static_extensions)
 
     file_generation_start_time = time.time()
 

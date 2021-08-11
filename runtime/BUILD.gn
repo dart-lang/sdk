@@ -212,7 +212,10 @@ config("dart_config") {
 
     if (is_fuchsia) {
       # safe-stack does not work with the interpreter.
-      cflags += [ "-fno-sanitize=safe-stack" ]
+      cflags += [
+        "-fno-sanitize=safe-stack",
+        "-Wno-deprecated-copy",
+      ]
     }
   }
 }

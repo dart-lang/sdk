@@ -582,6 +582,20 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
     assertType(reference, 'void Function(dynamic)');
   }
 
+  test_receiverIsDynamic() async {
+    await assertErrorsInCode('''
+bar(dynamic a) {
+  a.foo<int>;
+}
+''', [
+      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          19, 5),
+    ]);
+
+    var reference = findNode.functionReference('a.foo<int>;');
+    assertType(reference, 'dynamic');
+  }
+
   test_staticMethod() async {
     await assertNoErrorsInCode('''
 class A {

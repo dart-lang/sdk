@@ -331,6 +331,84 @@ void main(List<String> args) async {
         client.stepIn(stop.threadId!),
       ], eagerError: true);
     });
+  }, timeout: Timeout.none);
+
+  group('debug mode conditional breakpoints', () {
+    test('stops with condition evaluating to true', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 == 1',
+      );
+    });
+
+    test('does not stop with condition evaluating to false', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 == 2',
+      );
+    });
+
+    test('stops with condition evaluating to non-zero', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 + 1',
+      );
+    });
+
+    test('does not stop with condition evaluating to zero', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: '1 - 1',
+      );
+    });
+
+    test('reports evaluation errors for conditions', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      final outputEventsFuture = client.outputEvents.toList();
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        condition: "1 + 'a'",
+      );
+
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output);
+
+      final hasPrefix = startsWith(
+          'Debugger failed to evaluate breakpoint condition "1 + \'a\'": '
+          'evaluateInFrame: (113) Expression compilation error');
+      final hasDescriptiveMessage = contains(
+          "A value of type 'String' can't be assigned to a variable of type 'num'");
+
+      expect(
+        outputMessages,
+        containsAll([allOf(hasPrefix, hasDescriptiveMessage)]),
+      );
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

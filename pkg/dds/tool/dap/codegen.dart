@@ -482,7 +482,7 @@ class CodeGenerator {
     } else if (type.isUnion) {
       final types = type.unionTypes;
 
-      // Write a check against each type, eg.:
+      // Write a check against each type, e.g.:
       // x is y ? new Either.tx(x) : (...)
       for (var i = 0; i < types.length; i++) {
         final isLast = i == types.length - 1;

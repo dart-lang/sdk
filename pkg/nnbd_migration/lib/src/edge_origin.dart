@@ -64,6 +64,19 @@ class AlwaysNullableTypeOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
 }
 
+/// Edge origin resulting from the presence of an Angular annotation such as
+/// `@Optional()`, `@ViewChild(...)`, or `@ContentChild(...)`.
+class AngularAnnotationOrigin extends EdgeOrigin {
+  AngularAnnotationOrigin(Source? source, AstNode node) : super(source, node);
+
+  @override
+  String get description =>
+      "annotated with an Angular annotation indicating nullability";
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.angularAnnotation;
+}
+
 /// Edge origin resulting from the presence of a call to
 /// `ArgumentError.checkNotNull`.
 ///

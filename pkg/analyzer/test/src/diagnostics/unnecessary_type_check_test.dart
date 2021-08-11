@@ -10,15 +10,36 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnnecessaryTypeCheckFalseTest);
-    defineReflectiveTests(UnnecessaryTypeCheckFalseWithNullSafetyTest);
+    defineReflectiveTests(UnnecessaryTypeCheckFalseWithoutNullSafetyTest);
     defineReflectiveTests(UnnecessaryTypeCheckTrueTest);
-    defineReflectiveTests(UnnecessaryTypeCheckTrueWithNullSafetyTest);
+    defineReflectiveTests(UnnecessaryTypeCheckTrueWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with UnnecessaryTypeCheckFalseTestCases {
+  @override
+  test_type_not_object() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object;
+}
+''');
+  }
+
+  test_type_not_objectQuestion() async {
+    await assertErrorsInCode(r'''
+void f<T>(T a) {
+  a is! Object?;
+}
+''', [
+      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+    ]);
+  }
+}
+
+mixin UnnecessaryTypeCheckFalseTestCases on PubPackageResolutionTest {
   test_null_not_Null() async {
     await assertErrorsInCode(r'''
 var b = null is! Null;
@@ -49,31 +70,34 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckFalseWithNullSafetyTest
-    extends UnnecessaryTypeCheckFalseTest with WithNullSafetyMixin {
+class UnnecessaryTypeCheckFalseWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with UnnecessaryTypeCheckFalseTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
+    with UnnecessaryTypeCheckTrueTestCases {
   @override
-  test_type_not_object() async {
+  test_type_is_object() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T a) {
-  a is! Object;
+  a is Object;
 }
 ''');
   }
 
-  test_type_not_objectQuestion() async {
+  test_type_is_objectQuestion() async {
     await assertErrorsInCode(r'''
 void f<T>(T a) {
-  a is! Object?;
+  a is Object?;
 }
 ''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13),
+      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
     ]);
   }
 }
 
-@reflectiveTest
-class UnnecessaryTypeCheckTrueTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+mixin UnnecessaryTypeCheckTrueTestCases on PubPackageResolutionTest {
   test_null_is_Null() async {
     await assertErrorsInCode(r'''
 var b = null is Null;
@@ -104,24 +128,6 @@ void f<T>(T a) {
 }
 
 @reflectiveTest
-class UnnecessaryTypeCheckTrueWithNullSafetyTest
-    extends UnnecessaryTypeCheckTrueTest with WithNullSafetyMixin {
-  @override
-  test_type_is_object() async {
-    await assertNoErrorsInCode(r'''
-void f<T>(T a) {
-  a is Object;
-}
-''');
-  }
-
-  test_type_is_objectQuestion() async {
-    await assertErrorsInCode(r'''
-void f<T>(T a) {
-  a is Object?;
-}
-''', [
-      error(HintCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12),
-    ]);
-  }
-}
+class UnnecessaryTypeCheckTrueWithoutNullSafetyTest
+    extends PubPackageResolutionTest
+    with UnnecessaryTypeCheckTrueTestCases, WithoutNullSafetyMixin {}

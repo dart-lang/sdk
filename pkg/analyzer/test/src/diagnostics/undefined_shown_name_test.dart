@@ -10,13 +10,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedShownNameTest);
-    defineReflectiveTests(UndefinedShownNameWithNullSafetyTest);
+    defineReflectiveTests(UndefinedShownNameWithoutNullSafetyTest);
   });
 }
 
 @reflectiveTest
 class UndefinedShownNameTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
+    with UndefinedShownNameTestCases {}
+
+mixin UndefinedShownNameTestCases on PubPackageResolutionTest {
   test_export() async {
     newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''
@@ -38,5 +40,5 @@ import 'lib1.dart' show a;
 }
 
 @reflectiveTest
-class UndefinedShownNameWithNullSafetyTest extends UndefinedShownNameTest
-    with WithNullSafetyMixin {}
+class UndefinedShownNameWithoutNullSafetyTest extends PubPackageResolutionTest
+    with UndefinedShownNameTestCases, WithoutNullSafetyMixin {}

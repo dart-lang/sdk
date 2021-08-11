@@ -163,8 +163,7 @@ void Zone::Segment::DecrementMemoryCapacity(uintptr_t size) {
 // is created within a new thread or ApiNativeScope when calculating high
 // watermarks or memory consumption.
 Zone::Zone()
-    : canary_(kCanary),
-      position_(reinterpret_cast<uword>(&buffer_)),
+    : position_(reinterpret_cast<uword>(&buffer_)),
       limit_(position_ + kInitialChunkSize),
       head_(NULL),
       large_segments_(NULL),
@@ -179,7 +178,6 @@ Zone::Zone()
 }
 
 Zone::~Zone() {
-  ASSERT(canary_ == kCanary);
   if (FLAG_trace_zones) {
     DumpZoneSizes();
   }

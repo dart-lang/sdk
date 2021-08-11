@@ -143,8 +143,8 @@ class TypePropertyResolver {
         }
       }
       _resolver.nullableDereferenceVerifier.report(
-          propertyErrorEntity, receiverType,
-          errorCode: errorCode, arguments: [name], messages: messages);
+          errorCode, propertyErrorEntity, receiverType,
+          arguments: [name], messages: messages);
       _reportedGetterError = true;
       _reportedSetterError = true;
 

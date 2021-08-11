@@ -1832,26 +1832,6 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static ICDataPtr FindICDataForInstanceCall(Zone* zone,
-                                           const Code& code,
-                                           uword pc) {
-  uword pc_offset = pc - code.PayloadStart();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone, code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kIcCall);
-  intptr_t deopt_id = -1;
-  while (iter.MoveNext()) {
-    if (iter.PcOffset() == pc_offset) {
-      deopt_id = iter.DeoptId();
-      break;
-    }
-  }
-  ASSERT(deopt_id != -1);
-  return Function::Handle(zone, code.function()).FindICData(deopt_id);
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 #if defined(DART_PRECOMPILED_RUNTIME)
 void PatchableCallHandler::DoMonomorphicMissAOT(
     const Object& data,
@@ -1917,22 +1897,53 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
 void PatchableCallHandler::DoMonomorphicMissJIT(
     const Object& data,
     const Function& target_function) {
-  const ICData& ic_data = ICData::Handle(
-      zone_,
-      FindICDataForInstanceCall(zone_, caller_code_, caller_frame_->pc()));
-  RELEASE_ASSERT(!ic_data.IsNull());
+  // Monomorphic calls use the ICData::entries() as their data.
+  const auto& ic_data_entries = Array::Cast(data);
+  // Any non-empty ICData::entries() has a backref to it's ICData.
+  const auto& ic_data =
+      ICData::Handle(zone_, ICData::ICDataOfEntriesArray(ic_data_entries));
+
+  const classid_t current_cid = receiver().GetClassId();
+  const classid_t old_cid = ic_data.GetReceiverClassIdAt(0);
+  const bool same_receiver = current_cid == old_cid;
+
+  // The target didn't change, so we can stay inside monomorphic state.
+  if (same_receiver) {
+    // We got a miss because the old target code got disabled.
+    // Notice the reverse is not true: If the old code got disabled, the call
+    // might still have a different receiver then last time and possibly a
+    // different target.
+    ASSERT(miss_handler_ == MissHandler::kFixCallersTargetMonomorphic ||
+           !IsolateGroup::Current()->ContainsOnlyOneIsolate());
+
+    // No need to update ICData - it's already up-to-date.
+
+    if (FLAG_trace_ic) {
+      OS::PrintErr("Instance call at %" Px
+                   " updating code (old code was disabled)\n",
+                   caller_frame_->pc());
+    }
+
+    // We stay in monomorphic state, patch the code object and keep the same
+    // data (old ICData entries array).
+    const auto& code = Code::Handle(zone_, target_function.EnsureHasCode());
+    CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, data,
+                                     code);
+    ReturnJIT(code, data, target_function);
+    return;
+  }
 
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& stub = ic_data.is_tracking_exactness()
                          ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
                          : StubCode::OneArgCheckInlineCache();
-  CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, ic_data,
-                                   stub);
   if (FLAG_trace_ic) {
     OS::PrintErr("Instance call at %" Px
-                 " switching to polymorphic dispatch, %s\n",
+                 " switching monomorphic to polymorphic dispatch, %s\n",
                  caller_frame_->pc(), ic_data.ToCString());
   }
+  CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, ic_data,
+                                   stub);
 
   ASSERT(caller_arguments_.length() == 1);
   UpdateICDataWithTarget(ic_data, target_function);
@@ -2231,14 +2242,13 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
     }
 #else
     case kArrayCid: {
-      // ICData three-element array: Smi(receiver CID), Smi(count),
-      // Function(target). It is the Array from ICData::entries_.
-      const auto& ic_data = ICData::Handle(
-          zone_,
-          FindICDataForInstanceCall(zone_, caller_code_, caller_frame_->pc()));
-      RELEASE_ASSERT(!ic_data.IsNull());
-      name_ = ic_data.target_name();
+      // Monomorphic calls use the ICData::entries() as their data.
+      const auto& ic_data_entries = Array::Cast(data);
+      // Any non-empty ICData::entries() has a backref to it's ICData.
+      const auto& ic_data =
+          ICData::Handle(zone_, ICData::ICDataOfEntriesArray(ic_data_entries));
       args_descriptor_ = ic_data.arguments_descriptor();
+      name_ = ic_data.target_name();
       break;
     }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

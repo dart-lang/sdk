@@ -114,9 +114,10 @@ class ForResolver {
     iterable.accept(_resolver);
     iterable = forEachParts.iterable;
 
-    _resolver.nullableDereferenceVerifier.expression(iterable,
-        errorCode:
-            CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR);
+    _resolver.nullableDereferenceVerifier.expression(
+      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      iterable,
+    );
 
     loopVariable?.accept(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);

@@ -357,7 +357,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   ASSERT(type.IsFinalized());
 
-  if (!type.IsInstantiated() || !type.IsType() || type.IsDartFunctionType()) {
+  if (!type.IsInstantiated() || !type.IsType()) {
     return false;
   }
 

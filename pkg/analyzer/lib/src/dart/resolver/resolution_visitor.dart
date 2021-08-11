@@ -870,6 +870,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPropertyAccess(PropertyAccess node) {
+    var newNode = _astRewriter.propertyAccess(_nameScope, node);
+    if (newNode != node) {
+      return newNode.accept(this);
+    }
+
+    super.visitPropertyAccess(node);
+  }
+
+  @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     ParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {

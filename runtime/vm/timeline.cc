@@ -1516,44 +1516,6 @@ void TimelineEventBlock::Finish() {
 #endif
 }
 
-TimelineEventBlockIterator::TimelineEventBlockIterator(
-    TimelineEventRecorder* recorder)
-    : current_(NULL), recorder_(NULL) {
-  Reset(recorder);
-}
-
-TimelineEventBlockIterator::~TimelineEventBlockIterator() {
-  Reset(NULL);
-}
-
-void TimelineEventBlockIterator::Reset(TimelineEventRecorder* recorder) {
-  // Clear current.
-  current_ = NULL;
-  if (recorder_ != NULL) {
-    // Unlock old recorder.
-    recorder_->lock_.Unlock();
-  }
-  recorder_ = recorder;
-  if (recorder_ == NULL) {
-    return;
-  }
-  // Lock new recorder.
-  recorder_->lock_.Lock();
-  // Queue up first block.
-  current_ = recorder_->GetHeadBlockLocked();
-}
-
-bool TimelineEventBlockIterator::HasNext() const {
-  return current_ != NULL;
-}
-
-TimelineEventBlock* TimelineEventBlockIterator::Next() {
-  ASSERT(current_ != NULL);
-  TimelineEventBlock* r = current_;
-  current_ = current_->next();
-  return r;
-}
-
 void DartTimelineEventHelpers::ReportTaskEvent(Thread* thread,
                                                TimelineEvent* event,
                                                int64_t id,

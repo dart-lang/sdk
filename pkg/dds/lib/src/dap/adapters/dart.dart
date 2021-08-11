@@ -367,7 +367,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   ) async {
     switch (request.command) {
 
-      /// Used by tests to validate available protocols (eg. DDS). There may be
+      /// Used by tests to validate available protocols (e.g. DDS). There may be
       /// value in making this available to clients in future, but for now it's
       /// internal.
       case '_getSupportedProtocols':
@@ -546,11 +546,11 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         ),
       ],
       supportsClipboardContext: true,
-      // TODO(dantup): All of these...
-      // supportsConditionalBreakpoints: true,
+      supportsConditionalBreakpoints: true,
       supportsConfigurationDoneRequest: true,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
+      // TODO(dantup): All of these...
       // supportsLogPoints: true,
       // supportsRestartFrame: true,
       supportsTerminateRequest: true,
@@ -559,6 +559,36 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // This must only be sent AFTER the response!
     sendEvent(InitializedEventBody());
   }
+
+  /// Checks whether this library is from an external package.
+  ///
+  /// This is used to support debugging "Just My Code" so Pub packages can be
+  /// marked as not-debuggable.
+  ///
+  /// A library is considered local if the path is within the 'cwd' or
+  /// 'additionalProjectPaths' in the launch arguments. An editor should include
+  /// the paths of all open workspace folders in 'additionalProjectPaths' to
+  /// support this feature correctly.
+  bool isExternalPackageLibrary(Uri uri) {
+    if (!uri.isScheme('package')) {
+      return false;
+    }
+    final libraryPath = resolvePackageUri(uri);
+    if (libraryPath == null) {
+      return false;
+    }
+
+    // Always compare paths case-insensitively to avoid any issues where APIs
+    // may have returned different casing (e.g. Windows drive letters). It's
+    // almost certain a user wouldn't have a "local" package and an "external"
+    // package with paths differing only be case.
+    final libraryPathLower = libraryPath.toLowerCase();
+    return !projectPaths.any((projectPath) =>
+        path.isWithin(projectPath.toLowerCase(), libraryPathLower));
+  }
+
+  /// Checks whether this library is from the SDK.
+  bool isSdkLibrary(Uri uri) => uri.isScheme('dart');
 
   /// Overridden by sub-classes to handle when the client sends a
   /// `launchRequest` (a request to start running/debugging an app).
@@ -586,6 +616,20 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     await launchImpl();
 
     sendResponse();
+  }
+
+  /// Checks whether a library URI should be considered debuggable.
+  ///
+  /// Initial values are provided in the launch arguments, but may be updated
+  /// by the `updateDebugOptions` custom request.
+  bool libaryIsDebuggable(Uri uri) {
+    if (isSdkLibrary(uri)) {
+      return _isolateManager.debugSdkLibraries;
+    } else if (isExternalPackageLibrary(uri)) {
+      return _isolateManager.debugExternalPackageLibraries;
+    } else {
+      return true;
+    }
   }
 
   /// Handles the clients "next" ("step over") request for the thread in
@@ -831,7 +875,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       // should return all.
       final limit = numFrames == 0 ? null : startFrame + numFrames;
       final stack = await vmService?.getStack(thread.isolate.id!, limit: limit);
-      final frames = stack?.frames;
+      final frames = stack?.asyncCausalFrames ?? stack?.frames;
 
       if (stack != null && frames != null) {
         // When the call stack is truncated, we always add [stackFrameBatchSize]
@@ -847,10 +891,19 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
             ? frames.length + stackFrameBatchSize
             : frames.length;
 
+        // Find the first async marker, because some functionality only works
+        // up until the first async bounday (e.g. rewind) since we're showing
+        // the user async frames which are out-of-sync with the real frames
+        // past that point.
+        final firstAsyncMarkerIndex = frames.indexWhere(
+          (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
+        );
+
         Future<StackFrame> convert(int index, vm.Frame frame) async {
           return _converter.convertVmToDapStackFrame(
             thread,
             frame,
+            firstAsyncMarkerIndex: firstAsyncMarkerIndex,
             isTopFrame: startFrame == 0 && index == 0,
           );
         }

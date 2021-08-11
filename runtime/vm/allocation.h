@@ -75,4 +75,8 @@ class ZoneAllocated {
 
 }  // namespace dart
 
+// Prevent use of `new (zone) DoesNotExtendZoneAllocated()`, which places the
+// DoesNotExtendZoneAllocated on top of the Zone.
+void* operator new(size_t size, dart::Zone* zone) = delete;
+
 #endif  // RUNTIME_VM_ALLOCATION_H_

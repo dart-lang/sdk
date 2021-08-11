@@ -89,7 +89,6 @@ namespace dart {
   V(Double_sub, 2)                                                             \
   V(Double_mul, 2)                                                             \
   V(Double_div, 2)                                                             \
-  V(Double_trunc_div, 2)                                                       \
   V(Double_remainder, 2)                                                       \
   V(Double_modulo, 2)                                                          \
   V(Double_greaterThanFromInteger, 2)                                          \

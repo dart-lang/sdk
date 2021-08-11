@@ -1133,6 +1133,54 @@ ISOLATE_UNIT_TEST_CASE(TTS_Smi) {
   RunTTSTest(dst_type, {Smi::Handle(Smi::New(0)), tav_null, tav_null});
 }
 
+// Check that we generate correct TTS for type Function (the non-FunctionType
+// version).
+ISOLATE_UNIT_TEST_CASE(TTS_Function) {
+  const char* kScript =
+      R"(
+          class A<T> {}
+
+          createF() => (){};
+          createG() => () => 3;
+          createH() => (int x, String y, {int z : 0}) =>  x + z;
+
+          createAInt() => A<int>();
+          createAFunction() => A<Function>();
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& obj_f = Object::Handle(Invoke(root_library, "createF"));
+  const auto& obj_g = Object::Handle(Invoke(root_library, "createG"));
+  const auto& obj_h = Object::Handle(Invoke(root_library, "createH"));
+  const auto& obj_null = Instance::Handle();
+
+  const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
+  const auto& type_function = Type::Handle(Type::DartFunctionType());
+
+  RunTTSTest(type_function, {obj_f, tav_null, tav_null});
+  RunTTSTest(type_function, {obj_g, tav_null, tav_null});
+  RunTTSTest(type_function, {obj_h, tav_null, tav_null});
+  if (!thread->isolate_group()->use_strict_null_safety_checks()) {
+    RunTTSTest(type_function, {obj_null, tav_null, tav_null});
+  } else {
+    RunTTSTest(type_function, Failure({obj_null, tav_null, tav_null}));
+  }
+
+  const auto& class_a = Class::Handle(GetClass(root_library, "A"));
+  const auto& obj_a_int = Object::Handle(Invoke(root_library, "createAInt"));
+  const auto& obj_a_function =
+      Object::Handle(Invoke(root_library, "createAFunction"));
+
+  auto& tav_function = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function.SetTypeAt(0, type_function);
+  CanonicalizeTAV(&tav_function);
+  auto& type_a_function = Type::Handle(Type::New(class_a, tav_function));
+  FinalizeAndCanonicalize(&type_a_function);
+
+  RunTTSTest(type_a_function, {obj_a_function, tav_null, tav_null});
+  RunTTSTest(type_a_function, Failure({obj_a_int, tav_null, tav_null}));
+}
+
 ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   const char* kScript =
       R"(

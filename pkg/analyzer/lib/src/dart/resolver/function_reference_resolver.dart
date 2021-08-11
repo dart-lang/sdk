@@ -278,8 +278,11 @@ class FunctionReferenceResolver {
 
     function.prefix.staticType = prefixType;
     if (prefixType != null && prefixType.isDynamic) {
-      // TODO(srawlins): Report error. See spec text: "We do not allow dynamic
-      // explicit instantiation."
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+        function,
+        [],
+      );
       node.staticType = DynamicTypeImpl.instance;
       return;
     }
