@@ -104,7 +104,7 @@ message ProgramInfoPB {
 
   /** The amount of time spent converting the info to protobuf in microseconds. */
   int64 to_proto_duration = 6;
-  
+
   /** The amount of time spent writing out the serialized info in microseconds. */
   int64 dump_info_duration = 7;
 
@@ -154,7 +154,6 @@ message ClassInfoPB {
   /** The serialized_ids of all FunctionInfo and FieldInfo elements defined in the class. */
   repeated string children_ids = 2;
 }
-
 
 /** Information about a constant value. */
 message ConstantInfoPB {
