@@ -24,6 +24,29 @@ class ImmediatelyClosedErrorPeer extends FakePeer {
   Future<void> listen() => Future.error('Connection lost');
 }
 
+class StreamListenDisconnectPeer extends FakePeer {
+  // Simulate connection disappearing while we're initializing the
+  // streamManager.
+  @override
+  Future<dynamic> sendRequest(String method, [args]) async {
+    final completer = Completer<dynamic>();
+    switch (method) {
+      case 'streamListen':
+        completer.completeError(
+          StateError('The client closed with pending request "streamListen".'),
+        );
+        // Notify listeners that this client is closed. This completer must be
+        // completed _after_ the above completer to get the proper event queue
+        // scheduling order.
+        doneCompleter.complete();
+        break;
+      default:
+        completer.complete(await super.sendRequest(method, args));
+    }
+    return completer.future;
+  }
+}
+
 // Regression test for https://github.com/flutter/flutter/issues/86361.
 void main() {
   webSocketBuilder = (Uri _) => FakeWebSocketChannel();
@@ -47,6 +70,19 @@ void main() {
       await DartDevelopmentService.startDartDevelopmentService(
         Uri(scheme: 'http'),
       );
+    } on DartDevelopmentServiceException {
+      /* We expect to fail to start */
+    }
+  });
+
+  test('Shutdown during initialization complete', () async {
+    peerBuilder =
+        (WebSocketChannel _, dynamic __) async => StreamListenDisconnectPeer();
+    try {
+      await DartDevelopmentService.startDartDevelopmentService(
+        Uri(scheme: 'http'),
+      );
+      fail('Invalid DDS instance returned');
     } on DartDevelopmentServiceException {
       /* We expect to fail to start */
     }
