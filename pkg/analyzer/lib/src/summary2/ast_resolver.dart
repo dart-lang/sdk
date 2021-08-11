@@ -47,7 +47,6 @@ class AstResolver {
     _unitElement.library.typeProvider,
     _errorListener,
     featureSet: _featureSet,
-    nameScope: _nameScope,
     flowAnalysisHelper: _flowAnalysis,
   );
 

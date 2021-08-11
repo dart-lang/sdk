@@ -214,9 +214,8 @@ class PropertyElementResolver {
     Element? writeElementRequested;
     Element? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup =
-          LexicalLookup.resolveSetter(_resolver.nameScope.lookup(node.name)) ??
-              _resolver.thisLookupSetter(node);
+      var writeLookup = LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
+          _resolver.thisLookupSetter(node);
       writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
       writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 

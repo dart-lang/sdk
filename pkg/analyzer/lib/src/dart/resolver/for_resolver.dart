@@ -141,7 +141,7 @@ class ForResolver {
           elementType ?? DynamicTypeImpl.instance, null);
     }
 
-    _resolveBody(body);
+    body.accept(_resolver);
 
     _resolver.flowAnalysis?.flow?.forEach_end();
   }
@@ -167,19 +167,11 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis?.for_bodyBegin(node, condition);
-    _resolveBody(body);
+    body.accept(_resolver);
 
     _resolver.flowAnalysis?.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);
 
     _resolver.flowAnalysis?.flow?.for_end();
-  }
-
-  void _resolveBody(AstNode body) {
-    if (body is Statement) {
-      _resolver.visitStatementInScope(body);
-    } else {
-      body.accept(_resolver);
-    }
   }
 }

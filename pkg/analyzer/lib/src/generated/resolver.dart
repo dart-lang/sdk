@@ -186,7 +186,7 @@ abstract class ResolverBase extends UnifyingAstVisitor<void> {
 
 /// Instances of the class `ResolverVisitor` are used to resolve the nodes
 /// within a single compilation unit.
-class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
+class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   ClassElement? enclosingClass;
@@ -316,7 +316,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
       {FeatureSet? featureSet,
-      Scope? nameScope,
       FlowAnalysisHelper? flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -327,7 +326,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
             errorListener,
             featureSet ??
                 definingLibrary.context.analysisOptions.contextFeatures,
-            nameScope,
             flowAnalysisHelper,
             const MigratableAstInfoProvider(),
             null);
@@ -340,15 +338,13 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
-      Scope? nameScope,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
       MigrationResolutionHooks? migrationResolutionHooks)
       : _featureSet = featureSet,
         migrationResolutionHooks = migrationResolutionHooks,
         super(definingLibrary, source, typeProvider as TypeProviderImpl,
-            errorListener,
-            nameScope: nameScope) {
+            errorListener) {
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 
@@ -683,14 +679,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
     void forClassElement(ClassElement parentElement) {
       enclosingClass = parentElement;
-      nameScope = ClassScope(
-        TypeParameterScope(
-          nameScope,
-          parentElement.typeParameters,
-        ),
-        parentElement,
-      );
-      _thisType = parentElement.thisType;
     }
 
     if (parent is ClassDeclaration) {
@@ -1113,22 +1101,14 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     // Continue the class resolution.
     //
     var outerType = enclosingClass;
-    enclosingClass = node.declaredElement;
     try {
+      enclosingClass = node.declaredElement;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      _thisType = outerType?.thisType;
       enclosingClass = outerType;
     }
-  }
-
-  @override
-  void visitClassDeclarationInScope(ClassDeclaration node) {
-    enclosingClass = node.declaredElement;
-    _thisType = enclosingClass?.thisType;
-    super.visitClassDeclarationInScope(node);
   }
 
   @override
@@ -1222,9 +1202,12 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.declaredElement;
+      assert(_thisType == null);
+      _setupThisType();
       super.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      _thisType = null;
     }
 
     if (node.factoryKeyword != null) {
@@ -1238,17 +1221,6 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     flowAnalysis!.executableDeclaration_exit(node.body, false);
     flowAnalysis!.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
-  }
-
-  @override
-  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    super.visitConstructorDeclarationInScope(node);
-    // Because of needing a different scope for the initializer list, the
-    // overridden implementation of this method cannot cause the visitNode
-    // method to be invoked. As a result, we have to hard-code using the
-    // element resolver and type analyzer to visit the constructor declaration.
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -1311,14 +1283,14 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
-  void visitDoStatementInScope(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     checkUnreachableNode(node);
 
     var body = node.body;
     var condition = node.condition;
 
     flowAnalysis?.flow?.doStatement_bodyBegin(node);
-    visitStatementInScope(body);
+    body.accept(this);
 
     flowAnalysis?.flow?.doStatement_conditionBegin();
     InferenceContext.setType(condition, typeProvider.boolType);
@@ -1353,12 +1325,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      _thisType = enclosingClass?.thisType;
       super.visitEnumDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      _thisType = outerType?.thisType;
       enclosingClass = outerType;
     }
   }
@@ -1398,14 +1368,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       node.accept(typeAnalyzer);
     } finally {
       enclosingExtension = outerExtension;
-      _thisType = null;
     }
-  }
-
-  @override
-  void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
-    _thisType = node.declaredElement!.extendedType;
-    super.visitExtensionDeclarationInScope(node);
   }
 
   @override
@@ -1426,19 +1389,22 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   void visitFieldDeclaration(FieldDeclaration node) {
     _thisAccessTracker.enterFieldDeclaration(node);
     try {
+      assert(_thisType == null);
+      _setupThisType();
       super.visitFieldDeclaration(node);
     } finally {
       _thisAccessTracker.exitFieldDeclaration(node);
+      _thisType = null;
     }
   }
 
   @override
-  void visitForElementInScope(ForElement node) {
+  void visitForElement(ForElement node) {
     _forResolver.resolveElement(node as ForElementImpl);
   }
 
   @override
-  void visitForStatementInScope(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     _forResolver.resolveStatement(node as ForStatementImpl);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
   }
@@ -1500,21 +1466,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     _enclosingFunction = node.declaredElement;
 
-    if (node.parent is FunctionDeclaration) {
-      _functionExpressionResolver.resolve(node);
-    } else {
-      Scope outerScope = nameScope;
-      try {
-        ExecutableElement element = node.declaredElement!;
-        nameScope = FormalParameterScope(
-          TypeParameterScope(nameScope, element.typeParameters),
-          element.parameters,
-        );
-        _functionExpressionResolver.resolve(node);
-      } finally {
-        nameScope = outerScope;
-      }
-    }
+    _functionExpressionResolver.resolve(node);
 
     _enclosingFunction = outerFunction;
   }
@@ -1607,13 +1559,13 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
 
     Statement thenStatement = node.thenStatement;
     flowAnalysis!.flow?.ifStatement_thenBegin(condition, node);
-    visitStatementInScope(thenStatement);
+    thenStatement.accept(this);
     nullSafetyDeadCodeVerifier.flowEnd(thenStatement);
 
     var elseStatement = node.elseStatement;
     if (elseStatement != null) {
       flowAnalysis?.flow?.ifStatement_elseBegin();
-      visitStatementInScope(elseStatement);
+      elseStatement.accept(this);
       nullSafetyDeadCodeVerifier.flowEnd(elseStatement);
     }
 
@@ -1703,9 +1655,12 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.declaredElement;
+      assert(_thisType == null);
+      _setupThisType();
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
+      _thisType = null;
     }
 
     // TODO(scheglov) encapsulate
@@ -1772,16 +1727,8 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      _thisType = outerType?.thisType;
       enclosingClass = outerType;
     }
-  }
-
-  @override
-  void visitMixinDeclarationInScope(MixinDeclaration node) {
-    enclosingClass = node.declaredElement;
-    _thisType = enclosingClass?.thisType;
-    super.visitMixinDeclarationInScope(node);
   }
 
   @override
@@ -1975,7 +1922,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   }
 
   @override
-  void visitSwitchStatementInScope(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     checkUnreachableNode(node);
 
     var previousExpressionType = _enclosingSwitchStatementExpressionType;
@@ -2073,13 +2020,21 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   void visitTypeName(TypeName node) {}
 
   @override
+  void visitTypeParameter(TypeParameter node) {
+    var previousThisType = _thisType;
+    try {
+      _setupThisType();
+      super.visitTypeParameter(node);
+    } finally {
+      _thisType = previousThisType;
+    }
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
 
     var declaredElement = node.declaredElement!;
-    if (node.parent!.parent is ForParts) {
-      _define(declaredElement);
-    }
 
     var initializer = node.initializer;
     var parent = node.parent as VariableDeclarationList;
@@ -2114,31 +2069,22 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
   void visitWhileStatement(WhileStatement node) {
     checkUnreachableNode(node);
 
-    // Note: since we don't call the base class, we have to maintain
-    // _implicitLabelScope ourselves.
-    ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
-    try {
-      _implicitLabelScope = _implicitLabelScope.nest(node);
+    Expression condition = node.condition;
+    InferenceContext.setType(condition, typeProvider.boolType);
 
-      Expression condition = node.condition;
-      InferenceContext.setType(condition, typeProvider.boolType);
+    flowAnalysis?.flow?.whileStatement_conditionBegin(node);
+    condition.accept(this);
+    condition = node.condition;
+    var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
 
-      flowAnalysis?.flow?.whileStatement_conditionBegin(node);
-      condition.accept(this);
-      condition = node.condition;
-      var whyNotPromoted = flowAnalysis?.flow?.whyNotPromoted(condition);
+    boolExpressionVerifier.checkForNonBoolCondition(node.condition,
+        whyNotPromoted: whyNotPromoted);
 
-      boolExpressionVerifier.checkForNonBoolCondition(node.condition,
-          whyNotPromoted: whyNotPromoted);
-
-      Statement body = node.body;
-      flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
-      visitStatementInScope(body);
-      flowAnalysis?.flow?.whileStatement_end();
-      nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    } finally {
-      _implicitLabelScope = outerImplicitScope;
-    }
+    Statement body = node.body;
+    flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
+    body.accept(this);
+    flowAnalysis?.flow?.whileStatement_end();
+    nullSafetyDeadCodeVerifier.flowEnd(node.body);
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
     node.accept(elementResolver);
@@ -2189,6 +2135,18 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
         node as FunctionExpressionInvocationImpl, whyNotPromotedList);
 
     nullShortingTermination(node);
+  }
+
+  void _setupThisType() {
+    var enclosingClass = this.enclosingClass;
+    if (enclosingClass != null) {
+      _thisType = enclosingClass.thisType;
+    } else {
+      var enclosingExtension = this.enclosingExtension;
+      if (enclosingExtension != null) {
+        _thisType = enclosingExtension.extendedType;
+      }
+    }
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that
@@ -2320,7 +2278,6 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             typeProvider,
             errorListener,
             featureSet,
-            null,
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks, true),
             migrationResolutionHooks,

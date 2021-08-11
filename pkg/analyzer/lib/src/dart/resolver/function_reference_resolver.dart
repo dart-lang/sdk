@@ -236,7 +236,7 @@ class FunctionReferenceResolver {
 
   void _resolvePrefixedIdentifierFunction(
       FunctionReferenceImpl node, PrefixedIdentifierImpl function) {
-    var prefixElement = _resolver.nameScope.lookup(function.prefix.name).getter;
+    var prefixElement = function.prefix.scopeLookupResult!.getter;
 
     if (prefixElement == null) {
       _errorReporter.reportErrorForNode(
@@ -326,7 +326,7 @@ class FunctionReferenceResolver {
     } else if (target is ThisExpressionImpl) {
       targetType = target.typeOrThrow;
     } else if (target is SimpleIdentifierImpl) {
-      var targetElement = _resolver.nameScope.lookup(target.name).getter;
+      var targetElement = target.scopeLookupResult!.getter;
       if (targetElement is VariableElement) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement) {
@@ -337,7 +337,7 @@ class FunctionReferenceResolver {
         return;
       }
     } else if (target is PrefixedIdentifierImpl) {
-      var prefixElement = _resolver.nameScope.lookup(target.prefix.name).getter;
+      var prefixElement = target.prefix.scopeLookupResult!.getter;
       if (prefixElement is PrefixElement) {
         var prefixName = target.identifier.name;
         var targetElement = prefixElement.scope.lookup(prefixName).getter;
@@ -440,7 +440,7 @@ class FunctionReferenceResolver {
 
   void _resolveSimpleIdentifierFunction(
       FunctionReferenceImpl node, SimpleIdentifierImpl function) {
-    var element = _resolver.nameScope.lookup(function.name).getter;
+    var element = function.scopeLookupResult!.getter;
 
     if (element == null) {
       DartType receiverType;

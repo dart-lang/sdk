@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
@@ -74,9 +73,6 @@ class MethodInvocationResolver {
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
         _extensionResolver = _resolver.extensionResolver,
         _inferenceHelper = inferenceHelper;
-
-  /// The scope used to resolve identifiers.
-  Scope get nameScope => _resolver.nameScope;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
