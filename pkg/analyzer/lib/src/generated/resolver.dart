@@ -1896,9 +1896,10 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     super.visitSpreadElement(node);
 
     if (!node.isNullAware) {
-      nullableDereferenceVerifier.expression(node.expression,
-          errorCode:
-              CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD);
+      nullableDereferenceVerifier.expression(
+        CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD,
+        node.expression,
+      );
     }
   }
 

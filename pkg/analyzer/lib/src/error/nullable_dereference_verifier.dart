@@ -27,28 +27,26 @@ class NullableDereferenceVerifier {
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
     required ResolverVisitor resolver,
-  })   : _typeSystem = typeSystem,
+  })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter,
         _resolver = resolver;
 
-  bool expression(Expression expression,
-      {DartType? type, ErrorCode? errorCode}) {
+  bool expression(ErrorCode errorCode, Expression expression,
+      {DartType? type}) {
     if (!_typeSystem.isNonNullableByDefault) {
       return false;
     }
 
     type ??= expression.typeOrThrow;
-    return _check(expression, type, errorCode: errorCode);
+    return _check(errorCode, expression, type);
   }
 
-  void report(SyntacticEntity errorEntity, DartType receiverType,
-      {ErrorCode? errorCode,
-      List<String> arguments = const <String>[],
+  void report(
+      ErrorCode errorCode, SyntacticEntity errorEntity, DartType receiverType,
+      {List<String> arguments = const <String>[],
       List<DiagnosticMessage>? messages}) {
     if (receiverType == _typeSystem.typeProvider.nullType) {
       errorCode = CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE;
-    } else {
-      errorCode ??= CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
     }
     if (errorEntity is AstNode) {
       _errorReporter.reportErrorForNode(
@@ -67,8 +65,11 @@ class NullableDereferenceVerifier {
   /// receiver is the implicit `this`, the name of the invocation.
   ///
   /// Returns whether [receiverType] was reported.
-  bool _check(AstNode errorNode, DartType receiverType,
-      {ErrorCode? errorCode}) {
+  bool _check(
+    ErrorCode errorCode,
+    AstNode errorNode,
+    DartType receiverType,
+  ) {
     if (identical(receiverType, DynamicTypeImpl.instance) ||
         !_typeSystem.isPotentiallyNullable(receiverType)) {
       return false;
@@ -79,7 +80,7 @@ class NullableDereferenceVerifier {
       messages = _resolver.computeWhyNotPromotedMessages(
           errorNode, _resolver.flowAnalysis?.flow?.whyNotPromoted(errorNode)());
     }
-    report(errorNode, receiverType, errorCode: errorCode, messages: messages);
+    report(errorCode, errorNode, receiverType, messages: messages);
     return true;
   }
 }
