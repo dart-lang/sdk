@@ -23,16 +23,18 @@ class C extends B<A> {
 main() {
   // Dynamic method calls should always have their type arguments checked.
   dynamic d = new C();
-  Expect.throwsTypeError(() => d.f1<Object>()); //# 01: ok
+  Expect.throwsTypeError(() => d.f1<Object>());
 
-  // Closure calls should have any type arguments marked "genericCovariantImpl"
-  // checked.
+  // Closurization is subject to a caller-side check. The naive static type of
+  // `b.f2` is `void Function<U extends Object>()`, but the run-time type is
+  // `void Function<U extends A>()`, and that is not a subtype of the former.
   B<Object> b = new C();
-  void Function<U extends Object>() f = b.f2;
-  Expect.throwsTypeError(() => f<Object>()); //# 02: ok
+  Expect.throws(() => b.f2);
 
   // Interface calls should have any type arguments marked
   // "genericCovariantImpl" checked provided that the corresponding type
   // argument on the interface target is marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.f2<Object>()); //# 03: ok
+  B<A> b2 = new C();
+  Function g = b2.f2;
+  Expect.throwsTypeError(() => g<Object>());
 }
