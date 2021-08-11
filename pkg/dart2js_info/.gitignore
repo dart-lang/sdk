@@ -1,0 +1,14 @@
+.buildlog
+.DS_Store
+*.swp
+*.swo
+.idea
+*.iml
+.pub/
+.settings/
+build/
+packages
+.packages
+pubspec.lock
+bin/inference/client.dart.js*
+.dart_tool/
