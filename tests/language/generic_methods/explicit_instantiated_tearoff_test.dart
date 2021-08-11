@@ -65,12 +65,8 @@ extension E on C {
       .expectStaticType<Exactly<int Function(String, [String?])>>();
     this.extInstanceMethod<int, String>
       .expectStaticType<Exactly<int Function(String, [String?])>>();
-
     Expect.identical(staticMethod<int, String>, staticTearOff);
-
-    // Extension instance methods are not equal unless identical.
-    Expect.notEquals(
-        extInstanceMethod<int, String>, this.extInstanceMethod<int, String>);
+    // Extension instance methods do not specify equality.
   }
 }
 
@@ -134,9 +130,7 @@ void main() {
   Expect.equals(
       o.mixinInstanceMethod<int, String>, o.mixinInstanceMethod<int, String>);
 
-  // Instantiated extension methods are not equal unless they are identical.
-  Expect.notEquals(
-      o.extInstanceMethod<int, String>, o.extInstanceMethod<int, String>);
+  // Instantiated extension methods do not specify equality.
 
   // And not canonicalized where they shouldn't (different types).
   Expect.notEquals(toplevel<int, String>, toplevel<num, String>);
@@ -155,12 +149,10 @@ void main() {
     Expect.equals(C.staticMethod<T, String>, C.staticMethod<T, String>);
     Expect.equals(M.staticMethod<T, String>, M.staticMethod<T, String>);
     Expect.equals(E.staticMethod<T, String>, E.staticMethod<T, String>);
-    Expect.notEquals(local<T, String>, local<T, String>);
     Expect.equals(toplevel<int, T>, toplevel<int, T>);
     Expect.equals(C.staticMethod<int, T>, C.staticMethod<int, T>);
     Expect.equals(M.staticMethod<int, T>, M.staticMethod<int, T>);
     Expect.equals(E.staticMethod<int, T>, E.staticMethod<int, T>);
-    Expect.notEquals(local<int, T>, local<int, T>);
   }<int>());
 
   o.tearOffsOnThis();
