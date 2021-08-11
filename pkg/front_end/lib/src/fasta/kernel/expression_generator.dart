@@ -4009,7 +4009,7 @@ class PrefixUseGenerator extends Generator {
       Object result = qualifiedLookup(send.token);
       if (send is SendAccessGenerator) {
         result = _helper.finishSend(
-            result, send.typeArguments, send.arguments, fileOffset,
+            result, send.typeArguments, send.arguments, send.fileOffset,
             isTypeArgumentsInForest: send.isTypeArgumentsInForest);
       }
       if (isNullAware) {

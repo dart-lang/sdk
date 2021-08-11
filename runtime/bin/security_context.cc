@@ -122,7 +122,11 @@ static void ReleaseCertificate(void* isolate_data, void* context_pointer) {
 
 static intptr_t EstimateX509Size(X509* certificate) {
   intptr_t length = i2d_X509(certificate, NULL);
-  return length > 0 ? length : 0;
+  length = length > 0 ? length : 0;
+  // An X509 is a tree of structures, which are either opaque or will be opaque
+  // in the future. Estimate the overhead to 512 bytes by rounding up
+  // sizeof(X509) + sizeof(X509_CINF).
+  return length + 512;
 }
 
 // Returns the handle for a Dart object wrapping the X509 certificate object.
@@ -154,7 +158,7 @@ Dart_Handle X509Helper::WrappedX509Certificate(X509* certificate) {
     return status;
   }
   const intptr_t approximate_size_of_certificate =
-      sizeof(*certificate) + EstimateX509Size(certificate);
+      EstimateX509Size(certificate);
   ASSERT(approximate_size_of_certificate > 0);
   Dart_NewFinalizableHandle(result, reinterpret_cast<void*>(certificate),
                             approximate_size_of_certificate,
