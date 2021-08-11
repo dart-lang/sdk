@@ -161,9 +161,24 @@
 
 #### Linter
 
-Updated the Linter to `1.8.0`, which includes changes that
+Updated the Linter to `1.9.0`, which includes changes that
 
-
+- marks `avoid_dynamic_calls` stable.
+- (internal) removes unused `MockPubVisitor` and `MockRule` classes.
+- fixes a `prefer_void_to_null` false positive w/ overridden properties.
+- (internal) removes references to `NodeLintRule` in lint rule declarations.
+- fixes `prefer_void_to_null` false positives on overriding returns.
+- fixes `prefer_generic_function_type_aliases` false positives w/ incomplete
+  statements.
+- fixes false positives for `prefer_initializing_formals` with factory constructors.
+- fixes `void_checks` false positives with incomplete source.
+- updates `unnecessary_getters_setters` to only flag the getter.
+- improves messages for `avoid_renaming_method_parameters`.
+- fixes false positives in `prefer_void_to_null`.
+- fixes false positives in `omit_local_variable_types`.
+- fixes false positives in `use_rethrow_when_possible`.
+- improves performance for `annotate_overrides`, `prefer_contains`, and
+  `prefer_void_to_null`.
 - improve performance for `prefer_is_not_empty`.
 - fix false positives in `no_logic_in_create_state`.
 - improve `package_names` to allow dart identifiers as package names.
