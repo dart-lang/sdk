@@ -5290,6 +5290,11 @@ LocationSummary* DoubleToDoubleInstr::MakeLocationSummary(Zone* zone,
 void DoubleToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   XmmRegister result = locs()->out(0).fpu_reg();
+  if (value != result) {
+    // Clear full register to avoid false dependency due to
+    // a partial access to XMM register in roundsd instruction.
+    __ xorps(result, result);
+  }
   switch (recognized_kind()) {
     case MethodRecognizer::kDoubleTruncate:
       __ roundsd(result, value, compiler::Assembler::kRoundToZero);
