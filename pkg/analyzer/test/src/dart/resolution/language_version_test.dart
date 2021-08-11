@@ -101,9 +101,6 @@ var z = pi;
 
 @reflectiveTest
 class NullSafetyUsingAllowedExperimentsTest extends _FeaturesTest {
-  @override
-  bool get typeToStringWithNullability => true;
-
   test_jsonConfig_disable_bin() async {
     _configureAllowedExperimentsTestNullSafety();
 

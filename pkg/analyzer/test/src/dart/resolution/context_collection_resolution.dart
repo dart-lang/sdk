@@ -414,16 +414,6 @@ mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
   }
 }
 
-mixin WithNullSafetyMixin on PubPackageResolutionTest {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): This mixin is a no-op
-  // on PubPackageResolutionTest; remove its usage and remove it.
-  @override
-  String? get testPackageLanguageVersion => '2.14';
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
-
 mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.13';
