@@ -55,8 +55,14 @@ class AbstractContextTest with ResourceProviderMixin {
     addPackageFile(
         internalUris ? 'third_party.dart_src.angular.angular' : 'angular',
         'angular.dart', '''
+class ContentChild {
+  const ContentChild(Object selector, {Object? read});
+}
 class Optional {
   const Optional();
+}
+class ViewChild {
+  const ViewChild(Object selector, {Object? read});
 }
 ''');
     if (internalUris) {
