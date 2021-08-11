@@ -221,7 +221,7 @@ struct TTSTestCase : public ValueObject {
     // Respecialization can only happen for test cases that would specialize
     // and which won't end up cached in the TTS.
     ASSERT(!should_respecialize ||
-           should_specialize && !should_be_false_negative);
+           (should_specialize && !should_be_false_negative));
   }
 
   bool HasSameSTCEntry(const TTSTestCase& other) const {
@@ -552,7 +552,7 @@ class TTSTestState : public ValueObject {
         !is_lazy_specialization && test_case.should_be_false_negative;
     if (should_update_stc && !had_stc_entry) {
       // We should have changed the STC to include the new entry.
-      EXPECT(previous_stc_.IsNull() && !last_stc_.IsNull() ||
+      EXPECT((previous_stc_.IsNull() && !last_stc_.IsNull()) ||
              previous_stc_.cache() != last_stc_.cache());
       // We only should have added one check.
       EXPECT_EQ(previous_stc_.IsNull() ? 1 : previous_stc_.NumberOfChecks() + 1,
@@ -591,7 +591,7 @@ class TTSTestState : public ValueObject {
       }
     } else {
       // Whatever STC existed before, if any, should be unchanged.
-      EXPECT(previous_stc_.IsNull() && last_stc_.IsNull() ||
+      EXPECT((previous_stc_.IsNull() && last_stc_.IsNull()) ||
              previous_stc_.cache() == last_stc_.cache());
     }
 
@@ -1338,7 +1338,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   EXPECT(state.last_stc().ptr() == state.current_stc());
   // Loading the new library should not reset the STCs, as no respecialization
   // should happen yet.
-  EXPECT(state.last_stc().IsNull() && stc_cache.IsNull() ||
+  EXPECT((state.last_stc().IsNull() && stc_cache.IsNull()) ||
          stc_cache.ptr() == state.last_stc().cache());
 
   const auto& obj_b2 = Object::Handle(Invoke(second_library, "createB2"));
@@ -1390,7 +1390,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   EXPECT(state.last_stc().ptr() == state.current_stc());
   // Loading the new library should not reset the STCs, as no respecialization
   // should happen yet.
-  EXPECT(state.last_stc().IsNull() && stc_cache.IsNull() ||
+  EXPECT((state.last_stc().IsNull() && stc_cache.IsNull()) ||
          stc_cache.ptr() == state.last_stc().cache());
 
   const auto& obj_b3 = Object::Handle(Invoke(third_library, "createB3"));

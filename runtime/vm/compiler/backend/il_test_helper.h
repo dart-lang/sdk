@@ -56,7 +56,7 @@ LibraryPtr LoadTestScript(const char* script,
                           Dart_NativeEntryResolver resolver = nullptr,
                           const char* lib_uri = RESOLVED_USER_TEST_URI);
 
-LibraryPtr ReloadTestScript(const char* script);
+NOT_IN_PRODUCT(LibraryPtr ReloadTestScript(const char* script));
 
 FunctionPtr GetFunction(const Library& lib, const char* name);
 ClassPtr GetClass(const Library& lib, const char* name);

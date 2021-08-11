@@ -36,6 +36,7 @@ LibraryPtr LoadTestScript(const char* script,
   return lib.ptr();
 }
 
+#if !defined(PRODUCT)
 LibraryPtr ReloadTestScript(const char* script) {
   Dart_Handle api_lib;
   {
@@ -48,6 +49,7 @@ LibraryPtr ReloadTestScript(const char* script) {
   EXPECT(!lib.IsNull());
   return lib.ptr();
 }
+#endif
 
 FunctionPtr GetFunction(const Library& lib, const char* name) {
   Thread* thread = Thread::Current();

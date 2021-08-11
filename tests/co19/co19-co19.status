@@ -2,8 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # https://github.com/dart-lang/co19/issues/1137
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: Skip # https://github.com/dart-lang/co19/issues/1137
+LibTest/io/HttpClient/findProxy_A01_t01: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A01_t02: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A02_t01: Skip # https://github.com/dart-lang/co19/issues/1129
+LibTest/io/HttpClient/findProxy_A02_t02: Skip # https://github.com/dart-lang/co19/issues/1129
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
 
 [ $compiler == dart2analyzer ]
 LanguageFeatures/nnbd/static/strong/*: SkipByDesign # Strong mode tests should not be run with analyzer
 LanguageFeatures/nnbd/static/weak/*: SkipByDesign # Weak mode tests should not be run with analyzer
+
+[ $compiler == dart2js || $compiler == dartdevk ]
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.
