@@ -756,7 +756,7 @@ class ResolverVisitor extends ScopedVisitor with ErrorDetectionHelpers {
     } else if (node is SimpleIdentifier) {
       var resolver = PropertyElementResolver(this);
       var result = resolver.resolveSimpleIdentifier(
-        node: node,
+        node: node as SimpleIdentifierImpl,
         hasRead: hasRead,
         hasWrite: true,
       );
@@ -3152,9 +3152,6 @@ class ScopeResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitExportDirective(ExportDirective node) {}
-
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
         _localVariableInfo;
@@ -3186,9 +3183,6 @@ class ScopeResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {}
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
     super.visitMethodDeclaration(node);
@@ -3200,17 +3194,8 @@ class ScopeResolverVisitor extends ScopedVisitor {
     if (node.inDeclarationContext()) {
       return;
     }
-    // Ignore if it cannot be a reference to a local variable.
-    var parent = node.parent;
-    if (parent is FieldFormalParameter) {
-      return;
-    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        parent.fieldName == node) {
-      return;
-    }
     // Ignore if qualified.
+    var parent = node.parent;
     if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
       return;
     }
@@ -3222,6 +3207,17 @@ class ScopeResolverVisitor extends ScopedVisitor {
         parent.realTarget != null) {
       return;
     }
+    var scopeLookupResult = nameScope.lookup(node.name);
+    node.scopeLookupResult = scopeLookupResult;
+    // Ignore if it cannot be a reference to a local variable.
+    if (parent is FieldFormalParameter) {
+      return;
+    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return;
+    } else if (parent is ConstructorFieldInitializer &&
+        parent.fieldName == node) {
+      return;
+    }
     if (parent is ConstructorName) {
       return;
     }
@@ -3229,7 +3225,7 @@ class ScopeResolverVisitor extends ScopedVisitor {
       return;
     }
     // Prepare VariableElement.
-    var element = nameScope.lookup(node.name).getter;
+    var element = scopeLookupResult.getter;
     if (element is! VariableElement) {
       return;
     }

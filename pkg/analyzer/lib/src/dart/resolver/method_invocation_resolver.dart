@@ -533,7 +533,7 @@ class MethodInvocationResolver {
       SimpleIdentifierImpl nameNode,
       String name,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    var element = nameScope.lookup(name).getter;
+    var element = nameNode.scopeLookupResult!.getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
       nameNode.staticElement = element;

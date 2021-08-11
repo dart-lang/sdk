@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -8696,6 +8697,15 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   List<DartType>? tearOffTypeArgumentTypes;
+
+  /// If this identifier is meant to be looked up in the enclosing scope, the
+  /// raw result the scope lookup, prior to figuring out whether a write or a
+  /// read context is intended, and prior to falling back on implicit `this` (if
+  /// appropriate).
+  ///
+  /// `null` if this identifier is not meant to be looked up in the enclosing
+  /// scope.
+  ScopeLookupResult? scopeLookupResult;
 
   /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
