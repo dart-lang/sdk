@@ -444,6 +444,7 @@ class IsolateManager {
       // can add a variables scope for it so it can be examined.
       final exception = event.exception;
       if (exception != null) {
+        _adapter.storeEvaluateName(exception, threadExceptionExpression);
         thread.exceptionReference = thread.storeData(exception);
       }
 

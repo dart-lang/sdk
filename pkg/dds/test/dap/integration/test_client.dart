@@ -622,7 +622,7 @@ extension DapTestClientExtension on DapTestClient {
     );
     final topFrame = stack.stackFrames.first;
 
-    final variablesScope = await getValidScope(topFrame.id, 'Variables');
+    final variablesScope = await getValidScope(topFrame.id, 'Locals');
     final variables =
         await getValidVariables(variablesScope.variablesReference);
     final expectedVariable = variables.variables
@@ -713,7 +713,7 @@ extension DapTestClientExtension on DapTestClient {
       final type = v.type;
       final presentationHint = v.presentationHint;
 
-      buffer.write(v.name);
+      buffer.write('${v.name}: $value');
       if (evaluateName != null) {
         buffer.write(', eval: $evaluateName');
       }
@@ -723,12 +723,11 @@ extension DapTestClientExtension on DapTestClient {
       if (namedVariables != null) {
         buffer.write(', $namedVariables named items');
       }
-      buffer.write(': $value');
       if (type != null) {
-        buffer.write(' ($type)');
+        buffer.write(', $type');
       }
       if (presentationHint != null) {
-        buffer.write(' ($presentationHint)');
+        buffer.write(', $presentationHint');
       }
 
       return buffer.toString();

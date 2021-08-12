@@ -51,8 +51,8 @@ void main(List<String> args) {
       await client.expectVariables(
         result.variablesReference,
         '''
-            isUtc: false
-          ''',
+            isUtc: false, eval: DateTime(2000, 1, 1).isUtc
+        ''',
       );
     });
 

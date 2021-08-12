@@ -61,17 +61,22 @@ class ProtocolConverter {
     ThreadInfo thread,
     vm.InstanceRef ref, {
     required bool allowCallingToString,
+    bool allowTruncatedValue = true,
     bool includeQuotesAroundString = true,
   }) async {
     final isTruncated = ref.valueAsStringIsTruncated ?? false;
     if (ref.kind == vm.InstanceKind.kString && isTruncated) {
-      // Call toString() if allowed, otherwise (or if it returns null) fall back
-      // to the truncated value with "…" suffix.
-      var stringValue = allowCallingToString
+      // Call toString() if allowed (and we don't already have a value),
+      // otherwise (or if it returns null) fall back to the truncated value
+      // with "…" suffix.
+      var stringValue = allowCallingToString &&
+              (ref.valueAsString == null || !allowTruncatedValue)
           ? await _callToString(
               thread,
               ref,
-              includeQuotesAroundString: includeQuotesAroundString,
+              // Quotes are handled below, so they can be wrapped around the
+              // elipsis.
+              includeQuotesAroundString: false,
             )
           : null;
       stringValue ??= '${ref.valueAsString}…';
@@ -116,6 +121,7 @@ class ProtocolConverter {
   Future<List<dap.Variable>> convertVmInstanceToVariablesList(
     ThreadInfo thread,
     vm.Instance instance, {
+    required String? evaluateName,
     required bool allowCallingToString,
     int? startItem = 0,
     int? numItems,
@@ -130,6 +136,8 @@ class ProtocolConverter {
         await convertVmResponseToVariable(
           thread,
           instance,
+          name: null,
+          evaluateName: evaluateName,
           allowCallingToString: allowCallingToString,
         )
       ];
@@ -143,7 +151,9 @@ class ProtocolConverter {
             (index, response) => convertVmResponseToVariable(
               thread,
               response,
-              name: '${start + index}',
+              name: '[${start + index}]',
+              evaluateName: _adapter.combineEvaluateName(
+                  evaluateName, '[${start + index}]'),
               allowCallingToString:
                   allowCallingToString && index <= maxToStringsPerEvaluation,
             ),
@@ -175,11 +185,17 @@ class ProtocolConverter {
     } else if (fields != null) {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
-          (index, field) async => convertVmResponseToVariable(
-              thread, field.value,
-              name: field.decl?.name ?? '<unnamed field>',
+        (index, field) async {
+          final name = field.decl?.name;
+          return convertVmResponseToVariable(thread, field.value,
+              name: name ?? '<unnamed field>',
+              evaluateName: name != null
+                  ? _adapter.combineEvaluateName(evaluateName, '.$name')
+                  : null,
               allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation)));
+                  allowCallingToString && index <= maxToStringsPerEvaluation);
+        },
+      ));
 
       // Also evaluate the getters if evaluateGettersInDebugViews=true enabled.
       final service = _adapter.vmService;
@@ -202,6 +218,8 @@ class ProtocolConverter {
             thread,
             response,
             name: getterName,
+            evaluateName:
+                _adapter.combineEvaluateName(evaluateName, '.$getterName'),
             allowCallingToString:
                 allowCallingToString && index <= maxToStringsPerEvaluation,
           );
@@ -209,6 +227,9 @@ class ProtocolConverter {
 
         variables.addAll(await Future.wait(getterNames.mapIndexed(evaluate)));
       }
+
+      // Sort the fields/getters by name.
+      variables.sortBy((v) => v.name);
 
       return variables;
     } else {
@@ -254,7 +275,8 @@ class ProtocolConverter {
   Future<dap.Variable> convertVmResponseToVariable(
     ThreadInfo thread,
     vm.Response response, {
-    String? name,
+    required String? name,
+    required String? evaluateName,
     required bool allowCallingToString,
   }) async {
     if (response is vm.InstanceRef) {
@@ -265,6 +287,7 @@ class ProtocolConverter {
 
       return dap.Variable(
         name: name ?? response.kind.toString(),
+        evaluateName: evaluateName,
         value: await convertVmResponseToDisplayString(
           thread,
           response,

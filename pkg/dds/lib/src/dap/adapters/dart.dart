@@ -138,6 +138,20 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// have been called.
   late final bool isAttach;
 
+  /// A list of evaluateNames for InstanceRef IDs.
+  ///
+  /// When providing variables for fields/getters or items in maps/arrays, we
+  /// need to provide an expression to the client that evaluates to that
+  /// variable so that functionality like "Add to Watch" or "Copy Value" can
+  /// work. For example, if a user expands a list named `myList` then the 1st
+  /// [Variable] returned should have an evaluateName of `myList[0]`. The `foo`
+  /// getter of that object would then have an evaluateName of `myList[0].foo`.
+  ///
+  /// Since those expressions aren't round-tripped as child variables are
+  /// requested we build them up as we send variables out, so we can append to
+  /// them when returning elements/map entries/fields/getters.
+  final _evaluateNamesForInstanceRefIds = <String, String>{};
+
   /// A list of all possible project paths that should be considered the users
   /// own code.
   ///
@@ -217,6 +231,26 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // await attachImpl();
     //
     // sendResponse();
+  }
+
+  /// Builds an evaluateName given a parent VM InstanceRef ID and a suffix.
+  ///
+  /// If [parentInstanceRefId] is `null`, or we have no evaluateName for it,
+  /// will return null.
+  String? buildEvaluateName(
+    String suffix, {
+    required String? parentInstanceRefId,
+  }) {
+    final parentEvaluateName =
+        _evaluateNamesForInstanceRefIds[parentInstanceRefId];
+    return combineEvaluateName(parentEvaluateName, suffix);
+  }
+
+  /// Builds an evaluateName given a prefix and a suffix.
+  ///
+  /// If [prefix] is null, will return be null.
+  String? combineEvaluateName(String? prefix, String suffix) {
+    return prefix != null ? '$prefix$suffix' : null;
   }
 
   /// configurationDone is called by the client when it has finished sending
@@ -489,10 +523,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         result,
         allowCallingToString: evaluateToStringInDebugViews,
       );
-      // TODO(dantup): We may need to store `expression` with this data
-      // to allow building nested evaluateNames.
+
       final variablesReference =
           _converter.isSimpleKind(result.kind) ? 0 : thread.storeData(result);
+
+      // Store the expression that gets this object as we may need it to
+      // compute evaluateNames for child objects later.
+      storeEvaluateName(result, expression);
 
       sendResponse(EvaluateResponseBody(
         result: resultString,
@@ -663,7 +700,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // For local variables, we can just reuse the frameId as variablesReference
     // as variablesRequest handles stored data of type `Frame` directly.
     scopes.add(Scope(
-      name: 'Variables',
+      name: 'Locals',
       presentationHint: 'locals',
       variablesReference: args.frameId,
       expensive: false,
@@ -943,6 +980,14 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     sendResponse();
   }
 
+  /// Stores [evaluateName] as the expression that can be evaluated to get
+  /// [instanceRef].
+  void storeEvaluateName(vm.InstanceRef instanceRef, String? evaluateName) {
+    if (evaluateName != null) {
+      _evaluateNamesForInstanceRefIds[instanceRef.id!] = evaluateName;
+    }
+  }
+
   /// Overridden by sub-classes to handle when the client sends a
   /// `terminateRequest` (a request for a graceful shut down).
   Future<void> terminateImpl();
@@ -1032,16 +1077,23 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       final vars = vmData.vars;
       if (vars != null) {
         Future<Variable> convert(int index, vm.BoundVariable variable) {
+          // Store the expression that gets this object as we may need it to
+          // compute evaluateNames for child objects later.
+          storeEvaluateName(variable.value, variable.name);
           return _converter.convertVmResponseToVariable(
             thread,
             variable.value,
             name: variable.name,
             allowCallingToString: evaluateToStringInDebugViews &&
                 index <= maxToStringsPerEvaluation,
+            evaluateName: variable.name,
           );
         }
 
         variables.addAll(await Future.wait(vars.mapIndexed(convert)));
+
+        // Sort the variables by name.
+        variables.sortBy((v) => v.name);
       }
     } else if (vmData is vm.MapAssociation) {
       // TODO(dantup): Maps
@@ -1056,13 +1108,10 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
           variablesReference: 0,
         ));
       } else if (object is vm.Instance) {
-        // TODO(dantup): evaluateName
-        // should be built taking the parent into account, for ex. if
-        // args.variablesReference == thread.exceptionReference then we need to
-        // use some sythensized variable name like `frameExceptionExpression`.
         variables.addAll(await _converter.convertVmInstanceToVariablesList(
           thread,
           object,
+          evaluateName: buildEvaluateName('', parentInstanceRefId: vmData.id),
           allowCallingToString: evaluateToStringInDebugViews,
           startItem: childStart,
           numItems: childCount,
@@ -1075,8 +1124,6 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         ));
       }
     }
-
-    variables.sortBy((v) => v.name);
 
     sendResponse(VariablesResponseBody(variables: variables));
   }
@@ -1172,6 +1219,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         // string they logged regardless of the evaluateToStringInDebugViews
         // setting.
         allowCallingToString: true,
+        allowTruncatedValue: false,
         includeQuotesAroundString: false,
       );
     }

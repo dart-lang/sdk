@@ -40,18 +40,18 @@ void foo() {
       // Check top two frames (in `foo` and in `main`).
       await client.expectScopeVariables(
         stack.stackFrames[0].id, // Top frame: foo
-        'Variables',
+        'Locals',
         '''
-            b: 2
-          ''',
+            b: 2, eval: b
+        ''',
       );
       await client.expectScopeVariables(
         stack.stackFrames[1].id, // Second frame: main
-        'Variables',
+        'Locals',
         '''
-            args: List (0 items)
-            myVariable: 1
-          ''',
+            args: List (0 items), eval: args
+            myVariable: 1, eval: myVariable
+        ''',
       );
     });
 
@@ -76,9 +76,9 @@ void main(List<String> args) {
       await client.expectScopeVariables(
         topFrameId,
         'Exceptions',
-        '''
-            String: "my error"
-          ''',
+        r'''
+            String: "my error", eval: $_threadException
+        ''',
       );
     });
 
@@ -103,12 +103,11 @@ void main(List<String> args) {
       await client.expectScopeVariables(
         topFrameId,
         'Exceptions',
-        // TODO(dantup): evaluateNames
-        '''
-            invalidValue: null
-            message: "Must not be null"
-            name: "args"
-          ''',
+        r'''
+            invalidValue: null, eval: $_threadException.invalidValue
+            message: "Must not be null", eval: $_threadException.message
+            name: "args", eval: $_threadException.name
+        ''',
       );
     });
 
@@ -128,8 +127,8 @@ void main(List<String> args) {
         expectedName: 'myVariable',
         expectedDisplayString: 'DateTime',
         expectedVariables: '''
-            isUtc: false
-          ''',
+            isUtc: false, eval: myVariable.isUtc
+        ''',
       );
     });
 
@@ -157,19 +156,19 @@ void main(List<String> args) {
         expectedName: 'myVariable',
         expectedDisplayString: 'DateTime',
         expectedVariables: '''
-            day: 1
-            hour: 0
-            isUtc: false
-            microsecond: 0
-            millisecond: 0
-            minute: 0
-            month: 1
-            runtimeType: Type (DateTime)
-            second: 0
-            timeZoneOffset: Duration
-            weekday: 6
-            year: 2000
-          ''',
+            day: 1, eval: myVariable.day
+            hour: 0, eval: myVariable.hour
+            isUtc: false, eval: myVariable.isUtc
+            microsecond: 0, eval: myVariable.microsecond
+            millisecond: 0, eval: myVariable.millisecond
+            minute: 0, eval: myVariable.minute
+            month: 1, eval: myVariable.month
+            runtimeType: Type (DateTime), eval: myVariable.runtimeType
+            second: 0, eval: myVariable.second
+            timeZoneOffset: Duration, eval: myVariable.timeZoneOffset
+            weekday: 6, eval: myVariable.weekday
+            year: 2000, eval: myVariable.year
+        ''',
         ignore: {
           // Don't check fields that may very based on timezone as it'll make
           // these tests fragile, and this isn't really what's being tested.
@@ -195,12 +194,11 @@ void main(List<String> args) {
         stop.threadId!,
         expectedName: 'myVariable',
         expectedDisplayString: 'List (3 items)',
-        // TODO(dantup): evaluateNames
         expectedVariables: '''
-            0: "first"
-            1: "second"
-            2: "third"
-          ''',
+            [0]: "first", eval: myVariable[0]
+            [1]: "second", eval: myVariable[1]
+            [2]: "third", eval: myVariable[2]
+        ''',
       );
     });
 
@@ -219,10 +217,9 @@ void main(List<String> args) {
         stop.threadId!,
         expectedName: 'myVariable',
         expectedDisplayString: 'List (3 items)',
-        // TODO(dantup): evaluateNames
         expectedVariables: '''
-            1: "second"
-          ''',
+            [1]: "second", eval: myVariable[1]
+        ''',
         start: 1,
         count: 1,
       );
