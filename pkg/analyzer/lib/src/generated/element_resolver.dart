@@ -598,8 +598,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Resolve the given simple [identifier] if possible. Return the element to
   /// which it could be resolved, or `null` if it could not be resolved. This
   /// does not record the results of the resolution.
-  Element? _resolveSimpleIdentifier(SimpleIdentifier identifier) {
-    var lookupResult = _resolver.nameScope.lookup(identifier.name);
+  Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
+    var lookupResult = identifier.scopeLookupResult!;
 
     var element = lookupResult.getter;
     element = _resolver.toLegacyElement(element);

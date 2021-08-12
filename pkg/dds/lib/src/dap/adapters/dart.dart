@@ -550,8 +550,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       supportsConfigurationDoneRequest: true,
       supportsDelayedStackTraceLoading: true,
       supportsEvaluateForHovers: true,
+      supportsLogPoints: true,
       // TODO(dantup): All of these...
-      // supportsLogPoints: true,
       // supportsRestartFrame: true,
       supportsTerminateRequest: true,
     ));

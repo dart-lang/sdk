@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -192,16 +193,15 @@ class PropertyElementResolver {
   }
 
   PropertyElementResolverResult resolveSimpleIdentifier({
-    required SimpleIdentifier node,
+    required SimpleIdentifierImpl node,
     required bool hasRead,
     required bool hasWrite,
   }) {
     Element? readElementRequested;
     Element? readElementRecovery;
     if (hasRead) {
-      var readLookup =
-          LexicalLookup.resolveGetter(_resolver.nameScope.lookup(node.name)) ??
-              _resolver.thisLookupGetter(node);
+      var readLookup = LexicalLookup.resolveGetter(node.scopeLookupResult!) ??
+          _resolver.thisLookupGetter(node);
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
@@ -214,9 +214,8 @@ class PropertyElementResolver {
     Element? writeElementRequested;
     Element? writeElementRecovery;
     if (hasWrite) {
-      var writeLookup =
-          LexicalLookup.resolveSetter(_resolver.nameScope.lookup(node.name)) ??
-              _resolver.thisLookupSetter(node);
+      var writeLookup = LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
+          _resolver.thisLookupSetter(node);
       writeElementRequested = _resolver.toLegacyElement(writeLookup?.requested);
       writeElementRecovery = _resolver.toLegacyElement(writeLookup?.recovery);
 

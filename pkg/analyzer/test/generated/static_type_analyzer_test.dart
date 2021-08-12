@@ -514,7 +514,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: _definingLibrary.scope);
+        featureSet: featureSet);
     _analyzer = _visitor.typeAnalyzer;
   }
 

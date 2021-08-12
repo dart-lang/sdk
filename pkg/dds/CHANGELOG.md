@@ -1,3 +1,7 @@
+# 2.1.1
+- Fix another possibility of `LateInitializationError` being thrown when trying to
+  cleanup after an error during initialization.
+
 # 2.0.2
 - Fix possibility of `LateInitializationError` being thrown when trying to
   cleanup after an error during initialization.

@@ -6310,31 +6310,6 @@ DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
   return OS::GetCurrentMonotonicFrequency();
 }
 
-DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
-#if defined(SUPPORT_TIMELINE)
-  const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
-  const bool compiler_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
-  const bool dart_enabled = (stream_mask & DART_TIMELINE_STREAM_DART) != 0;
-  const bool debugger_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_DEBUGGER) != 0;
-  const bool embedder_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
-  const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
-  const bool isolate_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
-  const bool vm_enabled = (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
-  Timeline::SetStreamAPIEnabled(api_enabled);
-  Timeline::SetStreamCompilerEnabled(compiler_enabled);
-  Timeline::SetStreamDartEnabled(dart_enabled);
-  Timeline::SetStreamDebuggerEnabled(debugger_enabled);
-  Timeline::SetStreamEmbedderEnabled(embedder_enabled);
-  Timeline::SetStreamGCEnabled(gc_enabled);
-  Timeline::SetStreamIsolateEnabled(isolate_enabled);
-  Timeline::SetStreamVMEnabled(vm_enabled);
-#endif
-}
-
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
                                     int64_t timestamp1_or_async_id,

@@ -293,7 +293,7 @@ class AnnotationResolver {
     }
     var argumentList = node.arguments;
 
-    var element1 = _resolver.nameScope.lookup(name1.name).getter;
+    var element1 = name1.scopeLookupResult!.getter;
     name1.staticElement = element1;
 
     if (element1 == null) {
