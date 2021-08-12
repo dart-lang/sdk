@@ -411,4 +411,73 @@ void main(List<String> args) async {
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
+
+  group('debug mode logpoints', () {
+    /// A helper that tests a LogPoint using [logMessage] and expecting the
+    /// script not to pause and [expectedMessage] to show up in the output.
+    Future<void> _testLogPoint(
+      DapTestSession dap,
+      String logMessage,
+      String expectedMessage,
+    ) async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      final outputEventsFuture = client.outputEvents.toList();
+
+      await client.doNotHitBreakpoint(
+        testFile,
+        breakpointLine,
+        logMessage: logMessage,
+      );
+
+      final outputEvents = await outputEventsFuture;
+      final outputMessages = outputEvents.map((e) => e.output.trim());
+
+      expect(
+        outputMessages,
+        contains(expectedMessage),
+      );
+    }
+
+    test('print simple messages', () async {
+      await _testLogPoint(
+        dap,
+        r'This is a test message',
+        'This is a test message',
+      );
+    });
+
+    test('print messages with Dart interpolation', () async {
+      await _testLogPoint(
+        dap,
+        r'This is a test message in ${DateTime.now().year}',
+        'This is a test message in ${DateTime.now().year}',
+      );
+    });
+
+    test('print messages with just {braces}', () async {
+      await _testLogPoint(
+        dap,
+        // The DAP spec says "Expressions within {} are interpolated" so in the DA
+        // we just prefix them with $ and treat them like other Dart interpolation
+        // expressions.
+        r'This is a test message in {DateTime.now().year}',
+        'This is a test message in ${DateTime.now().year}',
+      );
+    });
+
+    test('allows \\{escaped braces}', () async {
+      await _testLogPoint(
+        dap,
+        // Since we treat things in {braces} as expressions, we need to support
+        // escaping them.
+        r'This is a test message with \{escaped braces}',
+        r'This is a test message with {escaped braces}',
+      );
+    });
+
+    // These tests can be slow due to starting up the external server process.
+  }, timeout: Timeout.none);
 }

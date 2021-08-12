@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'adapters/dart.dart';
@@ -84,6 +86,12 @@ class IsolateManager {
   /// Stored data is thread-scoped but the client will not provide the thread
   /// when asking for data so it's all stored together here.
   final _storedData = <int, _StoredData>{};
+
+  /// A pattern that matches an opening brace `{` that was not preceeded by a
+  /// dollar.
+  ///
+  /// Any leading character matched in place of the dollar is in the first capture.
+  final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
   IsolateManager(this._adapter);
 
@@ -327,19 +335,19 @@ class IsolateManager {
         final message = result.message ?? '<error ref>';
         _adapter.sendOutput(
           'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message',
+          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
         );
       } else if (result is vm.Sentinel) {
         final message = result.valueAsString ?? '<collected>';
         _adapter.sendOutput(
           'console',
-          'Debugger failed to evaluate breakpoint $type "$expression": $message',
+          'Debugger failed to evaluate breakpoint $type "$expression": $message\n',
         );
       }
     } catch (e) {
       _adapter.sendOutput(
         'console',
-        'Debugger failed to evaluate breakpoint $type "$expression": $e',
+        'Debugger failed to evaluate breakpoint $type "$expression": $e\n',
       );
     }
   }
@@ -406,9 +414,18 @@ class IsolateManager {
         // Look up the client breakpoints that correspond to the VM breakpoint(s)
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
-        final breakpoints = event.pauseBreakpoints!
+        final clientBreakpoints = event.pauseBreakpoints!
             .map((bp) => _clientBreakpointsByVmId[bp.id!])
             .toSet();
+
+        // Split into logpoints (which just print messages) and breakpoints.
+        final logPoints = clientBreakpoints
+            .whereNotNull()
+            .where((bp) => bp.logMessage?.isNotEmpty ?? false)
+            .toSet();
+        final breakpoints = clientBreakpoints.difference(logPoints);
+
+        await _processLogPoints(thread, logPoints);
 
         // Resume if there are no (non-logpoint) breakpoints, of any of the
         // breakpoints don't have false conditions.
@@ -445,6 +462,41 @@ class IsolateManager {
       thread.paused = false;
       thread.pauseEvent = null;
       thread.exceptionReference = null;
+    }
+  }
+
+  /// Interpolates and prints messages for any log points.
+  ///
+  /// Log Points are breakpoints with string messages attached. When the VM hits
+  /// the breakpoint, we evaluate/print the message and then automatically
+  /// resume (as long as there was no other breakpoint).
+  Future<void> _processLogPoints(
+    ThreadInfo thread,
+    Set<SourceBreakpoint> logPoints,
+  ) async {
+    // Otherwise, we need to evaluate all of the conditions and see if any are
+    // true, in which case we will also hit.
+    final messages = logPoints.map((bp) => bp.logMessage!).toList();
+
+    final results = await Future.wait(messages.map(
+      (message) {
+        // Log messages are bare so use jsonEncode to make them valid string
+        // expressions.
+        final expression = jsonEncode(message)
+            // The DAP spec says "Expressions within {} are interpolated" so to
+            // avoid any clever parsing, just prefix them with $ and treat them
+            // like other Dart interpolation expressions.
+            .replaceAllMapped(_braceNotPrefixedByDollarOrBackslashPattern,
+                (match) => '${match.group(1)}\${')
+            // Remove any backslashes the user added to "escape" braces.
+            .replaceAll(r'\\{', '{');
+        return _evaluateAndPrintErrors(thread, expression, 'log message');
+      },
+    ));
+
+    for (final messageResult in results) {
+      // TODO(dantup): Format this using other existing code in protocol converter?
+      _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
     }
   }
 

@@ -444,6 +444,7 @@ extension DapTestClientExtension on DapTestClient {
     File file,
     int line, {
     String? condition,
+    String? logMessage,
     Future<Response> Function()? launch,
   }) async {
     await Future.wait([
@@ -452,7 +453,13 @@ extension DapTestClientExtension on DapTestClient {
       sendRequest(
         SetBreakpointsArguments(
           source: Source(path: file.path),
-          breakpoints: [SourceBreakpoint(line: line, condition: condition)],
+          breakpoints: [
+            SourceBreakpoint(
+              line: line,
+              condition: condition,
+              logMessage: logMessage,
+            )
+          ],
         ),
       ),
       launch?.call() ?? this.launch(file.path),
