@@ -372,8 +372,8 @@ class IsolateSpawnState {
   Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
 
   ObjectPtr ResolveFunction();
-  InstancePtr BuildArgs(Thread* thread);
-  InstancePtr BuildMessage(Thread* thread);
+  ObjectPtr BuildArgs(Thread* thread);
+  ObjectPtr BuildMessage(Thread* thread);
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
 
@@ -569,25 +569,22 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   return func.ptr();
 }
 
-static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
+static ObjectPtr DeserializeMessage(Thread* thread, Message* message) {
   if (message == NULL) {
-    return Instance::null();
+    return Object::null();
   }
-  Zone* zone = thread->zone();
   if (message->IsRaw()) {
-    return Instance::RawCast(message->raw_obj());
+    return Object::RawCast(message->raw_obj());
   } else {
-    const Object& obj = Object::Handle(zone, ReadMessage(thread, message));
-    ASSERT(!obj.IsError());
-    return Instance::RawCast(obj.ptr());
+    return ReadMessage(thread, message);
   }
 }
 
-InstancePtr IsolateSpawnState::BuildArgs(Thread* thread) {
+ObjectPtr IsolateSpawnState::BuildArgs(Thread* thread) {
   return DeserializeMessage(thread, serialized_args_.get());
 }
 
-InstancePtr IsolateSpawnState::BuildMessage(Thread* thread) {
+ObjectPtr IsolateSpawnState::BuildMessage(Thread* thread) {
   return DeserializeMessage(thread, serialized_message_.get());
 }
 
@@ -759,10 +756,25 @@ class SpawnIsolateTask : public ThreadPool::Task {
         Object::Handle(zone, func.ImplicitStaticClosure());
 
     // Step 2) Enqueue delayed invocation of entrypoint callback.
+    const auto& args_obj = Object::Handle(zone, state_->BuildArgs(thread));
+    if (args_obj.IsError()) {
+      ReportError(
+          "Failed to deserialize the passed arguments to the new isolate.");
+      return false;
+    }
+    ASSERT(args_obj.IsNull() || args_obj.IsInstance());
+    const auto& message_obj =
+        Object::Handle(zone, state_->BuildMessage(thread));
+    if (message_obj.IsError()) {
+      ReportError(
+          "Failed to deserialize the passed arguments to the new isolate.");
+      return false;
+    }
+    ASSERT(message_obj.IsNull() || message_obj.IsInstance());
     const Array& args = Array::Handle(zone, Array::New(4));
     args.SetAt(0, entrypoint_closure);
-    args.SetAt(1, Instance::Handle(zone, state_->BuildArgs(thread)));
-    args.SetAt(2, Instance::Handle(zone, state_->BuildMessage(thread)));
+    args.SetAt(1, args_obj);
+    args.SetAt(2, message_obj);
     args.SetAt(3, is_spawn_uri ? Bool::True() : Bool::False());
 
     const auto& lib = Library::Handle(zone, Library::IsolateLibrary());
