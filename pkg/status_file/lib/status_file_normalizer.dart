@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:status_file/src/expression.dart';
+
 import 'canonical_status_file.dart';
 import 'dart:convert';
 
@@ -52,10 +54,9 @@ StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
   List<StatusSection> newSections = [];
   // Copy over all sections and normalize all the expressions.
   oldStatusFile.sections.forEach((section) {
-    if (section.condition != null && section.isEmpty()) {
-      return;
-    }
-    if (section.condition != null) {
+    if (section.condition != Expression.always) {
+      if (section.isEmpty()) return;
+
       newSections.add(new StatusSection(section.condition.normalize(),
           section.lineNumber, section.sectionHeaderComments)
         ..entries.addAll(section.entries));
@@ -63,23 +64,17 @@ StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
       newSections.add(section);
     }
   });
+
   // Sort the headers
-  newSections.sort((a, b) {
-    if (a.condition == null) {
-      return -1;
-    } else if (b.condition == null) {
-      return 1;
-    }
-    return a.condition.compareTo(b.condition);
-  });
+  newSections.sort((a, b) => a.condition.compareTo(b.condition));
+
   // See if we can combine section headers by simple comparison.
-  StatusFile newStatusFile = new StatusFile(statusFile.path);
+  var newStatusFile = new StatusFile(statusFile.path);
   newStatusFile.sections.add(newSections[0]);
   for (var i = 1; i < newSections.length; i++) {
     var previousSection = newSections[i - 1];
     var currentSection = newSections[i];
-    if (previousSection.condition != null &&
-        previousSection.condition.compareTo(currentSection.condition) == 0) {
+    if (previousSection.condition.compareTo(currentSection.condition) == 0) {
       newStatusFile.sections.last.entries.addAll(currentSection.entries);
     } else {
       newStatusFile.sections.add(currentSection);
