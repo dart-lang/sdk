@@ -9351,9 +9351,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   closure_signature.FinalizeNameArray();
   closure_function.InheritKernelOffsetFrom(*this);
 
-  // Change covariant parameter types to either Object? for an opted-in implicit
-  // closure or to Object* for a legacy implicit closure.
   if (!is_static() && !IsConstructor()) {
+    // Change covariant parameter types to either Object? for an opted-in
+    // implicit closure or to Object* for a legacy implicit closure.
     BitVector is_covariant(zone, NumParameters());
     BitVector is_generic_covariant_impl(zone, NumParameters());
     kernel::ReadParameterCovariance(*this, &is_covariant,
@@ -9370,6 +9370,22 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       if (is_covariant.Contains(original_param_index) ||
           is_generic_covariant_impl.Contains(original_param_index)) {
         closure_signature.SetParameterTypeAt(i, object_type);
+      }
+    }
+  } else if (IsConstructor() && closure_signature.IsGeneric()) {
+    // Instantiate types of parameters as they may reference
+    // class type parameters.
+    const auto& instantiator_type_args = TypeArguments::Handle(
+        zone, AbstractType::Handle(zone, closure_signature.result_type())
+                  .arguments());
+    auto& param_type = AbstractType::Handle(zone);
+    for (intptr_t i = kClosure; i < num_params; ++i) {
+      param_type = closure_signature.ParameterTypeAt(i);
+      if (!param_type.IsInstantiated()) {
+        param_type = param_type.InstantiateFrom(instantiator_type_args,
+                                                Object::null_type_arguments(),
+                                                kAllFree, Heap::kOld);
+        closure_signature.SetParameterTypeAt(i, param_type);
       }
     }
   }
