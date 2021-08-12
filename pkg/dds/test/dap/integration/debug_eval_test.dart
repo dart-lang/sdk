@@ -47,7 +47,7 @@ void main(List<String> args) {
       );
 
       // Check we got a variablesReference that maps on to the fields.
-      expect(result.variablesReference, greaterThan(0));
+      expect(result.variablesReference, isPositive);
       await client.expectVariables(
         result.variablesReference,
         '''
@@ -111,7 +111,7 @@ void main(List<String> args) {
         threadExceptionExpression,
         '_Exception',
       );
-      expect(result.variablesReference, greaterThan(0));
+      expect(result.variablesReference, isPositive);
     });
 
     test(

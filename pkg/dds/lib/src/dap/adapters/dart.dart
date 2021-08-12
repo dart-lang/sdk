@@ -1095,8 +1095,37 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         // Sort the variables by name.
         variables.sortBy((v) => v.name);
       }
-    } else if (vmData is vm.MapAssociation) {
-      // TODO(dantup): Maps
+    } else if (data is vm.MapAssociation) {
+      final key = data.key;
+      final value = data.value;
+      if (key is vm.InstanceRef && value is vm.InstanceRef) {
+        // For a MapAssociation, we create a dummy set of variables for "key" and
+        // "value" so that each may be expanded if they are complex values.
+        variables.addAll([
+          Variable(
+            name: 'key',
+            value: await _converter.convertVmInstanceRefToDisplayString(
+              thread,
+              key,
+              allowCallingToString: evaluateToStringInDebugViews,
+            ),
+            variablesReference:
+                _converter.isSimpleKind(key.kind) ? 0 : thread.storeData(key),
+          ),
+          Variable(
+              name: 'value',
+              value: await _converter.convertVmInstanceRefToDisplayString(
+                thread,
+                value,
+                allowCallingToString: evaluateToStringInDebugViews,
+              ),
+              variablesReference: _converter.isSimpleKind(value.kind)
+                  ? 0
+                  : thread.storeData(value),
+              evaluateName:
+                  buildEvaluateName('', parentInstanceRefId: value.id)),
+        ]);
+      }
     } else if (vmData is vm.ObjRef) {
       final object =
           await _isolateManager.getObject(storedData.thread.isolate, vmData);

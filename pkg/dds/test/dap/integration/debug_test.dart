@@ -159,7 +159,7 @@ void main(List<String> args) async {
 
       // SDK sources should have a sourceReference and no path.
       expect(topFrame.source!.path, isNull);
-      expect(topFrame.source!.sourceReference, greaterThan(0));
+      expect(topFrame.source!.sourceReference, isPositive);
 
       // Source code should contain the implementation/signature of print().
       final source = await client.getValidSource(topFrame.source!);

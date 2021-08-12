@@ -168,14 +168,26 @@ class ProtocolConverter {
       return Future.wait(associations
           .sublist(start, numItems != null ? start + numItems : null)
           .mapIndexed((index, mapEntry) async {
+        final key = mapEntry.key;
+        final value = mapEntry.value;
         final callToString =
             allowCallingToString && index <= maxToStringsPerEvaluation;
-        final keyDisplay = await convertVmResponseToDisplayString(
-            thread, mapEntry.key,
+
+        final keyDisplay = await convertVmResponseToDisplayString(thread, key,
             allowCallingToString: callToString);
         final valueDisplay = await convertVmResponseToDisplayString(
-            thread, mapEntry.value,
+            thread, value,
             allowCallingToString: callToString);
+
+        // We only provide an evaluateName for the value, and only if the
+        // key is a simple value.
+        if (key is vm.InstanceRef &&
+            value is vm.InstanceRef &&
+            evaluateName != null &&
+            isSimpleKind(key.kind)) {
+          _adapter.storeEvaluateName(value, '$evaluateName[$keyDisplay]');
+        }
+
         return dap.Variable(
           name: '${start + index}',
           value: '$keyDisplay -> $valueDisplay',

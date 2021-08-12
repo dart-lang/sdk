@@ -605,7 +605,7 @@ extension DapTestClientExtension on DapTestClient {
 
   /// A helper that finds a named variable in the Variables scope for the top
   /// frame and asserts its child variables (fields/getters/etc) match.
-  Future<void> expectLocalVariable(
+  Future<VariablesResponseBody> expectLocalVariable(
     int threadId, {
     required String expectedName,
     required String expectedDisplayString,
@@ -632,7 +632,7 @@ extension DapTestClientExtension on DapTestClient {
     expect(expectedVariable.value, equals(expectedDisplayString));
 
     // Check the child fields.
-    await expectVariables(
+    return expectVariables(
       expectedVariable.variablesReference,
       expectedVariables,
       start: start,
