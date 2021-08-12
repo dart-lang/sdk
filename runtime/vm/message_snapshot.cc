@@ -19,6 +19,7 @@
 #include "vm/heap/weak_table.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
+#include "vm/object_graph_copy.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
@@ -3601,11 +3602,18 @@ Dart_CObject* ApiMessageDeserializer::Deserialize() {
 }
 
 std::unique_ptr<Message> WriteMessage(bool can_send_any_object,
+                                      bool same_group,
                                       const Object& obj,
                                       Dart_Port dest_port,
                                       Message::Priority priority) {
   if (ApiObjectConverter::CanConvert(obj.ptr())) {
     return Message::New(dest_port, obj.ptr(), priority);
+  } else if (same_group) {
+    const Object& copy = Object::Handle(CopyMutableObjectGraph(obj));
+    auto handle =
+        IsolateGroup::Current()->api_state()->AllocatePersistentHandle();
+    handle->set_ptr(copy.ptr());
+    return std::make_unique<Message>(dest_port, handle, priority);
   }
 
   Thread* thread = Thread::Current();
@@ -3652,6 +3660,37 @@ std::unique_ptr<Message> WriteApiMessage(Zone* zone,
 ObjectPtr ReadMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return message->raw_obj();
+  } else if (message->IsPersistentHandle()) {
+    // msg_array = [
+    //     <message>,
+    //     <collection-lib-objects-to-rehash>,
+    //     <core-lib-objects-to-rehash>,
+    // ]
+    Zone* zone = thread->zone();
+    Object& msg_obj = Object::Handle(zone);
+    const auto& msg_array = Array::Handle(
+        zone, Array::RawCast(message->persistent_handle()->ptr()));
+    ASSERT(msg_array.Length() == 3);
+    msg_obj = msg_array.At(0);
+    if (msg_array.At(1) != Object::null()) {
+      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
+      auto& result = Object::Handle(zone);
+      result = DartLibraryCalls::RehashObjectsInDartCollection(
+          thread, objects_to_rehash);
+      if (result.ptr() != Object::null()) {
+        msg_obj = result.ptr();
+      }
+    }
+    if (msg_array.At(2) != Object::null()) {
+      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
+      auto& result = Object::Handle(zone);
+      result =
+          DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
+      if (result.ptr() != Object::null()) {
+        msg_obj = result.ptr();
+      }
+    }
+    return msg_obj.ptr();
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
     MessageDeserializer deserializer(thread, message);

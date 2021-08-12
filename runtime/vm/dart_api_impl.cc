@@ -2164,8 +2164,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
 
   const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
   return PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                           object, port_id,
-                                           Message::kNormalPriority));
+                                           /* same_group */ false, object,
+                                           port_id, Message::kNormalPriority));
 }
 
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {

@@ -562,7 +562,10 @@ class ObjectCopyBase {
           Class::NumNativeFieldsOf(class_table_->At(cid)) != 0;
       if (has_native_fields) {
         exception_msg_ =
-            "Illegal argument in isolate message: (object has native fields)";
+            OS::SCreate(zone_,
+                        "Illegal argument in isolate message: (object extends "
+                        "NativeWrapper - %s)",
+                        Class::Handle(class_table_->At(cid)).ToCString());
         return false;
       }
       return true;
@@ -576,17 +579,28 @@ class ObjectCopyBase {
   }
 
     switch (cid) {
+      HANDLE_ILLEGAL_CASE(FunctionType)
+      HANDLE_ILLEGAL_CASE(DynamicLibrary)
       HANDLE_ILLEGAL_CASE(MirrorReference)
+      HANDLE_ILLEGAL_CASE(Pointer)
       HANDLE_ILLEGAL_CASE(ReceivePort)
       HANDLE_ILLEGAL_CASE(StackTrace)
       HANDLE_ILLEGAL_CASE(UserTag)
-      HANDLE_ILLEGAL_CASE(DynamicLibrary)
-      HANDLE_ILLEGAL_CASE(Pointer)
+#define CASE(type) case kFfi##type##Cid:
+      CLASS_LIST_FFI(CASE)
+#undef CASE
+      exception_msg_ =
+          "Native objects (from dart:ffi) such as Pointers and "
+          "Structs cannot be passed between isolates.";
+      return false;
       case kClosureCid: {
         if (!Function::IsImplicitStaticClosureFunction(
                 Closure::FunctionOf(Closure::RawCast(object)))) {
-          exception_msg_ =
-              "Illegal argument in isolate message: (object is a closure)";
+          exception_msg_ = OS::SCreate(
+              zone_,
+              "Illegal argument in isolate message: (object is a closure - %s)",
+              Function::Handle(Closure::FunctionOf(Closure::RawCast(object)))
+                  .ToCString());
           return false;
         }
         ASSERT(Closure::ContextOf(Closure::RawCast(object)) == Object::null());

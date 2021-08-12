@@ -124,8 +124,8 @@ class VerifyOriginId : public IsolateVisitor {
 
 static std::unique_ptr<Message> SerializeMessage(Dart_Port dest_port,
                                                  const Instance& obj) {
-  return WriteMessage(/* can_send_any_object */ false, obj, dest_port,
-                      Message::kNormalPriority);
+  return WriteMessage(/* can_send_any_object */ false, /* same_group */ false,
+                      obj, dest_port, Message::kNormalPriority);
 }
 
 static std::unique_ptr<Message> SerializeMessage(Zone* zone,
@@ -1007,8 +1007,9 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
-                                    main_port(), Message::kOOBPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, msg, main_port(),
+                                    Message::kOOBPriority));
 }
 
 void IsolateGroup::set_object_store(ObjectStore* object_store) {
@@ -1327,38 +1328,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   }
 
   // Parse the message.
-  Object& msg_obj = Object::Handle(zone);
-  if (message->IsPersistentHandle()) {
-    // msg_array = [
-    //     <message>,
-    //     <collection-lib-objects-to-rehash>,
-    //     <core-lib-objects-to-rehash>,
-    // ]
-    const auto& msg_array = Array::Handle(
-        zone, Array::RawCast(message->persistent_handle()->ptr()));
-    ASSERT(msg_array.Length() == 3);
-    msg_obj = msg_array.At(0);
-    if (msg_array.At(1) != Object::null()) {
-      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
-      auto& result = Object::Handle(zone);
-      result = DartLibraryCalls::RehashObjectsInDartCollection(
-          thread, objects_to_rehash);
-      if (result.ptr() != Object::null()) {
-        msg_obj = result.ptr();
-      }
-    }
-    if (msg_array.At(2) != Object::null()) {
-      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
-      auto& result = Object::Handle(zone);
-      result =
-          DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
-      if (result.ptr() != Object::null()) {
-        msg_obj = result.ptr();
-      }
-    }
-  } else {
-    msg_obj = ReadMessage(thread, message.get());
-  }
+  Object& msg_obj = Object::Handle(zone, ReadMessage(thread, message.get()));
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
     return ProcessUnhandledException(Error::Cast(msg_obj));
@@ -3306,8 +3276,8 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
     element = Smi::New(Isolate::kBeforeNextEventAction);
     msg.SetAt(2, element);
     std::unique_ptr<Message> message = WriteMessage(
-        /* can_send_any_object */ false, msg, main_port(),
-        Message::kOOBPriority);
+        /* can_send_any_object */ false, /* same_group */ false, msg,
+        main_port(), Message::kOOBPriority);
     bool posted = PortMap::PostMessage(std::move(message));
     ASSERT(posted);
   }

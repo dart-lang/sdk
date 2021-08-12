@@ -21,7 +21,6 @@
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
 #include "vm/object.h"
-#include "vm/object_graph_copy.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
@@ -108,28 +107,13 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
-
-  if (ApiObjectConverter::CanConvert(obj.ptr())) {
-    PortMap::PostMessage(
-        Message::New(destination_port_id, obj.ptr(), Message::kNormalPriority));
-  } else {
-    const bool same_group = FLAG_enable_isolate_groups &&
-                            PortMap::IsReceiverInThisIsolateGroup(
-                                destination_port_id, isolate->group());
-    if (same_group) {
-      const auto& copy = Object::Handle(CopyMutableObjectGraph(obj));
-      auto handle = isolate->group()->api_state()->AllocatePersistentHandle();
-      handle->set_ptr(copy.ptr());
-      std::unique_ptr<Message> message(
-          new Message(destination_port_id, handle, Message::kNormalPriority));
-      PortMap::PostMessage(std::move(message));
-    } else {
-      // TODO(turnidge): Throw an exception when the return value is false?
-      PortMap::PostMessage(WriteMessage(can_send_any_object, obj,
-                                        destination_port_id,
-                                        Message::kNormalPriority));
-    }
-  }
+  const bool same_group =
+      FLAG_enable_isolate_groups && PortMap::IsReceiverInThisIsolateGroup(
+                                        destination_port_id, isolate->group());
+  // TODO(turnidge): Throw an exception when the return value is false?
+  PortMap::PostMessage(WriteMessage(can_send_any_object, same_group, obj,
+                                    destination_port_id,
+                                    Message::kNormalPriority));
   return Object::null();
 }
 
@@ -581,11 +565,17 @@ static ObjectPtr DeserializeMessage(Thread* thread, Message* message) {
 }
 
 ObjectPtr IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeMessage(thread, serialized_args_.get());
+  const Object& result =
+      Object::Handle(DeserializeMessage(thread, serialized_args_.get()));
+  serialized_args_.reset();
+  return result.ptr();
 }
 
 ObjectPtr IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeMessage(thread, serialized_message_.get());
+  const Object& result =
+      Object::Handle(DeserializeMessage(thread, serialized_message_.get()));
+  serialized_message_.reset();
+  return result.ptr();
 }
 
 static void ThrowIsolateSpawnException(const String& message) {
@@ -810,7 +800,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     {
       // If parent isolate died, we ignore the fact that we cannot notify it.
       PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
-                                        message, state_->parent_port(),
+                                        /* same_group */ false, message,
+                                        state_->parent_port(),
                                         Message::kNormalPriority));
     }
 
@@ -877,21 +868,20 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
+      const bool in_new_isolate_group = newIsolateGroup.value();
 
       // We first try to serialize the message.  In case the message is not
       // serializable this will throw an exception.
       SerializedObjectBuffer message_buffer;
-      {
-        message_buffer.set_message(WriteMessage(
-            /* can_send_any_object */ true, message, ILLEGAL_PORT,
-            Message::kNormalPriority));
-      }
+      message_buffer.set_message(WriteMessage(
+          /* can_send_any_object */ true,
+          /* same_group */ FLAG_enable_isolate_groups && !in_new_isolate_group,
+          message, ILLEGAL_PORT, Message::kNormalPriority));
 
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
       const char* utf8_debug_name =
           debugName.IsNull() ? NULL : String2UTF8(debugName);
-      const bool in_new_isolate_group = newIsolateGroup.value();
 
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
@@ -967,13 +957,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   SerializedObjectBuffer arguments_buffer;
   SerializedObjectBuffer message_buffer;
   {
-    arguments_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                              args, ILLEGAL_PORT,
-                                              Message::kNormalPriority));
+    arguments_buffer.set_message(WriteMessage(
+        /* can_send_any_object */ false,
+        /* same_group */ false, args, ILLEGAL_PORT, Message::kNormalPriority));
   }
   {
     message_buffer.set_message(WriteMessage(/* can_send_any_object */ false,
-                                            message, ILLEGAL_PORT,
+                                            /* same_group */ false, message,
+                                            ILLEGAL_PORT,
                                             Message::kNormalPriority));
   }
 
@@ -1047,8 +1038,9 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   // Ensure message writer (and it's resources, e.g. forwarding tables) are
   // cleaned up before handling interrupts.
   {
-    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, msg,
-                                      port.Id(), Message::kOOBPriority));
+    PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                      /* same_group */ false, msg, port.Id(),
+                                      Message::kOOBPriority));
   }
 
   // Drain interrupts before running so any IMMEDIATE operations on the current
