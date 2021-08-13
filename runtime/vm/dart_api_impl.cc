@@ -6324,54 +6324,57 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type > Dart_Timeline_Event_Flow_End) {
     return;
   }
+  if (!Dart::SetActiveApiCall()) {
+    return;
+  }
   TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
-  if (event == NULL) {
-    return;
+  if (event != NULL) {
+    switch (type) {
+      case Dart_Timeline_Event_Begin:
+        event->Begin(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_End:
+        event->End(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Instant:
+        event->Instant(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Duration:
+        event->Duration(label, timestamp0, timestamp1_or_async_id);
+        break;
+      case Dart_Timeline_Event_Async_Begin:
+        event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Async_End:
+        event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Async_Instant:
+        event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Counter:
+        event->Counter(label, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_Begin:
+        event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_Step:
+        event->FlowStep(label, timestamp1_or_async_id, timestamp0);
+        break;
+      case Dart_Timeline_Event_Flow_End:
+        event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
+        break;
+      default:
+        FATAL("Unknown Dart_Timeline_Event_Type");
+    }
+    event->SetNumArguments(argument_count);
+    for (intptr_t i = 0; i < argument_count; i++) {
+      event->CopyArgument(i, argument_names[i], argument_values[i]);
+    }
+    event->Complete();
   }
-  switch (type) {
-    case Dart_Timeline_Event_Begin:
-      event->Begin(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_End:
-      event->End(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Instant:
-      event->Instant(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Duration:
-      event->Duration(label, timestamp0, timestamp1_or_async_id);
-      break;
-    case Dart_Timeline_Event_Async_Begin:
-      event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Async_End:
-      event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Async_Instant:
-      event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Counter:
-      event->Counter(label, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_Begin:
-      event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_Step:
-      event->FlowStep(label, timestamp1_or_async_id, timestamp0);
-      break;
-    case Dart_Timeline_Event_Flow_End:
-      event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
-      break;
-    default:
-      FATAL("Unknown Dart_Timeline_Event_Type");
-  }
-  event->SetNumArguments(argument_count);
-  for (intptr_t i = 0; i < argument_count; i++) {
-    event->CopyArgument(i, argument_names[i], argument_values[i]);
-  }
-  event->Complete();
+  Dart::ResetActiveApiCall();
 #endif
 }
 
