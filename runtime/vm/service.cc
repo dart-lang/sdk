@@ -5208,6 +5208,7 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
   {
     JSONArray internals(&map, "List");
     CLASS_LIST_ARRAYS(DEFINE_ADD_VALUE_F_CID)
+    DEFINE_ADD_VALUE_F_CID(GrowableObjectArray)
     DEFINE_ADD_VALUE_F_CID(ByteBuffer)
   }
   {

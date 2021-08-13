@@ -1009,7 +1009,6 @@ class ObjectCopy : public Base {
 
       CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(COPY_TO)
       COPY_TO(Array)
-      COPY_TO(GrowableObjectArray)
       COPY_TO(LinkedHashMap)
       COPY_TO(LinkedHashSet)
 #undef COPY_TO

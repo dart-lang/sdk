@@ -607,7 +607,6 @@ void Object::InitVtables() {
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(INIT_VTABLE)
-  INIT_VTABLE(GrowableObjectArray)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -631,7 +630,7 @@ void Object::InitVtables() {
     Array fake_handle;                                                         \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
-  CLASS_LIST_FIXED_LENGTH_ARRAYS(INIT_VTABLE)
+  CLASS_LIST_ARRAYS(INIT_VTABLE)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -19266,7 +19265,7 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
   }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Class& cls = Class::Handle(zone, clazz());
+  const Class& cls = Class::Handle(zone, clazz());
   if (!cls.is_finalized()) {
     // Various predefined classes can be instantiated by the VM or
     // Dart_NewString/Integer/TypedData/... before the class is finalized.
@@ -19281,9 +19280,6 @@ AbstractTypePtr Instance::GetType(Heap::Space space) const {
     }
     signature ^= signature.Canonicalize(thread, nullptr);
     return signature.ptr();
-  }
-  if (IsArrayClassId(cls.id())) {
-    cls = thread->isolate_group()->object_store()->list_class();
   }
   Type& type = Type::Handle(zone);
   if (!cls.IsGeneric()) {

@@ -78,6 +78,7 @@ typedef uint16_t ClassIdTagType;
   V(Mint)                                                                      \
   V(Double)                                                                    \
   V(Bool)                                                                      \
+  V(GrowableObjectArray)                                                       \
   V(Float32x4)                                                                 \
   V(Int32x4)                                                                   \
   V(Float64x2)                                                                 \
@@ -107,13 +108,9 @@ typedef uint16_t ClassIdTagType;
 // TODO(http://dartbug.com/45908): Add ImmutableLinkedHashSet.
 #define CLASS_LIST_SETS(V) V(LinkedHashSet)
 
-#define CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                      \
+#define CLASS_LIST_ARRAYS(V)                                                   \
   V(Array)                                                                     \
   V(ImmutableArray)
-
-#define CLASS_LIST_ARRAYS(V)                                                   \
-  CLASS_LIST_FIXED_LENGTH_ARRAYS(V)                                            \
-  V(GrowableObjectArray)
 
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
@@ -185,7 +182,6 @@ typedef uint16_t ClassIdTagType;
   V(LinkedHashMap)                                                             \
   V(LinkedHashSet)                                                             \
   V(Array)                                                                     \
-  V(GrowableObjectArray)                                                       \
   V(String)
 
 #define CLASS_LIST_NO_OBJECT(V)                                                \
@@ -331,15 +327,11 @@ inline bool IsExternalStringClassId(intptr_t index) {
           index == kExternalTwoByteStringCid);
 }
 
-inline bool IsArrayClassId(intptr_t index) {
-  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
-  COMPILE_ASSERT(kGrowableObjectArrayCid == kArrayCid + 2);
-  return (index >= kArrayCid && index <= kGrowableObjectArrayCid);
-}
-
 inline bool IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
-  return (IsArrayClassId(index) || IsTypedDataBaseClassId(index) ||
+  COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
+  return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
+          (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
           (index == kByteBufferCid));
 }
 

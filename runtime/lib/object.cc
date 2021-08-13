@@ -101,18 +101,14 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
       return IsIntegerClassId(right_cid);
-    } else if (IsStringClassId(left_cid)) {
-      return IsStringClassId(right_cid);
-    } else if (IsTypeClassId(left_cid)) {
-      return IsTypeClassId(right_cid);
-    } else if (IsArrayClassId(left_cid)) {
-      if (!IsArrayClassId(right_cid)) {
-        return false;
-      }
-      // Still need to check type arguments.
-    } else {
-      return false;
     }
+    if (IsStringClassId(left_cid)) {
+      return IsStringClassId(right_cid);
+    }
+    if (IsTypeClassId(left_cid)) {
+      return IsTypeClassId(right_cid);
+    }
+    return false;
   }
 
   if (left_cid == kClosureCid) {

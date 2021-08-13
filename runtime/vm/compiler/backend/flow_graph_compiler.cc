@@ -1531,11 +1531,13 @@ void FlowGraphCompiler::GenerateListTypeCheck(
     Register class_id_reg,
     compiler::Label* is_instance_lbl) {
   assembler()->Comment("ListTypeCheck");
-  COMPILE_ASSERT((kImmutableArrayCid == kArrayCid + 1) &&
-                 (kGrowableObjectArrayCid == kArrayCid + 2));
-  CidRangeVector ranges;
-  ranges.Add({kArrayCid, kGrowableObjectArrayCid});
-  GenerateCidRangesCheck(assembler(), class_id_reg, ranges, is_instance_lbl);
+  compiler::Label unknown;
+  GrowableArray<intptr_t> args;
+  args.Add(kArrayCid);
+  args.Add(kGrowableObjectArrayCid);
+  args.Add(kImmutableArrayCid);
+  CheckClassIds(class_id_reg, args, is_instance_lbl, &unknown);
+  assembler()->Bind(&unknown);
 }
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
