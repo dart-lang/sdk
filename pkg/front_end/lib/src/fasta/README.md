@@ -13,10 +13,10 @@ Fasta sounds like faster, and that's a promise we intend to keep.
 
 ## Getting Started
 
-1. [Build](https://github.com/dart-lang/sdk/wiki/Building#building) the VM and patched SDK. Note: you only need to build the targets `runtime_kernel`, and `dart_precompiled_runtime`, so you only need to run this command:
+1. [Build](https://github.com/dart-lang/sdk/wiki/Building#building) the VM and patched SDK. Note: you only need to build the targets `runtime` and `dart_precompiled_runtime`, so you only need to run this command:
 
 ```bash
-./tools/build.py --mode release --arch x64 runtime_kernel dart_precompiled_runtime
+./tools/build.py --mode release --arch x64 runtime dart_precompiled_runtime
 ```
 
 ## Create an Outline File

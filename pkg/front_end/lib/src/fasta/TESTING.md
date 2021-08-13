@@ -40,7 +40,7 @@ Note that this test requires a 64-bit build because app-jit snapshot does not wo
 
 ```
 # Language, co19, kernel, for VM using Fasta.
-./tools/build.py -mrelease runtime_kernel && ./tools/test.py -mrelease -cdartk co19 language kernel --time -pcolor --report -j16
+./tools/build.py -mrelease runtime && ./tools/test.py -mrelease -cdartk co19 language kernel --time -pcolor --report -j16
 ```
 
 

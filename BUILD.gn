@@ -73,14 +73,6 @@ group("run_ffi_unit_tests") {
   deps = [ "runtime/bin/ffi_unit_test:run_ffi_unit_tests" ]
 }
 
-group("runtime_kernel") {
-  if (targetting_fuchsia) {
-    # Fuchsia has run_vm_tests marked testonly.
-    testonly = true
-  }
-  deps = [ ":runtime" ]
-}
-
 group("runtime_precompiled") {
   deps = [
     "runtime/bin:dart_precompiled_runtime",
