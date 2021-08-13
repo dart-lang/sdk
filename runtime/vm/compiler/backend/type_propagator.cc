@@ -821,7 +821,7 @@ const AbstractType* CompileType::ToAbstractType() {
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
-    if ((cid_ < kInstanceCid) || (cid_ == kTypeArgumentsCid)) {
+    if (IsInternalOnlyId(cid_) || cid_ == kTypeArgumentsCid) {
       type_ = &Object::dynamic_type();
       return type_;
     }

@@ -387,7 +387,9 @@ bool mayFollowTypeArgs(Token token) {
     '*',
     '%',
     '/',
-    '~/'
+    '~/',
+    'is',
+    'as'
   };
   if (token.type == TokenType.EOF) {
     // The spec doesn't have anything to say about this case, since an

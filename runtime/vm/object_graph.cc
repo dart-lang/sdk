@@ -24,7 +24,7 @@ namespace dart {
 static bool IsUserClass(intptr_t cid) {
   if (cid == kContextCid) return true;
   if (cid == kTypeArgumentsCid) return false;
-  return cid >= kInstanceCid;
+  return !IsInternalOnlyId(cid);
 }
 
 // The state of a pre-order, depth-first traversal of an object graph.

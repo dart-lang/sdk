@@ -13,6 +13,7 @@
 // operators.
 
 var typeArgs_ampersand = f<a, b> & 0;
+var typeArgs_as = f<a, b> as int;
 var typeArgs_asterisk = f<a, b> * 0;
 var typeArgs_bar = f<a, b> | 0;
 var typeArgs_caret = f<a, b> ^ 0;
@@ -22,6 +23,7 @@ var typeArgs_closeParen = g(f<a, b>);
 var typeArgs_colon = {f<a, b>: null};
 var typeArgs_comma = [f<a, b>, null];
 var typeArgs_equals = f<a, b> == null;
+var typeArgs_is = f<a, b> is int;
 var typeArgs_not_equals = f<a, b> != null;
 
 // This is a special case because when a `(` follows `<typeArguments>` it is

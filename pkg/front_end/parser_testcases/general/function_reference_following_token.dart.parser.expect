@@ -1,6 +1,7 @@
 NOTICE: Stream was rewritten by parser!
 
 var typeArgs_ampersand = f<a, b> & 0;
+var typeArgs_as = f<a, b> as int;
 var typeArgs_asterisk = f<a, b> * 0;
 var typeArgs_bar = f<a, b> | 0;
 var typeArgs_caret = f<a, b> ^ 0;
@@ -10,6 +11,7 @@ var typeArgs_closeParen = g(f<a, b>);
 var typeArgs_colon = {f<a, b>: null};
 var typeArgs_comma = [f<a, b>, null];
 var typeArgs_equals = f<a, b> == null;
+var typeArgs_is = f<a, b> is int;
 var typeArgs_not_equals = f<a, b> != null;
 
 
@@ -80,6 +82,7 @@ var operators_openBracket_unambiguous = f(a<b,c>[d, e]);
 
 
 var[KeywordToken] typeArgs_ampersand[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] &[SimpleToken] 0[StringToken];[SimpleToken]
+var[KeywordToken] typeArgs_as[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] as[KeywordToken] int[StringToken];[SimpleToken]
 var[KeywordToken] typeArgs_asterisk[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] *[SimpleToken] 0[StringToken];[SimpleToken]
 var[KeywordToken] typeArgs_bar[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] |[SimpleToken] 0[StringToken];[SimpleToken]
 var[KeywordToken] typeArgs_caret[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] ^[SimpleToken] 0[StringToken];[SimpleToken]
@@ -89,6 +92,7 @@ var[KeywordToken] typeArgs_closeParen[StringToken] =[SimpleToken] g[StringToken]
 var[KeywordToken] typeArgs_colon[StringToken] =[SimpleToken] {[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
 var[KeywordToken] typeArgs_comma[StringToken] =[SimpleToken] [[BeginToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken],[SimpleToken] null[KeywordToken]][SimpleToken];[SimpleToken]
 var[KeywordToken] typeArgs_equals[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] ==[SimpleToken] null[KeywordToken];[SimpleToken]
+var[KeywordToken] typeArgs_is[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] is[KeywordToken] int[StringToken];[SimpleToken]
 var[KeywordToken] typeArgs_not_equals[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken] !=[SimpleToken] null[KeywordToken];[SimpleToken]
 
 

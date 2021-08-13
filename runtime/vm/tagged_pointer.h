@@ -109,7 +109,7 @@ class ObjectPtr {
   bool IsStringInstance() const { return IsStringClassId(GetClassId()); }
   bool IsRawNull() const { return GetClassId() == kNullCid; }
   bool IsDartInstance() const {
-    return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
+    return (!IsHeapObject() || !IsInternalOnlyId(GetClassId()));
   }
   bool IsFreeListElement() const {
     return ((GetClassId() == kFreeListElement));

@@ -51,6 +51,13 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
             .leftOperand);
   }
 
+  void test_followingToken_accepted_as() {
+    expect_f_a_b(
+        (parseExpression('f<a, b> as int', featureSet: constructorTearoffs)
+                as AsExpression)
+            .expression);
+  }
+
   void test_followingToken_accepted_asterisk() {
     expect_f_a_b(
         (parseExpression('f<a, b> * 0', featureSet: constructorTearoffs)
@@ -111,6 +118,13 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         (parseExpression('f<a, b> == null', featureSet: constructorTearoffs)
                 as BinaryExpression)
             .leftOperand);
+  }
+
+  void test_followingToken_accepted_is() {
+    expect_f_a_b(
+        (parseExpression('f<a, b> is int', featureSet: constructorTearoffs)
+                as IsExpression)
+            .expression);
   }
 
   void test_followingToken_accepted_not_equals() {
