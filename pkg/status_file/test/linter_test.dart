@@ -100,7 +100,7 @@ void testCheckForDisjunctions_notAllowedDisjunction() {
 vm/tests: Skip # this comment is valid
 """,
       "Error at line 1: Expression contains '||'. Please split the expression "
-      "into multiple separate sections.",
+          "into multiple separate sections.",
       disjunctions: true);
 }
 
@@ -118,7 +118,7 @@ vm/tests: Skip # this should come after a_test
 a_test: Pass
 """,
       "Error at line 1: Test paths are not alphabetically ordered in "
-      "section. a_test should come before vm/tests.");
+          "section. a_test should come before vm/tests.");
 }
 
 void testCheckForAlphabeticalOrderingOfPaths_okOrdering() {
@@ -139,7 +139,7 @@ bc_test: Pass
 xyz_test: Skip
 """,
       "Error at line 1: The status entry 'a_test: Pass' is duplicated on lines "
-      "2 and 3.");
+          "2 and 3.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeCompiler() {
@@ -148,7 +148,7 @@ void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeCompiler() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$compiler == dart2js "
-      r"&& $runtime == ff' but was '$runtime == ff && $compiler == dart2js'.");
+          r"&& $runtime == ff' but was '$runtime == ff && $compiler == dart2js'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode() {
@@ -157,7 +157,7 @@ void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$mode == debug && "
-      r"$runtime == ff' but was '$runtime == ff && $mode == debug'.");
+          r"$runtime == ff' but was '$runtime == ff && $mode == debug'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidSystemBeforeMode() {
@@ -166,7 +166,7 @@ void testCheckForCorrectOrderingInSections_invalidSystemBeforeMode() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$mode == debug && "
-      r"$system == win' but was '$system == win && $mode == debug'.");
+          r"$system == win' but was '$system == win && $mode == debug'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidStrongBeforeKernel() {
@@ -175,7 +175,7 @@ void testCheckForCorrectOrderingInSections_invalidStrongBeforeKernel() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '!$kernel && !$strong' "
-      r"but was '!$strong && !$kernel'.");
+          r"but was '!$strong && !$kernel'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidOrdering() {
@@ -184,8 +184,8 @@ void testCheckForCorrectOrderingInSections_invalidOrdering() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$builder_tag == "
-      r"strong && $compiler == dart2js && !$browser' but was "
-      r"'$compiler == dart2js && $builder_tag == strong && !$browser'.");
+          r"strong && $compiler == dart2js && !$browser' but was "
+          r"'$compiler == dart2js && $builder_tag == strong && !$browser'.");
 }
 
 void testCheckForCorrectOrderingInSections_okOrdering() {
@@ -203,8 +203,8 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 1: Section expressions are not correctly ordered in file."
-      r" '$compiler == dart2js' on line 4 should come before '$runtime == ff' "
-      r"at line 1.");
+          r" '$compiler == dart2js' on line 4 should come before '$runtime == ff' "
+          r"at line 1.");
 }
 
 void checkLintNormalizedSection_invalidAlphabeticalOrderingVariableArguments() {
@@ -216,8 +216,8 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 1: Section expressions are not correctly ordered in file."
-      r" '$runtime == chrome' on line 4 should come before '$runtime == ff' at "
-      r"line 1.");
+          r" '$runtime == chrome' on line 4 should come before '$runtime == ff' at "
+          r"line 1.");
 }
 
 void checkLintNormalizedSection_invalidOrderingWithNotEqual() {
@@ -233,8 +233,8 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 4: Section expressions are not correctly ordered in file."
-      r" '$runtime == ff' on line 7 should come before '$runtime != ff' at "
-      r"line 4.");
+          r" '$runtime == ff' on line 7 should come before '$runtime != ff' at "
+          r"line 4.");
 }
 
 void checkLintNormalizedSection_invalidOrderingWithNegation() {
@@ -251,7 +251,7 @@ a_test: Pass
 
 """,
       r"Error at line 4: Section expressions are not correctly ordered in file."
-      r" '$checked' on line 7 should come before '!$checked' at line 4.");
+          r" '$checked' on line 7 should come before '!$checked' at line 4.");
 }
 
 void checkLintNormalizedSection_correctOrdering() {
@@ -285,5 +285,5 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 4: The condition '!$browser' is duplicated on lines 1 "
-      r"and 4.");
+          r"and 4.");
 }

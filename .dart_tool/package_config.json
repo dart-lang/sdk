@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-08-05T11:33:04.746536",
+  "generated": "2021-08-10T10:51:47.272341",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -659,7 +659,7 @@
       "name": "status_file",
       "rootUri": "../pkg/status_file",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "stream_channel",

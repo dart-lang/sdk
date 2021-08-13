@@ -9,6 +9,11 @@ import '../environment.dart';
 
 /// A parsed Boolean expression AST.
 abstract class Expression implements Comparable<Expression> {
+  /// An expression that always evaluates to true.
+  ///
+  /// Used for the section at the top of a status file with no expression.
+  static const Expression always = _AlwaysExpression();
+
   /// Parses Boolean expressions in a .status file for Dart.
   ///
   /// The grammar is:
@@ -25,6 +30,8 @@ abstract class Expression implements Comparable<Expression> {
   /// environment passed to the evaluator.
   static Expression parse(String expression) =>
       new _ExpressionParser(expression).parse();
+
+  const Expression();
 
   /// Validates that this expression does not contain any invalid uses of
   /// variables.
@@ -111,6 +118,29 @@ class Variable {
   }
 }
 
+/// An expression that always evaluates to true.
+///
+/// Used for the implicit section at the top of a status file that always
+/// matches.
+class _AlwaysExpression extends Expression {
+  const _AlwaysExpression();
+
+  @override
+  int _compareToMyType(covariant _AlwaysExpression other) => 0;
+
+  @override
+  int get _typeComparison => 0;
+
+  @override
+  bool evaluate(Environment environment) => true;
+
+  @override
+  Expression normalize() => this;
+
+  @override
+  void validate(Environment environment, List<String> errors) {}
+}
+
 /// Tests whether a given variable is or is not equal some literal value, as in:
 /// ```
 /// $variable == someValue
@@ -156,7 +186,7 @@ class ComparisonExpression extends Expression {
 
   // Comparisons come before variables so that "$compiler == ..." and
   // "$runtime == ..." appear on the left in status expressions.
-  int get _typeComparison => 0;
+  int get _typeComparison => 1;
 
   String toString() => "\$${left.name} ${negate ? '!=' : '=='} $right";
 }
@@ -203,7 +233,7 @@ class VariableExpression extends Expression {
     return _compareBool(negate, other.negate);
   }
 
-  int get _typeComparison => 1;
+  int get _typeComparison => 2;
 
   String toString() => "${negate ? "!" : ""}\$${variable.name}";
 }
@@ -237,7 +267,7 @@ class LogicExpression extends Expression {
     }
   }
 
-  Expression normalize() {
+  LogicExpression normalize() {
     // Normalize the order of the clauses. Since there is no short-circuiting,
     // a || b means the same as b || a. Picking a standard order lets us
     // identify and collapse identical expressions that only differ by clause
@@ -281,7 +311,7 @@ class LogicExpression extends Expression {
     return 0;
   }
 
-  int get _typeComparison => 2;
+  int get _typeComparison => 3;
 
   String toString() {
     String parenthesize(Expression operand) {
@@ -365,7 +395,7 @@ class _ExpressionParser {
           "Expected identifier in expression, got ${_scanner.current}");
     }
 
-    var left = new Variable(_scanner.current);
+    var left = new Variable(_scanner.current!);
     _scanner.advance();
 
     if (!negate &&
@@ -378,7 +408,7 @@ class _ExpressionParser {
             "Expected value in expression, got ${_scanner.current}");
       }
 
-      var right = _scanner.advance();
+      var right = _scanner.advance()!;
       return new ComparisonExpression(left, right, isNotEquals);
     } else {
       return new VariableExpression(left, negate: negate);
@@ -401,7 +431,7 @@ class _Scanner {
   /// The token strings being iterated.
   final Iterator<String> tokenIterator;
 
-  String current;
+  String? current;
 
   _Scanner(String expression) : tokenIterator = tokenize(expression).iterator {
     advance();
@@ -414,7 +444,7 @@ class _Scanner {
 
     return _tokenPattern
         .allMatches(expression)
-        .map((match) => match[0])
+        .map((match) => match[0]!)
         .toList();
   }
 
@@ -424,7 +454,7 @@ class _Scanner {
   // All non-identifier tokens are one or two characters,
   // so a longer token must be an identifier.
   bool get isIdentifier =>
-      current.length > 2 || _identifierPattern.hasMatch(current);
+      current!.length > 2 || _identifierPattern.hasMatch(current!);
 
   /// If the current token is [token], consumes it and returns `true`.
   bool match(String token) {
@@ -435,7 +465,7 @@ class _Scanner {
   }
 
   /// Consumes the current token and returns it.
-  String advance() {
+  String? advance() {
     var previous = current;
     current = tokenIterator.moveNext() ? tokenIterator.current : null;
     return previous;

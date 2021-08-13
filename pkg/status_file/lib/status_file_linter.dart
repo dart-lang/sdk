@@ -115,10 +115,9 @@ Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
 
 /// Checks that each section expression have been normalized.
 Iterable<LintingError> lintNormalizedSection(StatusSection section) {
-  if (section.condition == null) return const [];
   var nonNormalized = section.condition.toString();
   var normalized = section.condition.normalize().toString();
-  if (section.condition.toString() != normalized) {
+  if (nonNormalized != normalized) {
     return [
       new LintingError(
           section.lineNumber,
@@ -184,11 +183,11 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
   if (witness != null) {
     return [
       new LintingError(
-          witness.second.lineNumber,
+          witness.second!.lineNumber,
           "Section expressions are not correctly ordered in file. "
-          "'${witness.first.condition}' on line ${witness.first.lineNumber} "
-          "should come before '${witness.second.condition}' at line "
-          "${witness.second.lineNumber}.")
+          "'${witness.first!.condition}' on line ${witness.first!.lineNumber} "
+          "should come before '${witness.second!.condition}' at line "
+          "${witness.second!.lineNumber}.")
     ];
   }
   return [];
@@ -198,14 +197,12 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
 Iterable<LintingError> lintSectionHeaderDuplicates(
     List<StatusSection> sections) {
   var errors = <LintingError>[];
-  var sorted = sections.where((section) => section.condition != null).toList()
+  var sorted = sections.toList()
     ..sort((a, b) => a.condition.compareTo(b.condition));
   for (var i = 1; i < sorted.length; i++) {
     var section = sorted[i];
     var previousSection = sorted[i - 1];
-    if (section.condition != null &&
-        previousSection.condition != null &&
-        section.condition.compareTo(previousSection.condition) == 0) {
+    if (section.condition.compareTo(previousSection.condition) == 0) {
       errors.add(new LintingError(
           section.lineNumber,
           "The condition "
@@ -216,7 +213,7 @@ Iterable<LintingError> lintSectionHeaderDuplicates(
   return errors;
 }
 
-ListNotEqualWitness<T> _findNotEqualWitness<T>(List<T> first, List<T> second) {
+ListNotEqualWitness<T>? _findNotEqualWitness<T>(List<T> first, List<T> second) {
   if (first.isEmpty && second.isEmpty) {
     return null;
   }
@@ -233,7 +230,7 @@ ListNotEqualWitness<T> _findNotEqualWitness<T>(List<T> first, List<T> second) {
 }
 
 class ListNotEqualWitness<T> {
-  final T first;
-  final T second;
+  final T? first;
+  final T? second;
   ListNotEqualWitness(this.first, this.second);
 }

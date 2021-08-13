@@ -92,8 +92,9 @@ void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
       sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */,
       Bool::Handle() /* ignored */));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, message,
-                                    port_, Message::kNormalPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, message, port_,
+                                    Message::kNormalPriority));
 }
 
 void ServiceIsolate::ControlWebServer(const SendPort& sp,
@@ -102,8 +103,9 @@ void ServiceIsolate::ControlWebServer(const SendPort& sp,
   const Array& message = Array::Handle(MakeServerControlMessage(
       sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable, silenceOutput));
   ASSERT(!message.IsNull());
-  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false, message,
-                                    port_, Message::kNormalPriority));
+  PortMap::PostMessage(WriteMessage(/* can_send_any_object */ false,
+                                    /* same_group */ false, message, port_,
+                                    Message::kNormalPriority));
 }
 
 void ServiceIsolate::SetServerAddress(const char* address) {
@@ -228,7 +230,8 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, list, port_, Message::kNormalPriority));
+      /* can_send_any_object */ false, /* same_group */ false, list, port_,
+      Message::kNormalPriority));
 }
 
 bool ServiceIsolate::SendIsolateShutdownMessage() {
@@ -253,7 +256,8 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
                  name.ToCString(), Dart_GetMainPortId());
   }
   return PortMap::PostMessage(WriteMessage(
-      /* can_send_any_object */ false, list, port_, Message::kNormalPriority));
+      /* can_send_any_object */ false, /* same_group */ false, list, port_,
+      Message::kNormalPriority));
 }
 
 void ServiceIsolate::SendServiceExitMessage() {

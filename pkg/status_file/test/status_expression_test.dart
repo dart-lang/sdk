@@ -17,7 +17,7 @@ class TestEnvironment implements Environment {
   }
 
   /// Looks up the value of the variable with [name].
-  String lookUp(String name) => _values[name];
+  String? lookUp(String name) => _values[name];
 
   operator []=(String key, String value) => _values[key] = value;
 }
@@ -33,8 +33,8 @@ main() {
 }
 
 void testExpression() {
-  var expression = Expression
-      .parse(r" $mode == debug && ($arch == chromium || $arch == dartc) ");
+  var expression = Expression.parse(
+      r" $mode == debug && ($arch == chromium || $arch == dartc) ");
   Expect.equals(r"$mode == debug && ($arch == chromium || $arch == dartc)",
       expression.toString());
 

@@ -80,17 +80,16 @@ void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 
 #if defined(DART_COMPRESSED_POINTERS)
+  ASSERT(compressed_heap_ == nullptr);
+  compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
   if (compressed_heap_ == nullptr) {
-    compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
-    if (compressed_heap_ == nullptr) {
-      int error = errno;
-      const int kBufferSize = 1024;
-      char error_buf[kBufferSize];
-      FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
-            Utils::StrError(error, error_buf, kBufferSize));
-    }
-    VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
   }
+  VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
 #if defined(DUAL_MAPPING_SUPPORTED)

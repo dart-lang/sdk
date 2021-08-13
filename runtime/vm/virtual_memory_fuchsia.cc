@@ -7,8 +7,6 @@
 
 #include "vm/virtual_memory.h"
 
-#include <sys/mman.h>
-#include <unistd.h>
 #include <zircon/process.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
@@ -160,6 +158,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     if (status != ZX_OK) {
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
+      zx_handle_close(vmo);
       return NULL;
     }
   }
@@ -173,6 +172,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (status != ZX_OK) {
     LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
             size, zx_status_get_string(status));
+    zx_handle_close(vmo);
     return NULL;
   }
   void* region_ptr = reinterpret_cast<void*>(base);
