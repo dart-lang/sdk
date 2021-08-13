@@ -5370,7 +5370,8 @@ class VMSerializationRoots : public SerializationRoots {
                      "<empty subtype entries>");
 
     ClassTable* table = s->isolate_group()->class_table();
-    for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
+    for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
+         cid++) {
       // Error, CallSiteData has no class object.
       if (cid != kErrorCid && cid != kCallSiteDataCid) {
         ASSERT(table->HasValidClassAt(cid));
@@ -5477,7 +5478,8 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(SubtypeTestCache::cached_array_);
 
     ClassTable* table = d->isolate_group()->class_table();
-    for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
+    for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
+         cid++) {
       // Error, CallSiteData has no class object.
       if (cid != kErrorCid && cid != kCallSiteDataCid) {
         ASSERT(table->HasValidClassAt(cid));

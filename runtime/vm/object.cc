@@ -2952,7 +2952,7 @@ ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   result.set_num_type_arguments_unsafe(0);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
-  if ((FakeObject::kClassId < kInstanceCid) ||
+  if (IsInternalOnlyId(FakeObject::kClassId) ||
       (FakeObject::kClassId == kTypeArgumentsCid)) {
     // VM internal classes are done. There is no finalization needed or
     // possible in this case.
@@ -4465,7 +4465,7 @@ ObjectPtr Class::EvaluateCompiledExpression(
     const Array& arguments,
     const TypeArguments& type_arguments) const {
   ASSERT(Thread::Current()->IsMutatorThread());
-  if (id() < kInstanceCid || id() == kTypeArgumentsCid) {
+  if (IsInternalOnlyId(id()) || (id() == kTypeArgumentsCid)) {
     const Instance& exception = Instance::Handle(String::New(
         "Expressions can be evaluated only with regular Dart instances"));
     const Instance& stacktrace = Instance::Handle();

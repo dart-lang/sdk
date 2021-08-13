@@ -2786,7 +2786,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         isStatic = false;
       }
       if (!cls.IsTopLevel() &&
-          (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid)) {
+          (IsInternalOnlyId(cls.id()) || cls.id() == kTypeArgumentsCid)) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");
@@ -5170,7 +5170,8 @@ static void GetDefaultClassesAliases(Thread* thread, JSONStream* js) {
 #define DEFINE_ADD_VALUE_F_CID(clazz) DEFINE_ADD_VALUE_F(k##clazz##Cid)
   {
     JSONArray internals(&map, "<VM Internals>");
-    for (intptr_t id = kClassCid; id < kInstanceCid; ++id) {
+    for (intptr_t id = kFirstInternalOnlyCid; id <= kLastInternalOnlyCid;
+         ++id) {
       DEFINE_ADD_VALUE_F(id);
     }
     DEFINE_ADD_VALUE_F_CID(LibraryPrefix);

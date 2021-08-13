@@ -17,7 +17,9 @@ namespace dart {
 // Size of the class-id part of the object header. See UntaggedObject.
 typedef uint16_t ClassIdTagType;
 
-#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
+// Classes that are not subclasses of Instance and only handled by the VM,
+// but do not require any special handling other than being a predefined class.
+#define CLASS_LIST_INTERNAL_ONLY(V)                                            \
   V(Class)                                                                     \
   V(PatchClass)                                                                \
   V(Function)                                                                  \
@@ -55,7 +57,12 @@ typedef uint16_t ClassIdTagType;
   V(ApiError)                                                                  \
   V(LanguageError)                                                             \
   V(UnhandledException)                                                        \
-  V(UnwindError)                                                               \
+  V(UnwindError)
+
+// Classes that are subclasses of Instance and neither part of a specific cid
+// grouping like strings, arrays, etc. nor require special handling outside of
+// being a predefined class.
+#define CLASS_LIST_INSTANCE_SINGLETONS(V)                                      \
   V(Instance)                                                                  \
   V(LibraryPrefix)                                                             \
   V(TypeArguments)                                                             \
@@ -91,6 +98,9 @@ typedef uint16_t ClassIdTagType;
   V(FutureOr)                                                                  \
   V(UserTag)                                                                   \
   V(TransferableTypedData)
+
+#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(V)                   \
+  CLASS_LIST_INTERNAL_ONLY(V) CLASS_LIST_INSTANCE_SINGLETONS(V)
 
 // TODO(http://dartbug.com/45908): Add ImmutableLinkedHashMap.
 #define CLASS_LIST_MAPS(V) V(LinkedHashMap)
@@ -234,6 +244,7 @@ const int kTypedDataCidRemainderExternal = 2;
 
 // Class Id predicates.
 
+bool IsInternalOnlyId(intptr_t index);
 bool IsErrorClassId(intptr_t index);
 bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
@@ -252,13 +263,38 @@ bool IsFfiDynamicLibraryClassId(intptr_t index);
 bool IsInternalVMdefinedClassId(intptr_t index);
 bool IsImplicitFieldClassId(intptr_t index);
 
+// Should be used for looping over non-Object internal-only cids.
+constexpr intptr_t kFirstInternalOnlyCid = kClassCid;
+constexpr intptr_t kLastInternalOnlyCid = kUnwindErrorCid;
+// Use the currently surrounding cids to check that no new classes have been
+// added to the beginning or end of CLASS_LIST_INTERNAL_ONLY without adjusting
+// the above definitions.
+COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
+COMPILE_ASSERT(kInstanceCid == kLastInternalOnlyCid + 1);
+
+// Checks that the cids in CLASS_LIST_INTERNAL_ONLY come after kObjectCid.
+// Use with COMPILE_ASSERT where code assumes that Object immediately precedes
+// the other internal-only cids, so it can be adjusted if this changes.
+constexpr bool ObjectComesBeforeOtherInternalOnlyClasses() {
+  return kFirstInternalOnlyCid == kObjectCid + 1;
+}
+
+// Returns true for any class id that either does not correspond to a real
+// class, like kIllegalCid or kForwardingCorpse, or that is internal to the VM
+// and should not be exposed directly to user code.
+inline bool IsInternalOnlyId(intptr_t index) {
+  COMPILE_ASSERT(ObjectComesBeforeOtherInternalOnlyClasses());
+  return index <= kLastInternalOnlyCid;
+}
+
 inline bool IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  COMPILE_ASSERT(
-      kApiErrorCid == kErrorCid + 1 && kLanguageErrorCid == kErrorCid + 2 &&
-      kUnhandledExceptionCid == kErrorCid + 3 &&
-      kUnwindErrorCid == kErrorCid + 4 && kInstanceCid == kErrorCid + 5);
-  return (index >= kErrorCid && index < kInstanceCid);
+  COMPILE_ASSERT(kApiErrorCid == kErrorCid + 1 &&
+                 kLanguageErrorCid == kErrorCid + 2 &&
+                 kUnhandledExceptionCid == kErrorCid + 3 &&
+                 kUnwindErrorCid == kErrorCid + 4 &&
+                 kLastInternalOnlyCid == kUnwindErrorCid);
+  return (index >= kErrorCid && index <= kLastInternalOnlyCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {
