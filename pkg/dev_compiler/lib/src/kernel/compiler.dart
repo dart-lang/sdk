@@ -392,7 +392,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var items = startModule(libraries);
     _nullableInference.allowNotNullDeclarations = isBuildingSdk;
-    _typeTable = TypeTable(runtimeModule);
+    _typeTable = TypeTable(runtimeCall);
 
     // Collect all class/type Element -> Node mappings
     // in case we need to forward declare any classes.
@@ -712,8 +712,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsPeerNames = _extensionTypes.getNativePeers(c);
     if (jsPeerNames.length == 1 && c.typeParameters.isNotEmpty) {
       // Special handling for JSArray<E>
-      body.add(runtimeStatement('setExtensionBaseClass(#, #.global.#)',
-          [className, runtimeModule, jsPeerNames[0]]));
+      body.add(runtimeStatement('setExtensionBaseClass(#, #)', [
+        className,
+        runtimeCall('global.#', [jsPeerNames[0]])
+      ]));
     }
 
     var finishGenericTypeTest = _emitClassTypeTests(c, className, body);
@@ -876,9 +878,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       arrowFnBody = js_ast.Block(extensionInit);
     }
 
-    body.add(js.statement('#[#.mixinOn] = #', [
+    body.add(js.statement('#[#] = #', [
       className,
-      runtimeModule,
+      runtimeCall('mixinOn'),
       js_ast.ArrowFun([superclassId], arrowFnBody)
     ]));
   }
@@ -1339,8 +1341,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var names = extensions
           .map((e) => propertyName(js_ast.memberNameForDartMember(e)))
           .toList();
-      body.add(js.statement('#.#(#, #);', [
-        runtimeModule,
+      body.add(runtimeStatement('#(#, #)', [
         helperName,
         className,
         js_ast.ArrayInitializer(names, multiline: names.length > 4)
@@ -1361,9 +1362,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var interfaces = c.implementedTypes.toList()
       ..addAll(c.superclassConstraints());
     if (interfaces.isNotEmpty) {
-      body.add(js.statement('#[#.implements] = () => [#];', [
+      body.add(js.statement('#[#] = () => [#];', [
         className,
-        runtimeModule,
+        runtimeCall('implements'),
         interfaces.map((i) =>
             _emitInterfaceType(i.asInterfaceType, emitNullability: false))
       ]));
@@ -1786,11 +1787,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (c == _coreTypes.objectClass) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
-      jsMethods.add(
-          js_ast.Method(propertyName('constructor'), js.fun(r'''function() {
-                  throw Error("use `new " + #.typeName(#.getReifiedType(this)) +
-                      ".new(...)` to create a Dart object");
-              }''', [runtimeModule, runtimeModule])));
+      jsMethods.add(js_ast.Method(
+          propertyName('constructor'),
+          js.fun(r'''function() {
+                throw Error("use `new " + # +
+                    ".new(...)` to create a Dart object");
+              }''', [
+            runtimeCall('typeName(#)', [runtimeCall('getReifiedType(this)')])
+          ])));
     } else if (c == _jsArrayClass) {
       // Provide access to the Array constructor property, so it works like
       // other native types (rather than calling the Dart Object "constructor"
@@ -2191,6 +2195,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // an ES6 iterator.
     return js_ast.Method(
         js.call('Symbol.iterator'),
+        // TODO(nshahan) Don't access values in `runtimeModule` outside of
+        // `runtimeCall`.
         js.call('function() { return new #.JsIterator(this.#); }', [
           runtimeModule,
           _emitMemberName('iterator', memberClass: _coreTypes.iterableClass)
@@ -3593,13 +3599,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Get the best available location even if the offset is missing.
         // https://github.com/dart-lang/sdk/issues/34942
         var location = p.location;
-        var check = js.statement(' if (#) #.nullFailed(#, #, #, #);', [
+        var check = js.statement(' if (#) #;', [
           condition,
-          runtimeModule,
-          _cacheUri(location?.file?.toString()),
-          js.number(location?.line ?? -1),
-          js.number(location?.column ?? -1),
-          js.escapedString('${p.name}'),
+          runtimeCall('nullFailed(#, #, #, #)', [
+            _cacheUri(location?.file?.toString()),
+            js.number(location?.line ?? -1),
+            js.number(location?.column ?? -1),
+            js.escapedString('${p.name}')
+          ])
         ]);
         body.add(check);
       }
@@ -3928,18 +3935,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var conditionSource =
         source.substring(node.conditionStartOffset, node.conditionEndOffset);
     var location = _toSourceLocation(node.conditionStartOffset);
-    return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
+    return js.statement(' if (!#) #;', [
       jsCondition,
-      runtimeModule,
-      if (node.message == null)
-        js_ast.LiteralNull()
-      else
-        _visitExpression(node.message),
-      _cacheUri(location.sourceUrl.toString()),
-      // Lines and columns are typically printed with 1 based indexing.
-      js.number(location.line + 1),
-      js.number(location.column + 1),
-      js.escapedString(conditionSource),
+      runtimeCall('assertFailed(#, #, #, #, #)', [
+        if (node.message == null)
+          js_ast.LiteralNull()
+        else
+          _visitExpression(node.message),
+        _cacheUri(location.sourceUrl.toString()),
+        // Lines and columns are typically printed with 1 based indexing.
+        js.number(location.line + 1),
+        js.number(location.column + 1),
+        js.escapedString(conditionSource),
+      ])
     ]);
   }
 
@@ -4352,16 +4360,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           clause, catchBody, exceptionParameter, stackTraceParameter);
     }
     var catchStatements = [
-      js.statement('let # = #.getThrown(#)', [
+      js.statement('let # = #', [
         _emitVariableDef(exceptionParameter),
-        runtimeModule,
-        _emitVariableRef(caughtError)
+        runtimeCall('getThrown(#)', [_emitVariableRef(caughtError)])
       ]),
       if (stackTraceParameter != null)
-        js.statement('let # = #.stackTrace(#)', [
+        js.statement('let # = #', [
           _emitVariableDef(stackTraceParameter),
-          runtimeModule,
-          _emitVariableRef(caughtError)
+          runtimeCall('stackTrace(#)', [_emitVariableRef(caughtError)])
         ]),
       catchBody,
     ];
@@ -5218,8 +5224,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // a measurable performance effect (possibly the helper is simple enough to
     // be inlined).
     if (isNullable(left)) {
-      return js.call(negated ? '!#.equals(#, #)' : '#.equals(#, #)',
-          [runtimeModule, _visitExpression(left), _visitExpression(right)]);
+      return js.call(negated ? '!#' : '#', [
+        runtimeCall(
+            'equals(#, #)', [_visitExpression(left), _visitExpression(right)])
+      ]);
     }
 
     // Otherwise we emit a call to the == method.
