@@ -37,6 +37,8 @@ import 'integration/overridden_fields.dart' as overridden_fields;
 import 'integration/packages_file_test.dart' as packages_file_test;
 import 'integration/prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
+import 'integration/prefer_const_constructors.dart'
+    as prefer_const_constructors;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'integration/prefer_mixin.dart' as prefer_mixin;
@@ -204,6 +206,7 @@ void ruleTests() {
     unnecessary_string_escapes.main();
     prefer_mixin.main();
     use_build_context_synchronously.main();
+    prefer_const_constructors.main();
   });
 }
 

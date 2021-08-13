@@ -76,8 +76,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement;
+    if (node.constructorName.type.isDeferred) {
+      return;
+    }
 
+    var element = node.constructorName.staticElement;
     if (!node.isConst && element != null && element.isConst) {
       // Handled by analyzer hint.
       if (hasLiteralAnnotation(element)) {
