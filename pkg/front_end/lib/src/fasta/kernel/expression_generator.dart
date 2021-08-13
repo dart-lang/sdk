@@ -2898,12 +2898,8 @@ class DeferredAccessGenerator extends Generator {
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(
-        name,
-        nullabilityBuilder,
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null);
+    NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -3272,6 +3268,11 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       } else if (member is AmbiguousBuilder) {
         return _helper.buildProblem(
             member.message, member.charOffset, name.text.length);
+      } else if (member.isStatic &&
+          !member.isFactory &&
+          typeArguments != null) {
+        return _helper.buildProblem(messageStaticTearOffFromInstantiatedClass,
+            send.fileOffset, send.name.text.length);
       } else {
         Builder? setter;
         if (member.isSetter) {

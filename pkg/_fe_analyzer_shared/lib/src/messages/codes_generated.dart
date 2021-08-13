@@ -8960,6 +8960,18 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeStaticTearOffFromInstantiatedClass =
+    messageStaticTearOffFromInstantiatedClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
+    "StaticTearOffFromInstantiatedClass",
+    message:
+        r"""Cannot access static member on an instantiated generic class.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the member name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -5254,3 +5254,11 @@ AbstractClassConstructorTearOff:
   script: |
     abstract class Class {}
     main() => Class.new;
+
+StaticTearOffFromInstantiatedClass:
+  template: "Cannot access static member on an instantiated generic class."
+  tip: "Try removing the type arguments or placing them after the member name."
+  experiments: constructor-tearoffs
+  script: |
+    class A<X> { static f() {} }
+    main() => A<int>.f;

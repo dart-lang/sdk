@@ -414,7 +414,7 @@ Template compileTemplate(String name, int? index, String? template, String? tip,
     if (analyzerCode is String) {
       analyzerCode = <String>[analyzerCode];
     }
-    List<Object> codes = analyzerCode as List<Object>;
+    List<Object?> codes = analyzerCode as List<Object?>;
     // If "index:" is defined, then "analyzerCode:" should not be generated
     // in the front end. See comment in messages.yaml
     codeArguments.add('analyzerCodes: <String>["${codes.join('", "')}"]');

@@ -1016,7 +1016,7 @@
             "create_sdk",
             "dartdevc_test",
             "kernel_platform_files",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1095,7 +1095,7 @@
             "create_sdk",
             "dartdevc_test",
             "kernel_platform_files",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1186,7 +1186,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime",
             "--os=android"
           ]
@@ -1222,7 +1222,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "--os=android"
           ]
         },
@@ -1267,7 +1267,7 @@
           "arguments": [
             "--use-qemu",
             "dart_precompiled_runtime",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1306,7 +1306,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime",
             "gen_snapshot"
           ]
@@ -1364,7 +1364,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1435,7 +1435,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1478,7 +1478,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1508,7 +1508,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1535,7 +1535,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1565,7 +1565,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1592,7 +1592,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -1796,7 +1796,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1840,8 +1840,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "create_sdk",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1926,7 +1925,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -1961,7 +1960,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2009,7 +2008,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2037,7 +2036,7 @@
           "arguments": [
             "dart_precompiled_runtime",
             "gen_snapshot",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2067,7 +2066,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2365,7 +2364,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2393,7 +2392,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2421,7 +2420,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -2973,7 +2972,7 @@
             "--arch=ia32,x64",
             "--mode=release",
             "create_sdk",
-            "runtime_kernel"
+            "runtime"
           ]
         },
         {
@@ -3836,7 +3835,7 @@
           "arguments": [
             "--mode=debug,release",
             "--arch=x64",
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },
@@ -3847,7 +3846,7 @@
             "--mode=release",
             "--arch=x64",
             "--sanitizer=tsan",
-            "runtime_kernel",
+            "runtime",
             "dart_precompiled_runtime"
           ]
         },

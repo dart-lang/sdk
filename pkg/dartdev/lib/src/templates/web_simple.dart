@@ -42,7 +42,7 @@ version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+${common.sdkConstraint}
 
 # dependencies:
 #   path: ^1.7.0

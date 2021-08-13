@@ -61,9 +61,8 @@ cipd create \
   -ref $channel
 rm -rf sdk
 
-# TODO(athom): Use a proper arm64 SDK when available.
-gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-macos-x64-release.zip" .
-unzip -q dartsdk-macos-x64-release.zip -d sdk
+gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-macos-arm64-release.zip" .
+unzip -q dartsdk-macos-arm64-release.zip -d sdk
 cipd create \
   -name dart/dart-sdk/mac-arm64 \
   -in sdk \
