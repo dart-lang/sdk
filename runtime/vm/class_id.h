@@ -248,7 +248,7 @@ const int kTypedDataCidRemainderExternal = 2;
 
 // Class Id predicates.
 
-bool IsInternalOnlyId(intptr_t index);
+bool IsInternalOnlyClassId(intptr_t index);
 bool IsErrorClassId(intptr_t index);
 bool IsNumberClassId(intptr_t index);
 bool IsIntegerClassId(intptr_t index);
@@ -276,18 +276,15 @@ constexpr intptr_t kLastInternalOnlyCid = kUnwindErrorCid;
 COMPILE_ASSERT(kFirstInternalOnlyCid == kObjectCid + 1);
 COMPILE_ASSERT(kInstanceCid == kLastInternalOnlyCid + 1);
 
-// Checks that the cids in CLASS_LIST_INTERNAL_ONLY come after kObjectCid.
-// Use with COMPILE_ASSERT where code assumes that Object immediately precedes
-// the other internal-only cids, so it can be adjusted if this changes.
-constexpr bool ObjectComesBeforeOtherInternalOnlyClasses() {
-  return kFirstInternalOnlyCid == kObjectCid + 1;
-}
-
 // Returns true for any class id that either does not correspond to a real
 // class, like kIllegalCid or kForwardingCorpse, or that is internal to the VM
 // and should not be exposed directly to user code.
-inline bool IsInternalOnlyId(intptr_t index) {
-  COMPILE_ASSERT(ObjectComesBeforeOtherInternalOnlyClasses());
+inline bool IsInternalOnlyClassId(intptr_t index) {
+  // Fix the condition below if these become non-contiguous.
+  COMPILE_ASSERT(kIllegalCid + 1 == kFreeListElement &&
+                 kIllegalCid + 2 == kForwardingCorpse &&
+                 kIllegalCid + 3 == kObjectCid &&
+                 kIllegalCid + 4 == kFirstInternalOnlyCid);
   return index <= kLastInternalOnlyCid;
 }
 
@@ -297,8 +294,9 @@ inline bool IsErrorClassId(intptr_t index) {
                  kLanguageErrorCid == kErrorCid + 2 &&
                  kUnhandledExceptionCid == kErrorCid + 3 &&
                  kUnwindErrorCid == kErrorCid + 4 &&
+                 // Change if needed for detecting a new error added at the end.
                  kLastInternalOnlyCid == kUnwindErrorCid);
-  return (index >= kErrorCid && index <= kLastInternalOnlyCid);
+  return (index >= kErrorCid && index <= kUnwindErrorCid);
 }
 
 inline bool IsNumberClassId(intptr_t index) {

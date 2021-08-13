@@ -212,7 +212,7 @@ class Api : AllStatic {
 
   // Returns true if the handle holds a Dart Instance.
   static bool IsInstance(Dart_Handle handle) {
-    return !IsInternalOnlyId(ClassId(handle));
+    return !IsInternalOnlyClassId(ClassId(handle));
   }
 
   // Returns true if the handle is non-dangling.
