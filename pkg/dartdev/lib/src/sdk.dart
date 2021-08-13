@@ -39,8 +39,11 @@ String get _computeSdkPath {
 /// A utility class for finding and referencing paths within the Dart SDK.
 class Sdk {
   final String sdkPath;
+  final String version;
 
-  Sdk() : sdkPath = _computeSdkPath;
+  Sdk()
+      : sdkPath = _computeSdkPath,
+        version = Runtime.runtime.version;
 
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
@@ -97,25 +100,20 @@ class Runtime {
   static Runtime runtime = Runtime._();
 
   // Match "2.10.0-edge.0b2da6e7 (be) ...".
-  static RegExp channelRegex = RegExp(r'.* \(([\d\w]+)\) .*');
+  static final RegExp _channelRegex = RegExp(r'.* \(([\d\w]+)\) .*');
 
-  String _channel;
-
-  Runtime._() {
-    _parseVersion();
-  }
+  /// The SDK's version number (x.y.z-a.b.channel).
+  final String version;
 
   /// The SDK's release channel (`be`, `dev`, `beta`, `stable`).
-  String get channel => _channel;
+  final String channel;
 
-  /// Return whether the SDK is from the stable release channel.
-  bool get stableChannel => channel == 'stable';
+  Runtime._()
+      : version = _computeVersion(Platform.version),
+        channel = _computeChannel(Platform.version);
 
-  void _parseVersion() {
-    final version = Platform.version;
-    final match = channelRegex.firstMatch(version);
-    if (match != null) {
-      _channel = match.group(1);
-    }
-  }
+  static String _computeVersion(String version) =>
+      version.substring(0, version.indexOf(' '));
+  static String _computeChannel(String version) =>
+      _channelRegex.firstMatch(version)?.group(1);
 }
