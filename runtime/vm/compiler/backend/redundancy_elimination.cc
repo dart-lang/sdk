@@ -2074,7 +2074,11 @@ class LoadOptimizer : public ValueObject {
               slot = &store->slot();
             } else if (use->instruction()->IsLoadIndexed() ||
                        use->instruction()->IsStoreIndexed()) {
-              ASSERT(alloc->IsArrayAllocation());
+              if (!alloc->IsArrayAllocation()) {
+                // Non-array allocations can be accessed with LoadIndexed
+                // and StoreIndex in the unreachable code.
+                continue;
+              }
               if (alloc->IsAllocateTypedData()) {
                 // Typed data payload elements are unboxed and initialized to
                 // zero, so don't forward a tagged null value.
