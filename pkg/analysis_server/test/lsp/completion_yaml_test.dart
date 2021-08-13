@@ -524,7 +524,7 @@ dependencies:
       openCloseFile: false,
     );
 
-    // Also veryify the detail fields were populated as expected.
+    // Also verify the detail fields were populated as expected.
     expect(
       completionResults.singleWhere((c) => c.label == '^2.3.4').detail,
       equals('latest compatible'),

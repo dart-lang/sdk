@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-08-10T10:51:47.272341",
+  "generated": "2021-08-12T14:38:50.585343",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -617,7 +617,7 @@
       "name": "smith",
       "rootUri": "../pkg/smith",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "source_map_stack_trace",
