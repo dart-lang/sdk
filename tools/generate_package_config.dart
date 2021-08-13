@@ -62,8 +62,6 @@ void main(List<String> args) {
     packageDirectory('third_party/pkg/webdev/frontend_server_client'),
     packageDirectory('tools/package_deps'),
   ];
-  // TODO(sigmund): remove this when dart2js_info's new location is used.
-  packageDirs.remove(packageDirectory(p.join('pkg', 'dart2js_info')));
 
   var cfePackageDirs = [
     packageDirectory('pkg/front_end/testcases/'),

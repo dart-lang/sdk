@@ -13,28 +13,32 @@ import 'package:test/test.dart';
 main() {
   group('json to proto conversion', () {
     test('hello_world', () {
-      final helloWorld = new File('test/hello_world/hello_world.js.info.json');
+      var uri = Platform.script.resolve(
+          'hello_world/hello_world.js.info.json');
+      final helloWorld = File.fromUri(uri);
       final json = jsonDecode(helloWorld.readAsStringSync());
-      final decoded = new AllInfoJsonCodec().decode(json);
-      final proto = new AllInfoProtoCodec().encode(decoded);
+      final decoded = AllInfoJsonCodec().decode(json);
+      final proto = AllInfoProtoCodec().encode(decoded);
 
       expect(proto.program.entrypointId, isNotNull);
       expect(proto.program.size, 10324);
       expect(proto.program.compilationMoment.toInt(),
           DateTime.parse("2017-04-17 09:46:41.661617").microsecondsSinceEpoch);
       expect(proto.program.toProtoDuration.toInt(),
-          new Duration(milliseconds: 4).inMicroseconds);
+          Duration(milliseconds: 4).inMicroseconds);
       expect(proto.program.dumpInfoDuration.toInt(),
-          new Duration(milliseconds: 0).inMicroseconds);
+          Duration(milliseconds: 0).inMicroseconds);
       expect(proto.program.noSuchMethodEnabled, isFalse);
       expect(proto.program.minified, isFalse);
     });
 
     test('has proper id format', () {
-      final helloWorld = new File('test/hello_world/hello_world.js.info.json');
+      var uri = Platform.script.resolve(
+          'hello_world/hello_world.js.info.json');
+      final helloWorld = File.fromUri(uri);
       final json = jsonDecode(helloWorld.readAsStringSync());
-      final decoded = new AllInfoJsonCodec().decode(json);
-      final proto = new AllInfoProtoCodec().encode(decoded);
+      final decoded = AllInfoJsonCodec().decode(json);
+      final proto = AllInfoProtoCodec().encode(decoded);
 
       final expectedPrefixes = <InfoKind, String>{};
       for (final kind in InfoKind.values) {

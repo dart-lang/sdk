@@ -134,6 +134,7 @@ dartdev/test/*: Slow, Pass
 dds/test/dap/integration/*: Slow, Pass
 
 [ $runtime != vm ]
+dart2js_info/test/*: SkipByDesign # Only meant to run on vm
 dds/test/*: SkipByDesign # Only meant to run on vm
 dev_compiler/test/options/*: SkipByDesign
 front_end/test/hot_reload_e2e_test: Skip

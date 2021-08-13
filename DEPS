@@ -90,7 +90,6 @@ vars = {
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
   "csslib_rev": "e411d862fd8cc50415c1badf2632e017373b3f47",
-  "dart2js_info_rev" : "e0acfeb5affdf94c53067e68bd836adf589628fd",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
@@ -348,8 +347,6 @@ deps = {
       Var("dart_git") + "csslib.git" + "@" + Var("csslib_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
-  Var("dart_root") + "/third_party/pkg/dart2js_info":
-      Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/ffi":
