@@ -59,6 +59,7 @@ opts
 outdated
 part(s)
 patch(es)
+placing
 pubspec.yaml
 re
 sdksummary
