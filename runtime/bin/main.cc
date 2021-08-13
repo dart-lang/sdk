@@ -1157,6 +1157,8 @@ void main(int argc, char** argv) {
         }
         Platform::Exit(0);
       } else {
+        // This usage error case will only be invoked when
+        // Options::disable_dart_dev() is false.
         Options::PrintUsage();
         Platform::Exit(kErrorExitCode);
       }

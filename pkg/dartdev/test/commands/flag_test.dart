@@ -37,8 +37,8 @@ void command() {
       if (command.argParser != null) {
         if (command.name != 'help' &&
             command.name != 'format' &&
-            command.name != 'migrate' &&
-            command.name != 'pub') {
+            command.name != 'pub' &&
+            command.name != 'test') {
           expect(command.argParser.usageLineLength,
               stdout.hasTerminal ? stdout.terminalColumns : null);
         } else if (command.name == 'pub') {
@@ -95,6 +95,22 @@ void help() {
     expect(result.stderr, isEmpty);
     expect(result.stdout,
         contains('The following options are only used for VM development'));
+  });
+
+  test('print Dart CLI help on usage error', () {
+    p = project();
+    var result = p.runSync(['---help']);
+    expect(result.exitCode, 255);
+    expect(result.stdout, contains(DartdevRunner.dartdevDescription));
+    expect(result.stderr, isEmpty);
+  });
+
+  test('print VM help on usage error when --disable-dart-dev is provided', () {
+    p = project();
+    var result = p.runSync(['---help', '--disable-dart-dev']);
+    expect(result.exitCode, 255);
+    expect(result.stdout, isNot(contains(DartdevRunner.dartdevDescription)));
+    expect(result.stderr, isEmpty);
   });
 
   test('help', () {
