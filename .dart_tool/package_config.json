@@ -206,7 +206,7 @@
     },
     {
       "name": "dart2js_info",
-      "rootUri": "../third_party/pkg/dart2js_info",
+      "rootUri": "../pkg/dart2js_info",
       "packageUri": "lib/",
       "languageVersion": "2.3"
     },

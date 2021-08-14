@@ -188,11 +188,14 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.length = ARRAY_SIZE(request_array);
   ServiceIsolate::WaitForServiceIsolateStartup();
   Dart_Port service_port = ServiceIsolate::Port();
-
-  const bool success = Dart_PostCObject(service_port, &request);
-
-  if (!success && error != nullptr) {
-    if (service_port == ILLEGAL_PORT) {
+  bool success = false;
+  if (service_port != ILLEGAL_PORT) {
+    success = Dart_PostCObject(service_port, &request);
+    if (!success && error != nullptr) {
+      *error = Utils::StrDup("Was unable to post message to service isolate.");
+    }
+  } else {
+    if (error != nullptr) {
       if (startup_failure_reason_ != nullptr) {
         *error = OS::SCreate(/*zone=*/nullptr,
                              "Service isolate failed to start up: %s.",
@@ -200,11 +203,8 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
       } else {
         *error = Utils::StrDup("No service isolate port was found.");
       }
-    } else {
-      *error = Utils::StrDup("Was unable to post message to service isolate.");
     }
   }
-
   return success;
 }
 
@@ -318,6 +318,8 @@ void ServiceIsolate::FinishedExiting() {
   MonitorLocker ml(monitor_);
   ASSERT(state_ == kStarted || state_ == kStopping);
   state_ = kStopped;
+  port_ = ILLEGAL_PORT;
+  isolate_ = nullptr;
   ml.NotifyAll();
 }
 
@@ -332,6 +334,7 @@ void ServiceIsolate::InitializingFailed(char* error) {
   MonitorLocker ml(monitor_);
   ASSERT(state_ == kStarting);
   state_ = kStopped;
+  port_ = ILLEGAL_PORT;
   startup_failure_reason_ = error;
   ml.NotifyAll();
 }

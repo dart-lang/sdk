@@ -11,9 +11,11 @@ import 'package:test/test.dart';
 main() {
   group('parse', () {
     test('hello_world', () {
-      var helloWorld = new File('test/hello_world/hello_world.js.info.json');
+      var uri =
+          Platform.script.resolve('hello_world/hello_world.js.info.json');
+      var helloWorld = File.fromUri(uri);
       var json = jsonDecode(helloWorld.readAsStringSync());
-      var decoded = new AllInfoJsonCodec().decode(json);
+      var decoded = AllInfoJsonCodec().decode(json);
 
       var program = decoded.program;
       expect(program, isNotNull);

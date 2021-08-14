@@ -3341,6 +3341,15 @@
           ]
         },
         {
+          "name": "analyze pkg/nnbd_migration",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/nnbd_migration"
+          ]
+        },
+        {
           "name": "analyze pkg/smith",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [

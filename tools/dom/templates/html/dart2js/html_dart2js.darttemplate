@@ -52,6 +52,7 @@ import 'dart:_interceptors' show
     getNativeInterceptor,
     setDispatchProperty;
 import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:js_util' as js_util;
 
 export 'dart:_internal' show HttpStatus;
 export 'dart:html_common' show promiseToFuture;

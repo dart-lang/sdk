@@ -10,7 +10,7 @@ import 'package:dart2js_info/binary_serialization.dart' as binary;
 import 'package:test/test.dart';
 
 class ByteSink implements Sink<List<int>> {
-  BytesBuilder builder = new BytesBuilder();
+  BytesBuilder builder = BytesBuilder();
 
   add(List<int> data) => builder.add(data);
   close() {}
@@ -19,19 +19,20 @@ class ByteSink implements Sink<List<int>> {
 main() {
   group('json to proto conversion with deferred files', () {
     test('hello_world_deferred', () {
-      var helloWorld = new File(
-          'test/hello_world_deferred/hello_world_deferred.js.info.json');
+      var uri = Platform.script.resolve(
+          'hello_world_deferred/hello_world_deferred.js.info.json');
+      var helloWorld = File.fromUri(uri);
       var contents = helloWorld.readAsStringSync();
       var json = jsonDecode(contents);
-      var info = new AllInfoJsonCodec().decode(json);
+      var info = AllInfoJsonCodec().decode(json);
 
-      var sink = new ByteSink();
+      var sink = ByteSink();
       binary.encode(info, sink);
       var info2 = binary.decode(sink.builder.toBytes());
-      var json2 = new AllInfoJsonCodec().encode(info2);
+      var json2 = AllInfoJsonCodec().encode(info2);
 
-      info.program.toJsonDuration = new Duration(milliseconds: 0);
-      var json1 = new AllInfoJsonCodec().encode(info);
+      info.program.toJsonDuration = Duration(milliseconds: 0);
+      var json1 = AllInfoJsonCodec().encode(info);
       var contents1 = const JsonEncoder.withIndent("  ").convert(json1);
       var contents2 = const JsonEncoder.withIndent("  ").convert(json2);
       expect(contents1 == contents2, isTrue);

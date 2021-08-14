@@ -2786,7 +2786,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         isStatic = false;
       }
       if (!cls.IsTopLevel() &&
-          (IsInternalOnlyId(cls.id()) || cls.id() == kTypeArgumentsCid)) {
+          (IsInternalOnlyClassId(cls.id()) || cls.id() == kTypeArgumentsCid)) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");

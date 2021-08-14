@@ -62,6 +62,8 @@ dependency_overrides:
     path: ../kernel
   meta:
     path: ../meta
+  dart2js_info:
+    path: ../dart2js_info
 
   # Packages brought in via DEPS
   args:
@@ -76,8 +78,6 @@ dependency_overrides:
     path: ../../third_party/pkg/convert
   crypto:
     path: ../../third_party/pkg/crypto
-  dart2js_info:
-    path: ../../third_party/pkg/dart2js_info
   fixnum:
     path: ../../third_party/pkg/fixnum
   http_parser:

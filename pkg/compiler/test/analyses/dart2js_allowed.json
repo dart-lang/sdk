@@ -170,13 +170,13 @@
     "Dynamic invocation of '>='.": 1,
     "Dynamic invocation of 'codeUnitAt'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/json_info_codec.dart": {
+  "pkg/dart2js_info/lib/json_info_codec.dart": {
     "Dynamic invocation of '[]'.": 11,
     "Dynamic invocation of 'forEach'.": 2,
     "Dynamic invocation of 'map'.": 2,
     "Dynamic invocation of 'compareTo'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/binary_serialization.dart": {
+  "pkg/dart2js_info/lib/binary_serialization.dart": {
     "Dynamic invocation of 'cast'.": 1
   },
   "pkg/compiler/lib/src/universe/side_effects.dart": {
@@ -209,11 +209,11 @@
     "Dynamic invocation of '[]'.": 9,
     "Dynamic invocation of 'toStatement'.": 3
   },
-  "third_party/pkg/dart2js_info/lib/src/util.dart": {
+  "pkg/dart2js_info/lib/src/util.dart": {
     "Dynamic access of 'name'.": 1,
     "Dynamic invocation of '-'.": 1
   },
-  "third_party/pkg/dart2js_info/lib/src/binary/sink.dart": {
+  "pkg/dart2js_info/lib/src/binary/sink.dart": {
     "Dynamic access of 'index'.": 1
   },
   "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {

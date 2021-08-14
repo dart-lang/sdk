@@ -71,7 +71,7 @@ class AngularAnnotationOrigin extends EdgeOrigin {
 
   @override
   String get description =>
-      "annotated with an Angular annotation indicating nullability";
+      'annotated with an Angular annotation indicating nullability';
 
   @override
   EdgeOriginKind get kind => EdgeOriginKind.angularAnnotation;

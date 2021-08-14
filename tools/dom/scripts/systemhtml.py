@@ -2002,7 +2002,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                 '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) => '\
                 'js_util.callMethod(this, \'$JSNAME\', [$ARGS]);\n'
                 if CanUseStaticExtensions(self._interface_name, self._generate_static_extensions) else
-                '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+                '\n  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
                 RENAME=self._RenamingAnnotation(info.declared_name, html_name),
                 METADATA=self._Metadata(
                     info.type_name, info.declared_name,

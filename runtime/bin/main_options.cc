@@ -526,24 +526,40 @@ bool Options::ParseArguments(int argc,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  else if (!Options::disable_dart_dev() &&  // NOLINT
-           ((Options::help_option() && !Options::verbose_option()) ||
-            (argc == 1))) {
-    DartDevIsolate::set_should_run_dart_dev(true);
-    // Let DartDev handle the default help message.
-    dart_options->AddArgument("help");
-    return true;
-  } else if (!Options::disable_dart_dev() &&
-             (enable_dartdev_analytics || disable_dartdev_analytics)) {
-    // The analytics flags are a special case as we don't have a target script
-    // or DartDev command but we still want to launch DartDev.
-    DartDevIsolate::set_should_run_dart_dev(true);
-    dart_options->AddArgument(enable_dartdev_analytics ? "--enable-analytics"
-                                                       : "--disable-analytics");
-    return true;
+  else if (!Options::disable_dart_dev()) {  // NOLINT
+    // Handles following invocation arguments:
+    //   - dart help
+    //   - dart --help
+    //   - dart
+    if (((Options::help_option() && !Options::verbose_option()) ||
+         (argc == 1))) {
+      DartDevIsolate::set_should_run_dart_dev(true);
+      // Let DartDev handle the default help message.
+      dart_options->AddArgument("help");
+      return true;
+    }
+    // Handles cases where only analytics flags are provided. We need to start
+    // the DartDev isolate to set this state.
+    else if (enable_dartdev_analytics || disable_dartdev_analytics) {  // NOLINT
+      // The analytics flags are a special case as we don't have a target script
+      // or DartDev command but we still want to launch DartDev.
+      DartDevIsolate::set_should_run_dart_dev(true);
+      dart_options->AddArgument(enable_dartdev_analytics
+                                    ? "--enable-analytics"
+                                    : "--disable-analytics");
+      return true;
+    }
+    // Let the VM handle '--version' and '--help --disable-dart-dev'.
+    // Otherwise, we'll launch the DartDev isolate to print its help message
+    // and set an error exit code.
+    else if (!Options::help_option() && !Options::version_option()) {  // NOLINT
+      DartDevIsolate::PrintUsageErrorOnRun();
+      return true;
+    }
+    return false;
   }
-
-#endif    // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  // Handle argument parsing errors.
   else {  // NOLINT
     return false;
   }
