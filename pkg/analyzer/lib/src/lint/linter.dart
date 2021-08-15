@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisErrorInfoImpl,
         AnalysisOptions,
         AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart' show ScopedVisitor;
+import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -399,7 +399,7 @@ class LinterContextImpl implements LinterContext {
       String id, bool setter, AstNode node) {
     Scope? scope;
     for (AstNode? context = node; context != null; context = context.parent) {
-      scope = ScopedVisitor.getNodeNameScope(context);
+      scope = ScopeResolverVisitor.getNodeNameScope(context);
       if (scope != null) {
         break;
       }

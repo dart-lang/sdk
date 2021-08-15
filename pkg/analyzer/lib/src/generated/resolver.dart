@@ -2325,9 +2325,12 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   }
 }
 
-/// The abstract class `ScopedVisitor` maintains name and label scopes as an AST
-/// structure is being visited.
-abstract class ScopedVisitor extends ResolverBase {
+/// Instances of the class `ScopeResolverVisitor` are used to resolve
+/// [SimpleIdentifier]s to declarations using scoping rules.
+///
+/// TODO(paulberry): migrate the responsibility for all scope resolution into
+/// this visitor.
+class ScopeResolverVisitor extends ResolverBase {
   static const _nameScopeProperty = 'nameScope';
 
   /// The scope used to resolve identifiers.
@@ -2340,12 +2343,20 @@ abstract class ScopedVisitor extends ResolverBase {
   /// `null` if no labels have been defined in the current context.
   LabelScope? labelScope;
 
-  /// Initialize a newly created visitor to resolve the nodes in a compilation
-  /// unit.
+  /// The container with information about local variables.
+  final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
+
+  /// If the current function is contained within a closure (a local function or
+  /// function expression inside another executable declaration), the element
+  /// representing the closure; otherwise `null`.
+  ExecutableElement? _enclosingClosure;
+
+  /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [definingLibrary] is the element for the library containing the
-  /// compilation unit being visited.
-  /// [source] is the source representing the compilation unit being visited.
+  /// [definingLibrary] is the element for the library containing the node being
+  /// visited.
+  /// [source] is the source representing the compilation unit containing the
+  /// node being visited
   /// [typeProvider] is the object used to access the types from the core
   /// library.
   /// [errorListener] is the error listener that will be informed of any errors
@@ -2353,32 +2364,16 @@ abstract class ScopedVisitor extends ResolverBase {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
-  ScopedVisitor(LibraryElementImpl definingLibrary, Source source,
-      TypeProviderImpl typeProvider, AnalysisErrorListener errorListener,
+  ScopeResolverVisitor(LibraryElementImpl definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope? nameScope})
       : nameScope = nameScope ?? LibraryScope(definingLibrary),
-        super(definingLibrary, source, typeProvider, errorListener);
+        super(definingLibrary, source, typeProvider as TypeProviderImpl,
+            errorListener);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
   ImplicitLabelScope get implicitLabelScope => _implicitLabelScope;
-
-  /// Replaces the current [Scope] with the enclosing [Scope].
-  ///
-  /// @return the enclosing [Scope].
-  Scope popNameScope() {
-    nameScope = (nameScope as EnclosedScope).parent;
-    return nameScope;
-  }
-
-  /// Pushes a new [Scope] into the visitor.
-  ///
-  /// @return the new [Scope].
-  Scope pushNameScope() {
-    Scope newScope = LocalScope(nameScope);
-    nameScope = newScope;
-    return nameScope;
-  }
 
   @override
   void visitBlock(Block node) {
@@ -2396,6 +2391,11 @@ abstract class ScopedVisitor extends ResolverBase {
     } finally {
       _implicitLabelScope = implicitOuterScope;
     }
+  }
+
+  @override
+  void visitBreakStatement(covariant BreakStatementImpl node) {
+    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
   }
 
   @override
@@ -2490,6 +2490,7 @@ abstract class ScopedVisitor extends ResolverBase {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
     Scope outerScope = nameScope;
     try {
       ConstructorElement element = node.declaredElement!;
@@ -2524,6 +2525,11 @@ abstract class ScopedVisitor extends ResolverBase {
   void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
     node.documentationComment?.accept(this);
     node.body.accept(this);
+  }
+
+  @override
+  void visitContinueStatement(covariant ContinueStatementImpl node) {
+    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
   }
 
   @override
@@ -2692,9 +2698,15 @@ abstract class ScopedVisitor extends ResolverBase {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    node.metadata.accept(this);
+    (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
+        _localVariableInfo;
+    var outerClosure = _enclosingClosure;
     Scope outerScope = nameScope;
     try {
+      _enclosingClosure = node.parent is FunctionDeclarationStatement
+          ? node.declaredElement
+          : null;
+      node.metadata.accept(this);
       var element = node.declaredElement!;
       nameScope = TypeParameterScope(
         nameScope,
@@ -2704,6 +2716,7 @@ abstract class ScopedVisitor extends ResolverBase {
       visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
+      _enclosingClosure = outerClosure;
     }
   }
 
@@ -2717,16 +2730,21 @@ abstract class ScopedVisitor extends ResolverBase {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    var parent = node.parent;
-    if (parent is FunctionDeclaration) {
-      // We have already created a function scope and don't need to do so again.
-      super.visitFunctionExpression(node);
-      parent.documentationComment?.accept(this);
-      return;
-    }
-
+    var outerClosure = _enclosingClosure;
     Scope outerScope = nameScope;
     try {
+      if (node.parent is! FunctionDeclaration) {
+        (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
+        _enclosingClosure = node.declaredElement;
+      }
+      var parent = node.parent;
+      if (parent is FunctionDeclaration) {
+        // We have already created a function scope and don't need to do so again.
+        super.visitFunctionExpression(node);
+        parent.documentationComment?.accept(this);
+        return;
+      }
+
       ExecutableElement element = node.declaredElement!;
       nameScope = FormalParameterScope(
         TypeParameterScope(nameScope, element.typeParameters),
@@ -2735,6 +2753,7 @@ abstract class ScopedVisitor extends ResolverBase {
       super.visitFunctionExpression(node);
     } finally {
       nameScope = outerScope;
+      _enclosingClosure = outerClosure;
     }
   }
 
@@ -2864,6 +2883,7 @@ abstract class ScopedVisitor extends ResolverBase {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
+    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
     node.metadata.accept(this);
     Scope outerScope = nameScope;
     try {
@@ -2890,6 +2910,20 @@ abstract class ScopedVisitor extends ResolverBase {
     // is safe to visit the documentation comment now.
     node.documentationComment?.accept(this);
     node.body.accept(this);
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    // Only visit the method name if there's no real target (so this is an
+    // unprefixed function invocation, outside a cascade).  This is the only
+    // circumstance in which the method name is meant to be looked up in the
+    // current scope.
+    node.target?.accept(this);
+    if (node.realTarget == null) {
+      node.methodName.accept(this);
+    }
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
   }
 
   @override
@@ -2920,6 +2954,64 @@ abstract class ScopedVisitor extends ResolverBase {
   void visitMixinMembersInScope(MixinDeclaration node) {
     node.documentationComment?.accept(this);
     node.members.accept(this);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Do not visit the identifier after the `.`, since it is not meant to be
+    // looked up in the current scope.
+    node.prefix.accept(this);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    // Do not visit the property name, since it is not meant to be looked up in
+    // the current scope.
+    node.target?.accept(this);
+  }
+
+  @override
+  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
+    // Ignore if already resolved - declaration or type.
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    // Ignore if qualified.
+    var parent = node.parent;
+    var scopeLookupResult = nameScope.lookup(node.name);
+    node.scopeLookupResult = scopeLookupResult;
+    // Ignore if it cannot be a reference to a local variable.
+    if (parent is FieldFormalParameter) {
+      return;
+    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
+      return;
+    } else if (parent is ConstructorFieldInitializer &&
+        parent.fieldName == node) {
+      return;
+    }
+    if (parent is ConstructorName) {
+      return;
+    }
+    if (parent is Label) {
+      return;
+    }
+    // Prepare VariableElement.
+    var element = scopeLookupResult.getter;
+    if (element is! VariableElement) {
+      return;
+    }
+    // Must be local or parameter.
+    ElementKind kind = element.kind;
+    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
+      node.staticElement = element;
+      if (node.inSetterContext()) {
+        _localVariableInfo.potentiallyMutatedInScope.add(element);
+        if (_enclosingClosure != null &&
+            element.enclosingElement != _enclosingClosure) {
+          _localVariableInfo.potentiallyMutatedInClosure.add(element);
+        }
+      }
+    }
   }
 
   /// Visit the given statement after it's scope has been created. This is used
@@ -2985,6 +3077,9 @@ abstract class ScopedVisitor extends ResolverBase {
   }
 
   @override
+  void visitTypeName(TypeName node) {}
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
 
@@ -3023,185 +3118,6 @@ abstract class ScopedVisitor extends ResolverBase {
   void _define(Element element) {
     (nameScope as LocalScope).add(element);
   }
-
-  void _withDeclaredLocals(
-    AstNode node,
-    List<Statement> statements,
-    void Function() f,
-  ) {
-    var outerScope = nameScope;
-    try {
-      var enclosedScope = LocalScope(nameScope);
-      BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
-
-      nameScope = enclosedScope;
-      _setNodeNameScope(node, nameScope);
-
-      f();
-    } finally {
-      nameScope = outerScope;
-    }
-  }
-
-  /// Return the [Scope] to use while resolving inside the [node].
-  ///
-  /// Not every node has the scope set, for example we set the scopes for
-  /// blocks, but statements don't have separate scopes. The compilation unit
-  /// has the library scope.
-  static Scope? getNodeNameScope(AstNode node) {
-    return node.getProperty(_nameScopeProperty);
-  }
-
-  /// Set the [Scope] to use while resolving inside the [node].
-  static void _setNodeNameScope(AstNode node, Scope scope) {
-    node.setProperty(_nameScopeProperty, scope);
-  }
-}
-
-/// Instances of the class `ScopeResolverVisitor` are used to resolve
-/// [SimpleIdentifier]s to declarations using scoping rules.
-///
-/// TODO(paulberry): migrate the responsibility for all scope resolution into
-/// this visitor.
-class ScopeResolverVisitor extends ScopedVisitor {
-  /// The container with information about local variables.
-  final LocalVariableInfo _localVariableInfo = LocalVariableInfo();
-
-  /// If the current function is contained within a closure (a local function or
-  /// function expression inside another executable declaration), the element
-  /// representing the closure; otherwise `null`.
-  ExecutableElement? _enclosingClosure;
-
-  /// Initialize a newly created visitor to resolve the nodes in an AST node.
-  ///
-  /// [definingLibrary] is the element for the library containing the node being
-  /// visited.
-  /// [source] is the source representing the compilation unit containing the
-  /// node being visited
-  /// [typeProvider] is the object used to access the types from the core
-  /// library.
-  /// [errorListener] is the error listener that will be informed of any errors
-  /// that are found during resolution.
-  /// [nameScope] is the scope used to resolve identifiers in the node that will
-  /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
-  /// created based on [definingLibrary] and [typeProvider].
-  ScopeResolverVisitor(LibraryElementImpl definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope? nameScope})
-      : super(definingLibrary, source, typeProvider as TypeProviderImpl,
-            errorListener,
-            nameScope: nameScope);
-
-  @override
-  void visitBreakStatement(covariant BreakStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, false);
-  }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-    super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  void visitContinueStatement(covariant ContinueStatementImpl node) {
-    node.target = _lookupBreakOrContinueTarget(node, node.label, true);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    (node.functionExpression.body as FunctionBodyImpl).localVariableInfo =
-        _localVariableInfo;
-    var outerClosure = _enclosingClosure;
-    try {
-      _enclosingClosure = node.parent is FunctionDeclarationStatement
-          ? node.declaredElement
-          : null;
-      super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingClosure = outerClosure;
-    }
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
-      (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-      var outerClosure = _enclosingClosure;
-      try {
-        _enclosingClosure = node.declaredElement;
-        super.visitFunctionExpression(node);
-      } finally {
-        _enclosingClosure = outerClosure;
-      }
-    } else {
-      super.visitFunctionExpression(node);
-    }
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    (node.body as FunctionBodyImpl).localVariableInfo = _localVariableInfo;
-    super.visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    // Ignore if already resolved - declaration or type.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    // Ignore if qualified.
-    var parent = node.parent;
-    if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
-      return;
-    }
-    if (parent is PropertyAccess && identical(parent.propertyName, node)) {
-      return;
-    }
-    if (parent is MethodInvocation &&
-        identical(parent.methodName, node) &&
-        parent.realTarget != null) {
-      return;
-    }
-    var scopeLookupResult = nameScope.lookup(node.name);
-    node.scopeLookupResult = scopeLookupResult;
-    // Ignore if it cannot be a reference to a local variable.
-    if (parent is FieldFormalParameter) {
-      return;
-    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        parent.fieldName == node) {
-      return;
-    }
-    if (parent is ConstructorName) {
-      return;
-    }
-    if (parent is Label) {
-      return;
-    }
-    // Prepare VariableElement.
-    var element = scopeLookupResult.getter;
-    if (element is! VariableElement) {
-      return;
-    }
-    // Must be local or parameter.
-    ElementKind kind = element.kind;
-    if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
-      node.staticElement = element;
-      if (node.inSetterContext()) {
-        _localVariableInfo.potentiallyMutatedInScope.add(element);
-        if (_enclosingClosure != null &&
-            element.enclosingElement != _enclosingClosure) {
-          _localVariableInfo.potentiallyMutatedInClosure.add(element);
-        }
-      }
-    }
-  }
-
-  @override
-  void visitTypeName(TypeName node) {}
 
   /// Return the target of a break or continue statement, and update the static
   /// element of its label (if any). The [parentNode] is the AST node of the
@@ -3242,6 +3158,39 @@ class ScopeResolverVisitor extends ScopedVisitor {
       }
       return definingScope.node;
     }
+  }
+
+  void _withDeclaredLocals(
+    AstNode node,
+    List<Statement> statements,
+    void Function() f,
+  ) {
+    var outerScope = nameScope;
+    try {
+      var enclosedScope = LocalScope(nameScope);
+      BlockScope.elementsInStatements(statements).forEach(enclosedScope.add);
+
+      nameScope = enclosedScope;
+      _setNodeNameScope(node, nameScope);
+
+      f();
+    } finally {
+      nameScope = outerScope;
+    }
+  }
+
+  /// Return the [Scope] to use while resolving inside the [node].
+  ///
+  /// Not every node has the scope set, for example we set the scopes for
+  /// blocks, but statements don't have separate scopes. The compilation unit
+  /// has the library scope.
+  static Scope? getNodeNameScope(AstNode node) {
+    return node.getProperty(_nameScopeProperty);
+  }
+
+  /// Set the [Scope] to use while resolving inside the [node].
+  static void _setNodeNameScope(AstNode node, Scope scope) {
+    node.setProperty(_nameScopeProperty, scope);
   }
 }
 
