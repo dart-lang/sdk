@@ -2913,6 +2913,20 @@ class ScopeResolverVisitor extends ResolverBase {
   }
 
   @override
+  void visitMethodInvocation(MethodInvocation node) {
+    // Only visit the method name if there's no real target (so this is an
+    // unprefixed function invocation, outside a cascade).  This is the only
+    // circumstance in which the method name is meant to be looked up in the
+    // current scope.
+    node.target?.accept(this);
+    if (node.realTarget == null) {
+      node.methodName.accept(this);
+    }
+    node.typeArguments?.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitMixinDeclaration(MixinDeclaration node) {
     Scope outerScope = nameScope;
     try {
@@ -2943,6 +2957,20 @@ class ScopeResolverVisitor extends ResolverBase {
   }
 
   @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // Do not visit the identifier after the `.`, since it is not meant to be
+    // looked up in the current scope.
+    node.prefix.accept(this);
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    // Do not visit the property name, since it is not meant to be looked up in
+    // the current scope.
+    node.target?.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     // Ignore if already resolved - declaration or type.
     if (node.inDeclarationContext()) {
@@ -2950,17 +2978,6 @@ class ScopeResolverVisitor extends ResolverBase {
     }
     // Ignore if qualified.
     var parent = node.parent;
-    if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
-      return;
-    }
-    if (parent is PropertyAccess && identical(parent.propertyName, node)) {
-      return;
-    }
-    if (parent is MethodInvocation &&
-        identical(parent.methodName, node) &&
-        parent.realTarget != null) {
-      return;
-    }
     var scopeLookupResult = nameScope.lookup(node.name);
     node.scopeLookupResult = scopeLookupResult;
     // Ignore if it cannot be a reference to a local variable.
