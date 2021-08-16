@@ -129,7 +129,7 @@ class TypePropertyResolver {
       }
 
       List<DiagnosticMessage> messages = [];
-      var flow = _resolver.flowAnalysis?.flow;
+      var flow = _resolver.flowAnalysis.flow;
       if (flow != null) {
         if (receiver != null) {
           messages = _resolver.computeWhyNotPromotedMessages(

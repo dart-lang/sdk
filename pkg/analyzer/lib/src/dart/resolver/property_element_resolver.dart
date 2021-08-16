@@ -205,7 +205,7 @@ class PropertyElementResolver {
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
-        _resolver.flowAnalysis?.flow?.thisOrSuperPropertyGet(node, node.name,
+        _resolver.flowAnalysis.flow?.thisOrSuperPropertyGet(node, node.name,
             readElementRequested, readElementRequested.returnType);
       }
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
@@ -376,7 +376,7 @@ class PropertyElementResolver {
       nameErrorEntity: propertyName,
     );
 
-    _resolver.flowAnalysis?.flow?.propertyGet(
+    _resolver.flowAnalysis.flow?.propertyGet(
         node,
         target,
         propertyName.name,
@@ -656,7 +656,7 @@ class PropertyElementResolver {
             );
           }
         }
-        _resolver.flowAnalysis?.flow?.propertyGet(
+        _resolver.flowAnalysis.flow?.propertyGet(
             node,
             target,
             propertyName.name,

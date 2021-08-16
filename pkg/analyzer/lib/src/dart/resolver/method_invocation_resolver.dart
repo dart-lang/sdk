@@ -194,7 +194,7 @@ class MethodInvocationResolver {
 
     expression.staticType = type;
     if (_resolver.typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 
@@ -826,7 +826,7 @@ class MethodInvocationResolver {
           node.methodName,
         );
       }
-      _resolver.flowAnalysis?.flow?.propertyGet(
+      _resolver.flowAnalysis.flow?.propertyGet(
           functionExpression,
           target,
           node.methodName.name,
@@ -843,7 +843,7 @@ class MethodInvocationResolver {
     NodeReplacer.replace(node, invocation);
     node.setProperty(_rewriteResultKey, invocation);
     InferenceContext.setTypeFromNode(invocation, node);
-    _resolver.flowAnalysis?.transferTestData(node, invocation);
+    _resolver.flowAnalysis.transferTestData(node, invocation);
   }
 
   void _setDynamicResolution(MethodInvocationImpl node,
