@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -82,15 +84,17 @@ class AvoidNullChecksInEqualityOperators extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor =
+        _Visitor(this, nnbdEnabled: context.isEnabled(Feature.non_nullable));
     registry.addMethodDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final bool nnbdEnabled;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, {required this.nnbdEnabled});
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
@@ -98,18 +102,30 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameters == null) {
       return;
     }
-    if (node.name.token.type == TokenType.EQ_EQ && parameters.length == 1) {
-      var parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
-          parameters.first.identifier);
-      bool checkIfParameterIsNull(AstNode node) =>
-          _isParameterWithQuestion(node, parameter) ||
-          (node is BinaryExpression &&
-              (_isParameterWithQuestionQuestion(node, parameter) ||
-                  _isComparingParameterWithNull(node, parameter)));
 
-      DartTypeUtilities.traverseNodesInDFS(node.body)
-          .where(checkIfParameterIsNull)
-          .forEach(rule.reportLint);
+    if (node.name.token.type != TokenType.EQ_EQ || parameters.length != 1) {
+      return;
     }
+
+    var parameter = DartTypeUtilities.getCanonicalElementFromIdentifier(
+        parameters.first.identifier);
+
+    // Analyzer will produce UNNECESSARY_NULL_COMPARISON_FALSE|TRUE
+    // See: https://github.com/dart-lang/linter/issues/2864
+    if (nnbdEnabled &&
+        parameter is VariableElement &&
+        parameter.type.nullabilitySuffix != NullabilitySuffix.question) {
+      return;
+    }
+
+    bool checkIfParameterIsNull(AstNode node) =>
+        _isParameterWithQuestion(node, parameter) ||
+        (node is BinaryExpression &&
+            (_isParameterWithQuestionQuestion(node, parameter) ||
+                _isComparingParameterWithNull(node, parameter)));
+
+    DartTypeUtilities.traverseNodesInDFS(node.body)
+        .where(checkIfParameterIsNull)
+        .forEach(rule.reportLint);
   }
 }
