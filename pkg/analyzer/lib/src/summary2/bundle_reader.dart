@@ -30,16 +30,16 @@ import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
   final SummaryDataReader _reader;
-  final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, InformativeUnitData> _unitsInformativeData;
 
   final Map<String, LibraryReader> libraryMap = {};
 
   BundleReader({
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
-    Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    Map<Uri, InformativeUnitData> unitsInformativeData = const {},
   })  : _reader = SummaryDataReader(resolutionBytes),
-        _unitsInformativeBytes = unitsInformativeBytes {
+        _unitsInformativeData = unitsInformativeData {
     _reader.offset = _reader.bytes.length - 4 * 4;
     var baseResolutionOffset = _reader.readUInt32();
     var librariesOffset = _reader.readUInt32();
@@ -69,7 +69,7 @@ class BundleReader {
       libraryMap[uriStr] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
-        unitsInformativeBytes: _unitsInformativeBytes,
+        unitsInformativeData: _unitsInformativeData,
         baseResolutionOffset: baseResolutionOffset,
         referenceReader: referenceReader,
         reference: reference,
@@ -412,11 +412,12 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
   final SummaryDataReader _reader;
-  final Map<Uri, Uint8List> _unitsInformativeBytes;
+  final Map<Uri, InformativeUnitData> _unitsInformativeData;
   final int _baseResolutionOffset;
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
+  final Map<int, MacroGenerationData> _macroDeclarations = {};
 
   final Uint32List _classMembersLengths;
   int _classMembersLengthsIndex = 0;
@@ -426,7 +427,7 @@ class LibraryReader {
   LibraryReader._({
     required LinkedElementFactory elementFactory,
     required SummaryDataReader reader,
-    required Map<Uri, Uint8List> unitsInformativeBytes,
+    required Map<Uri, InformativeUnitData> unitsInformativeData,
     required int baseResolutionOffset,
     required _ReferenceReader referenceReader,
     required Reference reference,
@@ -434,7 +435,7 @@ class LibraryReader {
     required Uint32List classMembersLengths,
   })  : _elementFactory = elementFactory,
         _reader = reader,
-        _unitsInformativeBytes = unitsInformativeBytes,
+        _unitsInformativeData = unitsInformativeData,
         _baseResolutionOffset = baseResolutionOffset,
         _referenceReader = referenceReader,
         _reference = reference,
@@ -493,7 +494,7 @@ class LibraryReader {
     _declareDartCoreDynamicNever();
 
     InformativeDataApplier(_elementFactory).applyTo(
-      _unitsInformativeBytes,
+      _unitsInformativeData,
       libraryElement,
     );
 
@@ -851,15 +852,16 @@ class LibraryReader {
   }
 
   void _readMacro(Element element, HasMacroGenerationData hasMacro) {
-    if (_reader.readBool()) {
-      hasMacro.macro = MacroGenerationData(
-        _reader.readUInt30(),
-        _reader.readStringUtf8(),
-        Uint8List(0),
-      );
-      InformativeDataApplier(_elementFactory).applyToDeclaration(
+    var id = _reader.readOptionalUInt30();
+    if (id != null) {
+      var data = _macroDeclarations[id]!;
+      hasMacro.macro = data;
+      InformativeDataApplier(
+        _elementFactory,
+        baseOffset: data.offset,
+      ).applyToDeclaration(
         element,
-        _reader.readUint8List(),
+        data.informative,
       );
     }
   }
@@ -1235,6 +1237,7 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
     unitElement.sourceContent = _reader.readOptionalStringUtf8();
 
+    _readUnitMacroGenerationDataList(unitElement);
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
@@ -1250,6 +1253,28 @@ class LibraryReader {
     unitElement.accessors = accessors;
     unitElement.topLevelVariables = variables;
     return unitElement;
+  }
+
+  void _readUnitMacroGenerationDataList(
+    CompilationUnitElementImpl unitElement,
+  ) {
+    var length = _reader.readUInt30();
+    if (length == 0) {
+      return;
+    }
+
+    var dataList = List.generate(length, (index) {
+      return MacroGenerationData(
+        id: _reader.readUInt30(),
+        code: _reader.readStringUtf8(),
+        informative: _reader.readUint8List(),
+        classDeclarationIndex: _reader.readOptionalUInt30(),
+      );
+    });
+    unitElement.macroGenerationDataList = dataList;
+    for (var data in dataList) {
+      _macroDeclarations[data.id] = data;
+    }
   }
 
   static Variance? _decodeVariance(int index) {

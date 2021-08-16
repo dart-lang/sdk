@@ -280,12 +280,7 @@ class BundleWriter {
   }
 
   void _writeMacro(MacroGenerationData? macro) {
-    _sink.writeBool(macro != null);
-    if (macro != null) {
-      _sink.writeUInt30(macro.id);
-      _sink.writeStringUtf8(macro.code);
-      _sink.writeUint8List(macro.informative);
-    }
+    _sink.writeOptionalUInt30(macro?.id);
   }
 
   void _writeMethodElement(MethodElement element) {
@@ -454,6 +449,7 @@ class BundleWriter {
     _sink.writeBool(unitElement.isSynthetic);
     _sink.writeOptionalStringUtf8(unitElement.sourceContent);
     _resolutionSink._writeAnnotationList(unitElement.metadata);
+    _writeUnitElementMacroGenerationDataList(unitElement);
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
@@ -471,6 +467,18 @@ class BundleWriter {
       unitElement.accessors.where((e) => !e.isSynthetic).toList(),
       _writePropertyAccessorElement,
     );
+  }
+
+  void _writeUnitElementMacroGenerationDataList(
+    CompilationUnitElementImpl unitElement,
+  ) {
+    var dataList = unitElement.macroGenerationDataList ?? [];
+    _writeList<MacroGenerationData>(dataList, (data) {
+      _sink.writeUInt30(data.id);
+      _sink.writeStringUtf8(data.code);
+      _sink.writeUint8List(data.informative);
+      _sink.writeOptionalUInt30(data.classDeclarationIndex);
+    });
   }
 
   static TypeParameterVarianceTag _encodeVariance(

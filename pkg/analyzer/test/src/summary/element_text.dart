@@ -361,7 +361,6 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -530,19 +529,6 @@ class _ElementWriter {
     buffer.writeln(line);
   }
 
-  void _writeMacro(Element e) {
-    if (e is HasMacroGenerationData) {
-      var macro = (e as HasMacroGenerationData).macro;
-      if (macro != null) {
-        _writelnWithIndent('macro');
-        _withIndent(() {
-          _writelnWithIndent('id: ${macro.id}');
-          _writelnMultiLineWithIndent('code: ${macro.code}');
-        });
-      }
-    }
-  }
-
   void _writeMetadata(Element element) {
     var annotations = element.metadata;
     if (annotations.isNotEmpty) {
@@ -568,7 +554,6 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -711,7 +696,6 @@ class _ElementWriter {
     });
 
     _withIndent(() {
-      _writeMacro(e);
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeCodeRange(e);
@@ -875,6 +859,7 @@ class _ElementWriter {
   }
 
   void _writeUnitElement(CompilationUnitElement e) {
+    e as CompilationUnitElementImpl;
     _writeElements('classes', e.classes, _writeClassElement);
     _writeElements('enums', e.enums, _writeClassElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
@@ -891,6 +876,12 @@ class _ElementWriter {
       _writePropertyAccessorElement,
     );
     _writeElements('functions', e.functions, _writeFunctionElement);
+
+    var macroGeneratedContent = e.macroGeneratedContent;
+    if (macroGeneratedContent != null) {
+      _writelnWithIndent('macroGeneratedContent');
+      buffer.write(macroGeneratedContent);
+    }
   }
 
   void _writeUri(Source? source) {

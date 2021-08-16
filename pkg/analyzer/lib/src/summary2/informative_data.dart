@@ -41,10 +41,15 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
 /// offsets are different from `nameOffset` for example, which are applied
 /// directly after creating corresponding elements during a library loading.
 class ApplyConstantOffsets {
+  final int _baseOffset;
   Uint32List? _offsets;
   void Function(_OffsetsApplier)? _function;
 
-  ApplyConstantOffsets(this._offsets, this._function);
+  ApplyConstantOffsets(
+    this._offsets,
+    this._function, {
+    int baseOffset = 0,
+  }) : _baseOffset = baseOffset;
 
   void perform() {
     var offsets = _offsets;
@@ -52,6 +57,7 @@ class ApplyConstantOffsets {
     if (offsets != null && function != null) {
       var applier = _OffsetsApplier(
         _SafeListIterator(offsets),
+        baseOffset: _baseOffset,
       );
       function.call(applier);
       // Clear the references to possible closure data.
@@ -64,11 +70,15 @@ class ApplyConstantOffsets {
 
 class InformativeDataApplier {
   final LinkedElementFactory _elementFactory;
+  final int _baseOffset;
 
-  InformativeDataApplier(this._elementFactory);
+  InformativeDataApplier(
+    this._elementFactory, {
+    int baseOffset = 0,
+  }) : _baseOffset = baseOffset;
 
   void applyTo(
-    Map<Uri, Uint8List> unitsInformativeBytes,
+    Map<Uri, InformativeUnitData> unitsInformativeData,
     LibraryElementImpl libraryElement,
   ) {
     if (_elementFactory.isApplyingInformativeData) {
@@ -80,9 +90,9 @@ class InformativeDataApplier {
     for (var i = 0; i < unitElements.length; i++) {
       var unitElement = unitElements[i] as CompilationUnitElementImpl;
       var unitUri = unitElement.source.uri;
-      var unitInfoBytes = unitsInformativeBytes[unitUri];
-      if (unitInfoBytes != null) {
-        var unitReader = SummaryDataReader(unitInfoBytes);
+      var unitInfoData = unitsInformativeData[unitUri];
+      if (unitInfoData != null) {
+        var unitReader = SummaryDataReader(unitInfoData.bytes);
         var unitInfo = _InfoUnit(unitReader);
 
         if (i == 0) {
@@ -91,6 +101,7 @@ class InformativeDataApplier {
 
         unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
         unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
+        _setUnitMacroGeneratedContent(unitElement, unitInfoData, unitInfo);
 
         _applyToAccessors(unitElement.accessors, unitInfo.accessors);
 
@@ -269,7 +280,7 @@ class InformativeDataApplier {
     element as ConstructorElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.periodOffset = info.periodOffset;
-    element.nameOffset = info.nameOffset;
+    element.nameOffset = _baseOffset + info.nameOffset;
     element.nameEnd = info.nameEnd;
     element.documentationComment = info.documentationComment;
     _applyToFormalParameters(
@@ -390,7 +401,7 @@ class InformativeDataApplier {
       (element, info) {
         element as ParameterElementImpl;
         element.setCodeRange(info.codeOffset, info.codeLength);
-        element.nameOffset = info.nameOffset;
+        element.nameOffset = _baseOffset + info.nameOffset;
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
         _applyToFormalParameters(element.parameters, info.parameters);
       },
@@ -529,7 +540,7 @@ class InformativeDataApplier {
   void _applyToMethod(MethodElement element, _InfoMethodDeclaration info) {
     element as MethodElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
-    element.nameOffset = info.nameOffset;
+    element.nameOffset = _baseOffset + info.nameOffset;
     element.documentationComment = info.documentationComment;
     _applyToTypeParameters(
       element.typeParameters_unresolved,
@@ -548,6 +559,7 @@ class InformativeDataApplier {
         applier.applyToTypeParameters(element.typeParameters);
         applier.applyToFormalParameters(element.parameters);
       },
+      baseOffset: _baseOffset,
     );
   }
 
@@ -595,7 +607,7 @@ class InformativeDataApplier {
   ) {
     element as PropertyAccessorElementImpl;
     element.setCodeRange(info.codeOffset, info.codeLength);
-    element.nameOffset = info.nameOffset;
+    element.nameOffset = _baseOffset + info.nameOffset;
     element.documentationComment = info.documentationComment;
     _applyToFormalParameters(
       element.parameters_unresolved,
@@ -611,6 +623,7 @@ class InformativeDataApplier {
           applier.applyToTypeParameters(element.typeParameters);
           applier.applyToFormalParameters(element.parameters);
         },
+        baseOffset: _baseOffset,
       );
     }
   }
@@ -649,6 +662,36 @@ class InformativeDataApplier {
     );
   }
 
+  void _setUnitMacroGeneratedContent(
+    CompilationUnitElementImpl unitElement,
+    InformativeUnitData unitInfoData,
+    _InfoUnit unitInfo,
+  ) {
+    var macroGenerationDataList = unitElement.macroGenerationDataList;
+    if (macroGenerationDataList != null) {
+      const classMemberCodePrefix = '\n';
+      const classMemberCodeSuffix = '\n';
+      var generatedContent = unitInfoData.content;
+      var shift = 0;
+      for (var data in macroGenerationDataList) {
+        var classIndex = data.classDeclarationIndex;
+        if (classIndex != null) {
+          var targetClass = unitInfo.classDeclarations[classIndex];
+          var code = classMemberCodePrefix + data.code + classMemberCodeSuffix;
+          var insertOffset = shift + targetClass.rightBracketOffset;
+          data.offset = insertOffset + classMemberCodePrefix.length;
+          generatedContent = generatedContent.substring(0, insertOffset) +
+              code +
+              generatedContent.substring(insertOffset);
+          shift += code.length;
+        } else {
+          throw UnimplementedError();
+        }
+      }
+      unitElement.macroGeneratedContent = generatedContent;
+    }
+  }
+
   void _setupApplyConstantOffsetsForTypeAlias(
     TypeAliasElementImpl element,
     Uint32List constantOffsets, {
@@ -684,6 +727,20 @@ class InformativeDataApplier {
   }
 }
 
+/// Informative data about a source file.
+class InformativeUnitData {
+  /// The content of the file.
+  final String content;
+
+  /// Informative data derived from the [content], such as offsets.
+  final Uint8List bytes;
+
+  InformativeUnitData({
+    required this.content,
+    required this.bytes,
+  });
+}
+
 enum _DeclarationKind {
   constructorDeclaration,
   methodDeclaration,
@@ -693,6 +750,7 @@ class _InfoClassDeclaration {
   final int codeOffset;
   final int codeLength;
   final int nameOffset;
+  final int rightBracketOffset;
   final String? documentationComment;
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoConstructorDeclaration> constructors;
@@ -707,6 +765,7 @@ class _InfoClassDeclaration {
       codeOffset: reader.readUInt30(),
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30() - nameOffsetDelta,
+      rightBracketOffset: reader.readUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
       typeParameters: reader.readTypedList(
         () => _InfoTypeParameter(reader),
@@ -731,6 +790,7 @@ class _InfoClassDeclaration {
     required this.codeOffset,
     required this.codeLength,
     required this.nameOffset,
+    required this.rightBracketOffset,
     required this.documentationComment,
     required this.typeParameters,
     required this.constructors,
@@ -1194,6 +1254,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeUInt30(node.rightBracket.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1239,6 +1300,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(1 + (node.name?.offset ?? -1));
+      sink.writeUInt30(node.rightBracket.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1328,6 +1390,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
+      sink.writeUInt30(node.rightBracket.offset);
       _writeDocumentationComment(node);
       _writeTypeParameters(node.typeParameters);
       _writeConstructors(node.members);
@@ -1738,8 +1801,12 @@ class _InfoUnit {
 
 class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
+  final int _baseOffset;
 
-  _OffsetsApplier(this._iterator);
+  _OffsetsApplier(
+    this._iterator, {
+    int baseOffset = 0,
+  }) : _baseOffset = baseOffset;
 
   void applyToConstantInitializer(Element element) {
     if (element is ConstVariableElement) {
@@ -1793,7 +1860,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void handleToken(Token token) {
     var offset = _iterator.take();
     if (offset != null) {
-      token.offset = offset;
+      token.offset = _baseOffset + offset;
     }
   }
 

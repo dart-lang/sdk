@@ -983,6 +983,22 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   late Source librarySource;
 
+  /// If this unit has macro-generated elements, and is created in the
+  /// environment where the file content is available (e.g. interactive
+  /// analysis, and not batch analysis), then this is a combination of the
+  /// user-written code and macro-generated declarations.
+  ///
+  /// For elements created from the user-written code [Element.nameOffset]s
+  /// are offsets in the user-written code.
+  ///
+  /// For macro-generated elements [Element.nameOffset]s are offsets in the
+  /// combined file containing both user-written and generated code.
+  String? macroGeneratedContent;
+
+  /// If this unit has macro-generated elements, information about each one
+  /// is stored here, so that it can be combined to [macroGeneratedContent].
+  List<MacroGenerationData>? macroGenerationDataList;
+
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
   List<PropertyAccessorElement> _accessors = const [];
@@ -4175,18 +4191,30 @@ class MacroGenerationData {
 
   /// The code that was produced by the macro. It is used to compose full
   /// code of a unit to display to the user, so that new declarations are
-  /// added to the unit or existing classes.
+  /// added to the end of the unit or existing classes.
   ///
   /// When a class is generated, its code might have some members, or might
   /// be empty, and new elements might be macro-generated into it.
   final String code;
 
-  /// When we build elements from macro-produced code, we remember informative
-  /// data, such as offsets - to store it into bytes. This field is set to
-  /// an empty list when reading from bytes.
+  /// Informative data derived from the [code], such as offsets.
   final Uint8List informative;
 
-  MacroGenerationData(this.id, this.code, this.informative);
+  /// If this element is macro-generated into a class declaration, this is
+  /// the index of this class declaration in the unit.
+  final int? classDeclarationIndex;
+
+  /// The offset in [CompilationUnitElementImpl.macroGeneratedContent],
+  /// where the [code] is located. This offset depends on the informative
+  /// data, as any other offset.
+  int offset = 0;
+
+  MacroGenerationData({
+    required this.id,
+    required this.code,
+    required this.informative,
+    required this.classDeclarationIndex,
+  });
 }
 
 /// A concrete implementation of a [MethodElement].
