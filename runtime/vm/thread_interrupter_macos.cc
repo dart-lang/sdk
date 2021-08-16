@@ -83,8 +83,7 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
 }
 
 void ThreadInterrupter::InstallSignalHandler() {
-  SignalHandler::Install<
-      ThreadInterrupterMacOS::ThreadInterruptSignalHandler>();
+  SignalHandler::Install(&ThreadInterrupterMacOS::ThreadInterruptSignalHandler);
 }
 
 void ThreadInterrupter::RemoveSignalHandler() {

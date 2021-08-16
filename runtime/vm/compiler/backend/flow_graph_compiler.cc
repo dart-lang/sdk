@@ -2349,7 +2349,7 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
   // If there are no valid class ranges, the check will fail.  If we are
   // supposed to fall-through in the positive case, we'll explicitly jump to
   // the [outside_range_lbl].
-  if (cid_ranges.length() == 1 && cid_ranges[0].IsIllegalRange()) {
+  if (cid_ranges.is_empty()) {
     if (fall_through_if_inside) {
       assembler->Jump(outside_range_lbl);
     }

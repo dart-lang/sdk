@@ -33,23 +33,32 @@ const bool FLAG_trace_type_testing_stub_tests = false;
 
 class TraceStubInvocationScope : public ValueObject {
  public:
-  TraceStubInvocationScope() : old_flag_value_(FLAG_trace_type_checks) {
+  TraceStubInvocationScope()
+      : old_trace_type_checks_(FLAG_trace_type_checks),
+        old_disassemble_stubs_(FLAG_disassemble_stubs) {
     if (FLAG_trace_type_testing_stub_tests) {
 #if defined(DEBUG)
       FLAG_trace_type_checks = true;
+#endif
+#if defined(FORCE_INCLUDE_DISASSEMBLER) || !defined(PRODUCT)
+      FLAG_disassemble_stubs = true;
 #endif
     }
   }
   ~TraceStubInvocationScope() {
     if (FLAG_trace_type_testing_stub_tests) {
 #if defined(DEBUG)
-      FLAG_trace_type_checks = old_flag_value_;
+      FLAG_trace_type_checks = old_trace_type_checks_;
+#endif
+#if defined(FORCE_INCLUDE_DISASSEMBLER) || !defined(PRODUCT)
+      FLAG_disassemble_stubs = old_disassemble_stubs_;
 #endif
     }
   }
 
  private:
-  const bool old_flag_value_;
+  const bool old_trace_type_checks_;
+  const bool old_disassemble_stubs_;
 };
 
 #define __ assembler->
@@ -184,7 +193,7 @@ static void CanonicalizeTAV(TypeArguments* tav) {
   *tav = tav->Canonicalize(Thread::Current(), nullptr);
 }
 
-struct TTSTestCase : public ValueObject {
+struct TTSTestCase {
   const Instance& instance;
   const TypeArguments& instantiator_tav;
   const TypeArguments& function_tav;
@@ -255,7 +264,7 @@ struct TTSTestCase : public ValueObject {
     if (cls.NumTypeArguments() == 0) {
       return true;
     }
-    return instance.GetTypeArguments() != other.instance.GetTypeArguments();
+    return instance.GetTypeArguments() == other.instance.GetTypeArguments();
   }
 
   bool HasSTCEntry(const SubtypeTestCache& cache,
@@ -291,6 +300,9 @@ struct TTSTestCase : public ValueObject {
                           Object::null_type_arguments(),
                           Object::null_type_arguments(), out_index, out_result);
   }
+
+ private:
+  DISALLOW_ALLOCATION();
 };
 
 // Inherits should_specialize from original.
@@ -392,8 +404,10 @@ class TTSTestState : public ValueObject {
     last_tested_type_.SetTypeTestingStub(specializing_stub);
     InvokeStubHelper(test_case,
                      /*is_lazy_specialization=*/test_case.should_specialize);
-    if (test_case.should_fail) {
-      // We only respecialize on successful checks.
+    if (test_case.should_fail || test_case.instance.IsNull()) {
+      // We only specialize if we go to runtime and the runtime check
+      // succeeds. The lazy specialization stub for nullable types has a
+      // special fast case for null that skips the runtime.
       EXPECT(new_tts_stub_.ptr() == specializing_stub.ptr());
     } else if (test_case.should_specialize) {
       // Specializing test cases should never result in a default TTS.
@@ -512,9 +526,11 @@ class TTSTestState : public ValueObject {
     if (test_case.should_fail) {
       EXPECT(last_result_.IsError());
       EXPECT(last_result_.IsUnhandledException());
-      const auto& error =
-          Instance::Handle(UnhandledException::Cast(last_result_).exception());
-      EXPECT(strstr(error.ToCString(), "_TypeError"));
+      if (last_result_.IsUnhandledException()) {
+        const auto& error = Instance::Handle(
+            UnhandledException::Cast(last_result_).exception());
+        EXPECT(strstr(error.ToCString(), "_TypeError"));
+      }
     } else {
       EXPECT(new_tts_stub_.ptr() != StubCode::LazySpecializeTypeTest().ptr());
       ReportModifiedRegisters(modified_abi_regs());
@@ -543,6 +559,39 @@ class TTSTestState : public ValueObject {
     }
   }
 
+  void ReportMissingOrChangedEntries(const SubtypeTestCache& old_cache,
+                                     const SubtypeTestCache& new_cache) {
+    auto& cid_or_sig = Object::Handle(zone());
+    auto& type = AbstractType::Handle(zone());
+    auto& instance_type_args = TypeArguments::Handle(zone());
+    auto& instantiator_type_args = TypeArguments::Handle(zone());
+    auto& function_type_args = TypeArguments::Handle(zone());
+    auto& instance_parent_type_args = TypeArguments::Handle(zone());
+    auto& instance_delayed_type_args = TypeArguments::Handle(zone());
+    auto& old_result = Bool::Handle(zone());
+    auto& new_result = Bool::Handle(zone());
+    SafepointMutexLocker ml(
+        thread_->isolate_group()->subtype_test_cache_mutex());
+    for (intptr_t i = 0; i < old_cache.NumberOfChecks(); i++) {
+      old_cache.GetCheck(0, &cid_or_sig, &type, &instance_type_args,
+                         &instantiator_type_args, &function_type_args,
+                         &instance_parent_type_args,
+                         &instance_delayed_type_args, &old_result);
+      intptr_t new_index;
+      if (!new_cache.HasCheck(
+              cid_or_sig, type, instance_type_args, instantiator_type_args,
+              function_type_args, instance_parent_type_args,
+              instance_delayed_type_args, &new_index, &new_result)) {
+        dart::Expect(__FILE__, __LINE__)
+            .Fail("New STC is missing check in old STC");
+      }
+      if (old_result.value() != new_result.value()) {
+        dart::Expect(__FILE__, __LINE__)
+            .Fail("New STC has different result from old STC");
+      }
+    }
+  }
+
   void ReportUnexpectedSTCChanges(const TTSTestCase& test_case,
                                   bool is_lazy_specialization = false) {
     ASSERT(!test_case.should_be_false_negative ||
@@ -552,47 +601,27 @@ class TTSTestState : public ValueObject {
         !is_lazy_specialization && test_case.should_be_false_negative;
     if (should_update_stc && !had_stc_entry) {
       // We should have changed the STC to include the new entry.
-      EXPECT((previous_stc_.IsNull() && !last_stc_.IsNull()) ||
-             previous_stc_.cache() != last_stc_.cache());
-      // We only should have added one check.
-      EXPECT_EQ(previous_stc_.IsNull() ? 1 : previous_stc_.NumberOfChecks() + 1,
-                last_stc_.NumberOfChecks());
-      if (!previous_stc_.IsNull()) {
-        // Make sure all the checks in the previous STC are still there.
-        auto& cid_or_sig = Object::Handle(zone());
-        auto& type = AbstractType::Handle(zone());
-        auto& instance_type_args = TypeArguments::Handle(zone());
-        auto& instantiator_type_args = TypeArguments::Handle(zone());
-        auto& function_type_args = TypeArguments::Handle(zone());
-        auto& instance_parent_type_args = TypeArguments::Handle(zone());
-        auto& instance_delayed_type_args = TypeArguments::Handle(zone());
-        auto& old_result = Bool::Handle(zone());
-        auto& new_result = Bool::Handle(zone());
-        SafepointMutexLocker ml(
-            thread_->isolate_group()->subtype_test_cache_mutex());
-        for (intptr_t i = 0; i < previous_stc_.NumberOfChecks(); i++) {
-          previous_stc_.GetCheck(0, &cid_or_sig, &type, &instance_type_args,
-                                 &instantiator_type_args, &function_type_args,
-                                 &instance_parent_type_args,
-                                 &instance_delayed_type_args, &old_result);
-          intptr_t new_index;
-          if (!last_stc_.HasCheck(
-                  cid_or_sig, type, instance_type_args, instantiator_type_args,
-                  function_type_args, instance_parent_type_args,
-                  instance_delayed_type_args, &new_index, &new_result)) {
-            dart::Expect(__FILE__, __LINE__)
-                .Fail("New STC is missing check in old STC");
-          }
-          if (old_result.value() != new_result.value()) {
-            dart::Expect(__FILE__, __LINE__)
-                .Fail("New STC has different result from old STC");
-          }
+      EXPECT(!last_stc_.IsNull());
+      if (!last_stc_.IsNull()) {
+        EXPECT(previous_stc_.IsNull() ||
+               previous_stc_.cache() != last_stc_.cache());
+        // We only should have added one check.
+        EXPECT_EQ(
+            previous_stc_.IsNull() ? 1 : previous_stc_.NumberOfChecks() + 1,
+            last_stc_.NumberOfChecks());
+        if (!previous_stc_.IsNull()) {
+          // Make sure all the checks in the previous STC are still there.
+          ReportMissingOrChangedEntries(previous_stc_, last_stc_);
         }
       }
     } else {
       // Whatever STC existed before, if any, should be unchanged.
-      EXPECT((previous_stc_.IsNull() && last_stc_.IsNull()) ||
-             previous_stc_.cache() == last_stc_.cache());
+      if (previous_stc_.IsNull()) {
+        EXPECT(last_stc_.IsNull());
+      } else {
+        EXPECT(!last_stc_.IsNull() &&
+               previous_stc_.cache() == last_stc_.cache());
+      }
     }
 
     // False negatives should always be an STC hit when not lazily
@@ -602,12 +631,18 @@ class TTSTestState : public ValueObject {
     if ((!should_update_stc && has_stc_entry) ||
         (should_update_stc && !has_stc_entry)) {
       TextBuffer buffer(128);
-      buffer.Printf("%s entry for %s, got:\n",
-                    should_update_stc ? "Expected" : "Did not expect",
-                    type_.ToCString());
-      for (intptr_t i = 0; i < last_stc_.NumberOfChecks(); i++) {
-        last_stc_.WriteCurrentEntryToBuffer(zone(), &buffer, i);
+      buffer.Printf(
+          "%s entry for %s, got:",
+          test_case.should_be_false_negative ? "Expected" : "Did not expect",
+          type_.ToCString());
+      if (last_stc_.IsNull()) {
+        buffer.AddString(" null");
+      } else {
         buffer.AddString("\n");
+        for (intptr_t i = 0; i < last_stc_.NumberOfChecks(); i++) {
+          last_stc_.WriteCurrentEntryToBuffer(zone(), &buffer, i);
+          buffer.AddString("\n");
+        }
       }
       dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
     }
@@ -629,14 +664,34 @@ class TTSTestState : public ValueObject {
   Object& last_result_;
 };
 
-// Tests three situations in turn with the same test case:
+// Tests three situations in turn with the test case and with an
+// appropriate null object test:
 // 1) Install the lazy specialization stub for JIT and test.
 // 2) Test again without installing a stub, so using the stub resulting from 1.
 // 3) Install an eagerly specialized stub, similar to AOT mode but keeping any
 //    STC created by the earlier steps, and test.
 static void RunTTSTest(const AbstractType& dst_type,
                        const TTSTestCase& test_case) {
+  bool null_should_fail = !Instance::NullIsAssignableTo(
+      dst_type, test_case.instantiator_tav, test_case.function_tav);
+
+  const TTSTestCase null_test(
+      Instance::Handle(), test_case.instantiator_tav, test_case.function_tav,
+      test_case.should_specialize, null_should_fail,
+      // Null is never a false negative.
+      /*should_be_false_negative=*/false,
+      // Since null is never a false negative, it can't trigger
+      // respecialization.
+      /*should_respecialize=*/false);
+
   TTSTestState state(Thread::Current(), dst_type);
+  // First check the null case. This should _never_ create an STC.
+  state.InvokeLazilySpecializedStub(null_test);
+  state.InvokeExistingStub(null_test);
+  state.InvokeEagerlySpecializedStub(null_test);
+  EXPECT(state.last_stc().IsNull());
+
+  // Now run the actual test case.
   state.InvokeLazilySpecializedStub(test_case);
   state.InvokeExistingStub(test_case);
   state.InvokeEagerlySpecializedStub(test_case);
@@ -824,24 +879,15 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
   auto& type_dynamic_t =
       AbstractType::Handle(Type::New(class_i, tav_dynamic_t));
   FinalizeAndCanonicalize(&type_dynamic_t);
-  RunTTSTest(type_dynamic_t, FalseNegative({obj_i, tav_object, tav_null,
-                                            /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_i2, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_base_int, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_a, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_a1, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, FalseNegative({obj_a2, tav_object, tav_null,
-                                            /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_b, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, Failure({obj_b1, tav_object, tav_null,
-                                      /*should_specialize=*/false}));
-  RunTTSTest(type_dynamic_t, FalseNegative({obj_b2, tav_object, tav_null,
-                                            /*should_specialize=*/false}));
+  RunTTSTest(type_dynamic_t, FalseNegative({obj_i, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_i2, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_base_int, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_a, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_a1, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, FalseNegative({obj_a2, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_b, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, Failure({obj_b1, tav_object, tav_null}));
+  RunTTSTest(type_dynamic_t, FalseNegative({obj_b2, tav_object, tav_null}));
 
   // obj as Object (with null safety)
   auto isolate_group = IsolateGroup::Current();
@@ -978,8 +1024,10 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   RunTTSTest(type_base_b, {obj_base_int, tav_null, tav_null});
   RunTTSTest(type_base_b, Failure({obj_i2, tav_null, tav_null}));
 
-  // We do not generate TTS for uninstantiated types if we would need to use
-  // subtype range checks for the class of the interface type.
+  // We generate TTS for implemented classes and uninstantiated types, but
+  // any class that implements the type class but does not match in both
+  // instance TAV offset and type argument indices is guaranteed to be a
+  // false negative.
   //
   //   obj as I<dynamic, String>       // I is generic & implemented.
   //   obj as Base<A2<T>>              // A2<T> is not instantiated.
@@ -993,11 +1041,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   type_i_dynamic_string = type_i_dynamic_string.ToNullability(
       Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_i_dynamic_string);
-  RunTTSTest(
-      type_i_dynamic_string,
-      FalseNegative({obj_i, tav_null, tav_null, /*should_specialize=*/false}));
-  RunTTSTest(type_i_dynamic_string, Failure({obj_base_int, tav_null, tav_null,
-                                             /*should_specialize=*/false}));
+  RunTTSTest(type_i_dynamic_string, {obj_i, tav_null, tav_null});
+  RunTTSTest(type_i_dynamic_string,
+             Failure({obj_base_int, tav_null, tav_null}));
 
   //   <...> as Base<A2<T>>
   const auto& tav_t = TypeArguments::Handle(TypeArguments::New(1));
@@ -1033,6 +1079,112 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
                                              /*should_specialize=*/false}));
   RunTTSTest(type_base_a2_a1, Failure({obj_basea2int, tav_null, tav_null,
                                        /*should_specialize=*/false}));
+}
+
+ISOLATE_UNIT_TEST_CASE(TTS_Generic_Implements_Instantiated_Interface) {
+  const char* kScript =
+      R"(
+      abstract class I<T> {}
+      class B<R> implements I<String> {}
+
+      createBInt() => B<int>();
+)";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& class_i = Class::Handle(GetClass(root_library, "I"));
+  const auto& obj_b_int = Object::Handle(Invoke(root_library, "createBInt"));
+
+  const auto& tav_null = Object::null_type_arguments();
+  auto& tav_string = TypeArguments::Handle(TypeArguments::New(1));
+  tav_string.SetTypeAt(0, Type::Handle(Type::StringType()));
+  CanonicalizeTAV(&tav_string);
+
+  auto& type_i_string = Type::Handle(Type::New(class_i, tav_string));
+  FinalizeAndCanonicalize(&type_i_string);
+  const auto& type_i_t = Type::Handle(class_i.DeclarationType());
+
+  RunTTSTest(type_i_string, {obj_b_int, tav_null, tav_null});
+  // Optimized TTSees don't currently handle the case where the implemented
+  // type is known, but the type being checked requires instantiation at
+  // runtime.
+  RunTTSTest(type_i_t, FalseNegative({obj_b_int, tav_string, tav_null}));
+}
+
+ISOLATE_UNIT_TEST_CASE(TTS_Future) {
+  const char* kScript =
+      R"(
+      import "dart:async";
+
+      createFutureInt() => (() async => 3)();
+)";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& class_future = Class::Handle(GetClass(root_library, "Future"));
+  const auto& obj_futureint =
+      Object::Handle(Invoke(root_library, "createFutureInt"));
+
+  const auto& type_nullable_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->nullable_object_type());
+  const auto& type_int = Type::Handle(Type::IntType());
+  const auto& type_string = Type::Handle(Type::StringType());
+  const auto& type_num = Type::Handle(Type::Number());
+
+  const auto& tav_null = Object::null_type_arguments();
+  auto& tav_dynamic = TypeArguments::Handle(TypeArguments::New(1));
+  tav_dynamic.SetTypeAt(0, Object::dynamic_type());
+  CanonicalizeTAV(&tav_dynamic);
+  auto& tav_nullable_object = TypeArguments::Handle(TypeArguments::New(1));
+  tav_nullable_object.SetTypeAt(0, type_nullable_object);
+  CanonicalizeTAV(&tav_nullable_object);
+  auto& tav_int = TypeArguments::Handle(TypeArguments::New(1));
+  tav_int.SetTypeAt(0, type_int);
+  CanonicalizeTAV(&tav_int);
+  auto& tav_num = TypeArguments::Handle(TypeArguments::New(1));
+  tav_num.SetTypeAt(0, type_num);
+  CanonicalizeTAV(&tav_num);
+  auto& tav_string = TypeArguments::Handle(TypeArguments::New(1));
+  tav_string.SetTypeAt(0, type_string);
+  CanonicalizeTAV(&tav_string);
+
+  auto& type_future = Type::Handle(Type::New(class_future, tav_null));
+  FinalizeAndCanonicalize(&type_future);
+  auto& type_future_dynamic =
+      Type::Handle(Type::New(class_future, tav_dynamic));
+  FinalizeAndCanonicalize(&type_future_dynamic);
+  auto& type_future_nullable_object =
+      Type::Handle(Type::New(class_future, tav_nullable_object));
+  FinalizeAndCanonicalize(&type_future_nullable_object);
+  auto& type_future_int = Type::Handle(Type::New(class_future, tav_int));
+  FinalizeAndCanonicalize(&type_future_int);
+  auto& type_future_string = Type::Handle(Type::New(class_future, tav_string));
+  FinalizeAndCanonicalize(&type_future_string);
+  auto& type_future_num = Type::Handle(Type::New(class_future, tav_num));
+  FinalizeAndCanonicalize(&type_future_num);
+  auto& type_future_t = Type::Handle(class_future.DeclarationType());
+
+  // Some more tests of generic implemented classes, using Future. Here,
+  // obj is an object of type Future<int>.
+  //
+  //   obj as Future          : Null type args (caught by TTS)
+  //   obj as Future<dynamic> : Canonicalized to same as previous case.
+  //   obj as Future<Object?> : Type arg is top type (caught by TTS)
+  //   obj as Future<int>     : Type arg is the same type (caught by TTS)
+  //   obj as Future<String>  : Type arg is not a subtype (error via runtime)
+  //   obj as Future<num>     : Type arg is a supertype that can be matched
+  //                            with cid range (caught by TTS)
+  //   obj as Future<X>,      : Type arg is a type parameter instantiated with
+  //       X = int            :    ... the same type (caught by TTS)
+  //       X = String         :    ... an unrelated type (error via runtime)
+  //       X = num            :    ... a supertype (caught by STC/runtime)
+  RunTTSTest(type_future, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_dynamic, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_nullable_object, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_int, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_string, Failure({obj_futureint, tav_null, tav_null}));
+  RunTTSTest(type_future_num, {obj_futureint, tav_null, tav_null});
+  RunTTSTest(type_future_t, {obj_futureint, tav_int, tav_null});
+  RunTTSTest(type_future_t, Failure({obj_futureint, tav_string, tav_null}));
+  RunTTSTest(type_future_t, FalseNegative({obj_futureint, tav_num, tav_null}));
 }
 
 ISOLATE_UNIT_TEST_CASE(TTS_Regress40964) {
@@ -1122,15 +1274,91 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
 
 // Check that we generate correct TTS for _Smi type.
 ISOLATE_UNIT_TEST_CASE(TTS_Smi) {
-  const auto& root_library = Library::Handle(Library::CoreLibrary());
-  const auto& smi_class = Class::Handle(GetClass(root_library, "_Smi"));
-  ClassFinalizer::FinalizeTypesInClass(smi_class);
+  const auto& type_smi = Type::Handle(Type::SmiType());
+  const auto& tav_null = Object::null_type_arguments();
 
-  const auto& dst_type = AbstractType::Handle(smi_class.RareType());
-  const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
+  // Test on some easy-to-make instances.
+  RunTTSTest(type_smi, {Smi::Handle(Smi::New(0)), tav_null, tav_null});
+  RunTTSTest(type_smi, Failure({Integer::Handle(Integer::New(kMaxInt64)),
+                                tav_null, tav_null}));
+  RunTTSTest(type_smi,
+             Failure({Double::Handle(Double::New(1.0)), tav_null, tav_null}));
+  RunTTSTest(type_smi, Failure({Symbols::Empty(), tav_null, tav_null}));
+  RunTTSTest(type_smi,
+             Failure({Array::Handle(Array::New(1)), tav_null, tav_null}));
+}
 
-  THR_Print("\nTesting that instance of _Smi is a subtype of _Smi\n");
-  RunTTSTest(dst_type, {Smi::Handle(Smi::New(0)), tav_null, tav_null});
+// Check that we generate correct TTS for int type.
+ISOLATE_UNIT_TEST_CASE(TTS_Int) {
+  const auto& type_int = Type::Handle(Type::IntType());
+  const auto& tav_null = Object::null_type_arguments();
+
+  // Test on some easy-to-make instances.
+  RunTTSTest(type_int, {Smi::Handle(Smi::New(0)), tav_null, tav_null});
+  RunTTSTest(type_int,
+             {Integer::Handle(Integer::New(kMaxInt64)), tav_null, tav_null});
+  RunTTSTest(type_int,
+             Failure({Double::Handle(Double::New(1.0)), tav_null, tav_null}));
+  RunTTSTest(type_int, Failure({Symbols::Empty(), tav_null, tav_null}));
+  RunTTSTest(type_int,
+             Failure({Array::Handle(Array::New(1)), tav_null, tav_null}));
+}
+
+// Check that we generate correct TTS for num type.
+ISOLATE_UNIT_TEST_CASE(TTS_Num) {
+  const auto& type_num = Type::Handle(Type::Number());
+  const auto& tav_null = Object::null_type_arguments();
+
+  // Test on some easy-to-make instances.
+  RunTTSTest(type_num, {Smi::Handle(Smi::New(0)), tav_null, tav_null});
+  RunTTSTest(type_num,
+             {Integer::Handle(Integer::New(kMaxInt64)), tav_null, tav_null});
+  RunTTSTest(type_num, {Double::Handle(Double::New(1.0)), tav_null, tav_null});
+  RunTTSTest(type_num, Failure({Symbols::Empty(), tav_null, tav_null}));
+  RunTTSTest(type_num,
+             Failure({Array::Handle(Array::New(1)), tav_null, tav_null}));
+}
+
+// Check that we generate correct TTS for Double type.
+ISOLATE_UNIT_TEST_CASE(TTS_Double) {
+  const auto& type_num = Type::Handle(Type::Double());
+  const auto& tav_null = Object::null_type_arguments();
+
+  // Test on some easy-to-make instances.
+  RunTTSTest(type_num, Failure({Smi::Handle(Smi::New(0)), tav_null, tav_null}));
+  RunTTSTest(type_num, Failure({Integer::Handle(Integer::New(kMaxInt64)),
+                                tav_null, tav_null}));
+  RunTTSTest(type_num, {Double::Handle(Double::New(1.0)), tav_null, tav_null});
+  RunTTSTest(type_num, Failure({Symbols::Empty(), tav_null, tav_null}));
+  RunTTSTest(type_num,
+             Failure({Array::Handle(Array::New(1)), tav_null, tav_null}));
+}
+
+// Check that we generate correct TTS for Object type.
+ISOLATE_UNIT_TEST_CASE(TTS_Object) {
+  const auto& type_obj =
+      Type::Handle(IsolateGroup::Current()->object_store()->object_type());
+  const auto& tav_null = Object::null_type_arguments();
+
+  auto make_test_case = [&](const Instance& instance) -> TTSTestCase {
+    if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+      // The stub for non-nullable object should specialize, but only fails
+      // on null, which is already checked within RunTTSTest.
+      return {instance, tav_null, tav_null};
+    } else {
+      // The default type testing stub for nullable object is the top type
+      // stub, so it should neither specialize _or_ return false negatives.
+      return {instance, tav_null, tav_null, /*should_specialize=*/false};
+    }
+  };
+
+  // Test on some easy-to-make instances.
+  RunTTSTest(type_obj, make_test_case(Smi::Handle(Smi::New(0))));
+  RunTTSTest(type_obj,
+             make_test_case(Integer::Handle(Integer::New(kMaxInt64))));
+  RunTTSTest(type_obj, make_test_case(Double::Handle(Double::New(1.0))));
+  RunTTSTest(type_obj, make_test_case(Symbols::Empty()));
+  RunTTSTest(type_obj, make_test_case(Array::Handle(Array::New(1))));
 }
 
 // Check that we generate correct TTS for type Function (the non-FunctionType
@@ -1152,7 +1380,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
   const auto& obj_f = Object::Handle(Invoke(root_library, "createF"));
   const auto& obj_g = Object::Handle(Invoke(root_library, "createG"));
   const auto& obj_h = Object::Handle(Invoke(root_library, "createH"));
-  const auto& obj_null = Instance::Handle();
 
   const auto& tav_null = TypeArguments::Handle(TypeArguments::null());
   const auto& type_function = Type::Handle(Type::DartFunctionType());
@@ -1160,11 +1387,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_Function) {
   RunTTSTest(type_function, {obj_f, tav_null, tav_null});
   RunTTSTest(type_function, {obj_g, tav_null, tav_null});
   RunTTSTest(type_function, {obj_h, tav_null, tav_null});
-  if (!thread->isolate_group()->use_strict_null_safety_checks()) {
-    RunTTSTest(type_function, {obj_null, tav_null, tav_null});
-  } else {
-    RunTTSTest(type_function, Failure({obj_null, tav_null, tav_null}));
-  }
 
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
   const auto& obj_a_int = Object::Handle(Invoke(root_library, "createAInt"));

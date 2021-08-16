@@ -22,7 +22,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
 
 StubCode::StubCodeEntry StubCode::entries_[kNumStubEntries] = {

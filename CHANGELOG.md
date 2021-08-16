@@ -57,6 +57,11 @@
 - Added `void unawaited(Future)` top-level function to deal with the
   `unawaited_futures` lint.
 
+#### `dart:cli`
+
+- The experimental `waitFor` functionality, and the library containing only that
+  function, are now deprecated.
+
 #### `dart:core`
 
 - Introduce `Enum` interface implemented by all `enum` declarations.

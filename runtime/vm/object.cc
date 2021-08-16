@@ -11397,46 +11397,91 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   return true;
 }
 
-// Given the type G<T0, ..., Tn> and class C<U0, ..., Un> find path to C at G.
-// This path can be used to compute type arguments of C at G.
-//
-// Note: we are relying on the restriction that the same class can only occur
-// once among the supertype.
-static bool FindInstantiationOf(const Type& type,
+bool Class::FindInstantiationOf(Zone* zone,
                                 const Class& cls,
                                 GrowableArray<const AbstractType*>* path,
-                                bool consider_only_super_classes) {
-  if (type.type_class() == cls.ptr()) {
+                                bool consider_only_super_classes) const {
+  ASSERT(cls.is_type_finalized());
+  if (cls.ptr() == ptr()) {
     return true;  // Found instantiation.
   }
 
-  Class& cls2 = Class::Handle();
-  AbstractType& super_type = AbstractType::Handle();
-  super_type = cls.super_type();
-  if (!super_type.IsNull() && !super_type.IsObjectType()) {
-    cls2 = super_type.type_class();
-    path->Add(&super_type);
-    if (FindInstantiationOf(type, cls2, path, consider_only_super_classes)) {
+  Class& cls2 = Class::Handle(zone);
+  AbstractType& super = AbstractType::Handle(zone, super_type());
+  if (!super.IsNull() && !super.IsObjectType()) {
+    cls2 = super.type_class();
+    if (path != nullptr) {
+      path->Add(&super);
+    }
+    if (cls2.FindInstantiationOf(zone, cls, path,
+                                 consider_only_super_classes)) {
       return true;  // Found instantiation.
     }
-    path->RemoveLast();
-  }
-
-  if (!consider_only_super_classes) {
-    Array& super_interfaces = Array::Handle(cls.interfaces());
-    for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
-      super_type ^= super_interfaces.At(i);
-      cls2 = super_type.type_class();
-      path->Add(&super_type);
-      if (FindInstantiationOf(type, cls2, path,
-                              /*consider_only_supertypes=*/false)) {
-        return true;  // Found instantiation.
-      }
+    if (path != nullptr) {
       path->RemoveLast();
     }
   }
 
+  if (!consider_only_super_classes) {
+    Array& super_interfaces = Array::Handle(zone, interfaces());
+    for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
+      super ^= super_interfaces.At(i);
+      cls2 = super.type_class();
+      if (path != nullptr) {
+        path->Add(&super);
+      }
+      if (cls2.FindInstantiationOf(zone, cls, path)) {
+        return true;  // Found instantiation.
+      }
+      if (path != nullptr) {
+        path->RemoveLast();
+      }
+    }
+  }
+
   return false;  // Not found.
+}
+
+bool Class::FindInstantiationOf(Zone* zone,
+                                const Type& type,
+                                GrowableArray<const AbstractType*>* path,
+                                bool consider_only_super_classes) const {
+  return FindInstantiationOf(zone, Class::Handle(zone, type.type_class()), path,
+                             consider_only_super_classes);
+}
+
+TypePtr Class::GetInstantiationOf(Zone* zone, const Class& cls) const {
+  if (ptr() == cls.ptr()) {
+    return DeclarationType();
+  }
+  if (FindInstantiationOf(zone, cls, /*consider_only_super_classes=*/true)) {
+    // Since [cls] is a superclass of [this], use [cls]'s declaration type.
+    return cls.DeclarationType();
+  }
+  const auto& decl_type = Type::Handle(zone, DeclarationType());
+  GrowableArray<const AbstractType*> path(zone, 0);
+  if (!FindInstantiationOf(zone, cls, &path)) {
+    return Type::null();
+  }
+  ASSERT(!path.is_empty());
+  auto& calculated_type = Type::Handle(zone, decl_type.ptr());
+  auto& calculated_type_args =
+      TypeArguments::Handle(zone, calculated_type.arguments());
+  for (auto* const type : path) {
+    calculated_type ^= type->ptr();
+    if (!calculated_type.IsInstantiated()) {
+      calculated_type ^= calculated_type.InstantiateFrom(
+          calculated_type_args, Object::null_type_arguments(), kAllFree,
+          Heap::kNew);
+    }
+    calculated_type_args = calculated_type.arguments();
+  }
+  ASSERT_EQUAL(calculated_type.type_class_id(), cls.id());
+  return calculated_type.ptr();
+}
+
+TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
+  return GetInstantiationOf(zone, Class::Handle(zone, type.type_class()));
 }
 
 void Field::SetStaticValue(const Object& value) const {
@@ -11476,21 +11521,22 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   ASSERT(value.ptr() != Object::sentinel().ptr());
   ASSERT(value.ptr() != Object::transition_sentinel().ptr());
 
+  Zone* const zone = Thread::Current()->zone();
   const TypeArguments& static_type_args =
-      TypeArguments::Handle(static_type.arguments());
+      TypeArguments::Handle(zone, static_type.arguments());
 
-  TypeArguments& args = TypeArguments::Handle();
+  TypeArguments& args = TypeArguments::Handle(zone);
 
   ASSERT(static_type.IsFinalized());
-  const Class& cls = Class::Handle(value.clazz());
+  const Class& cls = Class::Handle(zone, value.clazz());
   GrowableArray<const AbstractType*> path(10);
 
   bool is_super_class = true;
-  if (!FindInstantiationOf(static_type, cls, &path,
-                           /*consider_only_super_classes=*/true)) {
+  if (!cls.FindInstantiationOf(zone, static_type, &path,
+                               /*consider_only_super_classes=*/true)) {
     is_super_class = false;
-    bool found_super_interface = FindInstantiationOf(
-        static_type, cls, &path, /*consider_only_super_classes=*/false);
+    bool found_super_interface =
+        cls.FindInstantiationOf(zone, static_type, &path);
     ASSERT(found_super_interface);
   }
 
@@ -11522,7 +11568,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   // To compute C<X0, ..., Xn> at G we walk the chain backwards and
   // instantiate Si using type parameters of S{i-1} which gives us a type
   // depending on type parameters of S{i-2}.
-  AbstractType& type = AbstractType::Handle(path.Last()->ptr());
+  AbstractType& type = AbstractType::Handle(zone, path.Last()->ptr());
   for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
        i--) {
     args = path[i]->arguments();
@@ -11560,19 +11606,19 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   const intptr_t num_type_params = cls.NumTypeParameters();
   bool trivial_case =
       (num_type_params ==
-       Class::Handle(static_type.type_class()).NumTypeParameters()) &&
+       Class::Handle(zone, static_type.type_class()).NumTypeParameters()) &&
       (value.GetTypeArguments() == static_type.arguments());
   if (!trivial_case && FLAG_trace_field_guards) {
     THR_Print("Not a simple case: %" Pd " vs %" Pd
               " type parameters, %s vs %s type arguments\n",
               num_type_params,
-              Class::Handle(static_type.type_class()).NumTypeParameters(),
+              Class::Handle(zone, static_type.type_class()).NumTypeParameters(),
               SafeTypeArgumentsToCString(
-                  TypeArguments::Handle(value.GetTypeArguments())),
+                  TypeArguments::Handle(zone, value.GetTypeArguments())),
               SafeTypeArgumentsToCString(static_type_args));
   }
 
-  AbstractType& type_arg = AbstractType::Handle();
+  AbstractType& type_arg = AbstractType::Handle(zone);
   args = type.arguments();
   for (intptr_t i = 0; (i < num_type_params) && trivial_case; i++) {
     type_arg = args.TypeAt(i);
