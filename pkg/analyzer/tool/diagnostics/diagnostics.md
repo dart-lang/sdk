@@ -12928,9 +12928,6 @@ _A nullable expression can't be used in a spread._
 
 _A nullable expression can't be used in a yield-each statement._
 
-_An expression whose value can be 'null' must be null-checked before it can be
-dereferenced._
-
 _The function can't be unconditionally invoked because it can be 'null'._
 
 _The method '{0}' can't be unconditionally invoked because the receiver can be
