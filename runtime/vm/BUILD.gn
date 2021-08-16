@@ -109,6 +109,12 @@ library_for_all_configs("libdart_vm") {
   sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
             rebase_path(disassembler_sources, ".", "./compiler/") +
             rebase_path(heap_sources, ".", "./heap/")
+  if (is_android) {
+    # Android specific workaround for a kernel bug. This source file can't
+    # go into vm_sources list because it will break Windows build which
+    # uses different assembler syntax.
+    sources += [ "thread_interrupter_android_arm.S" ]
+  }
   include_dirs = [ ".." ]
 }
 
