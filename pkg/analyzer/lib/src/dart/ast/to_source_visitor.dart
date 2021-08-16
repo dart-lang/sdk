@@ -432,6 +432,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     sink.write("export ");
     safelyVisitNode(node.uri);
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.configurations, " ");
     safelyVisitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
     sink.write(';');
   }
@@ -707,6 +708,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     sink.write("import ");
     safelyVisitNode(node.uri);
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.configurations, " ");
     if (node.deferredKeyword != null) {
       sink.write(" deferred");
     }

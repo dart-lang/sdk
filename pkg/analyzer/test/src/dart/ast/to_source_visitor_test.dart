@@ -792,6 +792,21 @@ class ToSourceVisitor2Test {
         ]));
   }
 
+  void test_visitExportDirective_configurations() {
+    var unit = parseString(content: r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''').unit;
+    var directive = unit.directives[0] as ExportDirective;
+    _assertSource(
+      "export 'foo.dart'"
+      " if (dart.library.io) 'foo_io.dart'"
+      " if (dart.library.html) 'foo_html.dart';",
+      directive,
+    );
+  }
+
   void test_visitExportDirective_minimal() {
     _assertSource(
         "export 'a.dart';", AstTestFactory.exportDirective2("a.dart"));
@@ -1786,6 +1801,21 @@ class ToSourceVisitor2Test {
           AstTestFactory.showCombinator([AstTestFactory.identifier3("A")]),
           AstTestFactory.hideCombinator([AstTestFactory.identifier3("B")])
         ]));
+  }
+
+  void test_visitImportDirective_configurations() {
+    var unit = parseString(content: r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''').unit;
+    var directive = unit.directives[0] as ImportDirective;
+    _assertSource(
+      "import 'foo.dart'"
+      " if (dart.library.io) 'foo_io.dart'"
+      " if (dart.library.html) 'foo_html.dart';",
+      directive,
+    );
   }
 
   void test_visitImportDirective_deferred() {
