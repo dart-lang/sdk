@@ -54,30 +54,15 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
 
-class SubclassFinder {
+class SubtypeFinder {
  public:
-  SubclassFinder(Zone* zone,
-                 GrowableArray<intptr_t>* cids,
-                 bool include_abstract)
+  SubtypeFinder(Zone* zone,
+                GrowableArray<intptr_t>* cids,
+                bool include_abstract)
       : array_handles_(zone),
         class_handles_(zone),
         cids_(cids),
         include_abstract_(include_abstract) {}
-
-  void ScanSubClasses(const Class& klass) {
-    if (include_abstract_ || !klass.is_abstract()) {
-      cids_->Add(klass.id());
-    }
-    ScopedHandle<GrowableObjectArray> array(&array_handles_);
-    ScopedHandle<Class> subclass(&class_handles_);
-    *array = klass.direct_subclasses();
-    if (!array->IsNull()) {
-      for (intptr_t i = 0; i < array->Length(); ++i) {
-        *subclass ^= array->At(i);
-        ScanSubClasses(*subclass);
-      }
-    }
-  }
 
   void ScanImplementorClasses(const Class& klass) {
     // An implementor of [klass] is
@@ -134,36 +119,9 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
     if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass, /*use_subtype_test=*/true,
-                        include_abstract, exclude_null);
+      BuildRangesForJIT(table, &ranges, klass, include_abstract, exclude_null);
     } else {
-      BuildRangesFor(table, &ranges, klass, /*use_subtype_test=*/true,
-                     include_abstract, exclude_null);
-    }
-  }
-  return ranges;
-}
-
-const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
-    const Class& klass) {
-  ClassTable* table = thread()->isolate_group()->class_table();
-  const intptr_t cid_count = table->NumCids();
-  if (cid_subclass_ranges_ == nullptr) {
-    cid_subclass_ranges_.reset(new CidRangeVector[cid_count]);
-  }
-
-  CidRangeVector& ranges = cid_subclass_ranges_[klass.id()];
-  if (ranges.length() == 0) {
-    if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass,
-                        /*use_subtype_test=*/true,
-                        /*include_abstract=*/false,
-                        /*exclude_null=*/false);
-    } else {
-      BuildRangesFor(table, &ranges, klass,
-                     /*use_subtype_test=*/false,
-                     /*include_abstract=*/false,
-                     /*exclude_null=*/false);
+      BuildRangesFor(table, &ranges, klass, include_abstract, exclude_null);
     }
   }
   return ranges;
@@ -175,18 +133,12 @@ const CidRangeVector& HierarchyInfo::SubclassRangesForClass(
 void HierarchyInfo::BuildRangesFor(ClassTable* table,
                                    CidRangeVector* ranges,
                                    const Class& klass,
-                                   bool use_subtype_test,
                                    bool include_abstract,
                                    bool exclude_null) {
   Zone* zone = thread()->zone();
-  ClassTable* class_table = thread()->isolate_group()->class_table();
-
-  // Only really used if `use_subtype_test == true`.
   const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
   AbstractType& cls_type = AbstractType::Handle(zone);
-
   Class& cls = Class::Handle(zone);
-  AbstractType& super_type = AbstractType::Handle(zone);
   const intptr_t cid_count = table->NumCids();
 
   // Iterate over all cids to find the ones to be included in the ranges.
@@ -210,24 +162,14 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (!include_abstract && cls.is_abstract()) continue;
     if (cls.IsTopLevel()) continue;
 
-    // We are either interested in [CidRange]es of subclasses or subtypes.
+    // We are interested in [CidRange]es of subtypes.
     bool test_succeeded = false;
     if (cid == kNullCid) {
       ASSERT(exclude_null);
       test_succeeded = false;
-    } else if (use_subtype_test) {
+    } else {
       cls_type = cls.RareType();
       test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
-    } else {
-      while (!cls.IsObjectClass()) {
-        if (cls.ptr() == klass.ptr()) {
-          test_succeeded = true;
-          break;
-        }
-        super_type = cls.super_type();
-        const intptr_t type_class_id = super_type.type_class_id();
-        cls = class_table->At(type_class_id);
-      }
     }
 
     if (test_succeeded) {
@@ -245,14 +187,10 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     }
   }
 
-  // Construct last range (either close open one, or add invalid).
+  // Construct last range if there is a open one.
   if (start != -1) {
     ASSERT(start <= end);
     CidRange range(start, end);
-    ranges->Add(range);
-  } else if (ranges->length() == 0) {
-    CidRange range;
-    ASSERT(range.IsIllegalRange());
     ranges->Add(range);
   }
 }
@@ -260,26 +198,20 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
 void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
                                       CidRangeVector* ranges,
                                       const Class& dst_klass,
-                                      bool use_subtype_test,
                                       bool include_abstract,
                                       bool exclude_null) {
   if (dst_klass.InVMIsolateHeap()) {
-    BuildRangesFor(table, ranges, dst_klass, use_subtype_test, include_abstract,
-                   exclude_null);
+    BuildRangesFor(table, ranges, dst_klass, include_abstract, exclude_null);
     return;
   }
 
   Zone* zone = thread()->zone();
   GrowableArray<intptr_t> cids;
-  SubclassFinder finder(zone, &cids, include_abstract);
+  SubtypeFinder finder(zone, &cids, include_abstract);
   {
     SafepointReadRwLocker ml(thread(),
                              thread()->isolate_group()->program_lock());
-    if (use_subtype_test) {
-      finder.ScanImplementorClasses(dst_klass);
-    } else {
-      finder.ScanSubClasses(dst_klass);
-    }
+    finder.ScanImplementorClasses(dst_klass);
   }
 
   // Sort all collected cids.
@@ -429,17 +361,6 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   ASSERT(type_class.NumTypeParameters() > 0 &&
          type.arguments() != TypeArguments::null());
 
-  // If the type class is implemented the different implementations might have
-  // their type argument vector stored at different offsets and we can therefore
-  // not perform our optimized [CidRange]-based implementation.
-  //
-  // TODO(kustermann): If the class is implemented but all implementations
-  // store the instantator type argument vector at the same offset we can
-  // still do it!
-  if (type_class.is_implemented()) {
-    return false;
-  }
-
   const TypeArguments& ta =
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
@@ -477,11 +398,10 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                               /*exclude_null=*/true);
     if (ranges.length() == 1) {
       const CidRangeValue& range = ranges[0];
-      if (!range.IsIllegalRange()) {
-        *lower_limit = range.cid_start;
-        *upper_limit = range.cid_end;
-        return true;
-      }
+      ASSERT(!range.IsIllegalRange());
+      *lower_limit = range.cid_start;
+      *upper_limit = range.cid_end;
+      return true;
     }
   }
   return false;

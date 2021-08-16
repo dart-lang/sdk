@@ -22,8 +22,6 @@ class Code;
 class Isolate;
 class ObjectPointerVisitor;
 
-DECLARE_FLAG(bool, disassemble_stubs);
-
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
 // However, in cases where a simple GC-safe placeholder is needed on the stack,

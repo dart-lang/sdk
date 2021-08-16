@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
+#include "vm/hash_map.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -247,17 +248,19 @@ class HierarchyInfo : public ThreadStackResource {
         cid_subtype_ranges_nullable_(),
         cid_subtype_ranges_abstract_nullable_(),
         cid_subtype_ranges_nonnullable_(),
-        cid_subtype_ranges_abstract_nonnullable_(),
-        cid_subclass_ranges_() {
+        cid_subtype_ranges_abstract_nonnullable_() {
     thread->set_hierarchy_info(this);
   }
 
   ~HierarchyInfo() { thread()->set_hierarchy_info(NULL); }
 
+  // Returned from FindBestTAVOffset and SplitOnConsistentTypeArguments
+  // to denote a failure to find a compatible concrete, finalized class.
+  static const intptr_t kNoCompatibleTAVOffset = 0;
+
   const CidRangeVector& SubtypeRangesForClass(const Class& klass,
                                               bool include_abstract,
                                               bool exclude_null);
-  const CidRangeVector& SubclassRangesForClass(const Class& klass);
 
   bool InstanceOfHasClassRange(const AbstractType& type,
                                intptr_t* lower_limit,
@@ -284,13 +287,11 @@ class HierarchyInfo : public ThreadStackResource {
  private:
   // Does not use any hierarchy information available in the system but computes
   // it via O(n) class table traversal. The boolean parameters denote:
-  //   use_subtype_test : if set, IsSubtypeOf() is used to compute inclusion
   //   include_abstract : if set, include abstract types (don't care otherwise)
   //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
                       CidRangeVector* ranges,
                       const Class& klass,
-                      bool use_subtype_test,
                       bool include_abstract,
                       bool exclude_null);
 
@@ -299,7 +300,6 @@ class HierarchyInfo : public ThreadStackResource {
   void BuildRangesForJIT(ClassTable* table,
                          CidRangeVector* ranges,
                          const Class& klass,
-                         bool use_subtype_test,
                          bool include_abstract,
                          bool exclude_null);
 
@@ -307,7 +307,6 @@ class HierarchyInfo : public ThreadStackResource {
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_nonnullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nonnullable_;
-  std::unique_ptr<CidRangeVector[]> cid_subclass_ranges_;
 };
 
 // An embedded container with N elements of type T.  Used (with partial

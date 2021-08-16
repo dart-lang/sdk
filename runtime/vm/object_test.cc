@@ -5304,4 +5304,97 @@ TEST_CASE(TypeParameterTypeRef) {
   EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
+TEST_CASE(Class_GetInstantiationOf) {
+  const char* kScript = R"(
+    class B<T> {}
+    class A1<X, Y> implements B<List<Y>> {}
+    class A2<X, Y> extends A1<Y, X> {}
+  )";
+  Dart_Handle api_lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(api_lib);
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+  const auto& class_b = Class::Handle(zone, GetClass(root_lib, "B"));
+  const auto& class_a1 = Class::Handle(zone, GetClass(root_lib, "A1"));
+  const auto& class_a2 = Class::Handle(zone, GetClass(root_lib, "A2"));
+
+  const auto& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  const auto& class_list = Class::Handle(zone, GetClass(core_lib, "List"));
+
+  auto expect_type_equal = [](const AbstractType& expected,
+                              const AbstractType& got) {
+    if (got.Equals(expected)) return;
+    TextBuffer buffer(128);
+    buffer.AddString("Expected type ");
+    expected.PrintName(Object::kScrubbedName, &buffer);
+    buffer.AddString(", got ");
+    got.PrintName(Object::kScrubbedName, &buffer);
+    dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
+  };
+
+  const auto& decl_type_b = Type::Handle(zone, class_b.DeclarationType());
+  const auto& decl_type_list = Type::Handle(zone, class_list.DeclarationType());
+  const auto& null_tav = Object::null_type_arguments();
+
+  // Test that A1.GetInstantiationOf(B) returns B<List<A1::Y>>.
+  {
+    const auto& decl_type_a1 = Type::Handle(zone, class_a1.DeclarationType());
+    const auto& decl_type_args_a1 =
+        TypeArguments::Handle(zone, decl_type_a1.arguments());
+    const auto& type_arg_a1_y =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a1.TypeAt(1));
+    auto& tav_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a1_y.SetTypeAt(0, type_arg_a1_y);
+    tav_a1_y = tav_a1_y.Canonicalize(thread, nullptr);
+    auto& type_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a1_y, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a1_y ^= type_list_a1_y.Canonicalize(thread, nullptr);
+    auto& tav_list_a1_y = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a1_y.SetTypeAt(0, type_list_a1_y);
+    tav_list_a1_y = tav_list_a1_y.Canonicalize(thread, nullptr);
+    auto& type_b_list_a1_y = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a1_y, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a1_y ^= type_b_list_a1_y.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a1 =
+        Type::Handle(zone, class_a1.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a1.IsNull());
+    expect_type_equal(type_b_list_a1_y, inst_b_a1);
+  }
+
+  // Test that A2.GetInstantiationOf(B) returns B<List<A2::X>>.
+  {
+    const auto& decl_type_a2 = Type::Handle(zone, class_a2.DeclarationType());
+    const auto& decl_type_args_a2 =
+        TypeArguments::Handle(zone, decl_type_a2.arguments());
+    const auto& type_arg_a2_x =
+        TypeParameter::CheckedHandle(zone, decl_type_args_a2.TypeAt(1));
+    auto& tav_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_a2_x.SetTypeAt(0, type_arg_a2_x);
+    tav_a2_x = tav_a2_x.Canonicalize(thread, nullptr);
+    auto& type_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_list.InstantiateFrom(tav_a2_x, null_tav, kAllFree,
+                                             Heap::kNew));
+    type_list_a2_x ^= type_list_a2_x.Canonicalize(thread, nullptr);
+    auto& tav_list_a2_x = TypeArguments::Handle(TypeArguments::New(1));
+    tav_list_a2_x.SetTypeAt(0, type_list_a2_x);
+    tav_list_a2_x = tav_list_a2_x.Canonicalize(thread, nullptr);
+    auto& type_b_list_a2_x = Type::CheckedHandle(
+        zone, decl_type_b.InstantiateFrom(tav_list_a2_x, null_tav, kAllFree,
+                                          Heap::kNew));
+    type_b_list_a2_x ^= type_b_list_a2_x.Canonicalize(thread, nullptr);
+
+    const auto& inst_b_a2 =
+        Type::Handle(zone, class_a2.GetInstantiationOf(zone, class_b));
+    EXPECT(!inst_b_a2.IsNull());
+    expect_type_equal(type_b_list_a2_x, inst_b_a2);
+  }
+}
+
 }  // namespace dart

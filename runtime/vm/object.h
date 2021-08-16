@@ -1270,6 +1270,71 @@ class Class : public Object {
   }
   void set_interfaces(const Array& value) const;
 
+  // Returns whether a path from [this] to [cls] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has [cls] as its
+  // type class. If [this] and [cls] are the same class, then the path is empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [cls] given type
+  // arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [cls], but the result of applying each
+  // path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Class& cls,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, cls, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // Returns whether a path from [this] to [type] can be found, where the first
+  // element is a direct supertype of [this], each following element is a direct
+  // supertype of the previous element and the final element has the same type
+  // class as [type]. If [this] is the type class of [type], then the path is
+  // empty.
+  //
+  // If [path] is not nullptr, then the elements of the path are added to it.
+  // This path can then be used to compute type arguments of [type]'s type
+  // class given type arguments for an instance of [this].
+  //
+  // Note: There may be multiple paths to [type]'s type class, but the result of
+  // applying each path must be equal to the other results.
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           GrowableArray<const AbstractType*>* path,
+                           bool consider_only_super_classes = false) const;
+  bool FindInstantiationOf(Zone* zone,
+                           const Type& type,
+                           bool consider_only_super_classes = false) const {
+    return FindInstantiationOf(zone, type, /*path=*/nullptr,
+                               consider_only_super_classes);
+  }
+
+  // If [this] is a subtype of a type with type class [cls], then this
+  // returns [cls]<X_0, ..., X_n>, where n is the number of type arguments for
+  // [cls] and where each type argument X_k is either instantiated or has free
+  // class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated
+  // with the instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Class& cls) const;
+
+  // If [this] is a subtype of [type], then this returns [cls]<X_0, ..., X_n>,
+  // where [cls] is the type class of [type], n is the number of type arguments
+  // for [cls], and where each type argument X_k is either instantiated or has
+  // free class type parameters corresponding to the type parameters of [this].
+  // Thus, given an instance of [this], the result can be instantiated with the
+  // instance type arguments to get the type of the instance.
+  //
+  // If [this] is not a subtype of a type with type class [cls], returns null.
+  TypePtr GetInstantiationOf(Zone* zone, const Type& type) const;
+
 #if !defined(PRODUCT) || !defined(DART_PRECOMPILED_RUNTIME)
   // Returns the list of classes directly implementing this class.
   GrowableObjectArrayPtr direct_implementors() const {

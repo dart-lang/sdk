@@ -73,27 +73,29 @@ class TypeTestingStubGenerator {
 
   static void BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
-                                              bool smi_is_ok);
+                                              Register class_id_reg,
+                                              compiler::Label* check_succeeded,
+                                              compiler::Label* check_failed);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Type& type,
-      const Class& type_class,
-      const TypeArguments& type_arguments);
+      const Class& type_class);
 
-  static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
+  // Falls through or jumps to load_succeeded if load succeeds, otherwise jumps
+  // to load_failed. Returns from the stub for checked cid ranges which do not
+  // require checking the instance type arguments. Returns whether any cid
+  // ranges require type argument checking.
+  static bool BuildLoadInstanceTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class,
-      const TypeArguments& type_arguments,
       const Register class_id_reg,
-      const Register instance_type_args_reg);
-
-  static void BuildOptimizedSubclassRangeCheck(compiler::Assembler* assembler,
-                                               const CidRangeVector& ranges,
-                                               compiler::Label* check_failed);
+      const Register instance_type_args_reg,
+      compiler::Label* load_succeeded,
+      compiler::Label* load_failed);
 
   static void BuildOptimizedTypeArgumentValueCheck(
       compiler::Assembler* assembler,

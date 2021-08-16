@@ -256,9 +256,7 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   CompileType result = CompileType::None();
   for (intptr_t i = 0, n = cids.length(); i < n; i++) {
     CidRange* cid_range = cids.At(i);
-    if (cid_range->IsIllegalRange()) {
-      return;
-    }
+    ASSERT(!cid_range->IsIllegalRange());
     for (intptr_t cid = cid_range->cid_start; cid <= cid_range->cid_end;
          cid++) {
       CompileType tp = CompileType::FromCid(cid);
