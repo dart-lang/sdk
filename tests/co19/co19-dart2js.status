@@ -59,22 +59,24 @@ LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issue
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
-LibTest/typed_data/ByteBuffer/*: SkipByDesign # not supported on the web
-LibTest/typed_data/ByteData/getInt64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/getInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/getUint64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/getUint64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/setInt64_A02_t01: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # Int64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # uses integer literal not representable as JavaScript number
-LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # Uint64 accessor not supported by dart2js
-LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # Uint64 accessor not supported by dart2js
-LibTest/typed_data/Int32x4/operator_OR_A01_t01: SkipByDesign # Bitwise operations in JS are unsigned.
-LibTest/typed_data/Int32x4List/join_A01_t01: SkipByDesign # Different string represrntation on VM and in JS
-LibTest/typed_data/Int32x4List/join_A01_t02: SkipByDesign # Different string represrntation on VM and in JS
+LibTest/typed_data/ByteBuffer/asInt64List_A01_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asInt64List_A02_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asInt64List_A03_t01: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A01_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A02_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteBuffer/asUint64List_A03_t01: SkipByDesign # UInt64List not supported on the web
+LibTest/typed_data/ByteData/getInt64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getInt64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getInt64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/getUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
 
