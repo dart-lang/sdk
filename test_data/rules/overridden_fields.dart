@@ -4,6 +4,16 @@
 
 // test w/ `dart test -N overridden_fields`
 
+class A {
+  static final String f = 'value';
+  String f2 = '';
+}
+class B extends A {
+  /// https://github.com/dart-lang/linter/issues/2874
+  String f = 'otherValue'; //OK
+  static String f2 = ''; //OK
+}
+
 class Base {
   Object field = 'lorem';
 

@@ -139,7 +139,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var memberName = member.name;
     var library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) {
-      if (memberName != null && a.isSynthetic && a.name == memberName) {
+      if (memberName == null || a.isStatic) {
+        return false;
+      }
+      if (a.isSynthetic && a.name == memberName) {
         // Ensure that private members are overriding a member of the same library.
         if (Identifier.isPrivateName(memberName)) {
           return library == a.library;
