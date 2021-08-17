@@ -153,7 +153,7 @@ intptr_t SocketBase::RecvMsg(intptr_t fd,
     if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
       int* fds = reinterpret_cast<int*>(data);
       control_message =
-          new UnixFileDescriptorsControlMessage(fds, data_length / 4);
+          new UnixFileDescriptorsControlMessage(fds, data_length / sizeof(int));
     } else {
       control_message = new UnknownControlMessage(
           cmsg->cmsg_level, cmsg->cmsg_type, data, data_length);
