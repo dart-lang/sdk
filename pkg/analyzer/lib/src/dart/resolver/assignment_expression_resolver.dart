@@ -78,7 +78,7 @@ class AssignmentExpressionResolver {
       _setRhsContext(node, leftType!, operator, right);
     }
 
-    var flow = _resolver.flowAnalysis?.flow;
+    var flow = _resolver.flowAnalysis.flow;
     if (flow != null && isIfNull) {
       flow.ifNullExpression_rightBegin(left, node.readType!);
     }
@@ -294,7 +294,6 @@ class AssignmentExpressionShared {
 
   void checkFinalAlreadyAssigned(Expression left) {
     var flowAnalysis = _resolver.flowAnalysis;
-    if (flowAnalysis == null) return;
 
     var flow = flowAnalysis.flow;
     if (flow == null) return;

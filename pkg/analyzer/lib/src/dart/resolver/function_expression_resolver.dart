@@ -38,8 +38,8 @@ class FunctionExpressionResolver {
     bool isFunctionDeclaration = parent is FunctionDeclaration;
     var body = node.body;
 
-    if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
-      _resolver.flowAnalysis!
+    if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
+      _resolver.flowAnalysis
           .executableDeclaration_enter(node, node.parameters, true);
     }
 
@@ -63,14 +63,14 @@ class FunctionExpressionResolver {
     }
     _resolve2(node);
 
-    if (_resolver.flowAnalysis!.flow != null && !isFunctionDeclaration) {
+    if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
       var bodyContext = BodyInferenceContext.of(node.body);
       _resolver.checkForBodyMayCompleteNormally(
         returnType: bodyContext?.contextType,
         body: body,
         errorNode: body,
       );
-      _resolver.flowAnalysis!.flow?.functionExpression_end();
+      _resolver.flowAnalysis.flow?.functionExpression_end();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
   }

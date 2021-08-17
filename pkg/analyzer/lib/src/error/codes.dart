@@ -13014,9 +13014,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true,
           uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE');
 
-  /**
-   * No parameters.
-   */
   // #### Description
   //
   // The analyzer produces this diagnostic when an expression whose type is
@@ -13072,16 +13069,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   }
   // }
   // ```
-  static const CompileTimeErrorCode UNCHECKED_USE_OF_NULLABLE_VALUE =
-      CompileTimeErrorCode(
-          'UNCHECKED_USE_OF_NULLABLE_VALUE',
-          "An expression whose value can be 'null' must be null-checked before "
-              "it can be dereferenced.",
-          correction:
-              "Try checking that the value isn't 'null' before dereferencing "
-              "it.",
-          hasPublishedDocs: true);
-
   static const CompileTimeErrorCode
       UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION = CompileTimeErrorCode(
           'UNCHECKED_USE_OF_NULLABLE_VALUE',

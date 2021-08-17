@@ -172,7 +172,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "6448ce532445a8a458fa191d9346df071ae0acad",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
-  "webdev_rev": "b0aae7b6944d484722e6af164abedd864a2a0afa",
+  "webdev_rev": "50fe70a3137d9665fbe94cd34af5277b65d95079",
   "webkit_inspection_protocol_rev": "dd6fb5d8b536e19cedb384d0bbf1f5631923f1e8",
   "yaml_rev": "b4c4411631bda556ce9a45af1ab0eecaf9f3ac53",
   "zlib_rev": "bf44340d1b6be1af8950bbdf664fec0cf5a831cc",

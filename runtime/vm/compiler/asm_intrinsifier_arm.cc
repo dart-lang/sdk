@@ -1198,6 +1198,14 @@ static void JumpIfNotString(Assembler* assembler,
              kIfNotInRange, target);
 }
 
+static void JumpIfNotList(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kArrayCid, kGrowableObjectArrayCid,
+             kIfNotInRange, target);
+}
+
 static void JumpIfType(Assembler* assembler,
                        Register cid,
                        Register tmp,
@@ -1284,7 +1292,7 @@ static void EquivalentClassIds(Assembler* assembler,
                                Register scratch,
                                bool testing_instance_cids) {
   Label different_cids, equal_cids_but_generic, not_integer,
-      not_integer_or_string;
+      not_integer_or_string, not_integer_or_string_or_list;
 
   // Check if left hand side is a closure. Closures are handled in the runtime.
   __ CompareImmediate(cid1, kClosureCid);
@@ -1310,7 +1318,8 @@ static void EquivalentClassIds(Assembler* assembler,
   __ b(equal);
 
   // Class ids are different. Check if we are comparing two string types (with
-  // different representations) or two integer types or two type types.
+  // different representations), two integer types, two list types or two type
+  // types.
   __ Bind(&different_cids);
   __ CompareImmediate(cid1, kNumPredefinedCids);
   __ b(not_equal, HI);
@@ -1335,9 +1344,20 @@ static void EquivalentClassIds(Assembler* assembler,
 
   if (testing_instance_cids) {
     __ Bind(&not_integer_or_string);
+    // Check if both are List types.
+    JumpIfNotList(assembler, cid1, scratch, &not_integer_or_string_or_list);
+
+    // First type is a List. Check if the second is a List too.
+    JumpIfNotList(assembler, cid2, scratch, not_equal);
+    ASSERT(compiler::target::Array::type_arguments_offset() ==
+           compiler::target::GrowableObjectArray::type_arguments_offset());
+    __ LoadImmediate(scratch, compiler::target::Array::type_arguments_offset());
+    __ b(&equal_cids_but_generic);
+
+    __ Bind(&not_integer_or_string_or_list);
     // Check if the first type is a Type. If it is not then types are not
     // equivalent because they have different class ids and they are not String
-    // or integer or Type.
+    // or integer or List or Type.
     JumpIfNotType(assembler, cid1, scratch, not_equal);
 
     // First type is a Type. Check if the second is a Type too.

@@ -607,6 +607,7 @@ void Object::InitVtables() {
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY_NOR_MAP(INIT_VTABLE)
+  INIT_VTABLE(GrowableObjectArray)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \
@@ -630,7 +631,7 @@ void Object::InitVtables() {
     Array fake_handle;                                                         \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
-  CLASS_LIST_ARRAYS(INIT_VTABLE)
+  CLASS_LIST_FIXED_LENGTH_ARRAYS(INIT_VTABLE)
 #undef INIT_VTABLE
 
 #define INIT_VTABLE(clazz)                                                     \

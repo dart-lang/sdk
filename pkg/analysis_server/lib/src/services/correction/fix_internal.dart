@@ -942,9 +942,6 @@ class FixProcessor extends BaseProcessor {
       AddNullCheck.newInstance,
       ReplaceWithNullAware.single,
     ],
-    CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE: [
-      AddNullCheck.newInstance,
-    ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
       AddNullCheck.newInstance,
     ],

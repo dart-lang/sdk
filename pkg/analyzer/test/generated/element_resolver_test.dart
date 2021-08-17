@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -725,7 +726,9 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: FeatureSet.forTesting());
+        featureSet: FeatureSet.forTesting(),
+        flowAnalysisHelper:
+            FlowAnalysisHelper(context.typeSystemLegacy, false, false));
     _resolver = _visitor.elementResolver;
   }
 

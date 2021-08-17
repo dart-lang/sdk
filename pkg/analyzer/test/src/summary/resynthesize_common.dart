@@ -21282,37 +21282,31 @@ library
           final b @88
             type: int?
         constructors
-          @0
-            macro
-              id: 0
-              code: A({required this.a, this.b});
+          @92
             parameters
-              requiredName final this.a @17
+              requiredName final this.a @109
                 type: int
-              optionalNamed final this.b @25
+              optionalNamed final this.b @117
                 type: int?
         accessors
           synthetic get a @-1
             returnType: int
           synthetic get b @-1
             returnType: int?
+    macroGeneratedContent
+import 'macro_annotations.dart';
+@autoConstructor
+class A {
+  final int a;
+  final int? b;
+
+A({required this.a, this.b});
+}
 ''');
   }
 
   test_macro_hashCode() async {
     addLibrarySource('/macro_annotations.dart', r'''
-library analyzer.macro.annotations;
-const hashCode = 0;
-''');
-    var library = await checkLibrary(r'''
-import 'macro_annotations.dart';
-@hashCode
-class A {
-  final int a;
-  final int b;
-}
-''');
-    checkElementText(library, r'''
 library
   imports
     macro_annotations.dart
@@ -21341,10 +21335,7 @@ library
             returnType: int
           synthetic get b @-1
             returnType: int
-          get hashCode @18
-            macro
-              id: 0
-              code: @override\nint get hashCode => a.hashCode ^ b.hashCode;
+          get hashCode @102
             metadata
               Annotation
                 atSign: @ @0
@@ -21354,6 +21345,16 @@ library
                   staticType: null
                   token: override @1
             returnType: int
+    macroGeneratedContent
+import 'macro_annotations.dart';
+@hashCode
+class A {
+  final int a;
+  final int b;
+
+@override
+int get hashCode => a.hashCode ^ b.hashCode;
+}
 ''');
   }
 
@@ -21409,19 +21410,30 @@ library
         accessors
           synthetic get b @-1
             returnType: int
-          get hashCode @18
-            macro
-              id: 0
-              code: @override\nint get hashCode => b.hashCode ^ a.hashCode;
+          get hashCode @126
             metadata
               Annotation
-                atSign: @ @0
+                atSign: @ @108
                 element: dart:core::@getter::override
                 name: SimpleIdentifier
                   staticElement: dart:core::@getter::override
                   staticType: null
-                  token: override @1
+                  token: override @109
             returnType: int
+    macroGeneratedContent
+import 'macro_annotations.dart';
+
+class A {
+  final int a;
+}
+
+@hashCode
+class B extends A {
+  final int b;
+
+@override
+int get hashCode => b.hashCode ^ a.hashCode;
+}
 ''');
   }
 
@@ -21467,19 +21479,26 @@ library
               requiredPositional __f @-1
                 type: int
             returnType: void
-          get f @8
-            macro
-              id: 0
-              code: int get f => _f;
+          get f @80
             returnType: int
-          set f @4
-            macro
-              id: 1
-              code: set f(int val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
+          set f @94
             parameters
-              requiredPositional val @10
+              requiredPositional val @100
                 type: int
             returnType: void
+    macroGeneratedContent
+import 'macro_annotations.dart';
+class A {
+  @observable
+  int _f = 0;
+
+int get f => _f;
+
+set f(int val) {
+  print('Setting f to ${val}');
+  _f = val;
+}
+}
 ''');
   }
 
@@ -21528,19 +21547,26 @@ library
               requiredPositional __f @-1
                 type: T
             returnType: void
-          get f @6
-            macro
-              id: 0
-              code: T get f => _f;
+          get f @75
             returnType: T
-          set f @4
-            macro
-              id: 1
-              code: set f(T val) {\n  print('Setting f to ${val}');\n  _f = val;\n}
+          set f @89
             parameters
-              requiredPositional val @8
+              requiredPositional val @93
                 type: T
             returnType: void
+    macroGeneratedContent
+import 'macro_annotations.dart';
+class A<T> {
+  @observable
+  T _f;
+
+T get f => _f;
+
+set f(T val) {
+  print('Setting f to ${val}');
+  _f = val;
+}
+}
 ''');
   }
 
@@ -21585,19 +21611,26 @@ library
           synthetic get b @-1
             returnType: int
         methods
-          toString @17
-            macro
-              id: 0
-              code: @override\nString toString() => 'A(a: $a, b: $b)';
+          toString @101
             metadata
               Annotation
-                atSign: @ @0
+                atSign: @ @84
                 element: dart:core::@getter::override
                 name: SimpleIdentifier
                   staticElement: dart:core::@getter::override
                   staticType: null
-                  token: override @1
+                  token: override @85
             returnType: String
+    macroGeneratedContent
+import 'macro_annotations.dart';
+@toString
+class A {
+  final int a;
+  final int b;
+
+@override
+String toString() => 'A(a: $a, b: $b)';
+}
 ''');
   }
 

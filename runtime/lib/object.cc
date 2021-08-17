@@ -88,7 +88,18 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 0, 1) {
     return Type::Double();
   } else if (instance.IsType() || instance.IsFunctionType()) {
     return Type::DartTypeType();
+  } else if (IsArrayClassId(instance.GetClassId())) {
+    const auto& cls = Class::Handle(
+        zone, thread->isolate_group()->object_store()->list_class());
+    const auto& type_arguments =
+        TypeArguments::Handle(zone, instance.GetTypeArguments());
+    const auto& type = Type::Handle(
+        zone,
+        Type::New(cls, type_arguments, Nullability::kNonNullable, Heap::kNew));
+    type.SetIsFinalized();
+    return type.Canonicalize(thread, nullptr);
   }
+
   return instance.GetType(Heap::kNew);
 }
 
@@ -101,14 +112,18 @@ static bool HaveSameRuntimeTypeHelper(Zone* zone,
   if (left_cid != right_cid) {
     if (IsIntegerClassId(left_cid)) {
       return IsIntegerClassId(right_cid);
-    }
-    if (IsStringClassId(left_cid)) {
+    } else if (IsStringClassId(left_cid)) {
       return IsStringClassId(right_cid);
-    }
-    if (IsTypeClassId(left_cid)) {
+    } else if (IsTypeClassId(left_cid)) {
       return IsTypeClassId(right_cid);
+    } else if (IsArrayClassId(left_cid)) {
+      if (!IsArrayClassId(right_cid)) {
+        return false;
+      }
+      // Still need to check type arguments.
+    } else {
+      return false;
     }
-    return false;
   }
 
   if (left_cid == kClosureCid) {

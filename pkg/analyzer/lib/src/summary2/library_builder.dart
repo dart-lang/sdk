@@ -231,13 +231,15 @@ class LibraryBuilder {
       TypesBuilder(linker).build(nodesToBuildType);
     }
 
-    var collector = macro.DeclarationCollector();
     for (var linkingUnit in units) {
+      var classDeclarationIndex = -1;
       for (var declaration in linkingUnit.node.declarations) {
         if (declaration is ast.ClassDeclarationImpl) {
+          classDeclarationIndex++;
           var members = declaration.members.toList();
           var classBuilder = macro.ClassDeclarationBuilderImpl(
-            collector,
+            linkingUnit,
+            classDeclarationIndex,
             declaration,
           );
           if (hasMacroAnnotation(declaration, 'autoConstructor')) {
@@ -283,7 +285,10 @@ class LibraryBuilder {
         }
       }
     }
-    collector.updateElements();
+
+    for (var linkingUnit in units) {
+      linkingUnit.macroGeneratedContent.finish();
+    }
   }
 
   void storeExportScope() {
@@ -413,6 +418,8 @@ class LinkingUnit {
   final Reference reference;
   final ast.CompilationUnitImpl node;
   final CompilationUnitElementImpl element;
+  late final macro.MacroGeneratedContent macroGeneratedContent =
+      macro.MacroGeneratedContent(this);
 
   LinkingUnit({
     required this.input,

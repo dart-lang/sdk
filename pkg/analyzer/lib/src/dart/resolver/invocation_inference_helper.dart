@@ -282,7 +282,7 @@ class InvocationInferenceHelper {
 
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
-      _resolver.flowAnalysis?.flow?.handleExit();
+      _resolver.flowAnalysis.flow?.handleExit();
     }
   }
 
