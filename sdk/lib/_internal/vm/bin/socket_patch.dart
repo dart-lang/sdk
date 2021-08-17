@@ -1078,7 +1078,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   SocketMessage? receiveMessage([int? len]) {
-    return nativeRecvMsg(len ?? 65535);
+    return nativeRecvMsg(len ?? nativeAvailable());
   }
 
   static int _fixOffset(int? offset) => offset ?? 0;
