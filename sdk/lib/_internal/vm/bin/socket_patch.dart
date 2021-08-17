@@ -2464,23 +2464,6 @@ UnknownControlMessage _makeUnknownControlMessage(
 }
 
 @pragma("vm:entry-point", "call")
-UnixCredentialsControlMessage _makeUnixCredentialsControlMessage(
-    int pid, int uid, int gid) {
-  return new UnixCredentialsControlMessage(pid, uid, gid);
-}
-
-@pragma("vm:entry-point", "call")
-bool _isUnixCredentialsControlMessage(SocketControlMessage controlMessage) {
-  return controlMessage is UnixCredentialsControlMessage;
-}
-
-@pragma("vm:entry-point", "call")
-UnixCredentialsControlMessage _asUnixCredentialsControlMessage(
-    SocketControlMessage controlMessage) {
-  return controlMessage as UnixCredentialsControlMessage;
-}
-
-@pragma("vm:entry-point", "call")
 UnixFileDescriptorsControlMessage _makeUnixFileDescriptorsControlMessage(
     List<int> fileDescriptors) {
   return new UnixFileDescriptorsControlMessage(fileDescriptors);

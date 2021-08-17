@@ -150,13 +150,7 @@ intptr_t SocketBase::RecvMsg(intptr_t fd,
     size_t data_length = cmsg->cmsg_len - (reinterpret_cast<uint8_t*>(data) -
                                            reinterpret_cast<uint8_t*>(cmsg));
     SocketControlMessage* control_message;
-    if (cmsg->cmsg_level == SOL_SOCKET &&
-        cmsg->cmsg_type == SCM_CREDENTIALS) {
-      struct ucred* credentials = reinterpret_cast<struct ucred*>(data);
-      control_message = new UnixCredentialsControlMessage(
-          credentials->pid, credentials->uid, credentials->gid);
-    } else if (cmsg->cmsg_level == SOL_SOCKET &&
-               cmsg->cmsg_type == SCM_RIGHTS) {
+    if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
       int* fds = reinterpret_cast<int*>(data);
       control_message =
           new UnixFileDescriptorsControlMessage(fds, data_length / 4);
@@ -248,24 +242,6 @@ intptr_t SocketBase::SendMsg(intptr_t fd,
       SocketControlMessage* control_message = control_messages->GetAt(i);
       size_t data_length;
       switch (control_message->type()) {
-        case SocketControlMessage::kUnixCredentials: {
-          UnixCredentialsControlMessage* unix_credentials_control_message =
-              static_cast<UnixCredentialsControlMessage*>(control_message);
-          data_length = sizeof(struct ucred);
-
-          cmsg->cmsg_level = SOL_SOCKET;
-          cmsg->cmsg_type = SCM_CREDENTIALS;
-          cmsg->cmsg_len = CMSG_LEN(data_length);
-          ASSERT(total_length + CMSG_SPACE(data_length) <
-                 kMaxSocketMessageControlLength);
-
-          struct ucred* credentials =
-              reinterpret_cast<struct ucred*>(CMSG_DATA(cmsg));
-          credentials->pid = unix_credentials_control_message->pid();
-          credentials->uid = unix_credentials_control_message->uid();
-          credentials->gid = unix_credentials_control_message->gid();
-          break;
-        }
         case SocketControlMessage::kUnixFileDescriptors: {
           UnixFileDescriptorsControlMessage*
               unix_file_descriptors_control_message =

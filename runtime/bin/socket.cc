@@ -709,8 +709,8 @@ void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
   if (Dart_IsError(core_lib)) {
     Dart_PropagateError(core_lib);
   }
-  Dart_Handle int_type =
-      Dart_GetNonNullableType(core_lib, DartUtils::NewString("int"), 0, nullptr);
+  Dart_Handle int_type = Dart_GetNonNullableType(
+      core_lib, DartUtils::NewString("int"), 0, nullptr);
   if (Dart_IsError(int_type)) {
     Dart_PropagateError(int_type);
   }
@@ -736,20 +736,6 @@ void FUNCTION_NAME(Socket_RecvMsg)(Dart_NativeArguments args) {
     Dart_Handle dart_control_message;
 
     switch (control_message->type()) {
-      case SocketControlMessage::kUnixCredentials: {
-        UnixCredentialsControlMessage* credentials_message =
-            static_cast<UnixCredentialsControlMessage*>(control_message);
-
-        const int kNumArgs = 3;
-        Dart_Handle dart_args[kNumArgs];
-        dart_args[0] = Dart_NewInteger(credentials_message->pid());
-        dart_args[1] = Dart_NewInteger(credentials_message->uid());
-        dart_args[2] = Dart_NewInteger(credentials_message->gid());
-        dart_control_message = Dart_Invoke(
-            io_lib, DartUtils::NewString("_makeUnixCredentialsControlMessage"),
-            kNumArgs, dart_args);
-        break;
-      }
       case SocketControlMessage::kUnixFileDescriptors: {
         UnixFileDescriptorsControlMessage* unix_fd_message =
             static_cast<UnixFileDescriptorsControlMessage*>(control_message);
@@ -902,26 +888,11 @@ void FUNCTION_NAME(Socket_SendMsg)(Dart_NativeArguments args) {
         Dart_ListGetAt(control_message_list_dart, i);
     SocketControlMessage* control_message;
 
-    Dart_Handle is_unix_credentials_control_message = Dart_Invoke(
-        io_lib, DartUtils::NewString("_isUnixCredentialsControlMessage"), 1,
-        &control_message_dart);
     Dart_Handle is_unix_file_descriptors_control_message = Dart_Invoke(
         io_lib, DartUtils::NewString("_isUnixFileDescriptorsControlMessage"), 1,
         &control_message_dart);
 
-    if (DartUtils::GetBooleanValue(is_unix_credentials_control_message)) {
-      Dart_Handle unix_credentials_message = Dart_Invoke(
-          io_lib, DartUtils::NewString("_asUnixCredentialsControlMessage"), 1,
-          &control_message_dart);
-      int pid = DartUtils::GetIntegerValue(
-          Dart_GetField(unix_credentials_message, DartUtils::NewString("pid")));
-      int uid = DartUtils::GetIntegerValue(
-          Dart_GetField(unix_credentials_message, DartUtils::NewString("uid")));
-      int gid = DartUtils::GetIntegerValue(
-          Dart_GetField(unix_credentials_message, DartUtils::NewString("gid")));
-      control_message = new UnixCredentialsControlMessage(pid, uid, gid);
-    } else if (DartUtils::GetBooleanValue(
-                   is_unix_file_descriptors_control_message)) {
+    if (DartUtils::GetBooleanValue(is_unix_file_descriptors_control_message)) {
       Dart_Handle unix_socket_control_message = Dart_Invoke(
           io_lib, DartUtils::NewString("_asUnixFileDescriptorsControlMessage"),
           1, &control_message_dart);

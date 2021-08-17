@@ -871,20 +871,6 @@ class UnknownControlMessage extends SocketControlMessage {
   UnknownControlMessage(this.level, this.type, this.data);
 }
 
-/// A socket control message containing the Unix credentials of the sending process.
-class UnixCredentialsControlMessage extends SocketControlMessage {
-  /// Process ID of the sending process.
-  final int pid;
-
-  /// User ID of the sending process.
-  final int uid;
-
-  /// Group ID of the sending process.
-  final int gid;
-
-  UnixCredentialsControlMessage(this.pid, this.uid, this.gid);
-}
-
 /// A socket control message containing file descriptors.
 class UnixFileDescriptorsControlMessage extends SocketControlMessage {
   // File descriptors being passed in this message.

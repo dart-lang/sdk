@@ -154,7 +154,6 @@ class SocketControlMessage {
  public:
   enum SocketControlMessageType {
     kUnknown,
-    kUnixCredentials,
     kUnixFileDescriptors
   };
 
@@ -196,26 +195,6 @@ class UnknownControlMessage : public SocketControlMessage {
   const size_t data_length_;
 
   DISALLOW_COPY_AND_ASSIGN(UnknownControlMessage);
-};
-
-class UnixCredentialsControlMessage : public SocketControlMessage {
- public:
-  explicit UnixCredentialsControlMessage(int pid, int uid, int gid)
-      : SocketControlMessage(kUnixCredentials),
-        pid_(pid),
-        uid_(uid),
-        gid_(gid) {}
-
-  int pid() const { return pid_; }
-  int uid() const { return uid_; }
-  int gid() const { return gid_; }
-
- private:
-  const int pid_;
-  const int uid_;
-  const int gid_;
-
-  DISALLOW_COPY_AND_ASSIGN(UnixCredentialsControlMessage);
 };
 
 class UnixFileDescriptorsControlMessage : public SocketControlMessage {
