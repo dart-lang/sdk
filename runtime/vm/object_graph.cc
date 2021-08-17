@@ -812,8 +812,6 @@ class Pass1Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         writer_(writer) {}
 
-  virtual bool trace_values_through_fields() const { return true; }
-
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
@@ -865,6 +863,13 @@ enum NonReferenceDataTags {
 
 static const intptr_t kMaxStringElements = 128;
 
+enum ExtraCids {
+  kRootExtraCid = 1,  // 1-origin
+  kIsolateExtraCid = 2,
+
+  kNumExtraCids = 2,
+};
+
 class Pass2Visitor : public ObjectVisitor,
                      public ObjectPointerVisitor,
                      public HandleVisitor {
@@ -876,13 +881,11 @@ class Pass2Visitor : public ObjectVisitor,
         isolate_group_(thread()->isolate_group()),
         writer_(writer) {}
 
-  virtual bool trace_values_through_fields() const { return true; }
-
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
     intptr_t cid = obj->GetClassId();
-    writer_->WriteUnsigned(cid);
+    writer_->WriteUnsigned(cid + kNumExtraCids);
     writer_->WriteUnsigned(discount_sizes_ ? 0 : obj->untag()->HeapSize());
 
     if (cid == kNullCid) {
@@ -891,6 +894,16 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kBoolData);
       writer_->WriteUnsigned(
           static_cast<uintptr_t>(static_cast<BoolPtr>(obj)->untag()->value_));
+    } else if (cid == kSentinelCid) {
+      if (obj == Object::sentinel().ptr()) {
+        writer_->WriteUnsigned(kNameData);
+        writer_->WriteUtf8("uninitialized");
+      } else if (obj == Object::transition_sentinel().ptr()) {
+        writer_->WriteUnsigned(kNameData);
+        writer_->WriteUtf8("initializing");
+      } else {
+        writer_->WriteUnsigned(kNoData);
+      }
     } else if (cid == kSmiCid) {
       UNREACHABLE();
     } else if (cid == kMintCid) {
@@ -1073,6 +1086,16 @@ class Pass2Visitor : public ObjectVisitor,
     }
   }
 
+  void CountExtraRefs(intptr_t count) {
+    ASSERT(!writing_);
+    counted_ += count;
+  }
+  void WriteExtraRef(intptr_t oid) {
+    ASSERT(writing_);
+    written_++;
+    writer_->WriteUnsigned(oid);
+  }
+
  private:
   IsolateGroup* isolate_group_;
   HeapSnapshotWriter* const writer_;
@@ -1105,6 +1128,36 @@ class Pass3Visitor : public ObjectVisitor {
   DISALLOW_COPY_AND_ASSIGN(Pass3Visitor);
 };
 
+class CollectStaticFieldNames : public ObjectVisitor {
+ public:
+  CollectStaticFieldNames(intptr_t field_table_size,
+                          const char** field_table_names)
+      : ObjectVisitor(),
+        field_table_size_(field_table_size),
+        field_table_names_(field_table_names),
+        field_(Field::Handle()) {}
+
+  void VisitObject(ObjectPtr obj) {
+    if (obj->IsField()) {
+      field_ ^= obj;
+      if (field_.is_static()) {
+        intptr_t id = field_.field_id();
+        if (id > 0) {
+          ASSERT(id < field_table_size_);
+          field_table_names_[id] = field_.UserVisibleNameCString();
+        }
+      }
+    }
+  }
+
+ private:
+  intptr_t field_table_size_;
+  const char** field_table_names_;
+  Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(CollectStaticFieldNames);
+};
+
 void HeapSnapshotWriter::Write() {
   HeapIterationScope iteration(thread());
 
@@ -1134,7 +1187,46 @@ void HeapSnapshotWriter::Write() {
     Array& fields = Array::Handle();
     Field& field = Field::Handle();
 
-    WriteUnsigned(class_count_);
+    intptr_t field_table_size = isolate()->field_table()->NumFieldIds();
+    const char** field_table_names =
+        thread()->zone()->Alloc<const char*>(field_table_size);
+    for (intptr_t i = 0; i < field_table_size; i++) {
+      field_table_names[i] = nullptr;
+    }
+    {
+      CollectStaticFieldNames visitor(field_table_size, field_table_names);
+      iteration.IterateObjects(&visitor);
+    }
+
+    WriteUnsigned(class_count_ + kNumExtraCids);
+    {
+      ASSERT(kRootExtraCid == 1);
+      WriteUnsigned(0);   // Flags
+      WriteUtf8("Root");  // Name
+      WriteUtf8("");      // Library name
+      WriteUtf8("");      // Library uri
+      WriteUtf8("");      // Reserved
+      WriteUnsigned(0);   // Field count
+    }
+    {
+      ASSERT(kIsolateExtraCid == 2);
+      WriteUnsigned(0);      // Flags
+      WriteUtf8("Isolate");  // Name
+      WriteUtf8("");         // Library name
+      WriteUtf8("");         // Library uri
+      WriteUtf8("");         // Reserved
+
+      WriteUnsigned(field_table_size);  // Field count
+      for (intptr_t i = 0; i < field_table_size; i++) {
+        intptr_t flags = 1;  // Strong.
+        WriteUnsigned(flags);
+        WriteUnsigned(i);  // Index.
+        const char* name = field_table_names[i];
+        WriteUtf8(name == nullptr ? "" : name);
+        WriteUtf8("");  // Reserved
+      }
+    }
+    ASSERT(kNumExtraCids == 2);
     for (intptr_t cid = 1; cid <= class_count_; cid++) {
       if (!class_table->HasValidClassAt(cid)) {
         WriteUnsigned(0);  // Flags
@@ -1227,13 +1319,22 @@ void HeapSnapshotWriter::Write() {
 
   SetupCountingPages();
 
+  intptr_t num_isolates = 0;
   {
     Pass1Visitor visitor(this);
 
-    // Root "object".
+    // Root "objects".
     ++object_count_;
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    isolate_group()->VisitSharedPointers(&visitor);
+    isolate_group()->ForEachIsolate(
+        [&](Isolate* isolate) {
+          ++object_count_;
+          isolate->VisitObjectPointers(&visitor,
+                                       ValidationPolicy::kDontValidateFrames);
+          ++num_isolates;
+        },
+        /*at_safepoint=*/true);
+    CountReferences(num_isolates);
 
     // Heap objects.
     iteration.IterateVMIsolateObjects(&visitor);
@@ -1249,16 +1350,35 @@ void HeapSnapshotWriter::Write() {
     WriteUnsigned(reference_count_);
     WriteUnsigned(object_count_);
 
-    // Root "object".
-    WriteUnsigned(0);  // cid
-    WriteUnsigned(0);  // shallowSize
-    WriteUnsigned(kNoData);
-    visitor.DoCount();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
-    visitor.DoWrite();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    // Root "objects".
+    {
+      WriteUnsigned(kRootExtraCid);
+      WriteUnsigned(0);  // shallowSize
+      WriteUnsigned(kNoData);
+      visitor.DoCount();
+      isolate_group()->VisitSharedPointers(&visitor);
+      visitor.CountExtraRefs(num_isolates);
+      visitor.DoWrite();
+      isolate_group()->VisitSharedPointers(&visitor);
+      for (intptr_t i = 0; i < num_isolates; i++) {
+        visitor.WriteExtraRef(i + 2);  // 0 = sentinel, 1 = root, 2+ = isolates
+      }
+    }
+    isolate_group()->ForEachIsolate(
+        [&](Isolate* isolate) {
+          WriteUnsigned(kIsolateExtraCid);
+          WriteUnsigned(0);  // shallowSize
+          WriteUnsigned(kNameData);
+          WriteUtf8(
+              OS::SCreate(thread()->zone(), "%" Pd64, isolate->main_port()));
+          visitor.DoCount();
+          isolate->VisitObjectPointers(&visitor,
+                                       ValidationPolicy::kDontValidateFrames);
+          visitor.DoWrite();
+          isolate->VisitObjectPointers(&visitor,
+                                       ValidationPolicy::kDontValidateFrames);
+        },
+        /*at_safepoint=*/true);
 
     // Heap objects.
     visitor.set_discount_sizes(true);
@@ -1277,6 +1397,8 @@ void HeapSnapshotWriter::Write() {
 
     // Handle root object.
     WriteUnsigned(0);
+    isolate_group()->ForEachIsolate([&](Isolate* isolate) { WriteUnsigned(0); },
+                                    /*at_safepoint=*/true);
 
     // Handle visit rest of the objects.
     iteration.IterateVMIsolateObjects(&visitor);

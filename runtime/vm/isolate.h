@@ -713,6 +713,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // running, and the visitor must not allocate.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
   void VisitObjectIdRingPointers(ObjectPointerVisitor* visitor);

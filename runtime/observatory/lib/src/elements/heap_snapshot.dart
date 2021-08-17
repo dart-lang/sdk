@@ -1197,7 +1197,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
 
   static Iterable _getChildrenSuccessor(nodeDynamic) {
     SnapshotObject node = nodeDynamic;
-    return node.successors.take(kMaxChildren).toList();
+    return node.successors.toList();
   }
 
   static Iterable _getChildrenPredecessor(nodeDynamic) {
