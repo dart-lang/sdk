@@ -1,9 +1,20 @@
-A<dynamic> Function(String) bar3() => A.foo;
-A<int> Function(int) bar2() => A.foo;
-A<num> Function(num) bar1() => A.foo;
+A<dynamic> Function(String) test11() => A.bar;
+A<dynamic> Function(String) test5() => A.foo;
+A<dynamic> Function(String) test6() => A.new;
+A<dynamic> Function(num) test12() => A.bar;
+A<dynamic> Function(num) test7() => A<num>.foo;
+A<dynamic> Function(num) test8() => A<num>.new;
+A<int> Function(int) test10() => A.bar;
+A<int> Function(int) test2() => A.foo;
+A<int> Function(int) test4() => A.new;
+A<num> Function(num) test1() => A.foo;
+A<num> Function(num) test3() => A.new;
+A<num> Function(num) test9() => A.bar;
 
 class A<X extends num> {
+  A(X x) {}
   A.foo(X x) {}
+  factory A.bar(X x) => new A<X>(x);
 }
 
 main() {}
