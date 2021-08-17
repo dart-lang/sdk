@@ -1,9 +1,11 @@
 class A {}
+
 class B<X> {
   B();
   B.foo();
   factory B.bar() => new B<X>();
 }
+
 typedef DA1 = A;
 typedef DA2<X extends num> = A;
 typedef DB1 = B<String>;

@@ -1,0 +1,8 @@
+T Function(T) create<T>() => id<T>;
+T id<T>(T t) => t;
+const explicitConstInstantiation = id<int>;
+const int Function(int) implicitConstInstantiation = id;
+expect(expected, actual) {}
+int Function(int) implicitInstantiation = id;
+main() {}
+var explicitInstantiation = id<int>;

@@ -1,0 +1,13 @@
+import 'main_lib.dart';
+
+dynamic F_fact = F.fact;
+dynamic F_named = F.named;
+dynamic F_new = F.new;
+dynamic F_redirect = F.redirect;
+dynamic H_fact = H.fact;
+dynamic H_named = H.named;
+dynamic H_new = H.new;
+dynamic H_redirect = H.redirect;
+expect(expected, actual) {}
+main() {}
+typedef H<X, Y> = A<Y>;
