@@ -486,8 +486,9 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
           isClassMember || isExtensionMember
               ? parent as DeclarationBuilder
               : null;
-      MetadataBuilder.buildAnnotations(
-          member, metadata, library, classOrExtensionBuilder, this, fileUri);
+      Scope parentScope = classOrExtensionBuilder?.scope ?? library.scope;
+      MetadataBuilder.buildAnnotations(member, metadata, library,
+          classOrExtensionBuilder, this, fileUri, parentScope);
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(
@@ -495,7 +496,8 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
               classOrExtensionBuilder,
               this,
               coreTypes,
-              delayedActionPerformers);
+              delayedActionPerformers,
+              computeTypeParameterScope(parentScope));
         }
       }
 

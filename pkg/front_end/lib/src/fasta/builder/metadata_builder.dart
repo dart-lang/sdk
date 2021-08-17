@@ -30,14 +30,8 @@ class MetadataBuilder {
       SourceLibraryBuilder library,
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? member,
-      Uri fileUri) {
+      Uri fileUri, Scope scope) {
     if (metadata == null) return;
-    Scope scope = parent is Library ||
-            parent is Class ||
-            parent is Extension ||
-            classOrExtensionBuilder == null
-        ? library.scope
-        : classOrExtensionBuilder.scope;
     BodyBuilder bodyBuilder = library.loader
         .createBodyBuilderForOutlineExpression(library, classOrExtensionBuilder,
             member ?? classOrExtensionBuilder ?? library, scope, fileUri);

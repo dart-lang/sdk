@@ -400,8 +400,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     _fieldEncoding.completeSignature(coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
-      MetadataBuilder.buildAnnotations(
-          annotatable, metadata, library, classBuilder, this, fileUri);
+      MetadataBuilder.buildAnnotations(annotatable, metadata, library,
+          classBuilder, this, fileUri, classBuilder?.scope ?? library.scope);
     }
 
     // For modular compilation we need to include initializers of all const

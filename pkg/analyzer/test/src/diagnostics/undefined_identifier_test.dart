@@ -43,61 +43,6 @@ void f(int value) {
 }
 
 mixin UndefinedIdentifierTestCases on PubPackageResolutionTest {
-  test_annotation_favors_scope_resolution_over_this_resolution_class() async {
-    // If an annotation on a class type parameter cannot be resolved using the
-    // normal scope resolution mechanism, it is resolved via implicit `this`.
-    // Note: this behavior doesn't match the spec so we may change it - see
-    // https://github.com/dart-lang/language/issues/1790
-    await assertNoErrorsInCode('''
-class C<@Annotation.function(foo) @Annotation.type(B) T> {
-  static void foo() {}
-  static void B() {}
-}
-class B {}
-class Annotation {
-  const Annotation.function(void Function() f);
-  const Annotation.type(Type t);
-}
-''');
-  }
-
-  test_annotation_favors_scope_resolution_over_this_resolution_extension() async {
-    // If an annotation on an extension type parameter cannot be resolved using
-    // the normal scope resolution mechanism, it is resolved via implicit
-    // `this`.  Note: this behavior doesn't match the spec so we may change it -
-    // see https://github.com/dart-lang/language/issues/1790
-    await assertNoErrorsInCode('''
-extension E<@Annotation.function(foo) @Annotation.type(B) T> on C {}
-class C {
-  static void foo() {}
-  static void B() {}
-}
-class B {}
-class Annotation {
-  const Annotation.function(void Function() f);
-  const Annotation.type(Type t);
-}
-''');
-  }
-
-  test_annotation_favors_scope_resolution_over_this_resolution_mixin() async {
-    // If an annotation on a mixin type parameter cannot be resolved using the
-    // normal scope resolution mechanism, it is resolved via implicit `this`.
-    // Note: this behavior doesn't match the spec so we may change it - see
-    // https://github.com/dart-lang/language/issues/1790
-    await assertNoErrorsInCode('''
-mixin M<@Annotation.function(foo) @Annotation.type(B) T> {
-  static void foo() {}
-  static void B() {}
-}
-class B {}
-class Annotation {
-  const Annotation.function(void Function() f);
-  const Annotation.type(Type t);
-}
-''');
-  }
-
   test_annotation_references_static_method_in_class() async {
     await assertErrorsInCode('''
 @Annotation(foo)
@@ -114,18 +59,19 @@ class Annotation {
   }
 
   test_annotation_references_static_method_in_class_from_type_parameter() async {
-    // It is allowed for an annotation of a class type parameter to refer to
-    // a method in a class (note: this doesn't match the spec but we currently
-    // test it to make sure we match CFE behavior - see
-    // https://github.com/dart-lang/language/issues/1790)
-    await assertNoErrorsInCode('''
+    // It not is allowed for an annotation of a class type parameter to refer to
+    // a method in a class.
+    await assertErrorsInCode('''
 class C<@Annotation(foo) T> {
   static void foo() {}
 }
 class Annotation {
   const Annotation(dynamic d);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 20, 3),
+    ]);
   }
 
   test_annotation_references_static_method_in_extension() async {
@@ -144,18 +90,19 @@ class Annotation {
   }
 
   test_annotation_references_static_method_in_extension_from_type_parameter() async {
-    // It is allowed for an annotation of a mixin type parameter to refer to
-    // a method in a class (note: this doesn't match the spec but we currently
-    // test it to make sure we match CFE behavior - see
-    // https://github.com/dart-lang/language/issues/1790)
-    await assertNoErrorsInCode('''
+    // It is not allowed for an annotation of an extension type parameter to
+    // refer to a method in a class.
+    await assertErrorsInCode('''
 extension E<@Annotation(foo) T> on T {
   static void foo() {}
 }
 class Annotation {
   const Annotation(dynamic d);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 24, 3),
+    ]);
   }
 
   test_annotation_references_static_method_in_mixin() async {
@@ -174,18 +121,80 @@ class Annotation {
   }
 
   test_annotation_references_static_method_in_mixin_from_type_parameter() async {
-    // It is allowed for an annotation of a mixin type parameter to refer to
-    // a method in a class (note: this doesn't match the spec but we currently
-    // test it to make sure we match CFE behavior - see
-    // https://github.com/dart-lang/language/issues/1790)
-    await assertNoErrorsInCode('''
+    // It is not allowed for an annotation of a mixin type parameter to refer to
+    // a method in a class.
+    await assertErrorsInCode('''
 mixin M<@Annotation(foo) T> {
   static void foo() {}
 }
 class Annotation {
   const Annotation(dynamic d);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 20, 3),
+    ]);
+  }
+
+  test_annotation_uses_scope_resolution_class() async {
+    // If an annotation on a class type parameter cannot be resolved using the
+    // normal scope resolution mechanism, it is not resolved via implicit
+    // `this`.
+    await assertErrorsInCode('''
+class C<@Annotation.function(foo) @Annotation.type(B) T> {
+  static void foo() {}
+  static void B() {}
+}
+class B {}
+class Annotation {
+  const Annotation.function(void Function() f);
+  const Annotation.type(Type t);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 29, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 29, 3),
+    ]);
+  }
+
+  test_annotation_uses_scope_resolution_extension() async {
+    // If an annotation on an extension type parameter cannot be resolved using
+    // the normal scope resolution mechanism, it is not resolved via implicit
+    // `this`.
+    await assertErrorsInCode('''
+extension E<@Annotation.function(foo) @Annotation.type(B) T> on C {}
+class C {
+  static void foo() {}
+  static void B() {}
+}
+class B {}
+class Annotation {
+  const Annotation.function(void Function() f);
+  const Annotation.type(Type t);
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 33, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
+    ]);
+  }
+
+  test_annotation_uses_scope_resolution_mixin() async {
+    // If an annotation on a mixin type parameter cannot be resolved using the
+    // normal scope resolution mechanism, it is not resolved via implicit
+    // `this`.
+    await assertErrorsInCode('''
+mixin M<@Annotation.function(foo) @Annotation.type(B) T> {
+  static void foo() {}
+  static void B() {}
+}
+class B {}
+class Annotation {
+  const Annotation.function(void Function() f);
+  const Annotation.type(Type t);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 29, 3),
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 29, 3),
+    ]);
   }
 
   @failingTest

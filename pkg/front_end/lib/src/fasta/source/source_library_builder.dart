@@ -2648,7 +2648,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   void buildOutlineExpressions() {
     MetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, fileUri);
+        library, metadata, this, null, null, fileUri, scope);
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.

@@ -278,11 +278,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
-        metadata, library, this, null, fileUri);
+        metadata, library, this, null, fileUri, library.scope);
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
-        typeParameters![i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
+        typeParameters![i].buildOutlineExpressions(library, this, null,
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 
