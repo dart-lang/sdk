@@ -49,8 +49,8 @@ StackDeobfuscationResult deobfuscateStack(
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.
-    SourceSpan span = mapping.sourceMap
-        .spanFor(frame.line - 1, column - 1, uri: frame.uri?.toString());
+    SourceSpan? span = mapping.sourceMap
+        .spanFor(frame.line! - 1, column - 1, uri: frame.uri.toString());
 
     // If we can't find a source span, ignore the frame. It's probably something
     // internal that the user doesn't care about.
@@ -59,11 +59,11 @@ StackDeobfuscationResult deobfuscateStack(
     List<Frame> mappedFrames = frameMap[frame] = [];
 
     SourceFile jsFile = provider.fileFor(frame.uri);
-    int offset = jsFile.getOffset(frame.line - 1, column - 1);
+    int offset = jsFile.getOffset(frame.line! - 1, column - 1);
     String nameOf(id) =>
         _normalizeName(id >= 0 ? mapping.sourceMap.names[id] : null);
 
-    Uri fileName = span.sourceUrl;
+    Uri? fileName = span.sourceUrl;
     int targetLine = span.start.line + 1;
     int targetColumn = span.start.column + 1;
 
@@ -73,18 +73,18 @@ StackDeobfuscationResult deobfuscateStack(
     // of the caller frame until we reach the actual function that dart2js
     // inlined all the code into.
     Map<int, List<FrameEntry>> frames = mapping.frames;
-    List<int> index = mapping.frameIndex;
+    List<int> index = mapping.frameIndex!;
     int key = binarySearch(index, (i) => i > offset) - 1;
     int depth = 0;
     outer:
     while (key >= 0) {
-      for (var frame in frames[index[key]].reversed) {
+      for (var frame in frames[index[key]]!.reversed) {
         if (frame.isEmpty) break outer;
         if (frame.isPush) {
           if (depth <= 0) {
-            mappedFrames.add(new Frame(fileName, targetLine, targetColumn,
+            mappedFrames.add(new Frame(fileName!, targetLine, targetColumn,
                 _normalizeName(frame.inlinedMethodName) + "(inlined)"));
-            fileName = Uri.parse(frame.callUri);
+            fileName = Uri.parse(frame.callUri!);
             targetLine = (frame.callLine ?? 0) + 1;
             targetColumn = (frame.callColumn ?? 0) + 1;
           } else {
@@ -100,7 +100,8 @@ StackDeobfuscationResult deobfuscateStack(
 
     var functionEntry = findEnclosingFunction(provider, frame.uri, offset);
     String methodName = nameOf(functionEntry?.sourceNameId ?? -1);
-    mappedFrames.add(new Frame(fileName, targetLine, targetColumn, methodName));
+    mappedFrames
+        .add(new Frame(fileName!, targetLine, targetColumn, methodName));
     deobfuscatedFrames.addAll(mappedFrames);
   }
   return new StackDeobfuscationResult(
@@ -109,6 +110,6 @@ StackDeobfuscationResult deobfuscateStack(
 
 /// Ensure we don't use spaces in method names. At this time, they are only
 /// introduced by `<anonymous function>`.
-_normalizeName(String methodName) =>
+_normalizeName(String? methodName) =>
     methodName?.replaceAll("<anonymous function>", "<anonymous>") ??
     '<unknown>';

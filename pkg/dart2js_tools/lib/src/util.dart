@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:source_maps/parser.dart';
 import 'package:source_span/source_span.dart';
 import 'dart2js_mapping.dart';
 
@@ -12,7 +13,7 @@ class CachingFileProvider implements FileProvider {
   final Map<Uri, String> _sources = {};
   final Map<Uri, SourceFile> _files = {};
   final Map<Uri, Dart2jsMapping> _mappings = {};
-  final Logger logger;
+  final Logger? logger;
 
   CachingFileProvider({this.logger});
 
@@ -23,7 +24,7 @@ class CachingFileProvider implements FileProvider {
       _files[uri] ??= new SourceFile.fromString(sourcesFor(uri));
 
   Dart2jsMapping mappingFor(Uri uri) =>
-      _mappings[uri] ??= parseMappingFor(uri, logger: logger);
+      _mappings[uri] ??= parseMappingFor(uri, logger: logger)!;
 }
 
 /// A provider that converts `http:` URLs to a `file:` URI assuming that all
@@ -57,3 +58,5 @@ class Logger {
 }
 
 var logger = Logger();
+
+SingleMapping parseSingleMapping(Map json) => parseJson(json) as SingleMapping;
