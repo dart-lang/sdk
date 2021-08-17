@@ -52,8 +52,9 @@ class HashCodeMacro implements ClassDeclarationMacro {
         .join(' ^ ');
     builder.addToClass(
       Declaration('''
-@override
-int get hashCode => $expression;'''),
+  @override
+  int get hashCode => $expression;
+'''),
     );
   }
 }
@@ -73,8 +74,9 @@ class ToStringMacro implements ClassDeclarationMacro {
     }).join(', ');
     builder.addToClass(
       Declaration('''
-@override
-String toString() => '${classElement.name}($fieldsCode)';'''),
+  @override
+  String toString() => '${classElement.name}($fieldsCode)';
+'''),
     );
   }
 }

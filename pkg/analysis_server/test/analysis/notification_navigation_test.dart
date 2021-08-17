@@ -805,7 +805,6 @@ void f(A a) {
     );
 
     var generatedContent = generatedFile.readAsStringSync();
-    // TODO(scheglov) Improve macro to be more formatted.
     expect(generatedContent, r'''
 import 'macro_annotations.dart';
 
@@ -813,12 +812,12 @@ class A {
   @observable
   int _foo = 0;
 
-int get foo => _foo;
+  int get foo => _foo;
 
-set foo(int val) {
-  print('Setting foo to ${val}');
-  _foo = val;
-}
+  set foo(int val) {
+    print('Setting foo to ${val}');
+    _foo = val;
+  }
 }
 
 void f(A a) {
