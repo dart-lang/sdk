@@ -1127,13 +1127,29 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinName =
           getLocalClassName(superclass) + '_' + getLocalClassName(mixinClass);
       var mixinId = _emitTemporaryId(mixinName + '\$');
-      // Collect all forwarding stubs from anonymous mixins classes. These will
-      // contain covariant parameter checks that need to be applied.
-      var forwardingMethodStubs = [
+      // Collect all forwarding stub setters from anonymous mixins classes.
+      // These will contain covariant parameter checks that need to be applied.
+      var savedClassProperties = _classProperties;
+      _classProperties =
+          ClassPropertyModel.build(_types, _extensionTypes, _virtualFields, m);
+
+      var forwardingSetters = {
         for (var procedure in m.procedures)
           if (procedure.isForwardingStub && !procedure.isAbstract)
-            _emitMethodDeclaration(procedure)
-      ];
+            procedure.name.text: procedure
+      };
+
+      var forwardingMethodStubs = <js_ast.Method>[];
+      for (var s in forwardingSetters.values) {
+        forwardingMethodStubs.add(_emitMethodDeclaration(s));
+        // If there are getters matching the setters somewhere above in the
+        // class hierarchy we must also generate a forwarding getter due to the
+        // representation used in the compiled JavaScript.
+        var getterWrapper = _emitSuperAccessorWrapper(s, {}, forwardingSetters);
+        if (getterWrapper != null) forwardingMethodStubs.add(getterWrapper);
+      }
+
+      _classProperties = savedClassProperties;
 
       // Bind the mixin class to a name to workaround a V8 bug with es6 classes
       // and anonymous function names.
