@@ -2628,14 +2628,16 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
 
+  // Visit objects in the field table.
+  // N.B.: The heap snapshot writer requires visiting the field table first, so
+  // that the pointer visitation order aligns with order of field name metadata.
+  if (!visitor->trace_values_through_fields()) {
+    field_table()->VisitObjectPointers(visitor);
+  }
+
   // Visit objects in the isolate object store.
   if (isolate_object_store() != nullptr) {
     isolate_object_store()->VisitObjectPointers(visitor);
-  }
-
-  // Visit objects in the field table.
-  if (!visitor->trace_values_through_fields()) {
-    field_table()->VisitObjectPointers(visitor);
   }
 
   visitor->clear_gc_root_type();
@@ -2810,13 +2812,18 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                        ValidationPolicy validate_frames) {
+  VisitSharedPointers(visitor);
+  for (Isolate* isolate : isolates_) {
+    isolate->VisitObjectPointers(visitor, validate_frames);
+  }
+  VisitStackPointers(visitor, validate_frames);
+}
+
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
   // if class table is shared, it's stored on isolate group
   if (class_table() != nullptr) {
     // Visit objects in the class table.
     class_table()->VisitObjectPointers(visitor);
-  }
-  for (Isolate* isolate : isolates_) {
-    isolate->VisitObjectPointers(visitor, validate_frames);
   }
   api_state()->VisitObjectPointersUnlocked(visitor);
   // Visit objects in the object store.
@@ -2825,7 +2832,6 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
   initial_field_table()->VisitObjectPointers(visitor);
-  VisitStackPointers(visitor, validate_frames);
 
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads

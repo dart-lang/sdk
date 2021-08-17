@@ -676,8 +676,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   String targetCPU = 'unknown';
   String embedder = 'unknown';
   int architectureBits = 0;
-  bool assertsEnabled = false;
-  bool typeChecksEnabled = false;
   int nativeZoneMemoryUsage = 0;
   int pid = 0;
   int mallocUsed = 0;
@@ -1050,8 +1048,6 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     maxRSS = map['_maxRSS'];
     currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';
-    assertsEnabled = map['_assertsEnabled'];
-    typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates([
       ...map['isolates'],
       ...map['systemIsolates'],
@@ -1550,7 +1546,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       // There are sometimes isolate refs in ServiceEvents.
       return vm.getFromMap(map);
     }
-    String mapId = map['id'];
+    String? mapId = map['id'];
     var obj = (mapId != null) ? _cache[mapId] : null;
     if (obj != null) {
       obj.updateFromServiceMap(map);
@@ -1559,7 +1555,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     // Build the object from the map directly.
     obj = ServiceObject._fromMap(this, map);
     if ((obj != null) && obj.canCache) {
-      _cache[mapId] = obj;
+      _cache[mapId!] = obj;
     }
     return obj;
   }
