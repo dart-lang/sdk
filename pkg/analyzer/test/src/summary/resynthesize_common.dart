@@ -21305,6 +21305,92 @@ class A {
 ''');
   }
 
+  test_macro_dataClass() async {
+    addLibrarySource('/macro_annotations.dart', r'''
+library analyzer.macro.annotations;
+const dataClass = 0;
+''');
+    var library = await checkLibrary(r'''
+import 'macro_annotations.dart';
+@dataClass
+class A {
+  final int a;
+  final int b;
+}
+''');
+    checkElementText(library, r'''
+library
+  imports
+    macro_annotations.dart
+  definingUnit
+    classes
+      class A @50
+        metadata
+          Annotation
+            atSign: @ @33
+            element: macro_annotations.dart::@getter::dataClass
+            name: SimpleIdentifier
+              staticElement: macro_annotations.dart::@getter::dataClass
+              staticType: null
+              token: dataClass @34
+        fields
+          final a @66
+            type: int
+          final b @81
+            type: int
+          synthetic hashCode @-1
+            type: int
+        constructors
+          @87
+            parameters
+              requiredName final this.a @104
+                type: int
+              requiredName final this.b @121
+                type: int
+        accessors
+          synthetic get a @-1
+            returnType: int
+          synthetic get b @-1
+            returnType: int
+          get hashCode @149
+            metadata
+              Annotation
+                atSign: @ @129
+                element: dart:core::@getter::override
+                name: SimpleIdentifier
+                  staticElement: dart:core::@getter::override
+                  staticType: null
+                  token: override @130
+            returnType: int
+        methods
+          toString @208
+            metadata
+              Annotation
+                atSign: @ @189
+                element: dart:core::@getter::override
+                name: SimpleIdentifier
+                  staticElement: dart:core::@getter::override
+                  staticType: null
+                  token: override @190
+            returnType: String
+    macroGeneratedContent
+import 'macro_annotations.dart';
+@dataClass
+class A {
+  final int a;
+  final int b;
+
+  A({required this.a, required this.b});
+
+  @override
+  int get hashCode => a.hashCode ^ b.hashCode;
+
+  @override
+  String toString() => 'A(a: $a, b: $b)';
+}
+''');
+  }
+
   test_macro_hashCode() async {
     addLibrarySource('/macro_annotations.dart', r'''
 library

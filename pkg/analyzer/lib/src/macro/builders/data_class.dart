@@ -39,6 +39,20 @@ class AutoConstructorMacro implements ClassDeclarationMacro {
   }
 }
 
+class DataClassMacro implements ClassDeclarationMacro {
+  const DataClassMacro();
+
+  @override
+  void visitClassDeclaration(
+    ast.ClassDeclaration declaration,
+    ClassDeclarationBuilder builder,
+  ) {
+    const AutoConstructorMacro().visitClassDeclaration(declaration, builder);
+    const HashCodeMacro().visitClassDeclaration(declaration, builder);
+    const ToStringMacro().visitClassDeclaration(declaration, builder);
+  }
+}
+
 class HashCodeMacro implements ClassDeclarationMacro {
   const HashCodeMacro();
 
