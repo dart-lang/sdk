@@ -18,7 +18,9 @@ import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
 
 import '../problems.dart' show unhandled;
+import '../scope.dart';
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -256,11 +258,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(
-        typedef, metadata, library, null, null, fileUri);
+        typedef, metadata, library, null, null, fileUri, library.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
-            library, null, null, coreTypes, delayedActionPerformers);
+            library,
+            null,
+            null,
+            coreTypes,
+            delayedActionPerformers,
+            computeTypeParameterScope(library.scope));
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
@@ -271,6 +278,19 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           target.function!,
           tearOff.function));
     });
+  }
+
+  Scope computeTypeParameterScope(Scope parent) {
+    if (typeVariables == null) return parent;
+    Map<String, Builder> local = <String, Builder>{};
+    for (TypeVariableBuilder variable in typeVariables!) {
+      local[variable.name] = variable;
+    }
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "type parameter",
+        isModifiable: false);
   }
 
   Map<Procedure, Member>? _tearOffDependencies;

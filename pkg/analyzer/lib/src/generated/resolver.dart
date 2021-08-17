@@ -2008,17 +2008,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   void visitTypeName(TypeName node) {}
 
   @override
-  void visitTypeParameter(TypeParameter node) {
-    var previousThisType = _thisType;
-    try {
-      _setupThisType();
-      super.visitTypeParameter(node);
-    } finally {
-      _thisType = previousThisType;
-    }
-  }
-
-  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
 

@@ -1,3 +1,26 @@
+## 2.15.0
+
+### Language
+
+- Annotations on type parameters of classes can no longer refer to class members
+  without a prefix.  For example, this used to be permitted:
+
+  ```dart
+  class C<@Annotation(foo) T> {
+    static void foo() {}
+  }
+  ```
+
+  Now, the reference must be qualified with the class name, i.e.:
+
+  ```dart
+  class C<@Annotation(C.foo) T> {
+    static void foo() {}
+  }
+  ```
+
+  This brings the implementation behavior in line with the spec.
+
 ## 2.14.0
 
 ### Language

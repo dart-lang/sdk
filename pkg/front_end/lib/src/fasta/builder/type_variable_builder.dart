@@ -13,6 +13,7 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
+import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
 
@@ -200,9 +201,9 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? memberBuilder,
       CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers) {
+      List<DelayedActionPerformer> delayedActionPerformers, Scope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,
-        classOrExtensionBuilder, memberBuilder, fileUri!);
+        classOrExtensionBuilder, memberBuilder, fileUri!, scope);
   }
 
   @override

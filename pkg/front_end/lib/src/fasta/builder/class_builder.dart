@@ -354,12 +354,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 
-    MetadataBuilder.buildAnnotations(
-        isPatch ? origin.cls : cls, metadata, library, this, null, fileUri);
+    MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
+        library, this, null, fileUri, library.scope);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
-        typeVariables![i].buildOutlineExpressions(
-            library, this, null, coreTypes, delayedActionPerformers);
+        typeVariables![i].buildOutlineExpressions(library, this, null,
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 
