@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 // Reports the sizes of binary artifacts shipped with the SDK.
 
 import 'dart:io';
@@ -66,13 +68,12 @@ Future<void> main() async {
 
   // Measure the (compressed) sdk size.
   final tempDir = Directory.systemTemp.createTempSync('dartdev');
-  final sdkArchive =
-      compress(File(Platform.resolvedExecutable).parent.parent, tempDir);
+  final sdkArchive = compress(Directory('$rootDir/dart-sdk'), tempDir);
   await reportArtifactSize(sdkArchive?.path ?? '', 'sdk');
   tempDir.deleteSync(recursive: true);
 }
 
-File? compress(Directory sourceDir, Directory targetDir) {
+File compress(Directory sourceDir, Directory targetDir) {
   final outFile = File('${targetDir.path}/sdk.zip');
 
   if (Platform.isMacOS || Platform.isLinux) {

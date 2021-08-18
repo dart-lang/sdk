@@ -66,13 +66,12 @@ Future<void> main() async {
 
   // Measure the (compressed) sdk size.
   final tempDir = Directory.systemTemp.createTempSync('dartdev');
-  final sdkArchive =
-      compress(File(Platform.resolvedExecutable).parent.parent, tempDir);
-  await reportArtifactSize(sdkArchive?.path, 'sdk');
+  final sdkArchive = compress(Directory('$rootDir/dart-sdk'), tempDir);
+  await reportArtifactSize(sdkArchive?.path ?? '', 'sdk');
   tempDir.deleteSync(recursive: true);
 }
 
-File compress(Directory sourceDir, Directory targetDir) {
+File? compress(Directory sourceDir, Directory targetDir) {
   final outFile = File('${targetDir.path}/sdk.zip');
 
   if (Platform.isMacOS || Platform.isLinux) {
