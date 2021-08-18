@@ -11,6 +11,7 @@ import 'package:kernel/src/node_creator.dart';
 
 main() {
   testBodyCloning();
+  testBodyCloningInContext();
   testMemberCloning();
 }
 
@@ -25,6 +26,31 @@ void testBodyCloning() {
     node.accept(coverageVisitor);
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     TreeNode clone = cloner.clone(node);
+    EquivalenceResult result = checkEquivalence(node, clone,
+        strategy: const NoFileOffsetEquivalenceStrategy());
+    if (!result.isEquivalent) {
+      print(result);
+    }
+    Expect.isTrue(result.isEquivalent, "$node");
+  }
+  Expect.isEmpty(
+      creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
+      'Nodes not covered in testing.');
+}
+
+void testBodyCloningInContext() {
+  NodeCreator creator =
+      new NodeCreator(initializers: [], members: [], nodes: inBodyNodeKinds);
+  List<Statement> nodes = creator.generateBodies();
+
+  CoverageVisitor coverageVisitor = new CoverageVisitor();
+  for (Statement node in nodes) {
+    node.accept(coverageVisitor);
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
+    // Set up context for [statement].
+    new Procedure(Name('foo'), ProcedureKind.Method, FunctionNode(node),
+        fileUri: dummyUri);
+    TreeNode clone = cloner.cloneInContext(node);
     EquivalenceResult result = checkEquivalence(node, clone);
     if (!result.isEquivalent) {
       print(result);
@@ -108,6 +134,17 @@ void testMemberCloning() {
   Expect.isEmpty(
       creator.createdKinds.toSet()..removeAll(coverageVisitor.visited),
       'Nodes not covered in testing.');
+}
+
+class NoFileOffsetEquivalenceStrategy extends EquivalenceStrategy {
+  const NoFileOffsetEquivalenceStrategy();
+
+  @override
+  bool checkTreeNode_fileOffset(
+      EquivalenceVisitor visitor, TreeNode node, TreeNode other) {
+    if (other.fileOffset == TreeNode.noOffset) return true;
+    return super.checkTreeNode_fileOffset(visitor, node, other);
+  }
 }
 
 class MemberEquivalenceStrategy extends EquivalenceStrategy {

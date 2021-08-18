@@ -4529,15 +4529,30 @@ class EquivalenceStrategy {
         node.fields, other.fields, visitor.checkNodes, 'fields');
   }
 
-  bool checkLibrary_reference(
-      EquivalenceVisitor visitor, Library node, Library other) {
+  bool checkNamedNode_reference(
+      EquivalenceVisitor visitor, NamedNode node, NamedNode other) {
     return visitor.checkReferences(
         node.reference, other.reference, 'reference');
   }
 
+  bool checkLibrary_reference(
+      EquivalenceVisitor visitor, Library node, Library other) {
+    return checkNamedNode_reference(visitor, node, other);
+  }
+
+  bool checkTreeNode_fileOffset(
+      EquivalenceVisitor visitor, TreeNode node, TreeNode other) {
+    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+  }
+
+  bool checkNamedNode_fileOffset(
+      EquivalenceVisitor visitor, NamedNode node, NamedNode other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
   bool checkLibrary_fileOffset(
       EquivalenceVisitor visitor, Library node, Library other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkNamedNode_fileOffset(visitor, node, other);
   }
 
   bool checkTypedef_fileUri(
@@ -4593,13 +4608,12 @@ class EquivalenceStrategy {
 
   bool checkTypedef_reference(
       EquivalenceVisitor visitor, Typedef node, Typedef other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkNamedNode_reference(visitor, node, other);
   }
 
   bool checkTypedef_fileOffset(
       EquivalenceVisitor visitor, Typedef node, Typedef other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkNamedNode_fileOffset(visitor, node, other);
   }
 
   bool checkClass_startFileOffset(
@@ -4680,13 +4694,12 @@ class EquivalenceStrategy {
 
   bool checkClass_reference(
       EquivalenceVisitor visitor, Class node, Class other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkNamedNode_reference(visitor, node, other);
   }
 
   bool checkClass_fileOffset(
       EquivalenceVisitor visitor, Class node, Class other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkNamedNode_fileOffset(visitor, node, other);
   }
 
   bool checkExtension_name(
@@ -4753,13 +4766,12 @@ class EquivalenceStrategy {
 
   bool checkExtension_reference(
       EquivalenceVisitor visitor, Extension node, Extension other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkNamedNode_reference(visitor, node, other);
   }
 
   bool checkExtension_fileOffset(
       EquivalenceVisitor visitor, Extension node, Extension other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkNamedNode_fileOffset(visitor, node, other);
   }
 
   bool checkField_type(EquivalenceVisitor visitor, Field node, Field other) {
@@ -4782,30 +4794,54 @@ class EquivalenceStrategy {
         node.setterReference, other.setterReference, 'setterReference');
   }
 
-  bool checkField_fileEndOffset(
-      EquivalenceVisitor visitor, Field node, Field other) {
+  bool checkMember_fileEndOffset(
+      EquivalenceVisitor visitor, Member node, Member other) {
     return visitor.checkValues(
         node.fileEndOffset, other.fileEndOffset, 'fileEndOffset');
   }
 
-  bool checkField_annotations(
+  bool checkField_fileEndOffset(
       EquivalenceVisitor visitor, Field node, Field other) {
+    return checkMember_fileEndOffset(visitor, node, other);
+  }
+
+  bool checkMember_annotations(
+      EquivalenceVisitor visitor, Member node, Member other) {
     return visitor.checkLists(
         node.annotations, other.annotations, visitor.checkNodes, 'annotations');
   }
 
-  bool checkField_name(EquivalenceVisitor visitor, Field node, Field other) {
+  bool checkField_annotations(
+      EquivalenceVisitor visitor, Field node, Field other) {
+    return checkMember_annotations(visitor, node, other);
+  }
+
+  bool checkMember_name(EquivalenceVisitor visitor, Member node, Member other) {
     return visitor.checkNodes(node.name, other.name, 'name');
   }
 
-  bool checkField_fileUri(EquivalenceVisitor visitor, Field node, Field other) {
+  bool checkField_name(EquivalenceVisitor visitor, Field node, Field other) {
+    return checkMember_name(visitor, node, other);
+  }
+
+  bool checkMember_fileUri(
+      EquivalenceVisitor visitor, Member node, Member other) {
     return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+  }
+
+  bool checkField_fileUri(EquivalenceVisitor visitor, Field node, Field other) {
+    return checkMember_fileUri(visitor, node, other);
+  }
+
+  bool checkMember_transformerFlags(
+      EquivalenceVisitor visitor, Member node, Member other) {
+    return visitor.checkValues(
+        node.transformerFlags, other.transformerFlags, 'transformerFlags');
   }
 
   bool checkField_transformerFlags(
       EquivalenceVisitor visitor, Field node, Field other) {
-    return visitor.checkValues(
-        node.transformerFlags, other.transformerFlags, 'transformerFlags');
+    return checkMember_transformerFlags(visitor, node, other);
   }
 
   bool checkField_getterReference(
@@ -4814,9 +4850,14 @@ class EquivalenceStrategy {
         node.getterReference, other.getterReference, 'getterReference');
   }
 
+  bool checkMember_fileOffset(
+      EquivalenceVisitor visitor, Member node, Member other) {
+    return checkNamedNode_fileOffset(visitor, node, other);
+  }
+
   bool checkField_fileOffset(
       EquivalenceVisitor visitor, Field node, Field other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkMember_fileOffset(visitor, node, other);
   }
 
   bool checkConstructor_startFileOffset(
@@ -4843,41 +4884,42 @@ class EquivalenceStrategy {
 
   bool checkConstructor_fileEndOffset(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkValues(
-        node.fileEndOffset, other.fileEndOffset, 'fileEndOffset');
+    return checkMember_fileEndOffset(visitor, node, other);
   }
 
   bool checkConstructor_annotations(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkLists(
-        node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+    return checkMember_annotations(visitor, node, other);
   }
 
   bool checkConstructor_name(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkNodes(node.name, other.name, 'name');
+    return checkMember_name(visitor, node, other);
   }
 
   bool checkConstructor_fileUri(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+    return checkMember_fileUri(visitor, node, other);
   }
 
   bool checkConstructor_transformerFlags(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkValues(
-        node.transformerFlags, other.transformerFlags, 'transformerFlags');
+    return checkMember_transformerFlags(visitor, node, other);
+  }
+
+  bool checkMember_reference(
+      EquivalenceVisitor visitor, Member node, Member other) {
+    return checkNamedNode_reference(visitor, node, other);
   }
 
   bool checkConstructor_reference(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkMember_reference(visitor, node, other);
   }
 
   bool checkConstructor_fileOffset(
       EquivalenceVisitor visitor, Constructor node, Constructor other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkMember_fileOffset(visitor, node, other);
   }
 
   bool checkRedirectingFactory_flags(EquivalenceVisitor visitor,
@@ -4904,41 +4946,37 @@ class EquivalenceStrategy {
 
   bool checkRedirectingFactory_fileEndOffset(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkValues(
-        node.fileEndOffset, other.fileEndOffset, 'fileEndOffset');
+    return checkMember_fileEndOffset(visitor, node, other);
   }
 
   bool checkRedirectingFactory_annotations(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkLists(
-        node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+    return checkMember_annotations(visitor, node, other);
   }
 
   bool checkRedirectingFactory_name(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkNodes(node.name, other.name, 'name');
+    return checkMember_name(visitor, node, other);
   }
 
   bool checkRedirectingFactory_fileUri(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+    return checkMember_fileUri(visitor, node, other);
   }
 
   bool checkRedirectingFactory_transformerFlags(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkValues(
-        node.transformerFlags, other.transformerFlags, 'transformerFlags');
+    return checkMember_transformerFlags(visitor, node, other);
   }
 
   bool checkRedirectingFactory_reference(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkMember_reference(visitor, node, other);
   }
 
   bool checkRedirectingFactory_fileOffset(EquivalenceVisitor visitor,
       RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkMember_fileOffset(visitor, node, other);
   }
 
   bool checkProcedure_startFileOffset(
@@ -4975,41 +5013,37 @@ class EquivalenceStrategy {
 
   bool checkProcedure_fileEndOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkValues(
-        node.fileEndOffset, other.fileEndOffset, 'fileEndOffset');
+    return checkMember_fileEndOffset(visitor, node, other);
   }
 
   bool checkProcedure_annotations(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkLists(
-        node.annotations, other.annotations, visitor.checkNodes, 'annotations');
+    return checkMember_annotations(visitor, node, other);
   }
 
   bool checkProcedure_name(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkNodes(node.name, other.name, 'name');
+    return checkMember_name(visitor, node, other);
   }
 
   bool checkProcedure_fileUri(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+    return checkMember_fileUri(visitor, node, other);
   }
 
   bool checkProcedure_transformerFlags(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkValues(
-        node.transformerFlags, other.transformerFlags, 'transformerFlags');
+    return checkMember_transformerFlags(visitor, node, other);
   }
 
   bool checkProcedure_reference(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkReferences(
-        node.reference, other.reference, 'reference');
+    return checkMember_reference(visitor, node, other);
   }
 
   bool checkProcedure_fileOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkMember_fileOffset(visitor, node, other);
   }
 
   bool checkLibraryDependency_flags(EquivalenceVisitor visitor,
@@ -5044,7 +5078,7 @@ class EquivalenceStrategy {
 
   bool checkLibraryDependency_fileOffset(EquivalenceVisitor visitor,
       LibraryDependency node, LibraryDependency other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkLibraryPart_annotations(
@@ -5060,7 +5094,7 @@ class EquivalenceStrategy {
 
   bool checkLibraryPart_fileOffset(
       EquivalenceVisitor visitor, LibraryPart node, LibraryPart other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkCombinator_isShow(
@@ -5076,18 +5110,28 @@ class EquivalenceStrategy {
 
   bool checkCombinator_fileOffset(
       EquivalenceVisitor visitor, Combinator node, Combinator other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
-  bool checkInvalidInitializer_isSynthetic(EquivalenceVisitor visitor,
-      InvalidInitializer node, InvalidInitializer other) {
+  bool checkInitializer_isSynthetic(
+      EquivalenceVisitor visitor, Initializer node, Initializer other) {
     return visitor.checkValues(
         node.isSynthetic, other.isSynthetic, 'isSynthetic');
   }
 
+  bool checkInvalidInitializer_isSynthetic(EquivalenceVisitor visitor,
+      InvalidInitializer node, InvalidInitializer other) {
+    return checkInitializer_isSynthetic(visitor, node, other);
+  }
+
+  bool checkInitializer_fileOffset(
+      EquivalenceVisitor visitor, Initializer node, Initializer other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
   bool checkInvalidInitializer_fileOffset(EquivalenceVisitor visitor,
       InvalidInitializer node, InvalidInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkFieldInitializer_fieldReference(EquivalenceVisitor visitor,
@@ -5103,13 +5147,12 @@ class EquivalenceStrategy {
 
   bool checkFieldInitializer_isSynthetic(EquivalenceVisitor visitor,
       FieldInitializer node, FieldInitializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkFieldInitializer_fileOffset(EquivalenceVisitor visitor,
       FieldInitializer node, FieldInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkSuperInitializer_targetReference(EquivalenceVisitor visitor,
@@ -5125,13 +5168,12 @@ class EquivalenceStrategy {
 
   bool checkSuperInitializer_isSynthetic(EquivalenceVisitor visitor,
       SuperInitializer node, SuperInitializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkSuperInitializer_fileOffset(EquivalenceVisitor visitor,
       SuperInitializer node, SuperInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkRedirectingInitializer_targetReference(EquivalenceVisitor visitor,
@@ -5147,13 +5189,12 @@ class EquivalenceStrategy {
 
   bool checkRedirectingInitializer_isSynthetic(EquivalenceVisitor visitor,
       RedirectingInitializer node, RedirectingInitializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkRedirectingInitializer_fileOffset(EquivalenceVisitor visitor,
       RedirectingInitializer node, RedirectingInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkLocalInitializer_variable(EquivalenceVisitor visitor,
@@ -5163,13 +5204,12 @@ class EquivalenceStrategy {
 
   bool checkLocalInitializer_isSynthetic(EquivalenceVisitor visitor,
       LocalInitializer node, LocalInitializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkLocalInitializer_fileOffset(EquivalenceVisitor visitor,
       LocalInitializer node, LocalInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkAssertInitializer_statement(EquivalenceVisitor visitor,
@@ -5179,13 +5219,12 @@ class EquivalenceStrategy {
 
   bool checkAssertInitializer_isSynthetic(EquivalenceVisitor visitor,
       AssertInitializer node, AssertInitializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
+    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkAssertInitializer_fileOffset(EquivalenceVisitor visitor,
       AssertInitializer node, AssertInitializer other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInitializer_fileOffset(visitor, node, other);
   }
 
   bool checkFunctionNode_fileEndOffset(
@@ -5254,7 +5293,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionNode_fileOffset(
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkInvalidExpression_message(EquivalenceVisitor visitor,
@@ -5267,9 +5306,14 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
   }
 
+  bool checkExpression_fileOffset(
+      EquivalenceVisitor visitor, Expression node, Expression other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
   bool checkInvalidExpression_fileOffset(EquivalenceVisitor visitor,
       InvalidExpression node, InvalidExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkVariableGet_variable(
@@ -5285,7 +5329,7 @@ class EquivalenceStrategy {
 
   bool checkVariableGet_fileOffset(
       EquivalenceVisitor visitor, VariableGet node, VariableGet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkVariableSet_variable(
@@ -5300,7 +5344,7 @@ class EquivalenceStrategy {
 
   bool checkVariableSet_fileOffset(
       EquivalenceVisitor visitor, VariableSet node, VariableSet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkDynamicGet_kind(
@@ -5320,7 +5364,7 @@ class EquivalenceStrategy {
 
   bool checkDynamicGet_fileOffset(
       EquivalenceVisitor visitor, DynamicGet node, DynamicGet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceGet_kind(
@@ -5351,7 +5395,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceGet_fileOffset(
       EquivalenceVisitor visitor, InstanceGet node, InstanceGet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkFunctionTearOff_receiver(
@@ -5361,7 +5405,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionTearOff_fileOffset(
       EquivalenceVisitor visitor, FunctionTearOff node, FunctionTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceTearOff_kind(
@@ -5392,7 +5436,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceTearOff_fileOffset(
       EquivalenceVisitor visitor, InstanceTearOff node, InstanceTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkDynamicSet_kind(
@@ -5417,7 +5461,7 @@ class EquivalenceStrategy {
 
   bool checkDynamicSet_fileOffset(
       EquivalenceVisitor visitor, DynamicSet node, DynamicSet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceSet_kind(
@@ -5448,7 +5492,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceSet_fileOffset(
       EquivalenceVisitor visitor, InstanceSet node, InstanceSet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkSuperPropertyGet_name(EquivalenceVisitor visitor,
@@ -5466,7 +5510,7 @@ class EquivalenceStrategy {
 
   bool checkSuperPropertyGet_fileOffset(EquivalenceVisitor visitor,
       SuperPropertyGet node, SuperPropertyGet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkSuperPropertySet_name(EquivalenceVisitor visitor,
@@ -5489,7 +5533,7 @@ class EquivalenceStrategy {
 
   bool checkSuperPropertySet_fileOffset(EquivalenceVisitor visitor,
       SuperPropertySet node, SuperPropertySet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStaticGet_targetReference(
@@ -5500,7 +5544,7 @@ class EquivalenceStrategy {
 
   bool checkStaticGet_fileOffset(
       EquivalenceVisitor visitor, StaticGet node, StaticGet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStaticTearOff_targetReference(
@@ -5511,7 +5555,7 @@ class EquivalenceStrategy {
 
   bool checkStaticTearOff_fileOffset(
       EquivalenceVisitor visitor, StaticTearOff node, StaticTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStaticSet_targetReference(
@@ -5527,7 +5571,7 @@ class EquivalenceStrategy {
 
   bool checkStaticSet_fileOffset(
       EquivalenceVisitor visitor, StaticSet node, StaticSet other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkDynamicInvocation_kind(EquivalenceVisitor visitor,
@@ -5550,9 +5594,19 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.arguments, other.arguments, 'arguments');
   }
 
+  bool checkInvocationExpression_fileOffset(EquivalenceVisitor visitor,
+      InvocationExpression node, InvocationExpression other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
+  bool checkInstanceInvocationExpression_fileOffset(EquivalenceVisitor visitor,
+      InstanceInvocationExpression node, InstanceInvocationExpression other) {
+    return checkInvocationExpression_fileOffset(visitor, node, other);
+  }
+
   bool checkDynamicInvocation_fileOffset(EquivalenceVisitor visitor,
       DynamicInvocation node, DynamicInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInstanceInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceInvocation_kind(EquivalenceVisitor visitor,
@@ -5596,7 +5650,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceInvocation_fileOffset(EquivalenceVisitor visitor,
       InstanceInvocation node, InstanceInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInstanceInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceGetterInvocation_kind(EquivalenceVisitor visitor,
@@ -5640,7 +5694,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceGetterInvocation_fileOffset(EquivalenceVisitor visitor,
       InstanceGetterInvocation node, InstanceGetterInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInstanceInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkFunctionInvocation_kind(EquivalenceVisitor visitor,
@@ -5666,7 +5720,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionInvocation_fileOffset(EquivalenceVisitor visitor,
       FunctionInvocation node, FunctionInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInstanceInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkLocalFunctionInvocation_variable(EquivalenceVisitor visitor,
@@ -5687,7 +5741,7 @@ class EquivalenceStrategy {
 
   bool checkLocalFunctionInvocation_fileOffset(EquivalenceVisitor visitor,
       LocalFunctionInvocation node, LocalFunctionInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkSuperMethodInvocation_name(EquivalenceVisitor visitor,
@@ -5710,7 +5764,7 @@ class EquivalenceStrategy {
 
   bool checkSuperMethodInvocation_fileOffset(EquivalenceVisitor visitor,
       SuperMethodInvocation node, SuperMethodInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStaticInvocation_targetReference(EquivalenceVisitor visitor,
@@ -5731,7 +5785,7 @@ class EquivalenceStrategy {
 
   bool checkStaticInvocation_fileOffset(EquivalenceVisitor visitor,
       StaticInvocation node, StaticInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkConstructorInvocation_targetReference(EquivalenceVisitor visitor,
@@ -5752,7 +5806,7 @@ class EquivalenceStrategy {
 
   bool checkConstructorInvocation_fileOffset(EquivalenceVisitor visitor,
       ConstructorInvocation node, ConstructorInvocation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkInvocationExpression_fileOffset(visitor, node, other);
   }
 
   bool checkEqualsNull_expression(
@@ -5762,7 +5816,7 @@ class EquivalenceStrategy {
 
   bool checkEqualsNull_fileOffset(
       EquivalenceVisitor visitor, EqualsNull node, EqualsNull other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkEqualsCall_left(
@@ -5789,7 +5843,7 @@ class EquivalenceStrategy {
 
   bool checkEqualsCall_fileOffset(
       EquivalenceVisitor visitor, EqualsCall node, EqualsCall other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstantiation_expression(
@@ -5805,7 +5859,7 @@ class EquivalenceStrategy {
 
   bool checkInstantiation_fileOffset(
       EquivalenceVisitor visitor, Instantiation node, Instantiation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkNot_operand(EquivalenceVisitor visitor, Not node, Not other) {
@@ -5813,7 +5867,7 @@ class EquivalenceStrategy {
   }
 
   bool checkNot_fileOffset(EquivalenceVisitor visitor, Not node, Not other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkLogicalExpression_left(EquivalenceVisitor visitor,
@@ -5834,7 +5888,7 @@ class EquivalenceStrategy {
 
   bool checkLogicalExpression_fileOffset(EquivalenceVisitor visitor,
       LogicalExpression node, LogicalExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkConditionalExpression_condition(EquivalenceVisitor visitor,
@@ -5859,7 +5913,7 @@ class EquivalenceStrategy {
 
   bool checkConditionalExpression_fileOffset(EquivalenceVisitor visitor,
       ConditionalExpression node, ConditionalExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStringConcatenation_expressions(EquivalenceVisitor visitor,
@@ -5870,7 +5924,7 @@ class EquivalenceStrategy {
 
   bool checkStringConcatenation_fileOffset(EquivalenceVisitor visitor,
       StringConcatenation node, StringConcatenation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkListConcatenation_typeArgument(EquivalenceVisitor visitor,
@@ -5887,7 +5941,7 @@ class EquivalenceStrategy {
 
   bool checkListConcatenation_fileOffset(EquivalenceVisitor visitor,
       ListConcatenation node, ListConcatenation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkSetConcatenation_typeArgument(EquivalenceVisitor visitor,
@@ -5904,7 +5958,7 @@ class EquivalenceStrategy {
 
   bool checkSetConcatenation_fileOffset(EquivalenceVisitor visitor,
       SetConcatenation node, SetConcatenation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkMapConcatenation_keyType(EquivalenceVisitor visitor,
@@ -5925,7 +5979,7 @@ class EquivalenceStrategy {
 
   bool checkMapConcatenation_fileOffset(EquivalenceVisitor visitor,
       MapConcatenation node, MapConcatenation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkInstanceCreation_classReference(EquivalenceVisitor visitor,
@@ -5965,7 +6019,7 @@ class EquivalenceStrategy {
 
   bool checkInstanceCreation_fileOffset(EquivalenceVisitor visitor,
       InstanceCreation node, InstanceCreation other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkFileUriExpression_fileUri(EquivalenceVisitor visitor,
@@ -5980,7 +6034,7 @@ class EquivalenceStrategy {
 
   bool checkFileUriExpression_fileOffset(EquivalenceVisitor visitor,
       FileUriExpression node, FileUriExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkIsExpression_flags(
@@ -6000,7 +6054,7 @@ class EquivalenceStrategy {
 
   bool checkIsExpression_fileOffset(
       EquivalenceVisitor visitor, IsExpression node, IsExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkAsExpression_flags(
@@ -6020,7 +6074,7 @@ class EquivalenceStrategy {
 
   bool checkAsExpression_fileOffset(
       EquivalenceVisitor visitor, AsExpression node, AsExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkNullCheck_operand(
@@ -6030,7 +6084,7 @@ class EquivalenceStrategy {
 
   bool checkNullCheck_fileOffset(
       EquivalenceVisitor visitor, NullCheck node, NullCheck other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkStringLiteral_value(
@@ -6038,9 +6092,14 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.value, other.value, 'value');
   }
 
+  bool checkBasicLiteral_fileOffset(
+      EquivalenceVisitor visitor, BasicLiteral node, BasicLiteral other) {
+    return checkExpression_fileOffset(visitor, node, other);
+  }
+
   bool checkStringLiteral_fileOffset(
       EquivalenceVisitor visitor, StringLiteral node, StringLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkBasicLiteral_fileOffset(visitor, node, other);
   }
 
   bool checkIntLiteral_value(
@@ -6050,7 +6109,7 @@ class EquivalenceStrategy {
 
   bool checkIntLiteral_fileOffset(
       EquivalenceVisitor visitor, IntLiteral node, IntLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkBasicLiteral_fileOffset(visitor, node, other);
   }
 
   bool checkDoubleLiteral_value(
@@ -6060,7 +6119,7 @@ class EquivalenceStrategy {
 
   bool checkDoubleLiteral_fileOffset(
       EquivalenceVisitor visitor, DoubleLiteral node, DoubleLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkBasicLiteral_fileOffset(visitor, node, other);
   }
 
   bool checkBoolLiteral_value(
@@ -6070,12 +6129,12 @@ class EquivalenceStrategy {
 
   bool checkBoolLiteral_fileOffset(
       EquivalenceVisitor visitor, BoolLiteral node, BoolLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkBasicLiteral_fileOffset(visitor, node, other);
   }
 
   bool checkNullLiteral_fileOffset(
       EquivalenceVisitor visitor, NullLiteral node, NullLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkBasicLiteral_fileOffset(visitor, node, other);
   }
 
   bool checkSymbolLiteral_value(
@@ -6085,7 +6144,7 @@ class EquivalenceStrategy {
 
   bool checkSymbolLiteral_fileOffset(
       EquivalenceVisitor visitor, SymbolLiteral node, SymbolLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkTypeLiteral_type(
@@ -6095,17 +6154,17 @@ class EquivalenceStrategy {
 
   bool checkTypeLiteral_fileOffset(
       EquivalenceVisitor visitor, TypeLiteral node, TypeLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkThisExpression_fileOffset(
       EquivalenceVisitor visitor, ThisExpression node, ThisExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkRethrow_fileOffset(
       EquivalenceVisitor visitor, Rethrow node, Rethrow other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkThrow_expression(
@@ -6115,7 +6174,7 @@ class EquivalenceStrategy {
 
   bool checkThrow_fileOffset(
       EquivalenceVisitor visitor, Throw node, Throw other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkListLiteral_isConst(
@@ -6137,7 +6196,7 @@ class EquivalenceStrategy {
 
   bool checkListLiteral_fileOffset(
       EquivalenceVisitor visitor, ListLiteral node, ListLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkSetLiteral_isConst(
@@ -6159,7 +6218,7 @@ class EquivalenceStrategy {
 
   bool checkSetLiteral_fileOffset(
       EquivalenceVisitor visitor, SetLiteral node, SetLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkMapLiteral_isConst(
@@ -6185,7 +6244,7 @@ class EquivalenceStrategy {
 
   bool checkMapLiteral_fileOffset(
       EquivalenceVisitor visitor, MapLiteral node, MapLiteral other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkAwaitExpression_operand(
@@ -6195,7 +6254,7 @@ class EquivalenceStrategy {
 
   bool checkAwaitExpression_fileOffset(
       EquivalenceVisitor visitor, AwaitExpression node, AwaitExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkFunctionExpression_function(EquivalenceVisitor visitor,
@@ -6205,7 +6264,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionExpression_fileOffset(EquivalenceVisitor visitor,
       FunctionExpression node, FunctionExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkConstantExpression_constant(EquivalenceVisitor visitor,
@@ -6220,7 +6279,7 @@ class EquivalenceStrategy {
 
   bool checkConstantExpression_fileOffset(EquivalenceVisitor visitor,
       ConstantExpression node, ConstantExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkLet_variable(EquivalenceVisitor visitor, Let node, Let other) {
@@ -6232,7 +6291,7 @@ class EquivalenceStrategy {
   }
 
   bool checkLet_fileOffset(EquivalenceVisitor visitor, Let node, Let other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkBlockExpression_body(
@@ -6247,7 +6306,7 @@ class EquivalenceStrategy {
 
   bool checkBlockExpression_fileOffset(
       EquivalenceVisitor visitor, BlockExpression node, BlockExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkLoadLibrary_import(
@@ -6257,7 +6316,7 @@ class EquivalenceStrategy {
 
   bool checkLoadLibrary_fileOffset(
       EquivalenceVisitor visitor, LoadLibrary node, LoadLibrary other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkCheckLibraryIsLoaded_import(EquivalenceVisitor visitor,
@@ -6267,7 +6326,7 @@ class EquivalenceStrategy {
 
   bool checkCheckLibraryIsLoaded_fileOffset(EquivalenceVisitor visitor,
       CheckLibraryIsLoaded node, CheckLibraryIsLoaded other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkConstructorTearOff_targetReference(EquivalenceVisitor visitor,
@@ -6278,7 +6337,7 @@ class EquivalenceStrategy {
 
   bool checkConstructorTearOff_fileOffset(EquivalenceVisitor visitor,
       ConstructorTearOff node, ConstructorTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkRedirectingFactoryTearOff_targetReference(
@@ -6291,7 +6350,7 @@ class EquivalenceStrategy {
 
   bool checkRedirectingFactoryTearOff_fileOffset(EquivalenceVisitor visitor,
       RedirectingFactoryTearOff node, RedirectingFactoryTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkTypedefTearOff_typeParameters(
@@ -6313,7 +6372,7 @@ class EquivalenceStrategy {
 
   bool checkTypedefTearOff_fileOffset(
       EquivalenceVisitor visitor, TypedefTearOff node, TypedefTearOff other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkExpression_fileOffset(visitor, node, other);
   }
 
   bool checkArguments_types(
@@ -6336,7 +6395,7 @@ class EquivalenceStrategy {
 
   bool checkArguments_fileOffset(
       EquivalenceVisitor visitor, Arguments node, Arguments other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkNamedExpression_name(
@@ -6351,7 +6410,7 @@ class EquivalenceStrategy {
 
   bool checkNamedExpression_fileOffset(
       EquivalenceVisitor visitor, NamedExpression node, NamedExpression other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkMapLiteralEntry_key(
@@ -6366,7 +6425,7 @@ class EquivalenceStrategy {
 
   bool checkMapLiteralEntry_fileOffset(
       EquivalenceVisitor visitor, MapLiteralEntry node, MapLiteralEntry other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkExpressionStatement_expression(EquivalenceVisitor visitor,
@@ -6374,9 +6433,14 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
   }
 
+  bool checkStatement_fileOffset(
+      EquivalenceVisitor visitor, Statement node, Statement other) {
+    return checkTreeNode_fileOffset(visitor, node, other);
+  }
+
   bool checkExpressionStatement_fileOffset(EquivalenceVisitor visitor,
       ExpressionStatement node, ExpressionStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkBlock_statements(
@@ -6393,7 +6457,7 @@ class EquivalenceStrategy {
 
   bool checkBlock_fileOffset(
       EquivalenceVisitor visitor, Block node, Block other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkAssertBlock_statements(
@@ -6404,12 +6468,12 @@ class EquivalenceStrategy {
 
   bool checkAssertBlock_fileOffset(
       EquivalenceVisitor visitor, AssertBlock node, AssertBlock other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkEmptyStatement_fileOffset(
       EquivalenceVisitor visitor, EmptyStatement node, EmptyStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkAssertStatement_condition(
@@ -6436,7 +6500,7 @@ class EquivalenceStrategy {
 
   bool checkAssertStatement_fileOffset(
       EquivalenceVisitor visitor, AssertStatement node, AssertStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkLabeledStatement_body(EquivalenceVisitor visitor,
@@ -6446,7 +6510,7 @@ class EquivalenceStrategy {
 
   bool checkLabeledStatement_fileOffset(EquivalenceVisitor visitor,
       LabeledStatement node, LabeledStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkBreakStatement_target(
@@ -6456,7 +6520,7 @@ class EquivalenceStrategy {
 
   bool checkBreakStatement_fileOffset(
       EquivalenceVisitor visitor, BreakStatement node, BreakStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkWhileStatement_condition(
@@ -6471,7 +6535,7 @@ class EquivalenceStrategy {
 
   bool checkWhileStatement_fileOffset(
       EquivalenceVisitor visitor, WhileStatement node, WhileStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkDoStatement_body(
@@ -6486,7 +6550,7 @@ class EquivalenceStrategy {
 
   bool checkDoStatement_fileOffset(
       EquivalenceVisitor visitor, DoStatement node, DoStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkForStatement_variables(
@@ -6513,7 +6577,7 @@ class EquivalenceStrategy {
 
   bool checkForStatement_fileOffset(
       EquivalenceVisitor visitor, ForStatement node, ForStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkForInStatement_bodyOffset(
@@ -6543,7 +6607,7 @@ class EquivalenceStrategy {
 
   bool checkForInStatement_fileOffset(
       EquivalenceVisitor visitor, ForInStatement node, ForInStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkSwitchStatement_expression(
@@ -6559,7 +6623,7 @@ class EquivalenceStrategy {
 
   bool checkSwitchStatement_fileOffset(
       EquivalenceVisitor visitor, SwitchStatement node, SwitchStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkContinueSwitchStatement_target(EquivalenceVisitor visitor,
@@ -6569,7 +6633,7 @@ class EquivalenceStrategy {
 
   bool checkContinueSwitchStatement_fileOffset(EquivalenceVisitor visitor,
       ContinueSwitchStatement node, ContinueSwitchStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkIfStatement_condition(
@@ -6589,7 +6653,7 @@ class EquivalenceStrategy {
 
   bool checkIfStatement_fileOffset(
       EquivalenceVisitor visitor, IfStatement node, IfStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkReturnStatement_expression(
@@ -6599,7 +6663,7 @@ class EquivalenceStrategy {
 
   bool checkReturnStatement_fileOffset(
       EquivalenceVisitor visitor, ReturnStatement node, ReturnStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkTryCatch_body(
@@ -6621,7 +6685,7 @@ class EquivalenceStrategy {
 
   bool checkTryCatch_fileOffset(
       EquivalenceVisitor visitor, TryCatch node, TryCatch other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkTryFinally_body(
@@ -6636,7 +6700,7 @@ class EquivalenceStrategy {
 
   bool checkTryFinally_fileOffset(
       EquivalenceVisitor visitor, TryFinally node, TryFinally other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkYieldStatement_expression(
@@ -6651,7 +6715,7 @@ class EquivalenceStrategy {
 
   bool checkYieldStatement_fileOffset(
       EquivalenceVisitor visitor, YieldStatement node, YieldStatement other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkVariableDeclaration_fileEqualsOffset(EquivalenceVisitor visitor,
@@ -6695,7 +6759,7 @@ class EquivalenceStrategy {
 
   bool checkVariableDeclaration_fileOffset(EquivalenceVisitor visitor,
       VariableDeclaration node, VariableDeclaration other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkFunctionDeclaration_variable(EquivalenceVisitor visitor,
@@ -6710,7 +6774,7 @@ class EquivalenceStrategy {
 
   bool checkFunctionDeclaration_fileOffset(EquivalenceVisitor visitor,
       FunctionDeclaration node, FunctionDeclaration other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkStatement_fileOffset(visitor, node, other);
   }
 
   bool checkSwitchCase_expressions(
@@ -6737,7 +6801,7 @@ class EquivalenceStrategy {
 
   bool checkSwitchCase_fileOffset(
       EquivalenceVisitor visitor, SwitchCase node, SwitchCase other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkCatch_guard(EquivalenceVisitor visitor, Catch node, Catch other) {
@@ -6760,7 +6824,7 @@ class EquivalenceStrategy {
 
   bool checkCatch_fileOffset(
       EquivalenceVisitor visitor, Catch node, Catch other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkTypeParameter_flags(
@@ -6797,7 +6861,7 @@ class EquivalenceStrategy {
 
   bool checkTypeParameter_fileOffset(
       EquivalenceVisitor visitor, TypeParameter node, TypeParameter other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkComponent_problemsAsJson(
@@ -6885,7 +6949,7 @@ class EquivalenceStrategy {
 
   bool checkComponent_fileOffset(
       EquivalenceVisitor visitor, Component node, Component other) {
-    return visitor.checkValues(node.fileOffset, other.fileOffset, 'fileOffset');
+    return checkTreeNode_fileOffset(visitor, node, other);
   }
 
   bool checkName_text(EquivalenceVisitor visitor, Name node, Name other) {
@@ -7055,29 +7119,34 @@ class EquivalenceStrategy {
         visitor.checkNodes, 'typeArguments');
   }
 
+  bool checkPrimitiveConstant_value(EquivalenceVisitor visitor,
+      PrimitiveConstant node, PrimitiveConstant other) {
+    return visitor.checkValues(node.value, other.value, 'value');
+  }
+
   bool checkNullConstant_value(
       EquivalenceVisitor visitor, NullConstant node, NullConstant other) {
-    return visitor.checkValues(node.value, other.value, 'value');
+    return checkPrimitiveConstant_value(visitor, node, other);
   }
 
   bool checkBoolConstant_value(
       EquivalenceVisitor visitor, BoolConstant node, BoolConstant other) {
-    return visitor.checkValues(node.value, other.value, 'value');
+    return checkPrimitiveConstant_value(visitor, node, other);
   }
 
   bool checkIntConstant_value(
       EquivalenceVisitor visitor, IntConstant node, IntConstant other) {
-    return visitor.checkValues(node.value, other.value, 'value');
+    return checkPrimitiveConstant_value(visitor, node, other);
   }
 
   bool checkDoubleConstant_value(
       EquivalenceVisitor visitor, DoubleConstant node, DoubleConstant other) {
-    return visitor.checkValues(node.value, other.value, 'value');
+    return checkPrimitiveConstant_value(visitor, node, other);
   }
 
   bool checkStringConstant_value(
       EquivalenceVisitor visitor, StringConstant node, StringConstant other) {
-    return visitor.checkValues(node.value, other.value, 'value');
+    return checkPrimitiveConstant_value(visitor, node, other);
   }
 
   bool checkSymbolConstant_name(
