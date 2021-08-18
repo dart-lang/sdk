@@ -48,7 +48,10 @@ class MessageHandler {
   // no longer has any live ports.  Abnormal termination occurs when
   // HandleMessage() indicates that an error has occurred during
   // message processing.
-  void Run(ThreadPool* pool,
+
+  // Returns false if the handler terminated abnormally, otherwise it
+  // returns true.
+  bool Run(ThreadPool* pool,
            StartCallback start_callback,
            EndCallback end_callback,
            CallbackData data);

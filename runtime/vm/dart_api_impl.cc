@@ -1972,6 +1972,7 @@ static void RunLoopDone(uword param) {
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
   Isolate* I;
+  bool result;
   {
     Thread* T = Thread::Current();
     I = T->isolate();
@@ -1988,14 +1989,21 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
-                              reinterpret_cast<uword>(&data));
-    while (!data.done) {
-      ml.Wait();
+    result =
+        I->message_handler()->Run(I->group()->thread_pool(), NULL, RunLoopDone,
+                                  reinterpret_cast<uword>(&data));
+    if (result) {
+      while (!data.done) {
+        ml.Wait();
+      }
     }
   }
   ::Dart_EnterIsolate(Api::CastIsolate(I));
-  if (I->sticky_error() != Object::null()) {
+  if (!result) {
+    Thread* T = Thread::Current();
+    TransitionNativeToVM transition(T);
+    return Api::NewError("Run method in isolate message handler failed");
+  } else if (I->sticky_error() != Object::null()) {
     Thread* T = Thread::Current();
     TransitionNativeToVM transition(T);
     return Api::NewHandle(T, I->StealStickyError());
