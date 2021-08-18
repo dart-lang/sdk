@@ -1913,28 +1913,24 @@ abstract class StreamTransformer<S, T> {
   /// ```dart
   /// /// Starts listening to [input] and duplicates all non-error events.
   /// StreamSubscription<int> _onListen(Stream<int> input, bool cancelOnError) {
-  ///   late StreamSubscription<String> subscription;
-  ///   // Create controller that forwards pause, resume and cancel events.
-  ///   var controller = new StreamController<String>(
-  ///       onPause: () {
-  ///         subscription.pause();
-  ///       },
-  ///       onResume: () {
-  ///         subscription.resume();
-  ///       },
-  ///       onCancel: () => subscription.cancel(),
-  ///       sync: true); // "sync" is correct here, since events are forwarded.
-  ///
-  ///   // Listen to the provided stream.
-  ///   subscription = input.listen((data) {
-  ///     // Duplicate the data.
-  ///     controller.add(data);
-  ///     controller.add(data);
-  ///   },
-  ///       onError: controller.addError,
-  ///       onDone: controller.close,
-  ///       cancelOnError: cancelOnError);
-  ///
+  ///   // Create the result controller.
+  ///   // Using `sync` is correct here, since only async events are forwarded.
+  ///   var controller = StreamController<int>(sync: true);
+  ///   controller.onListen = () {
+  ///     var subscription = input.listen((data) {
+  ///       // Duplicate the data.
+  ///       controller.add(data);
+  ///       controller.add(data);
+  ///     },
+  ///         onError: controller.addError,
+  ///         onDone: controller.close,
+  ///         cancelOnError: cancelOnError);
+  ///     // Controller forwards pause, resume and cancel events.
+  ///     controller
+  ///       ..onPause = subscription.pause
+  ///       ..onResume = subscription.resume
+  ///       ..onCancel = subscription.cancel;
+  ///   };
   ///   // Return a new [StreamSubscription] by listening to the controller's
   ///   // stream.
   ///   return controller.stream.listen(null);
