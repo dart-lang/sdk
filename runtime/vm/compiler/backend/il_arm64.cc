@@ -3541,8 +3541,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         const intptr_t kCountLimit = 0x3F;
         intptr_t value = Smi::Cast(constant).Value();
         ASSERT((value >= 0) && (value <= kCountLimit));
-        __ SmiUntag(left);
-        __ LsrImmediate(result, left, value);
+        __ SmiUntag(result, left);
+        __ LsrImmediate(result, result, value);
         if (deopt != nullptr) {
           __ SmiTagAndBranchIfOverflow(result, deopt);
         } else {
