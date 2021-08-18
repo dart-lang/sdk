@@ -436,7 +436,6 @@ class KernelCompilationRequest : public ValueObject {
                                  false)),
         next_(NULL),
         prev_(NULL) {
-    ASSERT(port_ != ILLEGAL_PORT);
     RegisterRequest(this);
     result_.status = Dart_KernelCompilationStatus_Unknown;
     result_.error = NULL;
@@ -446,7 +445,9 @@ class KernelCompilationRequest : public ValueObject {
 
   ~KernelCompilationRequest() {
     UnregisterRequest(this);
-    Dart_CloseNativePort(port_);
+    if (port_ != ILLEGAL_PORT) {
+      Dart_CloseNativePort(port_);
+    }
   }
 
   intptr_t setDillData(Dart_CObject** dills_array,
@@ -481,6 +482,13 @@ class KernelCompilationRequest : public ValueObject {
       char const* klass,
       bool is_static,
       const MallocGrowableArray<char*>* experimental_flags) {
+    if (port_ == ILLEGAL_PORT) {
+      Dart_KernelCompilationResult result = {};
+      result.status = Dart_KernelCompilationStatus_Unknown;
+      result.error =
+          Utils::StrDup("Error Kernel Isolate : unable to create reply port");
+      return result;
+    }
     Thread* thread = Thread::Current();
     TransitionNativeToVM transition(thread);
     Dart_CObject tag;

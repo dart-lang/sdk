@@ -4,17 +4,17 @@
 
 /*spec.library: 
  a_pre_fragments=[
-  p1: {units: [6{libA}], usedBy: [], needs: []},
-  p2: {units: [1{libB}], usedBy: [], needs: []},
-  p3: {units: [2{libC}], usedBy: [], needs: []},
-  p4: {units: [4{libA, libC}], usedBy: [], needs: []},
+  p1: {units: [1{libA}], usedBy: [], needs: []},
+  p2: {units: [4{libB}], usedBy: [], needs: []},
+  p3: {units: [6{libC}], usedBy: [], needs: []},
+  p4: {units: [3{libA, libC}], usedBy: [], needs: []},
   p5: {units: [5{libB, libC}], usedBy: [], needs: []},
-  p6: {units: [3{libA, libB, libC}], usedBy: [], needs: []}],
+  p6: {units: [2{libA, libB, libC}], usedBy: [], needs: []}],
  b_finalized_fragments=[
-  f1: [6{libA}],
-  f2: [1{libB}],
-  f3: [2{libC}],
-  f6: [3{libA, libB, libC}]],
+  f1: [1{libA}],
+  f2: [4{libB}],
+  f3: [6{libC}],
+  f6: [2{libA, libB, libC}]],
  c_steps=[
   libA=(f6, f1),
   libB=(f6, f2),
@@ -23,13 +23,13 @@
 
 /*two-frag.library: 
  a_pre_fragments=[
-  p1: {units: [1{libB}, 6{libA}], usedBy: [p2, p3], needs: []},
-  p2: {units: [4{libA, libC}, 2{libC}], usedBy: [p3], needs: [p1]},
-  p3: {units: [3{libA, libB, libC}, 5{libB, libC}], usedBy: [], needs: [p2, p1]}],
+  p1: {units: [4{libB}, 1{libA}], usedBy: [p2, p3], needs: []},
+  p2: {units: [3{libA, libC}, 6{libC}], usedBy: [p3], needs: [p1]},
+  p3: {units: [2{libA, libB, libC}, 5{libB, libC}], usedBy: [], needs: [p2, p1]}],
  b_finalized_fragments=[
-  f1: [1{libB}, 6{libA}],
-  f2: [2{libC}],
-  f3: [3{libA, libB, libC}]],
+  f1: [4{libB}, 1{libA}],
+  f2: [6{libC}],
+  f3: [2{libA, libB, libC}]],
  c_steps=[
   libA=(f3, f1),
   libB=(f3, f1),
@@ -38,15 +38,15 @@
 
 /*three-frag.library: 
  a_pre_fragments=[
-  p1: {units: [6{libA}], usedBy: [p4], needs: []},
-  p2: {units: [1{libB}], usedBy: [p4], needs: []},
-  p3: {units: [2{libC}], usedBy: [p4], needs: []},
-  p4: {units: [3{libA, libB, libC}, 5{libB, libC}, 4{libA, libC}], usedBy: [], needs: [p3, p2, p1]}],
+  p1: {units: [1{libA}], usedBy: [p4], needs: []},
+  p2: {units: [4{libB}], usedBy: [p4], needs: []},
+  p3: {units: [6{libC}], usedBy: [p4], needs: []},
+  p4: {units: [2{libA, libB, libC}, 5{libB, libC}, 3{libA, libC}], usedBy: [], needs: [p3, p2, p1]}],
  b_finalized_fragments=[
-  f1: [6{libA}],
-  f2: [1{libB}],
-  f3: [2{libC}],
-  f4: [3{libA, libB, libC}]],
+  f1: [1{libA}],
+  f2: [4{libB}],
+  f3: [6{libC}],
+  f4: [2{libA, libB, libC}]],
  c_steps=[
   libA=(f4, f1),
   libB=(f4, f2),
@@ -61,19 +61,19 @@ import 'libc.dart' deferred as libC;
 
 /*member: foo:
  constants=[
-  FunctionConstant(callFooMethod)=1{libB},
-  FunctionConstant(createB2)=2{libC},
-  FunctionConstant(createC3)=2{libC},
-  FunctionConstant(createD3)=2{libC},
-  FunctionConstant(createDooFunFunFoo)=2{libC},
-  FunctionConstant(isDooFunFunFoo)=1{libB},
-  FunctionConstant(isFoo)=1{libB},
-  FunctionConstant(isFoo)=2{libC},
-  FunctionConstant(isFoo)=6{libA},
-  FunctionConstant(isFunFunFoo)=1{libB},
-  FunctionConstant(isFunFunFoo)=2{libC},
-  FunctionConstant(isFunFunFoo)=6{libA},
-  FunctionConstant(isMega)=6{libA}],
+  FunctionConstant(callFooMethod)=4{libB},
+  FunctionConstant(createB2)=6{libC},
+  FunctionConstant(createC3)=6{libC},
+  FunctionConstant(createD3)=6{libC},
+  FunctionConstant(createDooFunFunFoo)=6{libC},
+  FunctionConstant(isDooFunFunFoo)=4{libB},
+  FunctionConstant(isFoo)=1{libA},
+  FunctionConstant(isFoo)=4{libB},
+  FunctionConstant(isFoo)=6{libC},
+  FunctionConstant(isFunFunFoo)=1{libA},
+  FunctionConstant(isFunFunFoo)=4{libB},
+  FunctionConstant(isFunFunFoo)=6{libC},
+  FunctionConstant(isMega)=1{libA}],
  member_unit=main{}
 */
 void foo() async {

@@ -9396,9 +9396,10 @@ static void InvokeServiceMessages(uword param) {
         ml.Notify();
       }
       count++;
+    } else {
+      free(error);
     }
   } while (count < 100);
-  free(error);
 }
 
 TEST_CASE(DartAPI_InvokeVMServiceMethod_Loop) {

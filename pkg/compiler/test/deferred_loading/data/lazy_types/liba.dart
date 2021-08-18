@@ -6,11 +6,11 @@
 
 import 'lib.dart' as lib;
 
-/*member: isFoo:member_unit=6{libA}*/
+/*member: isFoo:member_unit=1{libA}*/
 bool isFoo(o) => lib.isFoo(o);
 
-/*member: isFunFunFoo:member_unit=6{libA}*/
+/*member: isFunFunFoo:member_unit=1{libA}*/
 bool isFunFunFoo(o) => lib.isFunFunFoo(o);
 
-/*member: isMega:member_unit=6{libA}*/
+/*member: isMega:member_unit=1{libA}*/
 bool isMega(o) => lib.isMega(o);
