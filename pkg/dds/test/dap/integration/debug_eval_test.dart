@@ -29,9 +29,10 @@ void main(List<String> args) {
       final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
-      await client.expectTopFrameEvalResult(stop.threadId!, 'a', '1');
-      await client.expectTopFrameEvalResult(stop.threadId!, 'a * b', '2');
-      await client.expectTopFrameEvalResult(stop.threadId!, 'c', '"test"');
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      await client.expectEvalResult(topFrameId, 'a', '1');
+      await client.expectEvalResult(topFrameId, 'a * b', '2');
+      await client.expectEvalResult(topFrameId, 'c', '"test"');
     });
 
     test('evaluates expressions with complex results', () async {
@@ -40,8 +41,9 @@ void main(List<String> args) {
       final breakpointLine = lineWith(testFile, '// BREAKPOINT');
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
-      final result = await client.expectTopFrameEvalResult(
-        stop.threadId!,
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      final result = await client.expectEvalResult(
+        topFrameId,
         'DateTime(2000, 1, 1)',
         'DateTime',
       );
@@ -54,6 +56,21 @@ void main(List<String> args) {
             isUtc: false, eval: DateTime(2000, 1, 1).isUtc
         ''',
       );
+    });
+
+    test('evaluates expressions ending with semicolons', () async {
+      final client = dap.client;
+      final testFile = await dap.createTestFile(r'''
+void main(List<String> args) {
+  var a = 1;
+  var b = 2;
+  print('Hello!'); // BREAKPOINT
+}''');
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      await client.expectEvalResult(topFrameId, 'a + b;', '3');
     });
 
     test(
@@ -70,8 +87,9 @@ void main(List<String> args) {
             client.launch(testFile.path, evaluateToStringInDebugViews: true),
       );
 
-      await client.expectTopFrameEvalResult(
-        stop.threadId!,
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      await client.expectEvalResult(
+        topFrameId,
         'DateTime(2000, 1, 1)',
         'DateTime (2000-01-01 00:00:00.000)',
       );
@@ -87,9 +105,9 @@ void main(List<String> args) {
 }''');
 
       final stop = await client.hitException(testFile);
-
-      final result = await client.expectTopFrameEvalResult(
-        stop.threadId!,
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      final result = await client.expectEvalResult(
+        topFrameId,
         threadExceptionExpression,
         '"my error"',
       );
@@ -106,8 +124,9 @@ void main(List<String> args) {
 }''');
 
       final stop = await client.hitException(testFile);
-      final result = await client.expectTopFrameEvalResult(
-        stop.threadId!,
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      final result = await client.expectEvalResult(
+        topFrameId,
         threadExceptionExpression,
         '_Exception',
       );
@@ -125,8 +144,9 @@ void main(List<String> args) {
     ''');
 
       final stop = await client.hitException(testFile);
-      await client.expectTopFrameEvalResult(
-        stop.threadId!,
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      await client.expectEvalResult(
+        topFrameId,
         '$threadExceptionExpression.message.length',
         '5',
       );
@@ -153,6 +173,48 @@ void foo() {
       await client.expectEvalResult(secondFrameId, 'a', '999');
     });
 
+    test('returns the full message for evaluation errors', () async {
+      final client = dap.client;
+      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      expectResponseError(
+        client.evaluate(
+          '1 + "a"',
+          frameId: topFrameId,
+        ),
+        allOf([
+          contains('evaluateInFrame: (113) Expression compilation error'),
+          contains("'String' can't be assigned to a variable of type 'num'."),
+          contains(
+            '1 + "a"\n'
+            '    ^',
+          )
+        ]),
+      );
+    });
+
+    test('returns short errors for evaluation in "watch" context', () async {
+      final client = dap.client;
+      final testFile = await dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      expectResponseError(
+        client.evaluate(
+          '1 + "a"',
+          frameId: topFrameId,
+          context: 'watch',
+        ),
+        equals(
+          "A value of type 'String' can't be assigned "
+          "to a variable of type 'num'.",
+        ),
+      );
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

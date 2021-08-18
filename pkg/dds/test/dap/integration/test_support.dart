@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/src/dap/logging.dart';
+import 'package:dds/src/dap/protocol_generated.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -45,6 +46,18 @@ void expectLinesStartWith(String actual, List<String> expected) {
   expect(
     actual.replaceAll('\r\n', '\n').trim(),
     startsWith(expected.join('\n').trim()),
+  );
+}
+
+/// Expects [response] to fail with a `message` matching [messageMatcher].
+expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
+  expect(
+    response,
+    throwsA(
+      const TypeMatcher<Response>()
+          .having((r) => r.success, 'success', isFalse)
+          .having((r) => r.message, 'message', messageMatcher),
+    ),
   );
 }
 

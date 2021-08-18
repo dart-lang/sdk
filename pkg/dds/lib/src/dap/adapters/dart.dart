@@ -48,6 +48,12 @@ const maxToStringsPerEvaluation = 10;
 /// will work.
 const threadExceptionExpression = r'$_threadException';
 
+/// Pattern for extracting useful error messages from an evaluation exception.
+final _evalErrorMessagePattern = RegExp('Error: (.*)');
+
+/// Pattern for a trailing semicolon.
+final _trailingSemicolonPattern = RegExp(r';$');
+
 /// A base DAP Debug Adapter implementation for running and debugging Dart-based
 /// applications (including Flutter and Tests).
 ///
@@ -492,25 +498,52 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // allows us to construct evaluateNames that evaluate to the fields down the
     // tree to support some of the debugger functionality (for example
     // "Copy Value", which re-evaluates).
-    final expression = args.expression.trim();
+    final expression = args.expression
+        .trim()
+        // Remove any trailing semicolon as the VM only evaluates expressions
+        // but a user may have highlighted a whole line/statement to send for
+        // evaluation.
+        .replaceFirst(_trailingSemicolonPattern, '');
     final exceptionReference = thread.exceptionReference;
     final isExceptionExpression = expression == threadExceptionExpression ||
         expression.startsWith('$threadExceptionExpression.');
 
     vm.Response? result;
-    if (exceptionReference != null && isExceptionExpression) {
-      result = await _evaluateExceptionExpression(
-        exceptionReference,
-        expression,
-        thread,
-      );
-    } else {
-      result = await vmService?.evaluateInFrame(
-        thread.isolate.id!,
-        frameIndex,
-        expression,
-        disableBreakpoints: true,
-      );
+    try {
+      if (exceptionReference != null && isExceptionExpression) {
+        result = await _evaluateExceptionExpression(
+          exceptionReference,
+          expression,
+          thread,
+        );
+      } else {
+        result = await vmService?.evaluateInFrame(
+          thread.isolate.id!,
+          frameIndex,
+          expression,
+          disableBreakpoints: true,
+        );
+      }
+    } catch (e) {
+      final rawMessage = '$e';
+
+      // Error messages can be quite verbose and don't fit well into a
+      // single-line watch window. For example:
+      //
+      //    evaluateInFrame: (113) Expression compilation error
+      //    org-dartlang-debug:synthetic_debug_expression:1:5: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+      //    1 + "a"
+      //        ^
+      //
+      // So in the case of a Watch context, try to extract the useful message.
+      if (args.context == 'watch') {
+        final match = _evalErrorMessagePattern.firstMatch(rawMessage);
+        final shortError = match != null ? match.group(1)! : null;
+
+        throw DebugAdapterException(shortError ?? rawMessage);
+      }
+
+      throw DebugAdapterException(rawMessage);
     }
 
     if (result is vm.ErrorRef) {
