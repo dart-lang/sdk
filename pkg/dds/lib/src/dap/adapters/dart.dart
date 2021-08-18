@@ -51,6 +51,9 @@ const threadExceptionExpression = r'$_threadException';
 /// Pattern for extracting useful error messages from an evaluation exception.
 final _evalErrorMessagePattern = RegExp('Error: (.*)');
 
+/// Pattern for extracting useful error messages from an unhandled exception.
+final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
+
 /// Pattern for a trailing semicolon.
 final _trailingSemicolonPattern = RegExp(r';$');
 
@@ -538,10 +541,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       //
       // So in the case of a Watch context, try to extract the useful message.
       if (args.context == 'watch') {
-        final match = _evalErrorMessagePattern.firstMatch(rawMessage);
-        final shortError = match != null ? match.group(1)! : null;
-
-        throw DebugAdapterException(shortError ?? rawMessage);
+        throw DebugAdapterException(extractEvaluationErrorMessage(rawMessage));
       }
 
       throw DebugAdapterException(rawMessage);
@@ -574,6 +574,24 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         'Unknown evaluation response type: ${result?.runtimeType}',
       );
     }
+  }
+
+  /// Tries to extract the useful part from an evaluation exception message.
+  ///
+  /// If no message could be extracted, returns the whole original error.
+  String extractEvaluationErrorMessage(String rawError) {
+    final match = _evalErrorMessagePattern.firstMatch(rawError);
+    final shortError = match != null ? match.group(1)! : null;
+    return shortError ?? rawError;
+  }
+
+  /// Tries to extract the useful part from an unhandled exception message.
+  ///
+  /// If no message could be extracted, returns the whole original error.
+  String extractUnhandledExceptionMessage(String rawError) {
+    final match = _exceptionMessagePattern.firstMatch(rawError);
+    final shortError = match != null ? match.group(1)! : null;
+    return shortError ?? rawError;
   }
 
   /// Sends a [TerminatedEvent] if one has not already been sent.

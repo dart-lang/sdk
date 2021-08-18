@@ -19,14 +19,14 @@ main() {
   group('debug mode evaluation', () {
     test('evaluates expressions with simple results', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   var a = 1;
   var b = 2;
   var c = 'test';
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final topFrameId = await client.getTopFrameId(stop.threadId!);
@@ -38,7 +38,7 @@ void main(List<String> args) {
     test('evaluates expressions with complex results', () async {
       final client = dap.client;
       final testFile = await dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final topFrameId = await client.getTopFrameId(stop.threadId!);
@@ -60,13 +60,13 @@ void main(List<String> args) {
 
     test('evaluates expressions ending with semicolons', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   var a = 1;
   var b = 2;
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final topFrameId = await client.getTopFrameId(stop.threadId!);
@@ -78,7 +78,7 @@ void main(List<String> args) {
         () async {
       final client = dap.client;
       final testFile = await dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(
         testFile,
@@ -154,16 +154,16 @@ void main(List<String> args) {
 
     test('can evaluate expressions in non-top frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   var a = 999;
   foo();
 }
 
 void foo() {
-  var a = 111; // BREAKPOINT
+  var a = 111; $breakpointMarker
 }''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final stack = await client.getValidStack(stop.threadId!,
@@ -176,7 +176,7 @@ void foo() {
     test('returns the full message for evaluation errors', () async {
       final client = dap.client;
       final testFile = await dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final topFrameId = await client.getTopFrameId(stop.threadId!);
@@ -199,7 +199,7 @@ void foo() {
     test('returns short errors for evaluation in "watch" context', () async {
       final client = dap.client;
       final testFile = await dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final topFrameId = await client.getTopFrameId(stop.threadId!);

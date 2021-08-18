@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// A marker used in some test scripts/tests for where to set breakpoints.
+const breakpointMarker = '// BREAKPOINT';
+
 /// A simple empty Dart script that should run with no output and no errors.
 const emptyProgram = '''
   void main(List<String> args) {}
@@ -9,17 +12,17 @@ const emptyProgram = '''
 
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain SDK frames in the call stack.
-const sdkStackFrameProgram = r'''
+const sdkStackFrameProgram = '''
   void main() {
     [0].where((i) {
-      return i == 0; // BREAKPOINT
+      return i == 0; $breakpointMarker
     }).toList();
   }
 ''';
 
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.
-const simpleAsyncProgram = r'''
+const simpleAsyncProgram = '''
   import 'dart:async';
 
   Future<void> main() async {
@@ -40,16 +43,16 @@ const simpleAsyncProgram = r'''
   }
 
   void four() {
-    print('!'); // BREAKPOINT
+    print('!'); $breakpointMarker
   }
 ''';
 
 /// A simple Dart script that should run with no errors and contains a comment
 /// marker '// BREAKPOINT' for use in tests that require stopping at a breakpoint
 /// but require no other context.
-const simpleBreakpointProgram = r'''
+const simpleBreakpointProgram = '''
   void main(List<String> args) async {
-    print('Hello!'); // BREAKPOINT
+    print('Hello!'); $breakpointMarker
   }
 ''';
 
@@ -70,3 +73,6 @@ const simpleThrowingProgram = r'''
     throw 'error';
   }
 ''';
+
+/// A marker used in some test scripts/tests for where to expected steps.
+const stepMarker = '// STEP';
