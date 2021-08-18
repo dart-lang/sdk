@@ -6,9 +6,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../common.dart';
 import '../constants/values.dart'
-    show
-        ConstantValue,
-        DeferredGlobalConstantValue;
+    show ConstantValue, DeferredGlobalConstantValue;
 import '../elements/entities.dart';
 import '../serialization/serialization.dart';
 import '../options.dart';

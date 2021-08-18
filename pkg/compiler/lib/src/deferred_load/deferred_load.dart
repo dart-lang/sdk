@@ -268,38 +268,25 @@
 // contains a bigger delta.)
 library deferred_load;
 
-import 'dart:collection' show Queue;
-
-import 'package:kernel/ast.dart' as ir;
-
-import 'dependencies.dart';
+import 'algorithm_state.dart';
+import 'entity_data.dart';
 import 'import_set.dart';
 import 'output_unit.dart';
 
 import '../../compiler_new.dart' show OutputType;
-import '../common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
+import '../common/metrics.dart'
+    show Metric, Metrics, CountMetric, DurationMetric;
 import '../common/tasks.dart' show CompilerTask;
 import '../common.dart';
-import '../common_elements.dart' show CommonElements, KElementEnvironment;
+import '../common_elements.dart' show KElementEnvironment;
 import '../compiler.dart' show Compiler;
-import '../constants/values.dart'
-    show
-        ConstantValue,
-        ConstructedConstantValue,
-        InstantiationConstantValue;
+import '../constants/values.dart' show ConstantValue;
 import '../elements/types.dart';
 import '../elements/entities.dart';
-import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/element_map.dart';
-import '../universe/use.dart';
-import '../universe/world_impact.dart'
-    show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
+import '../universe/world_impact.dart' show ImpactUseCase;
 import '../util/util.dart' show makeUnique;
 import '../world.dart' show KClosedWorld;
-
-// TODO(joshualitt): Refactor logic out of DeferredLoadTask so work_queue.dart
-// can be its own independent library.
-part 'work_queue.dart';
 
 class _DeferredLoadTaskMetrics implements Metrics {
   @override
@@ -338,21 +325,6 @@ class DeferredLoadTask extends CompilerTask {
   /// this map.
   final Map<ImportEntity, String> importDeferName = {};
 
-  /// A mapping from classes to their import set.
-  Map<ClassEntity, ImportSet> _classToSet = {};
-
-  /// A mapping from interface types (keyed by classes) to their import set.
-  Map<ClassEntity, ImportSet> _classTypeToSet = {};
-
-  /// A mapping from members to their import set.
-  Map<MemberEntity, ImportSet> _memberToSet = {};
-
-  /// A mapping from local functions to their import set.
-  Map<Local, ImportSet> _localFunctionToSet = {};
-
-  /// A mapping from constants to their import set.
-  Map<ConstantValue, ImportSet> _constantToSet = {};
-
   Iterable<ImportEntity> get _allDeferredImports =>
       _deferredImportDescriptions.keys;
 
@@ -372,6 +344,8 @@ class DeferredLoadTask extends CompilerTask {
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
 
+  AlgorithmState algorithmState;
+
   DeferredLoadTask(this.compiler, this._elementMap) : super(compiler.measurer) {
     _mainOutputUnit = OutputUnit(true, 'main', {});
     importSets.mainSet.unit = _mainOutputUnit;
@@ -381,486 +355,9 @@ class DeferredLoadTask extends CompilerTask {
   KElementEnvironment get elementEnvironment =>
       compiler.frontendStrategy.elementEnvironment;
 
-  CommonElements get commonElements => compiler.frontendStrategy.commonElements;
-  DartTypes get dartTypes => commonElements.dartTypes;
+  DartTypes get dartTypes => compiler.frontendStrategy.commonElements.dartTypes;
 
   DiagnosticReporter get reporter => compiler.reporter;
-
-  /// Collects all direct dependencies of [element].
-  ///
-  /// The collected dependent elements and constants are are added to
-  /// [elements] and [constants] respectively.
-  void _collectDirectMemberDependencies(KClosedWorld closedWorld,
-      MemberEntity element, Dependencies dependencies) {
-    // TODO(sigurdm): We want to be more specific about this - need a better
-    // way to query "liveness".
-    if (!closedWorld.isMemberUsed(element)) {
-      return;
-    }
-    _collectDependenciesFromImpact(closedWorld, element, dependencies);
-    collectConstantsInBody(element, dependencies);
-  }
-
-  /// Finds all elements and constants that [element] depends directly on.
-  /// (not the transitive closure.)
-  ///
-  /// Adds the results to [elements] and [constants].
-  void _collectAllElementsAndConstantsResolvedFromClass(
-      KClosedWorld closedWorld,
-      ClassEntity element,
-      Dependencies dependencies) {
-    // If we see a class, add everything its live instance members refer
-    // to.  Static members are not relevant, unless we are processing
-    // extra dependencies due to mirrors.
-    void addLiveInstanceMember(MemberEntity member) {
-      if (!closedWorld.isMemberUsed(member)) return;
-      if (!member.isInstanceMember) return;
-      dependencies.addMember(member);
-      _collectDirectMemberDependencies(closedWorld, member, dependencies);
-    }
-
-    void addClassAndMaybeAddEffectiveMixinClass(ClassEntity cls) {
-      dependencies.addClass(cls);
-      if (elementEnvironment.isMixinApplication(cls)) {
-        dependencies.addClass(elementEnvironment.getEffectiveMixinClass(cls));
-      }
-    }
-
-    ClassEntity cls = element;
-    elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
-    elementEnvironment.forEachSupertype(cls, (InterfaceType type) {
-      _collectTypeDependencies(type, dependencies);
-    });
-    elementEnvironment.forEachSuperClass(cls, (superClass) {
-      addClassAndMaybeAddEffectiveMixinClass(superClass);
-      _collectTypeDependencies(
-          elementEnvironment.getThisType(superClass), dependencies);
-    });
-    addClassAndMaybeAddEffectiveMixinClass(cls);
-  }
-
-  /// Finds all elements and constants that [element] depends directly on.
-  /// (not the transitive closure.)
-  ///
-  /// Adds the results to [elements] and [constants].
-  void _collectAllElementsAndConstantsResolvedFromMember(
-      KClosedWorld closedWorld,
-      MemberEntity element,
-      Dependencies dependencies) {
-    if (element is FunctionEntity) {
-      _collectTypeDependencies(
-          elementEnvironment.getFunctionType(element), dependencies);
-    }
-    if (element.isStatic || element.isTopLevel || element.isConstructor) {
-      dependencies.addMember(element);
-      _collectDirectMemberDependencies(closedWorld, element, dependencies);
-    }
-    if (element is ConstructorEntity && element.isGenerativeConstructor) {
-      // When instantiating a class, we record a reference to the
-      // constructor, not the class itself.  We must add all the
-      // instance members of the constructor's class.
-      ClassEntity cls = element.enclosingClass;
-      _collectAllElementsAndConstantsResolvedFromClass(
-          closedWorld, cls, dependencies);
-    }
-
-    // Other elements, in particular instance members, are ignored as
-    // they are processed as part of the class.
-  }
-
-  /// Extract the set of constants that are used in the body of [element].
-  void collectConstantsInBody(MemberEntity element, Dependencies dependencies) {
-    ir.Member node = _elementMap.getMemberNode(element);
-
-    // Fetch the internal node in order to skip annotations on the member.
-    // TODO(sigmund): replace this pattern when the kernel-ast provides a better
-    // way to skip annotations (issue 31565).
-    var visitor = ConstantCollector(
-        _elementMap, _elementMap.getStaticTypeContext(element), dependencies);
-    if (node is ir.Field) {
-      node.initializer?.accept(visitor);
-      return;
-    }
-
-    if (node is ir.Constructor) {
-      node.initializers.forEach((i) => i.accept(visitor));
-    }
-    node.function?.accept(visitor);
-  }
-
-  /// Recursively collects all the dependencies of [type].
-  void _collectTypeDependencies(DartType type, Dependencies dependencies,
-      [ImportEntity import]) {
-    TypeDependencyVisitor(dependencies, import, commonElements).visit(type);
-  }
-
-  void _collectTypeArgumentDependencies(
-      Iterable<DartType> typeArguments, Dependencies dependencies,
-      [ImportEntity import]) {
-    if (typeArguments == null) return;
-    TypeDependencyVisitor(dependencies, import, commonElements)
-        .visitList(typeArguments);
-  }
-
-  /// Extract any dependencies that are known from the impact of [element].
-  void _collectDependenciesFromImpact(KClosedWorld closedWorld,
-      MemberEntity element, Dependencies dependencies) {
-    WorldImpact worldImpact = compiler.impactCache[element];
-    compiler.impactStrategy.visitImpact(
-        element,
-        worldImpact,
-        WorldImpactVisitorImpl(
-            visitStaticUse: (MemberEntity member, StaticUse staticUse) {
-          void processEntity() {
-            Entity usedEntity = staticUse.element;
-            if (usedEntity is MemberEntity) {
-              dependencies.addMember(usedEntity, staticUse.deferredImport);
-            } else {
-              assert(usedEntity is KLocalFunction,
-                  failedAt(usedEntity, "Unexpected static use $staticUse."));
-              KLocalFunction localFunction = usedEntity;
-              // TODO(sra): Consult KClosedWorld to see if signature is needed.
-              _collectTypeDependencies(
-                  localFunction.functionType, dependencies);
-              dependencies.localFunctions.add(localFunction);
-            }
-          }
-
-          switch (staticUse.kind) {
-            case StaticUseKind.CONSTRUCTOR_INVOKE:
-            case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-              // The receiver type of generative constructors is a dependency of
-              // the constructor (handled by `addMember` above) and not a
-              // dependency at the call site.
-              // Factory methods, on the other hand, are like static methods so
-              // the target type is not relevant.
-              // TODO(johnniwinther): Use rti need data to skip unneeded type
-              // arguments.
-              _collectTypeArgumentDependencies(
-                  staticUse.type.typeArguments, dependencies);
-              processEntity();
-              break;
-            case StaticUseKind.STATIC_INVOKE:
-            case StaticUseKind.CLOSURE_CALL:
-            case StaticUseKind.DIRECT_INVOKE:
-              // TODO(johnniwinther): Use rti need data to skip unneeded type
-              // arguments.
-              _collectTypeArgumentDependencies(
-                  staticUse.typeArguments, dependencies);
-              processEntity();
-              break;
-            case StaticUseKind.STATIC_TEAR_OFF:
-            case StaticUseKind.CLOSURE:
-            case StaticUseKind.STATIC_GET:
-            case StaticUseKind.STATIC_SET:
-              processEntity();
-              break;
-            case StaticUseKind.SUPER_TEAR_OFF:
-            case StaticUseKind.SUPER_FIELD_SET:
-            case StaticUseKind.SUPER_GET:
-            case StaticUseKind.SUPER_SETTER_SET:
-            case StaticUseKind.SUPER_INVOKE:
-            case StaticUseKind.INSTANCE_FIELD_GET:
-            case StaticUseKind.INSTANCE_FIELD_SET:
-            case StaticUseKind.FIELD_INIT:
-            case StaticUseKind.FIELD_CONSTANT_INIT:
-              // These static uses are not relevant for this algorithm.
-              break;
-            case StaticUseKind.CALL_METHOD:
-            case StaticUseKind.INLINING:
-              failedAt(element, "Unexpected static use: $staticUse.");
-              break;
-          }
-        }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
-          void addClassIfInterfaceType(DartType t, [ImportEntity import]) {
-            var typeWithoutNullability = t.withoutNullability;
-            if (typeWithoutNullability is InterfaceType) {
-              dependencies.addClass(typeWithoutNullability.element, import);
-            }
-          }
-
-          DartType type = typeUse.type;
-          switch (typeUse.kind) {
-            case TypeUseKind.TYPE_LITERAL:
-              _collectTypeDependencies(
-                  type, dependencies, typeUse.deferredImport);
-              break;
-            case TypeUseKind.CONST_INSTANTIATION:
-              addClassIfInterfaceType(type, typeUse.deferredImport);
-              _collectTypeDependencies(
-                  type, dependencies, typeUse.deferredImport);
-              break;
-            case TypeUseKind.INSTANTIATION:
-            case TypeUseKind.NATIVE_INSTANTIATION:
-              addClassIfInterfaceType(type);
-              _collectTypeDependencies(type, dependencies);
-              break;
-            case TypeUseKind.IS_CHECK:
-            case TypeUseKind.CATCH_TYPE:
-              _collectTypeDependencies(type, dependencies);
-              break;
-            case TypeUseKind.AS_CAST:
-              if (closedWorld.annotationsData
-                  .getExplicitCastCheckPolicy(element)
-                  .isEmitted) {
-                _collectTypeDependencies(type, dependencies);
-              }
-              break;
-            case TypeUseKind.IMPLICIT_CAST:
-              if (closedWorld.annotationsData
-                  .getImplicitDowncastCheckPolicy(element)
-                  .isEmitted) {
-                _collectTypeDependencies(type, dependencies);
-              }
-              break;
-            case TypeUseKind.PARAMETER_CHECK:
-            case TypeUseKind.TYPE_VARIABLE_BOUND_CHECK:
-              if (closedWorld.annotationsData
-                  .getParameterCheckPolicy(element)
-                  .isEmitted) {
-                _collectTypeDependencies(type, dependencies);
-              }
-              break;
-            case TypeUseKind.RTI_VALUE:
-            case TypeUseKind.TYPE_ARGUMENT:
-            case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
-            case TypeUseKind.CONSTRUCTOR_REFERENCE:
-              failedAt(element, "Unexpected type use: $typeUse.");
-              break;
-          }
-        }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
-          // TODO(johnniwinther): Use rti need data to skip unneeded type
-          // arguments.
-          _collectTypeArgumentDependencies(
-              dynamicUse.typeArguments, dependencies);
-        }),
-        DeferredLoadTask.IMPACT_USE);
-  }
-
-  /// Update the import set of all constants reachable from [constant], as long
-  /// as they had the [oldSet]. As soon as we see a constant with a different
-  /// import set, we stop and enqueue a new recursive update in [queue].
-  ///
-  /// Invariants: oldSet is either null or a subset of newSet.
-  void _updateConstantRecursive(
-      KClosedWorld closedWorld,
-      ConstantValue constant,
-      ImportSet oldSet,
-      ImportSet newSet,
-      WorkQueue queue) {
-    if (constant == null) return;
-    var currentSet = _constantToSet[constant];
-
-    // Already visited.
-    if (currentSet == newSet) return;
-
-    // Elements in the main output unit always remain there.
-    if (currentSet == importSets.mainSet) return;
-
-    if (currentSet == oldSet) {
-      _constantToSet[constant] = newSet;
-      if (constant is ConstructedConstantValue) {
-        ClassEntity cls = constant.type.element;
-        _updateClassRecursive(closedWorld, cls, oldSet, newSet, queue);
-      }
-      if (constant is InstantiationConstantValue) {
-        for (DartType type in constant.typeArguments) {
-          type = type.withoutNullability;
-          if (type is InterfaceType) {
-            _updateClassRecursive(
-                closedWorld, type.element, oldSet, newSet, queue);
-          }
-        }
-      }
-      constant.getDependencies().forEach((ConstantValue dependency) {
-        // Constants are not allowed to refer to deferred constants, so
-        // no need to check for a deferred type literal here.
-        _updateConstantRecursive(
-            closedWorld, dependency, oldSet, newSet, queue);
-      });
-    } else {
-      assert(
-          // Invariant: we must mark main before we mark any deferred import.
-          newSet != importSets.mainSet || oldSet != null,
-          failedAt(
-              NO_LOCATION_SPANNABLE,
-              "Tried to assign ${constant.toDartText(closedWorld.dartTypes)} "
-              "to the main output unit, but it was assigned to $currentSet."));
-      queue.addConstant(constant, newSet);
-    }
-  }
-
-  void _updateClassRecursive(KClosedWorld closedWorld, ClassEntity element,
-      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
-    if (element == null) return;
-
-    ImportSet currentSet = _classToSet[element];
-
-    // Already visited. We may visit some root nodes a second time with
-    // [isMirrorUsage] in order to mark static members used reflectively.
-    if (currentSet == newSet) return;
-
-    // Elements in the main output unit always remain there.
-    if (currentSet == importSets.mainSet) return;
-
-    if (currentSet == oldSet) {
-      // Continue recursively updating from [oldSet] to [newSet].
-      _classToSet[element] = newSet;
-
-      Dependencies dependencies = Dependencies();
-      _collectAllElementsAndConstantsResolvedFromClass(
-          closedWorld, element, dependencies);
-      LibraryEntity library = element.library;
-      _processDependencies(
-          closedWorld, library, dependencies, oldSet, newSet, queue, element);
-    } else {
-      queue.addClass(element, newSet);
-    }
-  }
-
-  void _updateClassTypeRecursive(KClosedWorld closedWorld, ClassEntity element,
-      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
-    if (element == null) return;
-
-    ImportSet currentSet = _classTypeToSet[element];
-
-    // Already visited. We may visit some root nodes a second time with
-    // [isMirrorUsage] in order to mark static members used reflectively.
-    if (currentSet == newSet) return;
-
-    // Elements in the main output unit always remain there.
-    if (currentSet == importSets.mainSet) return;
-
-    if (currentSet == oldSet) {
-      // Continue recursively updating from [oldSet] to [newSet].
-      _classTypeToSet[element] = newSet;
-
-      Dependencies dependencies = Dependencies();
-      dependencies.addClassType(element);
-      LibraryEntity library = element.library;
-      _processDependencies(
-          closedWorld, library, dependencies, oldSet, newSet, queue, element);
-    } else {
-      queue.addClassType(element, newSet);
-    }
-  }
-
-  void _updateMemberRecursive(KClosedWorld closedWorld, MemberEntity element,
-      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
-    if (element == null) return;
-
-    ImportSet currentSet = _memberToSet[element];
-
-    // Already visited. We may visit some root nodes a second time with
-    // [isMirrorUsage] in order to mark static members used reflectively.
-    if (currentSet == newSet) return;
-
-    // Elements in the main output unit always remain there.
-    if (currentSet == importSets.mainSet) return;
-
-    if (currentSet == oldSet) {
-      // Continue recursively updating from [oldSet] to [newSet].
-      _memberToSet[element] = newSet;
-
-      Dependencies dependencies = Dependencies();
-      _collectAllElementsAndConstantsResolvedFromMember(
-          closedWorld, element, dependencies);
-
-      LibraryEntity library = element.library;
-      _processDependencies(
-          closedWorld, library, dependencies, oldSet, newSet, queue, element);
-    } else {
-      queue.addMember(element, newSet);
-    }
-  }
-
-  void _updateLocalFunction(
-      Local localFunction, ImportSet oldSet, ImportSet newSet) {
-    ImportSet currentSet = _localFunctionToSet[localFunction];
-    if (currentSet == newSet) return;
-
-    // Elements in the main output unit always remain there.
-    if (currentSet == importSets.mainSet) return;
-
-    if (currentSet == oldSet) {
-      _localFunctionToSet[localFunction] = newSet;
-    } else {
-      _localFunctionToSet[localFunction] = importSets.union(currentSet, newSet);
-    }
-    // Note: local functions are not updated recursively because the
-    // dependencies are already visited as dependencies of the enclosing member.
-  }
-
-  /// Whether to enqueue a deferred dependency.
-  ///
-  /// Due to the nature of the algorithm, some dependencies may be visited more
-  /// than once. However, we know that new deferred-imports are only discovered
-  /// when we are visiting the main output unit (size == 0) or code reachable
-  /// from a deferred import (size == 1). After that, we are rediscovering the
-  /// same nodes we have already seen.
-  _shouldAddDeferredDependency(ImportSet newSet) => newSet.length <= 1;
-
-  void _processDependencies(
-      KClosedWorld closedWorld,
-      LibraryEntity library,
-      Dependencies dependencies,
-      ImportSet oldSet,
-      ImportSet newSet,
-      WorkQueue queue,
-      Spannable context) {
-    dependencies.classes.forEach((ClassEntity cls, DependencyInfo info) {
-      if (info.isDeferred) {
-        if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in info.imports) {
-            queue.addClass(cls, importSets.singleton(deferredImport));
-          }
-        }
-      } else {
-        _updateClassRecursive(closedWorld, cls, oldSet, newSet, queue);
-      }
-    });
-
-    dependencies.classType.forEach((ClassEntity cls, DependencyInfo info) {
-      if (info.isDeferred) {
-        if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in info.imports) {
-            queue.addClassType(cls, importSets.singleton(deferredImport));
-          }
-        }
-      } else {
-        _updateClassTypeRecursive(closedWorld, cls, oldSet, newSet, queue);
-      }
-    });
-
-    dependencies.members.forEach((MemberEntity member, DependencyInfo info) {
-      if (info.isDeferred) {
-        if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in info.imports) {
-            queue.addMember(member, importSets.singleton(deferredImport));
-          }
-        }
-      } else {
-        _updateMemberRecursive(closedWorld, member, oldSet, newSet, queue);
-      }
-    });
-
-    for (Local localFunction in dependencies.localFunctions) {
-      _updateLocalFunction(localFunction, oldSet, newSet);
-    }
-
-    dependencies.constants
-        .forEach((ConstantValue constant, DependencyInfo info) {
-      if (info.isDeferred) {
-        if (_shouldAddDeferredDependency(newSet)) {
-          for (ImportEntity deferredImport in info.imports) {
-            queue.addConstant(constant, importSets.singleton(deferredImport));
-          }
-        }
-      } else {
-        _updateConstantRecursive(closedWorld, constant, oldSet, newSet, queue);
-      }
-    });
-  }
 
   /// Computes a unique string for the name field for each outputUnit.
   void _createOutputUnits() {
@@ -877,11 +374,7 @@ class DeferredLoadTask extends CompilerTask {
 
     // Generate an output unit for all import sets that are associated with an
     // element or constant.
-    _classToSet.values.forEach(addUnit);
-    _classTypeToSet.values.forEach(addUnit);
-    _memberToSet.values.forEach(addUnit);
-    _localFunctionToSet.values.forEach(addUnit);
-    _constantToSet.values.forEach(addUnit);
+    algorithmState?.entityToSet?.values?.forEach(addUnit);
 
     // Sort output units to make the output of the compiler more stable.
     _allOutputUnits.sort();
@@ -937,34 +430,8 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     work() {
-      var queue = WorkQueue(this.importSets);
-
-      // Add `main` and their recursive dependencies to the main output unit.
-      // We do this upfront to avoid wasting time visiting these elements when
-      // analyzing deferred imports.
-      queue.addMember(main, importSets.mainSet);
-
-      // Also add "global" dependencies to the main output unit.  These are
-      // things that the backend needs but cannot associate with a particular
-      // element. This set also contains elements for which we lack precise
-      // information.
-      for (MemberEntity element
-          in closedWorld.backendUsage.globalFunctionDependencies) {
-        queue.addMember(element, importSets.mainSet);
-      }
-      for (ClassEntity element
-          in closedWorld.backendUsage.globalClassDependencies) {
-        queue.addClass(element, importSets.mainSet);
-      }
-
-      void emptyQueue() {
-        while (queue.isNotEmpty) {
-          WorkItem item = queue.nextItem();
-          item.update(this, closedWorld, queue);
-        }
-      }
-
-      emptyQueue();
+      algorithmState = AlgorithmState.create(
+          main, compiler, _elementMap, closedWorld, importSets);
     }
 
     reporter.withCurrentElement(main.library, () => measure(work));
@@ -1014,18 +481,22 @@ class DeferredLoadTask extends CompilerTask {
     Map<MemberEntity, OutputUnit> memberMap = {};
     Map<Local, OutputUnit> localFunctionMap = {};
     Map<ConstantValue, OutputUnit> constantMap = {};
-    _classToSet.forEach((cls, s) => classMap[cls] = s.unit);
-    _classTypeToSet.forEach((cls, s) => classTypeMap[cls] = s.unit);
-    _memberToSet.forEach((member, s) => memberMap[member] = s.unit);
-    _localFunctionToSet.forEach(
-        (localFunction, s) => localFunctionMap[localFunction] = s.unit);
-    _constantToSet.forEach((constant, s) => constantMap[constant] = s.unit);
-
-    _classToSet = null;
-    _classTypeToSet = null;
-    _memberToSet = null;
-    _localFunctionToSet = null;
-    _constantToSet = null;
+    algorithmState?.entityToSet?.forEach((d, s) {
+      if (d is ClassEntityData) {
+        classMap[d.entity] = s.unit;
+      } else if (d is ClassTypeEntityData) {
+        classTypeMap[d.entity] = s.unit;
+      } else if (d is MemberEntityData) {
+        memberMap[d.entity] = s.unit;
+      } else if (d is LocalFunctionEntityData) {
+        localFunctionMap[d.entity] = s.unit;
+      } else if (d is ConstantEntityData) {
+        constantMap[d.entity] = s.unit;
+      } else {
+        throw 'Unrecognized EntityData $d';
+      }
+    });
+    algorithmState = null;
     importSets = null;
     return OutputUnitData(
         this.isProgramSplit && !disableProgramSplit,
@@ -1057,53 +528,52 @@ class DeferredLoadTask extends CompilerTask {
     });
   }
 
-  bool ignoreEntityInDump(Entity element) => false;
-
   /// Creates a textual representation of the output unit content.
   String dump() {
     Map<OutputUnit, List<String>> elementMap = {};
     Map<OutputUnit, List<String>> constantMap = {};
-    _classToSet.forEach((ClassEntity element, ImportSet importSet) {
-      if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
-      var id = element.name ?? '$element';
-      id = '$id cls';
-      elements.add(id);
-    });
-    _classTypeToSet.forEach((ClassEntity element, ImportSet importSet) {
-      if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
-      var id = element.name ?? '$element';
-      id = '$id type';
-      elements.add(id);
-    });
-    _memberToSet.forEach((MemberEntity element, ImportSet importSet) {
-      if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => []);
-      var id = element.name ?? '$element';
-      var cls = element.enclosingClass?.name;
-      if (cls != null) id = '$cls.$id';
-      if (element.isSetter) id = '$id=';
-      id = '$id member';
-      elements.add(id);
-    });
-    _localFunctionToSet.forEach((Local element, ImportSet importSet) {
-      if (ignoreEntityInDump(element)) return;
-      var elements = elementMap.putIfAbsent(importSet.unit, () => []);
-      var id = element.name ?? '$element';
-      var context = (element as dynamic).memberContext.name;
-      id = element.name == null || element.name == '' ? '<anonymous>' : id;
-      id = '$context.$id';
-      id = '$id local';
-      elements.add(id);
-    });
-    _constantToSet.forEach((ConstantValue value, ImportSet importSet) {
-      // Skip primitive values: they are not stored in the constant tables and
-      // if they are shared, they end up duplicated anyways across output units.
-      if (value.isPrimitive) return;
-      constantMap
-          .putIfAbsent(importSet.unit, () => [])
-          .add(value.toStructuredText(dartTypes));
+    algorithmState?.entityToSet?.forEach((d, importSet) {
+      if (d is ClassEntityData) {
+        var element = d.entity;
+        var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+        var id = element.name ?? '$element';
+        id = '$id cls';
+        elements.add(id);
+      } else if (d is ClassTypeEntityData) {
+        var element = d.entity;
+        var elements = elementMap.putIfAbsent(importSet.unit, () => <String>[]);
+        var id = element.name ?? '$element';
+        id = '$id type';
+        elements.add(id);
+      } else if (d is MemberEntityData) {
+        var element = d.entity;
+        var elements = elementMap.putIfAbsent(importSet.unit, () => []);
+        var id = element.name ?? '$element';
+        var cls = element.enclosingClass?.name;
+        if (cls != null) id = '$cls.$id';
+        if (element.isSetter) id = '$id=';
+        id = '$id member';
+        elements.add(id);
+      } else if (d is LocalFunctionEntityData) {
+        var element = d.entity;
+        var elements = elementMap.putIfAbsent(importSet.unit, () => []);
+        var id = element.name ?? '$element';
+        var context = (element as dynamic).memberContext.name;
+        id = element.name == null || element.name == '' ? '<anonymous>' : id;
+        id = '$context.$id';
+        id = '$id local';
+        elements.add(id);
+      } else if (d is ConstantEntityData) {
+        var value = d.entity;
+        // Skip primitive values: they are not stored in the constant tables and
+        // if they are shared, they end up duplicated anyways across output units.
+        if (value.isPrimitive) return;
+        constantMap
+            .putIfAbsent(importSet.unit, () => [])
+            .add(value.toStructuredText(dartTypes));
+      } else {
+        throw 'Unrecognized EntityData $d';
+      }
     });
 
     Map<OutputUnit, String> text = {};

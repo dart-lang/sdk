@@ -110,7 +110,7 @@ deferredTest5() async {
   dynamic shared = lookupLibrary("memory:shared.dart");
   var a = env.lookupClass(shared, "A");
   Expect.equals(
-      "OutputUnit(1, {import(def2: deferred), import(def3: deferred)})",
+      "OutputUnit(4, {import(def2: deferred), import(def3: deferred)})",
       outputUnitForClass(a).toString());
   Expect.equals(
       "OutputUnit(2, {import(def1: deferred), "
