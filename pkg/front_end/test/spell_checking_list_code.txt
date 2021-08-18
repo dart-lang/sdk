@@ -262,6 +262,7 @@ covariances
 coverage
 cr
 creator
+creators
 criterion
 cross
 cruft
@@ -457,6 +458,7 @@ finv
 firsts
 fishy
 fishythefish
+fits
 fixnum
 fleshed
 float32

@@ -33,10 +33,9 @@ String libraryNameToString(Library? node) {
 
 String qualifiedClassNameToString(Class node,
     {bool includeLibraryName: false}) {
-  if (includeLibraryName) {
-    return libraryNameToString(node.enclosingLibrary) +
-        '::' +
-        classNameToString(node);
+  TreeNode? parent = node.parent;
+  if (parent is Library && includeLibraryName) {
+    return libraryNameToString(parent) + '::' + classNameToString(node);
   } else {
     return classNameToString(node);
   }
@@ -90,10 +89,9 @@ String classNameToString(Class? node) {
 
 String qualifiedExtensionNameToString(Extension node,
     {bool includeLibraryName: false}) {
-  if (includeLibraryName) {
-    return libraryNameToString(node.enclosingLibrary) +
-        '::' +
-        extensionNameToString(node);
+  TreeNode? parent = node.parent;
+  if (parent is Library && includeLibraryName) {
+    return libraryNameToString(parent) + '::' + extensionNameToString(node);
   } else {
     return extensionNameToString(node);
   }
@@ -127,10 +125,9 @@ String extensionNameToString(Extension? node) {
 
 String qualifiedTypedefNameToString(Typedef node,
     {bool includeLibraryName: false}) {
-  if (includeLibraryName) {
-    return libraryNameToString(node.enclosingLibrary) +
-        '::' +
-        typedefNameToString(node);
+  TreeNode? parent = node.parent;
+  if (parent is Library && includeLibraryName) {
+    return libraryNameToString(parent) + '::' + typedefNameToString(node);
   } else {
     return typedefNameToString(node);
   }
@@ -164,15 +161,14 @@ String typedefNameToString(Typedef? node) {
 
 String qualifiedMemberNameToString(Member node,
     {bool includeLibraryName: false}) {
-  if (node.enclosingClass != null) {
-    return qualifiedClassNameToString(node.enclosingClass!,
+  TreeNode? parent = node.parent;
+  if (parent is Class) {
+    return qualifiedClassNameToString(parent,
             includeLibraryName: includeLibraryName) +
         '.' +
         memberNameToString(node);
-  } else if (includeLibraryName) {
-    return libraryNameToString(node.enclosingLibrary) +
-        '::' +
-        memberNameToString(node);
+  } else if (parent is Library && includeLibraryName) {
+    return libraryNameToString(parent) + '::' + memberNameToString(node);
   } else {
     return memberNameToString(node);
   }

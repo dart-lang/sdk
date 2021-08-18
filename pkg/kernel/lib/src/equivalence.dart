@@ -950,12 +950,14 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing
+  /// assumption or as defined by their corresponding canonical names.
+  /// Inequivalence is _not_ registered.
   bool matchNamedNodes(NamedNode? a, NamedNode? b) {
     return identical(a, b) ||
         a == null ||
         b == null ||
+        checkAssumedReferences(a.reference, b.reference) ||
         new ReferenceName.fromNamedNode(a) ==
             new ReferenceName.fromNamedNode(b);
   }
@@ -973,10 +975,12 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
     return _checkingState.assumeReferences(a, b);
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing
+  /// assumption or as defined by their corresponding canonical names.
+  /// Inequivalence is _not_ registered.
   bool matchReferences(Reference? a, Reference? b) {
     return identical(a, b) ||
+        checkAssumedReferences(a, b) ||
         ReferenceName.fromReference(a) == ReferenceName.fromReference(b);
   }
 

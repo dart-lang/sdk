@@ -5328,6 +5328,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     interfaceTarget.acceptReference(v);
     name.accept(v);
     arguments.accept(v);
+    functionType?.accept(v);
   }
 
   @override
@@ -5342,6 +5343,9 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
       arguments = v.transform(arguments);
       arguments.parent = this;
     }
+    if (functionType != null) {
+      functionType = v.visitDartType(functionType!) as FunctionType;
+    }
   }
 
   @override
@@ -5355,6 +5359,10 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
     if (arguments != null) {
       arguments = v.transform(arguments);
       arguments.parent = this;
+    }
+    if (functionType != null) {
+      functionType =
+          v.visitDartType(functionType!, cannotRemoveSentinel) as FunctionType;
     }
   }
 
