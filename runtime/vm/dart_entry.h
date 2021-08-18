@@ -291,12 +291,13 @@ class DartLibraryCalls : public AllStatic {
   // Returns the handler if one has been registered for this port id.
   static ObjectPtr LookupHandler(Dart_Port port_id);
 
+  // Returns handler on success, an ErrorPtr on failure, null if can't find
+  // handler for this port id.
+  static ObjectPtr HandleMessage(Dart_Port port_id, const Instance& message);
+
   // Returns a list of open ReceivePorts.
   static ObjectPtr LookupOpenPorts();
 
-  // Returns null on success, an ErrorPtr on failure.
-  static ObjectPtr HandleMessage(const Object& handler,
-                                 const Instance& dart_message);
 
   // Returns null on success, an ErrorPtr on failure.
   static ObjectPtr DrainMicrotaskQueue();

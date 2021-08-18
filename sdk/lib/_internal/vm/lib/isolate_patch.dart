@@ -175,14 +175,19 @@ class _RawReceivePortImpl implements RawReceivePort {
     return _portMap.values.map((e) => e['port']).toList();
   }
 
-  // Called from the VM to dispatch to the handler.
+  // Called from the VM to retrieve  the handler and handle a message.
   @pragma("vm:entry-point", "call")
-  static void _handleMessage(Function handler, var message) {
+  static _handleMessage(int id, var message) {
+    final handler = _portMap[id]?['handler'];
+    if (handler == null) {
+      return null;
+    }
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
     handler(message);
     _runPendingImmediateCallback();
+    return handler;
   }
 
   // Call into the VM to close the VM maintained mappings.

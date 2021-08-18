@@ -55,6 +55,20 @@ const Set<String> _classesWithoutVisitMethods = const {
   'PrimitiveConstant',
 };
 
+/// Names of inner [Node] classes that are used as interfaces for (generally)
+/// interchangeable classes.
+///
+/// For instance, when [Expression] is used as the field type, any subtype of
+/// [Expression] can be used to populate the field.
+const Set<String> _interchangeableClasses = const {
+  'Member',
+  'Statement',
+  'Expression',
+  'Constant',
+  'DartType',
+  'Initializer',
+};
+
 /// Names of subclasses of [NamedNode] that do _not_ have `visitXReference` or
 /// `defaultXReference` methods.
 const Set<String> _classesWithoutVisitReference = const {
@@ -96,8 +110,7 @@ const Map<String /*?*/, Map<String, FieldRule /*?*/ >> _fieldRuleMap = {
     '_proceduresView': null,
     '_proceduresInternal': FieldRule(name: 'procedures'),
     '_redirectingFactoriesView': null,
-    '_redirectingFactoriesInternal':
-        FieldRule(name: 'redirectingFactories'),
+    '_redirectingFactoriesInternal': FieldRule(name: 'redirectingFactories'),
     'lazyBuilder': null,
     'dirty': null,
   },
@@ -264,6 +277,7 @@ class AstClass {
   final Class node;
   AstClassKind _kind;
   final String declarativeName;
+  final bool isInterchangeable;
 
   AstClass superclass;
   List<AstClass> interfaces = [];
@@ -273,8 +287,12 @@ class AstClass {
   List<AstField> fields = [];
 
   AstClass(this.node,
-      {this.superclass, AstClassKind kind, this.declarativeName})
-      : _kind = kind {
+      {this.superclass,
+      AstClassKind kind,
+      this.declarativeName,
+      this.isInterchangeable})
+      : _kind = kind,
+        assert(isInterchangeable != null) {
     if (superclass != null) {
       superclass.subclasses.add(this);
     }
@@ -520,10 +538,13 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
       _classesWithoutVisitReference.toSet();
   Map<String, Map<String, FieldRule>> fieldRuleMap = {..._fieldRuleMap};
   Map<String, FieldRule> nullFieldRules = {...?fieldRuleMap.remove(null)};
+  Set<String> interchangeableClasses = _interchangeableClasses.toSet();
   for (Class cls in astLibrary.classes) {
     declarativeClassesNames.remove(cls.name);
     classesWithoutVisitMethods.remove(cls.name);
     classesWithoutVisitReference.remove(cls.name);
+    interchangeableClasses.remove(cls.name);
+
     Map<String, FieldRule> fieldRules = {...?fieldRuleMap.remove(cls.name)};
     Set<String> renames = {};
     Class parent = cls;
@@ -575,6 +596,10 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
     reportError('Unknown classes without visit reference methods: '
         '${classesWithoutVisitReference}');
   }
+  if (interchangeableClasses.isNotEmpty) {
+    reportError('Unknown interchangeable classes: '
+        '${interchangeableClasses}');
+  }
   if (fieldRuleMap.isNotEmpty) {
     reportError('Unknown classes with field rules: ${fieldRuleMap.keys}');
   }
@@ -615,8 +640,10 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
 
     AstClass astClass = classMap[node];
     if (astClass == null) {
+      bool isInterchangeable = _interchangeableClasses.contains(node.name);
       if (node == classNode) {
-        astClass = new AstClass(node, kind: AstClassKind.root);
+        astClass = new AstClass(node,
+            kind: AstClassKind.root, isInterchangeable: isInterchangeable);
       } else if (classHierarchy.isSubtypeOf(node, classNode)) {
         AstClass superclass = computeAstClass(node.superclass);
         AstClassKind kind;
@@ -631,7 +658,8 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
         astClass = new AstClass(node,
             superclass: superclass,
             kind: kind,
-            declarativeName: declarativeName);
+            declarativeName: declarativeName,
+            isInterchangeable: isInterchangeable);
         for (Supertype supertype in node.implementedTypes) {
           AstClass astSupertype = computeAstClass(supertype.classNode);
           if (astSupertype != null) {
@@ -640,11 +668,15 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
           }
         }
       } else if (node.isEnum || _utilityClassesAsValues.contains(node.name)) {
-        astClass = new AstClass(node, kind: AstClassKind.utilityAsValue);
+        astClass = new AstClass(node,
+            kind: AstClassKind.utilityAsValue,
+            isInterchangeable: isInterchangeable);
       } else {
         AstClass superclass = computeAstClass(node.superclass);
         astClass = new AstClass(node,
-            superclass: superclass, kind: AstClassKind.utilityAsStructure);
+            superclass: superclass,
+            kind: AstClassKind.utilityAsStructure,
+            isInterchangeable: isInterchangeable);
       }
       if (astClass != null) {
         classMap[node] = astClass;

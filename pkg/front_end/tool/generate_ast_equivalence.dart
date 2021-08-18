@@ -21,8 +21,8 @@ main(List<String> args) async {
   new File.fromUri(output).writeAsStringSync(result);
 }
 
-Future<String> generateAstEquivalence(Uri repoDir) async {
-  AstModel astModel = await deriveAstModel(repoDir);
+Future<String> generateAstEquivalence(Uri repoDir, [AstModel astModel]) async {
+  astModel ??= await deriveAstModel(repoDir);
   return generateVisitor(astModel, new EquivalenceVisitorStrategy());
 }
 
@@ -110,7 +110,8 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
       'check${astClass.name}_${field.name}';
 
   @override
-  void handleDefaultVisit(AstClass astClass, StringBuffer sb) {
+  void handleDefaultVisit(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
@@ -387,7 +388,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }
 
   @override
-  void handleVisit(AstClass astClass, StringBuffer sb) {
+  void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     registerAstClassEquivalence(astClass);
     sb.writeln('''
     return strategy.${classCheckName(astClass)}(
@@ -395,13 +396,15 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   }
 
   @override
-  void handleDefaultVisitReference(AstClass astClass, StringBuffer sb) {
+  void handleDefaultVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
 
   @override
-  void handleVisitReference(AstClass astClass, StringBuffer sb) {
+  void handleVisitReference(
+      AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
     return false;''');
   }
@@ -504,12 +507,14 @@ class $visitorName$visitorTypeParameters
     return result;
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing 
+  /// assumption or as defined by their corresponding canonical names. 
+  /// Inequivalence is _not_ registered.
   bool $matchNamedNodes(NamedNode? a, NamedNode? b) {
     return identical(a, b) ||
         a == null ||
         b == null ||
+        checkAssumedReferences(a.reference, b.reference) ||
         new ReferenceName.fromNamedNode(a) ==
             new ReferenceName.fromNamedNode(b);
   }
@@ -527,10 +532,12 @@ class $visitorName$visitorTypeParameters
     return $checkingState.$assumeReferences(a, b);
   }
 
-  /// Returns `true` if [a] and [b] are equivalent, as defined by their
-  /// corresponding canonical names. Inequivalence is _not_ registered.
+  /// Returns `true` if [a] and [b] are equivalent, either by existing
+  /// assumption or as defined by their corresponding canonical names. 
+  /// Inequivalence is _not_ registered.
   bool $matchReferences(Reference? a, Reference? b) {
     return identical(a, b) ||
+        checkAssumedReferences(a, b) ||
         ReferenceName.fromReference(a) ==
             ReferenceName.fromReference(b);
   }
