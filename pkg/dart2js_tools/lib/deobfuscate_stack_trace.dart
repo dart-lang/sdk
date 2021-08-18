@@ -27,7 +27,7 @@ import 'package:dart2js_tools/src/trace_decoder.dart';
 ///  `//# sourceMappingURL=` line at the end, and load the corresponding
 /// source-map file.
 String deobfuscateStackTrace(String obfuscatedTrace) {
-  String error = extractErrorMessage(obfuscatedTrace);
+  String? error = extractErrorMessage(obfuscatedTrace);
   var provider = CachingFileProvider();
   StackDeobfuscationResult result = deobfuscateStack(obfuscatedTrace, provider);
   Frame firstFrame = result.original.frames.first;
@@ -38,13 +38,13 @@ String deobfuscateStackTrace(String obfuscatedTrace) {
 
   var sb = StringBuffer();
   sb.writeln(translatedError);
-  maxMemberLengthHelper(int m, Frame f) => max(f.member.length, m);
+  maxMemberLengthHelper(int m, Frame f) => max(f.member!.length, m);
   int longest = result.deobfuscated.frames.fold(0, maxMemberLengthHelper);
   longest = result.original.frames.fold(longest, maxMemberLengthHelper);
   for (var originalFrame in result.original.frames) {
     var deobfuscatedFrames = result.frameMap[originalFrame];
     if (deobfuscatedFrames == null) {
-      var name = originalFrame.member;
+      var name = originalFrame.member!;
       sb.writeln('    at ${name.padRight(longest)} ${originalFrame.location}');
     } else {
       for (var frame in deobfuscatedFrames) {
@@ -53,7 +53,7 @@ String deobfuscateStackTrace(String obfuscatedTrace) {
         // client, we can start encoding the function name and remove this
         // workaround.
         if (name == '<unknown>') name = originalFrame.member;
-        sb.writeln('    at ${name.padRight(longest)} ${frame.location}');
+        sb.writeln('    at ${name!.padRight(longest)} ${frame.location}');
       }
     }
   }

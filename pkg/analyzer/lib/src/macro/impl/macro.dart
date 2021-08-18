@@ -114,7 +114,7 @@ class MacroGeneratedContent {
       return a.data.id - b.data.id;
     });
 
-    const classMemberCodePrefix = '\n';
+    const classMemberCodePrefix = '\n  ';
     const classMemberCodeSuffix = '\n';
     // TODO(scheglov) make it required?
     var generatedContent = linkingUnit.input.sourceContent!;

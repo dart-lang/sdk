@@ -14,10 +14,10 @@ import 'util.dart';
 
 /// Represents a stack trace line.
 class StackTraceLine {
-  String methodName;
-  String fileName;
-  int lineNo;
-  int columnNo;
+  final String? methodName;
+  final String fileName;
+  final int? lineNo;
+  final int columnNo;
 
   StackTraceLine(this.methodName, this.fileName, this.lineNo, this.columnNo);
 
@@ -31,11 +31,11 @@ class StackTraceLine {
   ///     at <fileName>:<lineNo>
   ///     at <fileName>
   ///
-  factory StackTraceLine.fromText(String text, {Logger logger}) {
+  factory StackTraceLine.fromText(String text, {Logger? logger}) {
     text = text.trim();
     assert(text.startsWith('at '));
     text = text.substring('at '.length);
-    String methodName;
+    String? methodName;
     int endParen = text.indexOf(')');
     if (endParen > 0) {
       int nameEnd = text.indexOf('(');
@@ -46,16 +46,16 @@ class StackTraceLine {
         logger?.log('Missing left-paren in: $text');
       }
     }
-    int lineNo;
-    int columnNo;
+    int? lineNo;
+    int? columnNo;
     String fileName;
     int lastColon = text.lastIndexOf(':');
     if (lastColon != -1) {
-      int lastValue = int.tryParse(text.substring(lastColon + 1));
+      int? lastValue = int.tryParse(text.substring(lastColon + 1));
       if (lastValue != null) {
         int secondToLastColon = text.lastIndexOf(':', lastColon - 1);
         if (secondToLastColon != -1) {
-          int secondToLastValue =
+          int? secondToLastValue =
               int.tryParse(text.substring(secondToLastColon + 1, lastColon));
           if (secondToLastValue != null) {
             lineNo = secondToLastValue;
@@ -84,14 +84,14 @@ class StackTraceLine {
     if (methodName != null) {
       sb.write(methodName);
       sb.write(' (');
-      sb.write(fileName ?? '?');
+      sb.write(fileName);
       sb.write(':');
       sb.write(lineNo);
       sb.write(':');
       sb.write(columnNo);
       sb.write(')');
     } else {
-      sb.write(fileName ?? '?');
+      sb.write(fileName);
       sb.write(':');
       sb.write(lineNo);
       sb.write(':');
@@ -103,27 +103,27 @@ class StackTraceLine {
   String get inlineString {
     StringBuffer sb = new StringBuffer();
     var padding = 20;
-    if (methodName != null) {
-      sb.write(methodName);
-      padding -= (methodName.length);
+    var lineMethodName = methodName;
+    if (lineMethodName != null) {
+      sb.write(lineMethodName);
+      padding -= (lineMethodName.length);
       if (padding <= 0) {
         sb.write('\n');
         padding = 20;
       }
     }
     sb.write(' ' * padding);
-    if (fileName != null) {
-      sb.write(p.url.basename(fileName));
-      sb.write(' ');
-      sb.write(lineNo);
-      sb.write(':');
-      sb.write(columnNo);
-    }
+    sb.write(p.url.basename(fileName));
+    sb.write(' ');
+    sb.write(lineNo);
+    sb.write(':');
+    sb.write(columnNo);
+
     return sb.toString();
   }
 }
 
-List<StackTraceLine> parseStackTrace(String trace, {Logger logger}) {
+List<StackTraceLine> parseStackTrace(String trace, {Logger? logger}) {
   List<String> lines = trace.split(new RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
   for (String line in lines) {
@@ -138,7 +138,7 @@ List<StackTraceLine> parseStackTrace(String trace, {Logger logger}) {
 /// Returns the portion of the output that corresponds to the error message.
 ///
 /// Note: some errors can span multiple lines.
-String extractErrorMessage(String trace) {
+String? extractErrorMessage(String trace) {
   var firstStackFrame = trace.indexOf(new RegExp('\n +at'));
   if (firstStackFrame == -1) return null;
   var errorMarker = trace.indexOf('^') + 1;

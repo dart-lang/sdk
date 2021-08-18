@@ -669,7 +669,7 @@ class InformativeDataApplier {
   ) {
     var macroGenerationDataList = unitElement.macroGenerationDataList;
     if (macroGenerationDataList != null) {
-      const classMemberCodePrefix = '\n';
+      const classMemberCodePrefix = '\n  ';
       const classMemberCodeSuffix = '\n';
       var generatedContent = unitInfoData.content;
       var shift = 0;

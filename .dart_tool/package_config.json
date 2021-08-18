@@ -220,7 +220,7 @@
       "name": "dart2js_tools",
       "rootUri": "../pkg/dart2js_tools",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.12"
     },
     {
       "name": "dart2native",

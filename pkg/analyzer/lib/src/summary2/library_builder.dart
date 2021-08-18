@@ -248,6 +248,12 @@ class LibraryBuilder {
               classBuilder,
             );
           }
+          if (hasMacroAnnotation(declaration, 'dataClass')) {
+            macro.DataClassMacro().visitClassDeclaration(
+              declaration,
+              classBuilder,
+            );
+          }
           if (hasMacroAnnotation(declaration, 'hashCode')) {
             macro.HashCodeMacro().visitClassDeclaration(
               declaration,
