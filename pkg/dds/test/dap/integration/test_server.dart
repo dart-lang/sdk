@@ -53,7 +53,6 @@ class InProcessDapTestServer extends DapTestServer {
   }) async {
     return InProcessDapTestServer._([
       ...?additionalArgs,
-      if (logger != null) '--verbose',
     ]);
   }
 }
@@ -107,12 +106,7 @@ class OutOfProcessDapTestServer extends DapTestServer {
 
     final _process = await Process.start(
       Platform.resolvedExecutable,
-      [
-        dapServerScript,
-        'dap',
-        ...?additionalArgs,
-        if (logger != null) '--verbose'
-      ],
+      [dapServerScript, 'dap', ...?additionalArgs],
     );
 
     return OutOfProcessDapTestServer._(_process, logger);

@@ -176,6 +176,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
 
+  late final sendLogsToClient = args.sendLogsToClient ?? false;
+
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
@@ -305,8 +307,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
     logger?.call('Connecting to debugger at $uri');
     sendOutput('console', 'Connecting to VM Service at $uri\n');
-    final vmService =
-        await _vmServiceConnectUri(uri.toString(), logger: logger);
+    final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
     // TODO(dantup): VS Code currently depends on a custom dart.debuggerUris
@@ -1313,6 +1314,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     }
   }
 
+  void _logTraffic(String data) {
+    logger?.call(data);
+    if (sendLogsToClient) {
+      sendEvent(RawEventBody(data), eventType: 'dart.log');
+    }
+  }
+
   /// Performs some setup that is common to both [launchRequest] and
   /// [attachRequest].
   Future<void> _prepareForLaunchOrAttach() async {
@@ -1352,17 +1360,15 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
   /// A wrapper around the same name function from package:vm_service that
   /// allows logging all traffic over the VM Service.
-  Future<vm.VmService> _vmServiceConnectUri(
-    String wsUri, {
-    Logger? logger,
-  }) async {
+  Future<vm.VmService> _vmServiceConnectUri(String wsUri) async {
     final socket = await WebSocket.connect(wsUri);
     final controller = StreamController();
     final streamClosedCompleter = Completer();
+    final logger = this.logger;
 
     socket.listen(
       (data) {
-        logger?.call('<== [VM] $data');
+        _logTraffic('<== [VM] $data');
         controller.add(data);
       },
       onDone: () => streamClosedCompleter.complete(),
@@ -1372,6 +1378,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       controller.stream,
       (String message) {
         logger?.call('==> [VM] $message');
+        _logTraffic('==> [VM] $message');
         socket.add(message);
       },
       log: logger != null ? VmServiceLogger(logger) : null,

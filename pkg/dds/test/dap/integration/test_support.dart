@@ -23,6 +23,13 @@ import 'test_server.dart';
 /// simplified in VS Code by using a launch config with custom CodeLens links).
 final useInProcessDap = Platform.environment['DAP_TEST_INTERNAL'] == 'true';
 
+/// Whether to print all protocol traffic to stdout while running tests.
+///
+/// This is useful for debugging locally or on the bots and will include both
+/// DAP traffic (between the test DAP client and the DAP server) and the VM
+/// Service traffic (wrapped in a custom 'dart.log' event).
+final verboseLogging = Platform.environment['DAP_TEST_VERBOSE'] == 'true';
+
 /// A [RegExp] that matches the `path` part of a VM Service URI that contains
 /// an authentication token.
 final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
@@ -141,8 +148,11 @@ foo() {
 
   static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {
     final server = await _startServer(additionalArgs: additionalArgs);
-    final client =
-        await DapTestClient.connect(server, captureVmServiceTraffic: true);
+    final client = await DapTestClient.connect(
+      server,
+      captureVmServiceTraffic: verboseLogging,
+      logger: verboseLogging ? print : null,
+    );
     return DapTestSession._(server, client);
   }
 
