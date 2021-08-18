@@ -7,7 +7,7 @@
 import 'dart:isolate';
 
 import 'json_benchmark.dart';
-import '../../EventLoopLatencyJson/dart2/latency.dart';
+import 'latency.dart';
 
 main() async {
   final exitPort = ReceivePort();
