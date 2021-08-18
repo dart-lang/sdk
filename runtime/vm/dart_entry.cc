@@ -727,7 +727,7 @@ ObjectPtr DartLibraryCalls::LookupOpenPorts() {
   return result.ptr();
 }
 
-ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
+ObjectPtr DartLibraryCalls::HandleMessage(Dart_Port port_id,
                                           const Instance& message) {
   auto thread = Thread::Current();
   auto zone = thread->zone();
@@ -743,7 +743,7 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
     args = Array::New(kNumArguments);
     isolate->isolate_object_store()->set_dart_args_2(args);
   }
-  args.SetAt(0, handler);
+  args.SetAt(0, Integer::Handle(zone, Integer::New(port_id)));
   args.SetAt(1, message);
 #if !defined(PRODUCT)
   if (isolate->debugger()->IsStepping()) {
@@ -753,10 +753,9 @@ ObjectPtr DartLibraryCalls::HandleMessage(const Object& handler,
     isolate->debugger()->SetResumeAction(Debugger::kStepInto);
   }
 #endif
-  const Object& result =
+  const Object& handler =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
-  ASSERT(result.IsNull() || result.IsError());
-  return result.ptr();
+  return handler.ptr();
 }
 
 ObjectPtr DartLibraryCalls::DrainMicrotaskQueue() {

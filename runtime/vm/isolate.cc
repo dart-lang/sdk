@@ -1307,26 +1307,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   tbes.CopyArgument(0, "isolateName", I->name());
 #endif
 
-  // If the message is in band we lookup the handler to dispatch to.  If the
-  // receive port was closed, we drop the message without deserializing it.
-  // Illegal port is a special case for artificially enqueued isolate library
-  // messages which are handled in C++ code below.
-  Object& msg_handler = Object::Handle(zone);
-  if (!message->IsOOB() && (message->dest_port() != Message::kIllegalPort)) {
-    msg_handler = DartLibraryCalls::LookupHandler(message->dest_port());
-    if (msg_handler.IsError()) {
-      return ProcessUnhandledException(Error::Cast(msg_handler));
-    }
-    if (msg_handler.IsNull()) {
-      // If the port has been closed then the message will be dropped at this
-      // point. Make sure to post to the delivery failure port in that case.
-      if (message->RedirectToDeliveryFailurePort()) {
-        PortMap::PostMessage(std::move(message));
-      }
-      return kOK;
-    }
-  }
-
   // Parse the message.
   Object& msg_obj = Object::Handle(zone, ReadMessage(thread, message.get()));
   if (msg_obj.IsError()) {
@@ -1414,12 +1394,18 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       tbes.CopyArgument(1, "mode", "basic");
     }
 #endif
-    const Object& result =
-        Object::Handle(zone, DartLibraryCalls::HandleMessage(msg_handler, msg));
-    if (result.IsError()) {
-      status = ProcessUnhandledException(Error::Cast(result));
+    const Object& msg_handler = Object::Handle(
+        zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
+    if (msg_handler.IsError()) {
+      status = ProcessUnhandledException(Error::Cast(msg_handler));
+    } else if (msg_handler.IsNull()) {
+      // If the port has been closed then the message will be dropped at this
+      // point. Make sure to post to the delivery failure port in that case.
+      if (message->RedirectToDeliveryFailurePort()) {
+        PortMap::PostMessage(std::move(message));
+      }
     } else {
-      ASSERT(result.IsNull());
+      // The handler closure which was used to successfully handle the message.
     }
   }
   return status;
