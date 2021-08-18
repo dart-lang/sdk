@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final String gitignore = '''
+import '../sdk.dart';
+
+String get sdkConstraint => '''
+  sdk: '>=${sdk.version} <3.0.0'
+''';
+
+const String gitignore = '''
 # Files and directories created by pub.
 .dart_tool/
 .packages
@@ -11,7 +17,7 @@ final String gitignore = '''
 build/
 ''';
 
-final String analysisOptions = '''
+const String analysisOptions = '''
 # This file configures the static analysis results for your project (errors,
 # warnings, and lints).
 #
@@ -44,7 +50,7 @@ include: package:lints/recommended.yaml
 # https://dart.dev/guides/language/analysis-options
 ''';
 
-final String changelog = '''
+const String changelog = '''
 ## 1.0.0
 
 - Initial version.

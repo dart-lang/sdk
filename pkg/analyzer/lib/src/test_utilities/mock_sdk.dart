@@ -521,6 +521,10 @@ class Object {
 
   external String toString();
   external dynamic noSuchMethod(Invocation invocation);
+
+  static int hash(Object? object1, Object? object2) => 0;
+  static int hashAll(Iterable<Object?> objects) => 0;
+  static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
 abstract class Enum {

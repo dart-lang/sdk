@@ -422,7 +422,7 @@ class MethodInvocationResolver {
     var target = objectElement.getMethod(nameNode.name);
 
     var hasMatchingObjectMethod = false;
-    if (target is MethodElement) {
+    if (target is MethodElement && !target.isStatic) {
       var arguments = node.argumentList.arguments;
       hasMatchingObjectMethod = arguments.length == target.parameters.length &&
           !arguments.any((e) => e is NamedExpression);
