@@ -3206,7 +3206,7 @@ abstract class NamedExpression implements Expression {
 abstract class NamedType implements TypeAnnotation {
   /// Return `true` if this type is a deferred type.
   ///
-  /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
+  /// 15.1 Static Types: A type <i>T</i> is deferred if it is of the form
   /// </i>p.T</i> where <i>p</i> is a deferred prefix.
   bool get isDeferred;
 
@@ -3466,7 +3466,7 @@ abstract class PrefixedIdentifier implements Identifier {
   /// Return `true` if this type is a deferred type. If the AST structure has
   /// not been resolved, then return `false`.
   ///
-  /// 15.1 Static Types: A type <i>T</i> is deferred iff it is of the form
+  /// 15.1 Static Types: A type <i>T</i> is deferred if it is of the form
   /// </i>p.T</i> where <i>p</i> is a deferred prefix.
   bool get isDeferred;
 
