@@ -231,15 +231,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (root is CompoundAssignmentExpression) {
-      // Not guaranteed to be promoted by "is" since in older analyzers,
-      // CompoundAssignmentExpression didn't implement Expression (so the
-      // promotion would lose capabilities).  TODO(paulberry): in the future,
-      // when we depend on a version of the analyzer in which
-      // CompoundAssignmentExpression is guaranteed to implement Expression,
-      // remove the cast.
-      var rootAsAssignment =
-          root as CompoundAssignmentExpression; // ignore: unnecessary_cast
-      if (rootAsAssignment.readType?.isDynamic ?? false) {
+      if (root.readType?.isDynamic ?? false) {
         // An assignment expression can only be a dynamic call if it is a
         // "compound assignment" (i.e. such as `x += 1`); so if `readType` is
         // dynamic we should lint.
