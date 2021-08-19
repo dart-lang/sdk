@@ -23,7 +23,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidInitializer,
         messageInvalidSuperInInitializer,
         messageInvalidThisInInitializer,
-        messageMetadataTypeArguments,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
@@ -1867,8 +1866,15 @@ class AstBuilder extends StackListener {
     var typeArguments = pop() as TypeArgumentList?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
-      handleRecoverableError(messageMetadataTypeArguments,
-          typeArguments.beginToken, typeArguments.beginToken);
+      var feature = Feature.generic_metadata;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(feature.releaseVersion!),
+        ),
+        typeArguments.beginToken,
+        typeArguments.beginToken,
+      );
     }
     var name = pop() as Identifier;
     push(ast.annotation(
