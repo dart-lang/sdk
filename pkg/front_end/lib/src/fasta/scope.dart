@@ -343,7 +343,7 @@ class Scope extends MutableScope {
         isModifiable: true);
   }
 
-  void recordUse(String name, int charOffset, Uri fileUri) {
+  void recordUse(String name, int charOffset) {
     if (isModifiable) {
       usedNames ??= <String, int>{};
       // Don't use putIfAbsent to avoid the context allocation needed
@@ -371,7 +371,7 @@ class Scope extends MutableScope {
 
   Builder? lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
-    recordUse(name, charOffset, fileUri);
+    recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _local, isInstanceScope);
     if (builder != null) return builder;
@@ -388,7 +388,7 @@ class Scope extends MutableScope {
 
   Builder? lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
-    recordUse(name, charOffset, fileUri);
+    recordUse(name, charOffset);
     Builder? builder =
         lookupIn(name, charOffset, fileUri, _setters, isInstanceScope);
     if (builder != null) return builder;
