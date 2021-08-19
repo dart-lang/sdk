@@ -30,7 +30,7 @@ typedef Comparator<T> = int Function(T a, T b);
 /// and to provide separate [Comparator]s instead.
 ///
 /// It is recommended that the order of a [Comparable] agrees
-/// with its operator [operator ==] equality (`a.compareTo(b) == 0` iff `a == b`),
+/// with its operator [operator ==] equality (`a.compareTo(b) == 0` if `a == b`),
 /// but this is not a requirement.
 /// For example, [double] and [DateTime] have `compareTo` methods
 /// that do not agree with operator [operator ==].
