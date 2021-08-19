@@ -1,5 +1,5 @@
 // @dart = 2.9
 class C {
-  C< >(){}
+  C< >;
 }
 main() {}

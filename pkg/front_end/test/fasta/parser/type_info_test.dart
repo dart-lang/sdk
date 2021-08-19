@@ -67,6 +67,7 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C*', required: false);
     expectInfo(noType, 'C do', required: false);
 
+    expectInfo(noType, 'C.a', required: false);
     expectInfo(noType, 'C.a;', required: false);
     expectInfo(noType, 'C.a(', required: false);
     expectInfo(noType, 'C.a<', required: false);
@@ -74,6 +75,7 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C.a*', required: false);
     expectInfo(noType, 'C.a do', required: false);
 
+    expectInfo(noType, 'C<T>', required: false);
     expectInfo(noType, 'C<T>;', required: false);
     expectInfo(noType, 'C<T>(', required: false);
     expectInfo(noType, 'C<T> do', required: false);
@@ -96,6 +98,7 @@ class NoTypeInfoTest {
     expectInfo(noType, 'C<T>>= operator', required: false);
     expectInfo(noType, 'C<T>>= Function', required: false);
 
+    expectInfo(noType, 'C.a<T>', required: false);
     expectInfo(noType, 'C<S,T>=', required: false);
     expectInfo(noType, 'C<S<T>>=', required: false);
     expectInfo(noType, 'C.a<T>=', required: false);
@@ -231,7 +234,7 @@ class VoidTypeInfoTest {
 @reflectiveTest
 class PrefixedTypeInfoTest {
   void test_compute() {
-    expectInfo(prefixedType, 'C.a', required: null /* i.e. both */);
+    expectInfo(prefixedType, 'C.a', required: true);
     expectInfo(prefixedType, 'C.a;', required: true);
     expectInfo(prefixedType, 'C.a(', required: true);
     expectInfo(prefixedType, 'C.a<', required: true);
@@ -462,7 +465,7 @@ class SimpleTypeTest {
 @reflectiveTest
 class SimpleTypeWith1ArgumentTest {
   void test_compute_gt() {
-    expectInfo(simpleTypeWith1Argument, 'C<T>', required: null /* i.e. both */);
+    expectInfo(simpleTypeWith1Argument, 'C<T>', required: true);
     expectInfo(simpleTypeWith1Argument, 'C<T>;', required: true);
     expectInfo(simpleTypeWith1Argument, 'C<T>(', required: true);
     expectInfo(simpleTypeWith1Argument, 'C<T> do', required: true);
@@ -1340,7 +1343,7 @@ class TypeInfoTest {
   }
 
   void test_computeType_prefixedTypeArg() {
-    expectComplexInfo('C.a<T>', required: null /* i.e. both */, expectedCalls: [
+    expectComplexInfo('C.a<T>', required: true, expectedCalls: [
       'handleIdentifier C prefixedTypeReference',
       'handleIdentifier a typeReferenceContinuation',
       'handleQualified .',
