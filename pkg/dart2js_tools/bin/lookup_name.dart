@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:source_maps/source_maps.dart';
 import 'package:dart2js_tools/src/dart2js_mapping.dart';
-import 'package:dart2js_tools/src/util.dart';
 
 main(List<String> args) {
   if (args.length < 2) {
@@ -17,7 +16,7 @@ main(List<String> args) {
     exit(1);
   }
   var json = jsonDecode(sourcemapFile.readAsStringSync());
-  Dart2jsMapping mapping = Dart2jsMapping(parseSingleMapping(json), json);
+  Dart2jsMapping mapping = Dart2jsMapping(parseJson(json), json);
   var global = mapping.globalNames[name];
   if (global != null) print('$name => $global (a global name)');
   var instance = mapping.instanceNames[name];

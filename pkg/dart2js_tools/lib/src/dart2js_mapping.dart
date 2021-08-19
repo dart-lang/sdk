@@ -23,9 +23,15 @@ class Dart2jsMapping {
   final Map<String, String> globalNames = {};
   final Map<String, String> instanceNames = {};
   final Map<int, List<FrameEntry>> frames = {};
-  late final List<int>? frameIndex = frames.keys.toList()..sort();
+  List<int> _frameIndex;
+  List<int> get frameIndex {
+    if (_frameIndex == null) {
+      _frameIndex = frames.keys.toList()..sort();
+    }
+    return _frameIndex;
+  }
 
-  Dart2jsMapping(this.sourceMap, Map json, {Logger? logger}) {
+  Dart2jsMapping(this.sourceMap, Map json, {Logger logger}) {
     var extensions = json['x_org_dartlang_dart2js'];
     if (extensions == null) return;
     var minifiedNames = extensions['minified_names'];
@@ -35,20 +41,20 @@ class Dart2jsMapping {
       _extractMinifedNames(
           minifiedNames['instance'], sourceMap, instanceNames, logger);
     }
-    String? jsonFrames = extensions['frames'];
+    String jsonFrames = extensions['frames'];
     if (jsonFrames != null) {
       new _FrameDecoder(jsonFrames).parseFrames(frames, sourceMap);
     }
   }
 
-  Dart2jsMapping.json(Map json) : this(parseSingleMapping(json), json);
+  Dart2jsMapping.json(Map json) : this(parseJson(json), json);
 }
 
 class FrameEntry {
-  final String? callUri;
-  final int? callLine;
-  final int? callColumn;
-  final String? inlinedMethodName;
+  final String callUri;
+  final int callLine;
+  final int callColumn;
+  final String inlinedMethodName;
   final bool isEmpty;
   FrameEntry.push(
       this.callUri, this.callLine, this.callColumn, this.inlinedMethodName)
@@ -70,7 +76,7 @@ class FrameEntry {
 }
 
 const _marker = "\n//# sourceMappingURL=";
-Dart2jsMapping? parseMappingFor(Uri uri, {Logger? logger}) {
+Dart2jsMapping parseMappingFor(Uri uri, {Logger logger}) {
   var file = new File.fromUri(uri);
   if (!file.existsSync()) {
     logger?.log('Error: no such file: $uri');
@@ -94,7 +100,7 @@ Dart2jsMapping? parseMappingFor(Uri uri, {Logger? logger}) {
     return null;
   }
   var json = jsonDecode(sourcemapFile.readAsStringSync());
-  return new Dart2jsMapping(parseSingleMapping(json), json, logger: logger);
+  return new Dart2jsMapping(parseJson(json), json, logger: logger);
 }
 
 class _FrameDecoder implements Iterator<String> {
@@ -106,9 +112,8 @@ class _FrameDecoder implements Iterator<String> {
   // Iterator API is used by decodeVlq to consume VLQ entries.
   bool moveNext() => ++index < _length;
 
-  String get current => (index >= 0 && index < _length)
-      ? _internal[index]
-      : throw StateError('No current value available.');
+  String get current =>
+      (index >= 0 && index < _length) ? _internal[index] : null;
 
   bool get hasTokens => index < _length - 1 && _length > 0;
 
@@ -146,7 +151,7 @@ class _FrameDecoder implements Iterator<String> {
 }
 
 _extractMinifedNames(String encodedInput, SingleMapping sourceMap,
-    Map<String, String> minifiedNames, Logger? logger) {
+    Map<String, String> minifiedNames, Logger logger) {
   if (encodedInput.isEmpty) return;
   List<String> input = encodedInput.split(',');
   if (input.length % 2 != 0) {
@@ -154,7 +159,7 @@ _extractMinifedNames(String encodedInput, SingleMapping sourceMap,
   }
   for (int i = 0; i < input.length; i += 2) {
     String minifiedName = input[i];
-    int id = int.tryParse(input[i + 1])!;
+    int id = int.tryParse(input[i + 1]);
     minifiedNames[minifiedName] = sourceMap.names[id];
   }
 }

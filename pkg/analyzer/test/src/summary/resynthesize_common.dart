@@ -100,6 +100,11 @@ class FeatureSets {
     sdkLanguageVersion: Version.parse('2.13.0'),
     flags: [EnableString.generic_metadata],
   );
+
+  static final FeatureSet constructorTearOffs = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.15.0'),
+    flags: [EnableString.constructor_tearoffs],
+  );
 }
 
 /// Mixin containing test cases exercising summary resynthesis.  Intended to be
@@ -6304,6 +6309,48 @@ library
     var yExpr = y.constantInitializer as InstanceCreationExpression;
     var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
+  }
+
+  test_const_constructorReference() async {
+    featureSet = FeatureSets.constructorTearOffs;
+    var library = await checkLibrary(r'''
+class A {
+  A.named();
+}
+const v = A.named;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          named @14
+            periodOffset: 13
+            nameEnd: 19
+    topLevelVariables
+      static const v @31
+        type: A Function()
+        constantInitializer
+          ConstructorReference
+            constructorName: ConstructorName
+              name: SimpleIdentifier
+                staticElement: self::@class::A::@constructor::named
+                staticType: null
+                token: named @37
+              period: . @36
+              staticElement: self::@class::A::@constructor::named
+              type: TypeName
+                name: SimpleIdentifier
+                  staticElement: self::@class::A
+                  staticType: null
+                  token: A @35
+                type: A
+            staticType: A Function()
+    accessors
+      synthetic static get v @-1
+        returnType: A Function()
+''');
   }
 
   test_const_finalField_hasConstConstructor() async {

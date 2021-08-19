@@ -59,6 +59,8 @@ class AstBinaryReader {
         return _readConstructorFieldInitializer();
       case Tag.ConstructorName:
         return _readConstructorName();
+      case Tag.ConstructorReference:
+        return _readConstructorReference();
       case Tag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
       case Tag.DefaultFormalParameter:
@@ -334,6 +336,15 @@ class AstBinaryReader {
       name,
     );
     node.staticElement = _reader.readElement() as ConstructorElement?;
+    return node;
+  }
+
+  ConstructorReference _readConstructorReference() {
+    var constructorName = readNode() as ConstructorName;
+    var node = astFactory.constructorReference(
+      constructorName: constructorName,
+    );
+    _readExpressionResolution(node);
     return node;
   }
 

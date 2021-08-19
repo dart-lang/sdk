@@ -860,6 +860,7 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         function: super.clone(node.function),
         fileUri: node.fileUri,
         reference: reference)
+      ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[];
