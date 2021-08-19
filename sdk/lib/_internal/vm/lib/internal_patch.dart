@@ -176,19 +176,6 @@ void _nativeEffect(Object object) native "Internal_nativeEffect";
 void sendAndExit(SendPort sendPort, var message)
     native "SendPortImpl_sendAndExitInternal_";
 
-void spawnFunction(
-    SendPort readyPort,
-    String uri,
-    Function topLevelFunction,
-    var message,
-    bool paused,
-    bool errorsAreFatal,
-    SendPort? onExit,
-    SendPort? onError,
-    String? packageConfig,
-    bool newIsolateGroup,
-    String? debugName) native "Isolate_spawnFunction";
-
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {
   // This function can be used by tests to enforce garbage collection.
