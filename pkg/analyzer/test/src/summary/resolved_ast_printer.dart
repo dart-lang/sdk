@@ -693,6 +693,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _writeln('FunctionReference');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('function', node.function);
+      properties.addNode('typeArguments', node.typeArguments);
+      properties.addTypeList('typeArgumentTypes', node.typeArgumentTypes!);
+      _addExpression(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _writeNextCodeLine(node);
     _writeln('FunctionTypeAlias');

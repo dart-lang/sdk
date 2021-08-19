@@ -313,6 +313,15 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionReference(FunctionReference node) {
+    _writeByte(Tag.FunctionReference);
+    _writeNode(node.function);
+    _writeOptionalNode(node.typeArguments);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _storeExpression(node);
+  }
+
+  @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _writeByte(Tag.FunctionTypedFormalParameter);
 

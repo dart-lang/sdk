@@ -6380,6 +6380,51 @@ library
 ''');
   }
 
+  test_const_functionReference() async {
+    featureSet = FeatureSets.constructorTearOffs;
+    var library = await checkLibrary(r'''
+void f<T>(T a) {}
+const v = f<int>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @24
+        type: void Function(int)
+        constantInitializer
+          FunctionReference
+            function: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: void Function<T>(T)
+              token: f @28
+            staticType: void Function(int)
+            typeArgumentTypes
+              int
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @30
+                  type: int
+              leftBracket: < @29
+              rightBracket: > @33
+    accessors
+      synthetic static get v @-1
+        returnType: void Function(int)
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
+''');
+  }
+
   test_const_indexExpression() async {
     var library = await checkLibrary(r'''
 const a = [0];
