@@ -714,6 +714,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _writeByte(Tag.TypeLiteral);
+    _writeNode(node.typeName);
+    _storeExpression(node);
+  }
+
+  @override
   void visitTypeName(TypeName node) {
     _writeByte(Tag.TypeName);
 

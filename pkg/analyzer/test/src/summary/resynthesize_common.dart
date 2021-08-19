@@ -11803,6 +11803,42 @@ library
 ''');
   }
 
+  test_const_typeLiteral() async {
+    featureSet = FeatureSets.constructorTearOffs;
+    var library = await checkLibrary(r'''
+const v = List<int>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @6
+        type: Type
+        constantInitializer
+          TypeLiteral
+            staticType: Type
+            typeName: TypeName
+              name: SimpleIdentifier
+                staticElement: dart:core::@class::List
+                staticType: List<int>
+                token: List @10
+              type: List<int>
+              typeArguments: TypeArgumentList
+                arguments
+                  TypeName
+                    name: SimpleIdentifier
+                      staticElement: dart:core::@class::int
+                      staticType: null
+                      token: int @15
+                    type: int
+                leftBracket: < @14
+                rightBracket: > @18
+    accessors
+      synthetic static get v @-1
+        returnType: Type
+''');
+  }
+
   test_constExpr_pushReference_enum_field() async {
     var library = await checkLibrary('''
 enum E {a, b, c}

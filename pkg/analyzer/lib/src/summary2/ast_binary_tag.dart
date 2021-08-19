@@ -91,6 +91,7 @@ class Tag {
   static const int ThisExpression = 70;
   static const int ThrowExpression = 81;
   static const int TypeArgumentList = 38;
+  static const int TypeLiteral = 102;
   static const int TypeName = 39;
   static const int TypeParameter = 40;
   static const int TypeParameterList = 41;
