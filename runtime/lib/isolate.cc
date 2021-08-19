@@ -107,6 +107,9 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
+  // We have to check whether the reciever has the same isolate group (e.g.
+  // native message handlers such as an IOService handler does not but does
+  // share the same origin port).
   const bool same_group =
       FLAG_enable_isolate_groups && PortMap::IsReceiverInThisIsolateGroup(
                                         destination_port_id, isolate->group());
@@ -840,7 +843,7 @@ static const char* String2UTF8(const String& str) {
   return result;
 }
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(2));
@@ -850,8 +853,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
   GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(7));
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(Bool, newIsolateGroup, arguments->NativeArgAt(9));
-  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(9));
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
@@ -868,15 +870,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
-      const bool in_new_isolate_group = newIsolateGroup.value();
 
       // We first try to serialize the message.  In case the message is not
       // serializable this will throw an exception.
       SerializedObjectBuffer message_buffer;
       message_buffer.set_message(WriteMessage(
           /* can_send_any_object */ true,
-          /* same_group */ FLAG_enable_isolate_groups && !in_new_isolate_group,
-          message, ILLEGAL_PORT, Message::kNormalPriority));
+          /* same_group */ FLAG_enable_isolate_groups, message, ILLEGAL_PORT,
+          Message::kNormalPriority));
 
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
@@ -886,8 +887,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name,
-          in_new_isolate_group ? nullptr : isolate->group()));
+          on_exit_port, on_error_port, utf8_debug_name, isolate->group()));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
