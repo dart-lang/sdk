@@ -20453,35 +20453,35 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return false;
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
-  const bool other_is_dart_function_type = other.IsDartFunctionType();
-  if (other_is_dart_function_type || other.IsFunctionType()) {
-    if (IsFunctionType()) {
+  if (other.IsDartFunctionType()) {
+    // Any type that can be the type of a closure is a subtype of Function.
+    if (IsDartFunctionType() || IsDartClosureType() || IsFunctionType()) {
+      if (isolate_group->use_strict_null_safety_checks() && IsNullable()) {
+        return !other.IsNonNullable();
+      }
+      return true;
+    }
+    // Fall through.
+  }
+  if (IsFunctionType()) {
+    if (other.IsFunctionType()) {
+      // Check for two function types.
       if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
           other.IsNonNullable()) {
         return false;
       }
-      if (other_is_dart_function_type) {
-        return true;
-      }
-      // Check for two function types.
       return FunctionType::Cast(*this).IsSubtypeOf(FunctionType::Cast(other),
                                                    space);
     }
-    if (other.IsFunctionType()) {
-      // [this] is not a function type. Therefore, non-function type [this]
-      // cannot be a subtype of function type [other].
-      // This check is needed to avoid falling through to class-based type
-      // tests, which yield incorrect result if [this] = _Closure class,
-      // and [other] is a function type, because class of a function type is
-      // also _Closure.
-      return false;
-    }
-  }
-  if (IsFunctionType()) {
     // Apply additional subtyping rules if 'other' is 'FutureOr'.
     if (IsSubtypeOfFutureOr(zone, other, space, trail)) {
       return true;
     }
+    // All possible supertypes for FunctionType have been checked.
+    return false;
+  } else if (other.IsFunctionType()) {
+    // FunctionTypes can only be subtyped by other FunctionTypes, so don't
+    // fall through to class-based type tests.
     return false;
   }
   const Class& type_cls = Class::Handle(zone, type_class());

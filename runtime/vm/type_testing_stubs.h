@@ -83,10 +83,16 @@ class TypeTestingStubGenerator {
       const Type& type,
       const Class& type_class);
 
-  // Falls through or jumps to load_succeeded if load succeeds, otherwise jumps
-  // to load_failed. Returns from the stub for checked cid ranges which do not
-  // require checking the instance type arguments. Returns whether any cid
-  // ranges require type argument checking.
+  // Returns whether any cid ranges require type argument checking.
+  //
+  // If any do, then returns from the stub if any checks that do not need
+  // type argument checking succeed, falls through or jumps to load_succeeded if
+  // loading the type arguments succeeds, and otherwise jumps to load_failed.
+  // That is, code that uses the type arguments should follow immediately.
+  //
+  // If none do, then falls through or jumps to load_failed if the checks fail,
+  // else returns from the stub if the checks are successful. That is, code
+  // that handles the failure case (like calling the slow stub) should follow.
   static bool BuildLoadInstanceTypeArguments(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,

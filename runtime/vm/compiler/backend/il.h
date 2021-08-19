@@ -286,7 +286,22 @@ class HierarchyInfo : public ThreadStackResource {
 
  private:
   // Does not use any hierarchy information available in the system but computes
-  // it via O(n) class table traversal. The boolean parameters denote:
+  // it via O(n) class table traversal.
+  //
+  // The boolean parameters denote:
+  //   include_abstract : if set, include abstract types (don't care otherwise)
+  //   exclude_null     : if set, exclude null types (don't care otherwise)
+  void BuildRangesUsingClassTableFor(ClassTable* table,
+                                     CidRangeVector* ranges,
+                                     const Class& klass,
+                                     bool include_abstract,
+                                     bool exclude_null);
+
+  // Uses hierarchy information stored in the [Class]'s direct_subclasses() and
+  // direct_implementors() arrays, unless that information is not available
+  // in which case we fall back to the class table.
+  //
+  // The boolean parameters denote:
   //   include_abstract : if set, include abstract types (don't care otherwise)
   //   exclude_null     : if set, exclude null types (don't care otherwise)
   void BuildRangesFor(ClassTable* table,
@@ -294,14 +309,6 @@ class HierarchyInfo : public ThreadStackResource {
                       const Class& klass,
                       bool include_abstract,
                       bool exclude_null);
-
-  // In JIT mode we use hierarchy information stored in the [RawClass]s
-  // direct_subclasses_/direct_implementors_ arrays.
-  void BuildRangesForJIT(ClassTable* table,
-                         CidRangeVector* ranges,
-                         const Class& klass,
-                         bool include_abstract,
-                         bool exclude_null);
 
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_nullable_;
   std::unique_ptr<CidRangeVector[]> cid_subtype_ranges_abstract_nullable_;
