@@ -370,10 +370,9 @@ main() { // missing async
     createParser('class C { C< }');
     parser.parseCompilationUnit2();
     listener.assertErrors([
-      expectedError(ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 2),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 13, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
-      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
     ]);
   }
 
@@ -381,10 +380,10 @@ main() { // missing async
     createParser('class C { C<@Foo }');
     parser.parseCompilationUnit2();
     listener.assertErrors([
-      expectedError(ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 6),
+      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 12, 4),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 17, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
-      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 17, 1)
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
     ]);
   }
 
@@ -392,10 +391,11 @@ main() { // missing async
     createParser('class C { C<@Foo @Bar() }');
     parser.parseCompilationUnit2();
     listener.assertErrors([
-      expectedError(ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 13),
+      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 12, 4),
+      expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 17, 6),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 24, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 1),
-      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 24, 1)
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
     ]);
   }
 

@@ -413,14 +413,6 @@ class VoidType implements TypeInfo {
 }
 
 bool looksLikeName(Token token) {
-  // End-of-file isn't a name, but this is called in a situation where
-  // if there had been a name it would have used the type-info it had
-  // collected --- this being eof probably mean the user is currently
-  // typing and will probably write a name in a moment.
-  return looksLikeNameSimpleType(token) || token.isEof;
-}
-
-bool looksLikeNameSimpleType(Token token) {
   return token.kind == IDENTIFIER_TOKEN ||
       optional('this', token) ||
       (token.isIdentifier &&
@@ -428,6 +420,16 @@ bool looksLikeNameSimpleType(Token token) {
           // type `typedef` identifier is not legal and in this situation
           // `typedef` is probably a separate declaration.
           (!optional('typedef', token) || !token.next!.isIdentifier));
+}
+
+bool looksLikeNameOrEndOfBlock(Token token) {
+  // End-of-file isn't a name, but this is called in a situation where
+  // if there had been a name it would have used the type-info it had
+  // collected --- this being eof probably mean the user is currently
+  // typing and will probably write a name in a moment.
+  // The same logic applies to "}" which ends for instance a class. Again,
+  // the user is likely typing and will soon write a name.
+  return looksLikeName(token) || token.isEof || optional('}', token);
 }
 
 /// When missing a comma, determine if the given token looks like it should
@@ -688,7 +690,9 @@ class ComplexTypeInfo implements TypeInfo {
     end = typeArguments.skip(start);
     computeRest(end!, required);
 
-    if (!required && !looksLikeName(end!.next!) && gftHasReturnType == null) {
+    if (!required &&
+        !looksLikeNameOrEndOfBlock(end!.next!) &&
+        gftHasReturnType == null) {
       return noType;
     }
     assert(end != null);
