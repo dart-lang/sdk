@@ -173,6 +173,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _writeByte(Tag.ConstructorReference);
+    _writeNode(node.constructorName);
+    _storeExpression(node);
+  }
+
+  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _writeByte(Tag.DeclaredIdentifier);
     _writeByte(

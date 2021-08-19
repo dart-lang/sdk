@@ -34,6 +34,7 @@ class Tag {
   static const int ConditionalExpression = 51;
   static const int ConstructorFieldInitializer = 50;
   static const int ConstructorName = 7;
+  static const int ConstructorReference = 101;
   static const int DeclaredIdentifier = 90;
   static const int DefaultFormalParameter = 8;
   static const int DottedName = 47;

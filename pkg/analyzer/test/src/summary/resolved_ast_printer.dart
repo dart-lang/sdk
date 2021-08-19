@@ -367,6 +367,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _writeln('ConstructorReference');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('constructorName', node.constructorName);
+      _addExpression(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     _writeNextCodeLine(node);
     _writeln('ContinueStatement');
