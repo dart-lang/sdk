@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'test_client.dart';
+import 'test_scripts.dart';
 import 'test_support.dart';
 
 main() {
@@ -17,7 +18,7 @@ main() {
   group('debug mode variables', () {
     test('provides variable list for frames', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = 1;
   foo();
@@ -25,10 +26,10 @@ void main(List<String> args) {
 
 void foo() {
   final b = 2;
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final stack = await client.getValidStack(
@@ -64,12 +65,7 @@ void main(List<String> args) {
     ''');
 
       final stop = await client.hitException(testFile);
-      final stack = await client.getValidStack(
-        stop.threadId!,
-        startFrame: 0,
-        numFrames: 1,
-      );
-      final topFrameId = stack.stackFrames.first.id;
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
 
       // Check for an additional Scope named "Exceptions" that includes the
       // exception.
@@ -82,7 +78,7 @@ void main(List<String> args) {
       );
     });
 
-    test('provides complex exception types frames', () async {
+    test('provides complex exception types for frames', () async {
       final client = dap.client;
       final testFile = await dap.createTestFile(r'''
 void main(List<String> args) {
@@ -91,12 +87,7 @@ void main(List<String> args) {
     ''');
 
       final stop = await client.hitException(testFile);
-      final stack = await client.getValidStack(
-        stop.threadId!,
-        startFrame: 0,
-        numFrames: 1,
-      );
-      final topFrameId = stack.stackFrames.first.id;
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
 
       // Check for an additional Scope named "Exceptions" that includes the
       // exception.
@@ -113,13 +104,13 @@ void main(List<String> args) {
 
     test('includes simple variable fields', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = DateTime(2000, 1, 1);
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       await client.expectLocalVariable(
@@ -135,13 +126,13 @@ void main(List<String> args) {
     test('includes variable getters when evaluateGettersInDebugViews=true',
         () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = DateTime(2000, 1, 1);
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(
         testFile,
@@ -181,13 +172,13 @@ void main(List<String> args) {
 
     test('renders a simple list', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = ["first", "second", "third"];
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       await client.expectLocalVariable(
@@ -204,13 +195,13 @@ void main(List<String> args) {
 
     test('renders a simple list subset', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = ["first", "second", "third"];
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       await client.expectLocalVariable(
@@ -227,17 +218,17 @@ void main(List<String> args) {
 
     test('renders a simple map with keys/values', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     'zero': 0,
     'one': 1,
     'two': 2
   };
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final variables = await client.expectLocalVariable(
@@ -270,17 +261,17 @@ void main(List<String> args) {
 
     test('renders a simple map subset', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     'zero': 0,
     'one': 1,
     'two': 2
   };
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       await client.expectLocalVariable(
@@ -300,15 +291,15 @@ void main(List<String> args) {
 
     test('renders a complex map with keys/values', () async {
       final client = dap.client;
-      final testFile = await dap.createTestFile(r'''
+      final testFile = await dap.createTestFile('''
 void main(List<String> args) {
   final myVariable = {
     DateTime(2000, 1, 1): Exception("my error")
   };
-  print('Hello!'); // BREAKPOINT
+  print('Hello!'); $breakpointMarker
 }
     ''');
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       final stop = await client.hitBreakpoint(testFile, breakpointLine);
       final mapVariables = await client.expectLocalVariable(
@@ -353,6 +344,109 @@ void main(List<String> args) {
         '''
             message: "my error"
         ''',
+      );
+    });
+
+    test('calls toString() on custom classes', () async {
+      final client = dap.client;
+      final testFile = await dap.createTestFile('''
+class Foo {
+  toString() => 'Bar!';
+}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateToStringInDebugViews: true,
+        ),
+      );
+
+      await client.expectScopeVariables(
+        await client.getTopFrameId(stop.threadId!),
+        'Locals',
+        r'''
+            myVariable: Foo (Bar!), eval: myVariable
+        ''',
+      );
+    });
+
+    test('does not use toString() result if "Instance of Foo"', () async {
+      // When evaluateToStringInDebugViews=true, we should discard the result of
+      // caling toString() when it's just 'Instance of Foo' because we're already
+      // showing the type, and otherwise we show:
+      //
+      //     myVariable: Foo (Instance of Foo)
+      final client = dap.client;
+      final testFile = await dap.createTestFile('''
+class Foo {}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateToStringInDebugViews: true,
+        ),
+      );
+
+      await client.expectScopeVariables(
+        await client.getTopFrameId(stop.threadId!),
+        'Locals',
+        r'''
+            myVariable: Foo, eval: myVariable
+        ''',
+      );
+    });
+
+    test('handles errors in getters', () async {
+      final client = dap.client;
+      final testFile = await dap.createTestFile('''
+class Foo {
+  String get doesNotThrow => "success";
+  String get throws => throw Exception('err');
+}
+
+void main() {
+  final myVariable = Foo();
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          evaluateGettersInDebugViews: true,
+        ),
+      );
+
+      await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'Foo',
+        expectedVariables: '''
+            doesNotThrow: "success", eval: myVariable.doesNotThrow
+            throws: <Exception: err>
+        ''',
+        ignore: {'runtimeType'},
       );
     });
     // These tests can be slow due to starting up the external server process.

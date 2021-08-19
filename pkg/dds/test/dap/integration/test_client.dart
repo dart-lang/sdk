@@ -346,14 +346,13 @@ class DapTestClient {
   /// Returns [future].
   Future<T> _logIfSlow<T>(String name, Future<T> future) {
     var didComplete = false;
-    future.then((_) => didComplete = true);
     Future.delayed(_requestWarningDuration).then((_) {
       if (!didComplete) {
         print(
             '$name has taken longer than ${_requestWarningDuration.inSeconds}s');
       }
     });
-    return future;
+    return future.whenComplete(() => didComplete = true);
   }
 
   /// Creates a [DapTestClient] that connects the server listening on
@@ -745,17 +744,11 @@ extension DapTestClientExtension on DapTestClient {
     return variables;
   }
 
-  /// Evalutes [expression] in the top frame of thread [threadId] and expects a
-  /// specific [expectedResult].
-  Future<EvaluateResponseBody> expectTopFrameEvalResult(
+  Future<int> getTopFrameId(
     int threadId,
-    String expression,
-    String expectedResult,
   ) async {
     final stack = await getValidStack(threadId, startFrame: 0, numFrames: 1);
-    final topFrameId = stack.stackFrames.first.id;
-
-    return expectEvalResult(topFrameId, expression, expectedResult);
+    return stack.stackFrames.first.id;
   }
 
   /// Evalutes [expression] in frame [frameId] and expects a specific

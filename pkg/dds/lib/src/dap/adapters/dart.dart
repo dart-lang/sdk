@@ -48,6 +48,15 @@ const maxToStringsPerEvaluation = 10;
 /// will work.
 const threadExceptionExpression = r'$_threadException';
 
+/// Pattern for extracting useful error messages from an evaluation exception.
+final _evalErrorMessagePattern = RegExp('Error: (.*)');
+
+/// Pattern for extracting useful error messages from an unhandled exception.
+final _exceptionMessagePattern = RegExp('Unhandled exception:\n(.*)');
+
+/// Pattern for a trailing semicolon.
+final _trailingSemicolonPattern = RegExp(r';$');
+
 /// A base DAP Debug Adapter implementation for running and debugging Dart-based
 /// applications (including Flutter and Tests).
 ///
@@ -169,6 +178,8 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
   /// events that suggest the session ended (such as a process exiting and the
   /// VM Service closing).
   bool _hasSentTerminatedEvent = false;
+
+  late final sendLogsToClient = args.sendLogsToClient ?? false;
 
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
@@ -299,8 +310,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
     logger?.call('Connecting to debugger at $uri');
     sendOutput('console', 'Connecting to VM Service at $uri\n');
-    final vmService =
-        await _vmServiceConnectUri(uri.toString(), logger: logger);
+    final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
     // TODO(dantup): VS Code currently depends on a custom dart.debuggerUris
@@ -492,25 +502,49 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     // allows us to construct evaluateNames that evaluate to the fields down the
     // tree to support some of the debugger functionality (for example
     // "Copy Value", which re-evaluates).
-    final expression = args.expression.trim();
+    final expression = args.expression
+        .trim()
+        // Remove any trailing semicolon as the VM only evaluates expressions
+        // but a user may have highlighted a whole line/statement to send for
+        // evaluation.
+        .replaceFirst(_trailingSemicolonPattern, '');
     final exceptionReference = thread.exceptionReference;
     final isExceptionExpression = expression == threadExceptionExpression ||
         expression.startsWith('$threadExceptionExpression.');
 
     vm.Response? result;
-    if (exceptionReference != null && isExceptionExpression) {
-      result = await _evaluateExceptionExpression(
-        exceptionReference,
-        expression,
-        thread,
-      );
-    } else {
-      result = await vmService?.evaluateInFrame(
-        thread.isolate.id!,
-        frameIndex,
-        expression,
-        disableBreakpoints: true,
-      );
+    try {
+      if (exceptionReference != null && isExceptionExpression) {
+        result = await _evaluateExceptionExpression(
+          exceptionReference,
+          expression,
+          thread,
+        );
+      } else {
+        result = await vmService?.evaluateInFrame(
+          thread.isolate.id!,
+          frameIndex,
+          expression,
+          disableBreakpoints: true,
+        );
+      }
+    } catch (e) {
+      final rawMessage = '$e';
+
+      // Error messages can be quite verbose and don't fit well into a
+      // single-line watch window. For example:
+      //
+      //    evaluateInFrame: (113) Expression compilation error
+      //    org-dartlang-debug:synthetic_debug_expression:1:5: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+      //    1 + "a"
+      //        ^
+      //
+      // So in the case of a Watch context, try to extract the useful message.
+      if (args.context == 'watch') {
+        throw DebugAdapterException(extractEvaluationErrorMessage(rawMessage));
+      }
+
+      throw DebugAdapterException(rawMessage);
     }
 
     if (result is vm.ErrorRef) {
@@ -540,6 +574,24 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
         'Unknown evaluation response type: ${result?.runtimeType}',
       );
     }
+  }
+
+  /// Tries to extract the useful part from an evaluation exception message.
+  ///
+  /// If no message could be extracted, returns the whole original error.
+  String extractEvaluationErrorMessage(String rawError) {
+    final match = _evalErrorMessagePattern.firstMatch(rawError);
+    final shortError = match != null ? match.group(1)! : null;
+    return shortError ?? rawError;
+  }
+
+  /// Tries to extract the useful part from an unhandled exception message.
+  ///
+  /// If no message could be extracted, returns the whole original error.
+  String extractUnhandledExceptionMessage(String rawError) {
+    final match = _exceptionMessagePattern.firstMatch(rawError);
+    final shortError = match != null ? match.group(1)! : null;
+    return shortError ?? rawError;
   }
 
   /// Sends a [TerminatedEvent] if one has not already been sent.
@@ -1280,6 +1332,13 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
     }
   }
 
+  void _logTraffic(String data) {
+    logger?.call(data);
+    if (sendLogsToClient) {
+      sendEvent(RawEventBody(data), eventType: 'dart.log');
+    }
+  }
+
   /// Performs some setup that is common to both [launchRequest] and
   /// [attachRequest].
   Future<void> _prepareForLaunchOrAttach() async {
@@ -1319,17 +1378,15 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
 
   /// A wrapper around the same name function from package:vm_service that
   /// allows logging all traffic over the VM Service.
-  Future<vm.VmService> _vmServiceConnectUri(
-    String wsUri, {
-    Logger? logger,
-  }) async {
+  Future<vm.VmService> _vmServiceConnectUri(String wsUri) async {
     final socket = await WebSocket.connect(wsUri);
     final controller = StreamController();
     final streamClosedCompleter = Completer();
+    final logger = this.logger;
 
     socket.listen(
       (data) {
-        logger?.call('<== [VM] $data');
+        _logTraffic('<== [VM] $data');
         controller.add(data);
       },
       onDone: () => streamClosedCompleter.complete(),
@@ -1339,6 +1396,7 @@ abstract class DartDebugAdapter<T extends DartLaunchRequestArguments>
       controller.stream,
       (String message) {
         logger?.call('==> [VM] $message');
+        _logTraffic('==> [VM] $message');
         socket.add(message);
       },
       log: logger != null ? VmServiceLogger(logger) : null,

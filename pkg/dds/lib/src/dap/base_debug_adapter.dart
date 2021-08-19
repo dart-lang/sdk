@@ -167,10 +167,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   /// Sends an event, lookup up the event type based on the runtimeType of
   /// [body].
-  void sendEvent(EventBody body) {
+  void sendEvent(EventBody body, {String? eventType}) {
     final event = Event(
       seq: _sequence++,
-      event: eventTypes[body.runtimeType]!,
+      event: eventType ?? eventTypes[body.runtimeType]!,
       body: body,
     );
     _channel.sendEvent(event);

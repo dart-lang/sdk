@@ -101,7 +101,7 @@ void main(List<String> args) async {
     test('provides a list of threads', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
       final response = await client.getValidThreads();
@@ -113,7 +113,7 @@ void main(List<String> args) async {
     test('runs with DDS by default', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
       expect(await client.ddsAvailable, isTrue);
@@ -130,7 +130,7 @@ void main(List<String> args) async {
     test('can download source code from the VM', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       // Hit the initial breakpoint.
       final stop = await dap.client.hitBreakpoint(
@@ -175,7 +175,7 @@ void main(List<String> args) async {
 
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);
-      final breakpointLine = lineWith(testFile, '// BREAKPOINT');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
 

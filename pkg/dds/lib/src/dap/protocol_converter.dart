@@ -99,7 +99,11 @@ class ProtocolConverter {
           ref,
           includeQuotesAroundString: false,
         );
-        stringValue += ' ($toStringValue)';
+        // Include the toString() result only if it's not the default (which
+        // duplicates the type name we're already showing).
+        if (toStringValue != "Instance of '${ref.classRef?.name}'") {
+          stringValue += ' ($toStringValue)';
+        }
       }
       return stringValue;
     } else if (ref.kind == 'List') {
@@ -220,21 +224,29 @@ class ProtocolConverter {
         /// Helper to evaluate each getter and convert the response to a
         /// variable.
         Future<dap.Variable> evaluate(int index, String getterName) async {
-          final response = await service.evaluate(
-            thread.isolate.id!,
-            instance.id!,
-            getterName,
-          );
-          // Convert results to variables.
-          return convertVmResponseToVariable(
-            thread,
-            response,
-            name: getterName,
-            evaluateName:
-                _adapter.combineEvaluateName(evaluateName, '.$getterName'),
-            allowCallingToString:
-                allowCallingToString && index <= maxToStringsPerEvaluation,
-          );
+          try {
+            final response = await service.evaluate(
+              thread.isolate.id!,
+              instance.id!,
+              getterName,
+            );
+            // Convert results to variables.
+            return convertVmResponseToVariable(
+              thread,
+              response,
+              name: getterName,
+              evaluateName:
+                  _adapter.combineEvaluateName(evaluateName, '.$getterName'),
+              allowCallingToString:
+                  allowCallingToString && index <= maxToStringsPerEvaluation,
+            );
+          } catch (e) {
+            return dap.Variable(
+              name: getterName,
+              value: _adapter.extractEvaluationErrorMessage('$e'),
+              variablesReference: 0,
+            );
+          }
         }
 
         variables.addAll(await Future.wait(getterNames.mapIndexed(evaluate)));
@@ -309,13 +321,21 @@ class ProtocolConverter {
       );
     } else if (response is vm.Sentinel) {
       return dap.Variable(
-        name: '<sentinel>',
+        name: name ?? '<sentinel>',
         value: response.valueAsString.toString(),
+        variablesReference: 0,
+      );
+    } else if (response is vm.ErrorRef) {
+      final errorMessage = _adapter
+          .extractUnhandledExceptionMessage(response.message ?? '<error>');
+      return dap.Variable(
+        name: name ?? '<error>',
+        value: '<$errorMessage>',
         variablesReference: 0,
       );
     } else {
       return dap.Variable(
-        name: '<error>',
+        name: name ?? '<error>',
         value: response.runtimeType.toString(),
         variablesReference: 0,
       );
