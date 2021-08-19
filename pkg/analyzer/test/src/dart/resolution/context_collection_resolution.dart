@@ -251,9 +251,6 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
   List<String> get experiments => [
-        EnableString.generic_metadata,
-        EnableString.nonfunction_type_aliases,
-        EnableString.triple_shift,
         EnableString.constructor_tearoffs,
       ];
 
