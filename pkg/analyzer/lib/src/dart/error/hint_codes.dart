@@ -96,37 +96,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Replace the '.' with a '?.' in the invocation.");
 
   /**
-   * Generate a hint for method, property or function annotated with
-   * `@useResult` whose invocation is unchecked.
-   *
-   * Parameters:
-   * 0: the name of the annotated method, property or function
-   */
-  static const HintCode UNUSED_RESULT = HintCode(
-      'UNUSED_RESULT', "'{0}' should be used.",
-      correction:
-          "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
-      hasPublishedDocs: false);
-
-  /**
-   * Generate a hint for method, property or function annotated with
-   * `@useResult` whose invocation is unchecked.
-   *
-   * Parameters:
-   * 0: the name of the annotated method, property or function
-   * 1: message details
-   */
-  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
-    'UNUSED_RESULT',
-    "'{0}' should be used. {1}.",
-    // todo(pq): consider passing in correction details: https://github.com/dart-lang/sdk/issues/46066
-    correction:
-        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
-    hasPublishedDocs: false,
-    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
-  );
-
-  /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
    *
@@ -2245,6 +2214,25 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
+   * A constructor cannot be torn off without the 'constructor-tearoffs'
+   * language feature.
+   *
+   * There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
+   * some cases of constructor tearoff features (like `List<int>.filled;`).
+   * Other constructor tearoff cases are not realized until resolution
+   * (like `List.filled;`).
+   */
+  static const HintCode SDK_VERSION_CONSTRUCTOR_TEAROFFS = HintCode(
+      'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+      "Tearing off a constructor requires the 'constructor-tearoffs' "
+          "language feature.",
+      // TODO(srawlins): Update this text to something like "Try updating
+      // your pubspec.yaml to set the minimum SDK constraint to 2.14 or
+      // higher, and running 'pub get'."
+      correction: "Try enabling the experiment by including "
+          "'--enable-experiments=constructor-tearoffs' in the 'dart' command.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -3472,6 +3460,43 @@ class HintCode extends AnalyzerErrorCode {
       "The value of the local variable '{0}' isn't used.",
       correction: "Try removing the variable or using it.",
       hasPublishedDocs: true);
+
+  /**
+   * The result of invoking a method, property, or function annotated with
+   * `@useResult` must be used (assigned, passed to a function as an argument,
+   * or returned by a function).
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   */
+  static const HintCode UNUSED_RESULT = HintCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used.",
+    correction: "Try using the result by invoking a member, passing it to a "
+        "function, or returning it from this function.",
+    hasPublishedDocs: false,
+  );
+
+  /**
+   * The result of invoking a method, property, or function annotated with
+   * `@useResult` must be used (assigned, passed to a function as an argument,
+   * or returned by a function).
+   *
+   * Parameters:
+   * 0: the name of the annotated method, property or function
+   * 1: message details
+   */
+  static const HintCode UNUSED_RESULT_WITH_MESSAGE = HintCode(
+    'UNUSED_RESULT',
+    "'{0}' should be used. {1}.",
+    // todo(pq): consider passing in correction details:
+    // https://github.com/dart-lang/sdk/issues/46066
+    correction:
+        "Try using the result by invoking a member, passing it to a function, "
+        "or returning it from this function.",
+    hasPublishedDocs: false,
+    uniqueName: 'HintCode.UNUSED_RESULT_WITH_MESSAGE',
+  );
 
   /**
    * Parameters:

@@ -584,7 +584,7 @@ void bar() {
   A.foo;
 }
 ''', [
-      error(CompileTimeErrorCode.CONSTRUCTOR_TEAROFFS_NOT_ENABLED, 39, 5),
+      error(HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5),
     ]);
 
     var classElement = findElement.class_('A');

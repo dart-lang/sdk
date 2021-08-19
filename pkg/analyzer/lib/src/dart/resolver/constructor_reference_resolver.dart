@@ -22,7 +22,7 @@ class ConstructorReferenceResolver {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
       _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONSTRUCTOR_TEAROFFS_NOT_ENABLED, node, []);
+          HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
     }
     node.constructorName.accept(_resolver);
     _inferArgumentTypes(node);
