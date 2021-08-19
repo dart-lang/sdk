@@ -849,6 +849,11 @@ bool TypeTestingStubGenerator::BuildLoadInstanceTypeArguments(
   const CidRangeVector& ranges =
       hi->SubtypeRangesForClass(type_class, /*include_abstract=*/false,
                                 !Instance::NullIsAssignableTo(type));
+  if (ranges.is_empty()) {
+    // Fall through and signal type argument checks should not be generated.
+    CommentCheckedClasses(assembler, ranges);
+    return false;
+  }
   if (!type_class.is_implemented()) {
     ASSERT(type_class.is_finalized());
     const intptr_t tav_offset =
@@ -966,52 +971,65 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     __ BranchIf(NOT_EQUAL, check_failed);
     __ Bind(&is_dynamic);
   } else {
-    const Class& type_class = Class::Handle(type_arg.type_class());
-    const bool null_is_assignable = Instance::NullIsAssignableTo(type_arg);
-    const CidRangeVector& ranges =
-        hi->SubtypeRangesForClass(type_class,
-                                  /*include_abstract=*/true,
-                                  /*exclude_null=*/!null_is_assignable);
-
     __ LoadCompressedFieldFromOffset(
         TTSInternalRegs::kScratchReg,
         TTSInternalRegs::kInstanceTypeArgumentsReg,
         compiler::target::TypeArguments::type_at_offset(
             type_param_value_offset_i));
-    __ LoadCompressedFieldFromOffset(
-        TTSInternalRegs::kScratchReg, TTSInternalRegs::kScratchReg,
-        compiler::target::Type::type_class_id_offset());
-
-    compiler::Label is_subtype;
-    __ SmiUntag(TTSInternalRegs::kScratchReg);
-    if (null_is_assignable) {
-      __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
-      __ BranchIf(EQUAL, &is_subtype);
-    }
-    // Never is a bottom type.
-    __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
-    __ BranchIf(EQUAL, &is_subtype);
-    BuildOptimizedSubtypeRangeCheck(assembler, ranges,
-                                    TTSInternalRegs::kScratchReg, &is_subtype,
-                                    check_failed);
-    __ Bind(&is_subtype);
-
-    // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
-    // We don't need to check nullability of LHS for nullable and legacy RHS
-    // ("Right Legacy", "Right Nullable" rules).
-    if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
-        !type_arg.IsNullable() && !type_arg.IsLegacy()) {
-      // Nullable type is not a subtype of non-nullable type.
-      // TODO(dartbug.com/40736): Allocate a register for instance type argument
-      // and avoid reloading it.
-      __ LoadCompressedFieldFromOffset(
-          TTSInternalRegs::kScratchReg,
-          TTSInternalRegs::kInstanceTypeArgumentsReg,
-          compiler::target::TypeArguments::type_at_offset(
-              type_param_value_offset_i));
+    if (type_arg.IsObjectType()) {
+      // Just check the nullability, since this must be non-nullable Object
+      // and we must be in null safe mode.
+      ASSERT(IsolateGroup::Current()->use_strict_null_safety_checks() &&
+             type_arg.IsNonNullable());
       __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
                                     compiler::target::Nullability::kNullable);
       __ BranchIf(EQUAL, check_failed);
+    } else {
+      __ LoadCompressedFieldFromOffset(
+          TTSInternalRegs::kScratchReg, TTSInternalRegs::kScratchReg,
+          compiler::target::Type::type_class_id_offset());
+
+      const Class& type_class = Class::Handle(type_arg.type_class());
+      const bool null_is_assignable = Instance::NullIsAssignableTo(type_arg);
+      const CidRangeVector& ranges =
+          hi->SubtypeRangesForClass(type_class,
+                                    /*include_abstract=*/true,
+                                    /*exclude_null=*/!null_is_assignable);
+
+      compiler::Label is_subtype;
+      __ SmiUntag(TTSInternalRegs::kScratchReg);
+      // Never is a bottom type.
+      __ CompareImmediate(TTSInternalRegs::kScratchReg, kNeverCid);
+      __ BranchIf(EQUAL, &is_subtype);
+      if (null_is_assignable) {
+        __ CompareImmediate(TTSInternalRegs::kScratchReg, kNullCid);
+        __ BranchIf(EQUAL, &is_subtype);
+      }
+      compiler::Label check_nullability;
+      BuildOptimizedSubtypeRangeCheck(assembler, ranges,
+                                      TTSInternalRegs::kScratchReg,
+                                      &check_nullability, check_failed);
+      __ Bind(&check_nullability);
+
+      // Weak NNBD mode uses LEGACY_SUBTYPE which ignores nullability.
+      // We don't need to check nullability of LHS for nullable and legacy RHS
+      // ("Right Legacy", "Right Nullable" rules).
+      if (IsolateGroup::Current()->use_strict_null_safety_checks() &&
+          type_arg.IsNonNullable()) {
+        // Nullable type is not a subtype of non-nullable type.
+        // TODO(dartbug.com/40736): Allocate a register for instance type
+        // argument and avoid reloading it.
+        __ LoadCompressedFieldFromOffset(
+            TTSInternalRegs::kScratchReg,
+            TTSInternalRegs::kInstanceTypeArgumentsReg,
+            compiler::target::TypeArguments::type_at_offset(
+                type_param_value_offset_i));
+        __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
+                                      compiler::target::Nullability::kNullable);
+        __ BranchIf(EQUAL, check_failed);
+      }
+
+      __ Bind(&is_subtype);
     }
   }
 }

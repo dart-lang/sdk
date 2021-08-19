@@ -5304,6 +5304,16 @@ TEST_CASE(TypeParameterTypeRef) {
   EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
+ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
+  const auto& closure_class =
+      Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
+  const auto& closure_type = Type::Handle(closure_class.DeclarationType());
+  const auto& function_type =
+      Type::Handle(IsolateGroup::Current()->object_store()->function_type());
+
+  EXPECT(closure_type.IsSubtypeOf(function_type, Heap::kNew));
+}
+
 TEST_CASE(Class_GetInstantiationOf) {
   const char* kScript = R"(
     class B<T> {}

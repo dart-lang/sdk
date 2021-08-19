@@ -161,6 +161,8 @@ class AstBinaryReader {
         return _readThrowExpression();
       case Tag.TypeArgumentList:
         return _readTypeArgumentList();
+      case Tag.TypeLiteral:
+        return _readTypeLiteral();
       case Tag.TypeName:
         return _readTypeName();
       case Tag.TypeParameter:
@@ -1119,6 +1121,13 @@ class AstBinaryReader {
   TypeArgumentList _readTypeArgumentList() {
     var arguments = _readNodeList<TypeAnnotation>();
     return astFactory.typeArgumentList(Tokens.lt(), arguments, Tokens.gt());
+  }
+
+  TypeLiteral _readTypeLiteral() {
+    var typeName = readNode() as TypeName;
+    var node = astFactory.typeLiteral(typeName: typeName);
+    _readExpressionResolution(node);
+    return node;
   }
 
   TypeName _readTypeName() {

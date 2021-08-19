@@ -1404,6 +1404,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _writeln('TypeLiteral');
+    _withIndent(() {
+      var properties = _Properties();
+      properties.addNode('typeName', node.typeName);
+      _addExpression(properties, node);
+      _writeProperties(properties);
+    });
+  }
+
+  @override
   void visitTypeName(TypeName node) {
     _writeNextCodeLine(node);
     _writeln('TypeName');

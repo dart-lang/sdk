@@ -118,90 +118,108 @@ const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
   }
   CidRangeVector& ranges = (*cid_ranges)[klass.id()];
   if (ranges.length() == 0) {
-    if (!FLAG_precompiled_mode) {
-      BuildRangesForJIT(table, &ranges, klass, include_abstract, exclude_null);
-    } else {
-      BuildRangesFor(table, &ranges, klass, include_abstract, exclude_null);
-    }
+    BuildRangesFor(table, &ranges, klass, include_abstract, exclude_null);
   }
   return ranges;
 }
 
+class CidCheckerForRanges : public ValueObject {
+ public:
+  CidCheckerForRanges(Thread* thread,
+                      ClassTable* table,
+                      const Class& cls,
+                      bool include_abstract,
+                      bool exclude_null)
+      : thread_(thread),
+        table_(table),
+        supertype_(AbstractType::Handle(zone(), cls.RareType())),
+        include_abstract_(include_abstract),
+        exclude_null_(exclude_null),
+        to_check_(Class::Handle(zone())),
+        subtype_(AbstractType::Handle(zone())) {}
+
+  bool MayInclude(intptr_t cid) {
+    if (!table_->HasValidClassAt(cid)) return true;
+    if (cid == kTypeArgumentsCid) return true;
+    if (cid == kVoidCid) return true;
+    if (cid == kDynamicCid) return true;
+    if (cid == kNeverCid) return true;
+    if (!exclude_null_ && cid == kNullCid) return true;
+    to_check_ = table_->At(cid);
+    ASSERT(!to_check_.IsNull());
+    if (!include_abstract_ && to_check_.is_abstract()) return true;
+    return to_check_.IsTopLevel();
+  }
+
+  bool MustInclude(intptr_t cid) {
+    ASSERT(!MayInclude(cid));
+    if (cid == kNullCid) return false;
+    to_check_ = table_->At(cid);
+    subtype_ = to_check_.RareType();
+    // Create local zone because deep hierarchies may allocate lots of handles.
+    StackZone stack_zone(thread_);
+    HANDLESCOPE(thread_);
+    return subtype_.IsSubtypeOf(supertype_, Heap::kNew);
+  }
+
+ private:
+  Zone* zone() const { return thread_->zone(); }
+
+  Thread* const thread_;
+  ClassTable* const table_;
+  const AbstractType& supertype_;
+  const bool include_abstract_;
+  const bool exclude_null_;
+  Class& to_check_;
+  AbstractType& subtype_;
+};
+
 // Build the ranges either for:
 //    "<obj> as <Type>", or
 //    "<obj> is <Type>"
-void HierarchyInfo::BuildRangesFor(ClassTable* table,
-                                   CidRangeVector* ranges,
-                                   const Class& klass,
-                                   bool include_abstract,
-                                   bool exclude_null) {
-  Zone* zone = thread()->zone();
-  const Type& dst_type = Type::Handle(zone, Type::RawCast(klass.RareType()));
-  AbstractType& cls_type = AbstractType::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  const intptr_t cid_count = table->NumCids();
-
+void HierarchyInfo::BuildRangesUsingClassTableFor(ClassTable* table,
+                                                  CidRangeVector* ranges,
+                                                  const Class& klass,
+                                                  bool include_abstract,
+                                                  bool exclude_null) {
+  CidCheckerForRanges checker(thread(), table, klass, include_abstract,
+                              exclude_null);
   // Iterate over all cids to find the ones to be included in the ranges.
+  const intptr_t cid_count = table->NumCids();
   intptr_t start = -1;
   intptr_t end = -1;
   for (intptr_t cid = kInstanceCid; cid < cid_count; ++cid) {
-    // Create local zone because deep hierarchies may allocate lots of handles
-    // within one iteration of this loop.
-    StackZone stack_zone(thread());
-    HANDLESCOPE(thread());
-
     // Some cases are "don't care", i.e., they may or may not be included,
     // whatever yields the least number of ranges for efficiency.
-    if (!table->HasValidClassAt(cid)) continue;
-    if (cid == kTypeArgumentsCid) continue;
-    if (cid == kVoidCid) continue;
-    if (cid == kDynamicCid) continue;
-    if (cid == kNeverCid) continue;
-    if (cid == kNullCid && !exclude_null) continue;
-    cls = table->At(cid);
-    if (!include_abstract && cls.is_abstract()) continue;
-    if (cls.IsTopLevel()) continue;
-
-    // We are interested in [CidRange]es of subtypes.
-    bool test_succeeded = false;
-    if (cid == kNullCid) {
-      ASSERT(exclude_null);
-      test_succeeded = false;
-    } else {
-      cls_type = cls.RareType();
-      test_succeeded = cls_type.IsSubtypeOf(dst_type, Heap::kNew);
-    }
-
-    if (test_succeeded) {
+    if (checker.MayInclude(cid)) continue;
+    if (checker.MustInclude(cid)) {
       // On success, open a new or continue any open range.
       if (start == -1) start = cid;
       end = cid;
     } else if (start != -1) {
       // On failure, close any open range from start to end
       // (the latter is the most recent succesful "do-care" cid).
-      ASSERT(start <= end);
-      CidRange range(start, end);
-      ranges->Add(range);
-      start = -1;
-      end = -1;
+      ranges->Add({start, end});
+      start = end = -1;
     }
   }
 
   // Construct last range if there is a open one.
   if (start != -1) {
-    ASSERT(start <= end);
-    CidRange range(start, end);
-    ranges->Add(range);
+    ranges->Add({start, end});
   }
 }
 
-void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
-                                      CidRangeVector* ranges,
-                                      const Class& dst_klass,
-                                      bool include_abstract,
-                                      bool exclude_null) {
-  if (dst_klass.InVMIsolateHeap()) {
-    BuildRangesFor(table, ranges, dst_klass, include_abstract, exclude_null);
+void HierarchyInfo::BuildRangesFor(ClassTable* table,
+                                   CidRangeVector* ranges,
+                                   const Class& dst_klass,
+                                   bool include_abstract,
+                                   bool exclude_null) {
+  // Use the class table in cases where the direct subclasses and implementors
+  // are not filled out.
+  if (dst_klass.InVMIsolateHeap() || dst_klass.id() == kInstanceCid) {
+    BuildRangesUsingClassTableFor(table, ranges, dst_klass, include_abstract,
+                                  exclude_null);
     return;
   }
 
@@ -228,61 +246,50 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
         });
 
   // Build ranges of all the cids.
-  Class& klass = Class::Handle();
+  CidCheckerForRanges checker(thread(), table, dst_klass, include_abstract,
+                              exclude_null);
   intptr_t left_cid = -1;
-  intptr_t last_cid = -1;
+  intptr_t right_cid = -1;
+  intptr_t previous_cid = -1;
   for (intptr_t i = 0; i < cids.length(); ++i) {
-    if (left_cid == -1) {
-      left_cid = last_cid = cids[i];
-    } else {
-      const intptr_t current_cid = cids[i];
+    const intptr_t current_cid = cids[i];
+    if (current_cid == previous_cid) continue;  // Skip duplicates.
 
-      // Skip duplicates.
-      if (current_cid == last_cid) continue;
+    // We sorted, after all!
+    RELEASE_ASSERT(previous_cid < current_cid);
 
-      // Consecutive numbers cids are ok.
-      if (current_cid == (last_cid + 1)) {
-        last_cid = current_cid;
-      } else {
-        // We sorted, after all!
-        RELEASE_ASSERT(last_cid < current_cid);
-
-        intptr_t j = last_cid + 1;
-        for (; j < current_cid; ++j) {
-          if (table->HasValidClassAt(j)) {
-            klass = table->At(j);
-            if (!klass.IsTopLevel()) {
-              // If we care about abstract classes also, we cannot skip over any
-              // arbitrary abstract class, only those which are subtypes.
-              if (include_abstract) {
-                break;
-              }
-
-              // If the class is concrete we cannot skip over it.
-              if (!klass.is_abstract()) {
-                break;
-              }
-            }
-          }
-        }
-
-        if (current_cid == j) {
-          // If there's only abstract cids between [last_cid] and the
-          // [current_cid] then we connect them.
-          last_cid = current_cid;
-        } else {
-          // Finish the current open cid range and start a new one.
-          ranges->Add(CidRange{left_cid, last_cid});
-          left_cid = last_cid = current_cid;
+    if (left_cid != -1) {
+      ASSERT(previous_cid != -1);
+      // Check the cids between the previous cid from cids and this one.
+      for (intptr_t j = previous_cid + 1; j < current_cid; ++j) {
+        // Stop if we find a do-care class before reaching the current cid.
+        if (!checker.MayInclude(j)) {
+          ranges->Add({left_cid, right_cid});
+          left_cid = right_cid = -1;
+          break;
         }
       }
+    }
+    previous_cid = current_cid;
+
+    if (checker.MayInclude(current_cid)) continue;
+    if (checker.MustInclude(current_cid)) {
+      if (left_cid == -1) {
+        // Open a new range starting at this cid.
+        left_cid = current_cid;
+      }
+      right_cid = current_cid;
+    } else if (left_cid != -1) {
+      // Close the existing range.
+      ranges->Add({left_cid, right_cid});
+      left_cid = right_cid = -1;
     }
   }
 
   // If there is an open cid-range which we haven't finished yet, we'll
   // complete it.
   if (left_cid != -1) {
-    ranges->Add(CidRange{left_cid, last_cid});
+    ranges->Add(CidRange{left_cid, right_cid});
   }
 }
 
