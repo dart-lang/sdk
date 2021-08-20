@@ -81,29 +81,21 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
 }
 
 class FeatureSets {
-  static final FeatureSet beforeNullSafe = FeatureSet.fromEnableFlags2(
+  static final FeatureSet language_2_9 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.9.0'),
     flags: [],
   );
 
-  static final FeatureSet nullSafe = FeatureSet.fromEnableFlags2(
+  static final FeatureSet language_2_12 = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.12.0'),
     flags: [],
   );
 
-  static final FeatureSet nonFunctionTypeAliases = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.12.0'),
-    flags: [EnableString.nonfunction_type_aliases],
-  );
-
-  static final FeatureSet genericMetadata = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.13.0'),
-    flags: [EnableString.generic_metadata],
-  );
-
-  static final FeatureSet constructorTearOffs = FeatureSet.fromEnableFlags2(
+  static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
     sdkLanguageVersion: Version.parse('2.15.0'),
-    flags: [EnableString.constructor_tearoffs],
+    flags: [
+      EnableString.constructor_tearoffs,
+    ],
   );
 }
 
@@ -2623,17 +2615,17 @@ library
       notSimplyBounded class C @6
         typeParameters
           covariant T @8
-            bound: dynamic Function()
-            defaultType: dynamic Function()
+            bound: dynamic
+            defaultType: dynamic
         constructors
           synthetic @-1
     typeAliases
       functionTypeAliasBased notSimplyBounded F @32
-        aliasedType: dynamic Function(C<dynamic Function()>)
+        aliasedType: dynamic Function(C<dynamic>)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @36
-              type: C<dynamic Function()>
+              type: C<dynamic>
           returnType: dynamic
 ''');
   }
@@ -2696,7 +2688,7 @@ library
       notSimplyBounded C @8
         typeParameters
           unrelated T @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -2704,7 +2696,7 @@ library
       notSimplyBounded D @50
         typeParameters
           unrelated T @52
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -2713,7 +2705,6 @@ library
   }
 
   test_class_notSimplyBounded_complex_by_cycle_typedef_interfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef C<T extends D> = List<T>;
 typedef D<T extends C> = List<T>;
@@ -2835,7 +2826,7 @@ library
   }
 
   test_class_notSimplyBounded_function_typed_bound_complex_via_parameter_type_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T extends void Function(T)> {}
 ''');
@@ -2905,24 +2896,24 @@ library
       notSimplyBounded class C @6
         typeParameters
           covariant T @8
-            bound: dynamic Function()
-            defaultType: dynamic Function()
+            bound: dynamic
+            defaultType: dynamic
         constructors
           synthetic @-1
     typeAliases
       functionTypeAliasBased notSimplyBounded F @32
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @36
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
       functionTypeAliasBased notSimplyBounded G @52
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional value @56
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
 ''');
   }
@@ -3058,7 +3049,7 @@ library
   }
 
   test_class_ref_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C {}
 C c;
@@ -3546,7 +3537,6 @@ library
   }
 
   test_class_typeParameters_defaultType_cycle_genericFunctionType2() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary(r'''
 class C<T extends void Function<U extends C>()> {}
 ''');
@@ -3565,7 +3555,7 @@ library
   }
 
   test_class_typeParameters_defaultType_functionTypeAlias_contravariant_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 typedef F<X> = void Function(X);
 
@@ -3748,7 +3738,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_both_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<X extends X Function(X)> {}
 ''');
@@ -3785,7 +3775,7 @@ library
   }
 
   test_class_typeParameters_defaultType_genericFunctionType_contravariant_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<X extends void Function(X)> {}
 ''');
@@ -3858,7 +3848,6 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_contravariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<X> = List<void Function(X)>;
 
@@ -3891,7 +3880,6 @@ library
   }
 
   test_class_typeParameters_defaultType_typeAlias_interface_covariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<X> = Map<X, int>;
 
@@ -6005,7 +5993,7 @@ library
   }
 
   test_compilationUnit_nnbd_disabled_via_feature_set() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('');
     expect(library.isNonNullableByDefault, isFalse);
   }
@@ -6312,7 +6300,6 @@ library
   }
 
   test_const_constructorReference() async {
-    featureSet = FeatureSets.constructorTearOffs;
     var library = await checkLibrary(r'''
 class A {
   A.named();
@@ -6377,6 +6364,50 @@ library
         accessors
           synthetic get f @-1
             returnType: int
+''');
+  }
+
+  test_const_functionReference() async {
+    var library = await checkLibrary(r'''
+void f<T>(T a) {}
+const v = f<int>;
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    topLevelVariables
+      static const v @24
+        type: void Function(int)
+        constantInitializer
+          FunctionReference
+            function: SimpleIdentifier
+              staticElement: self::@function::f
+              staticType: void Function<T>(T)
+              token: f @28
+            staticType: void Function(int)
+            typeArgumentTypes
+              int
+            typeArguments: TypeArgumentList
+              arguments
+                TypeName
+                  name: SimpleIdentifier
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                    token: int @30
+                  type: int
+              leftBracket: < @29
+              rightBracket: > @33
+    accessors
+      synthetic static get v @-1
+        returnType: void Function(int)
+    functions
+      f @5
+        typeParameters
+          covariant T @7
+        parameters
+          requiredPositional a @12
+            type: T
+        returnType: void
 ''');
   }
 
@@ -11140,7 +11171,7 @@ library
   }
 
   test_const_topLevel_throw_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 const c = throw 42;
 ''');
@@ -11804,7 +11835,6 @@ library
   }
 
   test_const_typeLiteral() async {
-    featureSet = FeatureSets.constructorTearOffs;
     var library = await checkLibrary(r'''
 const v = List<int>;
 ''');
@@ -12786,7 +12816,6 @@ library
   }
 
   test_constructor_redirected_factory_named_generic_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
@@ -13086,7 +13115,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_generic_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A<T, U> = C<T, U>;
 class B<T, U> {
@@ -13203,7 +13231,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_imported_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
 typedef A = B;
@@ -13302,7 +13329,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_prefixed_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     addLibrarySource('/foo.dart', '''
 import 'test.dart';
 typedef A = B;
@@ -13353,7 +13379,6 @@ library
   }
 
   test_constructor_redirected_factory_unnamed_viaTypeAlias() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef A = C;
 class B {
@@ -13701,7 +13726,7 @@ library
   }
 
   test_defaultValue_eliminateTypeParameters_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class A<T> {
   const X({List<T> a = const []});
@@ -13890,7 +13915,7 @@ library
   }
 
   test_defaultValue_methodMember_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
@@ -14118,7 +14143,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor2_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 abstract class A<T> {}
 class B<T> implements A<T> {
@@ -14178,7 +14203,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class B<T> {
   const B();
@@ -17250,7 +17275,7 @@ library
   }
 
   test_generic_function_type_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 void Function() f;
 ''');
@@ -17440,7 +17465,7 @@ library
             atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
-              substitution: {T: dynamic}
+              substitution: {T: int Function(String)}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -17516,7 +17541,7 @@ library
             atSign: @ @29
             element: ConstructorMember
               base: self::@class::A::@constructor::•
-              substitution: {T: dynamic}
+              substitution: {T: int Function(String)}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -18037,13 +18062,13 @@ library
       notSimplyBounded F @8
         typeParameters
           unrelated X @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
-        aliasedType: dynamic Function(dynamic Function())
+        aliasedType: dynamic Function(dynamic)
         aliasedElement: GenericFunctionTypeElement
           parameters
             requiredPositional @-1
-              type: dynamic Function()
+              type: dynamic
           returnType: dynamic
 ''');
   }
@@ -20209,7 +20234,7 @@ library
   }
 
   test_instanceInference_operator_equal_legacy_from_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     addLibrarySource('/legacy.dart', r'''
 // @dart = 2.7
 class LegacyDefault {
@@ -20511,7 +20536,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToItself_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T extends C<T>> {}
 C c;
@@ -22281,7 +22306,6 @@ library
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A.named(T _);
@@ -22341,7 +22365,6 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A.named();
@@ -22428,12 +22451,12 @@ library
             constructorName: SimpleIdentifier
               staticElement: ConstructorMember
                 base: self::@class::A::@constructor::named
-                substitution: {T: dynamic}
+                substitution: {T: int}
               staticType: null
               token: named @43
             element: ConstructorMember
               base: self::@class::A::@constructor::named
-              substitution: {T: dynamic}
+              substitution: {T: int}
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
@@ -22505,7 +22528,6 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A.named(T _);
@@ -22561,7 +22583,6 @@ library
   }
 
   test_metadata_constructor_call_named_prefixed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A.named();
@@ -22743,7 +22764,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A(T _);
@@ -22789,7 +22809,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     var library = await checkLibrary('''
 class A<T> {
   const A();
@@ -22878,7 +22897,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_inference() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A(T _);
@@ -22928,7 +22946,6 @@ library
   }
 
   test_metadata_constructor_call_unnamed_prefixed_generic_typeArguments() async {
-    featureSet = FeatureSets.genericMetadata;
     addLibrarySource('/home/test/lib/foo.dart', '''
 class A<T> {
   const A();
@@ -26463,7 +26480,7 @@ library
   }
 
   test_mixin_inference_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary(r'''
 class A<T> {}
 mixin M<U> on A<U> {}
@@ -27249,13 +27266,13 @@ library
   definingUnit
     typeAliases
       notSimplyBounded F @8
-        aliasedType: dynamic Function() Function()
+        aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: dynamic Function()
+          returnType: dynamic
       notSimplyBounded G @34
-        aliasedType: dynamic Function() Function()
+        aliasedType: dynamic Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: dynamic Function()
+          returnType: dynamic
 ''');
   }
 
@@ -27268,9 +27285,9 @@ library
   definingUnit
     typeAliases
       notSimplyBounded F @8
-        aliasedType: List<dynamic Function()> Function()
+        aliasedType: List<dynamic> Function()
         aliasedElement: GenericFunctionTypeElement
-          returnType: List<dynamic Function()>
+          returnType: List<dynamic>
 ''');
   }
 
@@ -27285,7 +27302,7 @@ library
       notSimplyBounded F @8
         typeParameters
           unrelated T @10
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -27327,7 +27344,6 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef F<T extends F> = List<int>;
 ''');
@@ -27345,7 +27361,6 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary('''
 typedef F = List<F>;
 ''');
@@ -27773,7 +27788,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -29631,7 +29646,7 @@ library
   }
 
   test_type_never_disableNnbd() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('Never d;');
     checkElementText(library, r'''
 library
@@ -29730,7 +29745,7 @@ library
   }
 
   test_type_param_ref_nullability_star() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('''
 class C<T> {
   T t;
@@ -31108,7 +31123,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = List<void Function(T)>;
 ''');
@@ -31125,7 +31139,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_contravariant2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = void Function(T);
 typedef B<T> = List<A<T>>;
@@ -31153,7 +31166,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = List<T>;
 ''');
@@ -31170,7 +31182,6 @@ library
   }
 
   test_typeAlias_typeParameters_variance_interface_covariant2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = Map<int, T>;
 typedef B<T> = List<A<T>>;
@@ -31297,19 +31308,19 @@ library
   definingUnit
     typeAliases
       F @8
-        aliasedType: dynamic Function()
+        aliasedType: int
     topLevelVariables
       static f @19
-        type: dynamic Function()
+        type: int
           aliasElement: self::@typeAlias::F
     accessors
       synthetic static get f @-1
-        returnType: dynamic Function()
+        returnType: int
           aliasElement: self::@typeAlias::F
       synthetic static set f @-1
         parameters
           requiredPositional _f @-1
-            type: dynamic Function()
+            type: int
               aliasElement: self::@typeAlias::F
         returnType: void
 ''');
@@ -31320,7 +31331,6 @@ library
     reason: 'Type dynamic is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_dynamic() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
@@ -31333,7 +31343,6 @@ void f(dynamic<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_functionType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = void Function();
 typedef A2<R> = R Function();
@@ -31375,7 +31384,6 @@ library
   }
 
   test_typedef_nonFunction_aliasElement_interfaceType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = List<int>;
 typedef A2<T, U> = Map<T, U>;
@@ -31420,7 +31428,6 @@ library
     reason: 'Type Never is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_never() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A1 = Never;
 typedef A2<T> = Never?;
@@ -31437,7 +31444,6 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
   }
 
   test_typedef_nonFunction_aliasElement_typeParameterType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
 void f<U>(A<U> a) {}
@@ -31471,7 +31477,6 @@ library
     reason: 'Type void is special, no support for its aliases yet',
   )
   test_typedef_nonFunction_aliasElement_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = void;
 void f(A a) {}
@@ -31484,7 +31489,6 @@ void f(void<aliasElement: self::@typeAlias::A> a) {}
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<int, T>;
 class A<T, U> {}
@@ -31520,7 +31524,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T>?;
 class A<T> {}
@@ -31560,7 +31563,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_interfaceType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = A<T?>;
 class A<T> {}
@@ -31604,7 +31606,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A implements X {}
@@ -31623,7 +31624,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A implements X {}
@@ -31642,7 +31642,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_typeParameterType() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = T;
 class A {}
@@ -31678,7 +31677,6 @@ library
   }
 
   test_typedef_nonFunction_asInterfaceType_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = void;
 class A {}
@@ -31708,7 +31706,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -31738,7 +31735,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
@@ -31781,7 +31777,6 @@ library
   }
 
   test_typedef_nonFunction_asMixinType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
@@ -31826,7 +31821,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A extends X {}
@@ -31845,7 +31839,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>;
 class A<T> {}
@@ -31873,7 +31866,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_none_viaTypeParameter() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X<T> = T;
 class A<T> {}
@@ -31906,7 +31898,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A extends X {}
@@ -31925,7 +31916,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int>?;
 class A<T> {}
@@ -31951,7 +31941,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_interfaceType_question2() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = A<int?>;
 class A<T> {}
@@ -31979,7 +31968,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Never;
 class A extends X {}
@@ -31998,7 +31986,6 @@ library
   }
 
   test_typedef_nonFunction_asSuperType_Null_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef X = Null;
 class A extends X {}
@@ -32017,7 +32004,6 @@ library
   }
 
   test_typedef_nonFunction_using_dynamic() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = dynamic;
 void f(A a) {}
@@ -32038,6 +32024,7 @@ library
   }
 
   test_typedef_nonFunction_using_interface_disabled() async {
+    featureSet = FeatureSets.language_2_12;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -32063,7 +32050,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = int;
 void f(A a) {}
@@ -32085,7 +32071,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_legacy() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     newFile('/a.dart', content: r'''
 typedef A = List<int>;
 ''');
@@ -32110,7 +32095,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_noTypeParameters_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = int?;
 void f(A a) {}
@@ -32132,7 +32116,6 @@ library
   }
 
   test_typedef_nonFunction_using_interface_withTypeParameters() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = Map<int, T>;
 void f(A<String> a) {}
@@ -32159,7 +32142,6 @@ library
   }
 
   test_typedef_nonFunction_using_Never_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never;
 void f(A a) {}
@@ -32180,7 +32162,6 @@ library
   }
 
   test_typedef_nonFunction_using_Never_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = Never?;
 void f(A a) {}
@@ -32201,7 +32182,6 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_none() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T;
 void f1(A a) {}
@@ -32234,7 +32214,6 @@ library
   }
 
   test_typedef_nonFunction_using_typeParameter_question() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A<T> = T?;
 void f1(A a) {}
@@ -32267,7 +32246,6 @@ library
   }
 
   test_typedef_nonFunction_using_void() async {
-    featureSet = FeatureSets.nonFunctionTypeAliases;
     var library = await checkLibrary(r'''
 typedef A = void;
 void f(A a) {}
@@ -32687,7 +32665,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: dynamic Function()
+            bound: dynamic
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -32705,7 +32683,7 @@ library
       functionTypeAliasBased notSimplyBounded F @13
         typeParameters
           unrelated T @15
-            bound: List<dynamic Function()>
+            bound: List<dynamic>
             defaultType: dynamic
         aliasedType: void Function()
         aliasedElement: GenericFunctionTypeElement
@@ -32736,7 +32714,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_complex_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('typedef U F<T extends List<U>, U>(T t);');
     checkElementText(library, r'''
 library
@@ -32781,7 +32759,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_simple_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library = await checkLibrary('typedef U F<T extends U, U>(T t);');
     checkElementText(library, r'''
 library
@@ -32827,7 +32805,7 @@ library
   }
 
   test_typedef_type_parameters_f_bound_simple_new_syntax_legacy() async {
-    featureSet = FeatureSets.beforeNullSafe;
+    featureSet = FeatureSets.language_2_9;
     var library =
         await checkLibrary('typedef F<T extends U, U> = U Function(T t);');
     checkElementText(library, r'''

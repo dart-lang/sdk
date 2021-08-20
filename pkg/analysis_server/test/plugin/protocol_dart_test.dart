@@ -9,7 +9,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_context.dart';
 import '../abstract_single_unit.dart';
 
 void main() {
@@ -74,8 +73,7 @@ class A {
 }
 
 @reflectiveTest
-class ConvertElementTest extends AbstractSingleUnitTest
-    with WithNonFunctionTypeAliasesMixin {
+class ConvertElementTest extends AbstractSingleUnitTest {
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated

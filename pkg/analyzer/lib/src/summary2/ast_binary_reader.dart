@@ -87,6 +87,8 @@ class AstBinaryReader {
         return _readFunctionExpression();
       case Tag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
+      case Tag.FunctionReference:
+        return _readFunctionReference();
       case Tag.FunctionTypedFormalParameter:
         return _readFunctionTypedFormalParameter();
       case Tag.GenericFunctionType:
@@ -565,6 +567,19 @@ class AstBinaryReader {
       arguments,
     );
     _readInvocationExpression(node);
+    return node;
+  }
+
+  FunctionReference _readFunctionReference() {
+    var function = readNode() as Expression;
+    var typeArguments = _readOptionalNode() as TypeArgumentList?;
+
+    var node = astFactory.functionReference(
+      function: function,
+      typeArguments: typeArguments,
+    );
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    _readExpressionResolution(node);
     return node;
   }
 

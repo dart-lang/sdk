@@ -49,8 +49,8 @@ class GenericMetadataEnabledParserTest extends FastaParserTestCase
 mixin GenericMetadataParserTest on FastaParserTestCase {
   void test_className_prefixed_constructorName_absent() {
     var compilationUnit = _parseCompilationUnit('@p.A<B>() class C {}',
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 4, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -65,8 +65,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
 
   void test_className_prefixed_constructorName_present() {
     var compilationUnit = _parseCompilationUnit('@p.A<B>.ctor() class C {}',
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 4, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -81,8 +81,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
 
   void test_className_unprefixed_constructorName_absent() {
     var compilationUnit = _parseCompilationUnit('@A<B>() class C {}',
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 2, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 2, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -96,8 +96,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
 
   void test_className_unprefixed_constructorName_present() {
     var compilationUnit = _parseCompilationUnit('@A<B>.ctor() class C {}',
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 2, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 2, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -117,8 +117,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
               6,
               1),
         ],
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 4, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 4, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -139,8 +139,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
               4,
               1),
         ],
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 2, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 2, 1));
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
     var annotation = classDeclaration.metadata.single;
@@ -174,8 +174,8 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
           expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 7, 1),
           expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 5),
         ],
-        disabledError: expectedError(
-            ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS, 2, 1));
+        disabledError:
+            expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 2, 1));
   }
 
   CompilationUnit _parseCompilationUnit(String content,

@@ -151,7 +151,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
   }
 
   void setUp() {
-    featureSet = FeatureSets.nullSafe;
+    featureSet = FeatureSets.latestWithExperiments;
   }
 
   void _addLibraryUnits(
