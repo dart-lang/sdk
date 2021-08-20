@@ -231,6 +231,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
                              thread()->isolate_group()->program_lock());
     finder.ScanImplementorClasses(dst_klass);
   }
+  if (cids.is_empty()) return;
 
   // Sort all collected cids.
   intptr_t* cids_array = cids.data();
