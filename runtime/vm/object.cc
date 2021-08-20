@@ -5497,6 +5497,12 @@ bool Class::IsSubtypeOf(const Class& cls,
       }
       return true;
     }
+
+    // _Closure <: Function
+    if (this_class.IsClosureClass() && other_class.IsDartFunctionClass()) {
+      return true;
+    }
+
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
     Array& interfaces = Array::Handle(zone, this_class.interfaces());
@@ -20453,17 +20459,12 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     return false;
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
-  if (other.IsDartFunctionType()) {
-    // Any type that can be the type of a closure is a subtype of Function.
-    if (IsDartFunctionType() || IsDartClosureType() || IsFunctionType()) {
-      if (isolate_group->use_strict_null_safety_checks() && IsNullable()) {
-        return !other.IsNonNullable();
-      }
-      return true;
-    }
-    // Fall through.
-  }
   if (IsFunctionType()) {
+    // Any type that can be the type of a closure is a subtype of Function.
+    if (other.IsDartFunctionType()) {
+      return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
+             !other.IsNonNullable();
+    }
     if (other.IsFunctionType()) {
       // Check for two function types.
       if (isolate_group->use_strict_null_safety_checks() && IsNullable() &&
