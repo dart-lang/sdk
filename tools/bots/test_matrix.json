@@ -3473,6 +3473,13 @@
       },
       "steps": [
         {
+          "name": "validate pkg/ pubspec files",
+          "script": "tools/sdks/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
+          ]
+        },
+        {
           "name": "validate .dart_tool/package_config.json",
           "script": "tools/sdks/dart-sdk/bin/dart",
           "arguments": [
