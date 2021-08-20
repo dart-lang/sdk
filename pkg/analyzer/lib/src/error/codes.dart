@@ -12550,6 +12550,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS =
+      CompileTimeErrorCode(
+          'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
+          "A generative constructor of an abstract class can't be torn off",
+          correction: "Try tearing off a constructor of a concrete class, or a "
+              "non-generative constructor.");
+
+  /**
    * Parameters:
    * 0: the type that can't be thrown
    */

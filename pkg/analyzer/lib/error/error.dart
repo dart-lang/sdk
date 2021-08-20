@@ -405,6 +405,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
   CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
   CompileTimeErrorCode.TOP_LEVEL_CYCLE,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
