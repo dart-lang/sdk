@@ -188,8 +188,14 @@ main(List<String> args) async {
       .where((String arg) => !arg.contains('optimization-counter-threshold'))
       .toList();
 
+  // We first compile the testee to kernel and run the subprocess on the kernel
+  // file. That avoids cases where the testee has to run a lot of code in the
+  // kernel-isolate (e.g. due to ia32's kernel-service not being app-jit
+  // trained). We do that because otherwise the --complete-timeline will collect
+  // a lot of data, possibly leading to OOMs or timeouts.
   await runVMTests(args, tests,
       testeeBefore: primeTimeline,
       extraArgs: ['--complete-timeline'],
-      executableArgs: executableArgs);
+      executableArgs: executableArgs,
+      compileToKernelFirst: true);
 }
