@@ -291,7 +291,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     if (!obj->IsNewObject() || visiting_old_object_->untag()->IsRemembered()) {
       return;
     }
-    visiting_old_object_->untag()->SetRememberedBitUnsynchronized();
+    visiting_old_object_->untag()->SetRememberedBit();
     thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 

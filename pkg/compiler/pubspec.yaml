@@ -12,7 +12,8 @@ dependencies:
   # Published packages - repo version ensured via dependency_overrides
   collection: any
   crypto: any
-  dart2js_info: any
+  dart2js_info:
+    path: ../dart2js_info
   front_end:
     path: ../front_end
   kernel:
@@ -56,8 +57,14 @@ dev_dependencies:
 
 dependency_overrides:
   # Packages with source in the SDK
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  analyzer:
+    path: ../analyzer
   front_end:
     path: ../front_end
+  js:
+    path: ../js
   kernel:
     path: ../kernel
   meta:
@@ -91,9 +98,7 @@ dependency_overrides:
   path:
     path: ../../third_party/pkg/path
   protobuf:
-    path: ../../third_party/pkg/protobuf
-  quiver:
-    path: ../../third_party/pkg/quiver
+    path: ../../third_party/pkg/protobuf/protobuf
   shelf:
     path: ../../third_party/pkg/shelf
   shelf_static:
@@ -106,6 +111,10 @@ dependency_overrides:
     path: ../../third_party/pkg/stream_channel
   string_scanner:
     path: ../../third_party/pkg/string_scanner
+  test:
+    path: ../../third_party/pkg/test/pkgs/test
+  test_api:
+    path: ../../third_party/pkg/test/pkgs/test_api
   typed_data:
     path: ../../third_party/pkg/typed_data
   yaml:
