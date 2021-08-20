@@ -5305,13 +5305,108 @@ TEST_CASE(TypeParameterTypeRef) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
+  auto check_subtype_relation = [](const Expect& expect, const Type& sub,
+                                   const Type& super, bool is_subtype) {
+    if (sub.IsSubtypeOf(super, Heap::kNew) != is_subtype) {
+      TextBuffer buffer(128);
+      buffer.AddString("Expected ");
+      sub.PrintName(Object::kScrubbedName, &buffer);
+      buffer.Printf(" to %s a subtype of ", is_subtype ? "be" : "not be");
+      super.PrintName(Object::kScrubbedName, &buffer);
+      expect.Fail("%s", buffer.buffer());
+    }
+  };
+#define EXPECT_SUBTYPE(sub, super)                                             \
+  check_subtype_relation(Expect(__FILE__, __LINE__), sub, super, true);
+#define EXPECT_NOT_SUBTYPE(sub, super)                                         \
+  check_subtype_relation(Expect(__FILE__, __LINE__), sub, super, false);
+
+  auto finalize_and_canonicalize = [](Type* type) {
+    *type ^= ClassFinalizer::FinalizeType(*type);
+    ASSERT(type->IsCanonical());
+  };
+
   const auto& closure_class =
       Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   const auto& closure_type = Type::Handle(closure_class.DeclarationType());
+  auto& closure_type_nullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  finalize_and_canonicalize(&closure_type_nullable);
+  auto& closure_type_legacy = Type::Handle(
+      closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  finalize_and_canonicalize(&closure_type_legacy);
+  auto& closure_type_nonnullable = Type::Handle(
+      closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  finalize_and_canonicalize(&closure_type_nonnullable);
+
   const auto& function_type =
       Type::Handle(IsolateGroup::Current()->object_store()->function_type());
+  auto& function_type_nullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNullable, Heap::kNew));
+  finalize_and_canonicalize(&function_type_nullable);
+  auto& function_type_legacy = Type::Handle(
+      function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
+  finalize_and_canonicalize(&function_type_legacy);
+  auto& function_type_nonnullable = Type::Handle(
+      function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
+  finalize_and_canonicalize(&function_type_nonnullable);
 
-  EXPECT(closure_type.IsSubtypeOf(function_type, Heap::kNew));
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, function_type_nonnullable);
+  }
+
+  const auto& async_lib = Library::Handle(Library::AsyncLibrary());
+  const auto& future_or_class =
+      Class::Handle(async_lib.LookupClass(Symbols::FutureOr()));
+  auto& tav_function_nullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nullable.SetTypeAt(0, function_type_nullable);
+  tav_function_nullable = tav_function_nullable.Canonicalize(thread, nullptr);
+  auto& tav_function_legacy = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_legacy.SetTypeAt(0, function_type_legacy);
+  tav_function_legacy = tav_function_legacy.Canonicalize(thread, nullptr);
+  auto& tav_function_nonnullable = TypeArguments::Handle(TypeArguments::New(1));
+  tav_function_nonnullable.SetTypeAt(0, function_type_nonnullable);
+  tav_function_nonnullable =
+      tav_function_nonnullable.Canonicalize(thread, nullptr);
+
+  auto& future_or_function_type_nullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nullable));
+  finalize_and_canonicalize(&future_or_function_type_nullable);
+  auto& future_or_function_type_legacy =
+      Type::Handle(Type::New(future_or_class, tav_function_legacy));
+  finalize_and_canonicalize(&future_or_function_type_legacy);
+  auto& future_or_function_type_nonnullable =
+      Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
+  finalize_and_canonicalize(&future_or_function_type_nonnullable);
+
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_legacy);
+  EXPECT_SUBTYPE(closure_type_legacy, future_or_function_type_nonnullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nullable);
+  EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_legacy);
+  // Nullable types are not a subtype of non-nullable types in strict mode.
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(closure_type_nullable,
+                       future_or_function_type_nonnullable);
+  } else {
+    EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
+  }
+#undef EXPECT_NOT_SUBTYPE
+#undef EXPECT_SUBTYPE
 }
 
 TEST_CASE(Class_GetInstantiationOf) {
