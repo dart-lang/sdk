@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -63,27 +62,23 @@ class AddTypeAnnotation extends CorrectionProducer {
 
   Future<void> _applyChange(
       ChangeBuilder builder, Token? keyword, int offset, DartType type) async {
-    Future<bool> tryToApplyChange(ChangeBuilder builder) async {
-      var validChange = true;
-      await builder.addDartFileEdit(file, (builder) {
+
+    _configureTargetLocation(node);
+
+    await builder.addDartFileEdit(file, (builder) {
+      if (builder.canWriteType(type)) {
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addReplacement(range.token(keyword), (builder) {
-            validChange = builder.writeType(type);
+            builder.writeType(type);
           });
         } else {
           builder.addInsertion(offset, (builder) {
-            validChange = builder.writeType(type);
+            builder.writeType(type);
             builder.write(' ');
           });
         }
-      });
-      return validChange;
-    }
-
-    _configureTargetLocation(node);
-    if (await tryToApplyChange(_temporaryBuilder(builder))) {
-      await tryToApplyChange(builder);
-    }
+      }
+    });
   }
 
   /// Configure the [utils] using the given [target].
@@ -157,9 +152,6 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
     await _applyChange(builder, declarationList.keyword, variable.offset, type);
   }
-
-  ChangeBuilder _temporaryBuilder(ChangeBuilder builder) =>
-      ChangeBuilder(workspace: (builder as ChangeBuilderImpl).workspace);
 
   DartType? _typeForVariable(VariableDeclaration variable) {
     var initializer = variable.initializer;

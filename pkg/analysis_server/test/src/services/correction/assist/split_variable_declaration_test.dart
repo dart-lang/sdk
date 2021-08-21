@@ -119,7 +119,7 @@ main() {
 ''');
   }
 
-  Future<void> test_unknownType() async {
+  Future<void> test_privateType() async {
     addSource('/home/test/lib/a.dart', '''
 class A {
   _B b => _B();

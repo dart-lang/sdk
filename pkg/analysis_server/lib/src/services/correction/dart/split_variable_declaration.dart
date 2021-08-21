@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -51,33 +50,25 @@ class SplitVariableDeclaration extends CorrectionProducer {
       return;
     }
 
-    Future<bool> tryToApplyChange(ChangeBuilder builder) async {
-      var validChange = true;
-      await builder.addDartFileEdit(file, (builder) {
-        if (variableList.type == null) {
-          final type = variable.declaredElement!.type;
-          if (!type.isDynamic && keyword != null) {
-            builder.addReplacement(range.token(keyword), (builder) {
-              validChange = builder.writeType(type);
-            });
+    await builder.addDartFileEdit(file, (builder) {
+      if (variableList.type == null) {
+        final type = variable.declaredElement!.type;
+        if (!type.isDynamic && keyword != null) {
+          if (!builder.canWriteType(type)) {
+            return;
           }
+          builder.addReplacement(range.token(keyword), (builder) {
+            builder.writeType(type);
+          });
         }
+      }
 
-        var indent = utils.getNodePrefix(statement);
-        var name = variable.name.name;
-        builder.addSimpleInsertion(
-            variable.name.end, ';' + eol + indent + name);
-      });
-      return validChange;
-    }
-
-    if (await tryToApplyChange(_temporaryBuilder(builder))) {
-      await tryToApplyChange(builder);
-    }
+      var indent = utils.getNodePrefix(statement);
+      var name = variable.name.name;
+      builder.addSimpleInsertion(
+          variable.name.end, ';' + eol + indent + name);
+    });
   }
-
-  ChangeBuilder _temporaryBuilder(ChangeBuilder builder) =>
-      ChangeBuilder(workspace: (builder as ChangeBuilderImpl).workspace);
 
   /// Return an instance of this class. Used as a tear-off in `AssistProcessor`.
   static SplitVariableDeclaration newInstance() => SplitVariableDeclaration();
