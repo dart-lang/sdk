@@ -11,6 +11,7 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:dartdev/src/commands/migrate.dart';
+import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
@@ -27,6 +28,7 @@ import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/events.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -101,6 +103,13 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
+    addCommand(DevToolsCommand(
+      verbose: verbose,
+      // TODO(devoncarew): Un-hide this command after a stabilization period
+      // likely before the next stable release (before Dart 2.15).
+      hidden: !verbose,
+      customDevToolsPath: sdk.devToolsBinaries,
+    ));
     addCommand(FixCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
@@ -116,6 +125,7 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   String get invocation =>
       'dart ${verbose ? '[vm-options] ' : ''}<command|dart-file> [arguments]';
+
   @override
   String get usageFooter =>
       'See https://dart.dev/tools/dart-tool for detailed documentation.';

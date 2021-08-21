@@ -717,6 +717,13 @@ class KernelCompilationRequest : public ValueObject {
       Dart_KernelCompilationVerbosityLevel verbosity) {
     // Build the message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
+    if (port_ == ILLEGAL_PORT) {
+      Dart_KernelCompilationResult result = {};
+      result.status = Dart_KernelCompilationStatus_Unknown;
+      result.error =
+          Utils::StrDup("Error Kernel Isolate : unable to create reply port");
+      return result;
+    }
     Dart_CObject tag;
     tag.type = Dart_CObject_kInt32;
     tag.value.as_int32 = request_tag;

@@ -628,6 +628,8 @@ import 'switch_case_completes_normally_test.dart'
     as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
+import 'tearoff_of_generative_constructor_of_abstract_class_test.dart'
+    as tearoff_of_generative_constructor_of_abstract_class;
 import 'throw_of_invalid_type_test.dart' as throw_of_invalid_type;
 import 'todo_test.dart' as todo_test;
 import 'top_level_cycle_test.dart' as top_level_cycle;
@@ -1129,6 +1131,7 @@ main() {
     super_initializer_in_object.main();
     switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
+    tearoff_of_generative_constructor_of_abstract_class.main();
     throw_of_invalid_type.main();
     todo_test.main();
     top_level_cycle.main();

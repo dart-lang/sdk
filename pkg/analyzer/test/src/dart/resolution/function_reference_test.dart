@@ -24,8 +24,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_explicitReceiver_unknown_multipleProperties() async {
@@ -37,8 +37,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_extensionGetter_extensionOverride() async {
@@ -57,8 +57,8 @@ bar(A a) {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 67, 8),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.getter('foo'), 'dynamic');
   }
 
   test_extensionMethod() async {
@@ -173,8 +173,8 @@ bar(A a) {
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 51, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_extensionMethod_fromClassDeclaration() async {
@@ -210,8 +210,8 @@ abstract class A {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 66, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'void Function(int)');
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.getter('foo'), 'void Function(int)');
   }
 
   test_instanceGetter_explicitReceiver() async {
@@ -228,8 +228,8 @@ bar(A a) {
           CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 58, 5),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'void Function(int)');
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.getter('foo'), 'void Function(int)');
   }
 
   test_instanceMethod() async {
@@ -279,8 +279,8 @@ void f(A? a, A b) {
 }
 ''');
 
-    var reference = findNode.functionReference('(a ?? b).foo<int>;');
-    assertType(reference, 'void Function(int)');
+    assertFunctionReference(findNode.functionReference('(a ?? b).foo<int>;'),
+        findElement.method('foo'), 'void Function(int)');
   }
 
   test_instanceMethod_explicitReceiver_super() async {
@@ -311,8 +311,8 @@ class A {
       error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 30, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_instanceMethod_explicitReceiver_super_noSuper() async {
@@ -324,8 +324,8 @@ bar() {
       error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 10, 5),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_instanceMethod_explicitReceiver_this() async {
@@ -403,8 +403,8 @@ bar() {
 
     assertImportPrefix(
         findNode.simple('prefix.'), findElement.prefix('prefix'));
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_instanceMethod_explicitReceiver_typeParameter() async {
@@ -416,8 +416,8 @@ bar<T>() {
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 15, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_instanceMethod_explicitReceiver_variable() async {
@@ -481,8 +481,8 @@ class A {
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_localFunction() async {
@@ -560,6 +560,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 
     var reference = findNode.functionReference('(1 == 2 ? foo : bar)<int>;');
     assertType(reference, 'void Function(int)');
+    // A ParenthesizedExpression has no element to assert on.
   }
 
   test_otherExpression_wrongNumberOfTypeArguments() async {
@@ -580,6 +581,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
     var reference =
         findNode.functionReference('(1 == 2 ? foo : bar)<int, String>;');
     assertType(reference, 'void Function(dynamic)');
+    // A ParenthesizedExpression has no element to assert on.
   }
 
   test_receiverIsDynamic() async {
@@ -592,8 +594,8 @@ bar(dynamic a) {
           19, 5),
     ]);
 
-    var reference = findNode.functionReference('a.foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('a.foo<int>;'), null, 'dynamic');
   }
 
   test_staticMethod() async {
@@ -624,9 +626,8 @@ bar() {
 ''');
 
     assertClassRef(findNode.simple('A.'), findElement.class_('A'));
-    var reference = findNode.functionReference('foo<int>;');
-    assertElement(reference, findElement.method('foo'));
-    assertType(reference, 'void Function(int)');
+    assertFunctionReference(findNode.functionReference('foo<int>;'),
+        findElement.method('foo'), 'void Function(int)');
   }
 
   test_staticMethod_explicitReceiver_importPrefix() async {
@@ -800,8 +801,8 @@ bar() {
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 6),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_topLevelVariable_prefix_unknownIdentifier() async {
@@ -818,8 +819,8 @@ bar() {
 
     assertImportPrefix(
         findNode.simple('prefix.'), findElement.prefix('prefix'));
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_typeAlias_function_unknownProperty() async {
@@ -831,8 +832,8 @@ var a = Cb.foo<int>;
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_typeAlias_typeVariable_unknownProperty() async {
@@ -844,8 +845,8 @@ var a = T.foo<int>;
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 3),
     ]);
 
-    var reference = findNode.functionReference('foo<int>;');
-    assertType(reference, 'dynamic');
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_unknownIdentifier() async {
@@ -856,6 +857,9 @@ void bar() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 3),
     ]);
+
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_unknownIdentifier_explicitReceiver() async {
@@ -870,6 +874,9 @@ class B {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 3),
     ]);
+
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
   test_unknownIdentifier_importPrefix() async {
@@ -883,5 +890,8 @@ void bar() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 40, 3),
     ]);
+
+    assertFunctionReference(
+        findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 }

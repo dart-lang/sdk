@@ -389,6 +389,85 @@ void bar() {
 
 @reflectiveTest
 class ConstructorReferenceResolutionTest extends PubPackageResolutionTest {
+  test_abstractClass_factory() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  factory A() => A2();
+}
+
+class A2 implements A {}
+
+foo() {
+  A.new;
+}
+''');
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedTypeNameType: 'A',
+    );
+  }
+
+  test_abstractClass_generative() async {
+    await assertErrorsInCode('''
+abstract class A {
+  A();
+}
+
+foo() {
+  A.new;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          39,
+          5),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedTypeNameType: 'A',
+    );
+  }
+
+  test_abstractClass_redirecting() async {
+    await assertErrorsInCode('''
+abstract class A {
+  A(): this.two();
+
+  A.two();
+}
+
+foo() {
+  A.new;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          63,
+          5),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedTypeNameType: 'A',
+    );
+  }
+
   test_class_generic_inferFromContext_badTypeArgument() async {
     await assertErrorsInCode('''
 class A<T extends num> {

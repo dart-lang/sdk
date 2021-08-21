@@ -25,6 +25,17 @@ class ConstructorReferenceResolver {
           HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
     }
     node.constructorName.accept(_resolver);
+    var element = node.constructorName.staticElement;
+    if (element != null &&
+        !element.isFactory &&
+        element.enclosingElement.isAbstract) {
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+        node,
+        [],
+      );
+    }
     _inferArgumentTypes(node);
   }
 
