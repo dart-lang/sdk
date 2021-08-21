@@ -57,6 +57,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
   @override
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) =>
+      type != null && !type.isDynamic
+          ? _canWriteType(type, methodBeingCopied: methodBeingCopied)
+          : false;
+
+  @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
     return DartLinkedEditBuilderImpl(this);
   }
@@ -838,6 +844,60 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
+  /// Check if the code to reference [type] in this compilation unit can be
+  /// written.
+  ///
+  /// See also [_writeType]
+  bool _canWriteType(DartType? type,
+      {ExecutableElement? methodBeingCopied, bool required = false}) {
+    type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
+
+    // If not a useful type, don't write it.
+    if (type == null) {
+      return false;
+    }
+    if (type.isDynamic) {
+      if (required) {
+        return true;
+      }
+      return false;
+    }
+    if (type.isBottom) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.isNonNullableByDefault) {
+        return true;
+      }
+      return false;
+    }
+
+    var alias = type.alias;
+    if (alias != null) {
+      return true;
+    }
+
+    if (type is FunctionType) {
+      return true;
+    }
+
+    if (type is InterfaceType) {
+      return true;
+    }
+
+    if (type is NeverType) {
+      return true;
+    }
+
+    if (type is TypeParameterType) {
+      return true;
+    }
+
+    if (type is VoidType) {
+      return true;
+    }
+
+    throw UnimplementedError('(${type.runtimeType}) $type');
+  }
+
   /// Generate a name that does not occur in [existingNames] that begins with
   /// the given [prefix].
   String _generateUniqueName(Set<String> existingNames, String prefix) {
@@ -1299,6 +1359,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           void Function(DartEditBuilder builder) buildEdit) =>
       super.addReplacement(
           range, (builder) => buildEdit(builder as DartEditBuilder));
+
+  @override
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied}) {
+    var builder = createEditBuilder(0, 0);
+    return builder.canWriteType(type, methodBeingCopied: methodBeingCopied);
+  }
 
   @override
   void convertFunctionFromSyncToAsync(

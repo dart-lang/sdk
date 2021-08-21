@@ -20,6 +20,17 @@ abstract class DartEditBuilder implements EditBuilder {
   void addLinkedEdit(String groupName,
       void Function(DartLinkedEditBuilder builder) buildLinkedEdit);
 
+  /// Check if the code for a type annotation for the given [type] can be
+  /// written.
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  ///
+  /// The logic is the same as the one used in [writeType]
+  bool canWriteType(DartType? type,
+      {ExecutableElement? methodBeingCopied});
+
   /// Write the code for a declaration of a class with the given [name]. If a
   /// list of [interfaces] is provided, then the class will implement those
   /// interfaces. If [isAbstract] is `true`, then the class will be abstract. If
@@ -298,6 +309,15 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   @override
   void addReplacement(
       SourceRange range, void Function(DartEditBuilder builder) buildEdit);
+
+  /// Check if the code for a type annotation for the given [type] can be
+  /// written.
+  ///
+  /// If a [methodBeingCopied] is provided, then type parameters defined by that
+  /// method are assumed to be part of what is being written and hence valid
+  /// types.
+  bool canWriteType(DartType? type,
+      {ExecutableElement? methodBeingCopied});
 
   /// Create one or more edits that will convert the given function [body] from
   /// being synchronous to be asynchronous. This includes adding the `async`
