@@ -2809,8 +2809,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var lateKeyword = variableList.lateKeyword;
     if (lateKeyword == null) return;
 
-    var hasConstConstructor =
-        _enclosingClass!.constructors.any((c) => c.isConst);
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass == null) {
+      // The field is in an extension and should handled elsewhere.
+      return;
+    }
+    var hasConstConstructor = enclosingClass.constructors.any((c) => c.isConst);
     if (!hasConstConstructor) return;
 
     errorReporter.reportErrorForToken(
