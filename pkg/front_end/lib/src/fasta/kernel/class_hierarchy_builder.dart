@@ -2675,7 +2675,7 @@ class ClassHierarchyNodeBuilder {
             //      //   {Super.method, Class.method}
             //    }
             //
-            // Maybe we should recognized this.
+            // Maybe we should recognize this.
             interfaceMembers.addAll(implementedMembers);
 
             /// Normally, if only one member defines the interface member there
