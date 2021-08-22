@@ -2811,7 +2811,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
-      // The field is in an extension and should handled elsewhere.
+      // The field is in an extension and should be handled elsewhere.
       return;
     }
     var hasConstConstructor = enclosingClass.constructors.any((c) => c.isConst);
