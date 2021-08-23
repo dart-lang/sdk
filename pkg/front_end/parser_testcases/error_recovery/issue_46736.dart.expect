@@ -1,0 +1,32 @@
+Problems reported:
+
+parser/error_recovery/issue_46736:1:18: 'default' can't be used as an identifier because it's a keyword.
+void test(String default) { }
+                 ^^^^^^^
+
+beginCompilationUnit(void)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(, null)
+      handleVoidKeyword(void)
+      handleIdentifier(test, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(String)
+        endMetadataStar(0)
+        beginFormalParameter(String, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(String, typeReference)
+          handleNoTypeArguments(default)
+          handleType(String, null)
+          handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: default}], default, default)
+          handleIdentifier(default, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, default, null, null, FormalParameterKind.mandatory, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+      endBlockFunctionBody(0, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )

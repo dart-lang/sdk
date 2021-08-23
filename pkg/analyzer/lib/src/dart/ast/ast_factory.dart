@@ -640,7 +640,7 @@ class AstFactoryImpl extends AstFactory {
   FunctionReferenceImpl functionReference(
           {required Expression function, TypeArgumentList? typeArguments}) =>
       FunctionReferenceImpl(function as ExpressionImpl,
-          typeArguments: typeArguments as TypeArgumentListImpl);
+          typeArguments: typeArguments as TypeArgumentListImpl?);
 
   @override
   FunctionTypeAliasImpl functionTypeAlias(

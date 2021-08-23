@@ -343,3 +343,12 @@ bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.
 typedef _MessageWithArgument<T> = Message Function(T);
+
+const List<String> okNextValueInFormalParameter = const [
+  '=',
+  ':',
+  ',',
+  ')',
+  ']',
+  '}',
+];

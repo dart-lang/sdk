@@ -133,6 +133,9 @@ class ResultComparator extends AstComparator {
       if (first.isSynthetic && second.name == '_s_') {
         return true;
       }
+      if (first.token.isKeyword && second.name == '_k_') {
+        return true;
+      }
     }
     return super.isEqualNodes(first, second);
   }

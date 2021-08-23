@@ -12,12 +12,75 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-/// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
-/// the optional `new` and `const` feature, or [ExtensionOverride].
+/// Handles possible rewrites of AST.
+///
+/// When code is initially parsed, many assumptions are made which may be
+/// incorrect given newer Dart syntax. For example, `new a.b()` is parsed as an
+/// [InstanceCreationExpression], but `a.b()` (without `new`) is parsed as a
+/// [MethodInvocation]. The public methods of this class carry out the minimal
+/// amount of resolution in order to determine whether a node (and its
+/// descendants) should be replaced by another, and perform such replacements.
+///
+/// The public methods of this class form a complete accounting of possible
+/// node replacements.
 class AstRewriter {
   final ErrorReporter _errorReporter;
 
   AstRewriter(this._errorReporter);
+
+  /// Possibly rewrites [node] as a [MethodInvocation] with a
+  /// [FunctionReference] target.
+  ///
+  /// Code such as `a<...>.b(...);` (or with a prefix such as `p.a<...>.b(...)`)
+  /// is parsed as an [ExpressionStatement] with an [InstanceCreationExpression]
+  /// with `a<...>.b` as the [ConstructorName] (which has 'type' of `a<...>`
+  /// and 'name' of `b`). The [InstanceCreationExpression] is rewritten as a
+  /// [MethodInvocation] if `a` resolves to a function.
+  AstNode instanceCreationExpression(
+      Scope nameScope, InstanceCreationExpression node) {
+    if (node.keyword != null) {
+      // Either `new` or `const` has been specified.
+      return node;
+    }
+    var typeName = node.constructorName.type.name;
+    if (typeName is SimpleIdentifier) {
+      var element = nameScope.lookup(typeName.name).getter;
+      if (element is MethodElement) {
+        return _toMethodInvocationOfFunctionReference(
+            node: node, function: typeName);
+      }
+    } else if (typeName is PrefixedIdentifier) {
+      var prefixElement = nameScope.lookup(typeName.prefix.name).getter;
+      if (prefixElement is PrefixElement) {
+        var prefixedName = typeName.identifier.name;
+        var element = prefixElement.scope.lookup(prefixedName).getter;
+        if (element is FunctionElement) {
+          return _toMethodInvocationOfFunctionReference(
+              node: node, function: typeName);
+        }
+
+        // If `element` is a [ClassElement], or a [TypeAliasElement] aliasing
+        // an interface type, then this indeed looks like a constructor call; do
+        // not rewrite `node`.
+
+        // If `element` is a [TypeAliasElement] aliasing a function type, then
+        // this looks like an attempt type instantiate a function type alias
+        // (which is not a feature), and then call a method on the resulting
+        // [Type] object; no not rewrite `node`.
+
+        // If `typeName.identifier` cannot be resolved, do not rewrite `node`.
+        return node;
+      } else {
+        // In the case that `prefixElement` is not a [PrefixElement], then
+        // `typeName`, as a [PrefixedIdentifier], cannot refer to a class or an
+        // aliased type; rewrite `node` as a [MethodInvocation].
+        return _toMethodInvocationOfFunctionReference(
+            node: node, function: typeName);
+      }
+    }
+
+    return node;
+  }
 
   /// Possibly rewrites [node] as an [ExtensionOverride] or as an
   /// [InstanceCreationExpression].
@@ -143,6 +206,11 @@ class AstRewriter {
   }
 
   /// Possibly rewrites [node] as a [ConstructorReference].
+  ///
+  /// Code such as `List.filled;` is parsed as (an [ExpressionStatement] with) a
+  /// [PrefixedIdentifier] with 'prefix' of `List` and 'identifier' of `filled`.
+  /// The [PrefixedIdentifier] may need to be rewritten as a
+  /// [ConstructorReference].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifier node) {
     if (node.parent is Annotation) {
       // An annotations which is a const constructor invocation can initially be
@@ -181,6 +249,13 @@ class AstRewriter {
     return node;
   }
 
+  /// Possibly rewrites [node] as a [ConstructorReference].
+  ///
+  /// Code such as `async.Future.value;` is parsed as (an [ExpressionStatement]
+  /// with) a [PropertyAccess] with a 'target' of [PrefixedIdentifier] (with
+  /// 'prefix' of `List` and 'identifier' of `filled`) and a 'propertyName' of
+  /// `value`. The [PropertyAccess] may need to be rewritten as a
+  /// [ConstructorReference].
   AstNode propertyAccess(Scope nameScope, PropertyAccess node) {
     if (node.isCascaded) {
       // For example, `List..filled`: this is a property access on an instance
@@ -396,5 +471,24 @@ class AstRewriter {
         typeArguments: typeArguments);
     NodeReplacer.replace(node, instanceCreationExpression);
     return instanceCreationExpression;
+  }
+
+  MethodInvocation _toMethodInvocationOfFunctionReference({
+    required InstanceCreationExpression node,
+    required Identifier function,
+  }) {
+    var functionReference = astFactory.functionReference(
+      function: function,
+      typeArguments: node.constructorName.type.typeArguments,
+    );
+    var methodInvocation = astFactory.methodInvocation(
+      functionReference,
+      node.constructorName.period,
+      node.constructorName.name!,
+      null,
+      node.argumentList,
+    );
+    NodeReplacer.replace(node, methodInvocation);
+    return methodInvocation;
   }
 }
