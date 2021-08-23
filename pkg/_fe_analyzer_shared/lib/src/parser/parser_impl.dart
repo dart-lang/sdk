@@ -668,8 +668,9 @@ class Parser {
       listener.handleImportPrefix(/* deferredKeyword = */ null, asKeyword);
     } else {
       listener.handleImportPrefix(
-          /* deferredKeyword = */ null,
-          /* asKeyword = */ null);
+        /* deferredKeyword = */ null,
+        /* asKeyword = */ null,
+      );
     }
     return token;
   }
@@ -1447,9 +1448,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -2115,8 +2117,9 @@ class Parser {
     } else {
       listener.handleNoType(token);
       listener.handleClassExtends(
-          /* extendsKeyword = */ null,
-          /* typeCount = */ 1);
+        /* extendsKeyword = */ null,
+        /* typeCount = */ 1,
+      );
     }
     return token;
   }
@@ -2524,9 +2527,10 @@ class Parser {
       }
       // Parse the (potential) new type.
       TypeInfo typeInfoAlternative = computeType(
-          token,
-          /* required = */ false,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ false,
+        /* inDeclaration = */ true,
+      );
       token = typeInfoAlternative.skipType(token);
       next = token.next!;
 
@@ -2643,9 +2647,10 @@ class Parser {
         indicatesMethodOrField(next.next!.next!)) {
       // Recovery: Use the reserved keyword despite that not being legal.
       typeInfo = computeType(
-          token,
-          /*required = */ true,
-          /* inDeclaration = */ true);
+        token,
+        /* required = */ true,
+        /* inDeclaration = */ true,
+      );
       token = typeInfo.skipType(token);
       next = token.next!;
       nameIsRecovered = true;
@@ -3610,9 +3615,10 @@ class Parser {
 
     Token beforeType = token;
     TypeInfo typeInfo = computeType(
-        token,
-        /*required = */ false,
-        /* inDeclaration = */ true);
+      token,
+      /* required = */ false,
+      /* inDeclaration = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
 
@@ -3757,9 +3763,10 @@ class Parser {
           indicatesMethodOrField(next2.next!)) {
         // Recovery: Use the reserved keyword despite that not being legal.
         typeInfo = computeType(
-            token,
-            /*required = */ true,
-            /* inDeclaration = */ true);
+          token,
+          /* required = */ true,
+          /* inDeclaration = */ true,
+        );
         token = typeInfo.skipType(token);
         next = token.next!;
         nameIsRecovered = true;
@@ -3962,8 +3969,11 @@ class Parser {
       reportRecoverableError(bodyStart, codes.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(token, /* ofFunctionExpression = */ false,
-          (staticToken == null || externalToken != null) && inPlainSync);
+      token = parseFunctionBody(
+        token,
+        /* ofFunctionExpression = */ false,
+        (staticToken == null || externalToken != null) && inPlainSync,
+      );
     }
     asyncState = savedAsyncModifier;
 
@@ -4112,9 +4122,10 @@ class Parser {
         reportRecoverableError(next, codes.messageExternalFactoryWithBody);
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ true);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ true,
+      );
     } else {
       if (varFinalOrConst != null && !optional('native', next)) {
         if (optional('const', varFinalOrConst)) {
@@ -4122,9 +4133,10 @@ class Parser {
         }
       }
       token = parseFunctionBody(
-          token,
-          /* ofFunctionExpression = */ false,
-          /* allowAbstract = */ false);
+        token,
+        /* ofFunctionExpression = */ false,
+        /* allowAbstract = */ false,
+      );
     }
     switch (kind) {
       case DeclarationKind.Class:
@@ -4418,9 +4430,7 @@ class Parser {
         begin = next = token.next!;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(
-            token,
-            codes.templateExpectedFunctionBody,
+        token = ensureBlock(token, codes.templateExpectedFunctionBody,
             /* missingBlockName = */ null);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup!;
@@ -5528,10 +5538,11 @@ class Parser {
     if (optional('[]', token)) {
       token = rewriteSquareBrackets(beforeToken).next!;
       listener.handleLiteralList(
-          /* count = */ 0,
-          token,
-          constKeyword,
-          token.next!);
+        /* count = */ 0,
+        token,
+        constKeyword,
+        token.next!,
+      );
       return token.next!;
     }
     bool old = mayParseFunctionExpressions;
@@ -6584,10 +6595,11 @@ class Parser {
         listener.beginLocalFunctionDeclaration(start.next!);
         token = typeInfo.parseType(beforeType, this);
         return parseNamedFunctionRest(
-            token,
-            start.next!,
-            beforeFormals,
-            /* isFunctionExpression = */ false);
+          token,
+          start.next!,
+          beforeFormals,
+          /* isFunctionExpression = */ false,
+        );
       }
     }
 

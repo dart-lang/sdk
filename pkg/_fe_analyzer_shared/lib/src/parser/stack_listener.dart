@@ -526,7 +526,8 @@ abstract class Stack {
 }
 
 class StackImpl implements Stack {
-  List<Object?> array = new List<Object?>.filled(/* length = */ 8, null);
+  List<Object?> array =
+      new List<Object?>.filled(/* length = */ 8, /* fill = */ null);
   int arrayLength = 0;
 
   bool get isNotEmpty => arrayLength > 0;
@@ -610,14 +611,16 @@ class StackImpl implements Stack {
 
   List<Object?> get values {
     final int length = arrayLength;
-    final List<Object?> list = new List<Object?>.filled(length, null);
+    final List<Object?> list =
+        new List<Object?>.filled(length, /* fill = */ null);
     list.setRange(/* start = */ 0, length, array);
     return list;
   }
 
   void _grow() {
     final int length = array.length;
-    final List<Object?> newArray = new List<Object?>.filled(length * 2, null);
+    final List<Object?> newArray =
+        new List<Object?>.filled(length * 2, /* fill = */ null);
     newArray.setRange(/* start = */ 0, length, array, /* skipCount = */ 0);
     array = newArray;
   }
@@ -692,7 +695,8 @@ class FixedNullableList<T> {
 
   List<T?>? pop(Stack stack, int count, [NullValue? nullValue]) {
     if (count == 0) return null;
-    return stack.popList(count, new List<T?>.filled(count, null), nullValue);
+    return stack.popList(
+        count, new List<T?>.filled(count, /* fill = */ null), nullValue);
   }
 
   List<T>? popNonNullable(Stack stack, int count, T dummyValue) {
@@ -704,8 +708,8 @@ class FixedNullableList<T> {
   List<T?>? popPadded(Stack stack, int count, int padding,
       [NullValue? nullValue]) {
     if (count + padding == 0) return null;
-    return stack.popList(
-        count, new List<T?>.filled(count + padding, null), nullValue);
+    return stack.popList(count,
+        new List<T?>.filled(count + padding, /* fill = */ null), nullValue);
   }
 
   List<T>? popPaddedNonNullable(

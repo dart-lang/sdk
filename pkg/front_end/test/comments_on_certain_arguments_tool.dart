@@ -112,15 +112,25 @@ Future<void> main(List<String> args) async {
         if (update != "y" && update != "yes") continue;
 
         List<Edit> theseEdits = edits[uri];
-        theseEdits.sort((a, b) => a.offset - b.offset);
+        theseEdits.sort();
         String content = utf8.decode(component.uriToSource[uri].source,
             allowMalformed: true);
         StringBuffer sb = new StringBuffer();
         int latest = 0;
         for (Edit edit in theseEdits) {
           sb.write(content.substring(latest, edit.offset));
-          sb.write(edit.insertData);
-          latest = edit.offset;
+          switch (edit.editType) {
+            case EditType.Insert:
+              print(edit);
+              sb.write(edit.insertData);
+              latest = edit.offset;
+              break;
+            case EditType.Delete:
+              print(edit);
+              // We "delete" by skipping...
+              latest = edit.offset + edit.length;
+              break;
+          }
         }
         sb.write(content.substring(latest, content.length));
         new File.fromUri(uri).writeAsStringSync(sb.toString());
@@ -129,7 +139,7 @@ Future<void> main(List<String> args) async {
     }
     if (editsPerformed.isNotEmpty) {
       print("\n\nYou should now probably run something like\n\n");
-      stdout.write(r"tools/sdks/dart-sdk/bin/dartfmt -w");
+      stdout.write("dart format");
       for (Uri uri in editsPerformed) {
         File f = new File.fromUri(uri);
         Directory relative = new Directory.fromUri(Uri.base.resolve("."));
@@ -265,6 +275,7 @@ void check(
     }
   }
   bool foundComment = false;
+  List<CommentToken> badComments = [];
   CommentToken commentToken = token.precedingComments;
   while (commentToken != null) {
     if (commentToken.lexeme == expectedComment) {
@@ -272,13 +283,23 @@ void check(
       foundComment = true;
       break;
     }
-    if (commentToken.lexeme.replaceAll(" ", "") ==
-        expectedComment.replaceAll(" ", "")) {
-      // Close enough.
-      foundComment = true;
-      break;
+    if (commentToken.lexeme.startsWith("/*") &&
+        commentToken.lexeme.endsWith("= */")) {
+      badComments.add(commentToken);
     }
     commentToken = commentToken.next;
+  }
+  if (badComments.isNotEmpty) {
+    for (CommentToken comment in badComments) {
+      Location calculatedLocation =
+          component.getLocation(location.file, comment.offset);
+      print("Please remove comment of length ${comment.lexeme.length} at "
+          "${comment.offset} => "
+          "${calculatedLocation}");
+      edits[location.file] ??= [];
+      edits[location.file]
+          .add(new Edit.delete(comment.offset, comment.lexeme.length));
+    }
   }
   if (foundComment) {
     return;
@@ -289,15 +310,36 @@ void check(
       "${token.offset} => "
       "${calculatedLocation}");
   edits[location.file] ??= [];
-  edits[location.file].add(new Edit(token.offset, expectedComment));
+  edits[location.file].add(new Edit.insert(token.offset, expectedComment));
 }
 
 Map<Uri, List<Edit>> edits = {};
 
-class Edit {
+enum EditType { Insert, Delete }
+
+class Edit implements Comparable<Edit> {
   final int offset;
+  final int length;
   final String insertData;
-  Edit(this.offset, this.insertData);
+  final EditType editType;
+  Edit.insert(this.offset, this.insertData)
+      : editType = EditType.Insert,
+        length = null;
+  Edit.delete(this.offset, this.length)
+      : editType = EditType.Delete,
+        insertData = null;
+
+  @override
+  int compareTo(Edit other) {
+    if (offset != other.offset) {
+      return offset - other.offset;
+    }
+    throw "Why did this happen?";
+  }
+
+  String toString() {
+    return "Edit[$editType @ $offset]";
+  }
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
