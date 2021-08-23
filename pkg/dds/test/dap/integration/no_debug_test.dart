@@ -20,13 +20,7 @@ main() {
 
   group('noDebug mode', () {
     test('runs a simple script', () async {
-      final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!');
-  print('World!');
-  print('args: $args');
-}
-    ''');
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.launch(

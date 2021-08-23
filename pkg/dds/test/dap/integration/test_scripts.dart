@@ -20,6 +20,15 @@ const sdkStackFrameProgram = '''
   }
 ''';
 
+/// A simple Dart script that prints its arguments.
+const simpleArgPrintingProgram = r'''
+  void main(List<String> args) async {
+    print('Hello!');
+    print('World!');
+    print('args: $args');
+  }
+''';
+
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.
 const simpleAsyncProgram = '''

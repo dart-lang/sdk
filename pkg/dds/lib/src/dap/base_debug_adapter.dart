@@ -26,7 +26,8 @@ typedef _VoidNoArgRequestHandler<TArg> = Future<void> Function(
 /// appropriate method calls/events.
 ///
 /// This class does not implement any DA functionality, only message handling.
-abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
+abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
+    TAttachArgs extends AttachRequestArguments> {
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
 
@@ -38,6 +39,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     _channel.listen(_handleIncomingMessage);
   }
 
+  /// Parses arguments for [attachRequest] into a type of [TAttachArgs].
+  ///
+  /// This method must be implemented by the implementing class using a class
+  /// that corresponds to the arguments it expects (these may differ between
+  /// Dart CLI, Dart tests, Flutter, Flutter tests).
+  TAttachArgs Function(Map<String, Object?>) get parseAttachArgs;
+
   /// Parses arguments for [launchRequest] into a type of [TLaunchArgs].
   ///
   /// This method must be implemented by the implementing class using a class
@@ -47,7 +55,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
 
   Future<void> attachRequest(
     Request request,
-    TLaunchArgs args,
+    TAttachArgs args,
     void Function() sendResponse,
   );
 
@@ -271,7 +279,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments> {
     } else if (request.command == 'launch') {
       handle(request, _withVoidResponse(launchRequest), parseLaunchArgs);
     } else if (request.command == 'attach') {
-      handle(request, _withVoidResponse(attachRequest), parseLaunchArgs);
+      handle(request, _withVoidResponse(attachRequest), parseAttachArgs);
     } else if (request.command == 'terminate') {
       handle(
         request,

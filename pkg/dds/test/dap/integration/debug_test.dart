@@ -20,13 +20,7 @@ main() {
     tearDown(() => dap.tearDown());
 
     test('runs a simple script', () async {
-      final testFile = dap.createTestFile(r'''
-void main(List<String> args) async {
-  print('Hello!');
-  print('World!');
-  print('args: $args');
-}
-    ''');
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
 
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.launch(
@@ -212,6 +206,6 @@ void main(List<String> args) async {
 Uri _extractVmServiceUri(OutputEventBody vmConnectionBanner) {
   // TODO(dantup): Change this to use the dart.debuggerUris custom event
   //   if implemented (whch VS Code also needs).
-  final match = vmServiceUriPattern.firstMatch(vmConnectionBanner.output);
+  final match = dapVmServiceBannerPattern.firstMatch(vmConnectionBanner.output);
   return Uri.parse(match!.group(1)!);
 }
