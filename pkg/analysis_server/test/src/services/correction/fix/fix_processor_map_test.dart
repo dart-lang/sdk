@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,6 +23,17 @@ class FixProcessorMapTest {
     _testMap(FixProcessor.nonLintProducerMap.values);
   }
 
+  void test_registerFixForLint() {
+    CorrectionProducer producer() => MockCorrectionProducer();
+
+    var lintName = 'not_a_lint';
+    expect(FixProcessor.lintProducerMap[lintName], null);
+    FixProcessor.registerFixForLint(lintName, producer);
+    expect(FixProcessor.lintProducerMap[lintName], contains(producer));
+    // Restore the map to it's original state so as to not impact other tests.
+    FixProcessor.lintProducerMap.remove(lintName);
+  }
+
   void _testGenerator(ProducerGenerator generator) {
     var producer = generator();
     var className = producer.runtimeType.toString();
@@ -38,5 +50,12 @@ class FixProcessorMapTest {
         _testGenerator(generator);
       }
     }
+  }
+}
+
+class MockCorrectionProducer implements CorrectionProducer {
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
   }
 }
