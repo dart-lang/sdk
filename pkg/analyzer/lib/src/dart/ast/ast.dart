@@ -3381,6 +3381,14 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   Token? keyword;
 
+  /// The star optionally following the 'async' or 'sync' keyword, or `null` if
+  /// there is wither no such keyword or no star.
+  ///
+  /// It is an error for an expression function body to feature the star, but
+  /// the parser will accept it.
+  @override
+  Token? star;
+
   /// The token introducing the expression that represents the body of the
   /// function.
   @override
@@ -3396,8 +3404,8 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /// Initialize a newly created function body consisting of a block of
   /// statements. The [keyword] can be `null` if the function body is not an
   /// async function body.
-  ExpressionFunctionBodyImpl(
-      this.keyword, this.functionDefinition, this._expression, this.semicolon) {
+  ExpressionFunctionBodyImpl(this.keyword, this.star, this.functionDefinition,
+      this._expression, this.semicolon) {
     _becomeParentOf(_expression);
   }
 
@@ -3412,6 +3420,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   Iterable<SyntacticEntity> get childEntities => ChildEntities()
     ..add(keyword)
+    ..add(star)
     ..add(functionDefinition)
     ..add(_expression)
     ..add(semicolon);
@@ -3432,10 +3441,13 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  bool get isAsynchronous => keyword != null;
+  bool get isAsynchronous => keyword?.lexeme == Keyword.ASYNC.lexeme;
 
   @override
-  bool get isSynchronous => keyword == null;
+  bool get isGenerator => star != null;
+
+  @override
+  bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @override
   E? accept<E>(AstVisitor<E> visitor) =>

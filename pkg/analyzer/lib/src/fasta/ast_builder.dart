@@ -2665,11 +2665,16 @@ class AstBuilder extends StackListener {
     debugEvent("ExpressionFunctionBody");
 
     var expression = pop() as Expression;
-    pop(); // star (*)
+    var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
     if (parseFunctionBodies) {
-      push(ast.expressionFunctionBody(
-          asyncKeyword, arrowToken, expression, semicolon));
+      push(ast.expressionFunctionBody2(
+        keyword: asyncKeyword,
+        star: star,
+        functionDefinition: arrowToken,
+        expression: expression,
+        semicolon: semicolon,
+      ));
     } else {
       push(ast.emptyFunctionBody(semicolon!));
     }

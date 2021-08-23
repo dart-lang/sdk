@@ -826,6 +826,13 @@ export 'foo.dart'
             AstTestFactory.identifier3("a")));
   }
 
+  void test_visitExpressionFunctionBody_async_star() {
+    _assertSource(
+        "async* => a;",
+        AstTestFactory.asyncGeneratorExpressionFunctionBody(
+            AstTestFactory.identifier3("a")));
+  }
+
   void test_visitExpressionFunctionBody_simple() {
     _assertSource("=> a;",
         AstTestFactory.expressionFunctionBody(AstTestFactory.identifier3("a")));

@@ -333,6 +333,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     var keyword = node.keyword;
     if (keyword != null) {
       sink.write(keyword.lexeme);
+      if (node.star != null) {
+        sink.write('*');
+      }
       sink.write(' ');
     }
     sink.write('${node.functionDefinition.lexeme} ');
