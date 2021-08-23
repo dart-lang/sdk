@@ -14,7 +14,7 @@ import 'parser_impl.dart' show Parser;
 
 import 'type_info.dart' show isValidTypeReference;
 
-import 'util.dart' show isOneOfOrEof, optional;
+import 'util.dart' show isOneOf, isOneOfOrEof, optional;
 
 /// See [IdentifierContext.catchParameter].
 class CatchParameterIdentifierContext extends IdentifierContext {
@@ -472,10 +472,12 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       '[',
       ']',
       '{',
-      '}'
+      '}',
     ];
-    if (looksLikeStartOfNextClassMember(identifier) ||
-        looksLikeStatementStart(identifier) ||
+    if (((looksLikeStartOfNextTopLevelDeclaration(identifier) ||
+                looksLikeStartOfNextClassMember(identifier) ||
+                looksLikeStatementStart(identifier)) &&
+            !isOneOf(identifier.next!, okNextValueInFormalParameter)) ||
         isOneOfOrEof(identifier, followingValues)) {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));

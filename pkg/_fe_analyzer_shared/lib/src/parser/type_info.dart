@@ -8,6 +8,8 @@ import '../scanner/token.dart' show Token, TokenType;
 
 import '../scanner/token_constants.dart' show IDENTIFIER_TOKEN, KEYWORD_TOKEN;
 
+import 'identifier_context.dart';
+
 import 'parser_impl.dart' show Parser;
 
 import 'type_info_impl.dart';
@@ -142,7 +144,7 @@ bool isValidTypeReference(Token token) {
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeInfo computeType(final Token token, bool required,
-    [bool inDeclaration = false]) {
+    [bool inDeclaration = false, bool acceptKeywordForSimpleType = false]) {
   Token next = token.next!;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
@@ -299,7 +301,11 @@ TypeInfo computeType(final Token token, bool required,
       // identifier `?`
       return simpleNullableType;
     }
-  } else if (required || looksLikeName(next)) {
+  } else if (required ||
+      looksLikeName(next) ||
+      (acceptKeywordForSimpleType &&
+          next.isKeywordOrIdentifier &&
+          isOneOf(next.next!, okNextValueInFormalParameter))) {
     // identifier identifier
     return simpleType;
   }

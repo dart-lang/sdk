@@ -69,7 +69,10 @@ import 'formal_parameter_kind.dart'
 import 'forwarding_listener.dart' show ForwardingListener, NullListener;
 
 import 'identifier_context.dart'
-    show IdentifierContext, looksLikeExpressionStart;
+    show
+        IdentifierContext,
+        looksLikeExpressionStart,
+        okNextValueInFormalParameter;
 
 import 'listener.dart' show Listener;
 
@@ -1571,7 +1574,12 @@ class Parser {
 
     // Type is required in a generalized function type, but optional otherwise.
     final Token beforeType = token;
-    TypeInfo typeInfo = computeType(token, inFunctionType);
+    TypeInfo typeInfo = computeType(
+      token,
+      inFunctionType,
+      /* inDeclaration = */ false,
+      /* acceptKeywordForSimpleType = */ true,
+    );
     token = typeInfo.skipType(token);
     next = token.next!;
     if (typeInfo == noType &&
@@ -1592,18 +1600,33 @@ class Parser {
         IdentifierContext.formalParameterDeclaration;
 
     if (!inFunctionType && optional('this', next)) {
+      Token originalToken = token;
       thisKeyword = token = next;
       next = token.next!;
       if (!optional('.', next)) {
-        // Recover from a missing period by inserting one.
-        next = rewriteAndRecover(
-            token,
-            codes.templateExpectedButGot.withArguments('.'),
-            new SyntheticToken(TokenType.PERIOD, next.charOffset));
+        if (isOneOf(next, okNextValueInFormalParameter)) {
+          // Recover by not parsing as 'this' --- an error will be given
+          // later that it's not an allowed identifier.
+          token = originalToken;
+          next = token.next!;
+          thisKeyword = null;
+        } else {
+          // Recover from a missing period by inserting one.
+          next = rewriteAndRecover(
+              token,
+              codes.templateExpectedButGot.withArguments('.'),
+              new SyntheticToken(TokenType.PERIOD, next.charOffset));
+          // These 3 lines are duplicated here and below.
+          periodAfterThis = token = next;
+          next = token.next!;
+          nameContext = IdentifierContext.fieldInitializer;
+        }
+      } else {
+        // These 3 lines are duplicated here and above.
+        periodAfterThis = token = next;
+        next = token.next!;
+        nameContext = IdentifierContext.fieldInitializer;
       }
-      periodAfterThis = token = next;
-      next = token.next!;
-      nameContext = IdentifierContext.fieldInitializer;
     }
 
     if (next.isIdentifier) {
