@@ -181,7 +181,7 @@ String unescape(String string, Quote quote, Object location,
 String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
     UnescapeErrorListener listener) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
-  List<int> result = new List<int>.filled(codeUnits.length, 0);
+  List<int> result = new List<int>.filled(codeUnits.length, /* fill = */ 0);
   int resultOffset = 0;
 
   for (int i = 0; i < codeUnits.length; i++) {

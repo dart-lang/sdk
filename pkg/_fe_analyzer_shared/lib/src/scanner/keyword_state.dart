@@ -25,10 +25,11 @@ abstract class KeywordState {
           .toList(growable: false);
       strings.sort((a, b) => a.compareTo(b));
       _KEYWORD_STATE = computeKeywordStateTable(
-          /* start = */ 0,
-          strings,
-          /* offset = */ 0,
-          strings.length);
+        /* start = */ 0,
+        strings,
+        /* offset = */ 0,
+        strings.length,
+      );
     }
     return _KEYWORD_STATE!;
   }
@@ -38,7 +39,7 @@ abstract class KeywordState {
     bool isLowercase = true;
 
     List<KeywordState?> table =
-        new List<KeywordState?>.filled($z - $A + 1, null);
+        new List<KeywordState?>.filled($z - $A + 1, /* fill = */ null);
     assert(length != 0);
     int chunk = 0;
     int chunkStart = -1;
