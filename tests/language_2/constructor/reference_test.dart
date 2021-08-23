@@ -29,14 +29,14 @@ main() {
   // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
   new Foo.bar<int>();
   //      ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   new Foo.bar<int>.baz();
-  //      ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  //      ^
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //               ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
@@ -44,8 +44,7 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //          ^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //          ^
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Method not found: 'Foo.bar.baz'.
 
   const Foo();
@@ -66,14 +65,14 @@ main() {
   // [cfe] The method 'baz' isn't defined for the class 'Foo<int>'.
   const Foo.bar<int>();
   //        ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //           ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   const Foo.bar<int>.baz();
-  //        ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  //        ^
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //                 ^
   // [cfe] Method not found: 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
@@ -81,42 +80,41 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   //            ^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
-  //            ^
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Method not found: 'Foo.bar.baz'.
 
   Foo();
   Foo.bar();
   Foo.bar.baz();
-  //  ^^^
-  // [cfe] Getter not found: 'bar'.
-  //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+//    ^
+// [cfe] Getter not found: 'bar'.
+//        ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
   // ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
   // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
-  //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   //       ^
   // [cfe] Getter not found: 'bar'.
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo.bar<int>();
   //  ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
-  //  ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
 //^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //           ^
-  // [cfe] Method not found: 'Foo.bar.baz'.
+//    ^
+// [cfe] A constructor invocation can't have type arguments after the constructor name.
+//             ^
+// [cfe] Method not found: 'Foo.bar.baz'.
   Foo.bar.baz<int>();
-  //  ^^^
-  // [cfe] Getter not found: 'bar'.
-  //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+//    ^
+// [cfe] Getter not found: 'bar'.
+//        ^^^
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 }

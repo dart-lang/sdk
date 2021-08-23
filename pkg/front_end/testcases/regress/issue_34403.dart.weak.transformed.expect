@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:16:14: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:16:14: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var c1 = C.bar<int>();
 //              ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:18:18: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:18:18: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var c2 = new C.bar<int>();
 //                  ^^^
 //
@@ -17,23 +17,23 @@ library;
 //   var c3 = C<String>.bar<int>();
 //             ^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var c3 = C<String>.bar<int>();
 //                      ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:22:26: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:22:26: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var c4 = new C<String>.bar<int>();
 //                          ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:25:16: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:25:16: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const d1 = D.foo<int>();
 //                ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:27:22: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:27:22: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const d2 = const D.foo<int>();
 //                      ^^^
 //
@@ -42,23 +42,23 @@ library;
 //   const d3 = D<String>.foo<int>();
 //               ^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const d3 = D<String>.foo<int>();
 //                        ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:31:30: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:31:30: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const d4 = const D<String>.foo<int>();
 //                              ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:34:16: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:34:16: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var e1 = p.E.bar<int>();
 //                ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:36:20: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:36:20: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var e2 = new p.E.bar<int>();
 //                    ^^^
 //
@@ -67,23 +67,23 @@ library;
 //   var e3 = p.E<String>.bar<int>();
 //               ^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var e3 = p.E<String>.bar<int>();
 //                        ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:40:28: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:40:28: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   var e4 = new p.E<String>.bar<int>();
 //                            ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:43:18: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:43:18: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const f1 = p.F.foo<int>();
 //                  ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:45:24: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:45:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const f2 = const p.F.foo<int>();
 //                        ^^^
 //
@@ -92,13 +92,13 @@ library;
 //   const f3 = p.F<String>.foo<int>();
 //                 ^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const f3 = p.F<String>.foo<int>();
 //                          ^^^
 //
-// pkg/front_end/testcases/regress/issue_34403.dart:49:32: Error: A constructor invocation can't have type arguments on the constructor name.
-// Try to place the type arguments on the class name.
+// pkg/front_end/testcases/regress/issue_34403.dart:49:32: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
 //   const f4 = const p.F<String>.foo<int>();
 //                                ^^^
 //

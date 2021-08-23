@@ -6365,6 +6365,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (operand is Generator) {
         push(operand.applyTypeArguments(
             openAngleBracket.charOffset, typeArguments));
+      } else if (operand is StaticTearOff && operand.target.isFactory ||
+          operand is ConstructorTearOff ||
+          operand is RedirectingFactoryTearOff) {
+        push(buildProblem(fasta.messageConstructorTearOffWithTypeArguments,
+            openAngleBracket.charOffset, noLength));
       } else {
         push(new Instantiation(
             toValue(operand), buildDartTypeArguments(typeArguments))

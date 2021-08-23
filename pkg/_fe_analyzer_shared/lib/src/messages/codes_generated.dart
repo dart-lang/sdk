@@ -1756,6 +1756,18 @@ const MessageCode messageConstructorNotSync = const MessageCode(
         r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorTearOffWithTypeArguments =
+    messageConstructorTearOffWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorTearOffWithTypeArguments = const MessageCode(
+    "ConstructorTearOffWithTypeArguments",
+    message:
+        r"""A constructor tear-off can't have type arguments after the constructor name.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the class name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithReturnType =
     messageConstructorWithReturnType;
 
@@ -1775,8 +1787,9 @@ const MessageCode messageConstructorWithTypeArguments = const MessageCode(
     "ConstructorWithTypeArguments",
     analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR"],
     message:
-        r"""A constructor invocation can't have type arguments on the constructor name.""",
-    tip: r"""Try to place the type arguments on the class name.""");
+        r"""A constructor invocation can't have type arguments after the constructor name.""",
+    tip:
+        r"""Try removing the type arguments or placing them after the class name.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithTypeParameters =
