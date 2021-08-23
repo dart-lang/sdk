@@ -10,9 +10,6 @@ executables:
   dart2native:
 
 dependencies:
-   args: ^1.4.0
-   front_end:
-     path: ../front_end
    path: any
 
 dev_dependencies:

@@ -37,7 +37,6 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2native (if not on ia32)
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
@@ -46,7 +45,6 @@ declare_args() {
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
-# ........dart2native.dart.snapshot (if not on ia32)
 # ........dartanalyzer.dart.snapshot
 # ........dartdev.dart.snapshot
 # ........dartdev.dill
@@ -147,12 +145,6 @@ _platform_sdk_snapshots = [
     "../utils/pub",
   ],
 ]
-if (dart_target_arch != "ia32") {
-  _platform_sdk_snapshots += [ [
-        "dart2native",
-        "../utils/dart2native:generate_dart2native_snapshot",
-      ] ]
-}
 if (create_kernel_service_snapshot) {
   _platform_sdk_snapshots += [ [
         "kernel-service",
@@ -270,8 +262,8 @@ foreach(library, _full_sdk_libraries) {
     {
       target = "copy_${library}_library"
       visibility = [
-        ":copy_platform_sdk_libraries",
         ":copy_full_sdk_libraries",
+        ":copy_platform_sdk_libraries",
       ]
       source = "lib/$library"
       dest = "$root_out_dir/$dart_sdk_output/lib/$library"
@@ -328,7 +320,7 @@ if (target_os != current_os && target_os == "fuchsia") {
 }
 
 copy("copy_dartaotruntime") {
-  visibility = [ ":copy_dart2native" ]
+  visibility = [ ":group_dart2native" ]
   deps = [ "../runtime/bin:dart_precompiled_runtime_product" ]
   src_dir = get_label_info("../runtime/bin:dart_precompiled_runtime_product",
                            "root_out_dir")
@@ -341,7 +333,7 @@ copy("copy_dartaotruntime") {
 }
 
 copy("copy_gen_snapshot") {
-  visibility = [ ":copy_dart2native" ]
+  visibility = [ ":group_dart2native" ]
   deps = [ "../runtime/bin:gen_snapshot_product" ]
   src_dir =
       get_label_info("../runtime/bin:gen_snapshot_product", "root_out_dir")
@@ -352,7 +344,7 @@ copy("copy_gen_snapshot") {
 }
 
 copy("copy_vm_platform_strong_product") {
-  visibility = [ ":copy_dart2native" ]
+  visibility = [ ":group_dart2native" ]
   deps = [ "../runtime/vm:vm_platform_product" ]
   src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
   sources = [ "$src_dir/vm_platform_strong_product.dill" ]
@@ -360,27 +352,21 @@ copy("copy_vm_platform_strong_product") {
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_dart2native") {
+copy("copy_gen_kernel_snapshot") {
+  visibility = [ ":group_dart2native" ]
+  deps = [ "../utils/gen_kernel" ]
+  sources = [ "$root_gen_dir/gen_kernel.dart.snapshot" ]
+  outputs =
+      [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
+}
+
+group("group_dart2native") {
   deps = [
     ":copy_dartaotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
     ":copy_vm_platform_strong_product",
   ]
-  ext = ""
-  if (is_win) {
-    ext = ".bat"
-  }
-  sources = [ "bin/dart2native$ext" ]
-  outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
-}
-
-copy("copy_gen_kernel_snapshot") {
-  visibility = [ ":copy_dart2native" ]
-  deps = [ "../utils/gen_kernel" ]
-  sources = [ "$root_gen_dir/gen_kernel.dart.snapshot" ]
-  outputs =
-      [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }
 
 # A template for copying the things in _platform_sdk_scripts and
@@ -394,8 +380,8 @@ template("copy_sdk_script") {
   }
   copy(target_name) {
     visibility = [
-      ":copy_platform_sdk_scripts",
       ":copy_full_sdk_scripts",
+      ":copy_platform_sdk_scripts",
     ]
     sources = [ "bin/${name}_sdk$ext" ]
     outputs = [ "$root_out_dir/$dart_sdk_output/bin/$name$ext" ]
@@ -411,8 +397,8 @@ foreach(sdk_script, _full_sdk_scripts) {
 foreach(script, _scripts) {
   copy("copy_${script}_script") {
     visibility = [
-      ":copy_platform_sdk_scripts",
       ":copy_full_sdk_scripts",
+      ":copy_platform_sdk_scripts",
     ]
     ext = ""
     if (is_win) {
@@ -458,8 +444,8 @@ foreach(snapshot, _full_sdk_snapshots) {
   }
   copy("copy_${snapshot[0]}_snapshot") {
     visibility = [
-      ":copy_platform_sdk_snapshots",
       ":copy_full_sdk_snapshots",
+      ":copy_platform_sdk_snapshots",
     ]
     deps = [ snapshot[1] ]
     sources = [ "$root/${snapshot[0]}.dart.snapshot" ]
@@ -695,8 +681,8 @@ group("copy_platform_sdk_libraries") {
 # This is the main rule to copy libraries in _full_sdk_libraries to lib/
 group("copy_full_sdk_libraries") {
   visibility = [
-    ":create_full_sdk",
     ":copy_libraries",
+    ":create_full_sdk",
   ]
   public_deps = []
   foreach(library, _full_sdk_libraries) {
@@ -796,8 +782,8 @@ copy("copy_api_readme") {
 # Parts common to both platform and full SDKs.
 group("create_common_sdk") {
   visibility = [
-    ":create_sdk",
     ":create_platform_sdk",
+    ":create_sdk",
   ]
   public_deps = [
     ":copy_analysis_summaries",
@@ -818,17 +804,17 @@ group("create_common_sdk") {
   ]
 
   # We do not support AOT on ia32 and should therefore not add the
-  # dart2native script (since there is no AOT compiler/runtime available)
+  # dart native compilation files (since there is no AOT compiler/runtime available)
   if (dart_target_arch != "ia32") {
-    public_deps += [ ":copy_dart2native" ]
+    public_deps += [ ":group_dart2native" ]
   }
 }
 
 # Parts specific to the platform SDK.
 group("_create_platform_sdk") {
   visibility = [
-    ":create_sdk",
     ":create_platform_sdk",
+    ":create_sdk",
   ]
   public_deps = [
     ":copy_platform_sdk_libraries",
