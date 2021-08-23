@@ -44,9 +44,11 @@ class ChangeTypeAnnotation extends CorrectionProducer {
           _oldAnnotation = displayStringForType(typeNode.typeOrThrow);
           _newAnnotation = displayStringForType(newType);
           await builder.addDartFileEdit(file, (builder) {
-            builder.addReplacement(range.node(typeNode), (builder) {
-              builder.writeType(newType);
-            });
+            if (builder.canWriteType(newType)) {
+              builder.addReplacement(range.node(typeNode), (builder) {
+                builder.writeType(newType);
+              });
+            }
           });
         }
       }

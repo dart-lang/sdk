@@ -65,14 +65,16 @@ class AddReturnType extends CorrectionProducer {
 
     final insertBeforeEntity_final = insertBeforeEntity;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(insertBeforeEntity_final.offset, (builder) {
-        if (returnType.isDynamic) {
-          builder.write('dynamic');
-        } else {
-          builder.writeType(returnType);
-        }
-        builder.write(' ');
-      });
+      if (returnType.isDynamic || builder.canWriteType(returnType)) {
+        builder.addInsertion(insertBeforeEntity_final.offset, (builder) {
+          if (returnType.isDynamic) {
+            builder.write('dynamic');
+          } else {
+            builder.writeType(returnType);
+          }
+          builder.write(' ');
+        });
+      }
     });
   }
 
