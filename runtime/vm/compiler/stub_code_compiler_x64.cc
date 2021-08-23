@@ -417,7 +417,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ cmpq(RDX, Immediate(0));
   __ j(EQUAL, &no_type_args, Assembler::kNearJump);
   __ movq(RAX, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
-  __ movq(RCX, Address(RAX, RDX, TIMES_1, 0));
+  __ LoadCompressed(RCX, Address(RAX, RDX, TIMES_1, 0));
   __ Bind(&no_type_args);
   __ pushq(RCX);
 
@@ -427,16 +427,18 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Allocate context.
   {
     Label done, slow_path;
-    __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                        &slow_path, Assembler::kFarJump,
-                        RAX,  // instance
-                        RSI,  // end address
-                        RDI);
-    __ movq(RSI, Address(THR, target::Thread::object_null_offset()));
-    __ movq(FieldAddress(RAX, target::Context::parent_offset()), RSI);
-    __ movq(FieldAddress(RAX, target::Context::num_variables_offset()),
-            Immediate(1));
-    __ jmp(&done);
+    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
+                          &slow_path, Assembler::kFarJump,
+                          RAX,  // instance
+                          RSI,  // end address
+                          RDI);
+      __ movq(RSI, Address(THR, target::Thread::object_null_offset()));
+      __ movq(FieldAddress(RAX, target::Context::parent_offset()), RSI);
+      __ movq(FieldAddress(RAX, target::Context::num_variables_offset()),
+              Immediate(1));
+      __ jmp(&done);
+    }
 
     __ Bind(&slow_path);
 

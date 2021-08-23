@@ -472,7 +472,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ cmp(R4, Operand(0));
   __ b(&no_type_args, EQ);
   __ ldr(R0, Address(FP, kReceiverOffset * target::kWordSize));
-  __ ldr(R3, Address(R0, R4));
+  __ LoadCompressed(R3, Address(R0, R4));
   __ Bind(&no_type_args);
 
   // Push type arguments & extracted method.
@@ -482,16 +482,18 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   // Allocate context.
   {
     Label done, slow_path;
-    __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
-                        &slow_path,
-                        R0,  // instance
-                        R1,  // end address
-                        R2, R3);
-    __ ldr(R1, Address(THR, target::Thread::object_null_offset()));
-    __ str(R1, FieldAddress(R0, target::Context::parent_offset()));
-    __ LoadImmediate(R1, 1);
-    __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
-    __ b(&done);
+    if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+      __ TryAllocateArray(kContextCid, target::Context::InstanceSize(1),
+                          &slow_path,
+                          R0,  // instance
+                          R1,  // end address
+                          R2, R3);
+      __ ldr(R1, Address(THR, target::Thread::object_null_offset()));
+      __ str(R1, FieldAddress(R0, target::Context::parent_offset()));
+      __ LoadImmediate(R1, 1);
+      __ str(R1, FieldAddress(R0, target::Context::num_variables_offset()));
+      __ b(&done);
+    }
 
     __ Bind(&slow_path);
 
