@@ -351,6 +351,9 @@ class CObject {
                                              uint8_t* data,
                                              void* peer,
                                              Dart_HandleFinalizer callback);
+  static Dart_CObject* NewNativePointer(intptr_t ptr,
+                                        intptr_t size,
+                                        Dart_HandleFinalizer callback);
 
   static Dart_CObject* NewIOBuffer(int64_t length);
   static void ShrinkIOBuffer(Dart_CObject* cobject, int64_t new_length);
@@ -577,6 +580,20 @@ class CObjectExternalUint8Array : public CObject {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
+};
+
+class CObjectNativePointer : public CObject {
+ public:
+  DECLARE_COBJECT_CONSTRUCTORS(NativePointer)
+
+  intptr_t Ptr() const { return cobject_->value.as_native_pointer.ptr; }
+  intptr_t Size() const { return cobject_->value.as_native_pointer.size; }
+  Dart_HandleFinalizer Callback() const {
+    return cobject_->value.as_native_pointer.callback;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectNativePointer);
 };
 
 class ScopedBlockingCall {
