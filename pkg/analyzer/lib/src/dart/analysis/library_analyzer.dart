@@ -430,9 +430,8 @@ class LibraryAnalyzer {
           unignorableCodes.contains(code.name.toUpperCase())) {
         return false;
       }
-
       int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-      String name = code.name.toLowerCase();
+      String name = code.name;
       if (ignoreInfo.ignoredAt(name, errorLine)) {
         return true;
       }
@@ -441,8 +440,7 @@ class LibraryAnalyzer {
       if (period >= 0) {
         uniqueName = uniqueName.substring(period + 1);
       }
-      return uniqueName != name &&
-          ignoreInfo.ignoredAt(uniqueName.toLowerCase(), errorLine);
+      return uniqueName != name && ignoreInfo.ignoredAt(uniqueName, errorLine);
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
