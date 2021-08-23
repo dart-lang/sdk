@@ -1625,8 +1625,8 @@ ConstructorWithTypeParameters:
       }
 
 ConstructorWithTypeArguments:
-  template: "A constructor invocation can't have type arguments on the constructor name."
-  tip: "Try to place the type arguments on the class name."
+  template: "A constructor invocation can't have type arguments after the constructor name."
+  tip: "Try removing the type arguments or placing them after the class name."
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
@@ -5262,3 +5262,11 @@ StaticTearOffFromInstantiatedClass:
   script: |
     class A<X> { static f() {} }
     main() => A<int>.f;
+
+
+ConstructorTearOffWithTypeArguments:
+  template: "A constructor tear-off can't have type arguments after the constructor name."
+  tip: "Try removing the type arguments or placing them after the class name."
+  experiments: constructor-tearoffs
+  script:
+    - "class C<X> { C.foo(); } bar() { C.foo<int>; }"

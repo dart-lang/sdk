@@ -150,6 +150,7 @@ ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
 ConstructorNotFound/example: Fail
 ConstructorNotSync/example: Fail
+ConstructorTearOffWithTypeArguments/analyzerCode: Fail
 ContinueLabelNotTarget/example: Fail
 ContinueOutsideOfLoop/part_wrapped_script1: Fail
 ContinueOutsideOfLoop/script1: Fail

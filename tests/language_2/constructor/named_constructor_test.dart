@@ -24,7 +24,7 @@ void main() {
   // 'Class.named' is not a type:
   new Class.named<int>().value;
   //        ^
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //             ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 
@@ -32,7 +32,7 @@ void main() {
   new Class<int>.named<int>().value;
   //             ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 
   new prefix.Class().value;
   // 'prefix' is not a type:
@@ -48,7 +48,7 @@ void main() {
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 
   new prefix.Class.named().value;
   // 'prefix<int>.Class.named' doesn't fit the grammar syntax T.id:
@@ -67,7 +67,7 @@ void main() {
   new prefix.Class.named<int>().value;
   //               ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
   new prefix<int>.Class<int>.named().value;
@@ -76,7 +76,7 @@ void main() {
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 
 
   // 'prefix<int>.Class.named<int>' doesn't fit the grammar syntax T.id:
@@ -93,7 +93,7 @@ void main() {
   new prefix.Class<int>.named<int>().value;
   //                    ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 
   // 'prefix<int>.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
   new prefix<int>.Class<int>.named<int>().value;
@@ -102,5 +102,5 @@ void main() {
   // [cfe] Method not found: 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
-  // [cfe] A constructor invocation can't have type arguments on the constructor name.
+  // [cfe] A constructor invocation can't have type arguments after the constructor name.
 }

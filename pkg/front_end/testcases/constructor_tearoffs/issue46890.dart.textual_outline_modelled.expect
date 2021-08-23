@@ -1,0 +1,8 @@
+class A<X> {
+  A.foo() {}
+  factory A.bar() => new A.foo();
+  factory A.baz() = A.bar;
+}
+
+main() {}
+test() {}
