@@ -55,6 +55,7 @@ class ElementHolder {
 /// 2. Create and set new elements for local declarations.
 /// 3. Resolve all [TypeName]s - set elements and types.
 /// 4. Resolve all [GenericFunctionType]s - set their types.
+/// 5. Rewrite AST where resolution provides a more accurate understanding.
 class ResolutionVisitor extends RecursiveAstVisitor<void> {
   LibraryElementImpl _libraryElement;
   final TypeProvider _typeProvider;
@@ -741,6 +742,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _setElementAnnotations(node.metadata, node.element!.metadata);
       }
     });
+  }
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
+    if (newNode != node) {
+      return newNode.accept(this);
+    }
+
+    super.visitInstanceCreationExpression(node);
   }
 
   @override

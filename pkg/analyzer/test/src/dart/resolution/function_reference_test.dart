@@ -328,6 +328,25 @@ bar() {
         findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
+  test_instanceMethod_explicitReceiver_targetOfFunctionCall() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+class A {
+  void foo<T>(T a) {}
+}
+
+bar(A a) {
+  a.foo<int>.m();
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
   test_instanceMethod_explicitReceiver_this() async {
     await assertNoErrorsInCode('''
 class A {
@@ -466,6 +485,25 @@ class B extends A {
 ''');
 
     var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.method('foo'), 'void Function(int)');
+  }
+
+  test_instanceMethod_targetOfFunctionCall() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  void m() {}
+}
+class A {
+  void foo<T>(T a) {}
+
+  bar() {
+    foo<int>.m();
+  }
+}
+''');
+
+    var reference = findNode.functionReference('foo<int>');
     assertFunctionReference(
         reference, findElement.method('foo'), 'void Function(int)');
   }
@@ -785,6 +823,30 @@ void bar() {
 
     assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
     var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+      reference,
+      findElement.importFind('package:test/a.dart').topFunction('foo'),
+      'void Function(int)',
+    );
+  }
+
+  test_topLevelFunction_importPrefix_asTargetOfFunctionCall() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+void foo<T>(T arg) {}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+
+extension on Function {
+  void m() {}
+}
+void bar() {
+  a.foo<int>.m();
+}
+''');
+
+    assertImportPrefix(findNode.simple('a.f'), findElement.prefix('a'));
+    var reference = findNode.functionReference('foo<int>');
     assertFunctionReference(
       reference,
       findElement.importFind('package:test/a.dart').topFunction('foo'),

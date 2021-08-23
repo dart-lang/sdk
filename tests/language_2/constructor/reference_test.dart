@@ -107,11 +107,13 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
 //^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+// [analyzer] COMPILE_TIME_ERROR.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
 //    ^
 // [cfe] A constructor invocation can't have type arguments after the constructor name.
 //             ^
 // [cfe] Method not found: 'Foo.bar.baz'.
+  //           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   Foo.bar.baz<int>();
 //    ^
 // [cfe] Getter not found: 'bar'.

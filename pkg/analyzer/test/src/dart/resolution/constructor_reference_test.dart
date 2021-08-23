@@ -360,6 +360,35 @@ void bar() {
     );
   }
 
+  test_prefixedClass_generic_targetOfFunctionCall() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A<T> {
+  A();
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart' as a;
+extension on Function {
+  void m() {}
+}
+void bar() {
+  a.A<int>.new.m();
+}
+''');
+
+    var classElement =
+        findElement.importFind('package:test/a.dart').class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('a.A<int>.new'),
+      elementMatcher(classElement.unnamedConstructor,
+          substitution: {'T': 'int'}),
+      classElement,
+      'A<int> Function()',
+      expectedTypeNameType: 'A<int>',
+      expectedPrefix: findElement.import('package:test/a.dart').prefix,
+    );
+  }
+
   test_prefixedClass_generic_unnamed() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A<T> {
