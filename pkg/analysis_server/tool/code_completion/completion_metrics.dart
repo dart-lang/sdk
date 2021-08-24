@@ -1071,8 +1071,9 @@ class CompletionMetricsComputer {
           .toList();
       locations.sort();
       for (var location in locations) {
-        table.add(toRow(targetMetrics
-            .map((metrics) => metrics.locationMrrComputers[location]!)));
+        table.add(toRow(targetMetrics.map((metrics) =>
+            metrics.locationMrrComputers[location] ??
+            MeanReciprocalRankComputer(location))));
       }
     }
     rightJustifyColumns(table, range(1, table[0].length));
