@@ -84,6 +84,23 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
 abstract class VisitorStrategy {
   const VisitorStrategy();
 
+  /// Preamble comment used in the generated file.
+  String get preamble => '''
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Run '$generatorCommand' to update.
+''';
+
+  /// The command used to generate the visitor.
+  ///
+  /// This is inserted in the [preamble] along with a comment that the file
+  /// is generated.
+  String get generatorCommand;
+
   /// Comment used as doc comment for the generated visitor class.
   String get visitorComment => '';
 
@@ -128,6 +145,8 @@ abstract class Visitor0Strategy extends VisitorStrategy {
 
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
+$preamble
+
 import 'package:kernel/ast.dart';
 
 $visitorComment
@@ -199,7 +218,7 @@ class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
 }
 
 /// Strategy for creating an empty `Visitor<void>` implementation.
-class VoidVisitor0Strategy extends Visitor0Strategy {
+abstract class VoidVisitor0Strategy extends Visitor0Strategy {
   const VoidVisitor0Strategy();
 
   @override
@@ -312,7 +331,7 @@ class $visitorName$visitorTypeParameters
 }
 
 /// Strategy for creating an empty `Visitor1<void,Null>` implementation.
-class VoidVisitor1Strategy extends Visitor1Strategy {
+abstract class VoidVisitor1Strategy extends Visitor1Strategy {
   const VoidVisitor1Strategy();
 
   @override

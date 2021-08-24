@@ -505,17 +505,24 @@ class AstModel {
 ///
 /// If [printDump] is `true`, a dump of the model printed to stdout.
 Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
+  bool errorsFound = false;
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   options.packagesFileUri = computePackageConfig(repoDir);
   options.onDiagnostic = (DiagnosticMessage message) {
     printDiagnosticMessage(message, print);
+    if (message.severity == Severity.error) {
+      errorsFound = true;
+    }
   };
 
   InternalCompilerResult compilerResult = (await kernelForProgramInternal(
       astLibraryUri, options,
       retainDataForTesting: true,
       requireMain: false)) as InternalCompilerResult;
+  if (errorsFound) {
+    throw 'Errors found';
+  }
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
   TypeEnvironment typeEnvironment =
@@ -524,7 +531,6 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
   Library astLibrary = compilerResult.component!.libraries
       .singleWhere((library) => library.importUri == astLibraryUri);
 
-  bool errorsFound = false;
   void reportError(String message) {
     print(message);
     errorsFound = true;

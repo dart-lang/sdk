@@ -56,7 +56,6 @@ declare_args() {
 # ........gen_kernel.dart.snapshot (if not on ia32)
 # ........kernel-service.dart.snapshot
 # ........kernel_worker.dart.snapshot
-# ........pub.dart.snapshot
 # ......resources/
 # ........dartdoc/
 # ...........packages
@@ -139,10 +138,6 @@ _platform_sdk_snapshots = [
   [
     "frontend_server",
     "../utils/kernel-service:frontend_server",
-  ],
-  [
-    "pub",
-    "../utils/pub",
   ],
 ]
 if (create_kernel_service_snapshot) {
