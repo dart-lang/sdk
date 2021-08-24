@@ -820,7 +820,7 @@ row
 rows
 runtimes
 rv
-sand
+sandboxed
 saves
 scans
 scheduler

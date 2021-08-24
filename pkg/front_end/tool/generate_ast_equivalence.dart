@@ -432,7 +432,7 @@ part 'equivalence_helpers.dart';
 /// current assumptions. The current state has two modes. In the asserting mode,
 /// the default, inequivalences are registered when found. In the non-asserting
 /// mode, inequivalences are _not_ registered. The latter is used to compute
-/// equivalences in sand boxed state, for instance to determine which elements
+/// equivalences in sandboxed state, for instance to determine which elements
 /// to pair when checking equivalence of two sets.
 class $visitorName$visitorTypeParameters
     implements Visitor1<$returnType, $argumentType> {

@@ -1079,7 +1079,7 @@ rpc
 rs
 runnable
 s
-sand
+sandboxed
 sanitizing
 saw
 say
