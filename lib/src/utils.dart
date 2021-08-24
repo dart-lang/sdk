@@ -2,25 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final _identifier = RegExp(r'^([(_|$)a-zA-Z]+([_a-zA-Z0-9])*)$');
+// An identifier here is defined as:
+// * A sequence of `_`, `$`, letters or digits,
+// * where no `$` comes after a digit.
+final _identifier = RegExp(r'^[_$a-z]+(\d[_a-z\d]*)?$', caseSensitive: false);
 
-final _lowerCamelCase = RegExp(
-    r'^(_)*[?$a-z][a-z0-9?$]*(([A-Z][a-z0-9?$]*)|([_][0-9][a-z0-9?$]*))*_?$');
+// A lower camel-case here is defined as:
+// * Any number of optional leading underscores,
+// * a lower case letter, `$` or `?` followed by a "word-tail"
+//   (a sequence of lower-case letters, digits, `$` or `?`),
+// * followed by any number of either
+//     * an upper case letter followed by a word tail, or
+//     * an underscore and then a digit followed by a word tail.
+// * and potentially ended by a single optional underscore.
+final _lowerCamelCase =
+    RegExp(r'^_*[?$a-z][a-z\d?$]*(?:(?:[A-Z]|_\d)[a-z\d?$]*)*_?$');
 
-final _lowerCaseUnderScore = RegExp(r'^([a-z]+([_]?[a-z0-9]+)*)+$');
+// A lower-case underscore (snake-case) is here defined as:
+// * A sequence of lower-case letters, digits and underscores,
+// * starting with a lower-case letter, and
+// * with no two adjacent underscores,
+// * and not ending in an underscore.
+final _lowerCaseUnderScore = RegExp(r'^[a-z](?:_?[a-z\d])*$');
 
 @Deprecated('Prefer: ascii_utils.isValidFileName')
 final _lowerCaseUnderScoreWithDots =
-    RegExp(r'^(_)?[_a-z0-9]*(\.[a-z][_a-z0-9]*)*$');
+    RegExp(r'^_?[_a-z\d]*(?:\.[a-z][_a-z\d]*)*$');
 
+// A lower-case underscored (snake-case) with leading underscores is defined as
+// * An optional leading sequence of any number of underscores,
+// * followed by a sequence of lower-case letters, digits and underscores,
+// * with no two adjacent underscores,
+// * and not ending in an underscore.
 final _lowerCaseUnderScoreWithLeadingUnderscores =
-    RegExp(r'^(_)*([a-z]+([_]?[a-z0-9]+)*)+$');
+    RegExp(r'^_*[a-z](?:_?[a-z\d])*$');
 
-final _pubspec = RegExp(r'^[_]?pubspec\.yaml$');
+final _pubspec = RegExp(r'^_?pubspec\.yaml$');
 
-final _underscores = RegExp(r'^[_]+$');
+final _underscores = RegExp(r'^_+$');
 
-final _validLibraryPrefix = RegExp(r'^[\$]?[_]*[a-z]+[_a-z0-9]*$');
+// A library prefix here is defined as:
+// * An optional leading `?`,
+// * then any number of underscores, `_`,
+// * then a lower-case letter,
+// * followed by any number of lower-case letters, digits and underscores.
+final _validLibraryPrefix = RegExp(r'^\$?_*[a-z][_a-z\d]*$');
 
 /// Check if this [string] is formatted in `CamelCase`.
 bool isCamelCase(String string) => CamelCaseString.isCamelCase(string);
@@ -64,12 +90,21 @@ bool isValidPackageName(String id) =>
 
 class CamelCaseString {
   static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');
-  static final _camelCaseTester = RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
+
+  // A camel case string here is defined as:
+  // * An arbitrary number of optional leading `_`s or `$`s,
+  // * followed by an upper-case letter, `$` or `?`,
+  // * followed by any number of letters, digits, `?` or `$`s.
+  //
+  // This ensures that the text contains a `$`, `?` or upper-case letter
+  // before any lower-case letter or digit, and no letters or `?`s before an
+  // `_`.
+  static final _camelCaseTester = RegExp(r'^_*(?:\$+_+)*[$?A-Z][$?a-zA-Z\d]*$');
 
   final String value;
   CamelCaseString(this.value) {
     if (!isCamelCase(value)) {
-      throw ArgumentError('$value is not CamelCase');
+      throw ArgumentError.value(value, 'value', '$value is not CamelCase');
     }
   }
 
@@ -81,5 +116,5 @@ class CamelCaseString {
   static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
 
   static String _humanize(String camelCase) =>
-      _camelCaseMatcher.allMatches(camelCase).map((m) => m.group(0)).join(' ');
+      _camelCaseMatcher.allMatches(camelCase).map((m) => m[0]).join(' ');
 }

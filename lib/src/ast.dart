@@ -158,7 +158,7 @@ bool isKeyword(Token token, Keyword keyword) =>
     token is KeywordToken && token.keyword == keyword;
 
 /// Returns `true` if the given [id] is a Dart keyword.
-bool isKeyWord(String id) => Keyword.keywords.keys.contains(id);
+bool isKeyWord(String id) => Keyword.keywords.containsKey(id);
 
 /// Returns `true` if the given [ClassMember] is a method.
 bool isMethod(ClassMember m) => m is MethodDeclaration;
