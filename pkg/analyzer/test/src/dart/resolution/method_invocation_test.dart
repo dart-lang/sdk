@@ -2542,6 +2542,34 @@ void testShort(C? c) {
     );
   }
 
+  test_hasReceiver_interfaceQ_nullShorting_getter() async {
+    await assertNoErrorsInCode(r'''
+abstract class C {
+  void Function(C) get foo;
+}
+
+void f(C? c) {
+  c?.foo(c); // 1
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo(c);');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'void Function(C)');
+    assertType(invocation, 'void');
+
+    var foo = invocation.function as PropertyAccess;
+    assertType(foo, 'void Function(C)');
+    assertElement(foo.propertyName, findElement.getter('foo'));
+    assertType(foo.propertyName, 'void Function(C)');
+
+    assertSimpleIdentifier(
+      findNode.simple('c); // 1'),
+      element: findElement.parameter('c'),
+      type: 'C',
+    );
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {
