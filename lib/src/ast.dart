@@ -14,6 +14,10 @@ import 'package:path/path.dart' as path;
 import 'analyzer.dart';
 import 'utils.dart';
 
+List<String>? _reservedWords;
+
+List<String> get reservedWords => _reservedWords ??= _collectReservedWords();
+
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
@@ -173,6 +177,9 @@ bool isPublicMethod(ClassMember m) {
   return declaredElement != null && isMethod(m) && declaredElement.isPublic;
 }
 
+/// Check if the given word is a Dart reserved word.
+bool isReservedWord(String word) => reservedWords.contains(word);
+
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///
 /// A simple getter takes one of these basic forms:
@@ -328,6 +335,16 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   }
 
   return false;
+}
+
+List<String> _collectReservedWords() {
+  var reserved = <String>[];
+  for (var entry in Keyword.keywords.entries) {
+    if (entry.value.isReservedWord) {
+      reserved.add(entry.key);
+    }
+  }
+  return reserved;
 }
 
 int? _getIntValue(Expression expression, LinterContext? context,

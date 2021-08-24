@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'ast.dart';
+
 // An identifier here is defined as:
 // * A sequence of `_`, `$`, letters or digits,
 // * where no `$` comes after a digit.
@@ -86,7 +88,9 @@ bool isValidLibraryPrefix(String libraryPrefix) =>
 
 /// Returns true if this [id] is a valid package name.
 bool isValidPackageName(String id) =>
-    _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) && isIdentifier(id);
+    _lowerCaseUnderScoreWithLeadingUnderscores.hasMatch(id) &&
+    isIdentifier(id) &&
+    !isReservedWord(id);
 
 class CamelCaseString {
   static final _camelCaseMatcher = RegExp(r'[A-Z][a-z]*');

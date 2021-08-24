@@ -25,6 +25,7 @@ void main() {
       'async',
     ], isValidPackageName, isTrue);
     testEach([
+      'break', // reserved word
       'fOO',
       'foo_',
       'foo_Bar',
