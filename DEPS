@@ -158,8 +158,8 @@ vars = {
   "stream_channel_rev": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
-  "test_descriptor_tag": "2.0.0",
-  "test_process_tag": "2.0.0",
+  "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
+  "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "099dcc4d052a30c6921489cfbefa1c8531d12975",
@@ -445,9 +445,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_rev"),
   Var("dart_root") + "/third_party/pkg/test_descriptor":
-      Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_tag"),
+      Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_rev"),
   Var("dart_root") + "/third_party/pkg/test_process":
-      Var("dart_git") + "test_process.git" + "@" + Var("test_process_tag"),
+      Var("dart_git") + "test_process.git" + "@" + Var("test_process_rev"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_rev"),
