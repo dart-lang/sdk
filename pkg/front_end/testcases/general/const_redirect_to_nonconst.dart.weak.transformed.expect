@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -14,30 +14,20 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
-  const constructor •() → self::A*
+  const constructor •() → self::A
     : this self::A::bad()
     ;
-  constructor bad() → self::A*
+  constructor bad() → self::A
     : super core::Object::•() {}
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class B extends self::A /*hasConstConstructor*/  {
-  const constructor •() → self::B*
+  const constructor •() → self::B
     : super self::A::bad()
     ;
 }
 static method test() → dynamic {
-  core::print(invalid-expression "Non-const constructor invocation.");
-  core::print(invalid-expression "Non-const constructor invocation.");
+  core::print(invalid-expression "A constant constructor can't call a non-constant constructor.");
+  core::print(invalid-expression "A constant constructor can't call a non-constant super constructor.");
 }
 static method main() → dynamic {
   core::print(new self::A::•());
@@ -49,5 +39,4 @@ static method main() → dynamic {
 Constructor coverage from constants:
 org-dartlang-testcase:///const_redirect_to_nonconst.dart:
 - A. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:6:9)
-- A.bad (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:8:3)
 - B. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:12:9)

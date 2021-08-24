@@ -1030,12 +1030,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
   }
 
   @override
-  void report(LocatedMessage message, List<LocatedMessage> context) {
-    // ignored.
-  }
-
-  @override
-  void reportInvalidExpression(InvalidExpression node) {
+  void report(LocatedMessage message, [List<LocatedMessage> context]) {
     // ignored.
   }
 }

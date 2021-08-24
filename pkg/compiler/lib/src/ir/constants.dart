@@ -100,12 +100,7 @@ class ErrorReporter implements ir.ErrorReporter {
   ErrorReporter(this._reportError);
 
   @override
-  void reportInvalidExpression(ir.InvalidExpression node) {
-    // Ignore.
-  }
-
-  @override
-  void report(ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+  void report(ir.LocatedMessage message, [List<ir.LocatedMessage> context]) {
     if (requiresConstant) {
       _reportError(message, context);
     }
