@@ -228,6 +228,9 @@ ConstEvalExternalFactory:
 ConstEvalUnevaluated:
   template: "Couldn't evaluate constant expression."
 
+ConstEvalError:
+  template: "Error evaluating constant expression: #string"
+
 ConstEvalUnhandledCoreException:
   template: "Unhandled core exception: #stringOKEmpty"
 

@@ -2898,8 +2898,12 @@ class DeferredAccessGenerator extends Generator {
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        name,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));

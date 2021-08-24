@@ -1318,6 +1318,26 @@ Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)> templateConstEvalError =
+    const Template<Message Function(String string)>(
+        messageTemplate: r"""Error evaluating constant expression: #string""",
+        withArguments: _withArgumentsConstEvalError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeConstEvalError =
+    const Code<Message Function(String string)>(
+  "ConstEvalError",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConstEvalError(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeConstEvalError,
+      message: """Error evaluating constant expression: ${string}""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalExtension = messageConstEvalExtension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

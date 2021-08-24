@@ -41,6 +41,7 @@ general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constants/js_semantics/number_folds: FormatterCrash
 general/constants/js_semantics/number_folds_opt_out: FormatterCrash
+general/constants/non_const_constructor: FormatterCrash
 general/constants/number_folds: FormatterCrash
 general/constants/number_folds_opt_out: FormatterCrash
 general/constants/various: FormatterCrash

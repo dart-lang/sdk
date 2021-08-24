@@ -6404,8 +6404,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
-              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
+          new NamedTypeBuilder(
+              typeParameter.name!,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

@@ -1,0 +1,8 @@
+class MyClass<T> {
+  final a;
+  const MyClass(int i, int j) : a = (i + j);
+  const MyClass.constr() : a = 0;
+}
+
+test() {}
+main() {}

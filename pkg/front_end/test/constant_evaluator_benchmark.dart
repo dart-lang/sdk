@@ -125,12 +125,7 @@ void benchmark(Component component, List<Library> libraries) {
 
 class SilentErrorReporter implements constants.ErrorReporter {
   @override
-  void report(LocatedMessage message, List<LocatedMessage> context) {
-    // ignore
-  }
-
-  @override
-  void reportInvalidExpression(InvalidExpression node) {
+  void report(LocatedMessage message, [List<LocatedMessage> context]) {
     // ignore
   }
 }

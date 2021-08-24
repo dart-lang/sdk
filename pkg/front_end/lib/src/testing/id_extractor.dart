@@ -600,7 +600,10 @@ abstract class DataExtractor<T> extends Visitor<void>
 
   @override
   visitInvalidExpression(InvalidExpression node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    // Invalid expressions produced in the constant evaluator don't have a
+    // file offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitInvalidExpression(node);
   }
 }

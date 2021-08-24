@@ -16,6 +16,7 @@ invalid(
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_DEFAULT_VALUE
 // [cfe] Constant expression expected.
+// [cfe] Non-constant map literal is not a constant expression.
 
 main() {
   invalid();

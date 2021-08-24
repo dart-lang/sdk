@@ -102,6 +102,8 @@ ConstEvalDeferredLibrary/example: Fail
 ConstEvalDuplicateElement/example: Fail
 ConstEvalDuplicateKey/example: Fail
 ConstEvalElementImplementsEqual/example: Fail
+ConstEvalError/analyzerCode: Fail
+ConstEvalError/example: Fail
 ConstEvalExtension/example: Fail
 ConstEvalExternalConstructor/analyzerCode: Fail
 ConstEvalExternalConstructor/example: Fail

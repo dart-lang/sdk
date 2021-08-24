@@ -7,11 +7,7 @@ import 'package:kernel/target/targets.dart';
 
 import 'constant_evaluator.dart';
 
-import '../fasta_codes.dart'
-    show
-        templateConstEvalNegativeShift,
-        templateConstEvalTruncateError,
-        templateConstEvalZeroDivisor;
+import '../fasta_codes.dart';
 
 abstract class ConstantIntFolder {
   final ConstantEvaluator evaluator;
@@ -52,11 +48,11 @@ abstract class ConstantIntFolder {
   AbortConstant? _checkOperands(
       Expression node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
-      return evaluator.createErrorConstant(node,
+      return evaluator.createEvaluationErrorConstant(node,
           templateConstEvalNegativeShift.withArguments(op, '$left', '$right'));
     }
     if ((op == '%' || op == '~/') && right == 0) {
-      return evaluator.createErrorConstant(
+      return evaluator.createEvaluationErrorConstant(
           node, templateConstEvalZeroDivisor.withArguments(op, '$left'));
     }
     return null;
@@ -91,8 +87,10 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return new IntConstant(~operand.value);
       default:
         // Probably unreachable.
-        return evaluator.createInvalidExpressionConstant(
-            node, "Invalid unary operator $op");
+        return evaluator.createExpressionErrorConstant(
+            node,
+            templateNotConstantExpression
+                .withArguments("Unary '$op' operation"));
     }
   }
 
@@ -140,8 +138,10 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Probably unreachable.
-        return evaluator.createInvalidExpressionConstant(
-            node, "Invalid binary operator $op");
+        return evaluator.createExpressionErrorConstant(
+            node,
+            templateNotConstantExpression
+                .withArguments("Binary '$op' operation"));
     }
   }
 
@@ -150,7 +150,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
     try {
       return new IntConstant(left ~/ right);
     } catch (e) {
-      return evaluator.createErrorConstant(node,
+      return evaluator.createEvaluationErrorConstant(node,
           templateConstEvalTruncateError.withArguments('$left', '$right'));
     }
   }
@@ -204,8 +204,10 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
         // Probably unreachable.
-        return evaluator.createInvalidExpressionConstant(
-            node, "Invalid unary operator $op");
+        return evaluator.createExpressionErrorConstant(
+            node,
+            templateNotConstantExpression
+                .withArguments("Unary '$op' operation"));
     }
   }
 
@@ -259,8 +261,10 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Probably unreachable.
-        return evaluator.createInvalidExpressionConstant(
-            node, "Invalid binary operator $op");
+        return evaluator.createExpressionErrorConstant(
+            node,
+            templateNotConstantExpression
+                .withArguments("Binary '$op' operation"));
     }
   }
 
@@ -268,7 +272,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
   Constant truncatingDivide(Expression node, num left, num right) {
     double division = (left / right);
     if (division.isNaN || division.isInfinite) {
-      return evaluator.createErrorConstant(node,
+      return evaluator.createEvaluationErrorConstant(node,
           templateConstEvalTruncateError.withArguments('$left', '${right}'));
     }
     double result = division.truncateToDouble();

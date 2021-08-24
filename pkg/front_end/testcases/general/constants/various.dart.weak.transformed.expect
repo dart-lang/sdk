@@ -100,6 +100,14 @@ library;
 // class ExtendsFoo1 extends Foo {
 //       ^
 //
+// pkg/front_end/testcases/general/constants/various.dart:99:4: Error: Not a constant expression.
+//   @AbstractClass()
+//    ^
+//
+// pkg/front_end/testcases/general/constants/various.dart:102:4: Error: Not a constant expression.
+//   @AbstractClassWithConstructor()
+//    ^
+//
 // pkg/front_end/testcases/general/constants/various.dart:10:34: Error: Constant evaluation error:
 // const bool notBarFromEnvOrNull = !barFromEnvOrNull;
 //                                  ^
@@ -341,9 +349,9 @@ abstract class AbstractClassWithConstructor extends core::Object /*hasConstConst
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class NotAbstractClass extends core::Object {
-  @invalid-expression "Constant evaluation has no support for Throw!"
+  @invalid-expression "Not a constant expression."
   field core::Object* foo = null;
-  @invalid-expression "Constant evaluation has no support for Throw!"
+  @invalid-expression "Not a constant expression."
   field core::Object* bar = null;
   synthetic constructor •() → self::NotAbstractClass*
     : super core::Object::•()
@@ -518,8 +526,8 @@ static const field dynamic binaryOnStringWithStringOK = #C11;
 static const field dynamic binaryOnStringWithInt = invalid-expression "Binary operator '+' on '\"hello\"' requires operand of type 'String', but was of type 'int'.";
 static const field dynamic binaryOnStringWithStringBad = invalid-expression "The method '-' can't be invoked on '\"hello\"' in a constant expression.";
 static field core::int* x = 1;
-static const field core::int* x1 = invalid-expression "Constant evaluation has no support for StaticSet!";
-static const field core::int* x2 = invalid-expression "Constant evaluation has no support for StaticSet!";
+static const field core::int* x1 = invalid-expression "Not a constant expression.";
+static const field core::int* x2 = invalid-expression "Not a constant expression.";
 static const field core::int* x3 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
 static const field core::int* x4 = invalid-expression "The invocation of 'x' is not allowed in a constant expression.";
 static const field core::int* y = #C12;

@@ -3251,7 +3251,7 @@ class AssertInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    statement.toTextInternal(printer);
   }
 }
 

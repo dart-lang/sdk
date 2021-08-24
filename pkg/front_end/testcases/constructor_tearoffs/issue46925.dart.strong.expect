@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:18:16: Error: Function invocation is not a constant expression.
+//   const c1 = v1(3, 14);
+//                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:19:16: Error: Function invocation is not a constant expression.
+//   const c2 = v1(3, 14);
+//                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:20:16: Error: Function invocation is not a constant expression.
+//   const c3 = v2();
+//                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:21:16: Error: Function invocation is not a constant expression.
+//   const c4 = v2();
+//                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:22:16: Error: Function invocation is not a constant expression.
+//   const c5 = v3(3, 14);
+//                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue46925.dart:23:16: Error: Function invocation is not a constant expression.
+//   const c6 = v4();
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class MyClass<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic a;
+  const constructor •(core::int i, core::int j) → self::MyClass<self::MyClass::T%>
+    : self::MyClass::a = i.{core::num::+}(j){(core::num) → core::int}, super core::Object::•()
+    ;
+  const constructor constr() → self::MyClass<self::MyClass::T%>
+    : self::MyClass::a = 0, super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  const self::MyClass<core::String> c1 = invalid-expression "Function invocation is not a constant expression.";
+  const self::MyClass<core::String> c2 = invalid-expression "Function invocation is not a constant expression.";
+  const self::MyClass<core::int> c3 = invalid-expression "Function invocation is not a constant expression.";
+  const self::MyClass<core::int> c4 = invalid-expression "Function invocation is not a constant expression.";
+  const self::MyClass<core::int> c5 = invalid-expression "Function invocation is not a constant expression.";
+  const self::MyClass<core::String> c6 = invalid-expression "Function invocation is not a constant expression.";
+}
+static method main() → dynamic {}
