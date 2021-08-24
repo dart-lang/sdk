@@ -903,7 +903,7 @@ bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedDartFieldLoad()) {
+  if (IsUnboxedDartFieldLoad() && CompilerState::Current().is_optimizing()) {
     return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();

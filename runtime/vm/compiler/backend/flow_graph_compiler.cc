@@ -3102,16 +3102,6 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
 
 void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
-  if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat64x2) ||
-      (rep == kUnboxedFloat32x4)) {
-    // The LoadField instruction may lie about its representation in unoptimized
-    // code for Dart fields because Definition::representation() can't depend on
-    // the type of compilation but MakeLocationSummary and EmitNativeCode can.
-    ASSERT(defn->IsLoadField() &&
-           defn->AsLoadField()->IsUnboxedDartFieldLoad());
-    ASSERT(defn->locs()->out(0).IsRegister());
-    rep = kTagged;
-  }
   ASSERT(!is_optimizing());
   ASSERT((rep == kTagged) || (rep == kUntagged) ||
          RepresentationUtils::IsUnboxedInteger(rep));
