@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 final dartCompile = () {
   final sdkBin = path.dirname(Platform.executable);
-  final dartCmd = path.join(sdkBin, Platform.isWindows ? 'dart.bat' : 'dart');
+  final dartCmd = path.join(sdkBin, Platform.isWindows ? 'dart.exe' : 'dart');
 
   if (!File(dartCmd).existsSync()) {
     throw 'Failed to locate `dart` in the SDK';
