@@ -1701,9 +1701,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
     if (functionRewrite != null) {
-      nullShortingTermination(node, discardType: true);
       _resolveRewrittenFunctionExpressionInvocation(
           functionRewrite, whyNotPromotedList);
+      nullShortingTermination(node, discardType: true);
     } else {
       nullShortingTermination(node);
     }

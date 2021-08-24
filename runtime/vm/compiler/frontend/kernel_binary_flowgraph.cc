@@ -5351,7 +5351,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           function.set_is_inlinable(!FLAG_lazy_async_stacks);
         }
 
-        function.set_end_token_pos(function_node_helper.end_position_);
+        // If the start token position is synthetic, the end token position
+        // should be as well.
+        function.set_end_token_pos(
+            position.IsReal() ? function_node_helper.end_position_ : position);
+
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
             Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));

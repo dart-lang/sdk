@@ -718,6 +718,7 @@ void Precompiler::PrecompileConstructors() {
 }
 
 void Precompiler::AddRoots() {
+  HANDLESCOPE(T);
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
 
@@ -776,6 +777,7 @@ void Precompiler::Iterate() {
 }
 
 void Precompiler::CollectCallbackFields() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Class& subcls = Class::Handle(Z);
@@ -790,6 +792,7 @@ void Precompiler::CollectCallbackFields() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -843,6 +846,7 @@ void Precompiler::CollectCallbackFields() {
 }
 
 void Precompiler::ProcessFunction(const Function& function) {
+  HANDLESCOPE(T);
   const intptr_t gop_offset =
       FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
                                  : 0;
@@ -1462,6 +1466,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
 // Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
@@ -1480,6 +1485,7 @@ void Precompiler::AddAnnotatedRoots() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1592,6 +1598,7 @@ void Precompiler::AddAnnotatedRoots() {
 }
 
 void Precompiler::CheckForNewDynamicFunctions() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -1604,6 +1611,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1769,6 +1777,7 @@ void Precompiler::CollectDynamicFunctionNames() {
   if (!FLAG_collect_dynamic_function_names) {
     return;
   }
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& functions = Array::Handle(Z);
@@ -1781,6 +1790,7 @@ void Precompiler::CollectDynamicFunctionNames() {
   Table table(HashTables::New<Table>(100));
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1873,6 +1883,7 @@ void Precompiler::CollectDynamicFunctionNames() {
 }
 
 void Precompiler::TraceForRetainedFunctions() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -1884,6 +1895,7 @@ void Precompiler::TraceForRetainedFunctions() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -1969,6 +1981,7 @@ void Precompiler::TraceForRetainedFunctions() {
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
   if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
   const auto& entries =
@@ -2083,6 +2096,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
 }
 
 void Precompiler::DropFunctions() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
@@ -2163,6 +2177,7 @@ void Precompiler::DropFunctions() {
   auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2232,6 +2247,7 @@ void Precompiler::DropFunctions() {
 }
 
 void Precompiler::DropFields() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& fields = Array::Handle(Z);
@@ -2242,6 +2258,7 @@ void Precompiler::DropFields() {
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2294,6 +2311,7 @@ void Precompiler::DropFields() {
 
 void Precompiler::AttachOptimizedTypeTestingStub() {
   PRECOMPILER_TIMER_SCOPE(this, AttachOptimizedTypeTestingStub);
+  HANDLESCOPE(T);
   IsolateGroup::Current()->heap()->CollectAllGarbage();
   GrowableHandlePtrArray<const AbstractType> types(Z, 200);
   {
@@ -2359,6 +2377,7 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
 }
 
 void Precompiler::TraceTypesFromRetainedClasses() {
+  HANDLESCOPE(T);
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(Z);
   auto& members = Array::Handle(Z);
@@ -2370,6 +2389,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
@@ -2445,6 +2465,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 }
 
 void Precompiler::DropMetadata() {
+  HANDLESCOPE(T);
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
 
   Library& lib = Library::Handle(Z);
@@ -2455,6 +2476,7 @@ void Precompiler::DropMetadata() {
 }
 
 void Precompiler::DropLibraryEntries() {
+  HANDLESCOPE(T);
   Library& lib = Library::Handle(Z);
   Array& dict = Array::Handle(Z);
   Object& entry = Object::Handle(Z);
@@ -2501,6 +2523,7 @@ void Precompiler::DropLibraryEntries() {
 }
 
 void Precompiler::DropClasses() {
+  HANDLESCOPE(T);
   Class& cls = Class::Handle(Z);
   Array& constants = Array::Handle(Z);
   GrowableObjectArray& implementors = GrowableObjectArray::Handle(Z);
@@ -2587,6 +2610,7 @@ void Precompiler::DropClasses() {
 }
 
 void Precompiler::DropLibraries() {
+  HANDLESCOPE(T);
   const GrowableObjectArray& retained_libraries =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
   const Library& root_lib =
@@ -2596,6 +2620,7 @@ void Precompiler::DropLibraries() {
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
+    HANDLESCOPE(T);
     intptr_t entries = 0;
     DictionaryIterator it(lib);
     while (it.HasNext()) {
@@ -2824,6 +2849,7 @@ void Precompiler::DiscardCodeObjects() {
     return;
   }
 
+  HANDLESCOPE(T);
   DiscardCodeVisitor visitor(Z, functions_to_retain_,
                              functions_called_dynamically_);
   ProgramVisitor::WalkProgram(Z, IG, &visitor);

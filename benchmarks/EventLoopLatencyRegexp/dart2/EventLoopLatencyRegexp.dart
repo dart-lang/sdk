@@ -6,7 +6,7 @@
 
 import 'dart:isolate';
 
-import 'json_benchmark.dart';
+import 'regexp_benchmark.dart';
 import 'latency.dart';
 
 main() async {
