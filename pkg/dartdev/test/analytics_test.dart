@@ -99,7 +99,8 @@ Future<void> main() async {
     });
     test('create', () {
       final p = project(logAnalytics: true);
-      final result = p.runSync(['create', '-tpackage-simple', 'name']);
+      final result =
+          p.runSync(['create', '--no-pub', '-tpackage-simple', 'name']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
@@ -113,7 +114,7 @@ Future<void> main() async {
             'label': null,
             'value': null,
             'cd1': '0',
-            'cd3': ' template ',
+            'cd3': ' pub template ',
           }
         },
         {

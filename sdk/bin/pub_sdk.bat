@@ -28,11 +28,8 @@ if not "_%DART_VM_OPTIONS%_" == "__" (
   )
 )
 
-if defined USING_DART_1 (
-  echo "Pub no longer supports Dart 1"
-) else (
-  "%BIN_DIR%\dart" %VM_OPTIONS% "%BIN_DIR%\snapshots\pub.dart.snapshot" %*
-)
+echo "The top level `pub.bat` command is deprecated. Use `dart pub` instead." 1>&2
+"%BIN_DIR%\dart" %VM_OPTIONS% __deprecated_pub %*
 
 endlocal
 

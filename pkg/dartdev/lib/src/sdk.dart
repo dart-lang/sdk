@@ -78,13 +78,6 @@ class Sdk {
         'devtools',
       );
 
-  String get pubSnapshot => path.absolute(
-        sdkPath,
-        'bin',
-        'snapshots',
-        'pub.dart.snapshot',
-      );
-
   static bool checkArtifactExists(String path) {
     if (!File(path).existsSync()) {
       log.stderr('Could not find $path. Have you built the full '

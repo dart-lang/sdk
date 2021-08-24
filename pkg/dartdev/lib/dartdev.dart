@@ -15,6 +15,7 @@ import 'package:devtools_server/devtools_server.dart';
 import 'package:meta/meta.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:pub/pub.dart';
+
 import 'package:usage/usage.dart';
 
 import 'src/analytics.dart';
@@ -36,6 +37,15 @@ import 'src/vm_interop_handler.dart';
 /// analytics logic, it has been moved here.
 Future<void> runDartdev(List<String> args, SendPort port) async {
   VmInteropHandler.initialize(port);
+
+  // TODO(sigurdm): Remove when top-level pub is removed.
+  if (args[0] == '__deprecated_pub') {
+    // This is the entry-point supporting the top-level `pub` script.
+    // ignore: deprecated_member_use
+    VmInteropHandler.exit(await deprecatedpubCommand().run(args.skip(1)));
+    return;
+  }
+
   if (args.contains('run')) {
     // These flags have a format that can't be handled by package:args, so while
     // they are valid flags we'll assume the VM has verified them by this point.
