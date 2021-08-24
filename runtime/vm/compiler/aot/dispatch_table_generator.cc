@@ -98,7 +98,7 @@ class SelectorRow {
       : selector_(selector),
         class_ranges_(zone, 0),
         ranges_(zone, 0),
-        code_(Code::Handle(zone)) {}
+        code_(Code::ZoneHandle(zone)) {}
 
   TableSelector* selector() const { return selector_; }
 
@@ -408,6 +408,7 @@ DispatchTableGenerator::DispatchTableGenerator(Zone* zone)
 void DispatchTableGenerator::Initialize(ClassTable* table) {
   classes_ = table;
 
+  HANDLESCOPE(Thread::Current());
   ReadTableSelectorInfo();
   NumberSelectors();
   SetupSelectorRows();
