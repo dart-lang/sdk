@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-08-12T14:38:50.585343",
+  "generated": "2021-08-23T16:52:51.727804",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -370,12 +370,6 @@
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
       "languageVersion": "2.12"
-    },
-    {
-      "name": "http_throttle",
-      "rootUri": "../third_party/pkg/http_throttle",
-      "packageUri": "lib/",
-      "languageVersion": "2.0"
     },
     {
       "name": "intl",
