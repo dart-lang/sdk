@@ -21,6 +21,15 @@
 
   This brings the implementation behavior in line with the spec.
 
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100][]: The standalone `dart2native` tool has been
+  removed as previously announced. Its replacements are the
+  `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
+  same functionality.
+
 ## 2.14.0
 
 ### Language

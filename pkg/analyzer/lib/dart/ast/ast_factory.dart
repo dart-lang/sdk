@@ -323,8 +323,21 @@ abstract class AstFactory {
   /// Returns a newly created function body consisting of an expression.
   /// The [keyword] can be `null` if the function body is not an async function
   /// body.
+  @Deprecated("Use expressionFunctionBody2, with new 'star' parameter")
   ExpressionFunctionBody expressionFunctionBody(Token? keyword,
       Token functionDefinition, Expression expression, Token? semicolon);
+
+  /// Returns a newly created function body consisting of an expression.
+  /// The [keyword] can be `null` if the function body is not an async function
+  /// body. The [star] can be `null` if there is no star following the keyword
+  /// (and must be `null` if there is no keyword).
+  ExpressionFunctionBody expressionFunctionBody2({
+    Token? keyword,
+    Token? star,
+    required Token functionDefinition,
+    required Expression expression,
+    Token? semicolon,
+  });
 
   /// Returns a newly created expression statement.
   ExpressionStatement expressionStatement(

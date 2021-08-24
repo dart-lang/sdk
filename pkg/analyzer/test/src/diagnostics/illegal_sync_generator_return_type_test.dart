@@ -15,6 +15,14 @@ main() {
 
 @reflectiveTest
 class IllegalSyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
+  test_arrowFunction_iterator() async {
+    await assertErrorsInCode('''
+Iterable<void> f() sync* => [];
+''', [
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 25, 2),
+    ]);
+  }
+
   test_function_iterator() async {
     await assertNoErrorsInCode('''
 Iterable<void> f() sync* {}

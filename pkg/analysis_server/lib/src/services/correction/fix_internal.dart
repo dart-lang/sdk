@@ -317,7 +317,7 @@ class FixProcessor extends BaseProcessor {
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
   /// are in the [nonLintProducerMap].
-  static const Map<String, List<ProducerGenerator>> lintProducerMap = {
+  static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       // TODO(brianwilkerson) Consider applying in bulk.
       AddReturnType.newInstance,
@@ -1330,6 +1330,12 @@ class FixProcessor extends BaseProcessor {
         await compute(generator());
       }
     }
+  }
+
+  /// Associate the given correction producer [generator] with the lint with the
+  /// given [lintName].
+  static void registerFixForLint(String lintName, ProducerGenerator generator) {
+    lintProducerMap.putIfAbsent(lintName, () => []).add(generator);
   }
 }
 

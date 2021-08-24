@@ -923,8 +923,8 @@ CObject* File::OpenRequest(const CObjectArray& request) {
   if (file == NULL) {
     return CObject::NewOSError();
   }
-  return new CObjectIntptr(
-      CObject::NewIntptr(reinterpret_cast<intptr_t>(file)));
+  return new CObjectNativePointer(CObject::NewNativePointer(
+      reinterpret_cast<intptr_t>(file), sizeof(*file), ReleaseFile));
 }
 
 CObject* File::DeleteRequest(const CObjectArray& request) {
