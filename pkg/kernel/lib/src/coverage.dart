@@ -1,3 +1,11 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Run 'dart pkg/front_end/tool/generate_ast_coverage.dart' to update.
+
 import 'package:kernel/ast.dart';
 
 /// Recursive visitor that collects kinds for all visited nodes.

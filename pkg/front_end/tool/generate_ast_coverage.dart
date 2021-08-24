@@ -30,6 +30,10 @@ class CoverageVisitorStrategy extends Visitor0Strategy {
   Map<String, Set<String>> nestedClassNames = {};
 
   @override
+  String get generatorCommand =>
+      'dart pkg/front_end/tool/generate_ast_coverage.dart';
+
+  @override
   String get returnType => 'void';
 
   @override

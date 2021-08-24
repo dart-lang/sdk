@@ -31,6 +31,10 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
   EquivalenceVisitorStrategy();
 
   @override
+  String get generatorCommand =>
+      'dart pkg/front_end/tool/generate_ast_equivalence.dart';
+
+  @override
   String get argumentType => 'Node';
 
   @override
@@ -414,13 +418,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// NOTE: THIS FILE IS GENERATED. DO NOT EDIT.
-//
-// Run 'dart pkg/front_end/tool/generate_ast_equivalence.dart' to update.
+$preamble
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
