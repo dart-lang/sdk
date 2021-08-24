@@ -167,6 +167,7 @@ import 'replace_final_with_var_test.dart' as replace_final_with_var;
 import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
+import 'replace_return_type_test.dart' as replace_return_type;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
@@ -339,6 +340,7 @@ void main() {
     replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_null_with_void.main();
+    replace_return_type.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();
     replace_with_brackets.main();

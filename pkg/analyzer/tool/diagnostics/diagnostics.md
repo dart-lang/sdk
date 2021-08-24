@@ -11393,7 +11393,8 @@ class C {
 
 ### return_in_generator
 
-_Can't return a value from a generator function (using the '{0}' modifier)._
+_Can't return a value from a generator function that uses the 'async*' or
+'sync*' modifier._
 
 #### Description
 

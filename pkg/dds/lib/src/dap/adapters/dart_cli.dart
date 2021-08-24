@@ -16,7 +16,8 @@ import '../protocol_stream.dart';
 import 'dart.dart';
 
 /// A DAP Debug Adapter for running and debugging Dart CLI scripts.
-class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
+class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
+    DartAttachRequestArguments> {
   Process? _process;
 
   /// The location of the vm-service-info file (if debugging).
@@ -40,6 +41,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
 
   @override
   final parseLaunchArgs = DartLaunchRequestArguments.fromJson;
+
+  @override
+  final parseAttachArgs = DartAttachRequestArguments.fromJson;
 
   DartCliDebugAdapter(
     ByteStreamServerChannel channel, {
@@ -94,6 +98,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
   /// For debugging, this should start paused, connect to the VM Service, set
   /// breakpoints, and resume.
   Future<void> launchImpl() async {
+    final args = this.args as DartLaunchRequestArguments;
     final vmPath = Platform.resolvedExecutable;
 
     final debug = !(args.noDebug ?? false);
@@ -143,7 +148,10 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     // TODO(dantup): Remove this once
     //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
     //   necessary.
-    final packageConfig = _findPackageConfigFile();
+    var possibleRoot = path.isAbsolute(args.program)
+        ? path.dirname(args.program)
+        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
+    final packageConfig = _findPackageConfigFile(possibleRoot);
     if (packageConfig != null) {
       this.usePackageConfigFile(packageConfig);
     }
@@ -173,6 +181,26 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     }
   }
 
+  /// Called by [attachRequest] to request that we actually connect to the app
+  /// to be debugged.
+  Future<void> attachImpl() async {
+    final args = this.args as DartAttachRequestArguments;
+
+    // Find the package_config file for this script.
+    // TODO(dantup): Remove this once
+    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
+    //   necessary.
+    final cwd = args.cwd;
+    if (cwd != null) {
+      final packageConfig = _findPackageConfigFile(cwd);
+      if (packageConfig != null) {
+        this.usePackageConfigFile(packageConfig);
+      }
+    }
+
+    unawaited(connectDebugger(Uri.parse(args.vmServiceUri)));
+  }
+
   /// Calls the client (via a `runInTerminal` request) to spawn the process so
   /// that it can run in a local terminal that the user can interact with.
   Future<void> launchInEditorTerminal(
@@ -181,6 +209,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
     String vmPath,
     List<String> processArgs,
   ) async {
+    final args = this.args as DartLaunchRequestArguments;
     logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}'
         ' via client ${terminalKind} terminal');
 
@@ -241,11 +270,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
   /// TODO(dantup): Remove this once
   ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
   ///   necessary.
-  File? _findPackageConfigFile() {
-    var possibleRoot = path.isAbsolute(args.program)
-        ? path.dirname(args.program)
-        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
-
+  File? _findPackageConfigFile(String possibleRoot) {
     File? packageConfig;
     while (true) {
       packageConfig =
@@ -282,10 +307,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments> {
   void _handleExitCode(int code) {
     final codeSuffix = code == 0 ? '' : ' ($code)';
     logger?.call('Process exited ($code)');
-    // Always add a leading newline since the last written text might not have
-    // had one.
-    sendOutput('console', '\nExited$codeSuffix.');
-    handleSessionTerminate();
+    handleSessionTerminate(codeSuffix);
   }
 
   void _handleStderr(List<int> data) {

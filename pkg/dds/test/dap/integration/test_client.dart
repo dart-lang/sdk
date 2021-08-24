@@ -59,6 +59,37 @@ class DapTestClient {
   Stream<OutputEventBody> get outputEvents => events('output')
       .map((e) => OutputEventBody.fromJson(e.body as Map<String, Object?>));
 
+  /// Send an attachRequest to the server, asking it to attach to an existing
+  /// Dart program.
+  Future<Response> attach({
+    required String vmServiceUri,
+    String? cwd,
+    List<String>? additionalProjectPaths,
+    bool? debugSdkLibraries,
+    bool? debugExternalPackageLibraries,
+    bool? evaluateGettersInDebugViews,
+    bool? evaluateToStringInDebugViews,
+  }) {
+    return sendRequest(
+      DartAttachRequestArguments(
+        vmServiceUri: vmServiceUri,
+        cwd: cwd,
+        additionalProjectPaths: additionalProjectPaths,
+        debugSdkLibraries: debugSdkLibraries,
+        debugExternalPackageLibraries: debugExternalPackageLibraries,
+        evaluateGettersInDebugViews: evaluateGettersInDebugViews,
+        evaluateToStringInDebugViews: evaluateToStringInDebugViews,
+        // When running out of process, VM Service traffic won't be available
+        // to the client-side logger, so force logging on which sends VM Service
+        // traffic in a custom event.
+        sendLogsToClient: captureVmServiceTraffic,
+      ),
+      // We can't automatically pick the command when using a custom type
+      // (DartAttachRequestArguments).
+      overrideCommand: 'attach',
+    );
+  }
+
   /// Sends a continue request for the given thread.
   ///
   /// Returns a Future that completes when the server returns a corresponding

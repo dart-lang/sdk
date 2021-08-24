@@ -267,10 +267,7 @@ class FastaErrorReporter {
         return;
       case "RETURN_IN_GENERATOR":
         errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length,
-            // TODO(danrubel): Update the parser to report the modifier
-            // involved in this error... either async* or sync*
-            ['async*']);
+            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
         return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(

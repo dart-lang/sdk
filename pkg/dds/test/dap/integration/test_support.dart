@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dds/src/dap/logging.dart';
@@ -13,6 +14,11 @@ import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_server.dart';
+
+/// A [RegExp] that matches the "Connecting to VM Service" banner that is sent
+/// by the DAP adapter as the first output event for a debug session.
+final dapVmServiceBannerPattern =
+    RegExp(r'Connecting to VM Service at ([^\s]+)\s');
 
 /// Whether to run the DAP server in-process with the tests, or externally in
 /// another process.
@@ -34,9 +40,9 @@ final verboseLogging = Platform.environment['DAP_TEST_VERBOSE'] == 'true';
 /// an authentication token.
 final vmServiceAuthCodePathPattern = RegExp(r'^/[\w_\-=]{5,15}/ws$');
 
-/// A [RegExp] that matches the "Connecting to VM Service" banner that is sent
-/// as the first output event for a debug session.
-final vmServiceUriPattern = RegExp(r'Connecting to VM Service at ([^\s]+)\s');
+/// A [RegExp] that matches the "Observatory listening on" banner that is sent
+/// by the VM when not using --write-service-info.
+final vmServiceBannerPattern = RegExp(r'Observatory listening on ([^\s]+)\s');
 
 /// Expects [actual] to equal the lines [expected], ignoring differences in line
 /// endings and trailing whitespace.
@@ -71,6 +77,55 @@ expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
 /// Returns the 1-base line in [file] that contains [searchText].
 int lineWith(File file, String searchText) =>
     file.readAsLinesSync().indexWhere((line) => line.contains(searchText)) + 1;
+
+Future<Process> startDartProcessPaused(
+  String script,
+  List<String> args, {
+  required String cwd,
+  List<String>? vmArgs,
+}) async {
+  final vmPath = Platform.resolvedExecutable;
+  vmArgs ??= [];
+  vmArgs.addAll([
+    '--enable-vm-service=0',
+    '--pause_isolates_on_start',
+  ]);
+  final processArgs = [
+    ...vmArgs,
+    script,
+    ...args,
+  ];
+
+  return Process.start(
+    vmPath,
+    processArgs,
+    workingDirectory: cwd,
+  );
+}
+
+/// Monitors [process] for the Observatory/VM Service banner and extracts the
+/// VM Service URI.
+Future<Uri> waitForStdoutVmServiceBanner(Process process) {
+  final _vmServiceUriCompleter = Completer<Uri>();
+
+  late StreamSubscription<String> vmServiceBannerSub;
+  vmServiceBannerSub = process.stdout.transform(utf8.decoder).listen(
+    (line) {
+      final match = vmServiceBannerPattern.firstMatch(line);
+      if (match != null) {
+        _vmServiceUriCompleter.complete(Uri.parse(match.group(1)!));
+        vmServiceBannerSub.cancel();
+      }
+    },
+    onDone: () {
+      if (!_vmServiceUriCompleter.isCompleted) {
+        _vmServiceUriCompleter.completeError('Stream ended');
+      }
+    },
+  );
+
+  return _vmServiceUriCompleter.future;
+}
 
 /// A helper class containing the DAP server/client for DAP integration tests.
 class DapTestSession {

@@ -12011,8 +12011,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * Parameters:
-   * 0: the modifier that makes the function a generator
+   * No parameters.
    */
   // #### Description
   //
@@ -12053,10 +12052,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode RETURN_IN_GENERATOR = CompileTimeErrorCode(
       'RETURN_IN_GENERATOR',
-      "Can't return a value from a generator function (using the '{0}' "
-          "modifier).",
-      correction: "Try removing the value, replacing 'return' with 'yield' or "
-          "changing the method body modifier.",
+      "Can't return a value from a generator function that uses the 'async*' "
+          "or 'sync*' modifier.",
+      // TODO(srawlins): Splitting this code into two cases, one for block-
+      // bodied, and one for expression-bodied, would improve each correction
+      // message. This split would have to be done in the parser.
+      correction: "Try replacing 'return' with 'yield', using a block function "
+          "body, or changing the method body modifier.",
       hasPublishedDocs: true);
 
   /**

@@ -745,6 +745,10 @@ class DartFixKind {
       'dart.fix.replace.nullWithVoid.multi',
       DartFixKindPriority.DEFAULT,
       "Replace 'Null' with 'void' everywhere in file");
+  static const REPLACE_RETURN_TYPE = FixKind(
+      'dart.fix.replace.returnType',
+      DartFixKindPriority.DEFAULT,
+      "Replace the return type with '{0}'");
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
       'dart.fix.replace.returnTypeFuture',
       DartFixKindPriority.DEFAULT,
