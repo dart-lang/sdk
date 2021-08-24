@@ -62,13 +62,6 @@ class ReturnTypeVerifier {
     }
 
     if (enclosingExecutable.isGenerator) {
-      if (expression != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR,
-          statement,
-          [enclosingExecutable.isAsynchronous ? 'async*' : 'sync*'],
-        );
-      }
       return;
     }
 
