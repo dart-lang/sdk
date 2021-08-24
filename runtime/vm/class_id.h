@@ -203,10 +203,6 @@ enum ClassId : intptr_t {
   // Illegal class id.
   kIllegalCid = 0,
 
-  // Pseudo class id for native pointers, the heap should never see an
-  // object with this class id.
-  kNativePointer,
-
   // The following entries describes classes for pseudo-objects in the heap
   // that should never be reachable from live objects. Free list elements
   // maintain the free list for old space, and forwarding corpses are used to
@@ -285,11 +281,10 @@ COMPILE_ASSERT(kInstanceCid == kLastInternalOnlyCid + 1);
 // and should not be exposed directly to user code.
 inline bool IsInternalOnlyClassId(intptr_t index) {
   // Fix the condition below if these become non-contiguous.
-  COMPILE_ASSERT(kIllegalCid + 1 == kNativePointer &&
-                 kIllegalCid + 2 == kFreeListElement &&
-                 kIllegalCid + 3 == kForwardingCorpse &&
-                 kIllegalCid + 4 == kObjectCid &&
-                 kIllegalCid + 5 == kFirstInternalOnlyCid);
+  COMPILE_ASSERT(kIllegalCid + 1 == kFreeListElement &&
+                 kIllegalCid + 2 == kForwardingCorpse &&
+                 kIllegalCid + 3 == kObjectCid &&
+                 kIllegalCid + 4 == kFirstInternalOnlyCid);
   return index <= kLastInternalOnlyCid;
 }
 

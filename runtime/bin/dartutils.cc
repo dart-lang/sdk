@@ -931,16 +931,6 @@ Dart_CObject* CObject::NewExternalUint8Array(intptr_t length,
   return cobject;
 }
 
-Dart_CObject* CObject::NewNativePointer(intptr_t ptr,
-                                        intptr_t size,
-                                        Dart_HandleFinalizer callback) {
-  Dart_CObject* cobject = New(Dart_CObject_kNativePointer);
-  cobject->value.as_native_pointer.ptr = ptr;
-  cobject->value.as_native_pointer.size = size;
-  cobject->value.as_native_pointer.callback = callback;
-  return cobject;
-}
-
 Dart_CObject* CObject::NewIOBuffer(int64_t length) {
   // Make sure that we do not have an integer overflow here. Actual check
   // against max elements will be done at the time of writing, as the constant

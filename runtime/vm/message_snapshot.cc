@@ -1818,67 +1818,6 @@ class ExternalTypedDataMessageDeserializationCluster
   const intptr_t cid_;
 };
 
-class NativePointerMessageSerializationCluster
-    : public MessageSerializationCluster {
- public:
-  explicit NativePointerMessageSerializationCluster(Zone* zone)
-      : MessageSerializationCluster("NativePointer",
-                                    MessagePhase::kNonCanonicalInstances,
-                                    kNativePointer),
-        objects_(zone, 0) {}
-  ~NativePointerMessageSerializationCluster() {}
-
-  void Trace(MessageSerializer* s, Object* object) { UNREACHABLE(); }
-
-  void WriteNodes(MessageSerializer* s) { UNREACHABLE(); }
-
-  void TraceApi(ApiMessageSerializer* s, Dart_CObject* object) {
-    objects_.Add(object);
-  }
-
-  void WriteNodesApi(ApiMessageSerializer* s) {
-    intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      Dart_CObject* data = objects_[i];
-      s->AssignRef(data);
-
-      intptr_t ptr = data->value.as_native_pointer.ptr;
-      s->WriteUnsigned(ptr);
-
-      s->finalizable_data()->Put(
-          data->value.as_native_pointer.size, nullptr,
-          reinterpret_cast<void*>(data->value.as_native_pointer.ptr),
-          data->value.as_native_pointer.callback);
-    }
-  }
-
- private:
-  GrowableArray<Dart_CObject*> objects_;
-};
-
-class NativePointerMessageDeserializationCluster
-    : public MessageDeserializationCluster {
- public:
-  NativePointerMessageDeserializationCluster()
-      : MessageDeserializationCluster("NativePointer"), cid_(kNativePointer) {}
-  ~NativePointerMessageDeserializationCluster() {}
-
-  void ReadNodes(MessageDeserializer* d) {
-    intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      intptr_t ptr = d->ReadUnsigned();
-      d->finalizable_data()->Take();
-      d->AssignRef(Integer::New(ptr));
-    }
-  }
-
-  void ReadNodesApi(ApiMessageDeserializer* d) { UNREACHABLE(); }
-
- private:
-  const intptr_t cid_;
-};
-
 class TypedDataViewMessageSerializationCluster
     : public MessageSerializationCluster {
  public:
@@ -3250,9 +3189,6 @@ bool ApiMessageSerializer::Trace(Dart_CObject* object) {
     case Dart_CObject_kCapability:
       cid = kCapabilityCid;
       break;
-    case Dart_CObject_kNativePointer:
-      cid = kNativePointer;
-      break;
     default:
       return Fail("invalid Dart_CObject type");
   }
@@ -3306,8 +3242,6 @@ MessageSerializationCluster* BaseSerializer::NewClusterForClass(
   }
 
   switch (cid) {
-    case kNativePointer:
-      return new (Z) NativePointerMessageSerializationCluster(Z);
     case kClassCid:
       return new (Z) ClassMessageSerializationCluster();
     case kTypeArgumentsCid:
@@ -3392,9 +3326,6 @@ MessageDeserializationCluster* BaseDeserializer::ReadCluster() {
   }
 
   switch (cid) {
-    case kNativePointer:
-      ASSERT(!is_canonical);
-      return new (Z) NativePointerMessageDeserializationCluster();
     case kClassCid:
       ASSERT(!is_canonical);
       return new (Z) ClassMessageDeserializationCluster();
