@@ -154,9 +154,9 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
-  "sse_tag": "d505b383768889a1e3e90097684e929a9e6d6b8f",
-  "stack_trace_tag": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
-  "stream_channel_tag": "d7251e61253ec389ee6e045ee1042311bced8f1d",
+  "sse_rev": "d505b383768889a1e3e90097684e929a9e6d6b8f",
+  "stack_trace_rev": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
+  "stream_channel_rev": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
   "test_descriptor_tag": "2.0.0",
@@ -433,12 +433,12 @@ deps = {
       Var("dart_git") + "source_map_stack_trace.git" +
       "@" + Var("source_map_stack_trace_rev"),
   Var("dart_root") + "/third_party/pkg/sse":
-      Var("dart_git") + "sse.git" + "@" + Var("sse_tag"),
+      Var("dart_git") + "sse.git" + "@" + Var("sse_rev"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
-      Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_tag"),
+      Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_rev"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("dart_git") + "stream_channel.git" +
-      "@" + Var("stream_channel_tag"),
+      "@" + Var("stream_channel_rev"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
       Var("dart_git") + "string_scanner.git" +
       "@" + Var("string_scanner_rev"),
