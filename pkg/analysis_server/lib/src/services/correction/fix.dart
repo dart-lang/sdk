@@ -366,7 +366,7 @@ class DartFixKind {
   static const CREATE_MISSING_OVERRIDES = FixKind(
       'dart.fix.create.missingOverrides',
       DartFixKindPriority.DEFAULT + 1,
-      'Create {0} missing override(s)');
+      'Create {0} missing override{1}');
   static const CREATE_MIXIN = FixKind('dart.fix.create.mixin',
       DartFixKindPriority.DEFAULT, "Create mixin '{0}'");
   static const CREATE_NO_SUCH_METHOD = FixKind(
