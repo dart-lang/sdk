@@ -62,7 +62,8 @@ class DapTestClient {
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
-    required String vmServiceUri,
+    String? vmServiceUri,
+    String? vmServiceInfoFile,
     String? cwd,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
@@ -70,9 +71,14 @@ class DapTestClient {
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
   }) {
+    assert(
+      (vmServiceUri == null) != (vmServiceInfoFile == null),
+      'Provide exactly one of vmServiceUri/vmServiceInfoFile',
+    );
     return sendRequest(
       DartAttachRequestArguments(
         vmServiceUri: vmServiceUri,
+        vmServiceInfoFile: vmServiceInfoFile,
         cwd: cwd,
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
