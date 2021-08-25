@@ -8,5 +8,5 @@ main() {
   new F<int>();
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'F'.
+  // [cfe] Couldn't find constructor 'F'.
 }

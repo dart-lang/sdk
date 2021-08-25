@@ -100,7 +100,7 @@ library /*isNonNullableByDefault*/;
 //   topLevelMethodAndSetter = topLevelMethodAndSetter();
 //   ^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:22: Error: Method not found: 'typedefAndSetter'.
+// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:22: Error: Couldn't find constructor 'typedefAndSetter'.
 //   typedefAndSetter = typedefAndSetter();
 //                      ^^^^^^^^^^^^^^^^
 //

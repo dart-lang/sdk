@@ -14,15 +14,15 @@ void test1() {
     PublicClass._privateStaticMethod();
 //              ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Method not found: '_PrivateClass._privateStaticMethod'.
+// [cfe] Member not found: '_PrivateClass._privateStaticMethod'.
     AlsoPublicClass._privateStaticMethod();
 //                  ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Method not found: '_PrivateClass._privateStaticMethod'.
+// [cfe] Member not found: '_PrivateClass._privateStaticMethod'.
     PublicGenericClassOfInt._privateStaticMethod();
 //                          ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Method not found: '_PrivateGenericClass._privateStaticMethod'.
+// [cfe] Member not found: '_PrivateGenericClass._privateStaticMethod'.
   }
 }
 

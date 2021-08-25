@@ -97,12 +97,12 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int fileOffset, Procedure target, Arguments arguments,
       {required bool isTearOff});
 
-  Expression throwNoSuchMethodError(
-      Expression receiver, String name, Arguments arguments, int offset,
-      {Member candidate,
+  Expression buildUnresolvedError(
+      Expression receiver, String name, Arguments arguments, int charOffset,
+      {
+      Member candidate,
       bool isSuper,
-      bool isGetter,
-      bool isSetter,
+      required UnresolvedKind kind,
       bool isStatic,
       LocatedMessage message});
 
@@ -132,7 +132,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder? typeAliasBuilder});
+      TypeDeclarationBuilder? typeAliasBuilder,
+        required UnresolvedKind unresolvedKind});
 
   UnresolvedType validateTypeUse(UnresolvedType unresolved,
       {required bool nonInstanceAccessIsError,
@@ -143,9 +144,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length);
 
-  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper: false});
+  Message warnUnresolvedGet(Name name, int charOffset,
+      {bool isSuper: false});
 
-  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper: false});
+  Message warnUnresolvedSet(Name name, int charOffset,
+      {bool isSuper: false});
 
   Message warnUnresolvedMethod(Name name, int charOffset,
       {bool isSuper: false});
@@ -224,4 +227,13 @@ bool isProperRenameForClass(
   }
 
   return true;
+}
+
+enum UnresolvedKind {
+  Unknown,
+  Member,
+  Method,
+  Getter,
+  Setter,
+  Constructor,
 }

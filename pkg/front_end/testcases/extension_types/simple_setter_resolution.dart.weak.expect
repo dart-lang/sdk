@@ -2,15 +2,15 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Undefined name 'et'.
 //   et.foo = 42; // Error.
 //   ^^
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Undefined name 'et'.
 //   et.bar = 42; // Error.
 //   ^^
 //
-// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Getter not found: 'et'.
+// pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Undefined name 'et'.
 //   et.baz = 42; // Ok.
 //   ^^
 //
@@ -64,13 +64,13 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
   e.baz = 42; // Error.
     ^^^" in e{<unresolved>}.baz = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Getter not found: 'et'.
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:26:3: Error: Undefined name 'et'.
   et.foo = 42; // Error.
   ^^"{<invalid>}.foo = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Getter not found: 'et'.
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:27:3: Error: Undefined name 'et'.
   et.bar = 42; // Error.
   ^^"{<invalid>}.bar = 42;
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Getter not found: 'et'.
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_setter_resolution.dart:28:3: Error: Undefined name 'et'.
   et.baz = 42; // Ok.
   ^^"{<invalid>}.baz = 42;
 }

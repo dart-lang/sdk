@@ -25,7 +25,7 @@ library;
 //   C notEvenAConstructor(a) = h;
 //                              ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+// pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Undefined name 'd'.
 // a b(c) = d;
 //          ^
 //
@@ -34,7 +34,7 @@ library;
 //   C.missingFactoryKeyword() = C.constant;
 //                             ^
 //
-// pkg/front_end/testcases/rasta/issue_000044.dart:14:33: Error: Getter not found: 'constant'.
+// pkg/front_end/testcases/rasta/issue_000044.dart:14:33: Error: Member not found: 'constant'.
 //   C.missingFactoryKeyword() = C.constant;
 //                                 ^^^^^^^^
 //
@@ -93,7 +93,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method b(dynamic c) → invalid-type
-  return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Getter not found: 'd'.
+  return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Undefined name 'd'.
 a b(c) = d;
          ^";
 static method main() → dynamic {

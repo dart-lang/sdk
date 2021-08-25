@@ -21,5 +21,5 @@ main() {
   p._x;
   //^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
-  // [cfe] Getter not found: '_x'.
+  // [cfe] Undefined name '_x'.
 }

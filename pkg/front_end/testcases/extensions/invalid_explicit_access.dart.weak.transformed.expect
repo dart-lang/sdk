@@ -22,7 +22,7 @@ library;
 //   Extension<int>(c1).method(null);
 //   ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Getter not found: 'foo'.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Member not found: 'foo'.
 //   Extension(c1).foo;
 //                 ^^^
 //
@@ -190,7 +190,7 @@ static method main() → dynamic {
  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
   Extension(s).method(null);
             ^" in s as{TypeError} self::Class*, null);
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Getter not found: 'foo'.
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:17: Error: Member not found: 'foo'.
   Extension(c1).foo;
                 ^^^";
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:30:17: Error: Setter not found: 'foo'.

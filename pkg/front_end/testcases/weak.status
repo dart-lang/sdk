@@ -12,6 +12,8 @@ regress/utf_16_le_content.crash: SemiFuzzCrash
 dart2js/late_statics: SemiFuzzFailure # dartbug.com/45854
 
 constructor_tearoffs/call_instantiation: TypeCheckError
+constructor_tearoffs/issue46719: RuntimeError
+constructor_tearoffs/issue46887: RuntimeError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
 extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.

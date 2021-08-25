@@ -24,6 +24,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart' as fasta;
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/kernel/constness.dart';
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
@@ -237,7 +238,8 @@ class BodyBuilderTest extends BodyBuilder {
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder typeAliasBuilder}) {
+      TypeDeclarationBuilder typeAliasBuilder,
+      UnresolvedKind unresolvedKind}) {
     Token maybeNewOrConst = nameToken.previous;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
@@ -270,7 +272,8 @@ class BodyBuilderTest extends BodyBuilder {
     }
     return super.buildConstructorInvocation(type, nameToken, nameLastToken,
         arguments, name, typeArguments, charOffset, constness,
-        isTypeArgumentsInForest: isTypeArgumentsInForest);
+        isTypeArgumentsInForest: isTypeArgumentsInForest,
+        unresolvedKind: unresolvedKind);
   }
 }
 

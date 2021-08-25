@@ -6,7 +6,7 @@ library /*isNonNullableByDefault*/;
 //   AbstractClass.new; // error
 //                 ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Getter not found: 'new'.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
 //   Mixin.new; // error
 //         ^^^
 //
@@ -14,7 +14,7 @@ library /*isNonNullableByDefault*/;
 //   AbstractNamedMixinApplication.new; // error
 //                                 ^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Getter not found: 'new'.
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
 //   Extension.new; // error
 //             ^^^
 //
@@ -50,14 +50,14 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:14:17: Error: Constructors on abstract classes can't be torn off.
   AbstractClass.new; // error
                 ^^^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Getter not found: 'new'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
   Mixin.new; // error
         ^^^";
   #C2;
   invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:17:33: Error: Constructors on abstract classes can't be torn off.
   AbstractNamedMixinApplication.new; // error
                                 ^^^";
-  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Getter not found: 'new'.
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
   Extension.new; // error
             ^^^";
 }

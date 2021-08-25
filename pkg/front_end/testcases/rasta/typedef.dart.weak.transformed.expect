@@ -10,7 +10,7 @@ library;
 //   Foo ??= null;
 //   ^^^
 //
-// pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Method not found: 'Foo'.
+// pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Couldn't find constructor 'Foo'.
 //   Foo();
 //   ^^^
 //
@@ -26,7 +26,7 @@ static method main() → dynamic {
   (#C1) == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Can't assign to a type literal.
   Foo ??= null;
   ^^^" : null;
-  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Method not found: 'Foo'.
+  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Couldn't find constructor 'Foo'.
   Foo();
   ^^^";
 }

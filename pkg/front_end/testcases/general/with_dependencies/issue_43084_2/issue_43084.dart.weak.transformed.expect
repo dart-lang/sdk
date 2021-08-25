@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/with_dependencies/issue_43084_2/issue_43084.dart:8:3: Error: Method not found: 'F'.
+// pkg/front_end/testcases/general/with_dependencies/issue_43084_2/issue_43084.dart:8:3: Error: Couldn't find constructor 'F'.
 //   F();
 //   ^
 //
@@ -11,7 +11,7 @@ import self as self;
 import "org-dartlang-testcase:///issue_43084_lib.dart";
 
 static method test() → dynamic {
-  invalid-expression "pkg/front_end/testcases/general/with_dependencies/issue_43084_2/issue_43084.dart:8:3: Error: Method not found: 'F'.
+  invalid-expression "pkg/front_end/testcases/general/with_dependencies/issue_43084_2/issue_43084.dart:8:3: Error: Couldn't find constructor 'F'.
   F();
   ^";
 }

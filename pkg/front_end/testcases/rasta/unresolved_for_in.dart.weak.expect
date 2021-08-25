@@ -45,7 +45,7 @@ library;
 //       print(key);
 //             ^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Getter not found: 'key'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Undefined name 'key'.
 //     print(key);
 //           ^^^
 //
@@ -74,7 +74,7 @@ library;
 //   for (1 in arguments) {
 //        ^
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Getter not found: 'key'.
+// pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Undefined name 'key'.
 //     print(key);
 //           ^^^
 //
@@ -163,7 +163,7 @@ static method main(dynamic arguments) → dynamic {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:31:8: Error: Setter not found: 'key'.
   for (key in arguments) {
        ^^^";
-    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Getter not found: 'key'.
+    core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:32:11: Error: Undefined name 'key'.
     print(key);
           ^^^");
   }
@@ -196,7 +196,7 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
       1;
-      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Getter not found: 'key'.
+      core::print(invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:44:11: Error: Undefined name 'key'.
     print(key);
           ^^^");
     }

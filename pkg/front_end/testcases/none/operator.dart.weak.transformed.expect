@@ -20,7 +20,7 @@ library /*isNonNullableByDefault*/;
 //   c.method()[0];
 //           ^
 //
-// pkg/front_end/testcases/none/operator.dart:109:3: Error: Getter not found: 'string'.
+// pkg/front_end/testcases/none/operator.dart:109:3: Error: Undefined name 'string'.
 //   string[0] = 42;
 //   ^^^^^^
 //
@@ -28,7 +28,7 @@ library /*isNonNullableByDefault*/;
 //   c.method()[0] = 42;
 //           ^
 //
-// pkg/front_end/testcases/none/operator.dart:129:3: Error: Getter not found: 'string'.
+// pkg/front_end/testcases/none/operator.dart:129:3: Error: Undefined name 'string'.
 //   string[0] += 42;
 //   ^^^^^^
 //
@@ -137,7 +137,7 @@ static method indexSet(core::List<core::int> list, core::Map<core::String, core:
   c.method()[0] = 42;
           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type}{<invalid>}.[]=(0, 42);
   core::print("DynamicInvocation (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/operator.dart:109:3: Error: Getter not found: 'string'.
+  invalid-expression "pkg/front_end/testcases/none/operator.dart:109:3: Error: Undefined name 'string'.
   string[0] = 42;
   ^^^^^^"{<invalid>}.[]=(0, 42);
 }
@@ -157,7 +157,7 @@ static method compound(core::List<core::int> list, core::Map<core::String, core:
   c.method()[0] += 42;
           ^" in c.{self::Class::method}{<inapplicable>}.(){() → invalid-type} in let final core::int #t21 = 0 in #t20{<invalid>}.[]=(#t21, #t20{<invalid>}.[](#t21){<invalid>}.+(42));
   core::print("DynamicInvocation (Unresolved)");
-  let final invalid-type #t22 = invalid-expression "pkg/front_end/testcases/none/operator.dart:129:3: Error: Getter not found: 'string'.
+  let final invalid-type #t22 = invalid-expression "pkg/front_end/testcases/none/operator.dart:129:3: Error: Undefined name 'string'.
   string[0] += 42;
   ^^^^^^" in let final core::int #t23 = 0 in #t22{<invalid>}.[]=(#t23, #t22{<invalid>}.[](#t23){<invalid>}.+(42));
 }

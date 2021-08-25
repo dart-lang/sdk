@@ -126,7 +126,6 @@ class C {
 //  ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
 // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
-//  ^
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
 //               ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
@@ -191,18 +190,15 @@ main() {
 //  ^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
 // [cfe] Can't assign to the final variable 'l'.
-//  ^
 // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
-    //    ^^^^
-    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-    //    ^^^^
-    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
+//        ^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }
   C ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
-//^
 // [cfe] Operand of null-aware operation '??=' has type 'Type' which excludes null.
   h ??= null;
 //^
@@ -270,7 +266,7 @@ main() {
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
-  // [cfe] Getter not found: 'c'.
+  // [cfe] Undefined name 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);
   //             ^

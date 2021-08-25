@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -222,8 +223,10 @@ main() async {
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
         new TypeUseGenerator(helper, token, declaration, "foo"));
-    check("UnresolvedNameGenerator(offset: 4, name: bar)",
-        new UnresolvedNameGenerator.internal(helper, token, name));
+    check(
+        "UnresolvedNameGenerator(offset: 4, name: bar)",
+        new UnresolvedNameGenerator.internal(
+            helper, token, name, UnresolvedKind.Unknown));
     check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
         prefixUseGenerator);
     check(

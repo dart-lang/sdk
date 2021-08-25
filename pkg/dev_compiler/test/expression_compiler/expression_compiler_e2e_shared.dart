@@ -181,7 +181,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Error: Getter not found: 'typo'");
+          expectedError: "Error: Undefined name 'typo'");
     });
 
     test('local (trimmed scope)', () async {
@@ -223,7 +223,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Getter not found: \'typo\'");
+          expectedError: "Undefined name \'typo\'");
     });
 
     test('local', () async {
@@ -374,7 +374,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'globalFunctionBP',
           expression: 'typo',
-          expectedError: "Getter not found: 'typo'.");
+          expectedError: "Undefined name 'typo'.");
     });
 
     test('local with primitive type', () async {
@@ -720,7 +720,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'bp',
           expression: 'typo',
-          expectedError: "Getter not found: 'typo'.");
+          expectedError: "Undefined name 'typo'.");
     });
 
     test('expression using captured variables', () async {
@@ -894,7 +894,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'thenBP',
           expression: 'z',
-          expectedError: "Error: Getter not found: 'z'");
+          expectedError: "Error: Undefined name 'z'");
     });
 
     test('(else) expression using local', () async {
@@ -906,7 +906,7 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'elseBP',
           expression: 'y',
-          expectedError: "Error: Getter not found: 'y'");
+          expectedError: "Error: Undefined name 'y'");
     });
 
     test('(post) expression using local', () async {
@@ -918,14 +918,14 @@ void runSharedTests(SetupCompilerOptions setup, TestDriver driver) {
       await driver.check(
           breakpointId: 'postBP',
           expression: 'z',
-          expectedError: "Error: Getter not found: 'z'");
+          expectedError: "Error: Undefined name 'z'");
     });
 
     test('(post) expression using local out of scope', () async {
       await driver.check(
           breakpointId: 'postBP',
           expression: 'y',
-          expectedError: "Error: Getter not found: 'y'");
+          expectedError: "Error: Undefined name 'y'");
     });
   });
 

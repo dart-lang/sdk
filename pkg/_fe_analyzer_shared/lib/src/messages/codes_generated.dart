@@ -6727,6 +6727,25 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateMemberNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Member not found: '#name'.""",
+        withArguments: _withArgumentsMemberNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeMemberNotFound =
+    const Code<Message Function(String name)>("MemberNotFound",
+        analyzerCodes: <String>["UNDEFINED_GETTER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMemberNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeMemberNotFound,
+      message: """Member not found: '${name}'.""", arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMemberWithSameNameAsClass =
     messageMemberWithSameNameAsClass;
 
@@ -7128,6 +7147,25 @@ const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
     index: 24,
     message: r"""Each class definition can have at most one with clause.""",
     tip: r"""Try combining all of the with clauses into a single clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNameNotFound =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Undefined name '#name'.""",
+        withArguments: _withArgumentsNameNotFound);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNameNotFound =
+    const Code<Message Function(String name)>("NameNotFound",
+        analyzerCodes: <String>["UNDEFINED_NAME"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNameNotFound(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNameNotFound,
+      message: """Undefined name '${name}'.""", arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNamedFunctionExpression = messageNamedFunctionExpression;
@@ -9167,6 +9205,26 @@ Message _withArgumentsSuperclassHasNoGetter(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeSuperclassHasNoGetter,
       message: """Superclass has no getter named '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateSuperclassHasNoMember =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Superclass has no member named '#name'.""",
+        withArguments: _withArgumentsSuperclassHasNoMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperclassHasNoMember =
+    const Code<Message Function(String name)>("SuperclassHasNoMember",
+        analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperclassHasNoMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperclassHasNoMember,
+      message: """Superclass has no member named '${name}'.""",
       arguments: {'name': name});
 }
 
