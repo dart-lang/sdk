@@ -1904,7 +1904,7 @@ void PatchableCallHandler::DoMonomorphicMissJIT(
       ICData::Handle(zone_, ICData::ICDataOfEntriesArray(ic_data_entries));
 
   const classid_t current_cid = receiver().GetClassId();
-  const classid_t old_cid = ic_data.GetReceiverClassIdAt(0);
+  const classid_t old_cid = Smi::Value(Smi::RawCast(ic_data_entries.At(0)));
   const bool same_receiver = current_cid == old_cid;
 
   // The target didn't change, so we can stay inside monomorphic state.
@@ -1927,6 +1927,7 @@ void PatchableCallHandler::DoMonomorphicMissJIT(
     // We stay in monomorphic state, patch the code object and keep the same
     // data (old ICData entries array).
     const auto& code = Code::Handle(zone_, target_function.EnsureHasCode());
+    ASSERT(data.ptr() == ic_data.entries());
     CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, data,
                                      code);
     ReturnJIT(code, data, target_function);

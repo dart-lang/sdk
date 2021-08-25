@@ -128,8 +128,14 @@ class IsolateManager {
 
   ThreadInfo? getThread(int threadId) => _threadsByThreadId[threadId];
 
-  /// Handles Isolate and Debug events
-  Future<void> handleEvent(vm.Event event) async {
+  /// Handles Isolate and Debug events.
+  ///
+  /// If [resumeIfStarting] is `true`, PauseStart/PausePostStart events will be
+  /// automatically resumed from.
+  Future<void> handleEvent(
+    vm.Event event, {
+    bool resumeIfStarting = true,
+  }) async {
     final isolateId = event.isolate?.id;
     if (isolateId == null) {
       return;
@@ -151,7 +157,7 @@ class IsolateManager {
     if (eventKind == vm.EventKind.kIsolateExit) {
       _handleExit(event);
     } else if (eventKind?.startsWith('Pause') ?? false) {
-      await _handlePause(event);
+      await _handlePause(event, resumeIfStarting: resumeIfStarting);
     } else if (eventKind == vm.EventKind.kResume) {
       _handleResumed(event);
     }
@@ -163,7 +169,7 @@ class IsolateManager {
   /// New isolates will be configured with the correct pause-exception behaviour,
   /// libraries will be marked as debuggable if appropriate, and breakpoints
   /// sent.
-  Future<void> registerIsolate(
+  Future<ThreadInfo> registerIsolate(
     vm.IsolateRef isolate,
     String eventKind,
   ) async {
@@ -193,6 +199,8 @@ class IsolateManager {
       await _configureIsolate(isolate);
       registrationCompleter.complete();
     }
+
+    return info;
   }
 
   Future<void> resumeIsolate(vm.IsolateRef isolateRef,
@@ -243,6 +251,11 @@ class IsolateManager {
     } finally {
       thread.hasPendingResume = false;
     }
+  }
+
+  /// Sends an event informing the client that a thread is stopped at entry.
+  void sendStoppedOnEntryEvent(int threadId) {
+    _adapter.sendEvent(StoppedEventBody(reason: 'entry', threadId: threadId));
   }
 
   /// Records breakpoints for [uri].
@@ -368,18 +381,23 @@ class IsolateManager {
 
   /// Handles a pause event.
   ///
-  /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the isolate
-  /// will be re-configured (pause-exception behaviour, debuggable libraries,
-  /// breakpoints) and then resumed.
+  /// For [vm.EventKind.kPausePostRequest] which occurs after a restart, the
+  /// isolate will be re-configured (pause-exception behaviour, debuggable
+  /// libraries, breakpoints) and then (if [resumeIfStarting] is `true`)
+  /// resumed.
   ///
-  /// For [vm.EventKind.kPauseStart], the isolate will be resumed.
+  /// For [vm.EventKind.kPauseStart] and [resumeIfStarting] is `true`, the
+  /// isolate will be resumed.
   ///
   /// For breakpoints with conditions that are not met and for logpoints, the
   /// isolate will be automatically resumed.
   ///
   /// For all other pause types, the isolate will remain paused and a
   /// corresponding "Stopped" event sent to the editor.
-  Future<void> _handlePause(vm.Event event) async {
+  Future<void> _handlePause(
+    vm.Event event, {
+    bool resumeIfStarting = true,
+  }) async {
     final eventKind = event.kind;
     final isolate = event.isolate!;
     final thread = _threadsByIsolateId[isolate.id!];
@@ -396,13 +414,21 @@ class IsolateManager {
     // after a hot restart.
     if (eventKind == vm.EventKind.kPausePostRequest) {
       await _configureIsolate(isolate);
-      await resumeThread(thread.threadId);
+      if (resumeIfStarting) {
+        await resumeThread(thread.threadId);
+      }
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
       // comments on [thread.hasBeenStarted]).
       if (!thread.hasBeenStarted) {
-        thread.hasBeenStarted = true;
-        await resumeThread(thread.threadId);
+        // If requested, automatically resume. Otherwise send a Stopped event to
+        // inform the client UI the thread is paused.
+        if (resumeIfStarting) {
+          thread.hasBeenStarted = true;
+          await resumeThread(thread.threadId);
+        } else {
+          sendStoppedOnEntryEvent(thread.threadId);
+        }
       }
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException

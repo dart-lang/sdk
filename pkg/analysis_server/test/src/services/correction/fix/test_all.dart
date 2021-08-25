@@ -10,6 +10,7 @@ import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
+import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
@@ -203,6 +204,7 @@ void main() {
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();
+    add_eol_at_end_of_file.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
     add_key_to_constructors.main();

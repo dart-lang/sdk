@@ -62,6 +62,7 @@ class DapTestClient {
   /// Send an attachRequest to the server, asking it to attach to an existing
   /// Dart program.
   Future<Response> attach({
+    required bool autoResume,
     String? vmServiceUri,
     String? vmServiceInfoFile,
     String? cwd,
@@ -70,12 +71,20 @@ class DapTestClient {
     bool? debugExternalPackageLibraries,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
-  }) {
+  }) async {
     assert(
       (vmServiceUri == null) != (vmServiceInfoFile == null),
       'Provide exactly one of vmServiceUri/vmServiceInfoFile',
     );
-    return sendRequest(
+
+    // When attaching, the paused VM will not be automatically unpaused, but
+    // instead send a Stopped(reason: 'entry') event. Respond to this by
+    // resuming.
+    final resumeFuture = autoResume
+        ? expectStop('entry').then((event) => continue_(event.threadId!))
+        : null;
+
+    final attachResponse = sendRequest(
       DartAttachRequestArguments(
         vmServiceUri: vmServiceUri,
         vmServiceInfoFile: vmServiceInfoFile,
@@ -94,6 +103,11 @@ class DapTestClient {
       // (DartAttachRequestArguments).
       overrideCommand: 'attach',
     );
+
+    // If we were expecting a pause and to resume, ensure that happens.
+    await resumeFuture;
+
+    return attachResponse;
   }
 
   /// Sends a continue request for the given thread.
@@ -553,17 +567,20 @@ extension DapTestClientExtension on DapTestClient {
 
     final result =
         await getValidStack(stop.threadId!, startFrame: 0, numFrames: 1);
-    expect(result.stackFrames, hasLength(1));
-    final frame = result.stackFrames[0];
 
-    if (file != null) {
-      expect(frame.source?.path, equals(file.path));
-    }
-    if (sourceName != null) {
-      expect(frame.source?.name, equals(sourceName));
-    }
-    if (line != null) {
-      expect(frame.line, equals(line));
+    if (file != null || line != null || sourceName != null) {
+      expect(result.stackFrames, hasLength(1));
+      final frame = result.stackFrames[0];
+
+      if (file != null) {
+        expect(frame.source?.path, equals(file.path));
+      }
+      if (sourceName != null) {
+        expect(frame.source?.name, equals(sourceName));
+      }
+      if (line != null) {
+        expect(frame.line, equals(line));
+      }
     }
 
     return stop;

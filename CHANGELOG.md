@@ -198,8 +198,16 @@
 
 #### Linter
 
-Updated the Linter to `1.9.0`, which includes changes that
-
+Updated the Linter to `1.10.0`, which includes changes that
+- improves regular expression parsing performance for common checks 
+  (`camel_case_types`, `file_names`, etc.).
+- (internal) migrates to analyzer 2.1.0 APIs.
+- fixes false positive in `use_build_context_synchronously` in awaits inside 
+  anonymous functions.
+- fixes `overridden_fields` false positive w/ static fields.
+- fixes false positive in `avoid_null_checks_in_equality_operators` w/ 
+  non-nullable params.
+- fixes false positive for deferred imports in `prefer_const_constructors`.
 - marks `avoid_dynamic_calls` stable.
 - (internal) removes unused `MockPubVisitor` and `MockRule` classes.
 - fixes a `prefer_void_to_null` false positive w/ overridden properties.
