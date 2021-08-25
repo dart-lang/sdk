@@ -204,7 +204,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -214,7 +214,7 @@ class Person2 {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -225,7 +225,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other is Person &&
           name == other.name;
 }
@@ -234,7 +234,7 @@ class Person2 {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other is Person &&
           name == other.name;
 }
@@ -282,7 +282,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other != null &&
           other is Person &&
           name == other.name;
@@ -293,13 +293,11 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
           other is Person &&
           name == other.name;
 }
-''',
-        errorFilter: (error) =>
-            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+''');
   }
 
   Future<void> test_functionBody() async {
@@ -308,7 +306,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     return other != null &&
           other is Person &&
           name == other.name;
@@ -320,14 +318,12 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     return other is Person &&
           name == other.name;
   }
 }
-''',
-        errorFilter: (error) =>
-            error.errorCode == HintCode.UNNECESSARY_NULL_COMPARISON_TRUE);
+''');
   }
 
   Future<void> test_ifNullAssignmentStatement() async {
@@ -336,7 +332,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     if (other is! Person) return false;
     other ??= Person();
     return other.name == name;
@@ -354,7 +350,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     if (other is! Person) return false;
     final toCompare = other ?? Person();
     return toCompare.name == name;
@@ -367,7 +363,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     if (other is! Person) return false;
     final toCompare = other;
     return toCompare.name == name;
@@ -386,7 +382,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     if (other == null) return false;
     return other is Person &&
           name == other.name;
@@ -398,7 +394,7 @@ class Person {
   final String name = '';
 
   @override
-  operator ==(other) {
+  operator ==(Object? other) {
     return other is Person &&
           name == other.name;
   }
