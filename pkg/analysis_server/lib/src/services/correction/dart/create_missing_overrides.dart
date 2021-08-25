@@ -16,7 +16,7 @@ class CreateMissingOverrides extends CorrectionProducer {
   int _numElements = 0;
 
   @override
-  List<Object> get fixArguments => [_numElements];
+  List<Object> get fixArguments => [_numElements, _numElements == 1 ? '' : 's'];
 
   @override
   FixKind get fixKind => DartFixKind.CREATE_MISSING_OVERRIDES;

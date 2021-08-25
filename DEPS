@@ -117,7 +117,6 @@ vars = {
   "http_multi_server_rev": "de1b312164c24a1690b46c6e97bd47eff40c4649",
   "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
   "http_rev": "778174bca2c13becd88ef3353309190b1e8b9479",
-  "http_throttle_tag" : "1.0.2",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.17.0-nullsafety",
@@ -159,8 +158,8 @@ vars = {
   "stream_channel_rev": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
-  "test_descriptor_tag": "2.0.0",
-  "test_process_tag": "2.0.0",
+  "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
+  "test_process_rev": "7c73ec8a8a6e0e63d0ec27d70c21ca4323fb5e8f",
   "term_glyph_rev": "6a0f9b6fb645ba75e7a00a4e20072678327a0347",
   "test_reflective_loader_rev": "54e930a11c372683792e22bddad79197728c91ce",
   "test_rev": "099dcc4d052a30c6921489cfbefa1c8531d12975",
@@ -369,9 +368,6 @@ deps = {
       "@" + Var("http_multi_server_rev"),
   Var("dart_root") + "/third_party/pkg/http_parser":
       Var("dart_git") + "http_parser.git" + "@" + Var("http_parser_rev"),
-  Var("dart_root") + "/third_party/pkg/http_throttle":
-      Var("dart_git") + "http_throttle.git" +
-      "@" + Var("http_throttle_tag"),
   Var("dart_root") + "/third_party/pkg/intl":
       Var("dart_git") + "intl.git" + "@" + Var("intl_tag"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
@@ -449,9 +445,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_rev"),
   Var("dart_root") + "/third_party/pkg/test_descriptor":
-      Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_tag"),
+      Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_rev"),
   Var("dart_root") + "/third_party/pkg/test_process":
-      Var("dart_git") + "test_process.git" + "@" + Var("test_process_tag"),
+      Var("dart_git") + "test_process.git" + "@" + Var("test_process_rev"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       Var("dart_git") + "test_reflective_loader.git" +
       "@" + Var("test_reflective_loader_rev"),
