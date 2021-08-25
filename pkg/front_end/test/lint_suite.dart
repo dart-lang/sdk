@@ -22,6 +22,8 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 
 import 'package:kernel/kernel.dart';
 
@@ -185,7 +187,8 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
       return crash(description, StackTrace.current);
     }
 
-    Parser parser = new Parser(description.listener);
+    Parser parser = new Parser(description.listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(description.cache.firstToken);
 
     if (description.listener.problems.isEmpty) {

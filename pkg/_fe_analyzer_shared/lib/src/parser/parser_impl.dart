@@ -300,7 +300,22 @@ class Parser {
     return cachedRewriter ??= new TokenStreamRewriterImpl();
   }
 
-  Parser(this.listener)
+  /// If `true`, syntax like `foo<bar>.baz()` is parsed like an implicit
+  /// creation expression. Otherwise it is parsed as a explicit instantiation
+  /// followed by an invocation.
+  ///
+  /// With the constructor-tearoffs experiment, such syntax can lead to a valid
+  /// expression that is _not_ an implicit creation expression, and the parser
+  /// should therefore not special case the syntax but instead let listeners
+  /// resolve the expression by the seen selectors.
+  ///
+  /// Use this flag to test that the implementation doesn't need the special
+  /// casing.
+  // TODO(johnniwinther): Remove this when both analyzer and CFE can parse the
+  // implicit create expression without the special casing.
+  final bool useImplicitCreationExpression;
+
+  Parser(this.listener, {this.useImplicitCreationExpression: true})
       : assert(listener != null); // ignore:unnecessary_null_comparison
 
   bool get inGenerator {
@@ -5260,7 +5275,7 @@ class Parser {
           token.next!, POSTFIX_PRECEDENCE, allowCascades);
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
-    } else if (token.next!.isIdentifier) {
+    } else if (useImplicitCreationExpression && token.next!.isIdentifier) {
       Token identifier = token.next!;
       if (optional(".", identifier.next!)) {
         identifier = identifier.next!.next!;

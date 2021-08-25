@@ -14,6 +14,8 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
 
 import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 
 import 'package:front_end/src/fasta/util/direct_parser_ast.dart' show getAST;
 
@@ -198,7 +200,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     ParserTestListenerWithMessageFormatting parserTestListener =
         new ParserTestListenerWithMessageFormatting(
             addTrace, annotateLines, source, shortNameId);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     return parserTestListener;
   }
@@ -298,7 +301,8 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
     ParserTestListener parserTestListener =
         new ParserTestListener(context.addTrace);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     bool parserCrashed = false;
     dynamic parserCrashedE;
     StackTrace parserCrashedSt;

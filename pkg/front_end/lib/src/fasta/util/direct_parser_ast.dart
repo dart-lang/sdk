@@ -17,7 +17,9 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import '../source/diet_parser.dart';
+
+import 'direct_parser_ast_helper.dart';
 
 DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
     {bool includeBody: true,
@@ -51,9 +53,11 @@ DirectParserASTContentCompilationUnitEnd getAST(List<int> rawBytes,
   DirectParserASTListener listener = new DirectParserASTListener();
   Parser parser;
   if (includeBody) {
-    parser = new Parser(listener);
+    parser = new Parser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   } else {
-    parser = new ClassMemberParser(listener);
+    parser = new ClassMemberParser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   }
   parser.parseUnit(firstToken);
   return listener.data.single as DirectParserASTContentCompilationUnitEnd;
