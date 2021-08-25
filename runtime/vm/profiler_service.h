@@ -364,7 +364,7 @@ class ProfileCodeTable : public ZoneAllocated {
 // a zone must be created that lives longer than this object.
 class Profile : public ValueObject {
  public:
-  explicit Profile(Isolate* isolate);
+  Profile();
 
   // Build a filtered model using |filter|.
   void Build(Thread* thread,
@@ -403,7 +403,6 @@ class Profile : public ValueObject {
                                intptr_t frame_index);
   void PrintSamplesJSON(JSONObject* obj, bool code_samples);
 
-  Isolate* isolate_;
   Zone* zone_;
   ProcessedSampleBuffer* samples_;
   ProfileCodeTable* live_code_;

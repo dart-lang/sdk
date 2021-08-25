@@ -450,11 +450,15 @@ ErrorPtr Thread::HandleInterrupts() {
     }
 
 #if !defined(PRODUCT)
-    // Processes completed SampleBlocks and sends CPU sample events over the
-    // service protocol when applicable.
-    SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
-    if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
-      sample_buffer->ProcessCompletedBlocks();
+    // Don't block system isolates to process CPU samples to avoid blocking
+    // them during critical tasks (e.g., initial compilation).
+    if (!Isolate::IsSystemIsolate(isolate())) {
+      // Processes completed SampleBlocks and sends CPU sample events over the
+      // service protocol when applicable.
+      SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
+      if (sample_buffer != nullptr && sample_buffer->process_blocks()) {
+        sample_buffer->ProcessCompletedBlocks();
+      }
     }
 #endif  // !defined(PRODUCT)
   }

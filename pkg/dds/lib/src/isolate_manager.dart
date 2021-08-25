@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dds/src/utils/mutex.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:vm_service/vm_service.dart';
 
 import 'client.dart';
 import 'constants.dart';
+import 'cpu_samples_manager.dart';
 import 'dds_impl.dart';
+import 'utils/mutex.dart';
 
 /// This file contains functionality used to track the running state of
 /// all isolates in a given Dart process.
@@ -36,7 +38,11 @@ enum _IsolateState {
 }
 
 class _RunningIsolate {
-  _RunningIsolate(this.isolateManager, this.id, this.name);
+  _RunningIsolate(this.isolateManager, this.id, this.name)
+      : cpuSamplesManager = CpuSamplesManager(
+          isolateManager.dds,
+          id,
+        );
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -104,6 +110,29 @@ class _RunningIsolate {
   /// Should always be called after an isolate is resumed.
   void clearResumeApprovals() => _resumeApprovalsByName.clear();
 
+  Map<String, dynamic> getCachedCpuSamples(String userTag) {
+    final repo = cpuSamplesManager.cpuSamplesCaches[userTag];
+    if (repo == null) {
+      throw json_rpc.RpcException.invalidParams(
+        'CPU sample caching is not enabled for tag: "$userTag"',
+      );
+    }
+    return repo.toJson();
+  }
+
+  void handleEvent(Event event) {
+    switch (event.kind) {
+      case EventKind.kUserTagChanged:
+        cpuSamplesManager.handleUserTagEvent(event);
+        return;
+      case EventKind.kCpuSamples:
+        cpuSamplesManager.handleCpuSamplesEvent(event);
+        return;
+      default:
+        return;
+    }
+  }
+
   int get _isolateStateMask => isolateStateToMaskMapping[_state] ?? 0;
 
   static const isolateStateToMaskMapping = {
@@ -113,6 +142,7 @@ class _RunningIsolate {
   };
 
   final IsolateManager isolateManager;
+  final CpuSamplesManager cpuSamplesManager;
   final String name;
   final String id;
   final Set<String?> _resumeApprovalsByName = {};
@@ -123,20 +153,25 @@ class IsolateManager {
   IsolateManager(this.dds);
 
   /// Handles state changes for isolates.
-  void handleIsolateEvent(json_rpc.Parameters parameters) {
-    final event = parameters['event'];
-    final eventKind = event['kind'].asString;
-
+  void handleIsolateEvent(Event event) {
     // There's no interesting information about isolate state associated with
     // and IsolateSpawn event.
-    if (eventKind == ServiceEvents.isolateSpawn) {
+    // TODO(bkonyi): why isn't IsolateSpawn in package:vm_service
+    if (event.kind! == ServiceEvents.isolateSpawn) {
       return;
     }
 
-    final isolateData = event['isolate'];
-    final id = isolateData['id'].asString;
-    final name = isolateData['name'].asString;
-    _updateIsolateState(id, name, eventKind);
+    final isolateData = event.isolate!;
+    final id = isolateData.id!;
+    final name = isolateData.name!;
+    _updateIsolateState(id, name, event.kind!);
+  }
+
+  void routeEventToIsolate(Event event) {
+    final isolateId = event.isolate!.id!;
+    if (isolates.containsKey(isolateId)) {
+      isolates[isolateId]!.handleEvent(event);
+    }
   }
 
   void _updateIsolateState(String id, String name, String eventKind) {
@@ -246,6 +281,16 @@ class IsolateManager {
         return RPCResponses.success;
       },
     );
+  }
+
+  Map<String, dynamic> getCachedCpuSamples(json_rpc.Parameters parameters) {
+    final isolateId = parameters['isolateId'].asString;
+    if (!isolates.containsKey(isolateId)) {
+      return RPCResponses.collectedSentinel;
+    }
+    final isolate = isolates[isolateId]!;
+    final userTag = parameters['userTag'].asString;
+    return isolate.getCachedCpuSamples(userTag);
   }
 
   /// Forwards a `resume` request to the VM service.

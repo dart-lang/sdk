@@ -2364,6 +2364,55 @@ void Isolate::set_current_allocation_sample_block(SampleBlock* current) {
   }
   current_allocation_sample_block_ = current;
 }
+
+void Isolate::FreeSampleBlock(SampleBlock* block) {
+  if (block == nullptr) {
+    return;
+  }
+  SampleBlock* head;
+  // We're pushing the freed sample block to the front of the free_block_list_,
+  // which means the last element of the list will be the oldest freed sample.
+  do {
+    head = free_block_list_.load(std::memory_order_acquire);
+    block->next_free_ = head;
+  } while (!free_block_list_.compare_exchange_weak(head, block,
+                                                   std::memory_order_release));
+}
+
+void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
+  SampleBlock* head = free_block_list_.exchange(nullptr);
+  // Reverse the list before processing so older blocks are streamed and reused
+  // first.
+  SampleBlock* reversed_head = nullptr;
+  while (head != nullptr) {
+    SampleBlock* next = head->next_free_;
+    if (reversed_head == nullptr) {
+      reversed_head = head;
+      reversed_head->next_free_ = nullptr;
+    } else {
+      head->next_free_ = reversed_head;
+      reversed_head = head;
+    }
+    head = next;
+  }
+  head = reversed_head;
+  while (head != nullptr) {
+    if (Service::profiler_stream.enabled() && !IsSystemIsolate(this)) {
+      StackZone zone(thread);
+      HandleScope handle_scope(thread);
+      Profile profile;
+      profile.Build(thread, nullptr, head);
+      ServiceEvent event(this, ServiceEvent::kCpuSamples);
+      event.set_cpu_profile(&profile);
+      Service::HandleEvent(&event);
+    }
+    SampleBlock* next = head->next_free_;
+    head->next_free_ = nullptr;
+    head->evictable_ = true;
+    Profiler::sample_block_buffer()->FreeBlock(head);
+    head = next;
+  }
+}
 #endif  // !defined(PRODUCT)
 
 // static
@@ -2464,6 +2513,25 @@ void Isolate::Shutdown() {
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
     debugger()->Shutdown();
+    // Cleanup profiler state.
+    SampleBlock* cpu_block = current_sample_block();
+    if (cpu_block != nullptr) {
+      cpu_block->release_block();
+    }
+    SampleBlock* allocation_block = current_allocation_sample_block();
+    if (allocation_block != nullptr) {
+      allocation_block->release_block();
+    }
+
+    // Process the previously assigned sample blocks if we're using the
+    // profiler's sample buffer. Some tests create their own SampleBlockBuffer
+    // and handle block processing themselves.
+    if ((cpu_block != nullptr || allocation_block != nullptr) &&
+        Profiler::sample_block_buffer() != nullptr) {
+      StackZone zone(thread);
+      HandleScope handle_scope(thread);
+      Profiler::sample_block_buffer()->ProcessCompletedBlocks();
+    }
 #endif
   }
 
@@ -2521,26 +2589,6 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
   // From this point on the isolate doesn't participate in safepointing
   // requests anymore.
   Thread::ExitIsolate();
-
-#if !defined(PRODUCT)
-  // Cleanup profiler state.
-  SampleBlock* cpu_block = isolate->current_sample_block();
-  if (cpu_block != nullptr) {
-    cpu_block->release_block();
-  }
-  SampleBlock* allocation_block = isolate->current_allocation_sample_block();
-  if (allocation_block != nullptr) {
-    allocation_block->release_block();
-  }
-
-  // Process the previously assigned sample blocks if we're using the
-  // profiler's sample buffer. Some tests create their own SampleBlockBuffer
-  // and handle block processing themselves.
-  if ((cpu_block != nullptr || allocation_block != nullptr) &&
-      Profiler::sample_block_buffer() != nullptr) {
-    Profiler::sample_block_buffer()->ProcessCompletedBlocks();
-  }
-#endif  // !defined(PRODUCT)
 
   // Now it's safe to delete the isolate.
   delete isolate;

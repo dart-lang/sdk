@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import 'client.dart';
+import 'common/ring_buffer.dart';
 
 /// [LoggingRepository] is used to store historical log messages from the
 /// target VM service. Clients which connect to DDS and subscribe to the
 /// `Logging` stream will be sent all messages contained within this repository
 /// upon initial subscription.
-class LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
+class LoggingRepository extends RingBuffer<Map<String, dynamic>> {
   LoggingRepository([int logHistoryLength = 10000]) : super(logHistoryLength) {
     // TODO(bkonyi): enforce log history limit when DartDevelopmentService
     // allows for this to be set via Dart code.
@@ -44,55 +43,4 @@ class LoggingRepository extends _RingBuffer<Map<String, dynamic>> {
   // point in time.
   final Set<DartDevelopmentServiceClient> _sentHistoricLogsClientSet = {};
   static const int _kMaxLogBufferSize = 100000;
-}
-
-// TODO(bkonyi): move to standalone file if we decide to use this elsewhere.
-class _RingBuffer<T> {
-  _RingBuffer(this._bufferSize) {
-    _buffer = List<T?>.filled(
-      _bufferSize,
-      null,
-    );
-  }
-
-  Iterable<T> call() sync* {
-    for (int i = _size - 1; i >= 0; --i) {
-      yield _buffer[(_count - i - 1) % _bufferSize]!;
-    }
-  }
-
-  void add(T e) {
-    if (_buffer.isEmpty) {
-      return;
-    }
-    _buffer[_count++ % _bufferSize] = e;
-  }
-
-  void resize(int size) {
-    assert(size >= 0);
-    if (size == _bufferSize) {
-      return;
-    }
-    final resized = List<T?>.filled(
-      size,
-      null,
-    );
-    int count = 0;
-    if (size > 0) {
-      for (final e in this()) {
-        resized[count++ % size] = e;
-      }
-    }
-    _count = count;
-    _bufferSize = size;
-    _buffer = resized;
-  }
-
-  int get bufferSize => _bufferSize;
-
-  int get _size => min(_count, _bufferSize);
-
-  int _bufferSize;
-  int _count = 0;
-  late List<T?> _buffer;
 }

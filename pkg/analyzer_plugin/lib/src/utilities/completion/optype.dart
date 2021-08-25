@@ -485,7 +485,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       final entity = this.entity;
       if (entity != null) {
         if (entity.offset <= declarationStart()) {
-          optype.completionLocation = 'CompilationUnit_declaration';
+          optype.completionLocation = 'CompilationUnit_directive';
         } else {
           optype.completionLocation = 'CompilationUnit_declaration';
         }

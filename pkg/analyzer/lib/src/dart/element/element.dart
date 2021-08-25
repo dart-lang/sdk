@@ -2383,6 +2383,11 @@ abstract class ElementImpl implements Element {
   /// children of this element's parent.
   String get identifier => name!;
 
+  /// The informative data, or `null` if the element is synthetic, or if the
+  /// informative data is not available in this environment (e.g. semantics
+  /// only summaries in Bazel).
+  ElementInformativeDataSetImpl? get informative => null;
+
   bool get isNonFunctionTypeAliasesEnabled {
     return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
@@ -2597,6 +2602,51 @@ abstract class ElementImplWithFunctionType implements Element {
   ///
   /// In most cases, the element's `type` getter should be used instead.
   FunctionType get typeInternal;
+}
+
+/// Informative data about an [ElementImpl].
+class ElementInformativeDataImpl {
+  /// The offset of the beginning of the element's code in the file.
+  final int codeOffset;
+
+  /// The length of the element's code in the file.
+  final int codeLength;
+
+  /// The documentation comment for this element.
+  final String? docComment;
+
+  /// The offset of the name of this element in the file that contains the
+  /// declaration of this element.
+  final int nameOffset;
+
+  ElementInformativeDataImpl({
+    required this.codeOffset,
+    required this.codeLength,
+    required this.docComment,
+    required this.nameOffset,
+  });
+}
+
+/// The set of informative data about an [ElementImpl].
+class ElementInformativeDataSetImpl {
+  /// Informative data in the user-written file.
+  ///
+  /// This property is `null` if the element was macro-generated.
+  final ElementInformativeDataImpl? written;
+
+  /// Informative data in the combined file, which is the user-written file
+  /// augmented with macro-generated declarations.
+  ///
+  /// This property cannot be `null`, because each element is either declared
+  /// by the user directly (so has [written] which is then transformed), or
+  /// is macro-generated, or is synthetic (so we don't have this object
+  /// at all).
+  final ElementInformativeDataImpl combined;
+
+  ElementInformativeDataSetImpl({
+    required this.written,
+    required this.combined,
+  });
 }
 
 /// A concrete implementation of an [ElementLocation].

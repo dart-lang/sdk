@@ -15,7 +15,37 @@ main() {
 
 @reflectiveTest
 class ConstConstructorWithNonFinalFieldTest extends PubPackageResolutionTest {
-  test_this_named() async {
+  test_constFactoryNamed_hasNonFinal_redirect() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int x = 0;
+  const factory A.a() = B;
+}
+
+class B implements A {
+  const B();
+  int get x => 0;
+  void set x(_) {}
+}
+''');
+  }
+
+  test_constFactoryUnnamed_hasNonFinal_redirect() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int x = 0;
+  const factory A() = B;
+}
+
+class B implements A {
+  const B();
+  int get x => 0;
+  void set x(_) {}
+}
+''');
+  }
+
+  test_constGenerativeNamed_hasNonFinal() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;
@@ -26,7 +56,7 @@ class A {
     ]);
   }
 
-  test_this_unnamed() async {
+  test_constGenerativeUnnamed_hasNonFinal() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;

@@ -83,14 +83,22 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// The client should leave the data intact.
   final Object? restart;
 
-  final String vmServiceUri;
+  /// The VM Service URI to attach to.
+  ///
+  /// Either this or [vmServiceInfoFile] must be supplied.
+  final String? vmServiceUri;
+
+  /// The VM Service info file to extract the VM Service URI from to attach to.
+  ///
+  /// Either this or [vmServiceUri] must be supplied.
+  final String? vmServiceInfoFile;
 
   DartAttachRequestArguments({
     this.restart,
-    required this.vmServiceUri,
+    this.vmServiceUri,
+    this.vmServiceInfoFile,
     String? name,
     String? cwd,
-    String? vmServiceInfoFile,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
@@ -100,7 +108,6 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   }) : super(
           name: name,
           cwd: cwd,
-          vmServiceInfoFile: vmServiceInfoFile,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -111,14 +118,16 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
       : restart = obj['restart'],
-        vmServiceUri = obj['vmServiceUri'] as String,
+        vmServiceUri = obj['vmServiceUri'] as String?,
+        vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
         super.fromMap(obj);
 
   @override
   Map<String, Object?> toJson() => {
         ...super.toJson(),
         if (restart != null) 'restart': restart,
-        'vmServiceUri': vmServiceUri,
+        if (vmServiceUri != null) 'vmServiceUri': vmServiceUri,
+        if (vmServiceInfoFile != null) 'vmServiceInfoFile': vmServiceInfoFile,
       };
 
   static DartAttachRequestArguments fromJson(Map<String, Object?> obj) =>
@@ -130,7 +139,6 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
 class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   final String? name;
   final String? cwd;
-  final String? vmServiceInfoFile;
 
   /// Paths that should be considered the users local code.
   ///
@@ -181,7 +189,6 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   DartCommonLaunchAttachRequestArguments({
     required this.name,
     required this.cwd,
-    required this.vmServiceInfoFile,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -193,7 +200,6 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
       : name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
-        vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
@@ -208,7 +214,6 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   Map<String, Object?> toJson() => {
         if (name != null) 'name': name,
         if (cwd != null) 'cwd': cwd,
-        if (vmServiceInfoFile != null) 'vmServiceInfoFile': vmServiceInfoFile,
         if (additionalProjectPaths != null)
           'additionalProjectPaths': additionalProjectPaths,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
@@ -511,10 +516,10 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       // TODO(dantup): Implement these.
       // vmService.onExtensionEvent.listen(_handleExtensionEvent),
       // vmService.onServiceEvent.listen(_handleServiceEvent),
-      if (_subscribeToOutputStreams) ...[
+      if (_subscribeToOutputStreams)
         vmService.onStdoutEvent.listen(_handleStdoutEvent),
+      if (_subscribeToOutputStreams)
         vmService.onStderrEvent.listen(_handleStderrEvent),
-      ],
     ]);
     await Future.wait([
       vmService.streamListen(vm.EventStreams.kIsolate),
@@ -1663,7 +1668,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.enableAsserts,
     String? name,
     String? cwd,
-    String? vmServiceInfoFile,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
@@ -1673,7 +1677,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   }) : super(
           name: name,
           cwd: cwd,
-          vmServiceInfoFile: vmServiceInfoFile,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,

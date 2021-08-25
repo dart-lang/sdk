@@ -1949,6 +1949,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_enclosingExecutable.isConstConstructor) {
       return;
     }
+    if (!_enclosingExecutable.isGenerativeConstructor) {
+      return;
+    }
     // check if there is non-final field
     ClassElement classElement = constructorElement.enclosingElement;
     if (!classElement.hasNonFinalField) {
