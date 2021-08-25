@@ -317,9 +317,10 @@ class UntaggedObject {
     ASSERT(IsOldObject());
     return !tags_.Read<OldAndNotRememberedBit>();
   }
-  bool TryAcquireRememberedBit() {
+  void SetRememberedBit() {
+    ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    return tags_.TryClear<OldAndNotRememberedBit>();
+    tags_.UpdateBool<OldAndNotRememberedBit>(false);
   }
   void ClearRememberedBit() {
     ASSERT(IsOldObject());
@@ -327,10 +328,10 @@ class UntaggedObject {
   }
 
   DART_FORCE_INLINE
-  void EnsureInRememberedSet(Thread* thread) {
-    if (TryAcquireRememberedBit()) {
-      thread->StoreBufferAddObject(ObjectPtr(this));
-    }
+  void AddToRememberedSet(Thread* thread) {
+    ASSERT(!this->IsRemembered());
+    this->SetRememberedBit();
+    thread->StoreBufferAddObject(ObjectPtr(this));
   }
 
   bool IsCardRemembered() const { return tags_.Read<CardRememberedBit>(); }
@@ -664,7 +665,7 @@ class UntaggedObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
-        EnsureInRememberedSet(thread);
+        AddToRememberedSet(thread);
       } else {
         // Incremental barrier: record when a store creates an
         // old -> old-and-not-marked reference.
@@ -694,9 +695,11 @@ class UntaggedObject {
       if (value->IsNewObject()) {
         // Generational barrier: record when a store creates an
         // old-and-not-remembered -> new reference.
+        ASSERT(!this->IsRemembered());
         if (this->IsCardRemembered()) {
           RememberCard(addr);
-        } else if (this->TryAcquireRememberedBit()) {
+        } else {
+          this->SetRememberedBit();
           thread->StoreBufferAddObject(static_cast<ObjectPtr>(this));
         }
       } else {

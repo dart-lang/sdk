@@ -288,12 +288,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void UpdateStoreBuffer(ObjectPtr obj) {
     ASSERT(obj->IsHeapObject());
     // If the newly written object is not a new object, drop it immediately.
-    if (!obj->IsNewObject()) {
+    if (!obj->IsNewObject() || visiting_old_object_->untag()->IsRemembered()) {
       return;
     }
-    if (visiting_old_object_->untag()->TryAcquireRememberedBit()) {
-      thread_->StoreBufferAddObjectGC(visiting_old_object_);
-    }
+    visiting_old_object_->untag()->SetRememberedBit();
+    thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 
   DART_FORCE_INLINE
