@@ -105,7 +105,7 @@ class Dart2jsTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name]!;
