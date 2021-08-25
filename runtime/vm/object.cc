@@ -12788,7 +12788,6 @@ static void AddScriptIfUnique(const GrowableObjectArray& scripts,
 }
 
 ArrayPtr Library::LoadedScripts() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {

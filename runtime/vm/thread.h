@@ -273,6 +273,7 @@ class Thread : public ThreadState {
     kSweeperTask = 0x8,
     kCompactorTask = 0x10,
     kScavengerTask = 0x20,
+    kSampleBlockTask = 0x40,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);

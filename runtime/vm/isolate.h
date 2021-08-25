@@ -1099,6 +1099,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   SampleBlock* current_sample_block() const { return current_sample_block_; }
   void set_current_sample_block(SampleBlock* current);
 
+  void FreeSampleBlock(SampleBlock* block);
+  void ProcessFreeSampleBlocks(Thread* thread);
+  bool should_process_blocks() const {
+    return free_block_list_.load(std::memory_order_relaxed) != nullptr;
+  }
+  std::atomic<SampleBlock*> free_block_list_ = nullptr;
+
   // Returns the current SampleBlock used to track Dart allocation samples.
   //
   // Allocations should only occur on the mutator thread for an isolate, so we

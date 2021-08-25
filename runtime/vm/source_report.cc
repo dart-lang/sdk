@@ -29,7 +29,6 @@ SourceReport::SourceReport(intptr_t report_set, CompileMode compile_mode)
       script_(NULL),
       start_pos_(TokenPosition::kMinSource),
       end_pos_(TokenPosition::kMaxSource),
-      profile_(Isolate::Current()),
       next_script_index_(0) {}
 
 SourceReport::~SourceReport() {
