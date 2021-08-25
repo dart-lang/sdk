@@ -62,6 +62,22 @@ class A {
 ''');
   }
 
+  test_class_hasConstFactoryConstructor() async {
+    await assertNoErrorsInCode('''
+class Base {
+  Base();
+  const factory Base.empty() = _Empty;
+  late final int property;
+}
+
+class _Empty implements Base {
+  const _Empty();
+  int get property => 0;
+  set property(_) {}
+}
+''');
+  }
+
   test_class_noConstConstructor() async {
     await assertNoErrorsInCode('''
 class A {

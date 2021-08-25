@@ -7542,8 +7542,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   static const CompileTimeErrorCode LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR =
-      CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
-          "Can't have a late final field in a class with a const constructor.",
+      CompileTimeErrorCode(
+          'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
+          "Can't have a late final field in a class with a generative "
+              "const constructor.",
           correction: "Try removing the 'late' modifier, or don't declare "
               "'const' constructors.",
           hasPublishedDocs: true);
