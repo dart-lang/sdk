@@ -99,6 +99,8 @@ import '../problems.dart'
 
 import '../scope.dart';
 
+import '../source/diet_parser.dart';
+
 import '../source/scope_listener.dart'
     show
         FixedNullableList,
@@ -1496,7 +1498,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void parseInitializers(Token token) {
-    Parser parser = new Parser(this);
+    Parser parser = new Parser(this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     if (!token.isEof) {
       token = parser.parseInitializers(token);
       checkEmpty(token.charOffset);
@@ -1509,7 +1512,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Expression parseFieldInitializer(Token token) {
-    Parser parser = new Parser(this);
+    Parser parser = new Parser(this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     token = parser.parseExpression(parser.syntheticPreviousToken(token));
     Expression expression = popForValue();
     checkEmpty(token.charOffset);
@@ -1517,7 +1521,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Expression parseAnnotation(Token token) {
-    Parser parser = new Parser(this);
+    Parser parser = new Parser(this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     token = parser.parseMetadata(parser.syntheticPreviousToken(token));
     Expression annotation = pop() as Expression;
     checkEmpty(token.charOffset);
@@ -6454,8 +6459,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
-              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
+          new NamedTypeBuilder(
+              typeParameter.name!,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

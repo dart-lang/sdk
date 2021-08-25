@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide scanString;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as scanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:front_end/src/fasta/messages.dart';
+import 'package:front_end/src/fasta/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -111,7 +112,12 @@ class NoTypeInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noType.ensureTypeNotVoid(start, new Parser(listener)),
+    expect(
+        noType.ensureTypeNotVoid(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
         const TypeMatcher<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
@@ -125,7 +131,12 @@ class NoTypeInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noType.ensureTypeOrVoid(start, new Parser(listener)),
+    expect(
+        noType.ensureTypeOrVoid(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
         const TypeMatcher<SyntheticStringToken>());
     expect(listener.calls, [
       'handleIdentifier  typeReference',
@@ -139,7 +150,13 @@ class NoTypeInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noType.parseType(start, new Parser(listener)), start);
+    expect(
+        noType.parseType(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
@@ -148,7 +165,13 @@ class NoTypeInfoTest {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noType.parseTypeNotVoid(start, new Parser(listener)), start);
+    expect(
+        noType.parseTypeNotVoid(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start);
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
@@ -190,7 +213,13 @@ class VoidTypeInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidType.ensureTypeNotVoid(start, new Parser(listener)), start.next);
+    expect(
+        voidType.ensureTypeNotVoid(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start.next);
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
@@ -203,7 +232,13 @@ class VoidTypeInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidType.parseType(start, new Parser(listener)), start.next);
+    expect(
+        voidType.parseType(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start.next);
     expect(listener.calls, ['handleVoidKeyword void']);
     expect(listener.errors, isNull);
   }
@@ -212,7 +247,13 @@ class VoidTypeInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidType.parseType(start, new Parser(listener)), start.next);
+    expect(
+        voidType.parseType(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start.next);
     expect(listener.calls, ['handleVoidKeyword void']);
     expect(listener.errors, isNull);
   }
@@ -221,7 +262,13 @@ class VoidTypeInfoTest {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(voidType.parseTypeNotVoid(start, new Parser(listener)), start.next);
+    expect(
+        voidType.parseTypeNotVoid(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start.next);
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
@@ -270,16 +317,32 @@ class PrefixedTypeInfoTest {
     }
 
     listener = new TypeInfoListener();
-    assertResult(prefixedType.ensureTypeNotVoid(start, new Parser(listener)));
+    assertResult(prefixedType.ensureTypeNotVoid(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression:
+                useImplicitCreationExpressionInCfe)));
 
     listener = new TypeInfoListener();
-    assertResult(prefixedType.ensureTypeOrVoid(start, new Parser(listener)));
+    assertResult(prefixedType.ensureTypeOrVoid(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression:
+                useImplicitCreationExpressionInCfe)));
 
     listener = new TypeInfoListener();
-    assertResult(prefixedType.parseTypeNotVoid(start, new Parser(listener)));
+    assertResult(prefixedType.parseTypeNotVoid(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression:
+                useImplicitCreationExpressionInCfe)));
 
     listener = new TypeInfoListener();
-    assertResult(prefixedType.parseType(start, new Parser(listener)));
+    assertResult(prefixedType.parseType(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression:
+                useImplicitCreationExpressionInCfe)));
   }
 }
 
@@ -1492,7 +1555,13 @@ class NoTypeParamOrArgTest {
     final Token start = scanString('before after').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeParamOrArg.parseArguments(start, new Parser(listener)), start);
+    expect(
+        noTypeParamOrArg.parseArguments(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start);
     validateTokens(start);
     expect(listener.calls, ['handleNoTypeArguments after']);
     expect(listener.errors, isNull);
@@ -1502,7 +1571,13 @@ class NoTypeParamOrArgTest {
     final Token start = scanString('before after').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
-    expect(noTypeParamOrArg.parseVariables(start, new Parser(listener)), start);
+    expect(
+        noTypeParamOrArg.parseVariables(
+            start,
+            new Parser(listener,
+                useImplicitCreationExpression:
+                    useImplicitCreationExpressionInCfe)),
+        start);
     validateTokens(start);
     expect(listener.calls, ['handleNoTypeVariables after']);
     expect(listener.errors, isNull);
@@ -1585,7 +1660,10 @@ class SimpleTypeParamOrArgTest {
     expect(after.lexeme, 'after');
     final TypeInfoListener listener = new TypeInfoListener();
 
-    var token = typeArg.parseArguments(start, new Parser(listener));
+    var token = typeArg.parseArguments(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe));
     validateTokens(start);
     expect(token.lexeme, '>');
     token = token.next;
@@ -1623,7 +1701,10 @@ class SimpleTypeParamOrArgTest {
     expect(after.lexeme, 'after');
     final TypeInfoListener listener = new TypeInfoListener();
 
-    Token token = typeParam.parseVariables(start, new Parser(listener));
+    Token token = typeParam.parseVariables(
+        start,
+        new Parser(listener,
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe));
     validateTokens(start);
     expect(token.lexeme, '>');
     token = token.next;
@@ -2576,7 +2657,10 @@ ComplexTypeInfo computeComplex(
       reason: 'TypeInfo.skipType should not modify the token stream');
 
   TypeInfoListener listener = new TypeInfoListener();
-  Token actualEnd = typeInfo.parseType(start, new Parser(listener));
+  Token actualEnd = typeInfo.parseType(
+      start,
+      new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe));
 
   expectEnd(expectedAfter, actualEnd);
   if (expectedCalls != null) {
@@ -2609,7 +2693,8 @@ void expectComplexTypeArg(String source,
   expect(typeVarInfo.typeArgumentCount, typeArgumentCount);
 
   TypeInfoListener listener = new TypeInfoListener();
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   Token actualEnd = typeVarInfo.parseArguments(start, parser);
   validateTokens(start);
   expectEnd(expectedAfter, actualEnd);
@@ -2644,7 +2729,8 @@ void expectComplexTypeParam(String source,
 
   TypeInfoListener listener =
       new TypeInfoListener(firstToken: start, metadataAllowed: true);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
   Token actualEnd = typeVarInfo.parseVariables(start, parser);
   validateTokens(start);
   expectEnd(expectedAfter, actualEnd);

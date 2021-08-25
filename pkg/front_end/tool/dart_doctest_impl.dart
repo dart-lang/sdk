@@ -49,6 +49,8 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/incremental_compiler.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -549,7 +551,8 @@ List<Test> extractTestsFromComment(
     final Token firstToken =
         scanRawBytes(utf8.encode(comments.substring(scanOffset)) as Uint8List);
     final ErrorListener listener = new ErrorListener();
-    final Parser parser = new Parser(listener);
+    final Parser parser = new Parser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.asyncState = AsyncModifier.Async;
 
     final Token pastErrors = parser.skipErrorTokens(firstToken);

@@ -7438,7 +7438,7 @@ void f() {
 
 ### late_final_field_with_const_constructor
 
-_Can't have a late final field in a class with a const constructor._
+_Can't have a late final field in a class with a generative const constructor._
 
 #### Description
 

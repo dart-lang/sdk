@@ -47,6 +47,8 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/fasta/util/direct_parser_ast.dart';
 import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 
@@ -1984,7 +1986,8 @@ worlds:
     }
 
     ParserTestListener parserTestListener = new ParserTestListener(false);
-    Parser parser = new Parser(parserTestListener);
+    Parser parser = new Parser(parserTestListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     String parsedString =
         parser_suite.tokenStreamToString(firstToken, lineStarts).toString();
@@ -2000,7 +2003,8 @@ worlds:
     }
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
-    Parser parser = new Parser(parserErrorListener);
+    Parser parser = new Parser(parserErrorListener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     parser.parseUnit(firstToken);
     return !parserErrorListener.gotError;
   }

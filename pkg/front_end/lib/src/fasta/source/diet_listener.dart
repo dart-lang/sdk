@@ -64,6 +64,8 @@ import '../type_inference/type_inference_engine.dart'
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
+import 'diet_parser.dart';
+
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener_impl.dart';
@@ -792,7 +794,8 @@ class DietListener extends StackListenerImpl {
       MemberKind kind, Token? metadata) {
     final StackListenerImpl listener = createFunctionListener(builder);
     try {
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Pops metadata constants.
@@ -971,7 +974,8 @@ class DietListener extends StackListenerImpl {
       Token? metadata, MemberKind kind) {
     Token token = startToken;
     try {
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         listener.pop(); // Annotations.
@@ -1005,7 +1009,8 @@ class DietListener extends StackListenerImpl {
   void parseFields(StackListenerImpl listener, Token startToken,
       Token? metadata, bool isTopLevel) {
     Token token = startToken;
-    Parser parser = new Parser(listener);
+    Parser parser = new Parser(listener,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
@@ -1122,7 +1127,8 @@ class DietListener extends StackListenerImpl {
     if (metadata != null) {
       StackListenerImpl listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(listener,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

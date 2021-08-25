@@ -6,6 +6,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show ParserError, parse;
+import 'package:front_end/src/fasta/source/diet_parser.dart';
 
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, runMe;
@@ -32,7 +33,8 @@ class Parse extends Step<ScannedFile, Null, ChainContext> {
 
   Future<Result<Null>> run(ScannedFile file, ChainContext context) async {
     try {
-      List<ParserError> errors = parse(file.result.tokens);
+      List<ParserError> errors = parse(file.result.tokens,
+          useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
       if (errors.isNotEmpty) {
         return fail(null, errors.join("\n"));
       }

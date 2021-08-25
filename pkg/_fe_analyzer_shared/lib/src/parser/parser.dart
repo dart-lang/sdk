@@ -53,9 +53,11 @@ class ErrorCollectingListener extends Listener {
   }
 }
 
-List<ParserError> parse(Token tokens) {
+List<ParserError> parse(Token tokens,
+    {bool useImplicitCreationExpression: true}) {
   ErrorCollectingListener listener = new ErrorCollectingListener();
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener,
+      useImplicitCreationExpression: useImplicitCreationExpression);
   parser.parseUnit(tokens);
   return listener.recoverableErrors;
 }

@@ -2817,8 +2817,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // The field is in an extension and should be handled elsewhere.
       return;
     }
-    var hasConstConstructor = enclosingClass.constructors.any((c) => c.isConst);
-    if (!hasConstConstructor) return;
+
+    var hasGenerativeConstConstructor =
+        _enclosingClass!.constructors.any((c) => c.isConst && !c.isFactory);
+    if (!hasGenerativeConstConstructor) return;
 
     errorReporter.reportErrorForToken(
       CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,

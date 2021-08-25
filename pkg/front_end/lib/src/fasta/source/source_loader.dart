@@ -114,7 +114,7 @@ import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart';
 
 import 'diet_listener.dart' show DietListener;
-import 'diet_parser.dart' show DietParser;
+import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -559,7 +559,10 @@ class SourceLoader extends Loader {
         isDeclarationInstanceMember: isClassInstanceMember) as BodyBuilder;
 
     return listener.parseSingleExpression(
-        new Parser(listener), token, parameters);
+        new Parser(listener,
+            useImplicitCreationExpression: useImplicitCreationExpressionInCfe),
+        token,
+        parameters);
   }
 
   KernelTarget get target => super.target as KernelTarget;
