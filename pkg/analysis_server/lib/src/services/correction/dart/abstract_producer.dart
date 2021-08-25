@@ -276,9 +276,7 @@ class CorrectionProducerContext {
     var selectionEnd = selectionOffset + selectionLength;
     var locator = NodeLocator(selectionOffset, selectionEnd);
     var node = locator.searchWithin(resolvedResult.unit);
-    if (node == null) {
-      return null;
-    }
+    node ??= resolvedResult.unit;
 
     return CorrectionProducerContext._(
       resolvedResult: resolvedResult,

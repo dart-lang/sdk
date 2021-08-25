@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
+import 'package:analysis_server/src/services/correction/dart/add_eol_at_end_of_file.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
 import 'package:analysis_server/src/services/correction/dart/add_key_to_constructors.dart';
@@ -408,6 +409,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.empty_statements: [
       RemoveEmptyStatement.newInstance,
       ReplaceWithBrackets.newInstance,
+    ],
+    LintNames.eol_at_end_of_file: [
+      AddEolAtEndOfFile.newInstance,
     ],
     LintNames.exhaustive_cases: [
       AddMissingEnumLikeCaseClauses.newInstance,
