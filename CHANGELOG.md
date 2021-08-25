@@ -1,3 +1,15 @@
+# 1.10.0
+
+- improved regular expression parsing performance for common checks 
+  (`camel_case_types`, `file_names`, etc.)
+- (internal) migrated to analyzer 2.1.0 APIs
+- fixed false positive in `use_build_context_synchronously` in awaits inside 
+  anonymous functions
+- fixed `overridden_fields` false positive w/ static fields
+- fixed false positive in `avoid_null_checks_in_equality_operators` w/ 
+  non-nullable params
+- fixed false positive for deferred imports in `prefer_const_constructors`
+
 # 1.9.0
 
 - marked `avoid_dynamic_calls` stable
