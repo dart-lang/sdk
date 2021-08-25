@@ -467,11 +467,16 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
   /// The URI protocol will be changed to ws/wss but otherwise not normalised.
   /// The caller should handle any other normalisation (such as adding /ws to
   /// the end if required).
-  Future<void> connectDebugger(Uri uri) async {
+  ///
+  /// If [resumeIfStarting] is true, isolates waiting to start will
+  /// automatically be resumed. This is usually desired in launch requests, but
+  /// not when attaching.
+  Future<void> connectDebugger(
+    Uri uri, {
+    required bool resumeIfStarting,
+  }) async {
     // Start up a DDS instance for this VM.
     if (enableDds) {
-      // TODO(dantup): Do we need to worry about there already being one connected
-      //   if this URL came from another service that may have started one?
       logger?.call('Starting a DDS instance for $uri');
       try {
         final dds = await DartDevelopmentService.startDartDevelopmentService(
@@ -552,7 +557,8 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       final pauseEventKind = isolate.runnable ?? false
           ? vm.EventKind.kIsolateRunnable
           : vm.EventKind.kIsolateStart;
-      await _isolateManager.registerIsolate(isolate, pauseEventKind);
+      final thread =
+          await _isolateManager.registerIsolate(isolate, pauseEventKind);
 
       // If the Isolate already has a Pause event we can give it to the
       // IsolateManager to handle (if it's PausePostStart it will re-configure
@@ -560,9 +566,18 @@ abstract class DartDebugAdapter<TL extends DartLaunchRequestArguments,
       // runnable - otherwise we'll handle this when it becomes runnable in an
       // event later).
       if (isolate.pauseEvent?.kind?.startsWith('Pause') ?? false) {
-        await _isolateManager.handleEvent(isolate.pauseEvent!);
+        await _isolateManager.handleEvent(
+          isolate.pauseEvent!,
+          resumeIfStarting: resumeIfStarting,
+        );
       } else if (isolate.runnable == true) {
-        await _isolateManager.resumeIsolate(isolate);
+        // If requested, automatically resume. Otherwise send a Stopped event to
+        // inform the client UI the thread is paused.
+        if (resumeIfStarting) {
+          await _isolateManager.resumeIsolate(isolate);
+        } else {
+          _isolateManager.sendStoppedOnEntryEvent(thread.threadId);
+        }
       }
     }));
 

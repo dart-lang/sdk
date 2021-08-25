@@ -140,7 +140,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
       vmServiceInfoFile = File(serviceInfoFilePath);
       unawaited(waitForVmServiceInfoFile(vmServiceInfoFile)
-          .then((uri) => connectDebugger(uri)));
+          .then((uri) => connectDebugger(uri, resumeIfStarting: true)));
     }
 
     final vmArgs = <String>[
@@ -230,7 +230,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         ? Uri.parse(vmServiceUri)
         : await waitForVmServiceInfoFile(File(vmServiceInfoFile!));
 
-    unawaited(connectDebugger(uri));
+    unawaited(connectDebugger(uri, resumeIfStarting: false));
   }
 
   /// Calls the client (via a `runInTerminal` request) to spawn the process so

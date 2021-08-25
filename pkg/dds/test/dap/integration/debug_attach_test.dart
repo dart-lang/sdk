@@ -31,6 +31,7 @@ main() {
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.attach(
           vmServiceUri: vmServiceUri.toString(),
+          autoResume: true,
           cwd: dap.testAppDir.path,
         ),
       );
@@ -81,6 +82,7 @@ main() {
       final outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.attach(
           vmServiceInfoFile: vmServiceInfoFilePath,
+          autoResume: true,
           cwd: dap.testAppDir.path,
         ),
       );
