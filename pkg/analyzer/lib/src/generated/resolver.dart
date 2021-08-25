@@ -295,6 +295,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _instanceCreationExpressionResolver =
       InstanceCreationExpressionResolver(this);
 
+  late final SimpleIdentifierResolver _simpleIdentifierResolver =
+      SimpleIdentifierResolver(this, flowAnalysis);
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -1857,7 +1860,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    SimpleIdentifierResolver(this, flowAnalysis).resolve(node);
+    _simpleIdentifierResolver.resolve(node);
   }
 
   @override
