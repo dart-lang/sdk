@@ -52,8 +52,6 @@ SimpleIdentifier? getFieldIdentifier(FieldDeclaration decl, String name) {
 int? getIntValue(Expression expression, LinterContext? context) {
   if (expression is PrefixExpression) {
     var operand = expression.operand;
-    // todo(pq): remove once 1.8.0 is landed.
-    // ignore: avoid_returning_null
     if (expression.operator.type != TokenType.MINUS) return null;
     return _getIntValue(operand, context, negated: true);
   }
