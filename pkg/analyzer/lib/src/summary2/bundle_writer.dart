@@ -160,16 +160,12 @@ class BundleWriter {
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    _resolutionSink.localElements.pushScope();
-    _resolutionSink.localElements.declareAll(element.parameters);
-    try {
+    _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
       _writeMacro(element.macro);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
-    } finally {
-      _resolutionSink.localElements.popScope();
-    }
+    });
   }
 
   void _writeEnumElement(ClassElement element) {
@@ -430,14 +426,10 @@ class BundleWriter {
     List<TypeParameterElement> typeParameters,
     void Function() f,
   ) {
-    _resolutionSink.localElements.pushScope();
-    _resolutionSink.localElements.declareAll(typeParameters);
-    try {
+    _resolutionSink.localElements.withElements(typeParameters, () {
       _sink.writeList(typeParameters, _writeTypeParameterElement);
       f();
-    } finally {
-      _resolutionSink.localElements.popScope();
-    }
+    });
   }
 
   void _writeUnitElement(CompilationUnitElement unitElement) {
@@ -745,9 +737,7 @@ class ResolutionSink extends _SummaryDataWriter {
     void Function() f, {
     required bool withAnnotations,
   }) {
-    localElements.pushScope();
-    localElements.declareAll(typeParameters);
-    try {
+    localElements.withElements(typeParameters, () {
       writeUInt30(typeParameters.length);
       for (var typeParameter in typeParameters) {
         _writeStringReference(typeParameter.name);
@@ -759,9 +749,7 @@ class ResolutionSink extends _SummaryDataWriter {
         }
       }
       f();
-    } finally {
-      localElements.popScope();
-    }
+    });
   }
 
   static List<DartType> _enclosingClassTypeArguments(
@@ -942,7 +930,6 @@ class _Library {
 
 class _LocalElementIndexer {
   final Map<Element, int> _index = Map.identity();
-  final List<int> _scopes = [];
   int _stackHeight = 0;
 
   int operator [](Element element) {
@@ -950,22 +937,17 @@ class _LocalElementIndexer {
         (throw ArgumentError('Unexpectedly not indexed: $element'));
   }
 
-  void declare(Element element) {
-    _index[element] = _stackHeight++;
-  }
-
-  void declareAll(List<Element> elements) {
+  void withElements(List<Element> elements, void Function() f) {
     for (var element in elements) {
-      declare(element);
+      _index[element] = _stackHeight++;
     }
-  }
 
-  void popScope() {
-    _stackHeight = _scopes.removeLast();
-  }
+    f();
 
-  void pushScope() {
-    _scopes.add(_stackHeight);
+    _stackHeight -= elements.length;
+    for (var element in elements) {
+      _index.remove(element);
+    }
   }
 }
 
