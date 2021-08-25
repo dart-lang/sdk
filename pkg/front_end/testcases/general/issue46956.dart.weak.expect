@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+static method foo<X extends core::Object?>(self::A<self::foo::X%> x) → asy::Future<self::foo::X?>
+  return throw 42;
+static method bar(core::String? y) → dynamic {}
+static method test(self::A<core::String> a) → dynamic async {
+  final core::String? x = await(() → asy::Future<core::String?> async {
+    return self::foo<core::String>(a);
+  })(){() → asy::Future<core::String?>};
+  self::bar(x);
+}
+static method test2(self::A<core::String> a) → dynamic async {
+  return self::foo<core::String>(a);
+}
+static method test3(self::A<core::String> a) → dynamic {
+  return self::foo<core::String>(a);
+}
+static method main() → dynamic {}

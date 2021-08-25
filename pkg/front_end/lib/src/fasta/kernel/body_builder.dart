@@ -953,7 +953,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is ProcedureBuilder) {
-      return member.function.returnType;
+      final bool isReturnTypeUndeclared = member.returnType == null &&
+          member.function.returnType is DynamicType;
+      return isReturnTypeUndeclared && libraryBuilder.isNonNullableByDefault
+          ? const UnknownType()
+          : member.function.returnType;
     } else if (member is SourceFactoryBuilder) {
       return member.function.returnType;
     } else {
@@ -6450,12 +6454,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(
-              typeParameter.name!,
-              builder.nullabilityBuilder,
-              /* arguments = */ null,
-              unresolved.fileUri,
-              unresolved.charOffset)
+          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
+              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,
