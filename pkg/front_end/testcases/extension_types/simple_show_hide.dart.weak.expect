@@ -95,7 +95,7 @@ library /*isNonNullableByDefault*/;
 // extension type MyInt on int show num, isEven hide floor {
 //                                              ^^^^
 //
-// pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Getter not found: 'e2'.
+// pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Undefined name 'e2'.
 //   e2.floor(); // Ok.
 //   ^^
 //
@@ -192,7 +192,7 @@ static method test1(self::E1 e1) → dynamic {
 Try correcting the name to the name of an existing method, or defining a method name 'ceil'.
   e1.ceil(); // Ok.
      ^^^^" in e1{<unresolved>}.ceil();
-  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Getter not found: 'e2'.
+  invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:9:3: Error: Undefined name 'e2'.
   e2.floor(); // Ok.
   ^^"{dynamic}.floor();
   invalid-expression "pkg/front_end/testcases/extension_types/simple_show_hide.dart:10:6: Error: The getter 'isEven' isn't defined for the extension 'E1'.

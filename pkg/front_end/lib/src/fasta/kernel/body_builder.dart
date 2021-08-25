@@ -127,7 +127,7 @@ import 'constness.dart' show Constness;
 
 import 'expression_generator.dart';
 
-import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
+import 'expression_generator_helper.dart';
 
 import 'forest.dart' show Forest;
 
@@ -667,7 +667,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (expression is Identifier) {
         Identifier identifier = expression;
         expression = new UnresolvedNameGenerator(this, identifier.token,
-            new Name(identifier.name, libraryBuilder.nameOrigin));
+            new Name(identifier.name, libraryBuilder.nameOrigin),
+            unresolvedReadKind: UnresolvedKind.Unknown);
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next!.next!;
@@ -952,7 +953,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
     if (member is ProcedureBuilder) {
-      return member.function.returnType;
+      final bool isReturnTypeUndeclared = member.returnType == null &&
+          member.function.returnType is DynamicType;
+      return isReturnTypeUndeclared && libraryBuilder.isNonNullableByDefault
+          ? const UnknownType()
+          : member.function.returnType;
     } else if (member is SourceFactoryBuilder) {
       return member.function.returnType;
     } else {
@@ -1926,12 +1931,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression throwNoSuchMethodError(
+  Expression buildUnresolvedError(
       Expression receiver, String name, Arguments arguments, int charOffset,
       {Member? candidate,
       bool isSuper: false,
-      bool isGetter: false,
-      bool isSetter: false,
+      required UnresolvedKind kind,
       bool isStatic: false,
       LocatedMessage? message}) {
     int length = name.length;
@@ -1967,23 +1971,56 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       context = [contextMessage.withLocation(uri, offset, length)];
     }
     if (message == null) {
-      if (isGetter) {
-        message = warnUnresolvedGet(kernelName, charOffset,
-                isSuper: isSuper, reportWarning: false, context: context)
-            .withLocation(uri, charOffset, length);
-      } else if (isSetter) {
-        message = warnUnresolvedSet(kernelName, charOffset,
-                isSuper: isSuper, reportWarning: false, context: context)
-            .withLocation(uri, charOffset, length);
-      } else {
-        message = warnUnresolvedMethod(kernelName, charOffset,
-                isSuper: isSuper, reportWarning: false, context: context)
-            .withLocation(uri, charOffset, length);
+      switch (kind) {
+        case UnresolvedKind.Unknown:
+          assert(!isSuper);
+          message = fasta.templateNameNotFound
+              .withArguments(name)
+              .withLocation(uri, charOffset, length);
+          break;
+        case UnresolvedKind.Member:
+          message = warnUnresolvedMember(kernelName, charOffset,
+                  isSuper: isSuper, reportWarning: false, context: context)
+              .withLocation(uri, charOffset, length);
+          break;
+        case UnresolvedKind.Getter:
+          message = warnUnresolvedGet(kernelName, charOffset,
+                  isSuper: isSuper, reportWarning: false, context: context)
+              .withLocation(uri, charOffset, length);
+          break;
+        case UnresolvedKind.Setter:
+          message = warnUnresolvedSet(kernelName, charOffset,
+                  isSuper: isSuper, reportWarning: false, context: context)
+              .withLocation(uri, charOffset, length);
+          break;
+        case UnresolvedKind.Method:
+          message = warnUnresolvedMethod(kernelName, charOffset,
+                  isSuper: isSuper, reportWarning: false, context: context)
+              .withLocation(uri, charOffset, length);
+          break;
+        case UnresolvedKind.Constructor:
+          message = warnUnresolvedConstructor(kernelName, isSuper: isSuper)
+              .withLocation(uri, charOffset, length);
+          break;
       }
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
         context: context);
+  }
+
+  Message warnUnresolvedMember(Name name, int charOffset,
+      {bool isSuper: false,
+      bool reportWarning: true,
+      List<LocatedMessage>? context}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoMember.withArguments(name.text)
+        : fasta.templateMemberNotFound.withArguments(name.text);
+    if (reportWarning) {
+      addProblemErrorIfConst(message, charOffset, name.text.length,
+          context: context);
+    }
+    return message;
   }
 
   @override
@@ -2022,6 +2059,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool reportWarning: true,
       List<LocatedMessage>? context}) {
     String plainName = name.text;
+
     int dotIndex = plainName.lastIndexOf(".");
     if (dotIndex != -1) {
       plainName = plainName.substring(dotIndex + 1);
@@ -2038,6 +2076,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (reportWarning) {
       addProblemErrorIfConst(message, charOffset, length, context: context);
     }
+    return message;
+  }
+
+  Message warnUnresolvedConstructor(Name name, {bool isSuper: false}) {
+    Message message = isSuper
+        ? fasta.templateSuperclassHasNoConstructor.withArguments(name.text)
+        : fasta.templateConstructorNotFound.withArguments(name.text);
     return message;
   }
 
@@ -2170,7 +2215,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         assert(declaration == null);
         if (constantContext != ConstantContext.none ||
             (inFieldInitializer && !inLateFieldInitializer) && !inInitializer) {
-          return new UnresolvedNameGenerator(this, token, n);
+          return new UnresolvedNameGenerator(this, token, n,
+              unresolvedReadKind: UnresolvedKind.Unknown);
         }
         if (extensionThis != null) {
           // If we are in an extension instance member we interpret this as an
@@ -2186,7 +2232,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           member.name == "_getMainClosure") {
         return forest.createNullLiteral(charOffset);
       } else {
-        return new UnresolvedNameGenerator(this, token, n);
+        return new UnresolvedNameGenerator(this, token, n,
+            unresolvedReadKind: UnresolvedKind.Unknown);
       }
     } else if (declaration.isTypeDeclaration) {
       if (declaration is AccessErrorBuilder) {
@@ -2245,7 +2292,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (declaration == null && setterBuilder == null) {
         return new UnresolvedNameGenerator(
-            this, token, new Name(name, libraryBuilder.nameOrigin));
+            this, token, new Name(name, libraryBuilder.nameOrigin),
+            unresolvedReadKind: UnresolvedKind.Unknown);
       }
       MemberBuilder? getterBuilder =
           declaration is MemberBuilder ? declaration : null;
@@ -4172,9 +4220,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     LocatedMessage? argMessage = checkArgumentsForFunction(
         target.function!, arguments, charOffset, typeParameters);
     if (argMessage != null) {
-      return throwNoSuchMethodError(forest.createNullLiteral(charOffset),
+      return buildUnresolvedError(forest.createNullLiteral(charOffset),
           target.name.text, arguments, charOffset,
-          candidate: target, message: argMessage);
+          candidate: target, message: argMessage, kind: UnresolvedKind.Method);
     }
 
     bool isConst = constness == Constness.explicitConst ||
@@ -4252,9 +4300,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         target.function, arguments, fileOffset, typeParameters,
         isExtensionMemberInvocation: true);
     if (argMessage != null) {
-      return throwNoSuchMethodError(forest.createNullLiteral(fileOffset),
+      return buildUnresolvedError(forest.createNullLiteral(fileOffset),
           target.name.text, arguments, fileOffset,
-          candidate: target, message: argMessage);
+          candidate: target, message: argMessage, kind: UnresolvedKind.Method);
     }
 
     Expression node;
@@ -4495,8 +4543,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (type is ProblemBuilder) {
         typeName = type.fullNameForErrors;
       }
-      push(throwNoSuchMethodError(forest.createNullLiteral(offset),
-          debugName(typeName!, name), arguments, nameToken.charOffset));
+      push(buildUnresolvedError(forest.createNullLiteral(offset),
+          debugName(typeName!, name), arguments, nameToken.charOffset,
+          kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;
   }
@@ -4520,7 +4569,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       int charOffset,
       Constness constness,
       {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder? typeAliasBuilder}) {
+      TypeDeclarationBuilder? typeAliasBuilder,
+      required UnresolvedKind unresolvedKind}) {
     if (arguments == null) {
       return buildProblem(fasta.messageMissingArgumentList,
           nameToken.charOffset, nameToken.length);
@@ -4574,9 +4624,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                       nameToken.lexeme.length));
             }
 
-            return throwNoSuchMethodError(forest.createNullLiteral(charOffset),
+            return buildUnresolvedError(forest.createNullLiteral(charOffset),
                 errorName, arguments, nameLastToken.charOffset,
-                message: message);
+                message: message, kind: UnresolvedKind.Constructor);
           }
           MemberBuilder? b = classBuilder.findConstructorOrFactory(
               name, charOffset, uri, libraryBuilder);
@@ -4606,9 +4656,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 charLength: nameToken.length);
             return invocation;
           } else {
-            return throwNoSuchMethodError(forest.createNullLiteral(charOffset),
+            return buildUnresolvedError(forest.createNullLiteral(charOffset),
                 errorName, arguments, nameLastToken.charOffset,
-                message: message);
+                message: message, kind: UnresolvedKind.Constructor);
           }
         } else {
           // Empty `typeArguments` and `aliasBuilder``is non-generic, but it
@@ -4768,9 +4818,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       errorName ??= debugName(type!.fullNameForErrors, name);
     }
 
-    return throwNoSuchMethodError(forest.createNullLiteral(charOffset),
-        errorName, arguments, nameLastToken.charOffset,
-        message: message);
+    return buildUnresolvedError(forest.createNullLiteral(charOffset), errorName,
+        arguments, nameLastToken.charOffset,
+        message: message, kind: unresolvedKind);
   }
 
   @override
@@ -6404,12 +6454,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(
-              typeParameter.name!,
-              builder.nullabilityBuilder,
-              /* arguments = */ null,
-              unresolved.fileUri,
-              unresolved.charOffset)
+          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
+              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

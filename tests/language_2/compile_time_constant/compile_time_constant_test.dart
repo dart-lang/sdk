@@ -16,10 +16,9 @@ class Bad {
       bar
 //    ^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-// [cfe] Can't access 'this' in a field initializer to read 'bar'.
-//    ^^^
 // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
-// [cfe] Getter not found: 'bar'.
+// [cfe] Can't access 'this' in a field initializer to read 'bar'.
+// [cfe] Undefined name 'bar'.
       -3;
 }
 

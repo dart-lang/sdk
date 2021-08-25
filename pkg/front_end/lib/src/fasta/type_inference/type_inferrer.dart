@@ -2502,7 +2502,8 @@ class TypeInferrerImpl implements TypeInferrer {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
-      returnContext = const DynamicType();
+      returnContext =
+          isNonNullableByDefault ? const UnknownType() : const DynamicType();
     }
     if (!isTopLevel) {
       List<VariableDeclaration> positionalParameters =

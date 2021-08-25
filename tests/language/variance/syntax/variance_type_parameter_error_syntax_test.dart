@@ -10,7 +10,6 @@ void A(out int foo) {
 //     ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'out' isn't a type.
-//     ^
 // [cfe] Type 'out' not found.
 //             ^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -21,23 +20,21 @@ void A(out int foo) {
   // [cfe] The operator '<' isn't defined for the class 'Type'.
   //   ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Expected ';' after this.
-  //   ^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-  // [cfe] Getter not found: 'out'.
+  // [cfe] Expected ';' after this.
+  // [cfe] Undefined name 'out'.
   //             ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>' isn't defined for the class 'Type'.
   //               ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] Getter not found: 'bar'.
+  // [cfe] Undefined name 'bar'.
 }
 
 void B(out foo) {}
 //     ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_CLASS
 // [cfe] 'out' isn't a type.
-//     ^
 // [cfe] Type 'out' not found.
 
 class C<in out X, out out Y> {}

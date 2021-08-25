@@ -1688,6 +1688,14 @@ NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
 
+NameNotFound:
+  template: "Undefined name '#name'."
+  analyzerCode: UNDEFINED_NAME
+
+MemberNotFound:
+  template: "Member not found: '#name'."
+  analyzerCode: UNDEFINED_GETTER
+
 GetterNotFound:
   template: "Getter not found: '#name'."
   analyzerCode: UNDEFINED_GETTER
@@ -3259,6 +3267,10 @@ TypeVariableInConstantContext:
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
+
+SuperclassHasNoMember:
+  template: "Superclass has no member named '#name'."
+  analyzerCode: UNDEFINED_SUPER_GETTER
 
 SuperclassHasNoGetter:
   template: "Superclass has no getter named '#name'."

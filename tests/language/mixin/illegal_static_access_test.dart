@@ -21,9 +21,9 @@ main() {
   Expect.throwsNoSuchMethodError(() => C.foo());
   //                                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] Method not found: 'C.foo'.
+  // [cfe] Member not found: 'C.foo'.
   Expect.throwsNoSuchMethodError(() => C.bar());
   //                                     ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-  // [cfe] Method not found: 'C.bar'.
+  // [cfe] Member not found: 'C.bar'.
 }

@@ -21,7 +21,7 @@ main() {
   new _Class();
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: '_Class'.
+  // [cfe] Couldn't find constructor '_Class'.
   private._Class();
 //        ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
@@ -29,9 +29,9 @@ main() {
   new Class._constructor();
   //        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
-  // [cfe] Method not found: 'Class._constructor'.
+  // [cfe] Couldn't find constructor 'Class._constructor'.
   new private.Class._constructor();
   //                ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
-  // [cfe] Method not found: 'Class._constructor'.
+  // [cfe] Couldn't find constructor 'Class._constructor'.
 }

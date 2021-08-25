@@ -37,13 +37,13 @@ void main() {
   new prefix<int>.Class().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   new prefix.Class<int>().value;
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
   new prefix<int>.Class<int>().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
@@ -53,7 +53,7 @@ void main() {
   new prefix<int>.Class.named().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   //              ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected '(' after this.
@@ -71,7 +71,7 @@ void main() {
   new prefix<int>.Class<int>.named().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
@@ -81,7 +81,7 @@ void main() {
   new prefix<int>.Class.named<int>().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   //              ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected '(' after this.
@@ -97,7 +97,7 @@ void main() {
   new prefix<int>.Class<int>.named<int>().value;
   //  ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  // [cfe] Method not found: 'prefix.Class'.
+  // [cfe] Couldn't find constructor 'prefix.Class'.
   //              ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments after the constructor name.

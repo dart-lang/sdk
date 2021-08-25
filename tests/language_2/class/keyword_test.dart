@@ -15,15 +15,13 @@ void main() {
 // [cfe] Expected ';' after this.
 //    ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] 'class' can't be used as an identifier because it's a keyword.
-//    ^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+// [cfe] 'class' can't be used as an identifier because it's a keyword.
 // [cfe] Setter not found: 'class'.
   print("$class");
   //      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-  // [cfe] 'class' can't be used as an identifier because it's a keyword.
-  //      ^^^^^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
-  // [cfe] Getter not found: 'class'.
+  // [cfe] 'class' can't be used as an identifier because it's a keyword.
+  // [cfe] Undefined name 'class'.
 }

@@ -76,9 +76,9 @@ main() {
   Expect.throwsNoSuchMethodError(() => C?.hashCode);
   //                                      ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'hashCode'.
+  // [cfe] Member not found: 'hashCode'.
   Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
   //                                        ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] Getter not found: 'hashCode'.
+  // [cfe] Member not found: 'hashCode'.
 }

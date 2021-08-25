@@ -9,7 +9,7 @@ library;
 // class X {
 //       ^
 //
-// pkg/front_end/testcases/general/issue37776.dart:16:9: Error: Method not found: 'X.foo'.
+// pkg/front_end/testcases/general/issue37776.dart:16:9: Error: Couldn't find constructor 'X.foo'.
 //   const X.foo();
 //         ^^^
 //
@@ -47,7 +47,7 @@ class X extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → void {
-  invalid-expression "pkg/front_end/testcases/general/issue37776.dart:16:9: Error: Method not found: 'X.foo'.
+  invalid-expression "pkg/front_end/testcases/general/issue37776.dart:16:9: Error: Couldn't find constructor 'X.foo'.
   const X.foo();
         ^^^";
 }

@@ -564,6 +564,7 @@ MainWrongParameterType/analyzerCode: Fail
 MainWrongParameterTypeExported/analyzerCode: Fail
 MainWrongParameterTypeExported/part_wrapped_script: Fail
 MapLiteralTypeArgumentMismatch/example: Fail
+MemberNotFound/example: Fail
 MetadataTypeArguments/example: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail
@@ -592,6 +593,7 @@ MultipleOnClauses/script: Fail
 MultipleVarianceModifiers/example: Fail # All trigger multiple errors for variance experiment
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
+NameNotFound/example: Fail
 NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
@@ -769,6 +771,7 @@ SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
 SuperclassHasNoGetter/example: Fail
+SuperclassHasNoMember/example: Fail
 SuperclassHasNoMethod/example: Fail
 SuperclassHasNoSetter/example: Fail
 SuperclassMethodArgumentMismatch/analyzerCode: Fail

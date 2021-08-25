@@ -2,27 +2,27 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
 //     dynamic();
 //     ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
 //     use(dynamic());
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
 //     T();
 //     ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
 //     use(T());
 //         ^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
 //     Func();
 //     ^^^^
 //
-// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
 //     use(Func());
 //         ^^^^
 //
@@ -301,22 +301,22 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     self::use(#C3);
     new self::C::•<dynamic>();
     self::use(new self::C::•<dynamic>());
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Method not found: 'dynamic'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
     dynamic();
     ^^^^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Method not found: 'dynamic'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
     use(dynamic());
         ^^^^^^^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Method not found: 'T'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
     T();
     ^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Method not found: 'T'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
     use(T());
         ^");
-    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Method not found: 'Func'.
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
     Func();
     ^^^^";
-    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Method not found: 'Func'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
     use(Func());
         ^^^^");
     invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.

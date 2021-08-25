@@ -41,11 +41,11 @@ main() {
   T.named();
 //  ^^^^^
 // [analyzer] unspecified
-// [cfe] Method not found: 'Object.named'.
+// [cfe] Member not found: 'Object.named'.
 
   T.staticMethod<T>();
 //  ^^^^^^^^^^^^
 // [analyzer] unspecified
 // [cfe] A constructor invocation can't have type arguments after the constructor name.
-// [cfe] Method not found: 'Object.staticMethod'.
+// [cfe] Member not found: 'Object.staticMethod'.
 }

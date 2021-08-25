@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Getter not found: 'x'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Undefined name 'x'.
 // var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
 //                                              ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Getter not found: 'x'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Undefined name 'x'.
 //   /*error:UNDEFINED_IDENTIFIER*/ x
 //                                  ^
 //
@@ -101,10 +101,10 @@ class B extends self::A {
     ;
 }
 static field self::A* a = new self::A::•();
-static field self::B* b = new self::B::•(invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Getter not found: 'x'.
+static field self::B* b = new self::B::•(invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Undefined name 'x'.
 var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
                                              ^");
-static field core::List<invalid-type>* c1 = <invalid-type>[invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Getter not found: 'x'.
+static field core::List<invalid-type>* c1 = <invalid-type>[invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Undefined name 'x'.
   /*error:UNDEFINED_IDENTIFIER*/ x
                                  ^"];
 static field core::List<dynamic>* c2 = #C1;

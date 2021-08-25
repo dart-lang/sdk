@@ -31,7 +31,7 @@ library;
 //   on Exception catch (e) { }
 //                ^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:23: Error: Getter not found: 'e'.
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:23: Error: Undefined name 'e'.
 //   on Exception catch (e) { }
 //                       ^
 //

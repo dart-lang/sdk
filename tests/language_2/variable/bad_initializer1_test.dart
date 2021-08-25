@@ -20,7 +20,7 @@ main() {
       elems
 //    ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
-// [cfe] Getter not found: 'elems'.
+// [cfe] Undefined name 'elems'.
     ],
     "a",
     "b"

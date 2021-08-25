@@ -14,9 +14,9 @@ import 'lib2.dart' hide HiddenExtension2;
 
 main() {
   ShownExtension1.staticMethod();
-  /*error: errors=[Getter not found: 'HiddenExtension1'.]*/
+  /*error: errors=[Undefined name 'HiddenExtension1'.]*/
   HiddenExtension1.staticMethod();
   ShownExtension2.staticMethod();
-  /*error: errors=[Getter not found: 'HiddenExtension2'.]*/
+  /*error: errors=[Undefined name 'HiddenExtension2'.]*/
   HiddenExtension2.staticMethod();
 }

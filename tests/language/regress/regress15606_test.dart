@@ -16,7 +16,7 @@ main() {
       Unresolved.
 //    ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-// [cfe] Getter not found: 'Unresolved'.
+// [cfe] Undefined name 'Unresolved'.
         bar(
       // Make dart2js generate a call to setRuntimeTypeInfo.
       new Foo<int>(),

@@ -692,7 +692,9 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 
       switch (op_) {
         case Thread::RestoreWriteBarrierInvariantOp::kAddToRememberedSet:
-          obj->untag()->EnsureInRememberedSet(current_);
+          if (!obj->untag()->IsRemembered()) {
+            obj->untag()->AddToRememberedSet(current_);
+          }
           if (current_->is_marking()) {
             current_->DeferredMarkingStackAddObject(obj);
           }
