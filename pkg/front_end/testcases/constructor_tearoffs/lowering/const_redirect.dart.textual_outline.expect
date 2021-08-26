@@ -1,0 +1,23 @@
+class Class {
+  final List<Const> constants;
+  Class(
+      {this.constants = const [
+        Const.impl(),
+        Alias.impl(),
+        ImplAlias<String>()
+      ]});
+}
+
+typedef Alias = Const;
+
+abstract class Const {
+  const factory Const.impl() = _ConstImpl;
+}
+
+typedef ImplAlias<T extends num> = _ConstImpl<T>;
+
+class _ConstImpl<T> implements Const {
+  const _ConstImpl();
+}
+
+main() {}

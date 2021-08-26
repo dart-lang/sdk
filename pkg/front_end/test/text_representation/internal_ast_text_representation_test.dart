@@ -325,7 +325,7 @@ void _testFactoryConstructorInvocationJudgment() {
   cls.addProcedure(factoryConstructor);
 
   testExpression(
-      new FactoryConstructorInvocationJudgment(
+      new FactoryConstructorInvocation(
           factoryConstructor, new ArgumentsImpl([])),
       '''
 new Class()''',
@@ -333,7 +333,7 @@ new Class()''',
 new library test:dummy::Class()''');
 
   testExpression(
-      new FactoryConstructorInvocationJudgment(
+      new FactoryConstructorInvocation(
           factoryConstructor,
           new ArgumentsImpl([new IntLiteral(0)],
               types: [const VoidType()],
@@ -345,7 +345,7 @@ new library test:dummy::Class<void>(0, bar: 1)''');
 
   factoryConstructor.name = new Name('foo');
   testExpression(
-      new FactoryConstructorInvocationJudgment(
+      new FactoryConstructorInvocation(
           factoryConstructor,
           new ArgumentsImpl([new IntLiteral(0)],
               types: [const VoidType()],

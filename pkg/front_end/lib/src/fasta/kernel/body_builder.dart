@@ -143,8 +143,7 @@ import 'redirecting_factory_body.dart'
         RedirectingFactoryBody,
         RedirectionTarget,
         getRedirectingFactoryBody,
-        getRedirectionTarget,
-        isRedirectingFactory;
+        getRedirectionTarget;
 
 import 'type_algorithms.dart' show calculateBounds;
 
@@ -306,7 +305,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   Scope? switchScope;
 
-  CloneVisitorNotMembers? cloner;
+  late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
 
   ConstantContext constantContext = ConstantContext.none;
 
@@ -322,26 +321,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// List of built redirecting factory invocations.  The targets of the
   /// invocations are to be resolved in a separate step.
-  final List<StaticInvocation> redirectingFactoryInvocations =
-      <StaticInvocation>[];
+  final List<FactoryConstructorInvocation> redirectingFactoryInvocations =
+      <FactoryConstructorInvocation>[];
 
   /// List of redirecting factory invocations delayed for resolution.
   ///
   /// A resolution of a redirecting factory invocation can be delayed because
   /// the inference in the declaration of the redirecting factory isn't done
   /// yet.
-  final List<StaticInvocation> delayedRedirectingFactoryInvocations =
-      <StaticInvocation>[];
+  final List<FactoryConstructorInvocation>
+      delayedRedirectingFactoryInvocations = <FactoryConstructorInvocation>[];
 
   /// List of built type aliased generative constructor invocations that
   /// require unaliasing.
-  final List<TypeAliasedConstructorInvocationJudgment>
+  final List<TypeAliasedConstructorInvocation>
       typeAliasedConstructorInvocations = [];
 
   /// List of built type aliased factory constructor invocations that require
   /// unaliasing.
-  final List<TypeAliasedFactoryInvocationJudgment>
-      typeAliasedFactoryInvocations = [];
+  final List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations = [];
 
   /// Variables with metadata.  Their types need to be inferred late, for
   /// example, in [finishFunction].
@@ -1061,8 +1059,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           VariableDeclaration? tearOffParameter =
               builder.getTearOffParameter(i);
           if (tearOffParameter != null) {
-            cloner ??= new CloneVisitorNotMembers();
-            Expression tearOffInitializer = cloner!.clone(initializer!);
+            Expression tearOffInitializer =
+                _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
             libraryBuilder.loader.transformPostInference(
@@ -1313,9 +1311,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _resolveRedirectingFactoryTargets(
-      List<StaticInvocation> redirectingFactoryInvocations,
-      List<StaticInvocation>? delayedRedirectingFactoryInvocations) {
-    for (StaticInvocation invocation in redirectingFactoryInvocations) {
+      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
+      List<FactoryConstructorInvocation>?
+          delayedRedirectingFactoryInvocations) {
+    List<FactoryConstructorInvocation> invocations =
+        redirectingFactoryInvocations.toList();
+    redirectingFactoryInvocations.clear();
+    for (FactoryConstructorInvocation invocation in invocations) {
       // If the invocation was invalid, it or its parent has already been
       // desugared into an exception throwing expression.  There is nothing to
       // resolve anymore.  Note that in the case where the invocation's parent
@@ -1325,8 +1327,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (invocation.parent == null) continue;
       // ignore: unnecessary_null_comparison
       if (typeInferrer != null) {
-        if (invocation is FactoryConstructorInvocationJudgment &&
-            !invocation.hasBeenInferred) {
+        if (!invocation.hasBeenInferred) {
           continue;
         }
       } else {
@@ -1347,11 +1348,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         invocation.replaceWith(replacement);
       }
     }
-    redirectingFactoryInvocations.clear();
   }
 
   void _unaliasTypeAliasedConstructorInvocations() {
-    for (TypeAliasedConstructorInvocationJudgment invocation
+    for (TypeAliasedConstructorInvocation invocation
         in typeAliasedConstructorInvocations) {
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
@@ -1377,7 +1377,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _unaliasTypeAliasedFactoryInvocations() {
-    for (TypeAliasedFactoryInvocationJudgment invocation
+    for (TypeAliasedFactoryInvocation invocation
         in typeAliasedFactoryInvocations) {
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
@@ -1451,10 +1451,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         List<Expression> annotations = variables.first.annotations;
         inferAnnotations(variables.first, annotations);
         for (int i = 1; i < variables.length; i++) {
-          cloner ??= new CloneVisitorNotMembers();
           VariableDeclaration variable = variables[i];
           for (int i = 0; i < annotations.length; i++) {
-            variable.addAnnotation(cloner!.clone(annotations[i]));
+            variable.addAnnotation(_cloner.cloneInContext(annotations[i]));
           }
         }
       }
@@ -4498,8 +4497,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.checkBoundsInConstructorInvocation(
             node, typeEnvironment, uri);
       } else {
-        TypeAliasedConstructorInvocationJudgment constructorInvocation =
-            node = new TypeAliasedConstructorInvocationJudgment(
+        TypeAliasedConstructorInvocation constructorInvocation =
+            node = new TypeAliasedConstructorInvocation(
                 typeAliasBuilder, target, arguments,
                 isConst: isConst)
               ..fileOffset = charOffset;
@@ -4521,15 +4520,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
         StaticInvocation node;
         if (typeAliasBuilder == null) {
-          node = new FactoryConstructorInvocationJudgment(target, arguments,
-              isConst: isConst)
-            ..fileOffset = charOffset;
+          FactoryConstructorInvocation factoryInvocation =
+              new FactoryConstructorInvocation(target, arguments,
+                  isConst: isConst)
+                ..fileOffset = charOffset;
           libraryBuilder.checkBoundsInFactoryInvocation(
-              node, typeEnvironment, uri,
+              factoryInvocation, typeEnvironment, uri,
               inferred: !hasExplicitTypeArguments(arguments));
+          redirectingFactoryInvocations.add(factoryInvocation);
+          node = factoryInvocation;
         } else {
-          TypeAliasedFactoryInvocationJudgment constructorInvocation =
-              new TypeAliasedFactoryInvocationJudgment(
+          TypeAliasedFactoryInvocation constructorInvocation =
+              new TypeAliasedFactoryInvocation(
                   typeAliasBuilder, target, arguments,
                   isConst: isConst)
                 ..fileOffset = charOffset;
@@ -5097,12 +5099,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             charOffset: nameToken.charOffset,
             charLength: nameToken.length,
             typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
-
-        if (invocation is StaticInvocation &&
-            isRedirectingFactory(target, helper: this)) {
-          redirectingFactoryInvocations.add(invocation);
-        }
-
         return invocation;
       } else {
         errorName ??= debugName(type.name, name);
@@ -7369,4 +7365,53 @@ class ForInElements {
 
   VariableDeclaration get variable =>
       (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
+}
+
+class _BodyBuilderCloner extends CloneVisitorNotMembers {
+  final BodyBuilder bodyBuilder;
+
+  _BodyBuilderCloner(this.bodyBuilder);
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    if (node is FactoryConstructorInvocation) {
+      FactoryConstructorInvocation result = new FactoryConstructorInvocation(
+          node.target, clone(node.arguments),
+          isConst: node.isConst)
+        ..hasBeenInferred = node.hasBeenInferred;
+      bodyBuilder.redirectingFactoryInvocations.add(result);
+      return result;
+    } else if (node is TypeAliasedFactoryInvocation) {
+      TypeAliasedFactoryInvocation result = new TypeAliasedFactoryInvocation(
+          node.typeAliasBuilder, node.target, clone(node.arguments),
+          isConst: node.isConst)
+        ..hasBeenInferred = node.hasBeenInferred;
+      bodyBuilder.typeAliasedFactoryInvocations.add(result);
+      return result;
+    }
+    return super.visitStaticInvocation(node);
+  }
+
+  @override
+  visitConstructorInvocation(ConstructorInvocation node) {
+    if (node is TypeAliasedConstructorInvocation) {
+      TypeAliasedConstructorInvocation result =
+          new TypeAliasedConstructorInvocation(
+              node.typeAliasBuilder, node.target, clone(node.arguments),
+              isConst: node.isConst)
+            ..hasBeenInferred = node.hasBeenInferred;
+      bodyBuilder.typeAliasedConstructorInvocations.add(result);
+      return result;
+    }
+    return super.visitConstructorInvocation(node);
+  }
+
+  @override
+  visitArguments(Arguments node) {
+    if (node is ArgumentsImpl) {
+      return ArgumentsImpl.clone(node, node.positional.map(clone).toList(),
+          node.named.map(clone).toList(), node.types.map(visitType).toList());
+    }
+    return super.visitArguments(node);
+  }
 }
