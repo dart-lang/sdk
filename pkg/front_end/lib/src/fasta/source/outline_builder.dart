@@ -7,6 +7,7 @@ library fasta.outline_builder;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
+        ConstructorReferenceContext,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -2028,8 +2029,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     debugEvent("ConstructorReference");
     popIfNotNull(periodBeforeName); // charOffset.
     String? suffix = popIfNotNull(periodBeforeName) as String?;

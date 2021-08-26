@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/directive_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
@@ -1162,10 +1163,16 @@ class TestParser extends Parser {
     return result;
   }
 
-  Token parseConstructorReference(Token token, [TypeParamOrArgInfo? typeArg]) {
-    doPrint('parseConstructorReference(' '$token, ' '$typeArg)');
+  Token parseConstructorReference(
+      Token token, ConstructorReferenceContext constructorReferenceContext,
+      [TypeParamOrArgInfo? typeArg]) {
+    doPrint('parseConstructorReference('
+        '$token, '
+        '$constructorReferenceContext, '
+        '$typeArg)');
     indent++;
-    var result = super.parseConstructorReference(token, typeArg);
+    var result = super
+        .parseConstructorReference(token, constructorReferenceContext, typeArg);
     indent--;
     return result;
   }

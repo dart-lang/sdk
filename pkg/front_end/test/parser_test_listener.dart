@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
@@ -324,8 +325,8 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     indent--;
     seen(start);
     seen(periodBeforeName);
@@ -333,7 +334,8 @@ class ParserTestListener implements Listener {
     doPrint('endConstructorReference('
         '$start, '
         '$periodBeforeName, '
-        '$endToken)');
+        '$endToken, '
+        '$constructorReferenceContext)');
   }
 
   void beginDoWhileStatement(Token token) {

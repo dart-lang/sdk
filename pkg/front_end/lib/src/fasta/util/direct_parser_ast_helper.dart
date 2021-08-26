@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
+import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
@@ -348,14 +349,15 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     DirectParserASTContentConstructorReferenceEnd data =
         new DirectParserASTContentConstructorReferenceEnd(
             DirectParserASTType.END,
             start: start,
             periodBeforeName: periodBeforeName,
-            endToken: endToken);
+            endToken: endToken,
+            constructorReferenceContext: constructorReferenceContext);
     seen(data);
   }
 
@@ -3103,15 +3105,20 @@ class DirectParserASTContentConstructorReferenceEnd
   final Token start;
   final Token? periodBeforeName;
   final Token endToken;
+  final ConstructorReferenceContext constructorReferenceContext;
 
   DirectParserASTContentConstructorReferenceEnd(DirectParserASTType type,
-      {required this.start, this.periodBeforeName, required this.endToken})
+      {required this.start,
+      this.periodBeforeName,
+      required this.endToken,
+      required this.constructorReferenceContext})
       : super("ConstructorReference", type);
 
   Map<String, Object?> get deprecatedArguments => {
         "start": start,
         "periodBeforeName": periodBeforeName,
         "endToken": endToken,
+        "constructorReferenceContext": constructorReferenceContext,
       };
 }
 

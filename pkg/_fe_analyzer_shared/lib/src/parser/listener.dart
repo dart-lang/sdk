@@ -15,6 +15,8 @@ import 'assert.dart' show Assert;
 
 import 'block_kind.dart' show BlockKind;
 
+import 'constructor_reference_context.dart' show ConstructorReferenceContext;
+
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
@@ -268,8 +270,8 @@ class Listener implements UnescapeErrorListener {
 
   void beginConstructorReference(Token start) {}
 
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     logEvent("ConstructorReference");
   }
 

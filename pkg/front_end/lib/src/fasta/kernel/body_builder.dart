@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
+        ConstructorReferenceContext,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -654,7 +655,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
     debugEvent("Metadata");
     Arguments? arguments = pop() as Arguments?;
-    pushQualifiedReference(beginToken.next!, periodBeforeName);
+    pushQualifiedReference(
+        beginToken.next!, periodBeforeName, ConstructorReferenceContext.Const);
     if (arguments != null) {
       push(arguments);
       _buildConstructorReferenceInvocation(
@@ -4091,10 +4093,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     debugEvent("ConstructorReference");
-    pushQualifiedReference(start, periodBeforeName);
+    pushQualifiedReference(
+        start, periodBeforeName, constructorReferenceContext);
   }
 
   /// A qualified reference is something that matches one of:
@@ -4130,7 +4133,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// stack and pushes 3 values: a generator (the type in a constructor
   /// reference, or an expression in metadata), a list of type arguments, and a
   /// name.
-  void pushQualifiedReference(Token start, Token? periodBeforeName) {
+  void pushQualifiedReference(Token start, Token? periodBeforeName,
+      ConstructorReferenceContext constructorReferenceContext) {
     assert(checkState(start, [
       /*suffix*/ if (periodBeforeName != null)
         unionOfKinds([ValueKinds.Identifier, ValueKinds.ParserRecovery]),
@@ -4165,7 +4169,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           start,
           unionOfKinds([ValueKinds.Generator, ValueKinds.ProblemBuilder]),
           qualifier));
-      if (qualifier is TypeUseGenerator) {
+      if (qualifier is TypeUseGenerator && suffix == null) {
         type = qualifier;
         if (typeArguments != null) {
           // TODO(ahe): Point to the type arguments instead.
@@ -4173,7 +4177,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               identifier.charOffset, identifier.name.length);
         }
       } else if (qualifier is Generator) {
-        type = qualifier.qualifiedLookup(identifier.token);
+        if (constructorReferenceContext !=
+            ConstructorReferenceContext.Implicit) {
+          type = qualifier.qualifiedLookup(qualified.token);
+        } else {
+          type = qualifier.buildPropertyAccess(
+              new IncompletePropertyAccessGenerator(this, qualified.token,
+                  new Name(qualified.name, libraryBuilder.nameOrigin)),
+              qualified.token.charOffset,
+              false);
+        }
         identifier = null;
       } else if (qualifier is ProblemBuilder) {
         type = qualifier;
@@ -4192,6 +4205,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       name = "";
     }
+
+    // TODO(johnniwinther): Provide sufficient offsets for pointing correctly
+    //  to prefix, class name and suffix.
     push(type);
     push(typeArguments ?? NullValue.TypeArguments);
     push(name);
@@ -4204,7 +4220,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.ParserRecovery
+        ValueKinds.ParserRecovery,
+        ValueKinds.Expression,
       ]),
     ]));
   }
@@ -4519,7 +4536,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
-        ValueKinds.ParserRecovery
+        ValueKinds.ParserRecovery,
+        ValueKinds.Expression,
       ]),
     ]));
     Arguments arguments = pop() as Arguments;
@@ -4543,6 +4561,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (type is ParserRecovery) {
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
+    } else if (type is Expression) {
+      push(createInstantiationAndInvocation(
+          () => type, typeArguments, name, name, arguments,
+          instantiationOffset: offset,
+          invocationOffset: nameLastToken.charOffset));
     } else {
       String? typeName;
       if (type is ProblemBuilder) {
@@ -4553,6 +4576,37 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           kind: UnresolvedKind.Constructor));
     }
     constantContext = savedConstantContext;
+  }
+
+  Expression createInstantiationAndInvocation(
+      Expression Function() receiverFunction,
+      List<UnresolvedType>? typeArguments,
+      String className,
+      String constructorName,
+      Arguments arguments,
+      {required int instantiationOffset,
+      required int invocationOffset}) {
+    if (enableConstructorTearOffsInLibrary) {
+      Expression receiver = receiverFunction();
+      if (typeArguments != null) {
+          receiver = forest.createInstantiation(instantiationOffset, receiver,
+              buildDartTypeArguments(typeArguments));
+      }
+      return forest.createMethodInvocation(invocationOffset, receiver,
+          new Name(constructorName, libraryBuilder.nameOrigin), arguments);
+    } else {
+      if (typeArguments != null) {
+        assert(forest.argumentsTypeArguments(arguments).isEmpty);
+        forest.argumentsSetTypeArguments(
+            arguments, buildDartTypeArguments(typeArguments));
+      }
+      return buildUnresolvedError(
+          forest.createNullLiteral(instantiationOffset),
+          constructorNameForDiagnostics(constructorName, className: className),
+          arguments,
+          invocationOffset,
+          kind: UnresolvedKind.Constructor);
+    }
   }
 
   @override

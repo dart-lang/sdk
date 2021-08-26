@@ -1,11 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/constructor_tearoffs/issue46887.dart:15:32: Error: Couldn't find constructor 'a.toString'.
-//   expect("${a<b, c>}, null", f(a<b, c>.toString()));
-//                                ^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -17,9 +10,7 @@ static method a<T1 extends core::Object? = dynamic, T2 extends core::Object? = d
   return "a<${self::a::T1%}, ${self::a::T2%}>(${x})";
 }
 static method main() → dynamic {
-  self::expect("${#C3}, null", self::f(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/issue46887.dart:15:32: Error: Couldn't find constructor 'a.toString'.
-  expect(\"\${a<b, c>}, null\", f(a<b, c>.toString()));
-                               ^^^^^^^^"));
+  self::expect("${#C3}, null", self::f((#C3).{core::Object::toString}(){() → core::String}));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

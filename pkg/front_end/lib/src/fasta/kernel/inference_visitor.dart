@@ -403,7 +403,7 @@ class InferenceVisitor
           }
         }
       }
-    } else {
+    } else if (operandType is! InvalidType) {
       if (!inferrer.isTopLevel) {
         result = inferrer.helper!.buildProblem(
             templateInstantiationNonGenericFunctionType.withArguments(
