@@ -128,6 +128,8 @@ import 'collections.dart';
 
 import 'constness.dart' show Constness;
 
+import 'constructor_tearoff_lowering.dart';
+
 import 'expression_generator.dart';
 
 import 'expression_generator_helper.dart';
@@ -6474,7 +6476,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (operand is Generator) {
         push(operand.applyTypeArguments(
             openAngleBracket.charOffset, typeArguments));
-      } else if (operand is StaticTearOff && operand.target.isFactory ||
+      } else if (operand is StaticTearOff &&
+              (operand.target.isFactory || isTearOffLowering(operand.target)) ||
           operand is ConstructorTearOff ||
           operand is RedirectingFactoryTearOff) {
         push(buildProblem(fasta.messageConstructorTearOffWithTypeArguments,
