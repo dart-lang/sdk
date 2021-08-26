@@ -3353,6 +3353,9 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     compile_mode = SourceReport::kForceCompile;
   }
 
+  bool report_lines =
+      BoolParameter::Parse(js->LookupParam("reportLines"), false);
+
   Script& script = Script::Handle();
   intptr_t start_pos = UIntParameter::Parse(js->LookupParam("tokenPos"));
   intptr_t end_pos = UIntParameter::Parse(js->LookupParam("endTokenPos"));
@@ -3383,7 +3386,7 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       return;
     }
   }
-  SourceReport report(report_set, compile_mode);
+  SourceReport report(report_set, compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME

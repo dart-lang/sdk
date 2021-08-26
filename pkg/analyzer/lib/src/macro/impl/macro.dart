@@ -130,10 +130,13 @@ class MacroGeneratedContent {
             declaration.data.code +
             classMemberCodeSuffix;
         var insertOffset = shift + targetClass.rightBracket.offset;
-        declaration.data.offset = insertOffset + classMemberCodePrefix.length;
+        declaration.data.insertOffset = insertOffset;
+        declaration.data.codeOffset =
+            insertOffset + classMemberCodePrefix.length;
         generatedContent = generatedContent.substring(0, insertOffset) +
             code +
             generatedContent.substring(insertOffset);
+        declaration.data.insertLength = code.length;
         shift += code.length;
       } else {
         throw UnimplementedError();
@@ -143,7 +146,7 @@ class MacroGeneratedContent {
       if (node is ast.Declaration) {
         var element = node.declaredElement as ElementImpl;
         element.accept(
-          _ShiftOffsetsElementVisitor(declaration.data.offset),
+          _ShiftOffsetsElementVisitor(declaration.data.codeOffset),
         );
         if (element is HasMacroGenerationData) {
           (element as HasMacroGenerationData).macro = declaration.data;

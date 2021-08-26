@@ -858,7 +858,7 @@ class LibraryReader {
       hasMacro.macro = data;
       InformativeDataApplier(
         _elementFactory,
-        baseOffset: data.offset,
+        baseOffset: data.codeOffset,
       ).applyToDeclaration(
         element,
         data.informative,

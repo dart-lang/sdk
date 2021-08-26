@@ -679,10 +679,12 @@ class InformativeDataApplier {
           var targetClass = unitInfo.classDeclarations[classIndex];
           var code = classMemberCodePrefix + data.code + classMemberCodeSuffix;
           var insertOffset = shift + targetClass.rightBracketOffset;
-          data.offset = insertOffset + classMemberCodePrefix.length;
+          data.insertOffset = insertOffset;
+          data.codeOffset = insertOffset + classMemberCodePrefix.length;
           generatedContent = generatedContent.substring(0, insertOffset) +
               code +
               generatedContent.substring(insertOffset);
+          data.insertLength = code.length;
           shift += code.length;
         } else {
           throw UnimplementedError();
