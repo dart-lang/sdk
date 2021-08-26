@@ -969,7 +969,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
-    CompilationUnit unit = file.parse(listener);
+    CompilationUnit unit = file.parse(errorListener: listener);
     return ParsedUnitResultImpl(currentSession, file.path, file.uri,
         file.content, file.lineInfo, file.isPart, unit, listener.errors);
   }

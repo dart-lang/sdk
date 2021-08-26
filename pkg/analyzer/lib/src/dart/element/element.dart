@@ -4257,7 +4257,15 @@ class MacroGenerationData {
   /// The offset in [CompilationUnitElementImpl.macroGeneratedContent],
   /// where the [code] is located. This offset depends on the informative
   /// data, as any other offset.
-  int offset = 0;
+  late int codeOffset;
+
+  /// Similar to [codeOffset], but the offset of the prefix before [code].
+  late int insertOffset;
+
+  /// The length of the string inserted at [insertOffset]. This string
+  /// consists of the [code] itself, with leading and trailing whitespaces
+  /// and newlines for better formatting.
+  late int insertLength;
 
   MacroGenerationData({
     required this.id,
