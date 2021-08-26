@@ -3173,15 +3173,14 @@ void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
 }
 
 // Does identical check (object references are equal or not equal) with special
-// checks for boxed numbers.
-// Left and right are pushed on stack.
-// Return Zero condition flag set if equal.
-// Note: A Mint cannot contain a value that would fit in Smi.
+// checks for boxed numbers and returns with ZF set iff left and right are
+// identical.
 static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register left,
                                                  const Register right) {
-  Label reference_compare, done, check_mint;
+  Label reference_compare, check_mint;
   // If any of the arguments is Smi do reference compare.
+  // Note: A Mint cannot contain a value that would fit in Smi.
   __ BranchIfSmi(left, &reference_compare);
   __ BranchIfSmi(right, &reference_compare);
 
@@ -3189,27 +3188,31 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ CompareClassId(left, kDoubleCid);
   __ b(&check_mint, NE);
   __ CompareClassId(right, kDoubleCid);
-  __ b(&done, NE);
+  __ b(&reference_compare, NE);  // Do not branch directly to ret! See below.
 
   // Double values bitwise compare.
   __ LoadFieldFromOffset(left, left, target::Double::value_offset());
   __ LoadFieldFromOffset(right, right, target::Double::value_offset());
   __ CompareRegisters(left, right);
-  __ b(&done);
+  __ ret();
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
   __ b(&reference_compare, NE);
   __ CompareClassId(right, kMintCid);
-  __ b(&done, NE);
+  __ b(&reference_compare, NE);  // Do not branch directly to ret! See below.
   __ LoadFieldFromOffset(left, left, target::Mint::value_offset());
   __ LoadFieldFromOffset(right, right, target::Mint::value_offset());
   __ CompareRegisters(left, right);
-  __ b(&done);
+  __ ret();
 
   __ Bind(&reference_compare);
   __ CompareObjectRegisters(left, right);
-  __ Bind(&done);
+  // None of the branches above go directly here to avoid generating a conditional 
+  // branch to a ret instruction.
+  // This is an attempt to work-around a possible CPU on Exynos 2100 SoC.
+  // See https://github.com/flutter/flutter/issues/88261
+  __ ret();
 }
 
 // Called only from unoptimized code. All relevant registers have been saved.
@@ -3235,7 +3238,6 @@ void StubCodeCompiler::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ LoadFromOffset(left, SP, 1 * target::kWordSize);
   __ LoadFromOffset(right, SP, 0 * target::kWordSize);
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
-  __ ret();
 
 #if !defined(PRODUCT)
   __ Bind(&stepping);
@@ -3259,7 +3261,6 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub(
   __ LoadFromOffset(left, SP, 1 * target::kWordSize);
   __ LoadFromOffset(right, SP, 0 * target::kWordSize);
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
-  __ ret();
 }
 
 // Called from megamorphic call sites.
