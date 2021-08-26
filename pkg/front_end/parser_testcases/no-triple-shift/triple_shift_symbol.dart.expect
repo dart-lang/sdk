@@ -1,0 +1,38 @@
+Problems reported:
+
+parser/no-triple-shift/triple_shift_symbol:2:13: Expected an identifier, but got ')'.
+  print(#>>>);
+            ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(, null)
+      handleNoType()
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        handleIdentifier(print, expression)
+        handleNoTypeArguments(()
+        beginArguments(()
+          beginLiteralSymbol(#)
+            handleOperator(>>)
+          endLiteralSymbol(#, 1)
+          beginBinaryExpression(>)
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
+            handleIdentifier(, expression)
+            handleNoTypeArguments())
+            handleNoArguments())
+            handleSend(, ))
+          endBinaryExpression(>)
+        endArguments(1, (, ))
+        handleSend(print, ;)
+        handleExpressionStatement(;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration()
+endCompilationUnit(1, )
