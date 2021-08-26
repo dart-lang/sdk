@@ -76,6 +76,7 @@ general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameters_on_void: FormatterCrash

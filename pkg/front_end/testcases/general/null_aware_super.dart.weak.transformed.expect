@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/null_aware_super.dart:10:18: Error: The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+// Try replacing '?.' with '.'
+//   Class() : super?.named();
+//                  ^^
+//
+// pkg/front_end/testcases/general/null_aware_super.dart:10:18: Error: Cannot use '?.' here.
+// Try using '.'.
+//   Class() : super?.named();
+//                  ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  constructor named() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Class extends self::Super {
+  constructor •() → self::Class
+    : super self::Super::named()
+    ;
+}
+static method main() → dynamic {}
