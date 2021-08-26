@@ -137,7 +137,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /// ```dart
   /// List<dynamic> dynList = ...some JSON value...;
   /// List<Map<String, dynamic>> fooList =
-  ///     List.from(dynList.where((x) => x is Map && map["kind"] == "foo"));
+  ///     List.from(dynList.where((x) => x is Map && x["kind"] == "foo"));
   /// ```
   ///
   /// This constructor creates a growable list when [growable] is true;
