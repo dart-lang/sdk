@@ -3889,6 +3889,18 @@ class Parser {
           identical(operator.kind, BANG_EQ_EQ_TOKEN) ||
           isUnaryMinus(operator)) {
         isOperator = true;
+        if (optional(">>", operator) &&
+            optional(">", operator.next!) &&
+            operator.charEnd == operator.next!.charOffset) {
+          // Special case use of triple-shift in cases where it isn't enabled.
+          reportRecoverableErrorWithEnd(
+              operator,
+              operator.next!,
+              codes.templateExperimentNotEnabled
+                  .withArguments("triple-shift", "2.14"));
+          operator = rewriter.replaceNextTokensWithSyntheticToken(
+              name, 2, TokenType.GT_GT_GT);
+        }
       }
     }
 
@@ -5010,6 +5022,29 @@ class Parser {
             } else {
               // Set a flag to catch subsequent binary expressions of this type.
               lastBinaryExpressionLevel = level;
+            }
+          }
+          if (optional(">>", next) && next.charEnd == next.next!.charOffset) {
+            if (optional(">", next.next!)) {
+              // Special case use of triple-shift in cases where it isn't
+              // enabled.
+              reportRecoverableErrorWithEnd(
+                  next,
+                  next.next!,
+                  codes.templateExperimentNotEnabled
+                      .withArguments("triple-shift", "2.14"));
+              next = rewriter.replaceNextTokensWithSyntheticToken(
+                  token, 2, TokenType.GT_GT_GT);
+            } else if (optional(">=", next.next!)) {
+              // Special case use of triple-shift in cases where it isn't
+              // enabled.
+              reportRecoverableErrorWithEnd(
+                  next,
+                  next.next!,
+                  codes.templateExperimentNotEnabled
+                      .withArguments("triple-shift", "2.14"));
+              next = rewriter.replaceNextTokensWithSyntheticToken(
+                  token, 2, TokenType.GT_GT_GT_EQ);
             }
           }
           listener.beginBinaryExpression(next);

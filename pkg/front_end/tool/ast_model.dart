@@ -14,7 +14,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/printer.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
+import 'package:vm/target/vm.dart';
 
 final Uri astLibraryUri = Uri.parse('package:kernel/ast.dart');
 final Uri canonicalNameLibraryUri =
@@ -508,6 +510,10 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump: false}) async {
   bool errorsFound = false;
   CompilerOptions options = new CompilerOptions();
   options.sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+  options.compileSdk = true;
+  options.target = new VmTarget(new TargetFlags());
+  options.librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json");
+  options.environmentDefines = const {};
   options.packagesFileUri = computePackageConfig(repoDir);
   options.onDiagnostic = (DiagnosticMessage message) {
     printDiagnosticMessage(message, print);
