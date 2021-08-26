@@ -62,7 +62,6 @@ class AddTypeAnnotation extends CorrectionProducer {
 
   Future<void> _applyChange(
       ChangeBuilder builder, Token? keyword, int offset, DartType type) async {
-
     _configureTargetLocation(node);
 
     await builder.addDartFileEdit(file, (builder) {
@@ -131,20 +130,24 @@ class AddTypeAnnotation extends CorrectionProducer {
     if (declarationList.type != null) {
       return;
     }
-    // Ensure that there is a single VariableDeclaration.
-    List<VariableDeclaration> variables = declarationList.variables;
-    if (variables.length != 1) {
-      return;
-    }
-    var variable = variables[0];
+    final variables = declarationList.variables;
+    final variable = variables[0];
     // Ensure that the selection is not after the name of the variable.
     if (selectionOffset > variable.name.end) {
       return;
     }
     // Ensure that there is an initializer to get the type from.
-    var type = _typeForVariable(variable);
+    final type = _typeForVariable(variable);
     if (type == null) {
       return;
+    }
+    // Ensure that there is a single type.
+    if (variables.length > 1) {
+      for (var v in variables) {
+        if (v != variable && _typeForVariable(v) != type) {
+          return;
+        }
+      }
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType) {
