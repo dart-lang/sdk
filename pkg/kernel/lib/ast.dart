@@ -6096,9 +6096,14 @@ class Instantiation extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    FunctionType type = expression.getStaticType(context) as FunctionType;
-    return Substitution.fromPairs(type.typeParameters, typeArguments)
-        .substituteType(type.withoutTypeParameters);
+    DartType type = expression.getStaticType(context);
+    if (type is FunctionType) {
+      return Substitution.fromPairs(type.typeParameters, typeArguments)
+          .substituteType(type.withoutTypeParameters);
+    }
+    assert(type is InvalidType || type is NeverType,
+        "Unexpected operand type $type for $expression");
+    return type;
   }
 
   @override

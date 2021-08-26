@@ -403,7 +403,7 @@ class InferenceVisitor
           }
         }
       }
-    } else {
+    } else if (operandType is! InvalidType) {
       if (!inferrer.isTopLevel) {
         result = inferrer.helper!.buildProblem(
             templateInstantiationNonGenericFunctionType.withArguments(
@@ -924,8 +924,8 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
-  ExpressionInferenceResult visitFactoryConstructorInvocationJudgment(
-      FactoryConstructorInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitFactoryConstructorInvocation(
+      FactoryConstructorInvocation node, DartType typeContext) {
     bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
 
     FunctionType functionType = node.target.function
@@ -954,8 +954,8 @@ class InferenceVisitor
         result.inferredType, result.applyResult(resultNode));
   }
 
-  ExpressionInferenceResult visitTypeAliasedConstructorInvocationJudgment(
-      TypeAliasedConstructorInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitTypeAliasedConstructorInvocation(
+      TypeAliasedConstructorInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function
@@ -979,8 +979,8 @@ class InferenceVisitor
         result.inferredType, result.applyResult(resultNode));
   }
 
-  ExpressionInferenceResult visitTypeAliasedFactoryInvocationJudgment(
-      TypeAliasedFactoryInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitTypeAliasedFactoryInvocation(
+      TypeAliasedFactoryInvocation node, DartType typeContext) {
     assert(getExplicitTypeArguments(node.arguments) == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = node.target.function

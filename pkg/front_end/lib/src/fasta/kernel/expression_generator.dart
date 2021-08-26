@@ -296,18 +296,10 @@ abstract class Generator {
       Token nameToken,
       Token nameLastToken,
       Constness constness) {
-    if (typeArguments != null) {
-      assert(_forest.argumentsTypeArguments(arguments).isEmpty);
-      _forest.argumentsSetTypeArguments(
-          arguments, _helper.buildDartTypeArguments(typeArguments));
-    }
-    return _helper.buildUnresolvedError(
-        _forest.createNullLiteral(fileOffset),
-        _helper.constructorNameForDiagnostics(name,
-            className: _plainNameForRead),
-        arguments,
-        nameToken.charOffset,
-        kind: UnresolvedKind.Constructor);
+    return _helper.createInstantiationAndInvocation(() => buildSimpleRead(),
+        typeArguments, _plainNameForRead, name, arguments,
+        instantiationOffset: fileOffset,
+        invocationOffset: nameLastToken.charOffset);
   }
 
   void printOn(StringSink sink);

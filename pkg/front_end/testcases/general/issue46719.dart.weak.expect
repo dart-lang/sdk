@@ -2,39 +2,29 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue46719.dart:25:3: Error: Couldn't find constructor 'a.m.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:25:12: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   a.m<int>.applyAndPrint([2]);
-//   ^^^^^^^^^^^^^
+//            ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:26:3: Error: Couldn't find constructor 'a.m.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:26:15: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   a.m<String>.applyAndPrint(['three']);
-//   ^^^^^^^^^^^^^
+//               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:27:5: Error: A constructor invocation can't have type arguments after the constructor name.
-// Try removing the type arguments or placing them after the class name.
-//   A.n<int>.applyAndPrint([2]);
-//     ^
-//
-// pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'A.n.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'n.applyAndPrint'.
 //   A.n<int>.applyAndPrint([2]);
 //            ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:28:5: Error: A constructor invocation can't have type arguments after the constructor name.
-// Try removing the type arguments or placing them after the class name.
-//   A.n<String>.applyAndPrint(['three']);
-//     ^
-//
-// pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'A.n.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'n.applyAndPrint'.
 //   A.n<String>.applyAndPrint(['three']);
 //               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:29:3: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:29:15: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   self.m<int>.applyAndPrint([2]);
-//   ^^^^^^^^^^^^^
+//               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:30:3: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:30:18: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   self.m<String>.applyAndPrint(['three']);
-//   ^^^^^^^^^^^^^
+//                  ^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/general/issue46719.dart:31:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
@@ -59,14 +49,9 @@ library /*isNonNullableByDefault*/;
 //   A<int>.named.toString();
 //          ^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:35:5: Error: A constructor invocation can't have type arguments after the constructor name.
-// Try removing the type arguments or placing them after the class name.
+// pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Couldn't find constructor 'named'.
 //   A.named<int>.toString();
 //     ^^^^^
-//
-// pkg/front_end/testcases/general/issue46719.dart:35:16: Error: Couldn't find constructor 'A.named.toString'.
-//   A.named<int>.toString();
-//                ^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -97,24 +82,24 @@ static method FunctionApplier|get#applyAndPrint(lowered final core::Function #th
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
   self::A<dynamic> a = new self::A::•<dynamic>();
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:25:3: Error: Couldn't find constructor 'a.m.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:25:12: Error: Couldn't find constructor 'm.applyAndPrint'.
   a.m<int>.applyAndPrint([2]);
-  ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:26:3: Error: Couldn't find constructor 'a.m.applyAndPrint'.
+           ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:26:15: Error: Couldn't find constructor 'm.applyAndPrint'.
   a.m<String>.applyAndPrint(['three']);
-  ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'A.n.applyAndPrint'.
+              ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'n.applyAndPrint'.
   A.n<int>.applyAndPrint([2]);
            ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'A.n.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'n.applyAndPrint'.
   A.n<String>.applyAndPrint(['three']);
               ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:29:3: Error: Couldn't find constructor 'm.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:29:15: Error: Couldn't find constructor 'm.applyAndPrint'.
   self.m<int>.applyAndPrint([2]);
-  ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:30:3: Error: Couldn't find constructor 'm.applyAndPrint'.
+              ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:30:18: Error: Couldn't find constructor 'm.applyAndPrint'.
   self.m<String>.applyAndPrint(['three']);
-  ^^^^^^^^^^^^^";
+                 ^^^^^^^^^^^^^";
   self::FunctionApplier|applyAndPrint(#C3, <core::Object?>[2]);
   self::FunctionApplier|applyAndPrint(#C3, <core::Object?>["three"]);
   invalid-expression "pkg/front_end/testcases/general/issue46719.dart:33:5: Error: Member not found: 'named'.
@@ -123,9 +108,9 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/issue46719.dart:34:10: Error: Member not found: 'named'.
   A<int>.named.toString();
          ^^^^^".{core::Object::toString}(){() → core::String};
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:16: Error: Couldn't find constructor 'A.named.toString'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Couldn't find constructor 'named'.
   A.named<int>.toString();
-               ^^^^^^^^";
+    ^^^^^";
 }
 static method main() → void {}
 

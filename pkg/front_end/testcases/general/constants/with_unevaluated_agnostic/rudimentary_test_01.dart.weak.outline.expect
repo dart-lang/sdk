@@ -15,7 +15,7 @@ static method _x() → void
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///rudimentary_test_01.dart:5:20 -> IntConstant(1764)
 Evaluated with empty environment: StringConcatenation @ org-dartlang-testcase:///rudimentary_test_01.dart:6:18 -> StringConstant("hello world!")
-Evaluated with empty environment: FactoryConstructorInvocationJudgment @ org-dartlang-testcase:///rudimentary_test_01.dart:7:27 -> StringConstant("world")
+Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///rudimentary_test_01.dart:7:27 -> StringConstant("world")
 Evaluated: LogicalExpression @ org-dartlang-testcase:///rudimentary_test_01.dart:8:50 -> BoolConstant(true)
 Evaluated: SymbolLiteral @ org-dartlang-testcase:///rudimentary_test_01.dart:9:19 -> SymbolConstant(#_x)
 Extra constant evaluation: evaluated: 5, effectively constant: 5

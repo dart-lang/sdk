@@ -56,6 +56,8 @@ import 'async_modifier.dart' show AsyncModifier;
 
 import 'block_kind.dart';
 
+import 'constructor_reference_context.dart' show ConstructorReferenceContext;
+
 import 'declaration_kind.dart' show DeclarationKind;
 
 import 'directive_context.dart';
@@ -4328,7 +4330,9 @@ class Parser {
     return token;
   }
 
-  Token parseConstructorReference(Token token, [TypeParamOrArgInfo? typeArg]) {
+  Token parseConstructorReference(
+      Token token, ConstructorReferenceContext constructorReferenceContext,
+      [TypeParamOrArgInfo? typeArg]) {
     Token start =
         ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
@@ -4345,7 +4349,8 @@ class Parser {
       listener.handleNoConstructorReferenceContinuationAfterTypeArguments(
           token.next!);
     }
-    listener.endConstructorReference(start, period, token.next!);
+    listener.endConstructorReference(
+        start, period, token.next!, constructorReferenceContext);
     return token;
   }
 
@@ -4354,7 +4359,8 @@ class Parser {
     assert(optional('=', token));
     listener.beginRedirectingFactoryBody(token);
     Token equals = token;
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.RedirectingFactory);
     token = ensureSemicolon(token);
     listener.endRedirectingFactoryBody(equals, token);
     return token;
@@ -4480,7 +4486,9 @@ class Parser {
         begin = next = token.next!;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(token, codes.templateExpectedFunctionBody,
+        token = ensureBlock(
+            token,
+            codes.templateExpectedFunctionBody,
             /* missingBlockName = */ null);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup!;
@@ -5971,7 +5979,8 @@ class Parser {
     }
 
     listener.beginNewExpression(newKeyword);
-    token = parseConstructorReference(newKeyword, potentialTypeArg);
+    token = parseConstructorReference(
+        newKeyword, ConstructorReferenceContext.New, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endNewExpression(newKeyword);
     return token;
@@ -5981,7 +5990,8 @@ class Parser {
       Token token, TypeParamOrArgInfo typeArg) {
     Token begin = token;
     listener.beginImplicitCreationExpression(token);
-    token = parseConstructorReference(token, typeArg);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Implicit, typeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endImplicitCreationExpression(begin);
     return token;
@@ -6097,7 +6107,8 @@ class Parser {
       }
     }
     listener.beginConstExpression(constKeyword);
-    token = parseConstructorReference(token, potentialTypeArg);
+    token = parseConstructorReference(
+        token, ConstructorReferenceContext.Const, potentialTypeArg);
     token = parseConstructorInvocationArguments(token);
     listener.endConstExpression(constKeyword);
     return token;

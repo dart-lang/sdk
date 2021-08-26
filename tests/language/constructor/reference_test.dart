@@ -33,8 +33,6 @@ main() {
   new Foo.bar<int>.baz();
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //      ^
-  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //               ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
@@ -69,8 +67,6 @@ main() {
   const Foo.bar<int>.baz();
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //        ^
-  // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //                 ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
@@ -107,10 +103,9 @@ main() {
 //^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
 //    ^
-// [cfe] A constructor invocation can't have type arguments after the constructor name.
+// [cfe] Couldn't find constructor 'bar'.
 //             ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
-// [cfe] Couldn't find constructor 'Foo.bar.baz'.
   Foo.bar.baz<int>();
 //    ^
 // [cfe] Member not found: 'bar'.

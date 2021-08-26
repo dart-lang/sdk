@@ -36,6 +36,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
+        ConstructorReferenceContext,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -1099,8 +1100,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("ConstructorReference");
 

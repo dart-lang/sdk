@@ -487,6 +487,21 @@ class ArgumentsImpl extends Arguments {
 
   int _explicitTypeArgumentCount;
 
+  ArgumentsImpl.internal(
+      {required List<Expression> positional,
+      required List<DartType>? types,
+      required List<NamedExpression>? named,
+      required int extensionTypeParameterCount,
+      required int explicitExtensionTypeArgumentCount,
+      required int? extensionTypeArgumentOffset,
+      required int explicitTypeArgumentCount})
+      : this._extensionTypeParameterCount = extensionTypeParameterCount,
+        this._explicitExtensionTypeArgumentCount =
+            explicitExtensionTypeArgumentCount,
+        this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
+        this._explicitTypeArgumentCount = explicitTypeArgumentCount,
+        super(positional, types: types, named: named);
+
   ArgumentsImpl(List<Expression> positional,
       {List<DartType>? types, List<NamedExpression>? named})
       : _explicitTypeArgumentCount = types?.length ?? 0,
@@ -518,6 +533,19 @@ class ArgumentsImpl extends Arguments {
                   extensionTypeParameterCount, extensionTypeArguments))
               ..addAll(
                   _normalizeTypeArguments(typeParameterCount, typeArguments)));
+
+  static ArgumentsImpl clone(ArgumentsImpl node, List<Expression> positional,
+      List<NamedExpression> named, List<DartType> types) {
+    return new ArgumentsImpl.internal(
+        positional: positional,
+        named: named,
+        types: types,
+        extensionTypeParameterCount: node._extensionTypeParameterCount,
+        explicitExtensionTypeArgumentCount:
+            node._explicitExtensionTypeArgumentCount,
+        explicitTypeArgumentCount: node._explicitTypeArgumentCount,
+        extensionTypeArgumentOffset: node._extensionTypeArgumentOffset);
+  }
 
   static List<DartType> _normalizeTypeArguments(
       int length, List<DartType> arguments) {
@@ -729,23 +757,23 @@ abstract class ExpressionJudgment extends Expression {
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// factory constructor.
-class FactoryConstructorInvocationJudgment extends StaticInvocation
+class FactoryConstructorInvocation extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
 
-  FactoryConstructorInvocationJudgment(Procedure target, Arguments arguments,
+  FactoryConstructorInvocation(Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
+    return visitor.visitFactoryConstructorInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "FactoryConstructorInvocationJudgment(${toStringInternal()})";
+    return "FactoryConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -767,12 +795,12 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
 
 /// Shadow object for [ConstructorInvocation] when the procedure being invoked
 /// is a type aliased constructor.
-class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
+class TypeAliasedConstructorInvocation extends ConstructorInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
 
-  TypeAliasedConstructorInvocationJudgment(
+  TypeAliasedConstructorInvocation(
       this.typeAliasBuilder, Constructor target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
@@ -780,13 +808,12 @@ class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitTypeAliasedConstructorInvocationJudgment(
-        this, typeContext);
+    return visitor.visitTypeAliasedConstructorInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
   }
 
   @override
@@ -797,12 +824,12 @@ class TypeAliasedConstructorInvocationJudgment extends ConstructorInvocation
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// type aliased factory constructor.
-class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
+class TypeAliasedFactoryInvocation extends StaticInvocation
     implements ExpressionJudgment {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
 
-  TypeAliasedFactoryInvocationJudgment(
+  TypeAliasedFactoryInvocation(
       this.typeAliasBuilder, Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
@@ -810,12 +837,12 @@ class TypeAliasedFactoryInvocationJudgment extends StaticInvocation
   @override
   ExpressionInferenceResult acceptInference(
       InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitTypeAliasedFactoryInvocationJudgment(this, typeContext);
+    return visitor.visitTypeAliasedFactoryInvocation(this, typeContext);
   }
 
   @override
   String toString() {
-    return "TypeAliasedConstructorInvocationJudgment(${toStringInternal()})";
+    return "TypeAliasedConstructorInvocation(${toStringInternal()})";
   }
 
   @override

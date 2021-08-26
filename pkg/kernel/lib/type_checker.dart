@@ -253,7 +253,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = type.bound;
     }
-    if (type is NeverType || type is NullType) {
+    if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }
@@ -479,7 +479,7 @@ class TypeCheckingVisitor
   @override
   DartType visitInvalidExpression(InvalidExpression node) {
     // Don't type check `node.expression`.
-    return const NeverType.nonNullable();
+    return const InvalidType();
   }
 
   @override
@@ -506,6 +506,9 @@ class TypeCheckingVisitor
   @override
   DartType visitInstantiation(Instantiation node) {
     DartType type = visitExpression(node.expression);
+    if (type is InvalidType || type is NeverType) {
+      return type;
+    }
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
@@ -533,6 +536,9 @@ class TypeCheckingVisitor
   @override
   DartType visitTypedefTearOff(TypedefTearOff node) {
     DartType type = visitExpression(node.expression);
+    if (type is InvalidType || type is NeverType) {
+      return type;
+    }
     if (type is! FunctionType) {
       fail(node, 'Not a function type: $type');
       return NeverType.fromNullability(currentLibrary!.nonNullable);
@@ -1061,7 +1067,15 @@ class TypeCheckingVisitor
   DartType visitDynamicGet(DynamicGet node) {
     DartType receiverType = visitExpression(node.receiver);
     checkUnresolvedInvocation(receiverType, node);
-    return const DynamicType();
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return new NeverType.internal(currentLibrary!.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
   }
 
   @override
@@ -1071,7 +1085,15 @@ class TypeCheckingVisitor
     node.arguments.positional.forEach(visitExpression);
     node.arguments.named
         .forEach((NamedExpression n) => visitExpression(n.value));
-    return const DynamicType();
+    switch (node.kind) {
+      case DynamicAccessKind.Dynamic:
+        return const DynamicType();
+      case DynamicAccessKind.Never:
+        return new NeverType.internal(currentLibrary!.nonNullable);
+      case DynamicAccessKind.Invalid:
+      case DynamicAccessKind.Unresolved:
+        return const InvalidType();
+    }
   }
 
   @override

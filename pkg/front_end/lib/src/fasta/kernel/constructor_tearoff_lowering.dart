@@ -76,6 +76,19 @@ List<Object>? extractTypedefNameFromTearOff(Name name) {
   return null;
 }
 
+/// Returns `true` if [member] is a lowered constructor, factory or typedef tear
+/// off.
+bool isTearOffLowering(Member member) {
+  return member is Procedure &&
+      (isConstructorTearOffLowering(member) ||
+          isTypedefTearOffLowering(member));
+}
+
+/// Returns `true` if [procedure] is a lowered constructor or factory tear off.
+bool isConstructorTearOffLowering(Procedure procedure) {
+  return extractConstructorNameFromTearOff(procedure.name) != null;
+}
+
 /// Returns `true` if [procedure] is a lowered typedef tear off.
 bool isTypedefTearOffLowering(Procedure procedure) {
   return extractTypedefNameFromTearOff(procedure.name) != null;

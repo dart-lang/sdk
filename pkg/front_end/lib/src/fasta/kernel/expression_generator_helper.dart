@@ -99,8 +99,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildUnresolvedError(
       Expression receiver, String name, Arguments arguments, int charOffset,
-      {
-      Member candidate,
+      {Member candidate,
       bool isSuper,
       required UnresolvedKind kind,
       bool isStatic,
@@ -133,7 +132,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Constness constness,
       {bool isTypeArgumentsInForest = false,
       TypeDeclarationBuilder? typeAliasBuilder,
-        required UnresolvedKind unresolvedKind});
+      required UnresolvedKind unresolvedKind});
 
   UnresolvedType validateTypeUse(UnresolvedType unresolved,
       {required bool nonInstanceAccessIsError,
@@ -144,11 +143,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildProblemErrorIfConst(
       Message message, int charOffset, int length);
 
-  Message warnUnresolvedGet(Name name, int charOffset,
-      {bool isSuper: false});
+  Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper: false});
 
-  Message warnUnresolvedSet(Name name, int charOffset,
-      {bool isSuper: false});
+  Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper: false});
 
   Message warnUnresolvedMethod(Name name, int charOffset,
       {bool isSuper: false});
@@ -187,6 +184,30 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void registerVariableAssignment(VariableDeclaration variable);
 
   TypeEnvironment get typeEnvironment;
+
+  /// If explicit instantiations are support in this library, create an
+  /// instantiation of the result of [receiverFunction] using
+  /// [typeArguments] followed by an invocation of [name] with [arguments].
+  /// Otherwise create the errors for the corresponding invalid implicit
+  /// creation expression.
+  ///
+  /// This is used to handle the syntax for implicit creation expression as
+  /// an explicit instantiation with and invocation. For instance
+  ///
+  ///     a.b<c>.d()
+  ///
+  /// The parser treat the as the constructor invocation of constructor `d` on
+  /// class `b` with prefix `a` with type arguments `<c>`, but with explicit
+  /// instantiation it could instead be the explicit instantiation of expression
+  /// `a.b` with type arguments `<c>` followed by and invocation of `d()`.
+  Expression createInstantiationAndInvocation(
+      Expression Function() receiverFunction,
+      List<UnresolvedType>? typeArguments,
+      String className,
+      String constructorName,
+      Arguments arguments,
+      {required int instantiationOffset,
+      required int invocationOffset});
 }
 
 /// Checks that a generic [typedef] for a generic class.

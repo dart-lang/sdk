@@ -212,6 +212,9 @@ valid_source_locations_test: Skip # Issue 34736, too slow.
 [ $arch != simarm && $arch != simarm64 && $arch != simarm64c && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
+[ $compiler == app_jitk && $system == linux ]
+get_vm_timeline_rpc_test: Skip # Timeout.
+
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky

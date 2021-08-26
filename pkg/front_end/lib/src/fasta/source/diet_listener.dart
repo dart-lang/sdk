@@ -5,7 +5,13 @@
 library fasta.diet_listener;
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show Assert, DeclarationKind, MemberKind, Parser, optional;
+    show
+        Assert,
+        ConstructorReferenceContext,
+        DeclarationKind,
+        MemberKind,
+        Parser,
+        optional;
 
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 
@@ -578,8 +584,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endConstructorReference(
-      Token start, Token? periodBeforeName, Token endToken) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     debugEvent("ConstructorReference");
     popIfNotNull(periodBeforeName);
   }
