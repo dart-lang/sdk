@@ -22,6 +22,7 @@ import '../builder/unresolved_type.dart' as type;
 
 import '../identifiers.dart' as type;
 
+import '../kernel/body_builder.dart' as type show FormalParameters;
 import '../kernel/expression_generator.dart' as type;
 
 import '../modifier.dart' as type;
@@ -36,12 +37,15 @@ import '../constant_context.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
-  const SingleValueKind<List<type.Expression>>();
+      const SingleValueKind<List<type.Expression>>();
   static const ValueKind AnnotationListOrNull =
       const SingleValueKind<List<type.Expression>>(NullValue.Metadata);
   static const ValueKind Arguments = const SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       const SingleValueKind<type.Arguments>(NullValue.Arguments);
+  static const ValueKind AsyncMarker =
+      const SingleValueKind<type.AsyncMarker>();
+  static const ValueKind Bool = const SingleValueKind<bool>();
   static const ValueKind ConstantContext =
       const SingleValueKind<type.ConstantContext>();
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
@@ -55,9 +59,11 @@ class ValueKinds {
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind AsyncModifier =
       const SingleValueKind<type.AsyncMarker>();
-  static const ValueKind Formals =
+  static const ValueKind FormalParameters =
+      const SingleValueKind<type.FormalParameters>();
+  static const ValueKind FormalList =
       const SingleValueKind<List<type.FormalParameterBuilder>>();
-  static const ValueKind FormalsOrNull =
+  static const ValueKind FormalListOrNull =
       const SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValue.FormalParameters);
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
@@ -87,6 +93,9 @@ class ValueKinds {
       const SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
+  static const ValueKind Scope = const SingleValueKind<type.Scope>();
+  static const ValueKind SwitchScopeOrNull =
+      const SingleValueKind<type.Scope>(NullValue.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();
   static const ValueKind StatementOrNull =
       const SingleValueKind<type.Statement>(NullValue.Block);

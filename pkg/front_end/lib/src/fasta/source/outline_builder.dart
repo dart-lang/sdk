@@ -1032,7 +1032,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
     assert(checkState(beginToken, [
       ValueKinds.AsyncModifier,
-      ValueKinds.FormalsOrNull,
+      ValueKinds.FormalListOrNull,
       ValueKinds.Integer, // formals offset
       ValueKinds.TypeVariableListOrNull,
       ValueKinds.Integer, // name offset

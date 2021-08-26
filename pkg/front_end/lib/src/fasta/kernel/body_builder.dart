@@ -558,6 +558,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   Statement popStatement() => forest.wrapVariables(pop() as Statement);
 
+  Statement? popNullableStatement() {
+    Statement? statement = pop(NullValue.Block) as Statement?;
+    if (statement != null) {
+      statement = forest.wrapVariables(statement);
+    }
+    return statement;
+  }
+
   void enterSwitchScope() {
     push(switchScope ?? NullValue.SwitchScope);
     switchScope = scope;
@@ -5388,9 +5396,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // This is matched by the call to [endNode] in [pushNamedFunction] or
     // [endFunctionExpression].
     typeInferrer.assignedVariables.beginNode();
+    assert(checkState(null, [
+      /* inCatchBlock */ ValueKinds.Bool,
+      /* switch scope */ ValueKinds.SwitchScopeOrNull,
+    ]));
   }
 
   void exitFunction() {
+    assert(checkState(null, [
+      /* inCatchBlock */ ValueKinds.Bool,
+      /* switch scope */ ValueKinds.SwitchScopeOrNull,
+      /* function type variables */ ValueKinds.TypeVariableListOrNull,
+      /* function block scope */ ValueKinds.Scope,
+    ]));
     debugEvent("exitFunction");
     functionNestingLevel--;
     inCatchBlock = pop() as bool;
@@ -5400,6 +5418,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     push(typeVariables ?? NullValue.TypeVariables);
     _exitLocalState();
+    assert(checkState(null, [
+      ValueKinds.TypeVariableListOrNull,
+    ]));
   }
 
   @override
@@ -5524,7 +5545,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endFunctionExpression(Token beginToken, Token token) {
     debugEvent("FunctionExpression");
-    Statement body = popStatement();
+    assert(checkState(beginToken, [
+      /* body */ ValueKinds.StatementOrNull,
+      /* async marker */ ValueKinds.AsyncMarker,
+      /* function type scope */ ValueKinds.Scope,
+      /* formal parameters */ ValueKinds.FormalParameters,
+      /* inCatchBlock */ ValueKinds.Bool,
+      /* switch scope */ ValueKinds.SwitchScopeOrNull,
+      /* function type variables */ ValueKinds.TypeVariableListOrNull,
+      /* function block scope */ ValueKinds.Scope,
+    ]));
+    Statement body = popNullableStatement() ??
+        // In erroneous cases, there might not be function body. In such cases
+        // we use an empty statement instead.
+        forest.createEmptyStatement(token.charOffset);
     AsyncMarker asyncModifier = pop() as AsyncMarker;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
@@ -5548,6 +5582,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // This is matched by the call to [beginNode] in [enterFunction].
     typeInferrer.assignedVariables
         .endNode(result, isClosureOrLateVariableInitializer: true);
+    assert(checkState(beginToken, [
+      /* function expression or problem */ ValueKinds.Expression,
+    ]));
   }
 
   @override
