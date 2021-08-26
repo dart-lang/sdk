@@ -867,6 +867,22 @@ bar() {
         findNode.functionReference('foo<int>;'), null, 'dynamic');
   }
 
+  test_topLevelFunction_targetOfFunctionCall() async {
+    await assertNoErrorsInCode('''
+void foo<T>(T arg) {}
+
+extension on Function {
+  void m() {}
+}
+void bar() {
+  foo<int>.m();
+}
+''');
+
+    assertFunctionReference(findNode.functionReference('foo<int>'),
+        findElement.topFunction('foo'), 'void Function(int)');
+  }
+
   test_topLevelVariable_prefix_unknownIdentifier() async {
     newFile('$testPackageLibPath/a.dart', content: '');
     await assertErrorsInCode('''
