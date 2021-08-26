@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.49
+# Dart VM Service Protocol 3.51
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.49_ of the Dart VM Service Protocol. This
+This document describes of _version 3.51_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1059,7 +1059,8 @@ SourceReport|Sentinel getSourceReport(string isolateId,
                                       string scriptId [optional],
                                       int tokenPos [optional],
                                       int endTokenPos [optional],
-                                      bool forceCompile [optional])
+                                      bool forceCompile [optional],
+                                      bool reportLines [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -1094,6 +1095,12 @@ all functions in the range of the report.  Forcing compilation can
 cause a compilation error, which could terminate the running Dart
 program.  If this parameter is not provided, it is considered to have
 the value _false_.
+
+The _reportLines_ parameter changes the token positions in
+_SourceReportRange.possibleBreakpoints_ and _SourceReportCoverage_ to be line
+numbers. This is designed to reduce the number of RPCs that need to be performed
+in the case that the client is only interested in line numbers. If this
+parameter is not provided, it is considered to have the value _false_.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -3781,12 +3788,12 @@ locations in an isolate.
 
 ```
 class SourceReportCoverage {
-  // A list of token positions in a SourceReportRange which have been
-  // executed.  The list is sorted.
+  // A list of token positions (or line numbers if reportLines was enabled) in a
+  // SourceReportRange which have been executed.  The list is sorted.
   int[] hits;
 
-  // A list of token positions in a SourceReportRange which have not been
-  // executed.  The list is sorted.
+  // A list of token positions (or line numbers if reportLines was enabled) in a
+  // SourceReportRange which have not been executed.  The list is sorted.
   int[] misses;
 }
 ```
@@ -3836,9 +3843,9 @@ class SourceReportRange {
   SourceReportCoverage coverage [optional];
 
   // Possible breakpoint information for this range, represented as a
-  // sorted list of token positions.  Provided only when the when the
-  // PossibleBreakpoint report has been requested and the range has been
-  // compiled.
+  // sorted list of token positions (or line numbers if reportLines was
+  // enabled).  Provided only when the when the PossibleBreakpoint report has
+  // been requested and the range has been compiled.
   int[] possibleBreakpoints [optional];
 }
 ```
@@ -4176,5 +4183,6 @@ version | comments
 3.48 | Added `Profiler` stream, `UserTagChanged` event kind, and `updatedTag` and `previousTag` properties to `Event`.
 3.49 | Added `CpuSamples` event kind, and `cpuSamples` property to `Event`.
 3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
+3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -38,7 +38,9 @@ class SourceReport {
 
   // report_set is a bitvector indicating which reports to generate
   // (e.g. kCallSites | kCoverage).
-  explicit SourceReport(intptr_t report_set, CompileMode compile = kNoCompile);
+  explicit SourceReport(intptr_t report_set,
+                        CompileMode compile = kNoCompile,
+                        bool report_lines = false);
   ~SourceReport();
 
   // Generate a source report for (some subrange of) a script.
@@ -66,6 +68,8 @@ class SourceReport {
   bool ShouldSkipField(const Field& field);
   intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
+  intptr_t GetTokenPosOrLine(const Script& script,
+                             const TokenPosition& token_pos);
 
   void PrintCallSitesData(JSONObject* jsobj,
                           const Function& func,
@@ -126,6 +130,7 @@ class SourceReport {
 
   intptr_t report_set_;
   CompileMode compile_mode_;
+  bool report_lines_;
   Thread* thread_;
   const Script* script_;
   TokenPosition start_pos_;
