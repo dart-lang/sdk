@@ -39,6 +39,8 @@ class SecureSocketUtils : public AllStatic {
 
   static void CheckStatus(int status, const char* type, const char* message);
 
+  static bool IsCurrentTimeInsideCertValidDateRange(X509* root_cert);
+
   static bool NoPEMStartLine() {
     uint32_t last_error = ERR_peek_last_error();
     return (ERR_GET_LIB(last_error) == ERR_LIB_PEM) &&

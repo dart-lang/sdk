@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains some C++ sources for the dart:io library.  The other
-# implementation files are in builtin_impl_sources.gypi.
+# implementation files are in builtin_impl_sources.gni.
 io_impl_sources = [
   "console.h",
   "console_posix.cc",
@@ -109,4 +109,7 @@ io_impl_sources = [
   "typed_data_utils.h",
 ]
 
-io_impl_tests = [ "platform_macos_test.cc" ]
+io_impl_tests = [
+  "platform_macos_test.cc",
+  "secure_socket_utils_test.cc",
+]
