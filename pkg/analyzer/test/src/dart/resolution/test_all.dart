@@ -18,6 +18,7 @@ import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
+import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'field_test.dart' as field;
 import 'for_element_test.dart' as for_element;
 import 'for_statement_test.dart' as for_in;
@@ -82,6 +83,7 @@ main() {
     export_.main();
     extension_method.main();
     extension_override.main();
+    field_formal_parameter.main();
     field.main();
     for_element.main();
     for_in.main();
