@@ -28,8 +28,6 @@ class C extends core::Object {
     this.{self::C::_#C#c} = #t6;
   get d() → core::int
     return let final core::int? #t7 = this.{self::C::_#C#d}{core::int?} in #t7 == null ?{core::int} let final core::int #t8 = 1.{core::int::unary-}(){() → core::int} in this.{self::C::_#C#d}{core::int?} == null ?{core::int} this.{self::C::_#C#d} = #t8 : throw new _in::LateError::fieldADI("d") : #t7{core::int};
-  static method _#new#tearOff() → self::C
-    return new self::C::•();
 }
 static field self::C c = new self::C::•();
 static method main() → void {

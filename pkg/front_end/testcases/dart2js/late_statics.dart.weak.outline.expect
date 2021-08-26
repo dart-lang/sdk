@@ -20,8 +20,6 @@ class Statics extends core::Object {
   late static final field core::int d;
   synthetic constructor •() → self::Statics
     ;
-  static method _#new#tearOff() → self::Statics
-    return new self::Statics::•();
 }
 static method main() → void
   ;

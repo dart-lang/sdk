@@ -16,8 +16,6 @@ class C extends core::Object {
   get c() → core::int;
   set c(core::int #t3) → void;
   get d() → core::int;
-  static method _#new#tearOff() → self::C
-    return new self::C::•();
 }
 static field self::C c;
 static method main() → void
