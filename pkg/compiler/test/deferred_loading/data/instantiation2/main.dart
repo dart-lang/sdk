@@ -16,7 +16,19 @@
   c=(f3, f2)]
 */
 
-/*two-frag|three-frag.library: 
+/*two-frag.library: 
+ a_pre_fragments=[
+  p1: {units: [3{c}, 1{b}], usedBy: [p2], needs: []},
+  p2: {units: [2{b, c}], usedBy: [], needs: [p1]}],
+ b_finalized_fragments=[
+  f1: [3{c}, 1{b}],
+  f2: [2{b, c}]],
+ c_steps=[
+  b=(f2, f1),
+  c=(f2, f1)]
+*/
+
+/*three-frag.library: 
  a_pre_fragments=[
   p1: {units: [1{b}], usedBy: [p3], needs: []},
   p2: {units: [3{c}], usedBy: [p3], needs: []},

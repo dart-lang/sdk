@@ -55,7 +55,6 @@ class AstResolver {
       : _featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
-    _resolverVisitor.shouldCloneAnnotations = false;
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();

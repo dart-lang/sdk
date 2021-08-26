@@ -282,13 +282,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// always safe to use `.last` to examine the top of the stack.
   final List<Expression?> _unfinishedNullShorts = [null];
 
-  /// During resolution we clone annotation ASTs into the element model.
-  /// But we should not do this during linking element models, moreover
-  /// currently by doing this we will lose elements for parameters of
-  /// generic function types.
-  /// TODO(scheglov) Stop cloning altogether.
-  bool shouldCloneAnnotations = true;
-
   late final FunctionReferenceResolver _functionReferenceResolver;
 
   late final InstanceCreationExpressionResolver
