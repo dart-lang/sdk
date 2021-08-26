@@ -1027,6 +1027,12 @@ class Assembler : public AssemblerBase {
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     movq(Address(base, offset), src);
   }
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    movsd(dst, Address(base, offset));
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    movsd(Address(base, offset), src);
+  }
 
 #if defined(USING_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);

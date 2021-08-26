@@ -56,6 +56,7 @@ namespace dart {
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
   V(AllocateUnhandledException)                                                \
+  V(BoxDouble)                                                                 \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \

@@ -241,7 +241,25 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
   Definition* defn = instr->AsDefinition();
   if ((defn != NULL) && defn->HasTemp()) {
-    __ Push(defn->locs()->out(0).reg());
+    const Location value = defn->locs()->out(0);
+    if (value.IsRegister()) {
+      __ PushRegister(value.reg());
+    } else if (value.IsFpuRegister()) {
+      ASSERT(instr->representation() == kUnboxedDouble);
+      // In unoptimized code at instruction epilogue the only
+      // live register is an output register.
+      instr->locs()->live_registers()->Clear();
+      if (value.fpu_reg() != BoxDoubleStubABI::kValueReg) {
+        __ vmovd(EvenDRegisterOf(BoxDoubleStubABI::kValueReg),
+                 EvenDRegisterOf(value.fpu_reg()));
+      }
+      GenerateNonLazyDeoptableStubCall(
+          InstructionSource(),  // No token position.
+          StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());
+      __ PushRegister(BoxDoubleStubABI::kResultReg);
+    } else {
+      UNREACHABLE();
+    }
   }
 }
 

@@ -654,6 +654,12 @@ class Assembler : public AssemblerBase {
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     movl(Address(base, offset), src);
   }
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    movsd(dst, Address(base, offset));
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    movsd(Address(base, offset), src);
+  }
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).

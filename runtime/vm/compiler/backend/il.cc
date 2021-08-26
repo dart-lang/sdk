@@ -978,7 +978,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     // The instance is always tagged.
     return kTagged;
   }
-  if (IsUnboxedDartFieldStore()) {
+  if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
     return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();

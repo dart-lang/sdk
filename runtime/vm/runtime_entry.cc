@@ -344,6 +344,11 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   arguments.SetReturn(Object::Handle(zone, Double::New(0.0)));
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxDouble, 0) {
+  const double val = thread->unboxed_double_runtime_arg();
+  arguments.SetReturn(Object::Handle(zone, Double::New(val)));
+}
+
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     isolate->group()->heap()->CollectAllGarbage();

@@ -564,7 +564,7 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
 
 static bool IsPusher(Instruction* instr) {
   if (auto def = instr->AsDefinition()) {
-    return def->HasTemp();
+    return def->HasTemp() && (instr->representation() == kTagged);
   }
   return false;
 }
@@ -1566,6 +1566,18 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   return kNoRegister;
 }
 
+// Allocate a FPU register that is not explictly blocked.
+static FpuRegister AllocateFreeFpuRegister(bool* blocked_registers) {
+  for (intptr_t regno = 0; regno < kNumberOfFpuRegisters; regno++) {
+    if (!blocked_registers[regno]) {
+      blocked_registers[regno] = true;
+      return static_cast<FpuRegister>(regno);
+    }
+  }
+  UNREACHABLE();
+  return kNoFpuRegister;
+}
+
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
   instr->InitializeLocationSummary(zone(), false);  // Not optimizing.
@@ -1573,13 +1585,15 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
+  bool blocked_fpu_registers[kNumberOfFpuRegisters];
 
   // Connect input with peephole output for some special cases. All other
   // cases are handled by simply allocating registers and generating code.
   if (top_of_stack_ != nullptr) {
     const intptr_t p = locs->input_count() - 1;
     Location peephole = top_of_stack_->locs()->out(0);
-    if (locs->in(p).IsUnallocated() || locs->in(p).IsConstant()) {
+    if ((instr->RequiredInputRepresentation(p) == kTagged) &&
+        (locs->in(p).IsUnallocated() || locs->in(p).IsConstant())) {
       // If input is unallocated, match with an output register, if set. Also,
       // if input is a direct constant, but the peephole output is a register,
       // use that register to avoid wasting the already generated code.
@@ -1594,6 +1608,9 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     blocked_registers[i] = (kDartAvailableCpuRegs & (1 << i)) == 0;
   }
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    blocked_fpu_registers[i] = false;
+  }
 
   // Mark all fixed input, temp and output registers as used.
   for (intptr_t i = 0; i < locs->input_count(); i++) {
@@ -1602,6 +1619,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       // Check that a register is not specified twice in the summary.
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
+    } else if (loc.IsFpuRegister()) {
+      // Check that a register is not specified twice in the summary.
+      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
+      blocked_fpu_registers[loc.fpu_reg()] = true;
     }
   }
 
@@ -1611,6 +1632,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       // Check that a register is not specified twice in the summary.
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
+    } else if (loc.IsFpuRegister()) {
+      // Check that a register is not specified twice in the summary.
+      ASSERT(!blocked_fpu_registers[loc.fpu_reg()]);
+      blocked_fpu_registers[loc.fpu_reg()] = true;
     }
   }
 
@@ -1618,23 +1643,50 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
     blocked_registers[locs->out(0).reg()] = true;
+  } else if (locs->out(0).IsFpuRegister()) {
+    // Fixed output registers are allowed to overlap with
+    // temps and inputs.
+    blocked_fpu_registers[locs->out(0).fpu_reg()] = true;
   }
 
   // Allocate all unallocated input locations.
   const bool should_pop = !instr->IsPushArgument();
+  Register fpu_unboxing_temp = kNoRegister;
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;
+    FpuRegister fpu_reg = kNoFpuRegister;
     if (loc.IsRegister()) {
       reg = loc.reg();
+    } else if (loc.IsFpuRegister()) {
+      fpu_reg = loc.fpu_reg();
     } else if (loc.IsUnallocated()) {
-      ASSERT((loc.policy() == Location::kRequiresRegister) ||
-             (loc.policy() == Location::kWritableRegister) ||
-             (loc.policy() == Location::kPrefersRegister) ||
-             (loc.policy() == Location::kAny));
-      reg = AllocateFreeRegister(blocked_registers);
-      locs->set_in(i, Location::RegisterLocation(reg));
+      switch (loc.policy()) {
+        case Location::kRequiresRegister:
+        case Location::kWritableRegister:
+        case Location::kPrefersRegister:
+        case Location::kAny:
+          reg = AllocateFreeRegister(blocked_registers);
+          locs->set_in(i, Location::RegisterLocation(reg));
+          break;
+        case Location::kRequiresFpuRegister:
+          fpu_reg = AllocateFreeFpuRegister(blocked_fpu_registers);
+          locs->set_in(i, Location::FpuRegisterLocation(fpu_reg));
+          break;
+        default:
+          UNREACHABLE();
+      }
     }
+
+    if (fpu_reg != kNoFpuRegister) {
+      ASSERT(reg == kNoRegister);
+      // Allocate temporary CPU register for unboxing, but only once.
+      if (fpu_unboxing_temp == kNoRegister) {
+        fpu_unboxing_temp = AllocateFreeRegister(blocked_registers);
+      }
+      reg = fpu_unboxing_temp;
+    }
+
     ASSERT(reg != kNoRegister || loc.IsConstant());
 
     // Inputs are consumed from the simulated frame (or a peephole push/pop).
@@ -1644,7 +1696,8 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         if (!loc.IsConstant()) {
           // Moves top of stack location of the peephole into the required
           // input. None of the required moves needs a temp register allocator.
-          EmitMove(locs->in(i), top_of_stack_->locs()->out(0), nullptr);
+          EmitMove(Location::RegisterLocation(reg),
+                   top_of_stack_->locs()->out(0), nullptr);
         }
         top_of_stack_ = nullptr;  // consumed!
       } else if (loc.IsConstant()) {
@@ -1652,6 +1705,24 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
       } else {
         assembler()->PopRegister(reg);
       }
+      if (!loc.IsConstant()) {
+        switch (instr->RequiredInputRepresentation(i)) {
+          case kUnboxedDouble:
+            ASSERT(fpu_reg != kNoFpuRegister);
+            ASSERT(instr->SpeculativeModeOfInput(i) ==
+                   Instruction::kNotSpeculative);
+            assembler()->LoadUnboxedDouble(
+                fpu_reg, reg,
+                compiler::target::Double::value_offset() - kHeapObjectTag);
+            break;
+          default:
+            // No automatic unboxing for other representations.
+            ASSERT(fpu_reg == kNoFpuRegister);
+            break;
+        }
+      }
+    } else {
+      ASSERT(fpu_reg == kNoFpuRegister);
     }
   }
 
@@ -1659,9 +1730,20 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   for (intptr_t i = 0; i < locs->temp_count(); i++) {
     Location loc = locs->temp(i);
     if (loc.IsUnallocated()) {
-      ASSERT(loc.policy() == Location::kRequiresRegister);
-      loc = Location::RegisterLocation(AllocateFreeRegister(blocked_registers));
-      locs->set_temp(i, loc);
+      switch (loc.policy()) {
+        case Location::kRequiresRegister:
+          loc = Location::RegisterLocation(
+              AllocateFreeRegister(blocked_registers));
+          locs->set_temp(i, loc);
+          break;
+        case Location::kRequiresFpuRegister:
+          loc = Location::FpuRegisterLocation(
+              AllocateFreeFpuRegister(blocked_fpu_registers));
+          locs->set_temp(i, loc);
+          break;
+        default:
+          UNREACHABLE();
+      }
     }
   }
 
@@ -1679,6 +1761,9 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = locs->in(0);
         break;
       case Location::kRequiresFpuRegister:
+        result_location = Location::FpuRegisterLocation(
+            AllocateFreeFpuRegister(blocked_fpu_registers));
+        break;
       case Location::kRequiresStackSlot:
         UNREACHABLE();
         break;
@@ -3103,6 +3188,10 @@ void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
 void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   ASSERT(!is_optimizing());
+  if ((rep == kUnboxedDouble) && defn->locs()->out(0).IsFpuRegister()) {
+    // Output value is boxed in the instruction epilogue.
+    rep = kTagged;
+  }
   ASSERT((rep == kTagged) || (rep == kUntagged) ||
          RepresentationUtils::IsUnboxedInteger(rep));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());

@@ -1022,6 +1022,34 @@ EMIT_BOX_ALLOCATION(Int32x4)
 
 #undef EMIT_BOX_ALLOCATION
 
+void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
+#if defined(TARGET_ARCH_ARM)
+  if (!TargetCPUFeatures::vfp_supported()) {
+    __ Breakpoint();
+    return;
+  }
+#endif  // defined(TARGET_ARCH_ARM)
+  Label call_runtime;
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    __ TryAllocate(compiler::DoubleClass(), &call_runtime,
+                   compiler::Assembler::kFarJump, BoxDoubleStubABI::kResultReg,
+                   BoxDoubleStubABI::kTempReg);
+    __ StoreUnboxedDouble(
+        BoxDoubleStubABI::kValueReg, BoxDoubleStubABI::kResultReg,
+        compiler::target::Double::value_offset() - kHeapObjectTag);
+    __ Ret();
+  }
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+  __ PushObject(NullObject()); /* Make room for result. */
+  __ StoreUnboxedDouble(BoxDoubleStubABI::kValueReg, THR,
+                        Thread::unboxed_double_runtime_arg_offset());
+  __ CallRuntime(kBoxDoubleRuntimeEntry, 0);
+  __ PopRegister(BoxDoubleStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 }  // namespace compiler
 
 }  // namespace dart
