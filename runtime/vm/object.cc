@@ -20459,8 +20459,9 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
   if (IsFunctionType()) {
-    // Any type that can be the type of a closure is a subtype of Function.
-    if (other.IsDartFunctionType()) {
+    // Any type that can be the type of a closure is a subtype of Function or
+    // non-nullable Object.
+    if (other.IsObjectType() || other.IsDartFunctionType()) {
       return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
              !other.IsNonNullable();
     }
