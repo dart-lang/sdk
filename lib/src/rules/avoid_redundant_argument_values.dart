@@ -51,6 +51,7 @@ class AvoidRedundantArgumentValues extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
+    registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -93,6 +94,11 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    check(node.argumentList);
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     check(node.argumentList);
   }
 
