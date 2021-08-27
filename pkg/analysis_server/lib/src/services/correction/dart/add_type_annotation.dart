@@ -142,11 +142,9 @@ class AddTypeAnnotation extends CorrectionProducer {
       return;
     }
     // Ensure that there is a single type.
-    if (variables.length > 1) {
-      for (var v in variables) {
-        if (v != variable && _typeForVariable(v) != type) {
-          return;
-        }
+    for (var i = 1; i < variables.length; i++) {
+      if (_typeForVariable(variables[i]) != type) {
+        return;
       }
     }
     if ((type is! InterfaceType || type.isDartCoreNull) &&
