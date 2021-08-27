@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -150,19 +150,17 @@ void bar() {
   A<int>..foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 50, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
+      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
     ]);
-
-    // The nodes are not rewritten into a [ConstructorReference].
-    var cascade = findNode.cascade('A<int>..foo;');
-    assertType(cascade, 'Type');
-    var section = cascade.cascadeSections.first as PropertyAccess;
-    assertType(section, 'dynamic');
-    assertType(section.propertyName, 'dynamic');
+    // The parser produces nonsense here because the `<` disambiguates as a
+    // relational operator, so no need to assert anything about analysis
+    // results.
   }
 
   test_class_generic_named_nullAware() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A<T> {
   A.foo();
 }
@@ -170,17 +168,14 @@ class A<T> {
 void bar() {
   A<int>?.foo;
 }
-''');
-
-    var classElement = findElement.class_('A');
-    assertConstructorReference(
-      findNode.constructorReference('A<int>?.foo;'),
-      elementMatcher(classElement.getNamedConstructor('foo')!,
-          substitution: {'T': 'int'}),
-      classElement,
-      'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
-    );
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
+      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+    ]);
+    // The parser produces nonsense here because the `<` disambiguates as a
+    // relational operator, so no need to assert anything about analysis
+    // results.
   }
 
   test_class_generic_named_typeArgs() async {

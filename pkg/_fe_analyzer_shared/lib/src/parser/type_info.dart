@@ -370,32 +370,11 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
 /// indicating that the `<` and `>` should be interpreted as operators (so two
 /// arguments are being passed to `f`: `a < b` and `c > -d`).
 bool mayFollowTypeArgs(Token token) {
+  const Set<String> continuationTokens = {'(', '.', '==', '!='};
+  const Set<String> stopTokens = {')', ']', '}', ';', ':', ','};
   const Set<String> tokensThatMayFollowTypeArg = {
-    '(',
-    ')',
-    ']',
-    '}',
-    ':',
-    ';',
-    ',',
-    '.',
-    '?',
-    '==',
-    '!=',
-    '..',
-    '?.',
-    '??',
-    '?..',
-    '&',
-    '|',
-    '^',
-    '+',
-    '*',
-    '%',
-    '/',
-    '~/',
-    'is',
-    'as'
+    ...continuationTokens,
+    ...stopTokens
   };
   if (token.type == TokenType.EOF) {
     // The spec doesn't have anything to say about this case, since an
