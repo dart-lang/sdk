@@ -1354,10 +1354,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitSimpleIdentifier(SimpleIdentifier node) {
-    if (_lexicalEnvironment != null &&
-        _lexicalEnvironment!.containsKey(node.name)) {
-      return _lexicalEnvironment![node.name];
+    var value = _lexicalEnvironment?[node.name];
+    if (value != null) {
+      return value;
     }
+
     return _getConstantValue(node, node.staticElement);
   }
 
