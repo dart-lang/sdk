@@ -388,7 +388,17 @@ class Harness extends TypeOperations<Var, Type> {
 
   late final _typeAnalyzer = _MiniAstTypeAnalyzer(this);
 
-  Harness({this.legacy = false, String? thisType})
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
+  Harness(
+      {this.legacy = false,
+      String? thisType,
+      this.respectImplicitlyTypedVarInitializers = true})
       : thisType = thisType == null ? null : Type(thisType);
 
   MiniIrBuilder get _irBuilder => _typeAnalyzer._irBuilder;
@@ -483,7 +493,9 @@ class Harness extends TypeOperations<Var, Type> {
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables);
+            this, assignedVariables,
+            respectImplicitlyTypedVarInitializers:
+                respectImplicitlyTypedVarInitializers);
     _typeAnalyzer.dispatchStatement(b);
     _typeAnalyzer.finish();
   }

@@ -142,6 +142,7 @@ bs
 bsd
 bslash
 buffered
+buggy
 builder`s
 bulk
 bump
@@ -559,6 +560,7 @@ i'll
 i2b
 ic
 id
+ideal
 identifies
 identifying
 ideographic

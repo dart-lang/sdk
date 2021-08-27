@@ -377,10 +377,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var previousAssignedVariables = _assignedVariables;
     if (_flowAnalysis == null) {
       _assignedVariables = AssignedVariables();
+      // Note: we are using flow analysis to help us track true nullabilities;
+      // it's not necessary to replicate old bugs.  So we pass `true` for
+      // `respectImplicitlyTypedVarInitializers`.
       _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
               PromotableElement, DecoratedType>(
           DecoratedTypeOperations(_typeSystem, _variables, _graph),
-          _assignedVariables!);
+          _assignedVariables!,
+          respectImplicitlyTypedVarInitializers: true);
     }
     try {
       _dispatch(node.name);
@@ -2110,10 +2114,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_assignedVariables == null);
     _assignedVariables =
         FlowAnalysisHelper.computeAssignedVariables(node, parameters);
+    // Note: we are using flow analysis to help us track true nullabilities;
+    // it's not necessary to replicate old bugs.  So we pass `true` for
+    // `respectImplicitlyTypedVarInitializers`.
     _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
             PromotableElement, DecoratedType>(
         DecoratedTypeOperations(_typeSystem, _variables, _graph),
-        _assignedVariables!);
+        _assignedVariables!,
+        respectImplicitlyTypedVarInitializers: true);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         _flowAnalysis!.declare(parameter.declaredElement!, true);

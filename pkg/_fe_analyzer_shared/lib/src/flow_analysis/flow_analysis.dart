@@ -368,8 +368,11 @@ class ExpressionInfo<Variable extends Object, Type extends Object> {
 abstract class FlowAnalysis<Node extends Object, Statement extends Node,
     Expression extends Object, Variable extends Object, Type extends Object> {
   factory FlowAnalysis(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables) {
-    return new _FlowAnalysisImpl(typeOperations, assignedVariables);
+      AssignedVariables<Node, Variable> assignedVariables,
+      {required bool respectImplicitlyTypedVarInitializers}) {
+    return new _FlowAnalysisImpl(typeOperations, assignedVariables,
+        respectImplicitlyTypedVarInitializers:
+            respectImplicitlyTypedVarInitializers);
   }
 
   factory FlowAnalysis.legacy(TypeOperations<Variable, Type> typeOperations,
@@ -983,10 +986,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   bool _exceptionOccurred = false;
 
   factory FlowAnalysisDebug(TypeOperations<Variable, Type> typeOperations,
-      AssignedVariables<Node, Variable> assignedVariables) {
+      AssignedVariables<Node, Variable> assignedVariables,
+      {required bool respectImplicitlyTypedVarInitializers}) {
     print('FlowAnalysisDebug()');
-    return new FlowAnalysisDebug._(
-        new _FlowAnalysisImpl(typeOperations, assignedVariables));
+    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
+        typeOperations, assignedVariables,
+        respectImplicitlyTypedVarInitializers:
+            respectImplicitlyTypedVarInitializers));
   }
 
   factory FlowAnalysisDebug.legacy(
@@ -3454,7 +3460,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
-  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables);
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
+  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
+      {required this.respectImplicitlyTypedVarInitializers});
 
   @override
   bool get isReachable => _current.reachable.overallReachable;
@@ -3810,10 +3824,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (isLate) {
       // Don't get expression info for late variables, since we don't know when
       // they'll be initialized.
-    } else if (isImplicitlyTyped) {
-      // We don't get expression info for implicitly typed variables yet (bug
-      // https://github.com/dart-lang/language/issues/1785).
-      // TODO(paulberry): fix this.
+    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
+      // If the language version is too old, SSA analysis has to ignore
+      // initializer expressions for implicitly typed variables, in order to
+      // preserve the buggy behavior of
+      // https://github.com/dart-lang/language/issues/1785.
     } else {
       expressionInfo = _getExpressionInfo(initializerExpression);
     }
