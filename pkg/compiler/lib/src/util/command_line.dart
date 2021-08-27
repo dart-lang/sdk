@@ -32,7 +32,7 @@ List<String> splitLine(String line, {bool windows = false}) {
   List<String> result = <String>[];
   bool inQuotes = false;
   String? openingQuote;
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
   for (int i = 0; i < line.length; i++) {
     String c = line[i];
     if (inQuotes && c == openingQuote) {
@@ -46,7 +46,7 @@ List<String> splitLine(String line, {bool windows = false}) {
     }
     if (c == '\\') {
       if (i == line.length - 1) {
-        throw new FormatException('Unfinished escape: $line');
+        throw FormatException('Unfinished escape: $line');
       }
       if (windows) {
         String next = line[i + 1];
@@ -73,7 +73,7 @@ List<String> splitLine(String line, {bool windows = false}) {
     }
     buffer.write(c);
   }
-  if (inQuotes) throw new FormatException('Unclosed quotes: $line');
+  if (inQuotes) throw FormatException('Unclosed quotes: $line');
   if (buffer.isNotEmpty) result.add(buffer.toString());
   return result;
 }

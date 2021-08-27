@@ -22,12 +22,12 @@ abstract class CodeLocation {
       int slashPos = uri.path.indexOf('/');
       if (slashPos != -1) {
         String packageName = uri.path.substring(0, slashPos);
-        return new PackageLocation(packageName);
+        return PackageLocation(packageName);
       } else {
-        return new UriLocation(uri);
+        return UriLocation(uri);
       }
     } else {
-      return new SchemeLocation(uri);
+      return SchemeLocation(uri);
     }
   }
 }

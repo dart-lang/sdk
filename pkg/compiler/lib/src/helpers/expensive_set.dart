@@ -10,10 +10,10 @@ import 'dart:collection';
 class ExpensiveSet<E> extends SetBase<E> {
   final List _sets;
 
-  ExpensiveSet([int copies = 10]) : _sets = new List.filled(copies, null) {
+  ExpensiveSet([int copies = 10]) : _sets = List.filled(copies, null) {
     assert(copies > 0);
     for (int i = 0; i < _sets.length; i++) {
-      _sets[i] = new Set<E>();
+      _sets[i] = Set<E>();
     }
   }
 
@@ -94,7 +94,7 @@ class ExpensiveSet<E> extends SetBase<E> {
     return true;
   }
 
-  Set _newSet() => new ExpensiveSet(_sets.length);
+  Set _newSet() => ExpensiveSet(_sets.length);
 
   @override
   Set<E> intersection(Set<Object> other) {
@@ -113,7 +113,9 @@ class ExpensiveSet<E> extends SetBase<E> {
 
   @override
   Set<E> union(Set<E> other) {
-    return _newSet()..addAll(this)..addAll(other);
+    return _newSet()
+      ..addAll(this)
+      ..addAll(other);
   }
 
   @override
@@ -138,7 +140,7 @@ class ExpensiveSet<E> extends SetBase<E> {
 
   @override
   Set<E> toSet() {
-    var result = new ExpensiveSet<E>(_sets.length);
+    var result = ExpensiveSet<E>(_sets.length);
     for (int i = 0; i < _sets.length; i++) {
       result._sets[i] = _sets[i].toSet();
     }

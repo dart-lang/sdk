@@ -41,7 +41,7 @@ class SourceMapBuilder {
       this.frames);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
-    entries.add(new SourceMapEntry(sourceLocation, targetOffset));
+    entries.add(SourceMapEntry(sourceLocation, targetOffset));
   }
 
   void printStringListOn(Iterable<String> strings, StringBuffer buffer) {
@@ -59,7 +59,7 @@ class SourceMapBuilder {
 
   String build() {
     LineColumnMap<SourceMapEntry> lineColumnMap =
-        new LineColumnMap<SourceMapEntry>();
+        LineColumnMap<SourceMapEntry>();
     Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap =
         <Uri, LineColumnMap<SourceMapEntry>>{};
     entries.forEach((SourceMapEntry sourceMapEntry) {
@@ -73,8 +73,8 @@ class SourceMapBuilder {
       if (location != null) {
         if (location.sourceUri != null) {
           LineColumnMap<SourceMapEntry> sourceLineColumnMap =
-              sourceLocationMap.putIfAbsent(location.sourceUri,
-                  () => new LineColumnMap<SourceMapEntry>());
+              sourceLocationMap.putIfAbsent(
+                  location.sourceUri, () => LineColumnMap<SourceMapEntry>());
           sourceLineColumnMap.add(
               location.line - 1, location.column - 1, sourceMapEntry);
         }
@@ -85,8 +85,8 @@ class SourceMapBuilder {
   }
 
   String _build(LineColumnMap<SourceMapEntry> lineColumnMap) {
-    IndexMap<Uri> uriMap = new IndexMap<Uri>();
-    IndexMap<String> nameMap = new IndexMap<String>();
+    IndexMap<Uri> uriMap = IndexMap<Uri>();
+    IndexMap<String> nameMap = IndexMap<String>();
 
     void registerLocation(SourceLocation sourceLocation) {
       if (sourceLocation != null) {
@@ -114,10 +114,10 @@ class SourceMapBuilder {
       }
     }
 
-    StringBuffer mappingsBuffer = new StringBuffer();
+    StringBuffer mappingsBuffer = StringBuffer();
     writeEntries(lineColumnMap, uriMap, nameMap, mappingsBuffer);
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     buffer.write('{\n');
     buffer.write('  "version": 3,\n');
     buffer.write('  "engine": "$version",\n');
@@ -158,12 +158,12 @@ class SourceMapBuilder {
       IndexMap<String> nameMap, StringBuffer output) {
     SourceLocation previousSourceLocation;
     int previousTargetLine = 0;
-    DeltaEncoder targetColumnEncoder = new DeltaEncoder();
+    DeltaEncoder targetColumnEncoder = DeltaEncoder();
     bool firstEntryInLine = true;
-    DeltaEncoder sourceUriIndexEncoder = new DeltaEncoder();
-    DeltaEncoder sourceLineEncoder = new DeltaEncoder();
-    DeltaEncoder sourceColumnEncoder = new DeltaEncoder();
-    DeltaEncoder sourceNameIndexEncoder = new DeltaEncoder();
+    DeltaEncoder sourceUriIndexEncoder = DeltaEncoder();
+    DeltaEncoder sourceLineEncoder = DeltaEncoder();
+    DeltaEncoder sourceColumnEncoder = DeltaEncoder();
+    DeltaEncoder sourceNameIndexEncoder = DeltaEncoder();
 
     entries.forEach((int targetLine, int targetColumn, SourceMapEntry entry) {
       SourceLocation sourceLocation = entry.sourceLocation;
@@ -283,7 +283,7 @@ class SourceMapBuilder {
     int index = 0;
     sourceLocationsProvider.sourceLocations
         .forEach((SourceLocations sourceLocations) {
-      SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
+      SourceMapBuilder sourceMapBuilder = SourceMapBuilder(
           sourceLocations.name,
           sourceMapUri,
           fileUri,
