@@ -45,6 +45,7 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
@@ -444,7 +445,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = node.declaredElement as ClassElementImpl;
+      var enclosingClass = node.declaredElement as ClassElementImpl;
+      _enclosingClass = enclosingClass;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -468,6 +470,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction(node.name);
+      _reportMacroExecutionErrors(
+        node.metadata,
+        enclosingClass.macroExecutionErrors,
+      );
       super.visitClassDeclaration(node);
     } finally {
       _isInNativeClass = false;
@@ -4984,6 +4990,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.identifier;
     }
     return null;
+  }
+
+  /// Report [macroExecutionErrors] at the corresponding [annotations].
+  void _reportMacroExecutionErrors(
+    List<Annotation> annotations,
+    List<macro.MacroExecutionError> macroExecutionErrors,
+  ) {
+    for (var macroExecutionError in macroExecutionErrors) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.MACRO_EXECUTION_ERROR,
+        annotations[macroExecutionError.annotationIndex],
+        [
+          macroExecutionError.macroName,
+          macroExecutionError.message,
+        ],
+      );
+    }
   }
 
   void _withEnclosingExecutable(
