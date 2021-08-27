@@ -14,7 +14,8 @@ const _details = r'''
 
 **PREFER** using `const` for instantiating constant constructors.
 
-If a const constructor is available, it is preferable to use it.
+If a constructor can be invoked as const to produce a canonicalized instance,
+it's preferable to do so.
 
 **GOOD:**
 ```dart
