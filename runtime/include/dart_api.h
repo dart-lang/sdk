@@ -3538,6 +3538,7 @@ typedef enum {
   Dart_KernelCompilationStatus_Ok = 0,
   Dart_KernelCompilationStatus_Error = 1,
   Dart_KernelCompilationStatus_Crash = 2,
+  Dart_KernelCompilationStatus_MsgFailed = 3,
 } Dart_KernelCompilationStatus;
 
 typedef struct {
