@@ -54,8 +54,8 @@ class CreateMissingOverrides extends CorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       final syntheticLeftBracket = targetClass.leftBracket.isSynthetic;
       if (syntheticLeftBracket) {
-        var previousToLeftBracket = targetClass.leftBracket.previous;
-        builder.addSimpleInsertion(previousToLeftBracket!.end, ' {');
+        var previousToLeftBracket = targetClass.leftBracket.previous!;
+        builder.addSimpleInsertion(previousToLeftBracket.end, ' {');
       }
 
       builder.addInsertion(location.offset, (builder) {
@@ -109,8 +109,8 @@ class CreateMissingOverrides extends CorrectionProducer {
         builder.write(location.suffix);
 
         if (targetClass.rightBracket.isSynthetic) {
-          var next = targetClass.rightBracket.next;
-          if (next!.type != TokenType.CLOSE_CURLY_BRACKET) {
+          var next = targetClass.rightBracket.next!;
+          if (next.type != TokenType.CLOSE_CURLY_BRACKET) {
             if (!syntheticLeftBracket) {
               builder.write(eol);
             }
