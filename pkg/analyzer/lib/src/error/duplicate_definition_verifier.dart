@@ -261,6 +261,10 @@ class DuplicateDefinitionVerifier {
 
     for (ClassMember member in members) {
       if (member is ConstructorDeclaration) {
+        if (member.returnType.name != element.name) {
+          // [member] is erroneous; do not count it as a possible duplicate.
+          continue;
+        }
         var name = member.name?.name ?? '';
         if (name == 'new') {
           name = '';
