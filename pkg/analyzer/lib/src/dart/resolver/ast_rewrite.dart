@@ -45,7 +45,7 @@ class AstRewriter {
     var typeName = node.constructorName.type.name;
     if (typeName is SimpleIdentifier) {
       var element = nameScope.lookup(typeName.name).getter;
-      if (element is MethodElement) {
+      if (element is FunctionElement || element is MethodElement) {
         return _toMethodInvocationOfFunctionReference(
             node: node, function: typeName);
       }

@@ -1121,40 +1121,6 @@ bool GraphIntrinsifier::Build_MathLog(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kMathLog);
 }
 
-bool GraphIntrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
-  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleMod,
-                                  /* num_parameters = */ 2);
-}
-
-bool GraphIntrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
-  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
-  // way.
-  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
-
-  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleCeil);
-}
-
-bool GraphIntrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
-  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
-  // way.
-  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
-
-  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleFloor);
-}
-
-bool GraphIntrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
-  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
-  // way.
-  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
-
-  return BuildInvokeMathCFunction(flow_graph,
-                                  MethodRecognizer::kDoubleTruncate);
-}
-
-bool GraphIntrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
-  return BuildInvokeMathCFunction(flow_graph, MethodRecognizer::kDoubleRound);
-}
-
 bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   // This code will only be invoked if our assumptions have been met (see
   // [Intrinsifier::CanIntrinsifyFieldAccessor])

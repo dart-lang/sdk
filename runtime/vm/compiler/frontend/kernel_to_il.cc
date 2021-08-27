@@ -8,6 +8,7 @@
 #include "platform/globals.h"
 #include "vm/class_id.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
@@ -891,6 +892,12 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
       return true;
+    case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleCeil:
+      return FlowGraphCompiler::SupportsUnboxedDoubles();
     default:
       return false;
   }
@@ -1505,6 +1512,24 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntConstant(0);  // Index.
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
+    } break;
+    case MethodRecognizer::kDoubleMod:
+    case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kDoubleTruncate:
+    case MethodRecognizer::kDoubleFloor:
+    case MethodRecognizer::kDoubleCeil: {
+      for (intptr_t i = 0, n = function.NumParameters(); i < n; ++i) {
+        body += LoadLocal(parsed_function_->RawParameterVariable(i));
+      }
+      if (!CompilerState::Current().is_aot() &&
+          TargetCPUFeatures::double_truncate_round_supported() &&
+          ((kind == MethodRecognizer::kDoubleTruncate) ||
+           (kind == MethodRecognizer::kDoubleFloor) ||
+           (kind == MethodRecognizer::kDoubleCeil))) {
+        body += DoubleToDouble(kind);
+      } else {
+        body += InvokeMathCFunction(kind, function.NumParameters());
+      }
     } break;
     default: {
       UNREACHABLE();

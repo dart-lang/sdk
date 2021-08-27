@@ -18,6 +18,7 @@ namespace dart {
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(BoxDouble)                                                                 \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \

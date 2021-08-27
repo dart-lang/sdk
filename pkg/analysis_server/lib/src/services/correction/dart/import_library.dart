@@ -46,7 +46,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (targetType == null) {
           return;
         }
-        var definingLibraries = extensionCache.membersByName[memberName];
+        var definingLibraries =
+            extensionCache.membersByName[memberName]?.toList();
         if (definingLibraries != null) {
           for (var definingLibrary in definingLibraries) {
             var libraryPath = definingLibrary.libraryPath;

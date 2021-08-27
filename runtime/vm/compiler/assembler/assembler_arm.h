@@ -1040,6 +1040,12 @@ class Assembler : public AssemblerBase {
                       Register base,
                       int32_t offset,
                       Condition cond = AL);
+  void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
+    LoadDFromOffset(EvenDRegisterOf(dst), base, offset);
+  }
+  void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
+    StoreDToOffset(EvenDRegisterOf(src), base, offset);
+  }
 
   void LoadMultipleDFromOffset(DRegister first,
                                intptr_t count,

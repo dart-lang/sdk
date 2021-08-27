@@ -978,7 +978,7 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     // The instance is always tagged.
     return kTagged;
   }
-  if (IsUnboxedDartFieldStore()) {
+  if (IsUnboxedDartFieldStore() && CompilerState::Current().is_optimizing()) {
     return FlowGraph::UnboxedFieldRepresentationOf(slot().field());
   }
   return slot().representation();
@@ -6178,10 +6178,7 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
   switch (kind) {
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil: {
-      ASSERT(!TargetCPUFeatures::double_truncate_round_supported());
-      return 1;
-    }
+    case MethodRecognizer::kDoubleCeil:
     case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathTan:

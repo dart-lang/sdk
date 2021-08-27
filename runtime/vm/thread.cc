@@ -73,6 +73,7 @@ Thread::Thread(bool is_vm_isolate)
       marking_stack_block_(NULL),
       vm_tag_(0),
       unboxed_int64_runtime_arg_(0),
+      unboxed_double_runtime_arg_(0.0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),

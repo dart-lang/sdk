@@ -65,6 +65,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraph();
 
+  // Returns true if given [function] is recognized for flow
+  // graph building and its body is expressed in a custom-built IL.
+  static bool IsRecognizedMethodForFlowGraph(const Function& function);
+
  private:
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
                                  PrologueInfo* prologue_info);
@@ -145,8 +149,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
-  // Every recognized method has a body expressed in IL.
-  bool IsRecognizedMethodForFlowGraph(const Function& function);
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,

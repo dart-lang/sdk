@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,6 +22,82 @@ void main() {
 class CreateMissingOverridesTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+
+  Future<void> test_brackets_both() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
+
+  Future<void> test_brackets_left() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A
+}
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
+
+  Future<void> test_brackets_right() async {
+    await resolveTestCode('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+''');
+    await assertHasFix('''
+class A {
+  void m() {};
+}
+
+class B implements A {
+  @override
+  void m() {
+    // TODO: implement m
+  }
+}
+''', errorFilter: (error) {
+      return error.errorCode ==
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+    });
+  }
 
   Future<void> test_field_untyped() async {
     await resolveTestCode('''

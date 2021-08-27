@@ -5344,30 +5344,36 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
                                                                bool opt) const {
   // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
   // double arguments and XMM0 to return the result.
-  //
-  // TODO(sjindel): allow XMM0 to be used. Requires refactoring InvokeDoublePow
-  // to allow input 1/output register to be equal.
-  ASSERT((InputCount() == 1) || (InputCount() == 2));
-  const intptr_t kNumTemps =
-      (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 4 : 1;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
   ASSERT(R13 != CALLEE_SAVED_TEMP);
   ASSERT(((1 << R13) & CallingConventions::kCalleeSaveCpuRegisters) != 0);
-  result->set_temp(0, Location::RegisterLocation(R13));
-  result->set_in(0, Location::FpuRegisterLocation(XMM2));
-  if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(XMM1));
-  }
+
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
+    ASSERT(InputCount() == 2);
+    const intptr_t kNumTemps = 4;
+    LocationSummary* result = new (zone)
+        LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+    result->set_in(0, Location::FpuRegisterLocation(XMM2));
+    result->set_in(1, Location::FpuRegisterLocation(XMM1));
+    result->set_temp(0, Location::RegisterLocation(R13));
     // Temp index 1.
     result->set_temp(1, Location::RegisterLocation(RAX));
     // Temp index 2.
     result->set_temp(2, Location::FpuRegisterLocation(XMM4));
     // Block XMM0 for the calling convention.
     result->set_temp(3, Location::FpuRegisterLocation(XMM0));
+    result->set_out(0, Location::FpuRegisterLocation(XMM3));
+    return result;
   }
-  result->set_out(0, Location::FpuRegisterLocation(XMM3));
+  ASSERT((InputCount() == 1) || (InputCount() == 2));
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new (zone)
+      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  result->set_temp(0, Location::RegisterLocation(R13));
+  result->set_in(0, Location::FpuRegisterLocation(XMM0));
+  if (InputCount() == 2) {
+    result->set_in(1, Location::FpuRegisterLocation(XMM1));
+  }
+  result->set_out(0, Location::FpuRegisterLocation(XMM0));
   return result;
 }
 
@@ -5509,17 +5515,20 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     InvokeDoublePow(compiler, this);
     return;
   }
-  // Save RSP.
-  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
-  __ ReserveAlignedFrameSpace(0);
-  __ movaps(XMM0, locs()->in(0).fpu_reg());
+
+  ASSERT(locs()->in(0).fpu_reg() == XMM0);
   if (InputCount() == 2) {
     ASSERT(locs()->in(1).fpu_reg() == XMM1);
   }
 
+  // Save RSP.
+  __ movq(locs()->temp(kSavedSpTempIndex).reg(), RSP);
+  __ ReserveAlignedFrameSpace(0);
+
   ASSERT(TargetFunction().is_leaf());  // No deopt info needed.
   __ CallRuntime(TargetFunction(), InputCount());
-  __ movaps(locs()->out(0).fpu_reg(), XMM0);
+  ASSERT(locs()->out(0).fpu_reg() == XMM0);
+
   // Restore RSP.
   __ movq(RSP, locs()->temp(kSavedSpTempIndex).reg());
 }

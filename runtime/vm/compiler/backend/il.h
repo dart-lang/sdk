@@ -8394,6 +8394,11 @@ class DoubleToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
+  }
+
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   virtual bool AttributesEqual(const Instruction& other) const {
@@ -8510,6 +8515,11 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((0 <= idx) && (idx < InputCount()));
     return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
+    return kNotSpeculative;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }

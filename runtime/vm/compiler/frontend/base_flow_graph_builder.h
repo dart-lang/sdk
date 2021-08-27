@@ -436,6 +436,14 @@ class BaseFlowGraphBuilder {
   // Sets raw parameter variables to inferred constant values.
   Fragment InitConstantParameters();
 
+  Fragment InvokeMathCFunction(MethodRecognizer::Kind recognized_kind,
+                               intptr_t num_inputs);
+
+  // Pops double value and converts it to double as specified
+  // by the recognized method (kDoubleTruncate,
+  // kDoubleFloor or kDoubleCeil).
+  Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
+
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
     return function_.HasSavedArgumentsDescriptor();

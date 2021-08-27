@@ -475,22 +475,25 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(element, node.metadata);
 
     _withElementHolder(ElementHolder(element), () {
-      _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
-        node.type?.accept(this);
-        if (_elementWalker != null) {
-          _withElementWalker(ElementWalker.forParameter(element), () {
-            node.parameters?.accept(this);
+      _withElementWalker(
+        _elementWalker != null ? ElementWalker.forParameter(element) : null,
+        () {
+          _withNameScope(() {
+            _buildTypeParameterElements(node.typeParameters);
+            node.typeParameters?.accept(this);
+            node.type?.accept(this);
+            if (_elementWalker != null) {
+              node.parameters?.accept(this);
+            } else {
+              // Only for recovery, this should not happen in valid code.
+              element.type = node.type?.type ?? _dynamicType;
+              _withElementWalker(null, () {
+                node.parameters?.accept(this);
+              });
+            }
           });
-        } else {
-          // Only for recovery, this should not happen in valid code.
-          element.type = node.type?.type ?? _dynamicType;
-          _withElementWalker(null, () {
-            node.parameters?.accept(this);
-          });
-        }
-      });
+        },
+      );
     });
   }
 

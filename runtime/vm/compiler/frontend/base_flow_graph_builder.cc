@@ -1193,5 +1193,25 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
   return instructions;
 }
 
+Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
+    MethodRecognizer::Kind recognized_kind,
+    intptr_t num_inputs) {
+  InputsArray* args = GetArguments(num_inputs);
+  auto* instr = new (Z)
+      InvokeMathCFunctionInstr(args, GetNextDeoptId(), recognized_kind,
+                               InstructionSource(TokenPosition::kNoSource));
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::DoubleToDouble(
+    MethodRecognizer::Kind recognized_kind) {
+  Value* value = Pop();
+  auto* instr =
+      new (Z) DoubleToDoubleInstr(value, recognized_kind, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 }  // namespace kernel
 }  // namespace dart
