@@ -206,7 +206,10 @@ class TypeArgumentsVerifier {
   /// Verify that the type arguments in the given [typeName] are all within
   /// their bounds.
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    var type = typeName.typeOrThrow;
+    var type = typeName.type;
+    if (type == null) {
+      return;
+    }
 
     List<TypeParameterElement> typeParameters;
     List<DartType> typeArguments;

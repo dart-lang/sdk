@@ -79,7 +79,6 @@ class ConstructorReferenceResolver {
 
   void _inferArgumentTypes(ConstructorReferenceImpl node) {
     var constructorName = node.constructorName;
-    var typeName = constructorName.type;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
@@ -109,17 +108,26 @@ class ConstructorReferenceResolver {
           node, constructorName.name!, constructorType) as FunctionType?;
 
       if (inferred != null) {
-        typeName.type = inferred.returnType;
+        var inferredReturnType = inferred.returnType as InterfaceType;
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from(
-          rawElement,
-          inferred.returnType as InterfaceType,
-        );
-        constructorName.staticElement = constructorElement;
-        constructorName.name?.staticElement = constructorElement;
+        var constructorElement =
+            ConstructorMember.from(rawElement, inferredReturnType);
+
+        constructorName.staticElement = constructorElement.declaration;
+        constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
+        // TODO(srawlins): Always set the TypeName's type to `null`, here, and
+        // in the "else" case below, at the very end of [_inferArgumentTypes].
+        // This requires refactoring how type arguments are checked against
+        // bounds, as this is currently always done with the [TypeName], in
+        // type_argument_verifier.dart.
+        if (inferred.typeFormals.isNotEmpty) {
+          constructorName.type.type = null;
+        } else {
+          constructorName.type.type = inferredReturnType;
+        }
       }
     } else {
       var constructorElement = constructorName.staticElement;

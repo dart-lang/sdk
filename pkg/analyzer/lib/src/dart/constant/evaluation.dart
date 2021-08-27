@@ -1091,6 +1091,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   }
 
   @override
+  DartObjectImpl? visitConstructorReference(ConstructorReference node) {
+    return _getConstantValue(node, node.constructorName.staticElement);
+  }
+
+  @override
   DartObjectImpl visitDoubleLiteral(DoubleLiteral node) {
     return DartObjectImpl(
       typeSystem,
@@ -1594,6 +1599,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       if (variableElement.isConst && value != null) {
         return value.value;
       }
+    } else if (variableElement is ConstructorElement) {
+      return DartObjectImpl(
+        typeSystem,
+        node.typeOrThrow,
+        FunctionState(variableElement),
+      );
     } else if (variableElement is ExecutableElement) {
       var function = element as ExecutableElement;
       if (function.isStatic) {

@@ -10032,7 +10032,7 @@ class TypeNameImpl extends TypeAnnotationImpl implements TypeName {
   Token? question;
 
   /// The type being named, or `null` if the AST structure has not been
-  /// resolved.
+  /// resolved, or if this is part of a [ConstructorReference].
   @override
   DartType? type;
 
