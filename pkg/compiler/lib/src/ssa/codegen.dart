@@ -2644,14 +2644,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitThrow(HThrow node) {
+    SourceInformation sourceInformation = node.sourceInformation;
     if (node.isRethrow) {
       use(node.inputs[0]);
-      pushStatement(
-          new js.Throw(pop()).withSourceInformation(node.sourceInformation));
+      pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     } else {
-      generateThrowWithHelper(
-          _commonElements.wrapExceptionHelper, node.inputs[0],
-          sourceInformation: node.sourceInformation);
+      use(node.inputs[0]);
+      _pushCallStatic(
+          _commonElements.wrapExceptionHelper, [pop()], sourceInformation);
+      pushStatement(js.Throw(pop()).withSourceInformation(sourceInformation));
     }
   }
 
@@ -2683,94 +2684,141 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // If the checks always succeeds, we would have removed the bounds check
     // completely.
     assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
-    if (node.staticChecks != HBoundsCheck.ALWAYS_FALSE) {
-      js.Expression under;
-      js.Expression over;
-      if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
-        use(node.index);
-        if (node.index.isInteger(_abstractValueDomain).isDefinitelyTrue) {
-          under = js.js("# < 0", pop());
-        } else {
-          js.Expression jsIndex = pop();
-          under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
-        }
-      } else if (node.index
-          .isInteger(_abstractValueDomain)
-          .isPotentiallyFalse) {
-        checkInt(node.index, '!==');
-        under = pop();
-      }
-      if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
-        var index = node.index;
-        use(index);
-        js.Expression jsIndex = pop();
-        use(node.length);
-        over = new js.Binary(">=", jsIndex, pop());
-      }
-      assert(over != null || under != null);
-      js.Expression underOver = under == null
-          ? over
-          : over == null
-              ? under
-              : new js.Binary("||", under, over);
-      js.Statement thenBody = new js.Block.empty();
-      js.Block oldContainer = currentContainer;
-      currentContainer = thenBody;
-      generateThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
+
+    if (node.staticChecks == HBoundsCheck.ALWAYS_FALSE) {
+      _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
           [node.array, node.reportedIndex],
           sourceInformation: node.sourceInformation);
-      currentContainer = oldContainer;
-      thenBody = unwrapStatement(thenBody);
-      pushStatement(new js.If.noElse(underOver, thenBody)
-          .withSourceInformation(node.sourceInformation));
-    } else {
-      generateThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
-          [node.array, node.index]);
+      return;
     }
+
+    HInstruction index = node.index;
+
+    // Generate a test for out-of-bounds, either under or over the range.  NaN
+    // values can creep in, and comparisons on NaN are false, so
+    //
+    //     if (i < 0) throw ...
+    //
+    // will fail to throw if `i` is NaN. The test
+    //
+    //     if (!(i >= 0)) ...
+    //
+    // is 'NaN-safe'.
+
+    // TODO(sra): Better analysis of possible NaN input.
+    bool indexCanBeNaN = !_isDefinitelyNotNaN(index);
+
+    js.Expression under;
+    js.Expression over;
+
+    if (index.isInteger(_abstractValueDomain).isPotentiallyFalse) {
+      // Combined domain check and low bound check. `a >>> 0 !== a` is true for
+      // `null`, `undefined`, `NaN`, and non-integral number and any integral
+      // number outside the 32-bit unsigned range.
+      use(index);
+      js.Expression jsIndex = pop();
+      // This test is 'NaN-safe' since `a!==b` is the same as `!(a===b)`.
+      under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
+      indexCanBeNaN = false;
+    } else if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
+      use(index);
+      // The index must be an `int`, otherwise we could have used the combined
+      // check above.
+      if (indexCanBeNaN) {
+        under = js.js('!(# >= 0)', pop());
+      } else {
+        under = js.js('# < 0', pop());
+      }
+    }
+
+    if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
+      use(index);
+      js.Expression jsIndex = pop();
+      use(node.length);
+      js.Expression jsLength = pop();
+      if (indexCanBeNaN) {
+        over = js.js('!(# < #)', [jsIndex, jsLength]);
+      } else {
+        over = js.js('# >= #', [jsIndex, jsLength]);
+      }
+    }
+
+    assert(over != null || under != null);
+    js.Expression underOver;
+    if (under == null) {
+      underOver = over;
+    } else if (over == null) {
+      underOver = under;
+    } else {
+      if (under is js.Prefix &&
+          under.op == '!' &&
+          over is js.Prefix &&
+          over.op == '!') {
+        // De Morgans law:  !(a) || !(b)  <->  !(a && b)
+        underOver = js.js('!(# && #)', [under.argument, over.argument]);
+      } else {
+        underOver = js.Binary('||', under, over);
+      }
+    }
+
+    // Generate the call to the 'throw' helper in a block in case it needs
+    // multiple statements.
+    js.Statement thenBody = js.Block.empty();
+    js.Block oldContainer = currentContainer;
+    currentContainer = thenBody;
+    _pushThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
+        [node.array, node.reportedIndex],
+        sourceInformation: node.sourceInformation);
+    currentContainer = oldContainer;
+    thenBody = unwrapStatement(thenBody);
+    pushStatement(js.If.noElse(underOver, thenBody)
+        .withSourceInformation(node.sourceInformation));
   }
 
-  void generateThrowWithHelper(FunctionEntity helper, argument,
+  bool _isDefinitelyNotNaN(HInstruction node) {
+    if (node is HConstant) {
+      if (node.isInteger(_abstractValueDomain).isDefinitelyTrue) return true;
+      return false;
+    }
+
+    // TODO(sra): Use some form of dataflow. Starting from a small number you
+    // can add or subtract a small number any number of times and still have a
+    // finite number. Many operations, produce small numbers (some constants,
+    // HGetLength, HBitAnd). This could be used to determine that most loop
+    // indexes are finite and thus not NaN.
+
+    return false;
+  }
+
+  void _pushThrowWithHelper(FunctionEntity helper, List<HInstruction> inputs,
       {SourceInformation sourceInformation}) {
-    js.Expression jsHelper = _emitter.staticFunctionAccess(helper);
-    List arguments = <js.Expression>[];
-    if (argument is List) {
-      argument.forEach((instruction) {
-        use(instruction);
-        arguments.add(pop());
-      });
-    } else {
-      use(argument);
+    List<js.Expression> arguments = [];
+    for (final input in inputs) {
+      use(input);
       arguments.add(pop());
     }
-    _registry.registerStaticUse(new StaticUse.staticInvoke(
-        helper, new CallStructure.unnamed(arguments.length)));
-    js.Call value = new js.Call(jsHelper, arguments.toList(growable: false),
-        sourceInformation: sourceInformation);
+    _pushCallStatic(helper, arguments, sourceInformation);
     // BUG(4906): Using throw/return here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
-    if (helper == _commonElements.wrapExceptionHelper) {
-      pushStatement(
-          new js.Throw(value).withSourceInformation(sourceInformation));
-    } else {
-      pushStatement(
-          new js.Return(value).withSourceInformation(sourceInformation));
-    }
+    pushStatement(js.Return(pop()).withSourceInformation(sourceInformation));
+  }
+
+  void _pushCallStatic(FunctionEntity target, List<js.Expression> arguments,
+      SourceInformation sourceInformation) {
+    _registry.registerStaticUse(StaticUse.staticInvoke(
+        target, CallStructure.unnamed(arguments.length)));
+    js.Expression jsTarget = _emitter.staticFunctionAccess(target);
+    js.Call call = js.Call(jsTarget, List.of(arguments, growable: false))
+        .withSourceInformation(sourceInformation);
+    push(call);
   }
 
   @override
   visitThrowExpression(HThrowExpression node) {
-    HInstruction argument = node.inputs[0];
-    use(argument);
-
-    FunctionEntity helper = _commonElements.throwExpressionHelper;
-    _registry.registerStaticUse(
-        new StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
-
-    js.Expression jsHelper = _emitter.staticFunctionAccess(helper);
-    js.Call value = new js.Call(jsHelper, [pop()])
-        .withSourceInformation(node.sourceInformation);
-    push(value);
+    use(node.inputs[0]);
+    _pushCallStatic(
+        _commonElements.throwExpressionHelper, [pop()], node.sourceInformation);
   }
 
   @override
@@ -2891,14 +2939,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         .withSourceInformation(node.sourceInformation));
   }
 
-  void checkInt(HInstruction input, String cmp) {
-    use(input);
-    js.Expression left = pop();
-    use(input);
-    js.Expression or0 = new js.Binary("|", pop(), new js.LiteralNumber("0"));
-    push(new js.Binary(cmp, left, or0));
-  }
-
   void checkTypeOf(HInstruction input, String cmp, String typeName,
       SourceInformation sourceInformation) {
     use(input);
@@ -2921,12 +2961,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitPrimitiveCheck(HPrimitiveCheck node) {
     js.Expression test = _generateReceiverOrArgumentTypeTest(node);
     js.Block oldContainer = currentContainer;
-    js.Statement body = new js.Block.empty();
+    js.Statement body = js.Block.empty();
     currentContainer = body;
     if (node.isArgumentTypeCheck) {
-      generateThrowWithHelper(
-          _commonElements.throwIllegalArgumentException, node.checkedInput,
-          sourceInformation: node.sourceInformation);
+      use(node.checkedInput);
+      _pushCallStatic(_commonElements.throwIllegalArgumentException, [pop()],
+          node.sourceInformation);
+      pushStatement(
+          js.Return(pop()).withSourceInformation(node.sourceInformation));
     } else if (node.isReceiverTypeCheck) {
       use(node.checkedInput);
       js.Name methodName =
@@ -2934,12 +2976,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression call = js.propertyCall(
           pop(), methodName, []).withSourceInformation(node.sourceInformation);
       pushStatement(
-          new js.Return(call).withSourceInformation(node.sourceInformation));
+          js.Return(call).withSourceInformation(node.sourceInformation));
     }
     currentContainer = oldContainer;
     body = unwrapStatement(body);
-    pushStatement(new js.If.noElse(test, body)
-        .withSourceInformation(node.sourceInformation));
+    pushStatement(
+        js.If.noElse(test, body).withSourceInformation(node.sourceInformation));
   }
 
   js.Expression _generateReceiverOrArgumentTypeTest(HPrimitiveCheck node) {
@@ -2972,9 +3014,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     _registry.registerStaticUse(staticUse);
     use(node.checkedInput);
     List<js.Expression> arguments = [pop()];
-    push(
-        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
-            .withSourceInformation(node.sourceInformation));
+    push(js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
+        .withSourceInformation(node.sourceInformation));
   }
 
   @override
