@@ -1585,11 +1585,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
 
       for (var param in parameterList.parameters) {
-        if (param is FormalParameter) {
-          // Param is defined.
-          if (param.identifier?.name == unlessParam) {
-            return null;
-          }
+        // Param is defined.
+        if (param.identifier?.name == unlessParam) {
+          return null;
         }
       }
 
