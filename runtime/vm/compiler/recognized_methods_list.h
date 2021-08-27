@@ -87,6 +87,11 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x28474c2e)                                      \
   V(_Double, _mul, DoubleMul, 0x1f98c76c)                                      \
   V(_Double, _div, DoubleDiv, 0x287d3791)                                      \
+  V(_Double, _modulo, DoubleMod, 0xfdb397ef)                                   \
+  V(_Double, ceilToDouble, DoubleCeil, 0x5f1bced9)                             \
+  V(_Double, floorToDouble, DoubleFloor, 0x54b4cb48)                           \
+  V(_Double, roundToDouble, DoubleRound, 0x5649ca00)                           \
+  V(_Double, truncateToDouble, DoubleTruncate, 0x62d48659)                     \
   V(::, min, MathMin, 0x504a28df)                                              \
   V(::, max, MathMax, 0xead7161a)                                              \
   V(::, _doublePow, MathDoublePow, 0x989f3334)                                 \
@@ -366,11 +371,6 @@ namespace dart {
   V(_IntegerImplementation, >>, Integer_sar, 0x4a3615a7)                       \
   V(_IntegerImplementation, >>>, Integer_shr, 0x2bac5209)                      \
   V(_Double, unary-, DoubleFlipSignBit, 0x3d39082b)                            \
-  V(_Double, truncateToDouble, DoubleTruncate, 0x62d48298)                     \
-  V(_Double, roundToDouble, DoubleRound, 0x5649c63f)                           \
-  V(_Double, floorToDouble, DoubleFloor, 0x54b4c787)                           \
-  V(_Double, ceilToDouble, DoubleCeil, 0x5f1bcb18)                             \
-  V(_Double, _modulo, DoubleMod, 0xfdb3942e)
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \

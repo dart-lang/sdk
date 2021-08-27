@@ -28,27 +28,6 @@ intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
   return -1;
 }
 
-void AsmIntrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
-  COMPILE_ASSERT(IsAbiPreservedRegister(CODE_REG));
-  COMPILE_ASSERT(!IsAbiPreservedRegister(ARGS_DESC_REG));
-  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP));
-  COMPILE_ASSERT(IsAbiPreservedRegister(CALLEE_SAVED_TEMP2));
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != CODE_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP != ARGS_DESC_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != CODE_REG);
-  COMPILE_ASSERT(CALLEE_SAVED_TEMP2 != ARGS_DESC_REG);
-
-  __ Comment("IntrinsicCallPrologue");
-  SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ mov(CALLEE_SAVED_TEMP, LR));
-  __ mov(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
-}
-
-void AsmIntrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
-  __ Comment("IntrinsicCallEpilogue");
-  RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ mov(LR, CALLEE_SAVED_TEMP));
-  __ mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
-}
-
 // Allocate a GrowableObjectArray:: using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,

@@ -67,7 +67,8 @@ class _Double implements double {
     return _modulo(other.toDouble());
   }
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double _modulo(double other) native "Double_modulo";
 
@@ -181,16 +182,20 @@ class _Double implements double {
   int ceil() => ceilToDouble().toInt();
   int truncate() => truncateToDouble().toInt();
 
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double roundToDouble() native "Double_round";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double floorToDouble() native "Double_floor";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double ceilToDouble() native "Double_ceil";
-  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:exact-result-type", _Double)
   double truncateToDouble() native "Double_truncate";
 

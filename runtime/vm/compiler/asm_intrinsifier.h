@@ -31,9 +31,6 @@ class AsmIntrinsifier : public AllStatic {
  public:
   static intptr_t ParameterSlotFromSp();
 
-  static void IntrinsicCallPrologue(Assembler* assembler);
-  static void IntrinsicCallEpilogue(Assembler* assembler);
-
  private:
   friend class Intrinsifier;
 

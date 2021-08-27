@@ -988,7 +988,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case UntaggedFunction::kSetterFunction:
     case UntaggedFunction::kClosureFunction:
     case UntaggedFunction::kConstructor: {
-      if (B->IsRecognizedMethodForFlowGraph(function)) {
+      if (FlowGraphBuilder::IsRecognizedMethodForFlowGraph(function)) {
         return B->BuildGraphOfRecognizedMethod(function);
       }
       return BuildGraphOfFunction(function.IsGenerativeConstructor());
