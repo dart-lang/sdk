@@ -350,7 +350,7 @@ class HtmlIndexer {
       </div>
       <footer>
          <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
       </footer>
    </body>
 </html>
@@ -538,7 +538,7 @@ linter:
       </div>
       <footer>
          <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
       </footer>
    </body>
 </html>
@@ -647,7 +647,7 @@ class RuleHtmlGenerator {
       </div>
       <footer>
          <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">Github</a></p>
+         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
       </footer>
    </body>
 </html>
