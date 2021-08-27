@@ -21,6 +21,30 @@
 
   This brings the implementation behavior in line with the spec.
 
+- Initializer expressions on implicitly typed condition variables can now
+  contribute to type promotion.  For example, this program no longer produces a
+  compile-time error:
+
+  ```dart
+  f(int? i) {
+    var iIsNull = i == null;
+    if (!iIsNull) {
+      print(i + 1); // OK, because `i` is known to be non-null
+    }
+  }
+  ```
+
+  Previously, the above program had a compile-time error because type promotion
+  due to a bug ([#1785][]) which prevented the initializer expression (`i ==
+  null`) from being accounted for when the variable in question (`iIsNull`)
+  lacked an explicit type.
+
+  To avoid causing problems for packages that are intended to work with older
+  versions of Dart, the fix only takes effect when the "constructor tearoffs"
+  language feature is enabled.
+
+[#1785]: https://github.com/dart-lang/language/issues/1785
+
 ### Tools
 
 #### Dart command line

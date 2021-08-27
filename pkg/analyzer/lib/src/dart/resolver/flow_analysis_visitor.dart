@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/migration.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 /// Data gathered by flow analysis, retained for testing purposes.
@@ -222,7 +223,8 @@ class FlowAnalysisHelper {
     flow!.labeledStatement_end();
   }
 
-  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
+  void topLevelDeclaration_enter(
+      ResolverVisitor resolver, AstNode node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
@@ -233,7 +235,9 @@ class FlowAnalysisHelper {
     }
     flow = isNonNullableByDefault
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
-            DartType>(_typeOperations, assignedVariables!)
+                DartType>(_typeOperations, assignedVariables!,
+            respectImplicitlyTypedVarInitializers:
+                resolver.isConstructorTearoffsEnabled)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
             DartType>.legacy(_typeOperations, assignedVariables!);
   }
@@ -349,9 +353,10 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
       : super(typeSystem, false, isNonNullableByDefault);
 
   @override
-  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
+  void topLevelDeclaration_enter(
+      ResolverVisitor resolver, AstNode node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
-    super.topLevelDeclaration_enter(node, parameters, visit: visit);
+    super.topLevelDeclaration_enter(resolver, node, parameters, visit: visit);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
 
@@ -398,6 +403,9 @@ class TypeSystemTypeOperations
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
+
+  @override
+  bool isTypeParameterType(DartType type) => type is TypeParameterType;
 
   @override
   DartType promoteToNonNull(DartType type) {

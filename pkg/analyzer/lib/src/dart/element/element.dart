@@ -43,6 +43,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -446,6 +447,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   /// TODO(scheglov) implement as modifier
   bool _isSimplyBounded = true;
+
+  /// The list of errors recorded during execution of macro builders
+  /// over this class.
+  List<macro.MacroExecutionError> macroExecutionErrors = [];
 
   ElementLinkedData? linkedData;
 

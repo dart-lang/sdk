@@ -101,6 +101,20 @@ notInt a = 0;
     ]);
   }
 
+  test_executionError_autoConstructor() async {
+    await assertErrorsInCode(r'''
+import 'macro_annotations.dart';
+
+@autoConstructor
+class A {
+  final int a;
+  A(this.a);
+}
+''', [
+      error(CompileTimeErrorCode.MACRO_EXECUTION_ERROR, 34, 16),
+    ]);
+  }
+
   test_observable() async {
     var code = r'''
 import 'macro_annotations.dart';

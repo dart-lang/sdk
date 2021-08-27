@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
@@ -528,6 +529,10 @@ class LibraryReader {
     element.setLinkedData(reference, linkedData);
     ClassElementFlags.read(_reader, element);
 
+    element.macroExecutionErrors = _reader.readTypedList(
+      _readMacroExecutionError,
+    );
+
     element.typeParameters = _readTypeParameters();
 
     if (!element.isMixinApplication) {
@@ -864,6 +869,14 @@ class LibraryReader {
         data.informative,
       );
     }
+  }
+
+  macro.MacroExecutionError _readMacroExecutionError() {
+    return macro.MacroExecutionError(
+      annotationIndex: _reader.readUInt30(),
+      macroName: _reader.readStringReference(),
+      message: _reader.readStringReference(),
+    );
   }
 
   List<MethodElementImpl> _readMethods(

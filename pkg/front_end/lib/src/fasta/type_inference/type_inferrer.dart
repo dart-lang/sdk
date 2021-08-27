@@ -224,7 +224,9 @@ class TypeInferrerImpl implements TypeInferrer {
         flowAnalysis = library.isNonNullableByDefault
             ? new FlowAnalysis(
                 new TypeOperationsCfe(engine.typeSchemaEnvironment),
-                assignedVariables)
+                assignedVariables,
+                respectImplicitlyTypedVarInitializers:
+                    library.enableConstructorTearOffsInLibrary)
             : new FlowAnalysis.legacy(
                 new TypeOperationsCfe(engine.typeSchemaEnvironment),
                 assignedVariables) {}

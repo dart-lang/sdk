@@ -1185,7 +1185,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
+    flowAnalysis.topLevelDeclaration_enter(this, node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = node.declaredElement!.type.returnType;
@@ -1409,7 +1409,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       flowAnalysis.flow!.functionExpression_begin(node);
     } else {
       flowAnalysis.topLevelDeclaration_enter(
-          node, node.functionExpression.parameters);
+          this, node, node.functionExpression.parameters);
     }
     flowAnalysis.executableDeclaration_enter(
       node,
@@ -1638,7 +1638,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
+    flowAnalysis.topLevelDeclaration_enter(this, node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = node.declaredElement!.returnType;
@@ -2014,17 +2014,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var declaredType = parent.type;
     if (initializer != null) {
       var initializerStaticType = initializer.typeOrThrow;
-      if (declaredType == null) {
-        if (_isNonNullableByDefault &&
-            initializerStaticType is TypeParameterType) {
-          flowAnalysis.flow?.promote(
-              declaredElement as PromotableElement, initializerStaticType);
-        }
-      } else {
-        flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
-            initializerStaticType, initializer,
-            isFinal: parent.isFinal, isLate: parent.isLate);
-      }
+      flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
+          initializerStaticType, initializer,
+          isFinal: parent.isFinal,
+          isLate: parent.isLate,
+          isImplicitlyTyped: declaredType == null);
     }
   }
 

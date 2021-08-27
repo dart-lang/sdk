@@ -8,8 +8,10 @@ import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/macro/api/macro.dart' as macro;
 import 'package:analyzer/src/macro/builders/data_class.dart' as macro;
 import 'package:analyzer/src/macro/builders/observable.dart' as macro;
+import 'package:analyzer/src/macro/impl/error.dart' as macro;
 import 'package:analyzer/src/macro/impl/macro.dart' as macro;
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
@@ -200,19 +202,25 @@ class LibraryBuilder {
 
   /// Run built-in declaration macros.
   void runDeclarationMacros() {
-    bool hasMacroAnnotation(ast.AnnotatedNode node, String name) {
-      for (var annotation in node.metadata) {
+    /// If [node] has a macro annotation with the required [name],
+    /// return the index of this annotation node.
+    int? hasMacroAnnotation(ast.AnnotatedNode node, String name) {
+      var metadata = node.metadata;
+      for (var i = 0; i < metadata.length; i++) {
+        var annotation = metadata[i];
         var nameNode = annotation.name;
         if (nameNode is ast.SimpleIdentifier &&
             annotation.arguments == null &&
             annotation.constructorName == null &&
             nameNode.name == name) {
           var nameElement = element.scope.lookup(name).getter;
-          return nameElement != null &&
-              nameElement.library?.name == 'analyzer.macro.annotations';
+          if (nameElement != null &&
+              nameElement.library?.name == 'analyzer.macro.annotations') {
+            return i;
+          }
         }
       }
-      return false;
+      return null;
     }
 
     /// Build types for type annotations in new [nodes].
@@ -236,39 +244,53 @@ class LibraryBuilder {
       for (var declaration in linkingUnit.node.declarations) {
         if (declaration is ast.ClassDeclarationImpl) {
           classDeclarationIndex++;
+          var macroExecutionErrors = <macro.MacroExecutionError>[];
+
           var members = declaration.members.toList();
           var classBuilder = macro.ClassDeclarationBuilderImpl(
             linkingUnit,
             classDeclarationIndex,
             declaration,
           );
-          if (hasMacroAnnotation(declaration, 'autoConstructor')) {
-            macro.AutoConstructorMacro().visitClassDeclaration(
-              declaration,
-              classBuilder,
-            );
+
+          void runClassMacro(
+            String name,
+            macro.ClassDeclarationMacro Function() newInstance,
+          ) {
+            var annotationIndex = hasMacroAnnotation(declaration, name);
+            if (annotationIndex != null) {
+              try {
+                newInstance().visitClassDeclaration(
+                  declaration,
+                  classBuilder,
+                );
+              } catch (e) {
+                macroExecutionErrors.add(
+                  macro.MacroExecutionError(
+                    annotationIndex: annotationIndex,
+                    macroName: name,
+                    message: e.toString(),
+                  ),
+                );
+              }
+            }
           }
-          if (hasMacroAnnotation(declaration, 'dataClass')) {
-            macro.DataClassMacro().visitClassDeclaration(
-              declaration,
-              classBuilder,
-            );
-          }
-          if (hasMacroAnnotation(declaration, 'hashCode')) {
-            macro.HashCodeMacro().visitClassDeclaration(
-              declaration,
-              classBuilder,
-            );
-          }
-          if (hasMacroAnnotation(declaration, 'toString')) {
-            macro.ToStringMacro().visitClassDeclaration(
-              declaration,
-              classBuilder,
-            );
-          }
+
+          runClassMacro('autoConstructor', () => macro.AutoConstructorMacro());
+          runClassMacro('dataClass', () => macro.DataClassMacro());
+          runClassMacro('hashCode', () => macro.HashCodeMacro());
+          runClassMacro('toString', () => macro.ToStringMacro());
+
+          var classElement = declaration.declaredElement as ClassElementImpl;
+          classElement.macroExecutionErrors = macroExecutionErrors;
+
           for (var member in members) {
             if (member is ast.FieldDeclarationImpl) {
-              if (hasMacroAnnotation(member, 'observable')) {
+              var annotationIndex = hasMacroAnnotation(
+                member,
+                'observable',
+              );
+              if (annotationIndex != null) {
                 macro.ObservableMacro().visitFieldDeclaration(
                   member,
                   classBuilder,

@@ -2230,7 +2230,7 @@ class HintCode extends AnalyzerErrorCode {
       // your pubspec.yaml to set the minimum SDK constraint to 2.14 or
       // higher, and running 'pub get'."
       correction: "Try enabling the experiment by including "
-          "'--enable-experiments=constructor-tearoffs' in the 'dart' command.");
+          "'--enable-experiment=constructor-tearoffs' in the 'dart' command.");
 
   /**
    * No parameters.

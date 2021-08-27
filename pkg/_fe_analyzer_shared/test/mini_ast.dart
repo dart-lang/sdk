@@ -388,7 +388,17 @@ class Harness extends TypeOperations<Var, Type> {
 
   late final _typeAnalyzer = _MiniAstTypeAnalyzer(this);
 
-  Harness({this.legacy = false, String? thisType})
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
+  Harness(
+      {this.legacy = false,
+      String? thisType,
+      this.respectImplicitlyTypedVarInitializers = true})
       : thisType = thisType == null ? null : Type(thisType);
 
   MiniIrBuilder get _irBuilder => _typeAnalyzer._irBuilder;
@@ -460,6 +470,9 @@ class Harness extends TypeOperations<Var, Type> {
   }
 
   @override
+  bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
+
+  @override
   Type promoteToNonNull(Type type) {
     if (type.type.endsWith('?')) {
       return Type(type.type.substring(0, type.type.length - 1));
@@ -480,7 +493,9 @@ class Harness extends TypeOperations<Var, Type> {
         ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
             this, assignedVariables)
         : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            this, assignedVariables);
+            this, assignedVariables,
+            respectImplicitlyTypedVarInitializers:
+                respectImplicitlyTypedVarInitializers);
     _typeAnalyzer.dispatchStatement(b);
     _typeAnalyzer.finish();
   }
@@ -649,8 +664,10 @@ abstract class TryStatement extends Statement implements TryBuilder {
 class Var {
   final String name;
   final Type type;
+  final bool isImplicitlyTyped;
 
-  Var(this.name, String typeStr) : type = Type(typeStr);
+  Var(this.name, String typeStr, {this.isImplicitlyTyped = false})
+      : type = Type(typeStr);
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr => new _VariableReference(this, null);
@@ -1608,7 +1625,9 @@ class _MiniAstTypeAnalyzer {
       var initializerType = analyzeExpression(initializer);
       flow.declare(variable, true);
       flow.initialize(variable, initializerType, initializer,
-          isFinal: isFinal, isLate: isLate);
+          isFinal: isFinal,
+          isLate: isLate,
+          isImplicitlyTyped: variable.isImplicitlyTyped);
     }
   }
 
