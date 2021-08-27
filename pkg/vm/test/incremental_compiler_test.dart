@@ -1423,8 +1423,7 @@ main() {
         "0",
       ], callback: (RemoteVm remoteVm) async {
         for (int q = 0; q < 10; q++) {
-          var reloadResult = await remoteVm.reload(partial1Dill.uri);
-          expect(reloadResult is Map, isTrue);
+          Map reloadResult = await remoteVm.reload(partial1Dill.uri);
           expect(reloadResult["success"], equals(true));
 
           await remoteVm.forceGc();
@@ -1457,7 +1456,6 @@ main() {
           await deletePossibleBreakpoint(remoteVm, breakpoint);
 
           reloadResult = await remoteVm.reload(partial2Dill.uri);
-          expect(reloadResult is Map, isTrue);
           expect(reloadResult["success"], equals(true));
 
           await remoteVm.forceGc();
