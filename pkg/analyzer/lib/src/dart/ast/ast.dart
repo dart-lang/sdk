@@ -761,24 +761,21 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   E? getProperty<E>(String name) {
-    if (_propertyMap == null) {
-      return null;
-    }
-    return _propertyMap![name] as E?;
+    return _propertyMap?[name] as E?;
   }
 
   @override
   void setProperty(String name, Object? value) {
     if (value == null) {
-      if (_propertyMap != null) {
-        _propertyMap!.remove(name);
-        if (_propertyMap!.isEmpty) {
+      final propertyMap = _propertyMap;
+      if (propertyMap != null) {
+        propertyMap.remove(name);
+        if (propertyMap.isEmpty) {
           _propertyMap = null;
         }
       }
     } else {
-      _propertyMap ??= HashMap<String, Object>();
-      _propertyMap![name] = value;
+      (_propertyMap ??= HashMap<String, Object>())[name] = value;
     }
   }
 
