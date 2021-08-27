@@ -173,7 +173,9 @@ class LintScore {
           sb.write(' ${since!.sinceLinter} |');
           break;
         case Detail.sdk:
-          sb.write(' ${since!.sinceDartSdk} |');
+          // See: https://github.com/dart-lang/linter/issues/2824
+          //sb.write(' ${since!.sinceDartSdk} |');
+          sb.write('*untracked*');
           break;
         case Detail.fix:
           sb.write('${hasFix! ? " $bulb" : ""} |');
