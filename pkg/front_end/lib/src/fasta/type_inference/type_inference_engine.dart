@@ -312,6 +312,9 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   }
 
   @override
+  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+
+  @override
   DartType tryPromoteToType(DartType to, DartType from) {
     if (isSubtypeOf(to, from)) {
       return to;

@@ -400,6 +400,9 @@ class TypeSystemTypeOperations
   }
 
   @override
+  bool isTypeParameterType(DartType type) => type is TypeParameterType;
+
+  @override
   DartType promoteToNonNull(DartType type) {
     return typeSystem.promoteToNonNull(type);
   }

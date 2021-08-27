@@ -2014,17 +2014,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var declaredType = parent.type;
     if (initializer != null) {
       var initializerStaticType = initializer.typeOrThrow;
-      if (declaredType == null) {
-        if (_isNonNullableByDefault &&
-            initializerStaticType is TypeParameterType) {
-          flowAnalysis.flow?.promote(
-              declaredElement as PromotableElement, initializerStaticType);
-        }
-      } else {
-        flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
-            initializerStaticType, initializer,
-            isFinal: parent.isFinal, isLate: parent.isLate);
-      }
+      flowAnalysis.flow?.initialize(declaredElement as PromotableElement,
+          initializerStaticType, initializer,
+          isFinal: parent.isFinal,
+          isLate: parent.isLate,
+          isImplicitlyTyped: declaredType == null);
     }
   }
 

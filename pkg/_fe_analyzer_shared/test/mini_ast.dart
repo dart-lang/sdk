@@ -460,6 +460,9 @@ class Harness extends TypeOperations<Var, Type> {
   }
 
   @override
+  bool isTypeParameterType(Type type) => type is PromotedTypeVariableType;
+
+  @override
   Type promoteToNonNull(Type type) {
     if (type.type.endsWith('?')) {
       return Type(type.type.substring(0, type.type.length - 1));
@@ -649,8 +652,10 @@ abstract class TryStatement extends Statement implements TryBuilder {
 class Var {
   final String name;
   final Type type;
+  final bool isImplicitlyTyped;
 
-  Var(this.name, String typeStr) : type = Type(typeStr);
+  Var(this.name, String typeStr, {this.isImplicitlyTyped = false})
+      : type = Type(typeStr);
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr => new _VariableReference(this, null);
@@ -1608,7 +1613,9 @@ class _MiniAstTypeAnalyzer {
       var initializerType = analyzeExpression(initializer);
       flow.declare(variable, true);
       flow.initialize(variable, initializerType, initializer,
-          isFinal: isFinal, isLate: isLate);
+          isFinal: isFinal,
+          isLate: isLate,
+          isImplicitlyTyped: variable.isImplicitlyTyped);
     }
   }
 
