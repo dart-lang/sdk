@@ -210,6 +210,30 @@ void bar() {
     );
   }
 
+  test_class_generic_nonConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  static int i = 1;
+}
+
+void bar() {
+  A<int>.i;
+}
+''', [
+      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          51, 8),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.i;'),
+      null,
+      classElement,
+      'dynamic',
+      expectedTypeNameType: 'A<int>',
+    );
+  }
+
   test_class_generic_unnamed() async {
     await assertNoErrorsInCode('''
 class A<T> {

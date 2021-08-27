@@ -390,20 +390,12 @@ class AstRewriter {
     return constructorReference;
   }
 
-  AstNode _toConstructorReference_propertyAccess({
+  ConstructorReference _toConstructorReference_propertyAccess({
     required PropertyAccess node,
     required Identifier receiver,
     required TypeArgumentList typeArguments,
     required ClassElement classElement,
   }) {
-    var name = node.propertyName.name;
-    var constructorElement = name == 'new'
-        ? classElement.unnamedConstructor
-        : classElement.getNamedConstructor(name);
-    if (constructorElement == null) {
-      return node;
-    }
-
     var operator = node.operator;
 
     var typeName = astFactory.typeName(receiver, typeArguments);

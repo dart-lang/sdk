@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -35,6 +37,42 @@ class ConstructorReferenceResolver {
         node,
         [],
       );
+    }
+    var name = node.constructorName.name;
+    if (element == null && name != null) {
+      // The illegal construction, which looks like a type-instantiated
+      // constructor tearoff, may be an attempt to reference a member on
+      // [enclosingElement]. Try to provide a helpful error, and fall back to
+      // "unknown constructor."
+      var enclosingElement = node.constructorName.type.name.staticElement;
+      if (enclosingElement is TypeAliasElement) {
+        enclosingElement = enclosingElement.aliasedType.element;
+      }
+      // TODO(srawlins): Handle `enclosingElement` being a functio typedef:
+      // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
+      // This is illegal.
+      if (enclosingElement is ClassElement) {
+        var method = enclosingElement.getMethod(name.name) ??
+            enclosingElement.getGetter(name.name) ??
+            enclosingElement.getSetter(name.name);
+        if (method != null) {
+          var error = method.isStatic
+              ? CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
+              : CompileTimeErrorCode
+                  .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
+          _resolver.errorReporter.reportErrorForNode(
+            error,
+            node,
+            [name.name],
+          );
+        } else {
+          _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+            node,
+            [enclosingElement.name, name.name],
+          );
+        }
+      }
     }
     _inferArgumentTypes(node);
   }
@@ -84,7 +122,12 @@ class ConstructorReferenceResolver {
         node.staticType = inferred;
       }
     } else {
-      node.staticType = node.constructorName.staticElement!.type;
+      var constructorElement = constructorName.staticElement;
+      if (constructorElement == null) {
+        node.staticType = DynamicTypeImpl.instance;
+      } else {
+        node.staticType = constructorElement.type;
+      }
     }
   }
 }
