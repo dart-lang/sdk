@@ -24,10 +24,6 @@ namespace compiler {
 
 #define __ assembler->
 
-intptr_t AsmIntrinsifier::ParameterSlotFromSp() {
-  return -1;
-}
-
 // Allocate a GrowableObjectArray:: using the backing array specified.
 // On stack: type argument (+1), data (+0).
 void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
@@ -1213,24 +1209,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ ret();
 
   // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
-void AsmIntrinsifier::MathSqrt(Assembler* assembler, Label* normal_ir_body) {
-  Label is_smi, double_op;
-  TestLastArgumentIsDouble(assembler, &is_smi, normal_ir_body);
-  // Argument is double and is in R0.
-  __ LoadDFieldFromOffset(V1, R0, target::Double::value_offset());
-  __ Bind(&double_op);
-  __ fsqrtd(V0, V1);
-  const Class& double_class = DoubleClass();
-  __ TryAllocate(double_class, normal_ir_body, Assembler::kFarJump, R0, R1);
-  __ StoreDFieldToOffset(V0, R0, target::Double::value_offset());
-  __ ret();
-  __ Bind(&is_smi);
-  __ SmiUntag(R0);
-  __ scvtfdx(V1, R0);
-  __ b(&double_op);
   __ Bind(normal_ir_body);
 }
 

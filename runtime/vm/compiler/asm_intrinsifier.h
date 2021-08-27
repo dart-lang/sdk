@@ -28,9 +28,6 @@ class Intrinsifier;
 class Label;
 
 class AsmIntrinsifier : public AllStatic {
- public:
-  static intptr_t ParameterSlotFromSp();
-
  private:
   friend class Intrinsifier;
 

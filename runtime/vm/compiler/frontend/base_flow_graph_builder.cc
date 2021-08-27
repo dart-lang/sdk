@@ -1213,5 +1213,12 @@ Fragment BaseFlowGraphBuilder::DoubleToDouble(
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
+  Value* value = Pop();
+  auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 }  // namespace kernel
 }  // namespace dart

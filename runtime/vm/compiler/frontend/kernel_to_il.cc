@@ -897,6 +897,17 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
     case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathSin:
+    case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathAtan2:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog:
+    case MethodRecognizer::kMathSqrt:
       return FlowGraphCompiler::SupportsUnboxedDoubles();
     default:
       return false;
@@ -1517,7 +1528,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kDoubleTruncate:
     case MethodRecognizer::kDoubleFloor:
-    case MethodRecognizer::kDoubleCeil: {
+    case MethodRecognizer::kDoubleCeil:
+    case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathSin:
+    case MethodRecognizer::kMathCos:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAsin:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathAtan2:
+    case MethodRecognizer::kMathExp:
+    case MethodRecognizer::kMathLog: {
       for (intptr_t i = 0, n = function.NumParameters(); i < n; ++i) {
         body += LoadLocal(parsed_function_->RawParameterVariable(i));
       }
@@ -1530,6 +1551,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());
       }
+    } break;
+    case MethodRecognizer::kMathSqrt: {
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += MathUnary(MathUnaryInstr::kSqrt);
     } break;
     default: {
       UNREACHABLE();
