@@ -423,9 +423,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
           bodyBuilder,
           fieldType,
           bodyBuilder.parseFieldInitializer(_constInitializerToken!));
-      if (library.loader is SourceLoader &&
-          (bodyBuilder.transformSetLiterals ||
-              bodyBuilder.transformCollections)) {
+      if (bodyBuilder.transformSetLiterals ||
+          bodyBuilder.transformCollections) {
         // Wrap the initializer in a temporary parent expression; the
         // transformations need a parent relation.
         Not wrapper = new Not(initializer);

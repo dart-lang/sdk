@@ -3232,7 +3232,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
     // TODO(johnniwinther): This is inconsistent with the handling below. Remove
     // this or add handling similar to [_inferMethodInvocation].
-    if (receiverType == const DynamicType() && getter is Procedure) {
+    if (receiverType == const DynamicType()) {
       FunctionNode signature = getter.function;
       if (arguments.positional.length < signature.requiredParameterCount ||
           arguments.positional.length > signature.positionalParameters.length) {
