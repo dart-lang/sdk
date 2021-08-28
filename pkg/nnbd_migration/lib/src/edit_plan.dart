@@ -82,7 +82,6 @@ class AtomicEdit {
   /// made.
   const AtomicEdit.delete(this.length, {this.info, this.isInformative = false})
       : assert(length > 0),
-        assert(isInformative is bool),
         replacement = '';
 
   /// Initialize an edit to insert the [replacement] characters.
@@ -92,7 +91,6 @@ class AtomicEdit {
   const AtomicEdit.insert(this.replacement,
       {this.info, this.isInformative = false})
       : assert(replacement.length > 0),
-        assert(isInformative is bool),
         length = 0;
 
   /// Initialize an edit to replace [length] characters with the [replacement]
