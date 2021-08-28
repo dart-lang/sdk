@@ -45,7 +45,7 @@ class VariableDeclarationResolver {
 
     InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
-      _resolver.flowAnalysis.topLevelDeclaration_enter(_resolver, node, null);
+      _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }

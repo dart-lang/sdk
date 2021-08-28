@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,7 +14,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/migration.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 /// Data gathered by flow analysis, retained for testing purposes.
@@ -69,19 +69,28 @@ class FlowAnalysisHelper {
 
   final bool isNonNullableByDefault;
 
+  /// Indicates whether initializers of implicitly typed variables should be
+  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
+  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// always, and we need to be able to replicate the old behavior when
+  /// analyzing old language versions).
+  final bool respectImplicitlyTypedVarInitializers;
+
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
       flow;
 
   FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
-      bool isNonNullableByDefault)
-      : this._(
-            TypeSystemTypeOperations(typeSystem),
+      FeatureSet featureSet)
+      : this._(TypeSystemTypeOperations(typeSystem),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
-            isNonNullableByDefault);
+            isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
+            respectImplicitlyTypedVarInitializers:
+                featureSet.isEnabled(Feature.constructor_tearoffs));
 
-  FlowAnalysisHelper._(
-      this._typeOperations, this.dataForTesting, this.isNonNullableByDefault);
+  FlowAnalysisHelper._(this._typeOperations, this.dataForTesting,
+      {required this.isNonNullableByDefault,
+      required this.respectImplicitlyTypedVarInitializers});
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -223,8 +232,7 @@ class FlowAnalysisHelper {
     flow!.labeledStatement_end();
   }
 
-  void topLevelDeclaration_enter(
-      ResolverVisitor resolver, AstNode node, FormalParameterList? parameters,
+  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters,
@@ -237,7 +245,7 @@ class FlowAnalysisHelper {
         ? FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
                 DartType>(_typeOperations, assignedVariables!,
             respectImplicitlyTypedVarInitializers:
-                resolver.isConstructorTearoffsEnabled)
+                respectImplicitlyTypedVarInitializers)
         : FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
             DartType>.legacy(_typeOperations, assignedVariables!);
   }
@@ -349,14 +357,13 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
   final MigrationResolutionHooks migrationResolutionHooks;
 
   FlowAnalysisHelperForMigration(TypeSystemImpl typeSystem,
-      this.migrationResolutionHooks, bool isNonNullableByDefault)
-      : super(typeSystem, false, isNonNullableByDefault);
+      this.migrationResolutionHooks, FeatureSet featureSet)
+      : super(typeSystem, false, featureSet);
 
   @override
-  void topLevelDeclaration_enter(
-      ResolverVisitor resolver, AstNode node, FormalParameterList? parameters,
+  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
       {void Function(AstVisitor<Object?> visitor)? visit}) {
-    super.topLevelDeclaration_enter(resolver, node, parameters, visit: visit);
+    super.topLevelDeclaration_enter(node, parameters, visit: visit);
     migrationResolutionHooks.setFlowAnalysis(flow);
   }
 

@@ -1185,7 +1185,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    flowAnalysis.topLevelDeclaration_enter(this, node, node.parameters);
+    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = node.declaredElement!.type.returnType;
@@ -1409,7 +1409,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       flowAnalysis.flow!.functionExpression_begin(node);
     } else {
       flowAnalysis.topLevelDeclaration_enter(
-          this, node, node.functionExpression.parameters);
+          node, node.functionExpression.parameters);
     }
     flowAnalysis.executableDeclaration_enter(
       node,
@@ -1638,7 +1638,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    flowAnalysis.topLevelDeclaration_enter(this, node, node.parameters);
+    flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = node.declaredElement!.returnType;
@@ -2246,7 +2246,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             errorListener,
             featureSet,
             FlowAnalysisHelperForMigration(
-                typeSystem, migrationResolutionHooks, true),
+                typeSystem, migrationResolutionHooks, featureSet),
             migrationResolutionHooks,
             migrationResolutionHooks);
 

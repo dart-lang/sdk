@@ -38,8 +38,8 @@ class AstResolver {
     _errorListener,
     nameScope: _nameScope,
   );
-  late final _flowAnalysis = FlowAnalysisHelper(_unitElement.library.typeSystem,
-      false, _unitElement.library.isNonNullableByDefault);
+  late final _flowAnalysis =
+      FlowAnalysisHelper(_unitElement.library.typeSystem, false, _featureSet);
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,
@@ -58,7 +58,7 @@ class AstResolver {
     node.accept(_resolutionVisitor);
     node.accept(_scopeResolverVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(_resolverVisitor, node, null);
+    _flowAnalysis.topLevelDeclaration_enter(node, null);
     node.accept(_resolverVisitor);
     _flowAnalysis.topLevelDeclaration_exit();
   }
@@ -76,8 +76,7 @@ class AstResolver {
     visit(_scopeResolverVisitor);
 
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(
-        _resolverVisitor, node, node.parameters,
+    _flowAnalysis.topLevelDeclaration_enter(node, node.parameters,
         visit: visit);
     visit(_resolverVisitor);
     _flowAnalysis.topLevelDeclaration_exit();
@@ -96,8 +95,7 @@ class AstResolver {
       node.accept(_scopeResolverVisitor);
     }
     _prepareEnclosingDeclarations();
-    _flowAnalysis.topLevelDeclaration_enter(
-        _resolverVisitor, node.parent!, null);
+    _flowAnalysis.topLevelDeclaration_enter(node.parent!, null);
     node.accept(_resolverVisitor);
     _flowAnalysis.topLevelDeclaration_exit();
   }
