@@ -417,7 +417,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
 /// An [AbstractClassElementImpl] which is a class.
 class ClassElementImpl extends AbstractClassElementImpl
-    with TypeParameterizedElementMixin {
+    with TypeParameterizedElementMixin, HasMacroExecutionErrors {
   /// The superclass of the class, or `null` for [Object].
   InterfaceType? _supertype;
 
@@ -447,10 +447,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   /// TODO(scheglov) implement as modifier
   bool _isSimplyBounded = true;
-
-  /// The list of errors recorded during execution of macro builders
-  /// over this class.
-  List<macro.MacroExecutionError> macroExecutionErrors = [];
 
   ElementLinkedData? linkedData;
 
@@ -3300,6 +3296,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
+    with HasMacroExecutionErrors
     implements FieldElement {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -3546,6 +3543,12 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     safelyVisitChildren(typeParameters, visitor);
     safelyVisitChildren(parameters, visitor);
   }
+}
+
+mixin HasMacroExecutionErrors {
+  /// The list of errors recorded during execution of macro builders
+  /// over this element.
+  List<macro.MacroExecutionError> macroExecutionErrors = [];
 }
 
 /// This interface is implemented by [Element]s that can be added by macros.

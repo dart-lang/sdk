@@ -231,6 +231,10 @@ class BundleWriter {
     _sink.writeBool(element is ConstFieldElementImpl);
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
+    _writeList(
+      element.macroExecutionErrors,
+      _sink._writeMacroExecutionError,
+    );
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeType(element.type);
     _resolutionSink._writeOptionalNode(element.constantInitializer);

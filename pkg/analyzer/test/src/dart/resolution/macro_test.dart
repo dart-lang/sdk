@@ -115,6 +115,20 @@ class A {
     ]);
   }
 
+  test_executionError_observable_implicitlyTyped() async {
+    await assertErrorsInCode(r'''
+import 'macro_annotations.dart';
+
+class A {
+  @observable
+  var _a = 0;
+}
+''', [
+      error(CompileTimeErrorCode.MACRO_EXECUTION_ERROR, 46, 11),
+      error(HintCode.UNUSED_FIELD, 64, 2),
+    ]);
+  }
+
   test_observable() async {
     var code = r'''
 import 'macro_annotations.dart';
