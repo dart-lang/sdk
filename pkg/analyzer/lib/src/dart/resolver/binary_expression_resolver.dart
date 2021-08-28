@@ -69,8 +69,10 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_BINARY_OPERATOR, node, [operator.lexeme]);
+      _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.NOT_BINARY_OPERATOR,
+          node.operator,
+          [operator.lexeme]);
     }
 
     _resolveUnsupportedOperator(node);
