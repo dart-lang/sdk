@@ -20,6 +20,8 @@ class Statics extends core::Object {
   synthetic constructor •() → self::Statics
     : super core::Object::•()
     ;
+  static method _#new#tearOff() → self::Statics
+    return new self::Statics::•();
 }
 static method main() → void {
   self::testUninitializedNonFinalStaticField();
@@ -84,4 +86,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:22:23
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics.dart:23:29 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:7:14 -> DoubleConstant(-1.0)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///late_statics_lib.dart:8:20 -> DoubleConstant(-1.0)
-Extra constant evaluation: evaluated: 62, effectively constant: 4
+Extra constant evaluation: evaluated: 63, effectively constant: 4
