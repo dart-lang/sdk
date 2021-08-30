@@ -47,19 +47,6 @@ abstract class StackListenerImpl extends StackListener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void finishFunction(
-      covariant formals, AsyncMarker asyncModifier, covariant body) {
-    problems.unsupported("finishFunction", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
-  dynamic finishFields() {
-    return problems.unsupported("finishFields", -1, uri);
-  }
-
-  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
-  // and ast_builder.dart.
   List<Expression> finishMetadata(Annotatable? parent) {
     return problems.unsupported("finishMetadata", -1, uri);
   }

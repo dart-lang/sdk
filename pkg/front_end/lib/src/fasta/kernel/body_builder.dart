@@ -797,7 +797,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
 
-  @override
   void finishFields() {
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
@@ -872,9 +871,34 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     pop(); // Annotations.
 
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
+    performBacklogComputations();
     assert(stack.length == 0);
+  }
+
+  /// Perform delayed computations that were put on back log during body
+  /// building.
+  ///
+  /// Back logged computations include resolution of redirecting factory
+  /// invocations and checking of typedef types.
+  void performBacklogComputations(
+      [List<DelayedActionPerformer>? delayedActionPerformers]) {
+    _finishVariableMetadata();
+    _unaliasTypeAliasedConstructorInvocations();
+    _unaliasTypeAliasedFactoryInvocations();
+    _resolveRedirectingFactoryTargets(
+        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
+    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
+    if (hasDelayedActions) {
+      assert(
+          delayedActionPerformers != null,
+          "Body builder has delayed actions that cannot be performed: "
+          "$delayedRedirectingFactoryInvocations");
+      delayedActionPerformers?.add(this);
+    }
+  }
+
+  void finishRedirectingFactoryBody() {
+    performBacklogComputations();
   }
 
   @override
@@ -1023,7 +1047,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  @override
   void finishFunction(
       FormalParameters? formals, AsyncMarker asyncModifier, Statement? body) {
     debugEvent("finishFunction");
@@ -1159,9 +1182,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
-    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
+    performBacklogComputations();
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -1255,14 +1276,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return builder.isBuiltAndMarked;
     }
     return true;
-  }
-
-  // TODO(eernst): Rename this method now that it handles more tasks.
-  void resolveRedirectingFactoryTargets() {
-    _unaliasTypeAliasedConstructorInvocations();
-    _unaliasTypeAliasedFactoryInvocations();
-    _resolveRedirectingFactoryTargets(
-        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
   }
 
   /// Return an [Expression] resolving the argument invocation.
@@ -1439,7 +1452,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return delayedRedirectingFactoryInvocations.isNotEmpty;
   }
 
-  void finishVariableMetadata() {
+  void _finishVariableMetadata() {
     List<VariableDeclaration>? variablesWithMetadata =
         this.variablesWithMetadata;
     this.variablesWithMetadata = null;
@@ -1488,8 +1501,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       temporaryParent = new ListLiteral(expressions);
     }
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
+    performBacklogComputations();
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -1554,7 +1566,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 
-    resolveRedirectingFactoryTargets();
+    performBacklogComputations();
     libraryBuilder.loader.transformPostInference(fakeReturn,
         transformSetLiterals, transformCollections, libraryBuilder.library);
 
@@ -6780,8 +6792,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
-              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
+          new NamedTypeBuilder(
+              typeParameter.name!,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

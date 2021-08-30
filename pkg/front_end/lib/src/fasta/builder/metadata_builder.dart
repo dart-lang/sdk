@@ -41,6 +41,6 @@ class MetadataBuilder {
           bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
     }
     bodyBuilder.inferAnnotations(parent, parent.annotations);
-    bodyBuilder.resolveRedirectingFactoryTargets();
+    bodyBuilder.performBacklogComputations();
   }
 }

@@ -1595,6 +1595,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void transformChildren(Transformer v) {
+    v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {
@@ -1604,6 +1605,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
     // ignore: unnecessary_null_comparison
     if (onType != null) {

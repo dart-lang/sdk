@@ -556,7 +556,7 @@ class SourceLoader extends Loader {
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
-        isDeclarationInstanceMember: isClassInstanceMember) as BodyBuilder;
+        isDeclarationInstanceMember: isClassInstanceMember);
 
     return listener.parseSingleExpression(
         new Parser(listener,
