@@ -530,15 +530,26 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
-static void AcceptCompilation(Thread* thread) {
+static ObjectPtr AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
   if (result.status != Dart_KernelCompilationStatus_Ok) {
-    FATAL1(
-        "An error occurred in the CFE while accepting the most recent"
+    if (result.status != Dart_KernelCompilationStatus_MsgFailed) {
+      FATAL1(
+          "An error occurred while accepting the most recent"
+          " compilation results: %s",
+          result.error);
+    }
+    TIR_Print(
+        "An error occurred while accepting the most recent"
         " compilation results: %s",
         result.error);
+    Zone* zone = thread->zone();
+    const auto& error_str = String::Handle(zone, String::New(result.error));
+    free(result.error);
+    return ApiError::New(error_str);
   }
+  return Object::null();
 }
 
 // If [root_script_url] is null, attempt to load from [kernel_buffer].
@@ -639,7 +650,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     // we have accepted the compilation to clear some state in the incremental
     // compiler.
     if (did_kernel_compilation) {
-      AcceptCompilation(thread);
+      const auto& result = Object::Handle(Z, AcceptCompilation(thread));
+      if (result.IsError()) {
+        const auto& error = Error::Cast(result);
+        AddReasonForCancelling(new Aborted(Z, error));
+        ReportReasonsForCancelling();
+        CommonFinalizeTail(num_old_libs_);
+        return false;
+      }
     }
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return false;
@@ -739,6 +757,17 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       heap->CollectAllGarbage(Heap::kLowMemory);
     }
 
+    // If we use the CFE and performed a compilation, we need to notify that
+    // we have accepted the compilation to clear some state in the incremental
+    // compiler.
+    if (did_kernel_compilation) {
+      const auto& result = Object::Handle(Z, AcceptCompilation(thread));
+      if (result.IsError()) {
+        const auto& error = Error::Cast(result);
+        AddReasonForCancelling(new Aborted(Z, error));
+      }
+    }
+
     if (!FLAG_reload_force_rollback && !HasReasonsForCancelling()) {
       TIR_Print("---- COMMITTING RELOAD\n");
       isolate_group_->program_reload_context()->ReloadPhase4CommitPrepare();
@@ -828,13 +857,6 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         GrowableObjectArray::Handle(Z, IG->object_store()->libraries())
             .Length();
     CommonFinalizeTail(final_library_count);
-
-    // If we use the CFE and performed a compilation, we need to notify that
-    // we have accepted the compilation to clear some state in the incremental
-    // compiler.
-    if (did_kernel_compilation) {
-      AcceptCompilation(thread);
-    }
   }
 
   // Reenable concurrent marking if it was initially on.

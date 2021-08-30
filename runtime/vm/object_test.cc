@@ -5304,52 +5304,55 @@ TEST_CASE(TypeParameterTypeRef) {
   EXPECT(!m.IsSubtypeOf(t, Heap::kNew));
 }
 
-ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
-  auto check_subtype_relation = [](const Expect& expect, const Type& sub,
-                                   const Type& super, bool is_subtype) {
-    if (sub.IsSubtypeOf(super, Heap::kNew) != is_subtype) {
-      TextBuffer buffer(128);
-      buffer.AddString("Expected ");
-      sub.PrintName(Object::kScrubbedName, &buffer);
-      buffer.Printf(" to %s a subtype of ", is_subtype ? "be" : "not be");
-      super.PrintName(Object::kScrubbedName, &buffer);
-      expect.Fail("%s", buffer.buffer());
-    }
-  };
+static void FinalizeAndCanonicalize(AbstractType* type) {
+  *type ^= ClassFinalizer::FinalizeType(*type);
+  ASSERT(type->IsCanonical());
+}
+
+static void CheckSubtypeRelation(const Expect& expect,
+                                 const AbstractType& sub,
+                                 const AbstractType& super,
+                                 bool is_subtype) {
+  if (sub.IsSubtypeOf(super, Heap::kNew) != is_subtype) {
+    TextBuffer buffer(128);
+    buffer.AddString("Expected ");
+    sub.PrintName(Object::kScrubbedName, &buffer);
+    buffer.Printf(" to %s a subtype of ", is_subtype ? "be" : "not be");
+    super.PrintName(Object::kScrubbedName, &buffer);
+    expect.Fail("%s", buffer.buffer());
+  }
+}
+
 #define EXPECT_SUBTYPE(sub, super)                                             \
-  check_subtype_relation(Expect(__FILE__, __LINE__), sub, super, true);
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, true);
 #define EXPECT_NOT_SUBTYPE(sub, super)                                         \
-  check_subtype_relation(Expect(__FILE__, __LINE__), sub, super, false);
+  CheckSubtypeRelation(Expect(__FILE__, __LINE__), sub, super, false);
 
-  auto finalize_and_canonicalize = [](Type* type) {
-    *type ^= ClassFinalizer::FinalizeType(*type);
-    ASSERT(type->IsCanonical());
-  };
-
+ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   const auto& closure_class =
       Class::Handle(IsolateGroup::Current()->object_store()->closure_class());
   const auto& closure_type = Type::Handle(closure_class.DeclarationType());
   auto& closure_type_nullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNullable, Heap::kNew));
-  finalize_and_canonicalize(&closure_type_nullable);
+  FinalizeAndCanonicalize(&closure_type_nullable);
   auto& closure_type_legacy = Type::Handle(
       closure_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  finalize_and_canonicalize(&closure_type_legacy);
+  FinalizeAndCanonicalize(&closure_type_legacy);
   auto& closure_type_nonnullable = Type::Handle(
       closure_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
-  finalize_and_canonicalize(&closure_type_nonnullable);
+  FinalizeAndCanonicalize(&closure_type_nonnullable);
 
   const auto& function_type =
       Type::Handle(IsolateGroup::Current()->object_store()->function_type());
   auto& function_type_nullable = Type::Handle(
       function_type.ToNullability(Nullability::kNullable, Heap::kNew));
-  finalize_and_canonicalize(&function_type_nullable);
+  FinalizeAndCanonicalize(&function_type_nullable);
   auto& function_type_legacy = Type::Handle(
       function_type.ToNullability(Nullability::kLegacy, Heap::kNew));
-  finalize_and_canonicalize(&function_type_legacy);
+  FinalizeAndCanonicalize(&function_type_legacy);
   auto& function_type_nonnullable = Type::Handle(
       function_type.ToNullability(Nullability::kNonNullable, Heap::kNew));
-  finalize_and_canonicalize(&function_type_nonnullable);
+  FinalizeAndCanonicalize(&function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_nullable);
   EXPECT_SUBTYPE(closure_type_nonnullable, function_type_legacy);
@@ -5382,13 +5385,13 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
 
   auto& future_or_function_type_nullable =
       Type::Handle(Type::New(future_or_class, tav_function_nullable));
-  finalize_and_canonicalize(&future_or_function_type_nullable);
+  FinalizeAndCanonicalize(&future_or_function_type_nullable);
   auto& future_or_function_type_legacy =
       Type::Handle(Type::New(future_or_class, tav_function_legacy));
-  finalize_and_canonicalize(&future_or_function_type_legacy);
+  FinalizeAndCanonicalize(&future_or_function_type_legacy);
   auto& future_or_function_type_nonnullable =
       Type::Handle(Type::New(future_or_class, tav_function_nonnullable));
-  finalize_and_canonicalize(&future_or_function_type_nonnullable);
+  FinalizeAndCanonicalize(&future_or_function_type_nonnullable);
 
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_nullable);
   EXPECT_SUBTYPE(closure_type_nonnullable, future_or_function_type_legacy);
@@ -5405,9 +5408,32 @@ ISOLATE_UNIT_TEST_CASE(ClosureType_SubtypeOfFunctionType) {
   } else {
     EXPECT_SUBTYPE(closure_type_nullable, future_or_function_type_nonnullable);
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
+  const auto& type_object = Type::Handle(
+      IsolateGroup::Current()->object_store()->non_nullable_object_type());
+
+  auto& type_function_int_nullary =
+      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+  type_function_int_nullary.set_result_type(Type::Handle(Type::IntType()));
+  FinalizeAndCanonicalize(&type_function_int_nullary);
+
+  auto& type_nullable_function_int_nullary =
+      FunctionType::Handle(type_function_int_nullary.ToNullability(
+          Nullability::kNullable, Heap::kOld));
+  FinalizeAndCanonicalize(&type_nullable_function_int_nullary);
+
+  EXPECT_SUBTYPE(type_function_int_nullary, type_object);
+  if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
+    EXPECT_NOT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  } else {
+    EXPECT_SUBTYPE(type_nullable_function_int_nullary, type_object);
+  }
+}
+
 #undef EXPECT_NOT_SUBTYPE
 #undef EXPECT_SUBTYPE
-}
 
 TEST_CASE(Class_GetInstantiationOf) {
   const char* kScript = R"(

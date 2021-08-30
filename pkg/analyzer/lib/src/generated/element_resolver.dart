@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -239,7 +238,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorName(covariant ConstructorNameImpl node) {
-    DartType type = node.type.typeOrThrow;
+    var type = node.type.type;
+    if (type == null) {
+      return;
+    }
     if (type.isDynamic) {
       // Nothing to do.
     } else if (type is InterfaceType) {
@@ -255,18 +257,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         name.staticElement = constructor;
       }
       node.staticElement = constructor;
-    } else {
-// TODO(brianwilkerson) Report these errors.
-//      ASTNode parent = node.getParent();
-//      if (parent instanceof InstanceCreationExpression) {
-//        if (((InstanceCreationExpression) parent).isConst()) {
-//          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
-//        } else {
-//          // CompileTimeErrorCode.NEW_WITH_NON_TYPE
-//        }
-//      } else {
-//        // This is part of a redirecting factory constructor; not sure which error code to use
-//      }
     }
   }
 

@@ -724,11 +724,12 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _definingLibrary.typeSystem = context.typeSystemLegacy;
     var inheritance = InheritanceManager3();
 
+    var featureSet = FeatureSet.forTesting();
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: FeatureSet.forTesting(),
+        featureSet: featureSet,
         flowAnalysisHelper:
-            FlowAnalysisHelper(context.typeSystemLegacy, false, false));
+            FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
     _resolver = _visitor.elementResolver;
   }
 

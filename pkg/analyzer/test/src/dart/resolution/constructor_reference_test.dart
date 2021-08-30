@@ -20,6 +20,28 @@ main() {
 @reflectiveTest
 class ConstructorReferenceResolution_TypeArgsTest
     extends PubPackageResolutionTest {
+  test_alias_generic_const() async {
+    await assertNoErrorsInCode('''
+class A<T, U> {
+  A.foo();
+}
+typedef TA<T, U> = A<U, T>;
+
+const a = TA<int, String>.foo;
+''');
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('TA<int, String>.foo;'),
+      elementMatcher(classElement.getNamedConstructor('foo')!,
+          substitution: {'T': 'String', 'U': 'int'}),
+      classElement,
+      'A<String, int> Function()',
+      expectedTypeNameType: 'A<String, int>',
+      expectedTypeNameElement: findElement.typeAlias('TA'),
+    );
+  }
+
   test_alias_generic_named() async {
     await assertNoErrorsInCode('''
 class A<T, U> {
@@ -118,6 +140,26 @@ void bar() {
     );
   }
 
+  test_class_generic_const() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+}
+
+const a = A<int>.new;
+''');
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.new;'),
+      elementMatcher(classElement.unnamedConstructor,
+          substitution: {'T': 'int'}),
+      classElement,
+      'A<int> Function()',
+      expectedTypeNameType: 'A<int>',
+    );
+  }
+
   test_class_generic_named() async {
     await assertNoErrorsInCode('''
 class A<T> {
@@ -206,6 +248,30 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
+      expectedTypeNameType: 'A<int>',
+    );
+  }
+
+  test_class_generic_nonConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  static int i = 1;
+}
+
+void bar() {
+  A<int>.i;
+}
+''', [
+      error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          51, 8),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.i;'),
+      null,
+      classElement,
+      'dynamic',
       expectedTypeNameType: 'A<int>',
     );
   }
@@ -509,7 +575,7 @@ A<String> Function() bar() {
     var constructorElement = classElement.getNamedConstructor('foo')!;
     assertConstructorReference(
       findNode.constructorReference('A.foo;'),
-      elementMatcher(constructorElement, substitution: {'T': 'Never'}),
+      constructorElement,
       classElement,
       'A<Never> Function()',
       expectedTypeNameType: 'A<Never>',
@@ -531,7 +597,7 @@ A<int> Function() bar() {
     var constructorElement = classElement.getNamedConstructor('foo')!;
     assertConstructorReference(
       findNode.constructorReference('A.foo;'),
-      elementMatcher(constructorElement, substitution: {'T': 'int'}),
+      constructorElement,
       classElement,
       'A<int> Function()',
       expectedTypeNameType: 'A<int>',
@@ -553,10 +619,10 @@ void bar() {
     var constructorElement = classElement.getNamedConstructor('foo')!;
     assertConstructorReference(
       findNode.constructorReference('A.foo;'),
-      elementMatcher(constructorElement, substitution: {'T': 'T'}),
+      constructorElement,
       classElement,
       'A<T> Function<T>()',
-      expectedTypeNameType: 'A<T>',
+      expectedTypeNameType: null,
     );
   }
 
@@ -575,10 +641,29 @@ void bar() {
     var constructorElement = classElement.getNamedConstructor('foo')!;
     assertConstructorReference(
       findNode.constructorReference('A.foo;'),
-      elementMatcher(constructorElement, substitution: {'T': 'T'}),
+      constructorElement,
       classElement,
       'A<T> Function<T extends num>()',
-      expectedTypeNameType: 'A<T>',
+      expectedTypeNameType: null,
+    );
+  }
+
+  test_class_nonGeneric_const() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+const a1 = A.new;
+''');
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A.new;'),
+      classElement.unnamedConstructor,
+      classElement,
+      'A Function()',
+      expectedTypeNameType: 'A',
     );
   }
 
@@ -624,6 +709,28 @@ bar() {
     );
   }
 
+  test_typeAlias_generic_const() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+}
+typedef TA<T> = A<T>;
+
+const a = TA.new;
+''');
+
+    var classElement = findElement.class_('A');
+    var constructorElement = classElement.unnamedConstructor!;
+    assertConstructorReference(
+      findNode.constructorReference('TA.new;'),
+      constructorElement,
+      classElement,
+      'A<T> Function<T>()',
+      expectedTypeNameType: null,
+      expectedTypeNameElement: findElement.typeAlias('TA'),
+    );
+  }
+
   test_typeAlias_generic_named_uninstantiated() async {
     await assertNoErrorsInCode('''
 class A<T, U> {
@@ -640,11 +747,32 @@ bar() {
     var constructorElement = classElement.getNamedConstructor('foo')!;
     assertConstructorReference(
       findNode.constructorReference('TA.foo;'),
-      elementMatcher(constructorElement,
-          substitution: {'T': 'String', 'U': 'U'}),
+      constructorElement,
       findElement.class_('A'),
       'A<String, U> Function<U>()',
-      expectedTypeNameType: 'A<String, U>',
+      expectedTypeNameType: null,
+      expectedTypeNameElement: findElement.typeAlias('TA'),
+    );
+  }
+
+  test_typeAlias_instantiated_const() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  const A();
+}
+typedef TA = A<int>;
+
+const a = TA.new;
+''');
+
+    var classElement = findElement.class_('A');
+    var constructorElement = classElement.unnamedConstructor!;
+    assertConstructorReference(
+      findNode.constructorReference('TA.new;'),
+      elementMatcher(constructorElement, substitution: {'T': 'int'}),
+      classElement,
+      'A<int> Function()',
+      expectedTypeNameType: 'A<int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }

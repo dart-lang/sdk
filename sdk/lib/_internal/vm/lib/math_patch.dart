@@ -121,65 +121,75 @@ int _intPow(int base, int exponent) {
 }
 
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double acos(num x) => _acos(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double asin(num x) => _asin(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double atan(num x) => _atan(x.toDouble());
 @patch
-@pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double exp(num x) => _exp(x.toDouble());
 @patch
-@pragma("vm:recognized", "graph-intrinsic")
 @pragma("vm:exact-result-type", "dart:core#_Double")
-@pragma("vm:never-inline")
+@pragma("vm:prefer-inline")
 double log(num x) => _log(x.toDouble());
 
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _atan2(double a, double b) native "Math_atan2";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _sin(double x) native "Math_sin";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _cos(double x) native "Math_cos";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _tan(double x) native "Math_tan";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _acos(double x) native "Math_acos";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _asin(double x) native "Math_asin";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _atan(double x) native "Math_atan";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _sqrt(double x) native "Math_sqrt";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _exp(double x) native "Math_exp";
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
 double _log(double x) native "Math_log";
 
 // TODO(iposva): Handle patch methods within a patch class correctly.

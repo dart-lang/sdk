@@ -2892,12 +2892,8 @@ class DeferredAccessGenerator extends Generator {
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(
-        name,
-        nullabilityBuilder,
-        /* arguments = */ null,
-        /* fileUri = */ null,
-        /* charOffset = */ null);
+    NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
+        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -4017,25 +4013,21 @@ class PrefixUseGenerator extends Generator {
   @override
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    if (send is IncompleteSendGenerator) {
-      assert(send.name.text == send.token.lexeme,
-          "'${send.name.text}' != ${send.token.lexeme}");
-      Object result = qualifiedLookup(send.token);
-      if (send is SendAccessGenerator) {
-        result = _helper.finishSend(
-            result, send.typeArguments, send.arguments, send.fileOffset,
-            isTypeArgumentsInForest: send.isTypeArgumentsInForest);
-      }
-      if (isNullAware) {
-        result = _helper.wrapInLocatedProblem(
-            _helper.toValue(result),
-            messageCantUsePrefixWithNullAware.withLocation(
-                _helper.uri, fileOffset, lengthForToken(token)));
-      }
-      return result;
-    } else {
-      return buildSimpleRead();
+    assert(send.name.text == send.token.lexeme,
+        "'${send.name.text}' != ${send.token.lexeme}");
+    Object result = qualifiedLookup(send.token);
+    if (send is SendAccessGenerator) {
+      result = _helper.finishSend(
+          result, send.typeArguments, send.arguments, send.fileOffset,
+          isTypeArgumentsInForest: send.isTypeArgumentsInForest);
     }
+    if (isNullAware) {
+      result = _helper.wrapInLocatedProblem(
+          _helper.toValue(result),
+          messageCantUsePrefixWithNullAware.withLocation(
+              _helper.uri, fileOffset, lengthForToken(token)));
+    }
+    return result;
   }
 
   @override
@@ -4742,12 +4734,7 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
     sink.write(", name: ");
     sink.write(name.text);
     sink.write(", arguments: ");
-    Arguments node = arguments;
-    if (node is Node) {
-      printNodeOn(node, sink);
-    } else {
-      sink.write(node);
-    }
+    printNodeOn(arguments, sink);
   }
 }
 

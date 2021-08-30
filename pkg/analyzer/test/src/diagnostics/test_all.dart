@@ -57,6 +57,8 @@ import 'case_expression_type_implements_equals_test.dart'
 import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
     as case_expression_type_is_not_switch_expression_subtype;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
+import 'class_instantiation_access_to_member_test.dart'
+    as class_instantiation_access_to_member;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
 import 'conflicting_generic_interfaces_test.dart'
@@ -758,6 +760,7 @@ main() {
     case_expression_type_implements_equals.main();
     case_expression_type_is_not_switch_expression_subtype.main();
     cast_to_non_type.main();
+    class_instantiation_access_to_member.main();
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
     conflicting_static_and_instance.main();

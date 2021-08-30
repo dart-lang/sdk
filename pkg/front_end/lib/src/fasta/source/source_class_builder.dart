@@ -559,7 +559,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       } else {
         assert(
             // This is a synthesized constructor.
-            builder is DillConstructorBuilder && builder.member is Constructor,
+            builder is DillConstructorBuilder,
             "Unexpected constructor: $builder.");
       }
     }, includeInjectedConstructors: true);

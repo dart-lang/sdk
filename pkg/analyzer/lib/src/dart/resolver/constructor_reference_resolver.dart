@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -36,12 +38,47 @@ class ConstructorReferenceResolver {
         [],
       );
     }
+    var name = node.constructorName.name;
+    if (element == null && name != null) {
+      // The illegal construction, which looks like a type-instantiated
+      // constructor tearoff, may be an attempt to reference a member on
+      // [enclosingElement]. Try to provide a helpful error, and fall back to
+      // "unknown constructor."
+      var enclosingElement = node.constructorName.type.name.staticElement;
+      if (enclosingElement is TypeAliasElement) {
+        enclosingElement = enclosingElement.aliasedType.element;
+      }
+      // TODO(srawlins): Handle `enclosingElement` being a functio typedef:
+      // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
+      // This is illegal.
+      if (enclosingElement is ClassElement) {
+        var method = enclosingElement.getMethod(name.name) ??
+            enclosingElement.getGetter(name.name) ??
+            enclosingElement.getSetter(name.name);
+        if (method != null) {
+          var error = method.isStatic
+              ? CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
+              : CompileTimeErrorCode
+                  .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
+          _resolver.errorReporter.reportErrorForNode(
+            error,
+            node,
+            [name.name],
+          );
+        } else {
+          _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+            node,
+            [enclosingElement.name, name.name],
+          );
+        }
+      }
+    }
     _inferArgumentTypes(node);
   }
 
   void _inferArgumentTypes(ConstructorReferenceImpl node) {
     var constructorName = node.constructorName;
-    var typeName = constructorName.type;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
@@ -71,20 +108,34 @@ class ConstructorReferenceResolver {
           node, constructorName.name!, constructorType) as FunctionType?;
 
       if (inferred != null) {
-        typeName.type = inferred.returnType;
+        var inferredReturnType = inferred.returnType as InterfaceType;
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from(
-          rawElement,
-          inferred.returnType as InterfaceType,
-        );
-        constructorName.staticElement = constructorElement;
-        constructorName.name?.staticElement = constructorElement;
+        var constructorElement =
+            ConstructorMember.from(rawElement, inferredReturnType);
+
+        constructorName.staticElement = constructorElement.declaration;
+        constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
+        // TODO(srawlins): Always set the TypeName's type to `null`, here, and
+        // in the "else" case below, at the very end of [_inferArgumentTypes].
+        // This requires refactoring how type arguments are checked against
+        // bounds, as this is currently always done with the [TypeName], in
+        // type_argument_verifier.dart.
+        if (inferred.typeFormals.isNotEmpty) {
+          constructorName.type.type = null;
+        } else {
+          constructorName.type.type = inferredReturnType;
+        }
       }
     } else {
-      node.staticType = node.constructorName.staticElement!.type;
+      var constructorElement = constructorName.staticElement;
+      if (constructorElement == null) {
+        node.staticType = DynamicTypeImpl.instance;
+      } else {
+        node.staticType = constructorElement.type;
+      }
     }
   }
 }

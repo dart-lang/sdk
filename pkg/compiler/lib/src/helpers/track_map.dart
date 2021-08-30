@@ -16,11 +16,11 @@ class TrackMap<K, V> implements Map<K, V> {
   final List _counts;
   static final Map<String, List<int>> _countsMap = {};
 
-  TrackMap._internal(this._counts) : _map = new Map<K, V>();
+  TrackMap._internal(this._counts) : _map = Map<K, V>();
 
   factory TrackMap(String description) {
     List counts = _countsMap.putIfAbsent(description, () => [0]);
-    Map result = new TrackMap<K, V>._internal(counts);
+    Map result = TrackMap<K, V>._internal(counts);
     counts[0]++;
     return result;
   }

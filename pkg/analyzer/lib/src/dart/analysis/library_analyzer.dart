@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -694,8 +693,8 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(_typeSystem,
-        _testingData != null, unit.featureSet.isEnabled(Feature.non_nullable));
+    FlowAnalysisHelper flowAnalysisHelper =
+        FlowAnalysisHelper(_typeSystem, _testingData != null, unit.featureSet);
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 

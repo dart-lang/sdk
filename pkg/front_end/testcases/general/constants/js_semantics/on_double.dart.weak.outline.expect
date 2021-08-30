@@ -10,6 +10,10 @@ class Class extends core::Object /*hasConstConstructor*/  {
   const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
     : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
     ;
+  static method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+    return new self::Class::doubleShift(i1, i2);
+  static method _#tripleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+    return new self::Class::tripleShift(i1, i2);
 }
 static const field dynamic a = 1.0;
 static const field dynamic b = 1.5;
@@ -34,4 +38,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///on_double.dart:13:22 ->
 Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:14:25 -> DoubleConstant(1.5)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///on_double.dart:15:22 -> DoubleConstant(0.0)
 Evaluated: StaticGet @ org-dartlang-testcase:///on_double.dart:16:26 -> DoubleConstant(1.5)
-Extra constant evaluation: evaluated: 22, effectively constant: 8
+Extra constant evaluation: evaluated: 28, effectively constant: 8

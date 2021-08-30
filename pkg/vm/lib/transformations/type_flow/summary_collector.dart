@@ -1595,7 +1595,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         return _handleIndexingIntoListConstant(constant);
       }
     }
-    assert(target is Procedure && !target.isGetter);
+    assert(!target.isGetter);
     // TODO(alexmarkov): overloaded arithmetic operators
     final result = _makeCall(
         node,

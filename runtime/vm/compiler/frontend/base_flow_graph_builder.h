@@ -444,6 +444,9 @@ class BaseFlowGraphBuilder {
   // kDoubleFloor or kDoubleCeil).
   Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
 
+  // Pops double value and applies unary math operation.
+  Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
+
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
     return function_.HasSavedArgumentsDescriptor();

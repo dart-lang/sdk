@@ -1518,6 +1518,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The instance member '{0}' can't be accessed on a class "
+              "instantiation.",
+          correction:
+              "Try changing the member name to the name of a constructor.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER');
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The static member '{0}' can't be accessed on a class instantiation.",
+          correction: "Try removing the type arguments from the class name, or "
+              "changing the member name to the name of a constructor.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER');
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const CompileTimeErrorCode
+      CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER = CompileTimeErrorCode(
+          'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
+          "The class '{0} doesn't have a constructor named '{1}.",
+          correction: "Try invoking a different constructor, or defining a "
+              "constructor named '{1}'.",
+          uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER');
+
+  /**
+   * Parameters:
    * 0: the name of the abstract method
    * 1: the name of the enclosing class
    */

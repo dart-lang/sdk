@@ -187,11 +187,11 @@ abstract class PrimitiveConstantValue extends ConstantValue {
   @override
   bool operator ==(var other) {
     // Making this method abstract does not give us an error.
-    throw new UnsupportedError('PrimitiveConstant.==');
+    throw UnsupportedError('PrimitiveConstant.==');
   }
 
   @override
-  int get hashCode => throw new UnsupportedError('PrimitiveConstant.hashCode');
+  int get hashCode => throw UnsupportedError('PrimitiveConstant.hashCode');
 
   // Primitive constants don't have dependencies.
   @override
@@ -254,7 +254,7 @@ class IntConstantValue extends NumConstantValue {
   factory IntConstantValue(BigInt value) {
     var existing = _cachedValues[value];
     if (existing != null) return existing;
-    var intConstantVal = new IntConstantValue._internal(value);
+    var intConstantVal = IntConstantValue._internal(value);
     var intValue = value.toInt();
     if (intValue <= -2 && intValue >= 10) {
       _cachedValues[value] = intConstantVal;
@@ -323,7 +323,7 @@ class DoubleConstantValue extends NumConstantValue {
     } else if (value == 1.0) {
       return const DoubleConstantValue._internal(1.0);
     } else {
-      return new DoubleConstantValue._internal(value);
+      return DoubleConstantValue._internal(value);
     }
   }
 
@@ -387,7 +387,7 @@ class DoubleConstantValue extends NumConstantValue {
 
 abstract class BoolConstantValue extends PrimitiveConstantValue {
   factory BoolConstantValue(value) {
-    return value ? new TrueConstantValue() : new FalseConstantValue();
+    return value ? TrueConstantValue() : FalseConstantValue();
   }
 
   const BoolConstantValue._internal();
@@ -425,7 +425,7 @@ class TrueConstantValue extends BoolConstantValue {
   bool get boolValue => true;
 
   @override
-  FalseConstantValue negate() => new FalseConstantValue();
+  FalseConstantValue negate() => FalseConstantValue();
 
   @override
   bool operator ==(var other) => identical(this, other);
@@ -451,7 +451,7 @@ class FalseConstantValue extends BoolConstantValue {
   bool get boolValue => false;
 
   @override
-  TrueConstantValue negate() => new TrueConstantValue();
+  TrueConstantValue negate() => TrueConstantValue();
 
   @override
   bool operator ==(var other) => identical(this, other);
@@ -605,7 +605,7 @@ class ListConstantValue extends ObjectConstantValue {
 
   @override
   String toDartText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _unparseTypeArguments(dartTypes, sb);
     sb.write('[');
     for (int i = 0; i < length; i++) {
@@ -618,7 +618,7 @@ class ListConstantValue extends ObjectConstantValue {
 
   @override
   String toStructuredText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ListConstant(');
     _unparseTypeArguments(dartTypes, sb);
     sb.write('[');
@@ -668,7 +668,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
 
   @override
   String toDartText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _unparseTypeArguments(dartTypes, sb);
     sb.write('{');
     sb.writeAll(values.map((v) => v.toDartText(dartTypes)), ',');
@@ -678,7 +678,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
 
   @override
   String toStructuredText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('SetConstant(');
     _unparseTypeArguments(dartTypes, sb);
     sb.write('{');
@@ -753,7 +753,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
 
   @override
   String toDartText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     _unparseTypeArguments(dartTypes, sb);
     sb.write('{');
     for (int i = 0; i < length; i++) {
@@ -768,7 +768,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
 
   @override
   String toStructuredText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('MapConstant(');
     _unparseTypeArguments(dartTypes, sb);
     sb.write('{');
@@ -1006,7 +1006,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
 
   @override
   String toDartText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write(type.element.name);
     _unparseTypeArguments(dartTypes, sb);
     sb.write('(');
@@ -1025,7 +1025,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
 
   @override
   String toStructuredText(DartTypes dartTypes) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     sb.write('ConstructedConstant(');
     sb.write(type);
     sb.write('(');

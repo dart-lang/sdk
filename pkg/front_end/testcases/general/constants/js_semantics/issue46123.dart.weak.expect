@@ -19,6 +19,8 @@ import "package:js/js.dart";
 @#C3
 class ParallaxOptions extends core::Object {
   external static factory •() → self::ParallaxOptions;
+  static method _#new#tearOff() → self::ParallaxOptions
+    return self::ParallaxOptions::•();
 }
 static method test() → dynamic
   return invalid-expression "External factory constructors can't be evaluated in constant expressions.";

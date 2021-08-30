@@ -7333,6 +7333,11 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
+  }
+
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.

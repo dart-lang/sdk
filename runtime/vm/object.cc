@@ -14513,7 +14513,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-  GRAPH_MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_GRAPH_INTRINSIC);
 
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
@@ -20459,8 +20458,9 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
   }
   // Function types cannot be handled by Class::IsSubtypeOf().
   if (IsFunctionType()) {
-    // Any type that can be the type of a closure is a subtype of Function.
-    if (other.IsDartFunctionType()) {
+    // Any type that can be the type of a closure is a subtype of Function or
+    // non-nullable Object.
+    if (other.IsObjectType() || other.IsDartFunctionType()) {
       return !isolate_group->use_strict_null_safety_checks() || !IsNullable() ||
              !other.IsNonNullable();
     }

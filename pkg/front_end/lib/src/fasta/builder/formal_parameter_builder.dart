@@ -28,8 +28,6 @@ import '../scope.dart' show Scope;
 
 import '../source/source_library_builder.dart';
 
-import '../source/source_loader.dart' show SourceLoader;
-
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
@@ -221,14 +219,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
             bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
         variable!.initializer = initializer..parent = variable;
-        if (library.loader is SourceLoader) {
-          SourceLoader loader = library.loader;
-          loader.transformPostInference(
-              variable!,
-              bodyBuilder.transformSetLiterals,
-              bodyBuilder.transformCollections,
-              library.library);
-        }
+        library.loader.transformPostInference(
+            variable!,
+            bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections,
+            library.library);
         initializerWasInferred = true;
         bodyBuilder.resolveRedirectingFactoryTargets();
         if (bodyBuilder.hasDelayedActions) {

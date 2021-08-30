@@ -517,7 +517,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         inheritance, _definingLibrary, source, _typeProvider, _listener,
         featureSet: featureSet,
         flowAnalysisHelper:
-            FlowAnalysisHelper(context.typeSystemLegacy, false, false));
+            FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
     _analyzer = _visitor.typeAnalyzer;
   }
 

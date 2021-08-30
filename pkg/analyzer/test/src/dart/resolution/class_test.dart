@@ -327,7 +327,30 @@ class B extends A {
     ]);
   }
 
-  test_error_duplicateConstructorDefault() async {
+  test_error_duplicateConstructorNamed() async {
+    await assertErrorsInCode(r'''
+class C {
+  C.foo();
+  C.foo();
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
+    ]);
+  }
+
+  test_error_duplicateConstructorNamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.foo();
+  C.foo();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed() async {
     await assertErrorsInCode(r'''
 class C {
   C();
@@ -338,7 +361,7 @@ class C {
     ]);
   }
 
-  test_error_duplicateConstructorDefault_bothNew() async {
+  test_error_duplicateConstructorUnnamed_bothNew() async {
     await assertErrorsInCode(r'''
 class C {
   C.new();
@@ -349,7 +372,19 @@ class C {
     ]);
   }
 
-  test_error_duplicateConstructorDefault_oneNew() async {
+  test_error_duplicateConstructorUnnamed_oneIsInvalid() async {
+    await assertErrorsInCode(r'''
+class A {}
+class C {
+  A.new();
+  C();
+}
+''', [
+      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1),
+    ]);
+  }
+
+  test_error_duplicateConstructorUnnamed_oneNew() async {
     await assertErrorsInCode(r'''
 class C {
   C();
@@ -357,17 +392,6 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5),
-    ]);
-  }
-
-  test_error_duplicateConstructorName() async {
-    await assertErrorsInCode(r'''
-class C {
-  C.foo();
-  C.foo();
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5),
     ]);
   }
 

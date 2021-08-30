@@ -765,6 +765,9 @@ class LibraryReader {
 
     FieldElementFlags.read(_reader, element);
     element.typeInferenceError = _readTopLevelInferenceError();
+    element.macroExecutionErrors = _reader.readTypedList(
+      _readMacroExecutionError,
+    );
     element.createImplicitAccessors(classReference, name);
 
     return element;

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -286,16 +287,30 @@ class LibraryBuilder {
 
           for (var member in members) {
             if (member is ast.FieldDeclarationImpl) {
-              var annotationIndex = hasMacroAnnotation(
-                member,
-                'observable',
-              );
-              if (annotationIndex != null) {
-                macro.ObservableMacro().visitFieldDeclaration(
-                  member,
-                  classBuilder,
-                );
+              var macroExecutionErrors = <macro.MacroExecutionError>[];
+
+              void runFieldMacro(
+                String name,
+                macro.FieldDeclarationMacro Function() newInstance,
+              ) {
+                var annotationIndex = hasMacroAnnotation(member, name);
+                if (annotationIndex != null) {
+                  try {
+                    newInstance().visitFieldDeclaration(member, classBuilder);
+                  } catch (e) {
+                    macroExecutionErrors.add(
+                      macro.MacroExecutionError(
+                        annotationIndex: annotationIndex,
+                        macroName: name,
+                        message: e.toString(),
+                      ),
+                    );
+                  }
+                }
               }
+
+              runFieldMacro('observable', () => macro.ObservableMacro());
+              member.firstElement.macroExecutionErrors = macroExecutionErrors;
             }
           }
 

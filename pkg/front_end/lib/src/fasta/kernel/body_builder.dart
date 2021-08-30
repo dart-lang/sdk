@@ -1799,8 +1799,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isInForest = arguments is Arguments &&
         typeArguments != null &&
         (receiver is! TypeUseGenerator ||
-            (receiver is TypeUseGenerator &&
-                receiver.declaration is! TypeAliasBuilder));
+            receiver.declaration is! TypeAliasBuilder);
     if (isInForest) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(
@@ -5219,9 +5218,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           node = forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenEntry, elseMapEntry);
         } else {
-          int offset = elseEntry is Expression
-              ? elseEntry.fileOffset
-              : offsetForToken(ifToken);
+          int offset = elseEntry.fileOffset;
           node = new MapLiteralEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
@@ -5246,9 +5243,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           node = forest.createIfMapEntry(offsetForToken(ifToken),
               toValue(condition), thenMapEntry, elseEntry);
         } else {
-          int offset = thenEntry is Expression
-              ? thenEntry.fileOffset
-              : offsetForToken(ifToken);
+          int offset = thenEntry.fileOffset;
           node = new MapLiteralEntry(
               buildProblem(
                   fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
@@ -6224,9 +6219,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (target == null && name == null) {
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.messageBreakOutsideOfLoop, breakKeyword.charOffset));
-    } else if (target == null ||
-        target is! JumpTarget ||
-        !target.isBreakTarget) {
+    } else if (target == null || !target.isBreakTarget) {
       Token labelToken = breakKeyword.next!;
       push(problemInLoopOrSwitch = buildProblemStatement(
           fasta.templateInvalidBreakTarget.withArguments(name!),
@@ -6787,12 +6780,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(
-              typeParameter.name!,
-              builder.nullabilityBuilder,
-              /* arguments = */ null,
-              unresolved.fileUri,
-              unresolved.charOffset)
+          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
+              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

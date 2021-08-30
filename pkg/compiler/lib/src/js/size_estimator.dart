@@ -391,7 +391,7 @@ class SizeEstimator implements NodeVisitor {
     // See:
     // https://connect.microsoft.com/IE/feedback/details/891889/parser-bugs
     if (body is Break && body.targetLabel == node.label) {
-      visit(new EmptyStatement());
+      visit(EmptyStatement());
       return;
     }
     out('${node.label}:');
@@ -431,7 +431,7 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration declaration) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitFunctionDeclaration(declaration);
     functionOut(declaration.function, declaration.name, vars);
   }
@@ -808,21 +808,21 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitNamedFunction(NamedFunction namedFunction) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitNamedFunction(namedFunction);
     functionOut(namedFunction.function, namedFunction.name, vars);
   }
 
   @override
   void visitFun(Fun fun) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitFun(fun);
     functionOut(fun, null, vars);
   }
 
   @override
   void visitArrowFunction(ArrowFunction fun) {
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitArrowFunction(fun);
     arrowFunctionOut(fun, vars);
   }
@@ -1015,7 +1015,7 @@ class SizeEstimator implements NodeVisitor {
   @override
   void visitMethodDefinition(MethodDefinition node) {
     propertyNameOut(node);
-    VarCollector vars = new VarCollector();
+    VarCollector vars = VarCollector();
     vars.visitMethodDefinition(node);
     methodOut(node, vars);
   }

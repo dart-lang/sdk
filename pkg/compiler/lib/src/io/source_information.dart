@@ -88,7 +88,7 @@ class FrameContext {
         () => SourceInformation.readFromDataSource(source));
     String inlinedMethodName = source.readString();
     source.end(tag);
-    return new FrameContext(callInformation, inlinedMethodName);
+    return FrameContext(callInformation, inlinedMethodName);
   }
 
   void writeToDataSink(DataSink sink) {
@@ -112,7 +112,7 @@ class SourceInformationStrategy {
   /// Create a [SourceInformationBuilder] for [member].
   SourceInformationBuilder createBuilderForContext(
       covariant MemberEntity member) {
-    return new SourceInformationBuilder();
+    return SourceInformationBuilder();
   }
 
   /// Generate [SourceInformation] marker for non-preamble code.
@@ -288,8 +288,7 @@ abstract class SourceLocation {
       int column = source.readInt();
       String sourceName = source.readString();
       source.end(tag);
-      return new DirectSourceLocation(
-          sourceUri, offset, line, column, sourceName);
+      return DirectSourceLocation(sourceUri, offset, line, column, sourceName);
     }
   }
 
@@ -361,7 +360,7 @@ abstract class AbstractSourceLocation extends SourceLocation {
     assert(
         offset < _sourceFile.length,
         failedAt(
-            new SourceSpan(sourceUri, 0, 0),
+            SourceSpan(sourceUri, 0, 0),
             "Invalid source location in ${sourceUri}: "
             "offset=$offset, length=${_sourceFile.length}."));
   }
@@ -442,7 +441,7 @@ String computeElementNameForSourceMaps(Entity element,
 /// Compute the suffix used for a parameter stub for [callStructure].
 String computeStubSuffix(CallStructure callStructure) {
   if (callStructure == null) return '';
-  StringBuffer sb = new StringBuffer();
+  StringBuffer sb = StringBuffer();
   sb.write(r'[function-entry$');
   sb.write(callStructure.positionalArgumentCount);
   if (callStructure.namedArguments.isNotEmpty) {

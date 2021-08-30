@@ -72,14 +72,14 @@ class _SourceLocationsImpl implements SourceLocations {
       String inlinedMethodName) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
-    frames.add(new FrameEntry.push(sourceLocation, inlinedMethodName));
+    frames.add(FrameEntry.push(sourceLocation, inlinedMethodName));
   }
 
   @override
   void addPop(int targetOffset, bool isEmpty) {
     assert(targetOffset <= codeOutput.length);
     List<FrameEntry> frames = frameMarkers[targetOffset] ??= [];
-    frames.add(new FrameEntry.pop(isEmpty));
+    frames.add(FrameEntry.pop(isEmpty));
   }
 
   @override
@@ -162,7 +162,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void add(String text) {
     if (isClosed) {
-      throw new StateError("Code output is closed. Trying to write '$text'.");
+      throw StateError("Code output is closed. Trying to write '$text'.");
     }
     _add(text);
   }
@@ -181,7 +181,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
   @override
   void close() {
     if (isClosed) {
-      throw new StateError("Code output is already closed.");
+      throw StateError("Code output is already closed.");
     }
     isClosed = true;
     _listeners?.forEach((listener) => listener.onDone(length));
@@ -192,7 +192,7 @@ abstract class AbstractCodeOutput extends CodeOutput {
 
   @override
   _SourceLocationsImpl createSourceLocations(String name) {
-    return sourceLocationsMap[name] ??= new _SourceLocationsImpl(name, this);
+    return sourceLocationsMap[name] ??= _SourceLocationsImpl(name, this);
   }
 }
 
@@ -202,7 +202,7 @@ abstract class BufferedCodeOutput {
 
 /// [CodeOutput] using a [StringBuffer] as backend.
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
-  StringBuffer buffer = new StringBuffer();
+  StringBuffer buffer = StringBuffer();
 
   CodeBuffer([List<CodeOutputListener> listeners]) : super(listeners);
 

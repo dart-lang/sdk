@@ -649,6 +649,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
+      _reportMacroExecutionErrors(
+        node.metadata,
+        node.firstElement.macroExecutionErrors,
+      );
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;

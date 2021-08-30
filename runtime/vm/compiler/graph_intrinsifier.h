@@ -26,13 +26,8 @@ class Label;
 
 class GraphIntrinsifier : public AllStatic {
  public:
-  static intptr_t ParameterSlotFromSp();
-
   static bool GraphIntrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler);
-
-  static void IntrinsicCallPrologue(Assembler* assembler);
-  static void IntrinsicCallEpilogue(Assembler* assembler);
 
  private:
 #define DECLARE_FUNCTION(class_name, function_name, enum_name, fp)             \

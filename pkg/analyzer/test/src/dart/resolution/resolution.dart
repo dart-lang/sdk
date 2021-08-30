@@ -166,7 +166,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Object? expectedConstructorElement,
     ClassElement expectedClassElement,
     String expectedType, {
-    required String expectedTypeNameType,
+    required String? expectedTypeNameType,
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
@@ -814,7 +814,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertTypeName(
-      TypeName node, Element? expectedElement, String expectedType,
+      TypeName node, Element? expectedElement, String? expectedType,
       {Element? expectedPrefix}) {
     assertType(node, expectedType);
 
