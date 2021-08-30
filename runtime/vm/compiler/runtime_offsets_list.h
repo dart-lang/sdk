@@ -291,11 +291,10 @@
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
   FIELD(FunctionType, hash_offset)                                             \
-  FIELD(FunctionType, named_parameter_names_offset)                            \
-  FIELD(FunctionType, nullability_offset)                                      \
   FIELD(FunctionType, packed_parameter_counts_offset)                          \
   FIELD(FunctionType, packed_type_parameter_counts_offset)                     \
   FIELD(FunctionType, parameter_types_offset)                                  \
+  FIELD(FunctionType, named_parameter_names_offset)                            \
   FIELD(FunctionType, type_parameters_offset)                                  \
   FIELD(TypeParameter, parameterized_class_id_offset)                          \
   FIELD(TypeParameter, index_offset)                                           \

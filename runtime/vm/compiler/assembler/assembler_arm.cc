@@ -2280,16 +2280,6 @@ void Assembler::Bind(Label* label) {
   BindARMv7(label);
 }
 
-void Assembler::LoadCompressedSmi(Register dest, const Address& slot) {
-  ldr(dest, slot);
-#if defined(DEBUG)
-  Label done;
-  BranchIfSmi(dest, &done);
-  Stop("Expected Smi");
-  Bind(&done);
-#endif
-}
-
 OperandSize Address::OperandSizeFor(intptr_t cid) {
   switch (cid) {
     case kArrayCid:

@@ -37,7 +37,7 @@
 
 namespace dart {
 
-void Assert::Fail(const char* format, ...) const {
+void Assert::Fail(const char* format, ...) {
   abort();
 }
 

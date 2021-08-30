@@ -627,17 +627,7 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP), sz);
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
-    ldr(TMP,
-        FieldAddress(type, compiler::target::FunctionType::nullability_offset(),
-                     kByte),
-        kUnsignedByte);
-    cmp(TMP, Operand(value));
-  }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
-    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
     ldr(TMP,
         FieldAddress(type, compiler::target::Type::nullability_offset(), kByte),
         kUnsignedByte);

@@ -767,13 +767,7 @@ class Assembler : public AssemblerBase {
     cmpxchgl(address, reg);
   }
 
-  void CompareFunctionTypeNullabilityWith(Register type,
-                                          int8_t value) override {
-    cmpb(FieldAddress(type,
-                      compiler::target::FunctionType::nullability_offset()),
-         Immediate(value));
-  }
-  void CompareTypeNullabilityWith(Register type, int8_t value) override {
+  void CompareTypeNullabilityWith(Register type, int8_t value) {
     cmpb(FieldAddress(type, compiler::target::Type::nullability_offset()),
          Immediate(value));
   }
