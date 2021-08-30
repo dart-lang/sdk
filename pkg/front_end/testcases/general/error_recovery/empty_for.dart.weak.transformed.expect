@@ -7,9 +7,9 @@ library;
 //   for () {}
 //        ^
 //
-// pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:8: Error: Expected ';' after this.
+// pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:7: Error: Expected ';' after this.
 //   for () {}
-//        ^
+//       ^
 //
 import self as self;
 

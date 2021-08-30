@@ -11,9 +11,9 @@ library;
 // }
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:7:1: Error: Expected ';' after this.
-// }
-// ^
+// pkg/front_end/testcases/rasta/issue_000032.dart:6:4: Error: Expected ';' after this.
+//   C<
+//    ^
 //
 import self as self;
 import "dart:core" as core;

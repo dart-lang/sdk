@@ -79,9 +79,9 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(member, isNotNull);
     assertErrors(errors: [
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 14, 0),
     ]);
 
     expect(member, isTopLevelVariableDeclaration);

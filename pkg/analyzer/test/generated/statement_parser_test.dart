@@ -224,8 +224,8 @@ main() {
 
   void test_parseElseAlone() {
     parseCompilationUnit('main() { else return 0; } ', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 4),
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
     ]);
   }
@@ -1742,10 +1742,10 @@ main() {
   void test_partial_typeArg1_34850() {
     var unit = parseCompilationUnit('<bar<', errors: [
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;
@@ -1759,10 +1759,10 @@ main() {
 
   void test_partial_typeArg2_34850() {
     var unit = parseCompilationUnit('foo <bar<', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 0),
     ]);
     // Validate that recovery has properly updated the token stream.
     analyzer.Token token = unit.beginToken;

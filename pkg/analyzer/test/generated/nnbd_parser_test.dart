@@ -236,7 +236,7 @@ main() {
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
       expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
     ]);
   }

@@ -26,10 +26,8 @@ main() {
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 //          ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.UNEXPECTED_TOKEN
-// [cfe] Expected ';' after this.
 // [cfe] Expected an identifier, but got ':'.
 // [cfe] Unexpected token ':'.
       while (false) {

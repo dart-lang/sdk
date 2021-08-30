@@ -24,9 +24,9 @@ library /*isNonNullableByDefault*/;
 // M("${)=
 //       ^
 //
-// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:8: Error: Expected ';' after this.
+// pkg/front_end/testcases/regress/issue_39035.crash_dart:5:7: Error: Expected ';' after this.
 // M("${)=
-//        ^...
+//       ^
 //
 // pkg/front_end/testcases/regress/issue_39035.crash_dart:5:8: Error: Unexpected token ''.
 // M("${)=
