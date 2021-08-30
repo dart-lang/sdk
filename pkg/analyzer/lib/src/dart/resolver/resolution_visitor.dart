@@ -761,6 +761,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
+      if (node.constructorName.type.typeArguments != null &&
+          newNode is MethodInvocation &&
+          newNode.target is FunctionReference &&
+          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        // A function reference with explicit type arguments (an expression of
+        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
+        // refer to a class name, nor a type alias), is illegal without the
+        // constructor tearoff feature.
+        //
+        // This is a case where the parser does not report an error, because the
+        // parser thinks this could be an InstanceCreationExpression.
+        _errorReporter.reportErrorForNode(
+            HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+      }
       return newNode.accept(this);
     }
 

@@ -805,6 +805,29 @@ bar() {
 @reflectiveTest
 class ConstructorReferenceResolutionWithoutConstructorTearoffsTest
     extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+  test_class_generic_nonConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  static int i = 1;
+}
+
+void bar() {
+  A<int>.i;
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.i;'),
+      null,
+      classElement,
+      'dynamic',
+      expectedTypeNameType: 'A<int>',
+    );
+  }
+
   test_constructorTearoff() async {
     await assertErrorsInCode('''
 class A {

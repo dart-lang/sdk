@@ -39,11 +39,16 @@ class ConstructorReferenceResolver {
       );
     }
     var name = node.constructorName.name;
-    if (element == null && name != null) {
+    if (element == null &&
+        name != null &&
+        _resolver.isConstructorTearoffsEnabled) {
       // The illegal construction, which looks like a type-instantiated
       // constructor tearoff, may be an attempt to reference a member on
       // [enclosingElement]. Try to provide a helpful error, and fall back to
       // "unknown constructor."
+      //
+      // Only report errors when the constructor tearoff feature is enabled,
+      // to avoid reporting redundant errors.
       var enclosingElement = node.constructorName.type.name.staticElement;
       if (enclosingElement is TypeAliasElement) {
         enclosingElement = enclosingElement.aliasedType.element;

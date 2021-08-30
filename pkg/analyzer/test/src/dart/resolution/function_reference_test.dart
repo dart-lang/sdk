@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,6 +11,8 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionReferenceResolutionTest);
+    defineReflectiveTests(
+        FunctionReferenceResolutionWithoutConstructorTearoffsTest);
   });
 }
 
@@ -994,5 +997,26 @@ void bar() {
 
     assertFunctionReference(
         findNode.functionReference('foo<int>;'), null, 'dynamic');
+  }
+}
+
+@reflectiveTest
+class FunctionReferenceResolutionWithoutConstructorTearoffsTest
+    extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+  test_localVariable() async {
+    // This code includes a disallowed type instantiation (local variable),
+    // but in the case that the experiment is not enabled, we suppress the
+    // associated error.
+    await assertErrorsInCode('''
+void bar(void Function<T>(T a) foo) {
+  foo<int>;
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 43, 5),
+    ]);
+
+    var reference = findNode.functionReference('foo<int>;');
+    assertFunctionReference(
+        reference, findElement.parameter('foo'), 'void Function(int)');
   }
 }

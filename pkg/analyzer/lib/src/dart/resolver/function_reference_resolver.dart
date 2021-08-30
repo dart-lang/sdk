@@ -186,11 +186,15 @@ class FunctionReferenceResolver {
   /// with what the user may be intending.
   void _resolveDisallowedExpression(
       FunctionReferenceImpl node, DartType? rawType) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-      node.function,
-      [],
-    );
+    if (_resolver.isConstructorTearoffsEnabled) {
+      // Only report constructor tearoff-related errors if the constructor
+      // tearoff feature is enabled.
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        node.function,
+        [],
+      );
+    }
     _resolve(node: node, rawType: rawType);
   }
 
