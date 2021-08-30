@@ -367,6 +367,13 @@ class FunctionReferenceResolver {
       return;
     } else {
       targetType = target.typeOrThrow;
+      if (targetType.isDynamic) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          node,
+          [],
+        );
+      }
     }
 
     var propertyElement = _resolver.typePropertyResolver

@@ -15,6 +15,29 @@ main() {
 
 @reflectiveTest
 class FunctionReferenceResolutionTest extends PubPackageResolutionTest {
+  test_explicitReceiver_dynamicTyped() async {
+    await assertErrorsInCode('''
+dynamic f(dynamic x) => x;
+
+class C {
+  T instanceMethod<T>(T t) => t;
+}
+
+main() {
+  C c = new C();
+  f(c).instanceMethod<int>;
+}
+''', [
+      error(CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          102, 24),
+    ]);
+
+    assertFunctionReference(
+        findNode.functionReference('f(c).instanceMethod<int>;'),
+        null,
+        'dynamic');
+  }
+
   test_explicitReceiver_unknown() async {
     await assertErrorsInCode('''
 bar() {
