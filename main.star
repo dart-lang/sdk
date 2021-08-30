@@ -515,12 +515,7 @@ def with_goma(goma, channel, dimensions, properties):
         goma_properties = {}
         goma_properties.update(GOMA_RBE)
 
-        is_win = dimensions["os"] == "Windows"
-        is_linux = dimensions["os"] == "Linux"
-
-        # TODO(athom): disable on other channels when this CL has landed there
-        #              (https://dart-review.googlesource.com/c/sdk/+/201862).
-        enable_ats = is_linux or (is_win and channel == "stable")
+        enable_ats = dimensions["os"] == "Linux"
 
         goma_properties["enable_ats"] = enable_ats
         updated_properties.setdefault("$build/goma", goma_properties)
