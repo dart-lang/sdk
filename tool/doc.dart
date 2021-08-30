@@ -57,9 +57,9 @@ enabled in practice, but this list should provide a convenient jumping-off point
 
 Many lints are included in various predefined rulesets:
 
-* [pedantic](https://github.com/dart-lang/pedantic) for rules enforced internally at Google
-* [effective_dart](https://github.com/tenhobi/effective_dart) for rules corresponding to the [Effective Dart](https://dart.dev/guides/language/effective-dart) style guide
-* [flutter](https://github.com/flutter/packages/blob/master/packages/flutter_lints/lib/flutter.yaml) for rules recommended for Flutter projects (`flutter create` enables these by default)
+* [core](https://github.com/dart-lang/lints) for official "core" Dart team lint rules.
+* [recommended](https://github.com/dart-lang/lints) for additional lint rules "recommended" by the Dart team.
+* [flutter](https://github.com/flutter/packages/blob/master/packages/flutter_lints/lib/flutter.yaml) for rules recommended for Flutter projects (`flutter create` enables these by default).
 
 Rules included in these rulesets are badged in the documentation below.
 
