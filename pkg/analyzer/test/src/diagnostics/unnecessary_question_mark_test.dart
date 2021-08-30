@@ -25,7 +25,7 @@ dynamic a;
     await assertErrorsInCode('''
 dynamic? a;
 ''', [
-      error(HintCode.UNNECESSARY_QUESTION_MARK, 0, 8),
+      error(HintCode.UNNECESSARY_QUESTION_MARK, 7, 1),
     ]);
   }
 
@@ -39,7 +39,7 @@ Null a;
     await assertErrorsInCode('''
 Null? a;
 ''', [
-      error(HintCode.UNNECESSARY_QUESTION_MARK, 0, 5),
+      error(HintCode.UNNECESSARY_QUESTION_MARK, 4, 1),
     ]);
   }
 
