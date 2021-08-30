@@ -21,6 +21,8 @@ import 'package:kernel/target/targets.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
+import 'transformations/clone_mixin_methods_with_super.dart' as transformMixins
+    show transformLibraries;
 import 'transformations/lowering.dart' as lowering show transformLibraries;
 
 const Iterable<String> _allowedDartSchemePaths = [
@@ -169,6 +171,8 @@ class Dart2jsTarget extends Target {
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
+    transformMixins.transformLibraries(libraries);
+    logger?.call("Mixin transformations performed");
   }
 
   @override
