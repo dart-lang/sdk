@@ -3261,10 +3261,18 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       (compiler->CurrentTryIndex() != kInvalidTryIndex)) {
     Environment* env =
         compiler->SlowPathEnvironmentFor(instruction(), num_args);
-    if (FLAG_precompiled_mode) {
+    // TODO(47044): Should be able to say `FLAG_precompiled_mode` instead.
+    if (CompilerState::Current().is_aot()) {
       compiler->RecordCatchEntryMoves(env, try_index_);
-    } else if (env != nullptr) {
+    } else if (compiler->is_optimizing()) {
+      ASSERT(env != nullptr);
       compiler->AddSlowPathDeoptInfo(deopt_id, env);
+    } else {
+      ASSERT(env == nullptr);
+      const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
+      // Add deoptimization continuation point.
+      compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kDeopt,
+                                     deopt_id_after, instruction()->source());
     }
   }
   if (!use_shared_stub) {
