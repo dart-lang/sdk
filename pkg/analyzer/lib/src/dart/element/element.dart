@@ -899,16 +899,22 @@ class ClassElementImpl extends AbstractClassElementImpl
           ParameterElementImpl implicitParameter;
           if (superParameter is ConstVariableElement) {
             var constVariable = superParameter as ConstVariableElement;
-            implicitParameter =
-                DefaultParameterElementImpl(superParameter.name, -1)
-                  ..constantInitializer = constVariable.constantInitializer;
+            implicitParameter = DefaultParameterElementImpl(
+              name: superParameter.name,
+              nameOffset: -1,
+              // ignore: deprecated_member_use_from_same_package
+              parameterKind: superParameter.parameterKind,
+            )..constantInitializer = constVariable.constantInitializer;
           } else {
-            implicitParameter = ParameterElementImpl(superParameter.name, -1);
+            implicitParameter = ParameterElementImpl(
+              name: superParameter.name,
+              nameOffset: -1,
+              // ignore: deprecated_member_use_from_same_package
+              parameterKind: superParameter.parameterKind,
+            );
           }
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
-          // ignore: deprecated_member_use_from_same_package
-          implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.isSynthetic = true;
           implicitParameter.type =
               substitution.substituteType(superParameter.type);
@@ -1672,8 +1678,15 @@ class DefaultFieldFormalParameterElementImpl
     extends FieldFormalParameterElementImpl with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
+  DefaultFieldFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   @override
   String? get defaultValueCode {
@@ -1686,8 +1699,15 @@ class DefaultParameterElementImpl extends ParameterElementImpl
     with ConstVariableElement {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  DefaultParameterElementImpl(String? name, int nameOffset)
-      : super(name, nameOffset);
+  DefaultParameterElementImpl({
+    required String? name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   @override
   String? get defaultValueCode {
@@ -3367,8 +3387,15 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  FieldFormalParameterElementImpl(String name, int nameOffset)
-      : super(name, nameOffset);
+  FieldFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
 
   /// Initializing formals are visible only in the "formal parameter
   /// initializer scope", which is the current scope of the initializer list
@@ -4819,8 +4846,8 @@ class ParameterElementImpl extends VariableElementImpl
   /// typed parameter.
   List<TypeParameterElement> _typeParameters = const [];
 
-  /// The kind of this parameter.
-  ParameterKind? _parameterKind;
+  @override
+  final ParameterKind parameterKind;
 
   /// The Dart code of the default value.
   String? _defaultValueCode;
@@ -4832,15 +4859,22 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  ParameterElementImpl(String? name, int nameOffset) : super(name, nameOffset);
+  ParameterElementImpl({
+    required String? name,
+    required int nameOffset,
+    required this.parameterKind,
+  }) : super(name, nameOffset);
 
-  /// Creates a synthetic parameter with [name], [type] and [kind].
+  /// Creates a synthetic parameter with [name], [type] and [parameterKind].
   factory ParameterElementImpl.synthetic(
-      String? name, DartType type, ParameterKind kind) {
-    ParameterElementImpl element = ParameterElementImpl(name, -1);
+      String? name, DartType type, ParameterKind parameterKind) {
+    var element = ParameterElementImpl(
+      name: name,
+      nameOffset: -1,
+      parameterKind: parameterKind,
+    );
     element.type = type;
     element.isSynthetic = true;
-    element.parameterKind = kind;
     return element;
   }
 
@@ -4893,18 +4927,6 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  ParameterKind get parameterKind {
-    if (_parameterKind != null) return _parameterKind!;
-
-    // TODO(migration): Make it impossible by construction.
-    throw StateError('The kind must set.');
-  }
-
-  set parameterKind(ParameterKind parameterKind) {
-    _parameterKind = parameterKind;
-  }
-
-  @override
   List<ParameterElement> get parameters {
     return _parameters;
   }
@@ -4955,10 +4977,13 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   ParameterElementImpl_ofImplicitSetter(
       PropertyAccessorElementImpl_ImplicitSetter setter)
       : setter = setter,
-        super('_${setter.variable.name}', -1) {
+        super(
+          name: '_${setter.variable.name}',
+          nameOffset: -1,
+          parameterKind: ParameterKind.REQUIRED,
+        ) {
     enclosingElement = setter;
     isSynthetic = true;
-    parameterKind = ParameterKind.REQUIRED;
   }
 
   @override

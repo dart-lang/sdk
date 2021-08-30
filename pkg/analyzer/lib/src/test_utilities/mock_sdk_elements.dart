@@ -1073,23 +1073,32 @@ class _MockSdkElementsBuilder {
 
   ParameterElement _namedParameter(String name, DartType type,
       {String? initializerCode}) {
-    var parameter = DefaultParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
+    var parameter = DefaultParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
     parameter.type = type;
     parameter.defaultValueCode = initializerCode;
     return parameter;
   }
 
   ParameterElement _positionalParameter(String name, DartType type) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
     parameter.type = type;
     return parameter;
   }
 
   ParameterElement _requiredParameter(String name, DartType type) {
-    var parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
     parameter.type = type;
     return parameter;
   }

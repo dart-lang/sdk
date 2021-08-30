@@ -344,9 +344,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var nameOffset = nameNode?.offset ?? -1;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
-        element = DefaultFieldFormalParameterElementImpl(name, nameOffset);
+        element = DefaultFieldFormalParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        );
       } else {
-        element = DefaultParameterElementImpl(name, nameOffset);
+        element = DefaultParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        );
       }
       _elementHolder.addParameter(element);
 
@@ -354,7 +362,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isConst = node.isConst;
       element.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
       element.isFinal = node.isFinal;
-      element.parameterKind = node.kind;
 
       if (normalParameter is SimpleFormalParameterImpl &&
           normalParameter.type == null) {
@@ -459,14 +466,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         // Only for recovery, this should not happen in valid code.
         element = FieldFormalParameterElementImpl(
-          nameNode.name,
-          nameNode.offset,
+          name: nameNode.name,
+          nameOffset: nameNode.offset,
+          parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         _setCodeRange(element, node);
       }
       nameNode.staticElement = element;
@@ -638,12 +645,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
-        element = ParameterElementImpl(nameNode.name, nameNode.offset);
+        element = ParameterElementImpl(
+          name: nameNode.name,
+          nameOffset: nameNode.offset,
+          parameterKind: node.kind,
+        );
         _elementHolder.addParameter(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         _setCodeRange(element, node);
       }
       nameNode.staticElement = element;
@@ -904,9 +914,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = _elementWalker!.getParameter();
       } else {
         if (nameNode != null) {
-          element = ParameterElementImpl(nameNode.name, nameNode.offset);
+          element = ParameterElementImpl(
+            name: nameNode.name,
+            nameOffset: nameNode.offset,
+            parameterKind: node.kind,
+          );
         } else {
-          element = ParameterElementImpl('', -1);
+          element = ParameterElementImpl(
+            name: '',
+            nameOffset: -1,
+            parameterKind: node.kind,
+          );
         }
         _elementHolder.addParameter(element);
 
@@ -914,7 +932,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         if (node.type == null) {
           element.hasImplicitType = true;
         }

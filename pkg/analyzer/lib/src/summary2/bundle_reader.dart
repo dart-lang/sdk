@@ -987,20 +987,35 @@ class LibraryReader {
       ParameterElementImpl element;
       if (kind.isRequiredPositional) {
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1);
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = ParameterElementImpl(name, -1);
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
       } else {
         if (isInitializingFormal) {
-          element = DefaultFieldFormalParameterElementImpl(name, -1);
+          element = DefaultFieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         } else {
-          element = DefaultParameterElementImpl(name, -1);
+          element = DefaultParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
         }
         element.reference = reference;
         reference.element = element;
       }
-      element.parameterKind = kind;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
       element.parameters = _readParameters(element, reference);
@@ -1656,13 +1671,17 @@ class ResolutionReader {
       if (kind.isRequiredPositional) {
         ParameterElementImpl element;
         if (isInitializingFormal) {
-          element = FieldFormalParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         } else {
-          element = ParameterElementImpl(name, -1)
-            ..parameterKind = kind
-            ..type = type;
+          element = ParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          )..type = type;
         }
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
@@ -1674,9 +1693,11 @@ class ResolutionReader {
         }
         return element;
       } else {
-        var element = DefaultParameterElementImpl(name, -1)
-          ..parameterKind = kind
-          ..type = type;
+        var element = DefaultParameterElementImpl(
+          name: name,
+          nameOffset: -1,
+          parameterKind: kind,
+        )..type = type;
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);
