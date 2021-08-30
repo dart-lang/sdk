@@ -698,6 +698,20 @@ class AssemblerBase : public StackResource {
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
+  // Retrieves nullability from a FunctionTypePtr in [type] and compares it
+  // to [value].
+  //
+  // TODO(dartbug.com/47034): Change how nullability is stored so that it
+  // can be accessed without checking the class id first.
+  virtual void CompareFunctionTypeNullabilityWith(Register type,
+                                                  int8_t value) = 0;
+
+  // Retrieves nullability from a TypePtr in [type] and compares it to [value].
+  //
+  // TODO(dartbug.com/47034): Change how nullability is stored so that it
+  // can be accessed without checking the class id first.
+  virtual void CompareTypeNullabilityWith(Register type, int8_t value) = 0;
+
   virtual void EnsureHasClassIdInDEBUG(intptr_t cid,
                                        Register src,
                                        Register scratch,

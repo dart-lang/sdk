@@ -103,10 +103,17 @@ class TypeTestingStubGenerator {
       compiler::Label* load_succeeded,
       compiler::Label* load_failed);
 
+  static void BuildOptimizedTypeParameterArgumentValueCheck(
+      compiler::Assembler* assembler,
+      HierarchyInfo* hi,
+      const TypeParameter& type_param,
+      intptr_t type_param_value_offset_i,
+      compiler::Label* check_failed);
+
   static void BuildOptimizedTypeArgumentValueCheck(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
-      const AbstractType& type_arg,
+      const Type& type,
       intptr_t type_param_value_offset_i,
       compiler::Label* check_failed);
 

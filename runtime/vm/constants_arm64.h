@@ -172,9 +172,17 @@ struct InstantiationABI {
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = R7;
   static const Register kScratchReg = R9;
+  static const Register kSubTypeArgumentReg = R5;
+  static const Register kSuperTypeArgumentReg = R6;
+
+  // Must be pushed/popped whenever generic type arguments are being checked as
+  // they overlap with registers in TypeTestABI.
+  static const intptr_t kSavedTypeArgumentRegisters = 0;
 
   static const intptr_t kInternalRegisters =
-      (1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg);
+      ((1 << kInstanceTypeArgumentsReg) | (1 << kScratchReg) |
+       (1 << kSubTypeArgumentReg) | (1 << kSuperTypeArgumentReg)) &
+      ~kSavedTypeArgumentRegisters;
 };
 
 // Registers in addition to those listed in TypeTestABI used inside the

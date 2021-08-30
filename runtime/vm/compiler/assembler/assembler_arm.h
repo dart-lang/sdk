@@ -395,6 +395,7 @@ class Assembler : public AssemblerBase {
     LoadFromOffset(dst, base, offset);
   }
   void LoadCompressed(Register dest, const Address& slot) { ldr(dest, slot); }
+  void LoadCompressedSmi(Register dest, const Address& slot);
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
@@ -422,7 +423,15 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void CompareTypeNullabilityWith(Register type, int8_t value) {
+  void CompareFunctionTypeNullabilityWith(Register type,
+                                          int8_t value) override {
+    EnsureHasClassIdInDEBUG(kFunctionTypeCid, type, TMP);
+    ldrb(TMP, FieldAddress(
+                  type, compiler::target::FunctionType::nullability_offset()));
+    cmp(TMP, Operand(value));
+  }
+  void CompareTypeNullabilityWith(Register type, int8_t value) override {
+    EnsureHasClassIdInDEBUG(kTypeCid, type, TMP);
     ldrb(TMP, FieldAddress(type, compiler::target::Type::nullability_offset()));
     cmp(TMP, Operand(value));
   }
