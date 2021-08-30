@@ -219,9 +219,9 @@ abstract class Generator {
       int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false});
 
-  /* Expression | Generator */ buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    if (send is SendAccessGenerator) {
+  /* Expression | Generator */ buildSelectorAccess(
+      Selector send, int operatorOffset, bool isNullAware) {
+    if (send is InvocationSelector) {
       return _helper.buildMethodInvocation(buildSimpleRead(), send.name,
           send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware,
@@ -2611,8 +2611,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
         isNullAware: isNullAware);
   }
 
-  /* Expression | Generator */ buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  /* Expression | Generator */ buildSelectorAccess(
+      Selector send, int operatorOffset, bool isNullAware) {
     if (_helper.constantContext != ConstantContext.none) {
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
@@ -2846,10 +2846,9 @@ class DeferredAccessGenerator extends Generator {
   }
 
   @override
-  buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  buildSelectorAccess(Selector send, int operatorOffset, bool isNullAware) {
     Object propertyAccess =
-        suffixGenerator.buildPropertyAccess(send, operatorOffset, isNullAware);
+        suffixGenerator.buildSelectorAccess(send, operatorOffset, isNullAware);
     if (propertyAccess is Generator) {
       return new DeferredAccessGenerator(
           _helper, token, prefixGenerator, propertyAccess);
@@ -2892,8 +2891,12 @@ class DeferredAccessGenerator extends Generator {
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
-    NamedTypeBuilder result = new NamedTypeBuilder(name, nullabilityBuilder,
-        /* arguments = */ null, /* fileUri = */ null, /* charOffset = */ null);
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        name,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -3084,8 +3087,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   }
 
   @override
-  buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  buildSelectorAccess(Selector send, int operatorOffset, bool isNullAware) {
     int nameOffset = offsetForToken(send.token);
     Name name = send.name;
     Arguments? arguments = send.arguments;
@@ -3149,7 +3151,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       Generator generator;
       if (member == null) {
         // If we find a setter, [member] is an [AccessErrorBuilder], not null.
-        if (send is IncompletePropertyAccessGenerator) {
+        if (send is PropertySelector) {
           assert(
               send.typeArguments == null,
               "Unexpected non-null typeArguments of "
@@ -3308,7 +3310,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     } else {
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
-      return super.buildPropertyAccess(send, operatorOffset, isNullAware);
+      return super.buildSelectorAccess(send, operatorOffset, isNullAware);
     }
   }
 
@@ -3538,10 +3540,6 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   String get _plainNameForRead => name.text;
 
-  withReceiver(Object? receiver, int operatorOffset,
-          {bool isNullAware: false}) =>
-      this;
-
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
@@ -3560,8 +3558,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  buildSelectorAccess(Selector send, int operatorOffset, bool isNullAware) {
     return send.withReceiver(buildSimpleRead(), operatorOffset,
         isNullAware: isNullAware);
   }
@@ -4011,12 +4008,12 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  /* Expression | Generator */ buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  /* Expression | Generator */ buildSelectorAccess(
+      Selector send, int operatorOffset, bool isNullAware) {
     assert(send.name.text == send.token.lexeme,
         "'${send.name.text}' != ${send.token.lexeme}");
     Object result = qualifiedLookup(send.token);
-    if (send is SendAccessGenerator) {
+    if (send is InvocationSelector) {
       result = _helper.finishSend(
           result, send.typeArguments, send.arguments, send.fileOffset,
           isTypeArgumentsInForest: send.isTypeArgumentsInForest);
@@ -4219,8 +4216,8 @@ class ParserErrorGenerator extends Generator {
     return buildProblem();
   }
 
-  Expression buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  Expression buildSelectorAccess(
+      Selector send, int operatorOffset, bool isNullAware) {
     return buildProblem();
   }
 
@@ -4371,12 +4368,11 @@ class ThisAccessGenerator extends Generator {
     }
   }
 
-  buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
+  buildSelectorAccess(Selector send, int operatorOffset, bool isNullAware) {
     Name name = send.name;
     Arguments? arguments = send.arguments;
     int offset = offsetForToken(send.token);
-    if (isInitializer && send is SendAccessGenerator) {
+    if (isInitializer && send is InvocationSelector) {
       if (isNullAware) {
         _helper.addProblem(
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
@@ -4386,7 +4382,7 @@ class ThisAccessGenerator extends Generator {
     if (inFieldInitializer && !inLateFieldInitializer && !isInitializer) {
       return buildFieldInitializerError(null);
     }
-    if (send is SendAccessGenerator) {
+    if (send is InvocationSelector) {
       // Notice that 'this' or 'super' can't be null. So we can ignore the
       // value of [isNullAware].
       if (isNullAware) {
@@ -4588,20 +4584,7 @@ class ThisAccessGenerator extends Generator {
   }
 }
 
-abstract class IncompleteSendGenerator implements Generator {
-  Name get name;
-
-  withReceiver(Object? receiver, int operatorOffset, {bool isNullAware: false});
-
-  List<UnresolvedType>? get typeArguments => null;
-
-  bool get isTypeArgumentsInForest => true;
-
-  Arguments? get arguments => null;
-}
-
-class IncompleteErrorGenerator extends ErroneousExpressionGenerator
-    with IncompleteSendGenerator {
+class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   final Message message;
 
   IncompleteErrorGenerator(
@@ -4646,171 +4629,6 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator
   }
 }
 
-// TODO(ahe): Rename to SendGenerator.
-class SendAccessGenerator extends Generator with IncompleteSendGenerator {
-  @override
-  final Name name;
-
-  @override
-  final List<UnresolvedType>? typeArguments;
-
-  @override
-  final bool isTypeArgumentsInForest;
-
-  @override
-  final Arguments arguments;
-
-  final bool isPotentiallyConstant;
-
-  SendAccessGenerator(ExpressionGeneratorHelper helper, Token token, this.name,
-      this.typeArguments, this.arguments,
-      {this.isPotentiallyConstant = false, this.isTypeArgumentsInForest = true})
-      : super(helper, token) {
-    // ignore: unnecessary_null_comparison
-    assert(arguments != null);
-  }
-
-  String get _plainNameForRead => name.text;
-
-  String get _debugName => "SendAccessGenerator";
-
-  Expression buildSimpleRead() {
-    return unsupported("buildSimpleRead", fileOffset, _uri);
-  }
-
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return unsupported("buildAssignment", fileOffset, _uri);
-  }
-
-  withReceiver(Object? receiver, int operatorOffset,
-      {bool isNullAware: false}) {
-    if (receiver is Generator) {
-      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
-    }
-    return _helper.buildMethodInvocation(
-        _helper.toValue(receiver), name, arguments, fileOffset,
-        isNullAware: isNullAware);
-  }
-
-  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return unsupported("buildNullAwareAssignment", offset, _uri);
-  }
-
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
-    return unsupported("buildCompoundAssignment", offset, _uri);
-  }
-
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
-    return unsupported("buildPrefixIncrement", offset, _uri);
-  }
-
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
-    return unsupported("buildPostfixIncrement", offset, _uri);
-  }
-
-  Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
-      {bool isTypeArgumentsInForest = false}) {
-    return unsupported("doInvocation", offset, _uri);
-  }
-
-  @override
-  Generator buildIndexedAccess(Expression index, Token token,
-      {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
-    return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.text);
-    sink.write(", arguments: ");
-    printNodeOn(arguments, sink);
-  }
-}
-
-class IncompletePropertyAccessGenerator extends Generator
-    with IncompleteSendGenerator {
-  final Name name;
-
-  IncompletePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.name)
-      : super(helper, token);
-
-  String get _plainNameForRead => name.text;
-
-  String get _debugName => "IncompletePropertyAccessGenerator";
-
-  Expression buildSimpleRead() {
-    return unsupported("buildSimpleRead", fileOffset, _uri);
-  }
-
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return unsupported("buildAssignment", fileOffset, _uri);
-  }
-
-  withReceiver(Object? receiver, int operatorOffset,
-      {bool isNullAware: false}) {
-    if (receiver is Generator) {
-      return receiver.buildPropertyAccess(this, operatorOffset, isNullAware);
-    }
-    return PropertyAccessGenerator.make(
-        _helper, token, _helper.toValue(receiver), name, isNullAware);
-  }
-
-  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    return unsupported("buildNullAwareAssignment", offset, _uri);
-  }
-
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset: TreeNode.noOffset,
-      bool voidContext: false,
-      bool isPreIncDec: false,
-      bool isPostIncDec: false}) {
-    return unsupported("buildCompoundAssignment", offset, _uri);
-  }
-
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
-    return unsupported("buildPrefixIncrement", offset, _uri);
-  }
-
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: TreeNode.noOffset, bool voidContext: false}) {
-    return unsupported("buildPostfixIncrement", offset, _uri);
-  }
-
-  Expression doInvocation(
-      int offset, List<UnresolvedType>? typeArguments, Arguments arguments,
-      {bool isTypeArgumentsInForest = false}) {
-    return unsupported("doInvocation", offset, _uri);
-  }
-
-  @override
-  Generator buildIndexedAccess(Expression index, Token token,
-      {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
-    return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", name: ");
-    sink.write(name.text);
-  }
-}
-
 /// [ParenthesizedExpressionGenerator] represents the subexpression whose prefix
 /// is a parenthesized expression.
 ///
@@ -4845,9 +4663,9 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
 
   String get _debugName => "ParenthesizedExpressionGenerator";
 
-  /* Expression | Generator */ buildPropertyAccess(
-      IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
-    if (send is SendAccessGenerator) {
+  /* Expression | Generator */ buildSelectorAccess(
+      Selector send, int operatorOffset, bool isNullAware) {
+    if (send is InvocationSelector) {
       return _helper.buildMethodInvocation(
           _createRead(), send.name, send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware,
@@ -4872,4 +4690,151 @@ int adjustForImplicitCall(String? name, int offset) {
 
 bool isFieldOrGetter(Member? member) {
   return member is Field || (member is Procedure && member.isGetter);
+}
+
+/// A [Selector] is a part of an object access after `.` or `..` or `?.`,
+/// including arguments, if present.
+///
+/// For instance, an [InvocationSelector] is created for `b()` in
+///
+///    a.b();
+///    a..b();
+///    a?.b();
+///
+/// and a [PropertySelector] is created for `b` in
+///
+///    a.b;
+///    a.b = c;
+///    a..b;
+///    a..b = c;
+///    a?.b;
+///    a?.b = c;
+///
+abstract class Selector {
+  final ExpressionGeneratorHelper _helper;
+  final Token token;
+
+  Selector(this._helper, this.token);
+
+  int get fileOffset => offsetForToken(token);
+
+  Name get name;
+
+  /// Applies this selector to [receiver].
+  /* Expression | Generator */ withReceiver(
+      Object? receiver, int operatorOffset,
+      {bool isNullAware: false});
+
+  List<UnresolvedType>? get typeArguments => null;
+
+  bool get isTypeArgumentsInForest => true;
+
+  Arguments? get arguments => null;
+
+  /// Internal name used for debugging.
+  String get _debugName;
+
+  void printOn(StringSink sink);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(_debugName);
+    buffer.write("(offset: ");
+    buffer.write("${fileOffset}");
+    printOn(buffer);
+    buffer.write(")");
+    return "$buffer";
+  }
+}
+
+/// An [InvocationSelector] is the part of an object invocation after `.` or
+/// `..` or `?.` including arguments.
+///
+/// For instance, an [InvocationSelector] is created for `b()` in
+///
+///    a.b();
+///    a..b();
+///    a?.b();
+///
+class InvocationSelector extends Selector {
+  @override
+  final Name name;
+
+  @override
+  final List<UnresolvedType>? typeArguments;
+
+  @override
+  final bool isTypeArgumentsInForest;
+
+  @override
+  final Arguments arguments;
+
+  final bool isPotentiallyConstant;
+
+  InvocationSelector(ExpressionGeneratorHelper helper, Token token, this.name,
+      this.typeArguments, this.arguments,
+      {this.isPotentiallyConstant = false, this.isTypeArgumentsInForest = true})
+      : super(helper, token) {
+    // ignore: unnecessary_null_comparison
+    assert(arguments != null);
+  }
+
+  @override
+  String get _debugName => 'InvocationSelector';
+
+  @override
+  withReceiver(Object? receiver, int operatorOffset,
+      {bool isNullAware: false}) {
+    if (receiver is Generator) {
+      return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
+    }
+    return _helper.buildMethodInvocation(
+        _helper.toValue(receiver), name, arguments, fileOffset,
+        isNullAware: isNullAware);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.text);
+    sink.write(", arguments: ");
+    printNodeOn(arguments, sink);
+  }
+}
+
+/// A [PropertySelector] is the part of an object access after `.` or `..` or
+/// `?.`.
+///
+/// For instance a [PropertySelector] is created for `b` in
+///
+///    a.b;
+///    a.b = c;
+///    a..b;
+///    a..b = c;
+///    a?.b;
+///    a?.b = c;
+///
+class PropertySelector extends Selector {
+  final Name name;
+
+  PropertySelector(ExpressionGeneratorHelper helper, Token token, this.name)
+      : super(helper, token);
+
+  @override
+  String get _debugName => 'PropertySelector';
+
+  withReceiver(Object? receiver, int operatorOffset,
+      {bool isNullAware: false}) {
+    if (receiver is Generator) {
+      return receiver.buildSelectorAccess(this, operatorOffset, isNullAware);
+    }
+    return PropertyAccessGenerator.make(
+        _helper, token, _helper.toValue(receiver), name, isNullAware);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    sink.write(", name: ");
+    sink.write(name.text);
+  }
 }

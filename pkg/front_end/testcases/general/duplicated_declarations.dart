@@ -34,6 +34,8 @@ foo() {
   main();
   print(field);
   C.s();
+  C.this();
+  C.();
 }
 
 class C {

@@ -708,8 +708,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next!.next!;
         Generator generator = expression as Generator;
-        expression = generator.buildPropertyAccess(
-            new IncompletePropertyAccessGenerator(
+        expression = generator.buildSelectorAccess(
+            new PropertySelector(
                 this, period.next!, new Name(name!, libraryBuilder.nameOrigin)),
             period.next!.offset,
             false);
@@ -1827,9 +1827,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
-        push(new IncompletePropertyAccessGenerator(this, beginToken, name));
+        push(new PropertySelector(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(
+        push(new InvocationSelector(
             this, beginToken, name, typeArguments, arguments as Arguments,
             isTypeArgumentsInForest: isInForest));
       }
@@ -1845,7 +1845,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Selector,
       ])
     ]));
   }
@@ -1974,6 +1975,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
+        ValueKinds.Selector,
       ]),
     ]));
     debugEvent("BinaryExpression");
@@ -2114,6 +2116,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.Selector,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
@@ -2123,7 +2126,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ]),
     ]));
     Object? send = pop();
-    if (send is IncompleteSendGenerator) {
+    if (send is Selector) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
     } else {
       pop();
@@ -2142,24 +2145,28 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doDotOrCascadeExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([
+      /* after . or .. */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+      /* before . or .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Initializer,
       ]),
     ]));
     Object? send = pop();
-    if (send is IncompleteSendGenerator) {
-      assert(checkState(token, <ValueKind>[
-        unionOfKinds([
-          ValueKinds.Expression,
-          ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
-          ValueKinds.Initializer,
-        ]),
-      ]));
+    if (send is Selector) {
       Object? receiver = optional(".", token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
+    } else if (send is IncompleteErrorGenerator) {
+      // Pop the "receiver" and push the error.
+      pop();
+      push(send);
     } else {
+      // Pop the "receiver" and push the error.
       pop();
       token = token.next!;
       push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
@@ -4432,8 +4439,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ConstructorReferenceContext.Implicit) {
           type = qualifier.qualifiedLookup(qualified.token);
         } else {
-          type = qualifier.buildPropertyAccess(
-              new IncompletePropertyAccessGenerator(this, qualified.token,
+          type = qualifier.buildSelectorAccess(
+              new PropertySelector(this, qualified.token,
                   new Name(qualified.name, libraryBuilder.nameOrigin)),
               qualified.token.charOffset,
               false);

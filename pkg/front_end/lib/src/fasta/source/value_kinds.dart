@@ -94,6 +94,8 @@ class ValueKinds {
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
   static const ValueKind Scope = const SingleValueKind<type.Scope>();
+  static const ValueKind Selector =
+      const SingleValueKind<type.Selector>();
   static const ValueKind SwitchScopeOrNull =
       const SingleValueKind<type.Scope>(NullValue.SwitchScope);
   static const ValueKind Statement = const SingleValueKind<type.Statement>();

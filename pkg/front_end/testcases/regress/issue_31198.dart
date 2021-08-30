@@ -6,6 +6,8 @@ abstract class A {}
 
 class B extends A {
   B(): super().foo() {}
+  B.named1(): super().super() {}
+  B.named2(): super().() {}
 }
 
 bad() {

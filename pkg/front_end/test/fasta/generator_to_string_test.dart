@@ -62,7 +62,7 @@ import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 
-void check(String expected, Generator generator) {
+void check(String expected, Object generator) {
   Expect.stringEquals(expected, "$generator");
 }
 
@@ -198,10 +198,10 @@ main() async {
         new ThisAccessGenerator(helper, token, false, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
-    check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
-        new SendAccessGenerator(helper, token, name, null, arguments));
-    check("IncompletePropertyAccessGenerator(offset: 4, name: bar)",
-        new IncompletePropertyAccessGenerator(helper, token, name));
+    check("InvocationSelector(offset: 4, name: bar, arguments: (\"arg\"))",
+        new InvocationSelector(helper, token, name, null, arguments));
+    check("PropertySelector(offset: 4, name: bar)",
+        new PropertySelector(helper, token, name));
     check(
         "DeferredAccessGenerator(offset: 4,"
         " prefixGenerator: PrefixUseGenerator("

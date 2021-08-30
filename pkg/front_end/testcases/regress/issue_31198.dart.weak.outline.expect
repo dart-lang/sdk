@@ -1,4 +1,12 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:10:24: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   B.named2(): super().() {}
+//                        ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -18,6 +26,10 @@ abstract class A extends core::Object {
 }
 class B extends self::A {
   constructor •() → self::B*
+    ;
+  constructor named1() → self::B*
+    ;
+  constructor named2() → self::B*
     ;
 }
 static method bad() → dynamic
