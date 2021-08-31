@@ -273,8 +273,10 @@ dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
-dart/regress_45898_test: Pass, Slow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+
+[ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $builder_tag == tsan) ]
+dart/regress_45898_test: Pass, Slow
 dart_2/regress_45898_test: Pass, Slow
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
