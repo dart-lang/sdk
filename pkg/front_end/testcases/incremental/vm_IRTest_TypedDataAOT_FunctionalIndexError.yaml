@@ -9,6 +9,7 @@ worlds:
   - entry: set-Uint8List.dart
     sources:
       set-Uint8List.dart: |
+        // @dart=2.9
         import 'dart:typed_data';
         void setUint8List(Uint8List list, int index, int value) {
           list[index] = value;
@@ -22,6 +23,7 @@ worlds:
       - set-Int8List.dart
     sources:
       set-Int8List.dart: |
+        // @dart=2.9
         import 'dart:typed_data';
         void setInt8List(Int8List list, int index, int value) {
           list[index] = value;
@@ -35,6 +37,7 @@ worlds:
       - set-Uint8List.dart
     sources:
       set-Uint8List.dart: |
+        // @dart=2.9
         import 'dart:typed_data';
         void setUint8List(Uint8List list, int index, int value) {
           list[index] = value;

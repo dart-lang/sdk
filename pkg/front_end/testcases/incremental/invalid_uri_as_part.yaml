@@ -8,6 +8,7 @@ worlds:
     errors: true
     sources:
       main.dart: |
+        // @dart=2.9
         part '$foo';
         main() {}
     expectedLibraryCount: 1

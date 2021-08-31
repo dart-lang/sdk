@@ -11,12 +11,14 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib2.dart" show Bar;
         import "lib1.dart" show Bar;
         main() {
           Bar bar = new Bar();
         }
       lib1.dart: |
+        // @dart=2.9
         export "lib2.dart";
         class Foo {
           Foo() {
@@ -24,6 +26,7 @@ worlds:
           }
         }
       lib2.dart: |
+        // @dart=2.9
         class Bar {
           Bar() {
 
@@ -38,6 +41,7 @@ worlds:
       - lib1.dart
     sources:
       lib1.dart: |
+        // @dart=2.9
         export "lib2.dart";
         class Foo {
           Foo() {
@@ -54,6 +58,7 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
+        // @dart=2.9
         class Bar {
           Bar() {
             print("Bar!");
@@ -69,6 +74,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib2.dart" show Bar;
         import "lib1.dart" show Bar;
         main() {

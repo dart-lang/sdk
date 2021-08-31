@@ -12,6 +12,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         main() {
           print("Hello world");
         }
@@ -25,11 +26,13 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           print(lib());
         }
       lib.dart: |
+        // @dart=2.9
         lib() {
           return "hello";
         }
@@ -43,6 +46,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           print(lib() + "!");
@@ -57,6 +61,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           print(lib());
@@ -70,11 +75,13 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib.dart";
         main() {
           print(lib() + "!!");
         }
       lib.dart: |
+        // @dart=2.9
         lib() {
           return "hello";
         }

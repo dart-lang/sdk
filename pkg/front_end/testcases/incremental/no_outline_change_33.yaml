@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib2.dart" show getter, setter, method, Bar;
         import "lib1.dart" show getter, setter, method, Bar;
         main() {
@@ -20,6 +21,7 @@ worlds:
           setter = 42;
         }
       lib1.dart: |
+        // @dart=2.9
         export "lib2.dart";
         class Foo {
           Foo() {
@@ -27,6 +29,7 @@ worlds:
           }
         }
       lib2.dart: |
+        // @dart=2.9
         String get getter => "hello";
         void set setter(int i) {}
         void method() {}
@@ -44,6 +47,7 @@ worlds:
       - lib1.dart
     sources:
       lib1.dart: |
+        // @dart=2.9
         export "lib2.dart";
         class Foo {
           Foo() {
@@ -60,6 +64,7 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
+        // @dart=2.9
         String get getter => "hello";
         void set setter(int i) {}
         void method() {}
@@ -78,6 +83,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib2.dart" show getter, setter, method, Bar;
         import "lib1.dart" show getter, setter, method, Bar;
         main() {

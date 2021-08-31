@@ -12,12 +12,14 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "package:example/b.dart";
         main() {
           print("hello");
           b();
         }
       pkg/example/b.dart: |
+        // @dart=2.9
         b() {
           print("b");
         }
@@ -31,6 +33,7 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
+        // @dart=2.9
         main() {
           print("hello");
         }

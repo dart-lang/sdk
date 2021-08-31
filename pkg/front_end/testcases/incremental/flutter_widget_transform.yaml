@@ -9,15 +9,18 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'package:flutter/src/widgets/framework.dart';
         import 'package:flutter/src/widgets/widget_inspector.dart';
 
         class Foo extends Widget {}
       flutter/lib/src/widgets/framework.dart: |
+        // @dart=2.9
         abstract class Bar {}
 
         abstract class Widget extends Bar {}
       flutter/lib/src/widgets/widget_inspector.dart: |
+        // @dart=2.9
         abstract class _HasCreationLocation {
           _Location get _location;
         }
@@ -58,6 +61,7 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
+        // @dart=2.9
         import 'package:flutter/src/widgets/framework.dart';
         import 'package:flutter/src/widgets/widget_inspector.dart';
 

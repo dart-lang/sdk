@@ -9,7 +9,6 @@ type: newworld
 nnbdMode: strong
 worlds:
   - entry: package:baz/main.dart
-    experiments: non-nullable
     errors: true
     sources:
       .dart_tool/package_config.json: |
@@ -53,7 +52,6 @@ worlds:
 
   # Update "nothing" so we still want the error.
   - entry: package:baz/main.dart
-    experiments: non-nullable
     worldType: updated
     expectInitializeFromDill: false
     errors: true
@@ -74,7 +72,6 @@ worlds:
 
   # Update ONE package to be strong.
   - entry: package:baz/main.dart
-    experiments: non-nullable
     worldType: updated
     expectInitializeFromDill: false
     errors: true
@@ -111,7 +108,6 @@ worlds:
 
   # Update the last package to be strong.
   - entry: package:baz/main.dart
-    experiments: non-nullable
     worldType: updated
     expectInitializeFromDill: false
     errors: false

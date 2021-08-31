@@ -11,6 +11,7 @@ worlds:
     errors: true
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libA.dart';
 
         class Foo {
@@ -29,6 +30,7 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
       libA.dart: |
+        // @dart=2.9
         import 'main.dart';
         whatever(Foo foo) {
           print(foo);
@@ -43,6 +45,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libA.dart';
 
         class Foo {
@@ -70,6 +73,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libA.dart';
 
         class Foo {

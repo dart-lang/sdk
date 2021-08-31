@@ -11,9 +11,11 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class Foo<X extends Bar> {}
       lib.dart: |
+        // @dart=2.9
         // The error is here: Foo is unknown
         // (although it might give some other error instead)
         class Bar<X extends Foo<Null>> {}
@@ -26,6 +28,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class Foo {}
     expectInitializeFromDill: false
@@ -38,9 +41,11 @@ worlds:
       - lib.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
         class Foo<X extends Bar> {}
       lib.dart: |
+        // @dart=2.9
         import 'main.dart';
         class Bar<X extends Foo<Null>> {}
     expectInitializeFromDill: false

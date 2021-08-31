@@ -10,12 +10,14 @@ type: newworld
 modules:
   module:
     module/lib1.dart: |
+      // @dart=2.9
       import 'lib2.dart';
 
       abstract class XSet {
         factory XSet.identity() = XLinkedHashSet.identity;
       }
     module/lib2.dart: |
+      // @dart=2.9
       import 'lib1.dart';
       import 'lib3.dart';
 
@@ -23,6 +25,7 @@ modules:
         factory XLinkedHashSet.identity() = XIdentityHashSet;
       }
     module/lib3.dart: |
+      // @dart=2.9
       import 'lib2.dart';
 
       class XIdentityHashSet implements XLinkedHashSet {
@@ -35,6 +38,7 @@ worlds:
     fromComponent: true
     sources:
       compileme.dart: |
+        // @dart=2.9
         import 'package:module/lib1.dart';
 
         main() {

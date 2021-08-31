@@ -12,18 +12,21 @@ worlds:
     sources:
       .packages: mypackage:mypackage
       main.dart: |
+        // @dart=2.9
         import "package:mypackage/a.dart" as a;
 
         main() {
           a.main();
         }
       mypackage/a.dart: |
+        // @dart=2.9
         import "package:mypackage/b.dart";
 
         main() {
           foo();
         }
       mypackage/b.dart: |
+        // @dart=2.9
         foo() {
           bar();
         }
@@ -41,6 +44,7 @@ worlds:
       - package:mypackage/a.dart
     sources:
       mypackage/a.dart: |
+        // @dart=2.9
         import "package:mypackage/b.dart";
 
         main() {
@@ -56,6 +60,7 @@ worlds:
       - package:mypackage/a.dart
     sources:
       mypackage/a.dart: |
+        // @dart=2.9
         main() {
           foo();
           foo();

@@ -21,6 +21,7 @@ worlds:
           ]
         }
       app/main.dart: |
+        // @dart=2.9
         import "package:flutter/lib1.dart";
         class _Bar extends RestorableProperty {}
       flutter/lib1.dart: |

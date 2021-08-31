@@ -9,6 +9,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
 
         main() {
@@ -18,6 +19,7 @@ worlds:
           print(coordinate.next);
         }
       lib.dart: |
+        // @dart=2.9
         import 'dart:ffi';
 
         class Coordinate extends Struct {
@@ -41,6 +43,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'lib.dart';
 
         main() {

@@ -19,6 +19,7 @@ worlds:
           ]
         }
       main.dart: |
+        // @dart=2.9
         import 'package:flutter/object.dart';
         import 'lib.dart';
         
@@ -31,6 +32,7 @@ worlds:
           }
         }
       lib.dart: |
+        // @dart=2.9
         import 'package:flutter/object.dart';
         mixin LibMixin on RenderObject {}
       flutter/object.dart: |

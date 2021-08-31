@@ -11,7 +11,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:7:32: Error: Expected ';' after this.
+// org-dartlang-test:///main.dart:8:32: Error: Expected ';' after this.
 //   toString() { return '$message!!!' } // missing ; still
 //                                ^^^^
 //

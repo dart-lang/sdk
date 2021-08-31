@@ -10,6 +10,7 @@ worlds:
     warnings: false
     sources:
       main.dart: |
+        // @dart=2.9
         main() {
           foo();
         }
@@ -25,6 +26,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         main() {
           await foo();
         }

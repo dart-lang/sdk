@@ -13,18 +13,21 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "dart:core";
         import "package:package1/lib1_a.dart";
         main() {
           lib1();
         }
-      package1/lib1_a.dart:
+      package1/lib1_a.dart: |
+        // @dart=2.9
         import "package:package3/lib3.dart" as lib3;
         export "lib1_b.dart";
         lib1a() {
           lib3.lib3();
         }
-      package1/lib1_b.dart:
+      package1/lib1_b.dart: |
+        // @dart=2.9
         import "package:package2/lib2.dart" as lib2;
         lib1() {
           return la(null);
@@ -32,12 +35,14 @@ worlds:
         la(lib2.Foo f) {
           return 42;
         }
-      package2/lib2.dart:
+      package2/lib2.dart: |
+        // @dart=2.9
         int f = 42;
         class Foo {
           static int y = 42;
         }
-      package3/lib3.dart:
+      package3/lib3.dart: |
+        // @dart=2.9
         lib3() {
           print("lib3");
         }
@@ -51,18 +56,21 @@ worlds:
     expectInitializeFromDill: true
     sources:
       main.dart: |
+        // @dart=2.9
         import "dart:core";
         import "package:package1/lib1_a.dart";
         main() {
           lib1();
         }
-      package1/lib1_a.dart:
+      package1/lib1_a.dart: |
+        // @dart=2.9
         import "package:package3/lib3.dart" as lib3;
         export "lib1_b.dart";
         lib1a() {
           lib3.lib3();
         }
-      package1/lib1_b.dart:
+      package1/lib1_b.dart: |
+        // @dart=2.9
         import "package:package2/lib2.dart" as lib2;
         lib1() {
           return la(null);
@@ -70,12 +78,14 @@ worlds:
         la(lib2.Foo f) {
           return 42;
         }
-      package2/lib2.dart:
+      package2/lib2.dart: |
+        // @dart=2.9
         int f = 42;
         class Foo {
           static int y = 42;
         }
-      package3/lib3.dart:
+      package3/lib3.dart: |
+        // @dart=2.9
         lib3() {
           print("lib3");
         }

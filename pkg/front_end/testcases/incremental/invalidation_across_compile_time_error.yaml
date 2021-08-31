@@ -15,16 +15,19 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         main() {
           print("hello");
           b();
         }
       b.dart: |
+        // @dart=2.9
         b() {
           print("hello from b");
         }
       c.dart: |
+        // @dart=2.9
         c() {
           print("hello from c");
         }
@@ -38,6 +41,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         import "nonexisting.dart";
         main() {
@@ -45,6 +49,7 @@ worlds:
           b();
         }
       b.dart: |
+        // @dart=2.9
         import "c.dart";
         b() {
           print("hello from b");
@@ -60,6 +65,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "b.dart";
         main() {
           print("hello");

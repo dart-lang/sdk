@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libA.dart';
 
         class Foo {
@@ -19,6 +20,7 @@ worlds:
           }
         }
       libA.dart: |
+        // @dart=2.9
         import 'main.dart';
 
         class Bar extends Object with Foo {
@@ -35,6 +37,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import 'libA.dart';
 
         class Foo {

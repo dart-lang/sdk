@@ -10,7 +10,8 @@ incrementalSerialization: true
 worlds:
   - entry: main.dart
     sources:
-      main.dart:
+      main.dart: |
+        // @dart=2.9
         import "package:package1/lib1.dart";
         import "package:package1/lib2.dart";
         import "package:package1/lib3.dart";
@@ -19,15 +20,18 @@ worlds:
           lib2();
           lib3();
         }
-      package1/lib1.dart:
+      package1/lib1.dart: |
+        // @dart=2.9
         lib1() {
           return 42;
         }
-      package1/lib2.dart:
+      package1/lib2.dart: |
+        // @dart=2.9
         lib2() {
           return 42;
         }
-      package1/lib3.dart:
+      package1/lib3.dart: |
+        // @dart=2.9
         import "package:package1/lib1.dart";
         lib3() {
           return lib1();
@@ -42,7 +46,8 @@ worlds:
     invalidate:
       - package:package1/lib3.dart
     sources:
-      package1/lib3.dart:
+      package1/lib3.dart: |
+        // @dart=2.9
         import "package:package1/lib1.dart";
         lib3() {
           return lib3_1();

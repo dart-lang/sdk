@@ -4,7 +4,7 @@ library from "org-dartlang-test:///main.dart" as main {
 // Problems in library:
 //
 // org-dartlang-test:///main.dart:3:6: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
+// Try removing the `@dart=` annotation or setting the language version to 2.12 or higher.
 //   int? i;
 //      ^
 // org-dartlang-test:///main.dart:1:1: Context: This is the annotation that opts out this library from null safety features.

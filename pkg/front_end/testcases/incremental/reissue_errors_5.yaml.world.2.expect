@@ -19,12 +19,12 @@ library from "package:mypackage/b.dart" as b {
 //
 // Problems in library:
 //
-// org-dartlang-test:///mypackage/b.dart:2:3: Error: Method not found: 'bar'.
+// org-dartlang-test:///mypackage/b.dart:3:3: Error: Method not found: 'bar'.
 //   bar();
 //   ^^^
 //
 
   static method foo() → dynamic {
-    invalid-expression "org-dartlang-test:///mypackage/b.dart:2:3: Error: Method not found: 'bar'.\n  bar();\n  ^^^";
+    invalid-expression "org-dartlang-test:///mypackage/b.dart:3:3: Error: Method not found: 'bar'.\n  bar();\n  ^^^";
   }
 }
