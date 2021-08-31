@@ -2726,13 +2726,11 @@ void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
   __ Stop("No debugging in PRODUCT mode");
 #else
   __ EnterStubFrame();
-  __ pushq(RDX);           // Preserve receiver.
   __ pushq(RBX);           // Preserve IC data.
   __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(CODE_REG);  // Original stub.
   __ popq(RBX);       // Restore IC data.
-  __ popq(RDX);       // Restore receiver.
   __ LeaveStubFrame();
 
   __ movq(RAX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
