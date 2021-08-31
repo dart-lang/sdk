@@ -2,16 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library queue.last.test;
+// @dart = 2.9
+
+library queue.first.test;
 
 import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 main() {
   Queue<int> queue1 = new Queue<int>();
-  queue1..add(11)..add(12)..add(13);
+  queue1
+    ..add(11)
+    ..add(12)
+    ..add(13);
   Queue queue2 = new Queue();
 
-  Expect.equals(13, queue1.last);
-  Expect.throwsStateError(() => queue2.last);
+  Expect.equals(11, queue1.first);
+  Expect.throwsStateError(() => queue2.first);
 }
