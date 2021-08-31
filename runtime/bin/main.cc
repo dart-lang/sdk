@@ -933,6 +933,19 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
+  if (script_name != NULL) {
+    const char* base_name = strrchr(script_name, '/');
+    if (base_name == NULL) {
+      base_name = script_name;
+    } else {
+      base_name++;  // Skip '/'.
+    }
+    const intptr_t kMaxNameLength = 64;
+    char name[kMaxNameLength];
+    Utils::SNPrint(name, kMaxNameLength, "dart:%s", base_name);
+    Platform::SetProcessName(name);
+  }
+
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
