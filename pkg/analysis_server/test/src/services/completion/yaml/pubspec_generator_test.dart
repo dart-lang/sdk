@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -358,8 +356,8 @@ dependencies:
       ]
     }
     ''';
-    processRunner.runHandler =
-        (executable, args, {dir, env}) => ProcessResult(1, 0, json, '');
+    processRunner.startHandler =
+        (executable, args, {dir, env}) => MockProcess(1, 0, json, '');
 
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);
@@ -376,9 +374,9 @@ dependencies:
   /// processes to cache the version numbers.
   void test_packageVersion_withDEPSfile() async {
     var didRun = false;
-    processRunner.runHandler = (executable, args, {dir, env}) {
+    processRunner.startHandler = (executable, args, {dir, env}) {
       didRun = true;
-      return ProcessResult(1, 0, '', '');
+      return MockProcess(1, 0, '', '');
     };
 
     newFile('/home/DEPS');
