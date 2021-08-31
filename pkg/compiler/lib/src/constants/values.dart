@@ -149,7 +149,7 @@ class FunctionConstantValue extends ConstantValue {
   }
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   FunctionType getType(CommonElements types) => type;
@@ -195,7 +195,7 @@ abstract class PrimitiveConstantValue extends ConstantValue {
 
   // Primitive constants don't have dependencies.
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 }
 
 class NullConstantValue extends PrimitiveConstantValue {
@@ -549,7 +549,7 @@ class TypeConstantValue extends ObjectConstantValue {
   int get hashCode => representedType.hashCode * 13;
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) => visitor.visitType(this, arg);
@@ -732,7 +732,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
 
   @override
   List<ConstantValue> getDependencies() {
-    List<ConstantValue> result = <ConstantValue>[];
+    List<ConstantValue> result = [];
     result.addAll(keys);
     result.addAll(values);
     return result;
@@ -802,7 +802,7 @@ class InterceptorConstantValue extends ConstantValue {
   int get hashCode => cls.hashCode * 43;
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
@@ -843,7 +843,7 @@ class JsNameConstantValue extends ConstantValue {
   get hashCode => name.hashCode * 17;
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
@@ -876,7 +876,7 @@ class DummyInterceptorConstantValue extends ConstantValue {
   bool get isDummy => true;
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
@@ -904,7 +904,7 @@ class LateSentinelConstantValue extends ConstantValue {
   const LateSentinelConstantValue._();
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
@@ -935,7 +935,7 @@ class UnreachableConstantValue extends ConstantValue {
   bool get isDummy => true;
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   accept(ConstantValueVisitor visitor, arg) {
@@ -1063,7 +1063,7 @@ class InstantiationConstantValue extends ConstantValue {
   }
 
   @override
-  List<ConstantValue> getDependencies() => <ConstantValue>[function];
+  List<ConstantValue> getDependencies() => [function];
 
   @override
   accept(ConstantValueVisitor visitor, arg) =>
@@ -1120,7 +1120,7 @@ class DeferredGlobalConstantValue extends ConstantValue {
   get hashCode => (referenced.hashCode * 17 + unit.hashCode) & 0x3fffffff;
 
   @override
-  List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
+  List<ConstantValue> getDependencies() => [referenced];
 
   @override
   accept(ConstantValueVisitor visitor, arg) =>
@@ -1155,7 +1155,7 @@ class NonConstantValue extends ConstantValue {
   }
 
   @override
-  List<ConstantValue> getDependencies() => const <ConstantValue>[];
+  List<ConstantValue> getDependencies() => const [];
 
   @override
   DartType getType(CommonElements types) => types.dynamicType;

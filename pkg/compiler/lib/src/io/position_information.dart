@@ -65,7 +65,7 @@ class PositionSourceInformation extends SourceInformation {
 
   @override
   List<SourceLocation> get sourceLocations {
-    List<SourceLocation> list = <SourceLocation>[];
+    List<SourceLocation> list = [];
     if (startPosition != null) {
       list.add(startPosition);
     }
@@ -166,7 +166,7 @@ class SourceMappedMarker extends SourceInformation {
   String get shortText => '';
 
   @override
-  List<SourceLocation> get sourceLocations => const <SourceLocation>[];
+  List<SourceLocation> get sourceLocations => const [];
 
   @override
   SourceSpan get sourceSpan => SourceSpan(null, null, null);
@@ -1339,12 +1339,12 @@ class JavaScriptTracer extends js.BaseVisitor {
 }
 
 class Coverage {
-  Set<js.Node> _nodesWithInfo = Set<js.Node>();
+  Set<js.Node> _nodesWithInfo = {};
   int _nodesWithInfoCount = 0;
-  Set<js.Node> _nodesWithoutInfo = Set<js.Node>();
+  Set<js.Node> _nodesWithoutInfo = {};
   int _nodesWithoutInfoCount = 0;
-  Map<Type, int> _nodesWithoutInfoCountByType = <Type, int>{};
-  Set<js.Node> _nodesWithoutOffset = Set<js.Node>();
+  Map<Type, int> _nodesWithoutInfoCountByType = {};
+  Set<js.Node> _nodesWithoutOffset = {};
   int _nodesWithoutOffsetCount = 0;
 
   void registerNodeWithInfo(js.Node node) {
