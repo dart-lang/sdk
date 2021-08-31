@@ -10,8 +10,11 @@ import 'package:meta/meta.dart';
 
 /// Constructor tear-offs
 void constructorTearOffs() {
-  List.filled; // LINT
   List<List>.filled; // LINT
+  // todo(pq): should be OK.
+  // List<E> Function<E>(int, E) filledList = List.filled; // OK - generic function
+  filledList<int>(3, 3); // OK
+  filledList(3, 3); // todo(pq): LINT? -- https://github.com/dart-lang/linter/issues/2914
 }
 
 Map<String, String> map = {}; //LINT
