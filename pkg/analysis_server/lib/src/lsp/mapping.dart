@@ -195,8 +195,12 @@ lsp.CompletionItemKind? declarationKindToCompletionItemKind(
       case dec.DeclarationKind.CONSTRUCTOR:
         return const [lsp.CompletionItemKind.Constructor];
       case dec.DeclarationKind.ENUM:
-      case dec.DeclarationKind.ENUM_CONSTANT:
         return const [lsp.CompletionItemKind.Enum];
+      case dec.DeclarationKind.ENUM_CONSTANT:
+        return const [
+          lsp.CompletionItemKind.EnumMember,
+          lsp.CompletionItemKind.Enum,
+        ];
       case dec.DeclarationKind.FUNCTION:
         return const [lsp.CompletionItemKind.Function];
       case dec.DeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -411,8 +415,12 @@ lsp.CompletionItemKind? elementKindToCompletionItemKind(
       case server.ElementKind.CONSTRUCTOR_INVOCATION:
         return const [lsp.CompletionItemKind.Constructor];
       case server.ElementKind.ENUM:
-      case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.CompletionItemKind.Enum];
+      case server.ElementKind.ENUM_CONSTANT:
+        return const [
+          lsp.CompletionItemKind.EnumMember,
+          lsp.CompletionItemKind.Enum,
+        ];
       case server.ElementKind.FIELD:
         return const [lsp.CompletionItemKind.Field];
       case server.ElementKind.FILE:
