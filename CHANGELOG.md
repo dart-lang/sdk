@@ -45,6 +45,32 @@
 
 [#1785]: https://github.com/dart-lang/language/issues/1785
 
+- Restrictions on members of a class with a constant constructor are relaxed
+  such that they only apply when the class has a _generative_ constant
+  constructor.  For example, this used to be an error, but is now permitted:
+
+  ```dart
+  abstract class A {
+    var v1;
+    late final v2 = Random().nextInt(10);
+    late final v3;
+    const factory A() = B;
+  }
+
+  class B implements A {
+    get v1 => null;
+    set v1(_) => throw 'Cannot mutate B.v1';
+    final v2 = 0;
+    final v3;
+    set v3(_) => throw 'Cannot initialize B.v3';
+    const B([this.v3 = 1]);
+  }
+  ```
+
+  This implements a relaxation of the specified rule for a `late final`
+  instance variable, and it brings the implementation behavior in line with
+  the specification in all other cases.
+
 ### Tools
 
 #### Dart command line
@@ -223,13 +249,13 @@
 #### Linter
 
 Updated the Linter to `1.10.0`, which includes changes that
-- improves regular expression parsing performance for common checks 
+- improves regular expression parsing performance for common checks
   (`camel_case_types`, `file_names`, etc.).
 - (internal) migrates to analyzer 2.1.0 APIs.
-- fixes false positive in `use_build_context_synchronously` in awaits inside 
+- fixes false positive in `use_build_context_synchronously` in awaits inside
   anonymous functions.
 - fixes `overridden_fields` false positive w/ static fields.
-- fixes false positive in `avoid_null_checks_in_equality_operators` w/ 
+- fixes false positive in `avoid_null_checks_in_equality_operators` w/
   non-nullable params.
 - fixes false positive for deferred imports in `prefer_const_constructors`.
 - marks `avoid_dynamic_calls` stable.
@@ -257,7 +283,7 @@ Updated the Linter to `1.10.0`, which includes changes that
 - fix `curly_braces_in_flow_control_structures` to properly flag terminating `else-if`
   blocks.
 - improve `always_specify_types` to support type aliases.
-- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated 
+- fix a false positive in `unnecessary_string_interpolations` w/ nullable interpolated
   strings
 - fix a false positive in `avoid_function_literals_in_foreach_calls` for nullable
   iterables.
@@ -345,7 +371,7 @@ Updated the Linter to `1.10.0`, which includes changes that
     `--legacy-javascript` flag will let you opt out of this update, but this
     flag will be removed in a future release. Modern browsers will not be
     affected, as Dart2JS continues to support [last two major releases][1] of
-    Edge, Safari, Firefox, and Chrome. 
+    Edge, Safari, Firefox, and Chrome.
 
 [#46545]: https://github.com/dart-lang/sdk/issues/46545
 [1]: https://dart.dev/faq#q-what-browsers-do-you-support-as-javascript-compilation-targets
