@@ -16,6 +16,8 @@ class Foo extends _Foo {}
 
 typedef bool predicate(); //LINT [14:9]
 
+typedef bool Predicate(); //OK
+
 class fooBar // LINT
 {}
 
@@ -27,3 +29,11 @@ class Foo_Bar //LINT
 
 class $FooBar //OK
 {}
+
+typedef foo = Foo; //LINT
+
+typedef F = Foo; //OK
+
+typedef f = void Function(); //LINT
+
+class c = Object with M; //LINT

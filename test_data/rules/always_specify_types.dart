@@ -6,13 +6,24 @@
 
 import 'package:meta/meta.dart';
 
+typedef MapList = List<StringMap>; //LINT
+typedef JsonMap = Map<String, dynamic>; //OK
+typedef StringList = List<JsonMap>; //OK
+typedef RawList = List; //LINT
+typedef StringMap<V> = Map<String, V>; //OK
+
+StringMap<String> sm = StringMap<String>(); //OK
+StringMap? rm1; //LINT
+StringMap<String> rm2 = StringMap(); //LINT
+StringMap rm3 = StringMap<String>(); //LINT
+
 Map<String, String> map = {}; //LINT
 List<String> strings = []; //LINT
 Set<String> set = {}; //LINT
 
-List list; // LINT
-List<List> lists; //LINT
-List<int> ints; //OK
+List? list; //LINT
+List<List>? lists; //LINT
+List<int> ints = <int>[1]; //OK
 
 final x = 1; //LINT [1:5]
 final int xx = 3;

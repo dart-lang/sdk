@@ -66,3 +66,8 @@ extension Ext on Object {
 /** Unnamed */ //LINT
 extension on A { }
 
+/** O */ //LINT
+typedef O = Object;
+
+/** OM */ //LINT
+class OM = Object with M;
