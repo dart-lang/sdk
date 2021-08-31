@@ -200,6 +200,7 @@ void f(int p) {}
 int v;
 typedef void tf1();
 typedef tf2<T> = int Function<S>(T tp, S sp);
+typedef td3 = double;
 ''');
     await _getDeclarations();
 
@@ -209,6 +210,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHas('v', ElementKind.TOP_LEVEL_VARIABLE);
     assertHas('tf1', ElementKind.FUNCTION_TYPE_ALIAS);
     assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
+    assertHas('td3', ElementKind.TYPE_ALIAS);
   }
 
   Future<void> _getDeclarations(

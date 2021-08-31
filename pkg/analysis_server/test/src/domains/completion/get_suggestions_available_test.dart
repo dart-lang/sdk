@@ -178,6 +178,7 @@ class X extends {} // ref
         ElementKind.ENUM,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,
+        ElementKind.TYPE_ALIAS,
       ]),
     );
   }
@@ -210,6 +211,7 @@ main() {
         ElementKind.MIXIN,
         ElementKind.SETTER,
         ElementKind.TOP_LEVEL_VARIABLE,
+        ElementKind.TYPE_ALIAS,
       ]),
     );
   }

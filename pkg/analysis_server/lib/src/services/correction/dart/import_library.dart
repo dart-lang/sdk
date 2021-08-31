@@ -121,10 +121,13 @@ class ImportLibrary extends MultiCorrectionProducer {
         var typeName = (targetNode is SimpleIdentifier)
             ? targetNode.name
             : (targetNode as PrefixedIdentifier).prefix.name;
-        yield* _importLibraryForElement(
-            typeName,
-            const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
-            const [TopLevelDeclarationKind.type]);
+        yield* _importLibraryForElement(typeName, const [
+          ElementKind.CLASS,
+          ElementKind.FUNCTION_TYPE_ALIAS,
+          ElementKind.TYPE_ALIAS
+        ], const [
+          TopLevelDeclarationKind.type
+        ]);
       } else if (mightBeImplicitConstructor(targetNode)) {
         var typeName = (targetNode as SimpleIdentifier).name;
         yield* _importLibraryForElement(typeName, const [ElementKind.CLASS],

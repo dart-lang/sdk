@@ -366,6 +366,7 @@ enum E {
 extension Ex on A {}
 mixin M { }
 typedef T = Function(Object);
+typedef T2 = double;
 var v = 0;
 ''');
 
@@ -398,6 +399,10 @@ void f() {
     assertSuggestion(
         completion: 'T',
         element: ElementKind.FUNCTION_TYPE_ALIAS,
+        kind: CompletionSuggestionKind.INVOCATION);
+    assertSuggestion(
+        completion: 'T2',
+        element: ElementKind.TYPE_ALIAS,
         kind: CompletionSuggestionKind.INVOCATION);
     assertSuggestion(
         completion: 'v',

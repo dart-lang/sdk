@@ -187,6 +187,7 @@ class DartCompletionManager {
         kinds.add(protocol.ElementKind.ENUM);
         kinds.add(protocol.ElementKind.FUNCTION_TYPE_ALIAS);
         kinds.add(protocol.ElementKind.MIXIN);
+        kinds.add(protocol.ElementKind.TYPE_ALIAS);
       }
       if (opType.includeReturnValueSuggestions) {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);

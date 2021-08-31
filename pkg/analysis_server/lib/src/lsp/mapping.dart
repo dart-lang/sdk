@@ -209,6 +209,8 @@ lsp.CompletionItemKind? declarationKindToCompletionItemKind(
         return const [lsp.CompletionItemKind.Property];
       case dec.DeclarationKind.SETTER:
         return const [lsp.CompletionItemKind.Property];
+      case dec.DeclarationKind.TYPE_ALIAS:
+        return const [lsp.CompletionItemKind.Class];
       case dec.DeclarationKind.VARIABLE:
         return const [lsp.CompletionItemKind.Variable];
       default:
@@ -252,6 +254,8 @@ lsp.SymbolKind declarationKindToSymbolKind(
         return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.SETTER:
         return const [lsp.SymbolKind.Property];
+      case server.DeclarationKind.TYPE_ALIAS:
+        return const [lsp.SymbolKind.Class];
       case server.DeclarationKind.VARIABLE:
         return const [lsp.SymbolKind.Variable];
       default:

@@ -387,6 +387,7 @@ enum AvailableDeclarationKind {
   METHOD,
   MIXIN,
   SETTER,
+  TYPE_ALIAS,
   VARIABLE
 }
 

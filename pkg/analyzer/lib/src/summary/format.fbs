@@ -36,6 +36,8 @@ enum AvailableDeclarationKind : byte {
 
   SETTER,
 
+  TYPE_ALIAS,
+
   VARIABLE
 }
 
