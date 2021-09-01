@@ -34,7 +34,7 @@ main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
-            targetFlags: const TargetFlags(
+            targetFlags: const TestTargetFlags(
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: false),
             nnbdMode: NnbdMode.Strong),
@@ -42,7 +42,7 @@ main(List<String> args) async {
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
-            targetFlags: const TargetFlags(
+            targetFlags: const TestTargetFlags(
                 forceLateLoweringsForTesting: LateLowering.all,
                 forceLateLoweringSentinelForTesting: true),
             nnbdMode: NnbdMode.Strong)

@@ -67,21 +67,19 @@ class Options {
       const Option(Flags.fatal, const StringListValue());
   static const Option<String?> fatalSkip =
       const Option(Flags.fatalSkip, const StringValue());
-  static const Option<int> forceLateLowering = const Option(
+  static const Option<int?> forceLateLowering = const Option(
       Flags.forceLateLowering,
-      const IntValue(
-          defaultValue: LateLowering.none, noArgValue: LateLowering.all));
-  static const Option<bool> forceLateLoweringSentinel =
-      const Option(Flags.forceLateLoweringSentinel, const BoolValue(false));
-  static const Option<bool> forceStaticFieldLowering =
-      const Option(Flags.forceStaticFieldLowering, const BoolValue(false));
-  static const Option<bool> forceNoExplicitGetterCalls =
-      const Option(Flags.forceNoExplicitGetterCalls, const BoolValue(false));
-  static const Option<int> forceConstructorTearOffLowering = const Option(
+      const IntValue(defaultValue: null, noArgValue: LateLowering.all));
+  static const Option<bool?> forceLateLoweringSentinel =
+      const Option(Flags.forceLateLoweringSentinel, const BoolValue(null));
+  static const Option<bool?> forceStaticFieldLowering =
+      const Option(Flags.forceStaticFieldLowering, const BoolValue(null));
+  static const Option<bool?> forceNoExplicitGetterCalls =
+      const Option(Flags.forceNoExplicitGetterCalls, const BoolValue(null));
+  static const Option<int?> forceConstructorTearOffLowering = const Option(
       Flags.forceConstructorTearOffLowering,
       const IntValue(
-          defaultValue: ConstructorTearOffLowering.none,
-          noArgValue: ConstructorTearOffLowering.all));
+          defaultValue: null, noArgValue: ConstructorTearOffLowering.all));
   static const Option<bool> help = const Option(
       Flags.help, const BoolValue(false),
       aliases: ["-h", "/?", "/h"]);

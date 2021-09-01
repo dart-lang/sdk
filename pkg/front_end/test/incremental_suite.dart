@@ -59,7 +59,13 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
 
 import 'package:kernel/target/targets.dart'
-    show NoneTarget, LateLowering, Target, TargetFlags;
+    show
+        LateLowering,
+        NoneTarget,
+        Target,
+        TargetFlags,
+        TestTargetFlags,
+        TestTargetWrapper;
 
 import 'package:kernel/text/ast_to_text.dart'
     show NameSystem, Printer, componentToString;
@@ -387,9 +393,9 @@ class NewWorldTest {
       NnbdMode nnbdMode) async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
-    TargetFlags targetFlags = new TargetFlags(
+    TestTargetFlags targetFlags = new TestTargetFlags(
         forceLateLoweringsForTesting:
-            forceLateLoweringForTesting ? LateLowering.all : LateLowering.none,
+            forceLateLoweringForTesting ? LateLowering.all : null,
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
     if (targetName != null) {
@@ -405,6 +411,7 @@ class NewWorldTest {
         throw "Unknown target name '$targetName'";
       }
     }
+    target = new TestTargetWrapper(target, targetFlags);
 
     String sdkSummary = computePlatformDillName(
         target,
