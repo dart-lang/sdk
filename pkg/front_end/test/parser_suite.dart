@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -183,12 +181,13 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   /// Scans the uri, parses it with the test listener and returns it.
   ///
   /// Returns null if scanner doesn't return any Token.
-  static ParserTestListenerWithMessageFormatting doListenerParsing(
+  static ParserTestListenerWithMessageFormatting? doListenerParsing(
       Uri uri, String suiteName, String shortName,
       {bool addTrace: false, bool annotateLines: false}) {
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return null;
     }
@@ -210,7 +209,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
       TestDescription description, Context context) {
     Uri uri = description.uri;
 
-    ParserTestListenerWithMessageFormatting parserTestListener =
+    ParserTestListenerWithMessageFormatting? parserTestListener =
         doListenerParsing(
       uri,
       context.suiteName,
@@ -248,6 +247,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
@@ -284,6 +284,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     Token firstToken =
         scanUri(description.uri, description.shortName, lineStarts: lineStarts);
 
+    // ignore: unnecessary_null_comparison
     if (firstToken == null) {
       return Future.value(crash(description, StackTrace.current));
     }
@@ -305,7 +306,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     bool parserCrashed = false;
     dynamic parserCrashedE;
-    StackTrace parserCrashedSt;
+    StackTrace? parserCrashedSt;
     try {
       parser.parseUnit(firstToken);
     } catch (e, st) {
@@ -330,7 +331,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
         description);
     return result.then((result) {
       if (parserCrashed) {
-        return crash("Parser crashed: $parserCrashedE", parserCrashedSt);
+        return crash("Parser crashed: $parserCrashedE", parserCrashedSt!);
       } else {
         return result;
       }
@@ -341,9 +342,9 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
     {bool addTypes: false}) {
   StringBuffer sb = new StringBuffer();
-  Token token = firstToken;
+  Token? token = firstToken;
 
-  Token process(Token token, bool errorTokens) {
+  Token? process(Token? token, bool errorTokens) {
     bool printed = false;
     int endOfLast = -1;
     int lineStartsIteratorLine = 1;
@@ -389,13 +390,13 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
       endOfLast = token.end;
       if (token == token.next) break;
       token = token.next;
-      if (!seenTokens.add(token)) {
+      if (!seenTokens.add(token!)) {
         // Loop in tokens: Print error and break to avoid infinite loop.
         sb.write("\n\nERROR: Loop in tokens: $token "
             "(${token.runtimeType}, ${token.type}, ${token.offset})) "
             "was seen before "
             "(linking to ${token.next}, ${token.next.runtimeType}, "
-            "${token.next.type}, ${token.next.offset})!\n\n");
+            "${token.next!.type}, ${token.next!.offset})!\n\n");
         break;
       }
     }
@@ -411,7 +412,7 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
   return sb;
 }
 
-Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
+Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
   ScannerConfiguration config;
 
   String firstDir = shortName.split("/")[0];
@@ -430,7 +431,7 @@ Token scanUri(Uri uri, String shortName, {List<int> lineStarts}) {
 }
 
 Token scanRawBytes(
-    List<int> rawBytes, ScannerConfiguration config, List<int> lineStarts) {
+    List<int> rawBytes, ScannerConfiguration config, List<int>? lineStarts) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
 
@@ -445,10 +446,10 @@ Token scanRawBytes(
 
 class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final bool annotateLines;
-  final Source source;
-  final String shortName;
+  final Source? source;
+  final String? shortName;
   final List<String> errors = <String>[];
-  Location latestSeenLocation;
+  Location? latestSeenLocation;
 
   ParserTestListenerWithMessageFormatting(
       bool trace, this.annotateLines, this.source, this.shortName)
@@ -472,16 +473,17 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     }
   }
 
-  void seen(Token token) {
+  void seen(Token? token) {
     if (!annotateLines) return;
     if (token == null) return;
     if (source == null) return;
     if (offsetForToken(token) < 0) return;
     Location location =
-        source.getLocation(source.fileUri, offsetForToken(token));
-    if (latestSeenLocation == null || location.line > latestSeenLocation.line) {
+        source!.getLocation(source!.fileUri!, offsetForToken(token));
+    if (latestSeenLocation == null ||
+        location.line > latestSeenLocation!.line) {
       latestSeenLocation = location;
-      String sourceLine = source.getTextLine(location.line);
+      String? sourceLine = source!.getTextLine(location.line);
       doPrint("");
       doPrint("// Line ${location.line}: $sourceLine");
     }
@@ -499,11 +501,11 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
       Message message, Token startToken, Token endToken) {
     if (source != null) {
       Location location =
-          source.getLocation(source.fileUri, offsetForToken(startToken));
+          source!.getLocation(source!.fileUri!, offsetForToken(startToken));
       int length = lengthOfSpan(startToken, endToken);
       if (length <= 0) length = 1;
       errors.add(command_line_reporting.formatErrorMessage(
-          source.getTextLine(location.line),
+          source!.getTextLine(location.line),
           location,
           length,
           shortName,
@@ -518,7 +520,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
 
 class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
-  TestParser parser;
+  late TestParser parser;
 
   ParserTestListenerForIntertwined(
       bool trace, bool annotateLines, Source source)

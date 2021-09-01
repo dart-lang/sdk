@@ -2065,7 +2065,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
-    Map<Uri?, LibraryBuilder> partUriToParent = <Uri, LibraryBuilder>{};
+    Map<Uri?, LibraryBuilder> partUriToParent = <Uri?, LibraryBuilder>{};
 
     // Invalidated URIs translated back to their import URI (package:, dart:,
     // etc.).

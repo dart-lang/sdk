@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 
@@ -13,7 +11,7 @@ main() async {
   await compile("import 'foo.dart' if (dart.library.bar) 'baz.dart';");
 }
 
-void compile(String data) async {
+Future<void> compile(String data) async {
   Uri base = Uri.parse("org-dartlang-test:///");
   Uri sdkSummary = base.resolve("nonexisting.dill");
   Uri mainFile = base.resolve("main.dart");
