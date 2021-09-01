@@ -474,6 +474,7 @@ class ExpectTest implements Test {
 
   ExpectTest(this.call, this.result);
 
+  @override
   bool operator ==(Object other) {
     if (other is! ExpectTest) return false;
     if (other.call != call) return false;
@@ -481,6 +482,7 @@ class ExpectTest implements Test {
     return true;
   }
 
+  @override
   String toString() {
     return "ExpectTest[$call, $result]";
   }
@@ -492,6 +494,7 @@ class TestParseError implements Test {
 
   TestParseError(this.message, this.position);
 
+  @override
   bool operator ==(Object other) {
     if (other is! TestParseError) return false;
     if (other.message != message) return false;
@@ -499,6 +502,7 @@ class TestParseError implements Test {
     return true;
   }
 
+  @override
   String toString() {
     return "TestParseError[$position, $message]";
   }
@@ -521,6 +525,7 @@ class TestResult {
 
   TestResult(this.test, this.outcome);
 
+  @override
   bool operator ==(Object other) {
     if (other is! TestResult) return false;
     if (other.test != test) return false;
@@ -529,6 +534,7 @@ class TestResult {
     return true;
   }
 
+  @override
   String toString() {
     if (message != null) {
       return "TestResult[$outcome, $test, $message]";
@@ -731,6 +737,7 @@ class CommentString {
 
   CommentString(this.string, this.charOffset);
 
+  @override
   bool operator ==(Object other) {
     if (other is! CommentString) return false;
     if (other.string != string) return false;
@@ -738,6 +745,7 @@ class CommentString {
     return true;
   }
 
+  @override
   String toString() {
     return "CommentString[$charOffset, $string]";
   }
@@ -767,6 +775,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       new Uri(scheme: "dartdoctest", path: "tester");
   DocTestIncrementalCompiler(CompilerContext context) : super(context);
 
+  @override
   bool dontReissueLibraryProblemsFor(Uri? uri) {
     return super.dontReissueLibraryProblemsFor(uri) || uri == dartDocTestUri;
   }

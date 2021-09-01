@@ -179,9 +179,11 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final TypeInferenceEngine engine;
 
+  @override
   final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
       DartType> flowAnalysis;
 
+  @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
 
   final InferenceDataForTesting? dataForTesting;
@@ -198,6 +200,7 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final Instrumentation? instrumentation;
 
+  @override
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
   final InterfaceType? thisType;
@@ -1835,6 +1838,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
+  @override
   DartType inferDeclarationType(DartType initializerType,
       {bool forSyntheticVariable: false}) {
     if (initializerType is NullType) {
@@ -1994,6 +1998,7 @@ class TypeInferrerImpl implements TypeInferrer {
     return result;
   }
 
+  @override
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false, bool forEffect: false}) {
@@ -4646,28 +4651,36 @@ class StatementInferenceResult {
 }
 
 class SingleStatementInferenceResult implements StatementInferenceResult {
+  @override
   final Statement statement;
 
   SingleStatementInferenceResult(this.statement);
 
+  @override
   bool get hasChanged => true;
 
+  @override
   int get statementCount => 1;
 
+  @override
   List<Statement> get statements =>
       throw new UnsupportedError('SingleStatementInferenceResult.statements');
 }
 
 class MultipleStatementInferenceResult implements StatementInferenceResult {
   final int fileOffset;
+  @override
   final List<Statement> statements;
 
   MultipleStatementInferenceResult(this.fileOffset, this.statements);
 
+  @override
   bool get hasChanged => true;
 
+  @override
   Statement get statement => new Block(statements)..fileOffset = fileOffset;
 
+  @override
   int get statementCount => statements.length;
 }
 
@@ -4776,6 +4789,7 @@ class ExpressionInferenceResult {
 
   ExpressionInferenceResult stopShorting() => this;
 
+  @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
 
@@ -4841,6 +4855,7 @@ class NullAwareGuard {
       ..fileOffset = _nullAwareFileOffset;
   }
 
+  @override
   String toString() =>
       'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset,'
       '$_nullAwareEquals)';
@@ -4850,9 +4865,11 @@ class NullAwareGuard {
 /// variable.
 class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   /// The inferred type of the expression.
+  @override
   final DartType inferredType;
 
   /// The inferred type of the [nullAwareAction].
+  @override
   final DartType nullAwareActionType;
 
   @override
@@ -4867,12 +4884,14 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
         // ignore: unnecessary_null_comparison
         assert(nullAwareAction != null);
 
+  @override
   Expression get expression {
     throw new UnsupportedError('Shorting must be explicitly stopped before'
         'accessing the expression result of a '
         'NullAwareExpressionInferenceResult');
   }
 
+  @override
   ExpressionInferenceResult stopShorting() {
     Expression expression = nullAwareAction;
     Link<NullAwareGuard> nullAwareGuard = nullAwareGuards;
@@ -4884,6 +4903,7 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
+  @override
   String toString() =>
       'NullAwareExpressionInferenceResult($inferredType,$nullAwareGuards,'
       '$nullAwareAction)';
@@ -5087,8 +5107,11 @@ class ObjectAccessTarget {
 }
 
 class ExtensionAccessTarget extends ObjectAccessTarget {
+  @override
   final Member? tearoffTarget;
+  @override
   final ProcedureKind extensionMethodKind;
+  @override
   final List<DartType> inferredExtensionTypeArguments;
 
   ExtensionAccessTarget(Member member, this.tearoffTarget,

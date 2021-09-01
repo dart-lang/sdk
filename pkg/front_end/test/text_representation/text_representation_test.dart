@@ -86,6 +86,7 @@ class TextRepresentationConfig extends TestConfig {
             },
             nnbdMode: NnbdMode.Strong);
 
+  @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
     if (testData.name.endsWith('_opt_out.dart')) {
       options.nnbdMode = NnbdMode.Weak;
@@ -96,6 +97,7 @@ class TextRepresentationConfig extends TestConfig {
 class TextRepresentationDataComputer extends DataComputer<String> {
   const TextRepresentationDataComputer();
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,

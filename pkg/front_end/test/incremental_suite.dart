@@ -134,6 +134,7 @@ Future<Context> createContext(
 }
 
 class Context extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const ReadTest(),
     const RunCompilations(),
@@ -167,8 +168,10 @@ class TestData {
 class ReadTest extends Step<TestDescription, TestData, Context> {
   const ReadTest();
 
+  @override
   String get name => "read test";
 
+  @override
   Future<Result<TestData>> run(
       TestDescription description, Context context) async {
     Uri uri = description.uri;
@@ -185,8 +188,10 @@ class ReadTest extends Step<TestDescription, TestData, Context> {
 class RunCompilations extends Step<TestData, TestData, Context> {
   const RunCompilations();
 
+  @override
   String get name => "run compilations";
 
+  @override
   Future<Result<TestData>> run(TestData data, Context context) async {
     Result<TestData>? result;
     YamlMap map = data.map;
@@ -1940,6 +1945,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
     return result;
   }
 
+  @override
   void recordTemporaryFileForTesting(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();

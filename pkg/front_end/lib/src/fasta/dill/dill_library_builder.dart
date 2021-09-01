@@ -63,6 +63,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 
+  @override
   DillLoader loader;
 
   /// Exports that can't be serialized.
@@ -144,11 +145,13 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   LibraryBuilder get nameOriginBuilder => this;
 
+  @override
   void addSyntheticDeclarationOfDynamic() {
     addBuilder("dynamic",
         new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1), -1);
   }
 
+  @override
   void addSyntheticDeclarationOfNever() {
     addBuilder(
         "Never",
@@ -157,6 +160,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         -1);
   }
 
+  @override
   void addSyntheticDeclarationOfNull() {
     // The name "Null" is declared by the class Null.
   }

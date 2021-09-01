@@ -903,6 +903,7 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
+  @override
   ExpressionInferenceResult visitDoubleLiteral(
       DoubleLiteral node, DartType typeContext) {
     return new ExpressionInferenceResult(
@@ -6246,6 +6247,7 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, node);
   }
 
+  @override
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
     inferrer.flowAnalysis.thisOrSuper(node, inferrer.thisType!);
@@ -6941,6 +6943,7 @@ class ForInResult {
   ForInResult(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionSideEffects);
 
+  @override
   String toString() => 'ForInResult($variable,$iterable,'
       '$syntheticAssignment,$expressionSideEffects)';
 }
@@ -6959,6 +6962,7 @@ class LocalForInVariable implements ForInVariable {
 
   LocalForInVariable(this.variableSet);
 
+  @override
   DartType computeElementType(TypeInferrerImpl inferrer) {
     VariableDeclaration variable = variableSet.variable;
     DartType? promotedType;
@@ -6968,6 +6972,7 @@ class LocalForInVariable implements ForInVariable {
     return promotedType ?? variable.type;
   }
 
+  @override
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     DartType variableType =
         inferrer.computeGreatestClosure(variableSet.variable.type);

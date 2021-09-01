@@ -45,6 +45,7 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
+  @override
   final bool isExtensionInstanceMember = false;
 
   final Procedure _procedureInternal;
@@ -364,6 +365,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     return _procedureInternal;
   }
 
+  @override
   bool _hasBuiltOutlines = false;
 
   @override
@@ -455,6 +457,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _hasBuiltOutlines = true;
   }
 
+  @override
   void _finishPatch() {
     super._finishPatch();
 

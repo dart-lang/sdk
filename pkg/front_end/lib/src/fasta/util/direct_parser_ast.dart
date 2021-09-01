@@ -1185,6 +1185,7 @@ main(List<String> args) {
 }
 
 class DirectParserASTListener extends AbstractDirectParserASTListener {
+  @override
   void seen(DirectParserASTContent entry) {
     switch (entry.type) {
       case DirectParserASTType.BEGIN:

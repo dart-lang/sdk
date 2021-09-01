@@ -30,6 +30,7 @@ abstract class ProcedureBuilder implements FunctionBuilder {
 
   Procedure get procedure;
 
+  @override
   ProcedureKind get kind;
 
   Procedure get actualProcedure;
@@ -53,6 +54,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
   @override
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
+  @override
   final bool isExtensionInstanceMember;
 
   late Procedure _procedure;

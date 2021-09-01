@@ -88,6 +88,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
+  @override
   TypeBuilder? mixedInTypeBuilder;
 
   bool isMixinDeclaration;

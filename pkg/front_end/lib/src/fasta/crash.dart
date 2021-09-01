@@ -33,6 +33,7 @@ class Crash {
 
   Crash(this.uri, this.charOffset, this.error, this.trace);
 
+  @override
   String toString() {
     return """
 Crash when compiling $uri,

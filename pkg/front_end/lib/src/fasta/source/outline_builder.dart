@@ -102,6 +102,7 @@ enum MethodBody {
 }
 
 class OutlineBuilder extends StackListenerImpl {
+  @override
   final SourceLibraryBuilder libraryBuilder;
 
   final bool enableNative;
@@ -991,30 +992,35 @@ class OutlineBuilder extends StackListenerImpl {
         endToken, _MethodKind.classMethod);
   }
 
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.classConstructor);
   }
 
+  @override
   void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.mixinMethod);
   }
 
+  @override
   void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.extensionMethod);
   }
 
+  @override
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
         endToken, _MethodKind.mixinConstructor);
   }
 
+  @override
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
     _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
@@ -2213,6 +2219,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(asyncMarkerFromTokens(asyncToken, starToken));
   }
 
+  @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage>? context}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,

@@ -152,6 +152,7 @@ class KernelTarget extends TargetImplementation {
   SourceLoader createLoader() =>
       new SourceLoader(fileSystem, includeComments, this);
 
+  @override
   void addSourceInformation(
       Uri importUri, Uri fileUri, List<int> lineStarts, List<int> sourceCode) {
     uriToSource[fileUri] =
@@ -289,6 +290,7 @@ class KernelTarget extends TargetImplementation {
     return result;
   }
 
+  @override
   void breakCycle(ClassBuilder builder) {
     Class cls = builder.cls;
     cls.implementedTypes.clear();
@@ -1380,6 +1382,7 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
+  @override
   void releaseAncillaryResources() {
     component = null;
   }
@@ -1408,6 +1411,7 @@ class KernelDiagnosticReporter
 
   KernelDiagnosticReporter(this.loader);
 
+  @override
   void report(Message message, int charOffset, int length, Uri? fileUri,
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);

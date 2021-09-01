@@ -105,6 +105,7 @@ class TTestResult {
   TTestResult(this.significant, this.percentDiff, this.percentDiffConfidence,
       this.diff, this.confidence);
 
+  @override
   String toString() {
     if (significant) {
       double leastConfidentChange;

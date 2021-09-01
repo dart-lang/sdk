@@ -40,6 +40,7 @@ class InferredVariableTypesDataComputer extends DataComputer<DartType> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeMemberData(
       TestConfig config,
       InternalCompilerResult compilerResult,

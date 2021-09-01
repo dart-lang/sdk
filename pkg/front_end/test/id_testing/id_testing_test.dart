@@ -62,6 +62,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -75,6 +76,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   bool get supportsErrors => true;
 
+  @override
   String computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);

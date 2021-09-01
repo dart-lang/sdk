@@ -24,16 +24,19 @@ abstract class BuiltinTypeDeclarationBuilder
       : fileUri = compilationUnit.fileUri,
         super(null, 0, name, compilationUnit, charOffset);
 
+  @override
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments,
       {bool? nonInstanceContext}) {
     return type.withDeclaredNullability(nullabilityBuilder.build(library));
   }
 
+  @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     return type.withDeclaredNullability(nullability);
   }
 
+  @override
   String get debugName => "BuiltinTypeDeclarationBuilder";
 }

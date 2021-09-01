@@ -60,6 +60,7 @@ class Context extends ChainContext {
   final CompilerContext compilerContext;
   final List<DiagnosticMessage> errors;
 
+  @override
   final List<Step> steps;
 
   Context(this.compilerContext, this.errors, bool updateExpectations)
@@ -154,6 +155,7 @@ class TestCase {
       this.className,
       this.expression);
 
+  @override
   String toString() {
     return "TestCase("
         "$entryPoint, "
@@ -190,8 +192,10 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   const MatchProcedureExpectations(this.suffix,
       {this.updateExpectations: false});
 
+  @override
   String get name => "match expectations";
 
+  @override
   Future<Result<Null>> run(List<TestCase> tests, Context context) async {
     String actual = "";
     for (var test in tests) {
@@ -239,8 +243,10 @@ $actual""");
 class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
   const ReadTest();
 
+  @override
   String get name => "read test";
 
+  @override
   Future<Result<List<TestCase>>> run(
       TestDescription description, Context context) async {
     context.reset();
@@ -301,6 +307,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
   const CompileExpression();
 
+  @override
   String get name => "compile expression";
 
   // Compile [test.expression], update [test.errors] with results.
@@ -335,6 +342,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     }
   }
 
+  @override
   Future<Result<List<TestCase>>> run(
       List<TestCase> tests, Context context) async {
     for (var test in tests) {

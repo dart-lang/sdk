@@ -438,6 +438,7 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
 /// Type variables are represented by their indices in the corresponding
 /// declaration.
 class TypeVariablesGraph implements Graph<int> {
+  @override
   late List<int> vertices;
   List<TypeVariableBuilder> variables;
   List<TypeBuilder> bounds;
@@ -491,6 +492,7 @@ class TypeVariablesGraph implements Graph<int> {
 
   /// Returns indices of type variables that depend on the type variable with
   /// [index].
+  @override
   Iterable<int> neighborsOf(int index) {
     return edges[index];
   }
@@ -1095,6 +1097,7 @@ bool hasAnyTypeVariables(DartType type) {
 class TypeVariableSearch implements DartTypeVisitor<bool> {
   const TypeVariableSearch();
 
+  @override
   bool defaultDartType(DartType node) => throw "unsupported";
 
   bool anyTypeVariables(List<DartType> types) {

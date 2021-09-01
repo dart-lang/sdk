@@ -72,6 +72,7 @@ class PredicateDataComputer extends DataComputer<Features> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -160,6 +161,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     return null;
   }
 
+  @override
   void visitProcedure(Procedure node) {
     super.visitProcedure(node);
     nodeIdMap.forEach((String name, NodeId id) {
@@ -174,6 +176,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     featureMap.clear();
   }
 
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     String name;
     String tag;

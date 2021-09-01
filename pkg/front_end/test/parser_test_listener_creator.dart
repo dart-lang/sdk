@@ -127,22 +127,27 @@ class ParserCreatorListener extends Listener {
 
   ParserCreatorListener(this.out);
 
+  @override
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     insideListenerClass = false;
   }
 
+  @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token getOrSet, Token name) {
     currentMethodName = name.lexeme;
   }
 
+  @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     if (insideListenerClass) {
+      out.writeln("  @override");
       out.write("  ");
       Token token = beginToken;
       Token latestToken;
@@ -212,10 +217,12 @@ class ParserCreatorListener extends Listener {
     latestSeenParameterTypeToken = null;
   }
 
+  @override
   void handleType(Token beginToken, Token questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
   }
 
+  @override
   void endFormalParameter(
       Token thisKeyword,
       Token periodAfterThis,

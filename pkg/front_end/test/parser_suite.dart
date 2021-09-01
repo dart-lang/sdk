@@ -102,6 +102,7 @@ ScannerConfiguration scannerConfigurationNonTripleShift =
         enableNonNullable: true);
 
 class Context extends ChainContext with MatchContext {
+  @override
   final bool updateExpectations;
 
   @override
@@ -117,6 +118,7 @@ class Context extends ChainContext with MatchContext {
   Context(this.suiteName, this.updateExpectations, this.addTrace,
       this.annotateLines);
 
+  @override
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
@@ -124,6 +126,7 @@ class Context extends ChainContext with MatchContext {
     const IntertwinedStep(),
   ];
 
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -138,11 +141,13 @@ class Context extends ChainContext with MatchContext {
 class ContextChecksOnly extends Context {
   ContextChecksOnly(String suiteName) : super(suiteName, false, false, false);
 
+  @override
   final List<Step> steps = const <Step>[
     const ListenerStep(false),
     const DirectParserASTStep(),
   ];
 
+  @override
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 
@@ -157,7 +162,9 @@ class ContextChecksOnly extends Context {
 class DirectParserASTStep
     extends Step<TestDescription, TestDescription, Context> {
   const DirectParserASTStep();
+  @override
   String get name => "DirectParserAST";
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     Uri uri = description.uri;
@@ -176,6 +183,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   final bool doExpects;
   const ListenerStep(this.doExpects);
 
+  @override
   String get name => "listener";
 
   /// Scans the uri, parses it with the test listener and returns it.
@@ -205,6 +213,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     return parserTestListener;
   }
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     Uri uri = description.uri;
@@ -239,8 +248,10 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
 class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
   const IntertwinedStep();
 
+  @override
   String get name => "intertwined";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = <int>[];
@@ -276,8 +287,10 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
 
   const TokenStep(this.onlyScanner, this.suffix);
 
+  @override
   String get name => "token";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     List<int> lineStarts = <int>[];
@@ -455,6 +468,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
       bool trace, this.annotateLines, this.source, this.shortName)
       : super(trace);
 
+  @override
   void doPrint(String s) {
     super.doPrint(s);
     if (!annotateLines) {
@@ -473,6 +487,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     }
   }
 
+  @override
   void seen(Token? token) {
     if (!annotateLines) return;
     if (token == null) return;
@@ -489,6 +504,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     }
   }
 
+  @override
   bool checkEof(Token token) {
     bool result = super.checkEof(token);
     if (result) {
@@ -497,6 +513,7 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
     return result;
   }
 
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     if (source != null) {
@@ -526,6 +543,7 @@ class ParserTestListenerForIntertwined
       bool trace, bool annotateLines, Source source)
       : super(trace, annotateLines, source, null);
 
+  @override
   void doPrint(String s) {
     int prevIndent = super.indent;
     super.indent = parser.indent;

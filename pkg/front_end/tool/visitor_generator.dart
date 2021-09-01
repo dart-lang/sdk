@@ -143,6 +143,7 @@ abstract class Visitor0Strategy extends VisitorStrategy {
   /// The generated visitor will implement `Visitor<$returnType>`.
   String get returnType;
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 $preamble
@@ -153,6 +154,7 @@ $visitorComment
 class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
   }
 
+  @override
   void generateFooter(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 }''');
@@ -253,6 +255,7 @@ abstract class Visitor1Strategy extends VisitorStrategy {
   /// `Visitor1<$returnType, $argumentType>`.
   String get returnType;
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 import 'package:kernel/ast.dart';
@@ -262,6 +265,7 @@ class $visitorName$visitorTypeParameters
     implements Visitor1<$returnType, $argumentType> {''');
   }
 
+  @override
   void generateFooter(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 }''');

@@ -2068,6 +2068,7 @@ worlds:
 class ParserErrorListener extends Listener {
   bool gotError = false;
   List<Message> messages = [];
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     gotError = true;
@@ -2150,6 +2151,7 @@ class _FakeFileSystem extends FileSystem {
 
 class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
+  @override
   final Uri uri;
   _FakeFileSystemEntity(this.fs, this.uri);
 

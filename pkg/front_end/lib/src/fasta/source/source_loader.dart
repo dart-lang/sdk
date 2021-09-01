@@ -203,9 +203,11 @@ class SourceLoader extends Loader {
 
   ClassHierarchyBuilder get builderHierarchy => _builderHierarchy!;
 
+  @override
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
+  @override
   bool get isSourceLoader => true;
 
   Future<Token> tokenize(SourceLibraryBuilder library,
@@ -474,6 +476,7 @@ class SourceLoader extends Loader {
     return bytes.sublist(0, bytes.length - 1);
   }
 
+  @override
   Future<Null> buildOutline(SourceLibraryBuilder library) async {
     Token tokens = await tokenize(library);
     // ignore: unnecessary_null_comparison
@@ -482,6 +485,7 @@ class SourceLoader extends Loader {
     new ClassMemberParser(listener).parseUnit(tokens);
   }
 
+  @override
   Future<Null> buildBody(LibraryBuilder library) async {
     if (library is SourceLibraryBuilder) {
       // We tokenize source files twice to keep memory usage low. This is the
@@ -565,6 +569,7 @@ class SourceLoader extends Loader {
         parameters);
   }
 
+  @override
   KernelTarget get target => super.target as KernelTarget;
 
   DietListener createDietListener(SourceLibraryBuilder library) {

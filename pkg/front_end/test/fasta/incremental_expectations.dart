@@ -57,6 +57,7 @@ class IncrementalExpectation {
     return result;
   }
 
+  @override
   String toString() {
     return """
 IncrementalExpectation(

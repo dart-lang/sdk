@@ -168,6 +168,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
 
   ConstantWeakener(this._evaluator);
 
+  @override
   Constant? processValue(Constant node, Constant? value) {
     if (value != null) {
       value = _evaluator.canonicalize(value);
@@ -4158,6 +4159,7 @@ class EvaluationEnvironment {
 class RedundantFileUriExpressionRemover extends Transformer {
   Uri? currentFileUri = null;
 
+  @override
   TreeNode visitFileUriExpression(FileUriExpression node) {
     if (node.fileUri == currentFileUri) {
       return node.expression.accept(this);

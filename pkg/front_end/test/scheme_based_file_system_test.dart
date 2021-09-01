@@ -44,9 +44,11 @@ class MockFileSystem implements FileSystem {
 }
 
 class MockFileSystemEntity implements FileSystemEntity {
+  @override
   final Uri uri;
   final FileSystem fileSystem;
   MockFileSystemEntity(this.uri, this.fileSystem);
 
+  @override
   noSuchMethod(m) => super.noSuchMethod(m);
 }

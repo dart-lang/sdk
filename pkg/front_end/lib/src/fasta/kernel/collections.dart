@@ -334,6 +334,7 @@ class ForInElement extends Expression with ControlFlowElement {
         ..fileOffset = syntheticAssignment!.fileOffset)
       : expressionEffects;
 
+  @override
   void visitChildren(Visitor v) {
     variable.accept(v);
     iterable.accept(v);
@@ -343,6 +344,7 @@ class ForInElement extends Expression with ControlFlowElement {
     problem?.accept(v);
   }
 
+  @override
   void transformChildren(Transformer v) {
     // ignore: unnecessary_null_comparison
     if (variable != null) {
@@ -690,6 +692,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
         ..fileOffset = syntheticAssignment!.fileOffset)
       : expressionEffects;
 
+  @override
   void visitChildren(Visitor v) {
     variable.accept(v);
     iterable.accept(v);
@@ -699,6 +702,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
     problem?.accept(v);
   }
 
+  @override
   void transformChildren(Transformer v) {
     // ignore: unnecessary_null_comparison
     if (variable != null) {

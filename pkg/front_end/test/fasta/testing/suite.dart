@@ -328,6 +328,7 @@ class TestOptions {
 
 class FastaContext extends ChainContext with MatchContext {
   final Uri baseUri;
+  @override
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
@@ -807,11 +808,14 @@ class FastaContext extends ChainContext with MatchContext {
 class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Run();
 
+  @override
   String get name => "run";
 
   /// WARNING: Every subsequent step in this test will run async as well!
+  @override
   bool get isAsync => true;
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
@@ -868,8 +872,10 @@ class StressConstantEvaluatorStep
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const StressConstantEvaluatorStep();
 
+  @override
   String get name => "stress constant evaluator";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     KernelTarget target = result.sourceTarget;
@@ -931,6 +937,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
 
   Library? currentLibrary;
 
+  @override
   Library visitLibrary(Library node) {
     currentLibrary = node;
     node.visitChildren(this);
@@ -940,6 +947,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
 
   Member? currentMember;
 
+  @override
   Node defaultMember(Member node) {
     Member? prevCurrentMember = currentMember;
     currentMember = node;
@@ -948,6 +956,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     return node;
   }
 
+  @override
   Node defaultExpression(Expression node) {
     if (node is BasicLiteral) return node;
     if (node is InvalidExpression) return node;
@@ -1124,10 +1133,12 @@ class FuzzCompiles
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const FuzzCompiles();
 
+  @override
   String get name {
     return "semifuzz";
   }
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     bool? originalFlag = context.explicitExperimentalFlags[
@@ -1397,6 +1408,7 @@ class FuzzAstVisitorSorterChunk {
 
   FuzzAstVisitorSorterChunk(this.data, this.metadataAndComments, this.layer);
 
+  @override
   String toString() {
     return "FuzzAstVisitorSorterChunk[${getSource()}]";
   }
@@ -1635,6 +1647,7 @@ class _FakeFileSystem extends FileSystem {
 
 class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
+  @override
   final Uri uri;
   _FakeFileSystemEntity(this.fs, this.uri);
 
@@ -1744,12 +1757,14 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
   final bool updateComments;
 
+  @override
   String get name {
     return fullCompile ? "compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
 
+  @override
   Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
     CompilationSetup compilationSetup =
@@ -1890,8 +1905,10 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Transform();
 
+  @override
   String get name => "transform component";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     return await CompilerContext.runWithOptions(result.options, (_) async {
@@ -1939,8 +1956,10 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   const Verify(this.fullCompile);
 
+  @override
   String get name => "verify";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
@@ -2049,8 +2068,10 @@ class EnsureNoErrors
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const EnsureNoErrors();
 
+  @override
   String get name => "check errors";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     List<Iterable<String>> errors = result.compilationSetup.errors;
@@ -2067,8 +2088,10 @@ class MatchHierarchy
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const MatchHierarchy();
 
+  @override
   String get name => "check hierarchy";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     Component component = result.component;

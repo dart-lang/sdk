@@ -60,6 +60,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   /// Returns data corresponding to [error].
+  @override
   String computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);

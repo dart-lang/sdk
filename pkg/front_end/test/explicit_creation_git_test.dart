@@ -135,6 +135,7 @@ class SourceLoaderTest extends SourceLoader {
         library, hierarchy, coreTypes, typeInferenceEngine);
   }
 
+  @override
   BodyBuilder createBodyBuilderForOutlineExpression(
       SourceLibraryBuilder library,
       DeclarationBuilder declarationBuilder,
@@ -145,6 +146,7 @@ class SourceLoaderTest extends SourceLoader {
         library, declarationBuilder, member, scope, fileUri);
   }
 
+  @override
   BodyBuilder createBodyBuilderForField(
       FieldBuilder field, TypeInferrer typeInferrer) {
     return new BodyBuilderTest.forField(field, typeInferrer);

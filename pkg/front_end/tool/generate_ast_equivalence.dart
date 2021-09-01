@@ -416,6 +416,7 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
     return false;''');
   }
 
+  @override
   void generateHeader(AstModel astModel, StringBuffer sb) {
     sb.writeln('''
 $preamble

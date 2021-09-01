@@ -235,6 +235,7 @@ CompilerContext setupCompilerContext(bool nnbd, String targetString,
 class HookInVmTarget extends VmTarget {
   HookInVmTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
@@ -252,6 +253,7 @@ class HookInVmTarget extends VmTarget {
 class HookInDart2jsTarget extends Dart2jsTarget {
   HookInDart2jsTarget(String name, TargetFlags flags) : super(name, flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
@@ -269,6 +271,7 @@ class HookInDart2jsTarget extends Dart2jsTarget {
 class HookInDevCompilerTarget extends DevCompilerTarget {
   HookInDevCompilerTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,
@@ -286,6 +289,7 @@ class HookInDevCompilerTarget extends DevCompilerTarget {
 class HookInFlutterTarget extends FlutterTarget {
   HookInFlutterTarget(TargetFlags flags) : super(flags);
 
+  @override
   void performPreConstantEvaluationTransformations(
       Component component,
       CoreTypes coreTypes,

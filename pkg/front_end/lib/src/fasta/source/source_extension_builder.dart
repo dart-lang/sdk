@@ -79,6 +79,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   SourceExtensionBuilder get origin => _origin ?? this;
 
+  @override
   Extension get extension => isPatch ? origin._extension : _extension;
 
   /// Builds the [Extension] for this extension build and inserts the members

@@ -34,6 +34,7 @@ class DirectoryTest extends _BaseTest {
   String path;
   FileSystemEntity dir;
 
+  @override
   setUp() {
     super.setUp();
     path = p.join(tempPath, 'dir');
@@ -72,6 +73,7 @@ class FileTest extends _BaseTest {
   String path;
   FileSystemEntity file;
 
+  @override
   setUp() {
     super.setUp();
     path = p.join(tempPath, 'file.txt');
@@ -146,6 +148,7 @@ class FileTest extends _BaseTest {
 class StandardFileSystemTest extends _BaseTest {
   Uri tempUri;
 
+  @override
   setUp() {
     super.setUp();
     tempUri = new Uri.directory(tempPath);

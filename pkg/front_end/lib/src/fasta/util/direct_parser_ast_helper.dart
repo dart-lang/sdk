@@ -39,6 +39,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
 
   void seen(DirectParserASTContent entry);
 
+  @override
   void beginArguments(Token token) {
     DirectParserASTContentArgumentsBegin data =
         new DirectParserASTContentArgumentsBegin(DirectParserASTType.BEGIN,
@@ -46,6 +47,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     DirectParserASTContentArgumentsEnd data =
         new DirectParserASTContentArgumentsEnd(DirectParserASTType.END,
@@ -53,6 +55,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleAsyncModifier(Token? asyncToken, Token? starToken) {
     DirectParserASTContentAsyncModifierHandle data =
         new DirectParserASTContentAsyncModifierHandle(
@@ -62,6 +65,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginAwaitExpression(Token token) {
     DirectParserASTContentAwaitExpressionBegin data =
         new DirectParserASTContentAwaitExpressionBegin(
@@ -70,6 +74,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     DirectParserASTContentAwaitExpressionEnd data =
         new DirectParserASTContentAwaitExpressionEnd(DirectParserASTType.END,
@@ -77,6 +82,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
     DirectParserASTContentInvalidAwaitExpressionEnd data =
@@ -88,6 +94,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginBlock(Token token, BlockKind blockKind) {
     DirectParserASTContentBlockBegin data =
         new DirectParserASTContentBlockBegin(DirectParserASTType.BEGIN,
@@ -95,6 +102,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endBlock(
       int count, Token beginToken, Token endToken, BlockKind blockKind) {
     DirectParserASTContentBlockEnd data = new DirectParserASTContentBlockEnd(
@@ -106,6 +114,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     DirectParserASTContentInvalidTopLevelBlockHandle data =
         new DirectParserASTContentInvalidTopLevelBlockHandle(
@@ -114,6 +123,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginCascade(Token token) {
     DirectParserASTContentCascadeBegin data =
         new DirectParserASTContentCascadeBegin(DirectParserASTType.BEGIN,
@@ -121,12 +131,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endCascade() {
     DirectParserASTContentCascadeEnd data =
         new DirectParserASTContentCascadeEnd(DirectParserASTType.END);
     seen(data);
   }
 
+  @override
   void beginCaseExpression(Token caseKeyword) {
     DirectParserASTContentCaseExpressionBegin data =
         new DirectParserASTContentCaseExpressionBegin(DirectParserASTType.BEGIN,
@@ -134,6 +146,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endCaseExpression(Token colon) {
     DirectParserASTContentCaseExpressionEnd data =
         new DirectParserASTContentCaseExpressionEnd(DirectParserASTType.END,
@@ -141,6 +154,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     DirectParserASTContentClassOrMixinBodyBegin data =
         new DirectParserASTContentClassOrMixinBodyBegin(
@@ -150,6 +164,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassOrMixinBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     DirectParserASTContentClassOrMixinBodyEnd data =
@@ -161,6 +176,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginClassOrNamedMixinApplicationPrelude(Token token) {
     DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin data =
         new DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin(
@@ -169,6 +185,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     DirectParserASTContentClassDeclarationBegin data =
         new DirectParserASTContentClassDeclarationBegin(
@@ -179,6 +196,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleClassExtends(Token? extendsKeyword, int typeCount) {
     DirectParserASTContentClassExtendsHandle data =
         new DirectParserASTContentClassExtendsHandle(DirectParserASTType.HANDLE,
@@ -186,6 +204,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleClassOrMixinImplements(
       Token? implementsKeyword, int interfacesCount) {
     DirectParserASTContentClassOrMixinImplementsHandle data =
@@ -196,6 +215,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     DirectParserASTContentClassHeaderHandle data =
         new DirectParserASTContentClassHeaderHandle(DirectParserASTType.HANDLE,
@@ -203,6 +223,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleRecoverClassHeader() {
     DirectParserASTContentRecoverClassHeaderHandle data =
         new DirectParserASTContentRecoverClassHeaderHandle(
@@ -210,6 +231,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     DirectParserASTContentClassDeclarationEnd data =
         new DirectParserASTContentClassDeclarationEnd(DirectParserASTType.END,
@@ -217,6 +239,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
     DirectParserASTContentMixinDeclarationBegin data =
         new DirectParserASTContentMixinDeclarationBegin(
@@ -226,6 +249,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleMixinOn(Token? onKeyword, int typeCount) {
     DirectParserASTContentMixinOnHandle data =
         new DirectParserASTContentMixinOnHandle(DirectParserASTType.HANDLE,
@@ -233,6 +257,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleMixinHeader(Token mixinKeyword) {
     DirectParserASTContentMixinHeaderHandle data =
         new DirectParserASTContentMixinHeaderHandle(DirectParserASTType.HANDLE,
@@ -240,6 +265,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleRecoverMixinHeader() {
     DirectParserASTContentRecoverMixinHeaderHandle data =
         new DirectParserASTContentRecoverMixinHeaderHandle(
@@ -247,6 +273,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     DirectParserASTContentMixinDeclarationEnd data =
         new DirectParserASTContentMixinDeclarationEnd(DirectParserASTType.END,
@@ -254,6 +281,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginUncategorizedTopLevelDeclaration(Token token) {
     DirectParserASTContentUncategorizedTopLevelDeclarationBegin data =
         new DirectParserASTContentUncategorizedTopLevelDeclarationBegin(
@@ -262,6 +290,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
     DirectParserASTContentExtensionDeclarationPreludeBegin data =
         new DirectParserASTContentExtensionDeclarationPreludeBegin(
@@ -270,6 +299,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? name) {
     DirectParserASTContentExtensionDeclarationBegin data =
         new DirectParserASTContentExtensionDeclarationBegin(
@@ -279,6 +309,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
       Token onKeyword, Token endToken) {
     DirectParserASTContentExtensionDeclarationEnd data =
@@ -291,6 +322,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginCombinators(Token token) {
     DirectParserASTContentCombinatorsBegin data =
         new DirectParserASTContentCombinatorsBegin(DirectParserASTType.BEGIN,
@@ -298,6 +330,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endCombinators(int count) {
     DirectParserASTContentCombinatorsEnd data =
         new DirectParserASTContentCombinatorsEnd(DirectParserASTType.END,
@@ -305,6 +338,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginCompilationUnit(Token token) {
     DirectParserASTContentCompilationUnitBegin data =
         new DirectParserASTContentCompilationUnitBegin(
@@ -313,6 +347,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleDirectivesOnly() {
     DirectParserASTContentDirectivesOnlyHandle data =
         new DirectParserASTContentDirectivesOnlyHandle(
@@ -320,6 +355,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endCompilationUnit(int count, Token token) {
     DirectParserASTContentCompilationUnitEnd data =
         new DirectParserASTContentCompilationUnitEnd(DirectParserASTType.END,
@@ -327,6 +363,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConstLiteral(Token token) {
     DirectParserASTContentConstLiteralBegin data =
         new DirectParserASTContentConstLiteralBegin(DirectParserASTType.BEGIN,
@@ -334,6 +371,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConstLiteral(Token token) {
     DirectParserASTContentConstLiteralEnd data =
         new DirectParserASTContentConstLiteralEnd(DirectParserASTType.END,
@@ -341,6 +379,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConstructorReference(Token start) {
     DirectParserASTContentConstructorReferenceBegin data =
         new DirectParserASTContentConstructorReferenceBegin(
@@ -349,6 +388,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConstructorReference(Token start, Token? periodBeforeName,
       Token endToken, ConstructorReferenceContext constructorReferenceContext) {
     DirectParserASTContentConstructorReferenceEnd data =
@@ -361,6 +401,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginDoWhileStatement(Token token) {
     DirectParserASTContentDoWhileStatementBegin data =
         new DirectParserASTContentDoWhileStatementBegin(
@@ -369,6 +410,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endDoWhileStatement(
       Token doKeyword, Token whileKeyword, Token endToken) {
     DirectParserASTContentDoWhileStatementEnd data =
@@ -379,6 +421,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginDoWhileStatementBody(Token token) {
     DirectParserASTContentDoWhileStatementBodyBegin data =
         new DirectParserASTContentDoWhileStatementBodyBegin(
@@ -387,6 +430,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endDoWhileStatementBody(Token token) {
     DirectParserASTContentDoWhileStatementBodyEnd data =
         new DirectParserASTContentDoWhileStatementBodyEnd(
@@ -395,6 +439,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginWhileStatementBody(Token token) {
     DirectParserASTContentWhileStatementBodyBegin data =
         new DirectParserASTContentWhileStatementBodyBegin(
@@ -403,6 +448,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endWhileStatementBody(Token token) {
     DirectParserASTContentWhileStatementBodyEnd data =
         new DirectParserASTContentWhileStatementBodyEnd(DirectParserASTType.END,
@@ -410,6 +456,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginEnum(Token enumKeyword) {
     DirectParserASTContentEnumBegin data = new DirectParserASTContentEnumBegin(
         DirectParserASTType.BEGIN,
@@ -417,6 +464,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     DirectParserASTContentEnumEnd data = new DirectParserASTContentEnumEnd(
         DirectParserASTType.END,
@@ -426,6 +474,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginExport(Token token) {
     DirectParserASTContentExportBegin data =
         new DirectParserASTContentExportBegin(DirectParserASTType.BEGIN,
@@ -433,6 +482,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     DirectParserASTContentExportEnd data = new DirectParserASTContentExportEnd(
         DirectParserASTType.END,
@@ -441,6 +491,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleExtraneousExpression(Token token, Message message) {
     DirectParserASTContentExtraneousExpressionHandle data =
         new DirectParserASTContentExtraneousExpressionHandle(
@@ -450,6 +501,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleExpressionStatement(Token token) {
     DirectParserASTContentExpressionStatementHandle data =
         new DirectParserASTContentExpressionStatementHandle(
@@ -458,6 +510,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFactoryMethod(
       Token lastConsumed, Token? externalToken, Token? constToken) {
     DirectParserASTContentFactoryMethodBegin data =
@@ -468,6 +521,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     DirectParserASTContentClassFactoryMethodEnd data =
@@ -478,6 +532,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMixinFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     DirectParserASTContentMixinFactoryMethodEnd data =
@@ -488,6 +543,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExtensionFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     DirectParserASTContentExtensionFactoryMethodEnd data =
@@ -499,6 +555,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     DirectParserASTContentFormalParameterBegin data =
@@ -512,6 +569,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFormalParameter(
       Token? thisKeyword,
       Token? periodAfterThis,
@@ -532,6 +590,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
     DirectParserASTContentNoFormalParametersHandle data =
         new DirectParserASTContentNoFormalParametersHandle(
@@ -541,6 +600,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFormalParameters(Token token, MemberKind kind) {
     DirectParserASTContentFormalParametersBegin data =
         new DirectParserASTContentFormalParametersBegin(
@@ -550,6 +610,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     DirectParserASTContentFormalParametersEnd data =
@@ -561,6 +622,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassFields(
       Token? abstractToken,
       Token? externalToken,
@@ -585,6 +647,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMixinFields(
       Token? abstractToken,
       Token? externalToken,
@@ -609,6 +672,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExtensionFields(
       Token? abstractToken,
       Token? externalToken,
@@ -633,6 +697,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleForInitializerEmptyStatement(Token token) {
     DirectParserASTContentForInitializerEmptyStatementHandle data =
         new DirectParserASTContentForInitializerEmptyStatementHandle(
@@ -641,6 +706,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleForInitializerExpressionStatement(Token token, bool forIn) {
     DirectParserASTContentForInitializerExpressionStatementHandle data =
         new DirectParserASTContentForInitializerExpressionStatementHandle(
@@ -650,6 +716,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     DirectParserASTContentForInitializerLocalVariableDeclarationHandle data =
         new DirectParserASTContentForInitializerLocalVariableDeclarationHandle(
@@ -659,6 +726,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginForStatement(Token token) {
     DirectParserASTContentForStatementBegin data =
         new DirectParserASTContentForStatementBegin(DirectParserASTType.BEGIN,
@@ -666,6 +734,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleForLoopParts(Token forKeyword, Token leftParen,
       Token leftSeparator, int updateExpressionCount) {
     DirectParserASTContentForLoopPartsHandle data =
@@ -677,6 +746,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForStatement(Token endToken) {
     DirectParserASTContentForStatementEnd data =
         new DirectParserASTContentForStatementEnd(DirectParserASTType.END,
@@ -684,6 +754,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginForStatementBody(Token token) {
     DirectParserASTContentForStatementBodyBegin data =
         new DirectParserASTContentForStatementBodyBegin(
@@ -692,6 +763,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForStatementBody(Token token) {
     DirectParserASTContentForStatementBodyEnd data =
         new DirectParserASTContentForStatementBodyEnd(DirectParserASTType.END,
@@ -699,6 +771,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
     DirectParserASTContentForInLoopPartsHandle data =
@@ -711,6 +784,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForIn(Token endToken) {
     DirectParserASTContentForInEnd data = new DirectParserASTContentForInEnd(
         DirectParserASTType.END,
@@ -718,6 +792,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginForInExpression(Token token) {
     DirectParserASTContentForInExpressionBegin data =
         new DirectParserASTContentForInExpressionBegin(
@@ -726,6 +801,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForInExpression(Token token) {
     DirectParserASTContentForInExpressionEnd data =
         new DirectParserASTContentForInExpressionEnd(DirectParserASTType.END,
@@ -733,6 +809,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginForInBody(Token token) {
     DirectParserASTContentForInBodyBegin data =
         new DirectParserASTContentForInBodyBegin(DirectParserASTType.BEGIN,
@@ -740,6 +817,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForInBody(Token token) {
     DirectParserASTContentForInBodyEnd data =
         new DirectParserASTContentForInBodyEnd(DirectParserASTType.END,
@@ -747,6 +825,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginNamedFunctionExpression(Token token) {
     DirectParserASTContentNamedFunctionExpressionBegin data =
         new DirectParserASTContentNamedFunctionExpressionBegin(
@@ -755,6 +834,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endNamedFunctionExpression(Token endToken) {
     DirectParserASTContentNamedFunctionExpressionEnd data =
         new DirectParserASTContentNamedFunctionExpressionEnd(
@@ -763,6 +843,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginLocalFunctionDeclaration(Token token) {
     DirectParserASTContentLocalFunctionDeclarationBegin data =
         new DirectParserASTContentLocalFunctionDeclarationBegin(
@@ -771,6 +852,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endLocalFunctionDeclaration(Token endToken) {
     DirectParserASTContentLocalFunctionDeclarationEnd data =
         new DirectParserASTContentLocalFunctionDeclarationEnd(
@@ -779,6 +861,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginBlockFunctionBody(Token token) {
     DirectParserASTContentBlockFunctionBodyBegin data =
         new DirectParserASTContentBlockFunctionBodyBegin(
@@ -787,6 +870,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endBlockFunctionBody(int count, Token beginToken, Token endToken) {
     DirectParserASTContentBlockFunctionBodyEnd data =
         new DirectParserASTContentBlockFunctionBodyEnd(DirectParserASTType.END,
@@ -794,6 +878,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoFunctionBody(Token token) {
     DirectParserASTContentNoFunctionBodyHandle data =
         new DirectParserASTContentNoFunctionBodyHandle(
@@ -802,6 +887,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     DirectParserASTContentFunctionBodySkippedHandle data =
         new DirectParserASTContentFunctionBodySkippedHandle(
@@ -811,6 +897,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFunctionName(Token token) {
     DirectParserASTContentFunctionNameBegin data =
         new DirectParserASTContentFunctionNameBegin(DirectParserASTType.BEGIN,
@@ -818,6 +905,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFunctionName(Token beginToken, Token token) {
     DirectParserASTContentFunctionNameEnd data =
         new DirectParserASTContentFunctionNameEnd(DirectParserASTType.END,
@@ -825,6 +913,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFunctionTypeAlias(Token token) {
     DirectParserASTContentFunctionTypeAliasBegin data =
         new DirectParserASTContentFunctionTypeAliasBegin(
@@ -833,6 +922,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token? equals, Token endToken) {
     DirectParserASTContentFunctionTypeAliasEnd data =
@@ -841,6 +931,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleClassWithClause(Token withKeyword) {
     DirectParserASTContentClassWithClauseHandle data =
         new DirectParserASTContentClassWithClauseHandle(
@@ -849,6 +940,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleClassNoWithClause() {
     DirectParserASTContentClassNoWithClauseHandle data =
         new DirectParserASTContentClassNoWithClauseHandle(
@@ -856,6 +948,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginNamedMixinApplication(
       Token begin, Token? abstractToken, Token name) {
     DirectParserASTContentNamedMixinApplicationBegin data =
@@ -867,6 +960,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNamedMixinApplicationWithClause(Token withKeyword) {
     DirectParserASTContentNamedMixinApplicationWithClauseHandle data =
         new DirectParserASTContentNamedMixinApplicationWithClauseHandle(
@@ -875,6 +969,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endNamedMixinApplication(Token begin, Token classKeyword, Token equals,
       Token? implementsKeyword, Token endToken) {
     DirectParserASTContentNamedMixinApplicationEnd data =
@@ -888,6 +983,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginHide(Token hideKeyword) {
     DirectParserASTContentHideBegin data = new DirectParserASTContentHideBegin(
         DirectParserASTType.BEGIN,
@@ -895,6 +991,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endHide(Token hideKeyword) {
     DirectParserASTContentHideEnd data = new DirectParserASTContentHideEnd(
         DirectParserASTType.END,
@@ -902,6 +999,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleIdentifierList(int count) {
     DirectParserASTContentIdentifierListHandle data =
         new DirectParserASTContentIdentifierListHandle(
@@ -910,6 +1008,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTypeList(Token token) {
     DirectParserASTContentTypeListBegin data =
         new DirectParserASTContentTypeListBegin(DirectParserASTType.BEGIN,
@@ -917,6 +1016,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTypeList(int count) {
     DirectParserASTContentTypeListEnd data =
         new DirectParserASTContentTypeListEnd(DirectParserASTType.END,
@@ -924,6 +1024,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginIfStatement(Token token) {
     DirectParserASTContentIfStatementBegin data =
         new DirectParserASTContentIfStatementBegin(DirectParserASTType.BEGIN,
@@ -931,6 +1032,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endIfStatement(Token ifToken, Token? elseToken) {
     DirectParserASTContentIfStatementEnd data =
         new DirectParserASTContentIfStatementEnd(DirectParserASTType.END,
@@ -938,6 +1040,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginThenStatement(Token token) {
     DirectParserASTContentThenStatementBegin data =
         new DirectParserASTContentThenStatementBegin(DirectParserASTType.BEGIN,
@@ -945,6 +1048,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endThenStatement(Token token) {
     DirectParserASTContentThenStatementEnd data =
         new DirectParserASTContentThenStatementEnd(DirectParserASTType.END,
@@ -952,6 +1056,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginElseStatement(Token token) {
     DirectParserASTContentElseStatementBegin data =
         new DirectParserASTContentElseStatementBegin(DirectParserASTType.BEGIN,
@@ -959,6 +1064,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endElseStatement(Token token) {
     DirectParserASTContentElseStatementEnd data =
         new DirectParserASTContentElseStatementEnd(DirectParserASTType.END,
@@ -966,6 +1072,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginImport(Token importKeyword) {
     DirectParserASTContentImportBegin data =
         new DirectParserASTContentImportBegin(DirectParserASTType.BEGIN,
@@ -973,6 +1080,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     DirectParserASTContentImportPrefixHandle data =
         new DirectParserASTContentImportPrefixHandle(DirectParserASTType.HANDLE,
@@ -980,6 +1088,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endImport(Token importKeyword, Token? semicolon) {
     DirectParserASTContentImportEnd data = new DirectParserASTContentImportEnd(
         DirectParserASTType.END,
@@ -988,6 +1097,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleRecoverImport(Token? semicolon) {
     DirectParserASTContentRecoverImportHandle data =
         new DirectParserASTContentRecoverImportHandle(
@@ -996,6 +1106,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConditionalUris(Token token) {
     DirectParserASTContentConditionalUrisBegin data =
         new DirectParserASTContentConditionalUrisBegin(
@@ -1004,6 +1115,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConditionalUris(int count) {
     DirectParserASTContentConditionalUrisEnd data =
         new DirectParserASTContentConditionalUrisEnd(DirectParserASTType.END,
@@ -1011,6 +1123,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConditionalUri(Token ifKeyword) {
     DirectParserASTContentConditionalUriBegin data =
         new DirectParserASTContentConditionalUriBegin(DirectParserASTType.BEGIN,
@@ -1018,6 +1131,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConditionalUri(Token ifKeyword, Token leftParen, Token? equalSign) {
     DirectParserASTContentConditionalUriEnd data =
         new DirectParserASTContentConditionalUriEnd(DirectParserASTType.END,
@@ -1025,6 +1139,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleDottedName(int count, Token firstIdentifier) {
     DirectParserASTContentDottedNameHandle data =
         new DirectParserASTContentDottedNameHandle(DirectParserASTType.HANDLE,
@@ -1032,6 +1147,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginImplicitCreationExpression(Token token) {
     DirectParserASTContentImplicitCreationExpressionBegin data =
         new DirectParserASTContentImplicitCreationExpressionBegin(
@@ -1040,6 +1156,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endImplicitCreationExpression(Token token) {
     DirectParserASTContentImplicitCreationExpressionEnd data =
         new DirectParserASTContentImplicitCreationExpressionEnd(
@@ -1048,6 +1165,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginInitializedIdentifier(Token token) {
     DirectParserASTContentInitializedIdentifierBegin data =
         new DirectParserASTContentInitializedIdentifierBegin(
@@ -1056,6 +1174,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endInitializedIdentifier(Token nameToken) {
     DirectParserASTContentInitializedIdentifierEnd data =
         new DirectParserASTContentInitializedIdentifierEnd(
@@ -1064,6 +1183,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFieldInitializer(Token token) {
     DirectParserASTContentFieldInitializerBegin data =
         new DirectParserASTContentFieldInitializerBegin(
@@ -1072,6 +1192,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFieldInitializer(Token assignment, Token token) {
     DirectParserASTContentFieldInitializerEnd data =
         new DirectParserASTContentFieldInitializerEnd(DirectParserASTType.END,
@@ -1079,6 +1200,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoFieldInitializer(Token token) {
     DirectParserASTContentNoFieldInitializerHandle data =
         new DirectParserASTContentNoFieldInitializerHandle(
@@ -1087,6 +1209,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginVariableInitializer(Token token) {
     DirectParserASTContentVariableInitializerBegin data =
         new DirectParserASTContentVariableInitializerBegin(
@@ -1095,6 +1218,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endVariableInitializer(Token assignmentOperator) {
     DirectParserASTContentVariableInitializerEnd data =
         new DirectParserASTContentVariableInitializerEnd(
@@ -1103,6 +1227,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoVariableInitializer(Token token) {
     DirectParserASTContentNoVariableInitializerHandle data =
         new DirectParserASTContentNoVariableInitializerHandle(
@@ -1111,6 +1236,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginInitializer(Token token) {
     DirectParserASTContentInitializerBegin data =
         new DirectParserASTContentInitializerBegin(DirectParserASTType.BEGIN,
@@ -1118,6 +1244,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endInitializer(Token token) {
     DirectParserASTContentInitializerEnd data =
         new DirectParserASTContentInitializerEnd(DirectParserASTType.END,
@@ -1125,6 +1252,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginInitializers(Token token) {
     DirectParserASTContentInitializersBegin data =
         new DirectParserASTContentInitializersBegin(DirectParserASTType.BEGIN,
@@ -1132,6 +1260,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endInitializers(int count, Token beginToken, Token endToken) {
     DirectParserASTContentInitializersEnd data =
         new DirectParserASTContentInitializersEnd(DirectParserASTType.END,
@@ -1139,6 +1268,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoInitializers() {
     DirectParserASTContentNoInitializersHandle data =
         new DirectParserASTContentNoInitializersHandle(
@@ -1146,6 +1276,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidExpression(Token token) {
     DirectParserASTContentInvalidExpressionHandle data =
         new DirectParserASTContentInvalidExpressionHandle(
@@ -1154,6 +1285,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidFunctionBody(Token token) {
     DirectParserASTContentInvalidFunctionBodyHandle data =
         new DirectParserASTContentInvalidFunctionBodyHandle(
@@ -1162,6 +1294,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidTypeReference(Token token) {
     DirectParserASTContentInvalidTypeReferenceHandle data =
         new DirectParserASTContentInvalidTypeReferenceHandle(
@@ -1170,6 +1303,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLabel(Token token) {
     DirectParserASTContentLabelHandle data =
         new DirectParserASTContentLabelHandle(DirectParserASTType.HANDLE,
@@ -1177,6 +1311,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginLabeledStatement(Token token, int labelCount) {
     DirectParserASTContentLabeledStatementBegin data =
         new DirectParserASTContentLabeledStatementBegin(
@@ -1186,6 +1321,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endLabeledStatement(int labelCount) {
     DirectParserASTContentLabeledStatementEnd data =
         new DirectParserASTContentLabeledStatementEnd(DirectParserASTType.END,
@@ -1193,6 +1329,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginLibraryName(Token token) {
     DirectParserASTContentLibraryNameBegin data =
         new DirectParserASTContentLibraryNameBegin(DirectParserASTType.BEGIN,
@@ -1200,6 +1337,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     DirectParserASTContentLibraryNameEnd data =
         new DirectParserASTContentLibraryNameEnd(DirectParserASTType.END,
@@ -1207,6 +1345,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralMapEntry(Token colon, Token endToken) {
     DirectParserASTContentLiteralMapEntryHandle data =
         new DirectParserASTContentLiteralMapEntryHandle(
@@ -1216,6 +1355,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginLiteralString(Token token) {
     DirectParserASTContentLiteralStringBegin data =
         new DirectParserASTContentLiteralStringBegin(DirectParserASTType.BEGIN,
@@ -1223,6 +1363,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
     DirectParserASTContentInterpolationExpressionHandle data =
         new DirectParserASTContentInterpolationExpressionHandle(
@@ -1232,6 +1373,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     DirectParserASTContentLiteralStringEnd data =
         new DirectParserASTContentLiteralStringEnd(DirectParserASTType.END,
@@ -1239,6 +1381,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleStringJuxtaposition(Token startToken, int literalCount) {
     DirectParserASTContentStringJuxtapositionHandle data =
         new DirectParserASTContentStringJuxtapositionHandle(
@@ -1248,12 +1391,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginMember() {
     DirectParserASTContentMemberBegin data =
         new DirectParserASTContentMemberBegin(DirectParserASTType.BEGIN);
     seen(data);
   }
 
+  @override
   void handleInvalidMember(Token endToken) {
     DirectParserASTContentInvalidMemberHandle data =
         new DirectParserASTContentInvalidMemberHandle(
@@ -1262,12 +1407,14 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMember() {
     DirectParserASTContentMemberEnd data =
         new DirectParserASTContentMemberEnd(DirectParserASTType.END);
     seen(data);
   }
 
+  @override
   void beginMethod(
       Token? externalToken,
       Token? staticToken,
@@ -1286,6 +1433,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     DirectParserASTContentClassMethodEnd data =
@@ -1298,6 +1446,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMixinMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     DirectParserASTContentMixinMethodEnd data =
@@ -1310,6 +1459,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExtensionMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     DirectParserASTContentExtensionMethodEnd data =
@@ -1322,6 +1472,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     DirectParserASTContentClassConstructorEnd data =
@@ -1334,6 +1485,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     DirectParserASTContentMixinConstructorEnd data =
@@ -1346,6 +1498,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
     DirectParserASTContentExtensionConstructorEnd data =
@@ -1359,6 +1512,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginMetadataStar(Token token) {
     DirectParserASTContentMetadataStarBegin data =
         new DirectParserASTContentMetadataStarBegin(DirectParserASTType.BEGIN,
@@ -1366,6 +1520,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMetadataStar(int count) {
     DirectParserASTContentMetadataStarEnd data =
         new DirectParserASTContentMetadataStarEnd(DirectParserASTType.END,
@@ -1373,6 +1528,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginMetadata(Token token) {
     DirectParserASTContentMetadataBegin data =
         new DirectParserASTContentMetadataBegin(DirectParserASTType.BEGIN,
@@ -1380,6 +1536,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endMetadata(Token beginToken, Token? periodBeforeName, Token endToken) {
     DirectParserASTContentMetadataEnd data =
         new DirectParserASTContentMetadataEnd(DirectParserASTType.END,
@@ -1389,6 +1546,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginOptionalFormalParameters(Token token) {
     DirectParserASTContentOptionalFormalParametersBegin data =
         new DirectParserASTContentOptionalFormalParametersBegin(
@@ -1397,6 +1555,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endOptionalFormalParameters(
       int count, Token beginToken, Token endToken) {
     DirectParserASTContentOptionalFormalParametersEnd data =
@@ -1408,6 +1567,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginPart(Token token) {
     DirectParserASTContentPartBegin data = new DirectParserASTContentPartBegin(
         DirectParserASTType.BEGIN,
@@ -1415,6 +1575,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endPart(Token partKeyword, Token semicolon) {
     DirectParserASTContentPartEnd data = new DirectParserASTContentPartEnd(
         DirectParserASTType.END,
@@ -1423,6 +1584,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginPartOf(Token token) {
     DirectParserASTContentPartOfBegin data =
         new DirectParserASTContentPartOfBegin(DirectParserASTType.BEGIN,
@@ -1430,6 +1592,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endPartOf(
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     DirectParserASTContentPartOfEnd data = new DirectParserASTContentPartOfEnd(
@@ -1441,6 +1604,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginRedirectingFactoryBody(Token token) {
     DirectParserASTContentRedirectingFactoryBodyBegin data =
         new DirectParserASTContentRedirectingFactoryBodyBegin(
@@ -1449,6 +1613,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     DirectParserASTContentRedirectingFactoryBodyEnd data =
         new DirectParserASTContentRedirectingFactoryBodyEnd(
@@ -1458,6 +1623,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginReturnStatement(Token token) {
     DirectParserASTContentReturnStatementBegin data =
         new DirectParserASTContentReturnStatementBegin(
@@ -1466,6 +1632,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     DirectParserASTContentNativeFunctionBodyHandle data =
         new DirectParserASTContentNativeFunctionBodyHandle(
@@ -1475,6 +1642,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
     DirectParserASTContentNativeFunctionBodyIgnoredHandle data =
         new DirectParserASTContentNativeFunctionBodyIgnoredHandle(
@@ -1484,6 +1652,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     DirectParserASTContentNativeFunctionBodySkippedHandle data =
         new DirectParserASTContentNativeFunctionBodySkippedHandle(
@@ -1493,6 +1662,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleEmptyFunctionBody(Token semicolon) {
     DirectParserASTContentEmptyFunctionBodyHandle data =
         new DirectParserASTContentEmptyFunctionBodyHandle(
@@ -1501,6 +1671,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleExpressionFunctionBody(Token arrowToken, Token? endToken) {
     DirectParserASTContentExpressionFunctionBodyHandle data =
         new DirectParserASTContentExpressionFunctionBodyHandle(
@@ -1510,6 +1681,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endReturnStatement(
       bool hasExpression, Token beginToken, Token endToken) {
     DirectParserASTContentReturnStatementEnd data =
@@ -1520,6 +1692,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleSend(Token beginToken, Token endToken) {
     DirectParserASTContentSendHandle data =
         new DirectParserASTContentSendHandle(DirectParserASTType.HANDLE,
@@ -1527,6 +1700,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginShow(Token showKeyword) {
     DirectParserASTContentShowBegin data = new DirectParserASTContentShowBegin(
         DirectParserASTType.BEGIN,
@@ -1534,6 +1708,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endShow(Token showKeyword) {
     DirectParserASTContentShowEnd data = new DirectParserASTContentShowEnd(
         DirectParserASTType.END,
@@ -1541,6 +1716,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginSwitchStatement(Token token) {
     DirectParserASTContentSwitchStatementBegin data =
         new DirectParserASTContentSwitchStatementBegin(
@@ -1549,6 +1725,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     DirectParserASTContentSwitchStatementEnd data =
         new DirectParserASTContentSwitchStatementEnd(DirectParserASTType.END,
@@ -1556,6 +1733,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginSwitchBlock(Token token) {
     DirectParserASTContentSwitchBlockBegin data =
         new DirectParserASTContentSwitchBlockBegin(DirectParserASTType.BEGIN,
@@ -1563,6 +1741,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     DirectParserASTContentSwitchBlockEnd data =
         new DirectParserASTContentSwitchBlockEnd(DirectParserASTType.END,
@@ -1570,6 +1749,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginLiteralSymbol(Token token) {
     DirectParserASTContentLiteralSymbolBegin data =
         new DirectParserASTContentLiteralSymbolBegin(DirectParserASTType.BEGIN,
@@ -1577,6 +1757,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     DirectParserASTContentLiteralSymbolEnd data =
         new DirectParserASTContentLiteralSymbolEnd(DirectParserASTType.END,
@@ -1584,6 +1765,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleThrowExpression(Token throwToken, Token endToken) {
     DirectParserASTContentThrowExpressionHandle data =
         new DirectParserASTContentThrowExpressionHandle(
@@ -1593,6 +1775,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginRethrowStatement(Token token) {
     DirectParserASTContentRethrowStatementBegin data =
         new DirectParserASTContentRethrowStatementBegin(
@@ -1601,6 +1784,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     DirectParserASTContentRethrowStatementEnd data =
         new DirectParserASTContentRethrowStatementEnd(DirectParserASTType.END,
@@ -1608,6 +1792,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTopLevelDeclaration(Token nextToken) {
     DirectParserASTContentTopLevelDeclarationEnd data =
         new DirectParserASTContentTopLevelDeclarationEnd(
@@ -1616,6 +1801,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     DirectParserASTContentInvalidTopLevelDeclarationHandle data =
         new DirectParserASTContentInvalidTopLevelDeclarationHandle(
@@ -1624,6 +1810,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTopLevelMember(Token token) {
     DirectParserASTContentTopLevelMemberBegin data =
         new DirectParserASTContentTopLevelMemberBegin(DirectParserASTType.BEGIN,
@@ -1631,6 +1818,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFields(Token lastConsumed) {
     DirectParserASTContentFieldsBegin data =
         new DirectParserASTContentFieldsBegin(DirectParserASTType.BEGIN,
@@ -1638,6 +1826,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTopLevelFields(
       Token? externalToken,
       Token? staticToken,
@@ -1660,6 +1849,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTopLevelMethod(Token lastConsumed, Token? externalToken) {
     DirectParserASTContentTopLevelMethodBegin data =
         new DirectParserASTContentTopLevelMethodBegin(DirectParserASTType.BEGIN,
@@ -1667,6 +1857,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTopLevelMethod(Token beginToken, Token? getOrSet, Token endToken) {
     DirectParserASTContentTopLevelMethodEnd data =
         new DirectParserASTContentTopLevelMethodEnd(DirectParserASTType.END,
@@ -1674,6 +1865,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTryStatement(Token token) {
     DirectParserASTContentTryStatementBegin data =
         new DirectParserASTContentTryStatementBegin(DirectParserASTType.BEGIN,
@@ -1681,6 +1873,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleCaseMatch(Token caseKeyword, Token colon) {
     DirectParserASTContentCaseMatchHandle data =
         new DirectParserASTContentCaseMatchHandle(DirectParserASTType.HANDLE,
@@ -1688,6 +1881,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginCatchClause(Token token) {
     DirectParserASTContentCatchClauseBegin data =
         new DirectParserASTContentCatchClauseBegin(DirectParserASTType.BEGIN,
@@ -1695,6 +1889,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endCatchClause(Token token) {
     DirectParserASTContentCatchClauseEnd data =
         new DirectParserASTContentCatchClauseEnd(DirectParserASTType.END,
@@ -1702,6 +1897,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleCatchBlock(Token? onKeyword, Token? catchKeyword, Token? comma) {
     DirectParserASTContentCatchBlockHandle data =
         new DirectParserASTContentCatchBlockHandle(DirectParserASTType.HANDLE,
@@ -1709,6 +1905,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleFinallyBlock(Token finallyKeyword) {
     DirectParserASTContentFinallyBlockHandle data =
         new DirectParserASTContentFinallyBlockHandle(DirectParserASTType.HANDLE,
@@ -1716,6 +1913,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTryStatement(
       int catchCount, Token tryKeyword, Token? finallyKeyword) {
     DirectParserASTContentTryStatementEnd data =
@@ -1726,6 +1924,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleType(Token beginToken, Token? questionMark) {
     DirectParserASTContentTypeHandle data =
         new DirectParserASTContentTypeHandle(DirectParserASTType.HANDLE,
@@ -1733,6 +1932,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNonNullAssertExpression(Token bang) {
     DirectParserASTContentNonNullAssertExpressionHandle data =
         new DirectParserASTContentNonNullAssertExpressionHandle(
@@ -1741,6 +1941,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoName(Token token) {
     DirectParserASTContentNoNameHandle data =
         new DirectParserASTContentNoNameHandle(DirectParserASTType.HANDLE,
@@ -1748,6 +1949,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFunctionType(Token beginToken) {
     DirectParserASTContentFunctionTypeBegin data =
         new DirectParserASTContentFunctionTypeBegin(DirectParserASTType.BEGIN,
@@ -1755,6 +1957,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFunctionType(Token functionToken, Token? questionMark) {
     DirectParserASTContentFunctionTypeEnd data =
         new DirectParserASTContentFunctionTypeEnd(DirectParserASTType.END,
@@ -1762,6 +1965,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTypeArguments(Token token) {
     DirectParserASTContentTypeArgumentsBegin data =
         new DirectParserASTContentTypeArgumentsBegin(DirectParserASTType.BEGIN,
@@ -1769,6 +1973,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     DirectParserASTContentTypeArgumentsEnd data =
         new DirectParserASTContentTypeArgumentsEnd(DirectParserASTType.END,
@@ -1776,6 +1981,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidTypeArguments(Token token) {
     DirectParserASTContentInvalidTypeArgumentsHandle data =
         new DirectParserASTContentInvalidTypeArgumentsHandle(
@@ -1784,6 +1990,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoTypeArguments(Token token) {
     DirectParserASTContentNoTypeArgumentsHandle data =
         new DirectParserASTContentNoTypeArgumentsHandle(
@@ -1792,6 +1999,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTypeVariable(Token token) {
     DirectParserASTContentTypeVariableBegin data =
         new DirectParserASTContentTypeVariableBegin(DirectParserASTType.BEGIN,
@@ -1799,6 +2007,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleTypeVariablesDefined(Token token, int count) {
     DirectParserASTContentTypeVariablesDefinedHandle data =
         new DirectParserASTContentTypeVariablesDefinedHandle(
@@ -1808,6 +2017,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTypeVariable(
       Token token, int index, Token? extendsOrSuper, Token? variance) {
     DirectParserASTContentTypeVariableEnd data =
@@ -1819,6 +2029,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginTypeVariables(Token token) {
     DirectParserASTContentTypeVariablesBegin data =
         new DirectParserASTContentTypeVariablesBegin(DirectParserASTType.BEGIN,
@@ -1826,6 +2037,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endTypeVariables(Token beginToken, Token endToken) {
     DirectParserASTContentTypeVariablesEnd data =
         new DirectParserASTContentTypeVariablesEnd(DirectParserASTType.END,
@@ -1833,6 +2045,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFunctionExpression(Token token) {
     DirectParserASTContentFunctionExpressionBegin data =
         new DirectParserASTContentFunctionExpressionBegin(
@@ -1841,6 +2054,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFunctionExpression(Token beginToken, Token token) {
     DirectParserASTContentFunctionExpressionEnd data =
         new DirectParserASTContentFunctionExpressionEnd(DirectParserASTType.END,
@@ -1848,6 +2062,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginVariablesDeclaration(
       Token token, Token? lateToken, Token? varFinalOrConst) {
     DirectParserASTContentVariablesDeclarationBegin data =
@@ -1859,6 +2074,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endVariablesDeclaration(int count, Token? endToken) {
     DirectParserASTContentVariablesDeclarationEnd data =
         new DirectParserASTContentVariablesDeclarationEnd(
@@ -1868,6 +2084,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginWhileStatement(Token token) {
     DirectParserASTContentWhileStatementBegin data =
         new DirectParserASTContentWhileStatementBegin(DirectParserASTType.BEGIN,
@@ -1875,6 +2092,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endWhileStatement(Token whileKeyword, Token endToken) {
     DirectParserASTContentWhileStatementEnd data =
         new DirectParserASTContentWhileStatementEnd(DirectParserASTType.END,
@@ -1882,6 +2100,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginAsOperatorType(Token operator) {
     DirectParserASTContentAsOperatorTypeBegin data =
         new DirectParserASTContentAsOperatorTypeBegin(DirectParserASTType.BEGIN,
@@ -1889,6 +2108,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endAsOperatorType(Token operator) {
     DirectParserASTContentAsOperatorTypeEnd data =
         new DirectParserASTContentAsOperatorTypeEnd(DirectParserASTType.END,
@@ -1896,6 +2116,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleAsOperator(Token operator) {
     DirectParserASTContentAsOperatorHandle data =
         new DirectParserASTContentAsOperatorHandle(DirectParserASTType.HANDLE,
@@ -1903,6 +2124,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleAssignmentExpression(Token token) {
     DirectParserASTContentAssignmentExpressionHandle data =
         new DirectParserASTContentAssignmentExpressionHandle(
@@ -1911,6 +2133,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginBinaryExpression(Token token) {
     DirectParserASTContentBinaryExpressionBegin data =
         new DirectParserASTContentBinaryExpressionBegin(
@@ -1919,6 +2142,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endBinaryExpression(Token token) {
     DirectParserASTContentBinaryExpressionEnd data =
         new DirectParserASTContentBinaryExpressionEnd(DirectParserASTType.END,
@@ -1926,6 +2150,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleEndingBinaryExpression(Token token) {
     DirectParserASTContentEndingBinaryExpressionHandle data =
         new DirectParserASTContentEndingBinaryExpressionHandle(
@@ -1934,6 +2159,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConditionalExpression(Token question) {
     DirectParserASTContentConditionalExpressionBegin data =
         new DirectParserASTContentConditionalExpressionBegin(
@@ -1942,6 +2168,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleConditionalExpressionColon() {
     DirectParserASTContentConditionalExpressionColonHandle data =
         new DirectParserASTContentConditionalExpressionColonHandle(
@@ -1949,6 +2176,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConditionalExpression(Token question, Token colon) {
     DirectParserASTContentConditionalExpressionEnd data =
         new DirectParserASTContentConditionalExpressionEnd(
@@ -1958,6 +2186,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginConstExpression(Token constKeyword) {
     DirectParserASTContentConstExpressionBegin data =
         new DirectParserASTContentConstExpressionBegin(
@@ -1966,6 +2195,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endConstExpression(Token token) {
     DirectParserASTContentConstExpressionEnd data =
         new DirectParserASTContentConstExpressionEnd(DirectParserASTType.END,
@@ -1973,6 +2203,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleConstFactory(Token constKeyword) {
     DirectParserASTContentConstFactoryHandle data =
         new DirectParserASTContentConstFactoryHandle(DirectParserASTType.HANDLE,
@@ -1980,6 +2211,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginForControlFlow(Token? awaitToken, Token forToken) {
     DirectParserASTContentForControlFlowBegin data =
         new DirectParserASTContentForControlFlowBegin(DirectParserASTType.BEGIN,
@@ -1987,6 +2219,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForControlFlow(Token token) {
     DirectParserASTContentForControlFlowEnd data =
         new DirectParserASTContentForControlFlowEnd(DirectParserASTType.END,
@@ -1994,6 +2227,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endForInControlFlow(Token token) {
     DirectParserASTContentForInControlFlowEnd data =
         new DirectParserASTContentForInControlFlowEnd(DirectParserASTType.END,
@@ -2001,6 +2235,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginIfControlFlow(Token ifToken) {
     DirectParserASTContentIfControlFlowBegin data =
         new DirectParserASTContentIfControlFlowBegin(DirectParserASTType.BEGIN,
@@ -2008,6 +2243,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleThenControlFlow(Token token) {
     DirectParserASTContentThenControlFlowHandle data =
         new DirectParserASTContentThenControlFlowHandle(
@@ -2016,6 +2252,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleElseControlFlow(Token elseToken) {
     DirectParserASTContentElseControlFlowHandle data =
         new DirectParserASTContentElseControlFlowHandle(
@@ -2024,6 +2261,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endIfControlFlow(Token token) {
     DirectParserASTContentIfControlFlowEnd data =
         new DirectParserASTContentIfControlFlowEnd(DirectParserASTType.END,
@@ -2031,6 +2269,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endIfElseControlFlow(Token token) {
     DirectParserASTContentIfElseControlFlowEnd data =
         new DirectParserASTContentIfElseControlFlowEnd(DirectParserASTType.END,
@@ -2038,6 +2277,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleSpreadExpression(Token spreadToken) {
     DirectParserASTContentSpreadExpressionHandle data =
         new DirectParserASTContentSpreadExpressionHandle(
@@ -2046,6 +2286,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFunctionTypedFormalParameter(Token token) {
     DirectParserASTContentFunctionTypedFormalParameterBegin data =
         new DirectParserASTContentFunctionTypedFormalParameterBegin(
@@ -2054,6 +2295,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     DirectParserASTContentFunctionTypedFormalParameterEnd data =
         new DirectParserASTContentFunctionTypedFormalParameterEnd(
@@ -2063,6 +2305,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     DirectParserASTContentIdentifierHandle data =
         new DirectParserASTContentIdentifierHandle(DirectParserASTType.HANDLE,
@@ -2070,6 +2313,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleIndexedExpression(
       Token? question, Token openSquareBracket, Token closeSquareBracket) {
     DirectParserASTContentIndexedExpressionHandle data =
@@ -2081,6 +2325,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginIsOperatorType(Token operator) {
     DirectParserASTContentIsOperatorTypeBegin data =
         new DirectParserASTContentIsOperatorTypeBegin(DirectParserASTType.BEGIN,
@@ -2088,6 +2333,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endIsOperatorType(Token operator) {
     DirectParserASTContentIsOperatorTypeEnd data =
         new DirectParserASTContentIsOperatorTypeEnd(DirectParserASTType.END,
@@ -2095,6 +2341,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleIsOperator(Token isOperator, Token? not) {
     DirectParserASTContentIsOperatorHandle data =
         new DirectParserASTContentIsOperatorHandle(DirectParserASTType.HANDLE,
@@ -2102,6 +2349,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralBool(Token token) {
     DirectParserASTContentLiteralBoolHandle data =
         new DirectParserASTContentLiteralBoolHandle(DirectParserASTType.HANDLE,
@@ -2109,6 +2357,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     DirectParserASTContentBreakStatementHandle data =
@@ -2120,6 +2369,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleContinueStatement(
       bool hasTarget, Token continueKeyword, Token endToken) {
     DirectParserASTContentContinueStatementHandle data =
@@ -2131,6 +2381,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleEmptyStatement(Token token) {
     DirectParserASTContentEmptyStatementHandle data =
         new DirectParserASTContentEmptyStatementHandle(
@@ -2139,6 +2390,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginAssert(Token assertKeyword, Assert kind) {
     DirectParserASTContentAssertBegin data =
         new DirectParserASTContentAssertBegin(DirectParserASTType.BEGIN,
@@ -2146,6 +2398,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
       Token? commaToken, Token semicolonToken) {
     DirectParserASTContentAssertEnd data = new DirectParserASTContentAssertEnd(
@@ -2158,6 +2411,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralDouble(Token token) {
     DirectParserASTContentLiteralDoubleHandle data =
         new DirectParserASTContentLiteralDoubleHandle(
@@ -2166,6 +2420,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralInt(Token token) {
     DirectParserASTContentLiteralIntHandle data =
         new DirectParserASTContentLiteralIntHandle(DirectParserASTType.HANDLE,
@@ -2173,6 +2428,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralList(
       int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     DirectParserASTContentLiteralListHandle data =
@@ -2184,6 +2440,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
@@ -2202,6 +2459,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleLiteralNull(Token token) {
     DirectParserASTContentLiteralNullHandle data =
         new DirectParserASTContentLiteralNullHandle(DirectParserASTType.HANDLE,
@@ -2209,6 +2467,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNativeClause(Token nativeToken, bool hasName) {
     DirectParserASTContentNativeClauseHandle data =
         new DirectParserASTContentNativeClauseHandle(DirectParserASTType.HANDLE,
@@ -2216,6 +2475,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNamedArgument(Token colon) {
     DirectParserASTContentNamedArgumentHandle data =
         new DirectParserASTContentNamedArgumentHandle(
@@ -2224,6 +2484,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginNewExpression(Token token) {
     DirectParserASTContentNewExpressionBegin data =
         new DirectParserASTContentNewExpressionBegin(DirectParserASTType.BEGIN,
@@ -2231,6 +2492,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endNewExpression(Token token) {
     DirectParserASTContentNewExpressionEnd data =
         new DirectParserASTContentNewExpressionEnd(DirectParserASTType.END,
@@ -2238,6 +2500,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoArguments(Token token) {
     DirectParserASTContentNoArgumentsHandle data =
         new DirectParserASTContentNoArgumentsHandle(DirectParserASTType.HANDLE,
@@ -2245,6 +2508,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArgumentsHandle
         data =
@@ -2254,6 +2518,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoType(Token lastConsumed) {
     DirectParserASTContentNoTypeHandle data =
         new DirectParserASTContentNoTypeHandle(DirectParserASTType.HANDLE,
@@ -2261,6 +2526,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoTypeVariables(Token token) {
     DirectParserASTContentNoTypeVariablesHandle data =
         new DirectParserASTContentNoTypeVariablesHandle(
@@ -2269,6 +2535,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleOperator(Token token) {
     DirectParserASTContentOperatorHandle data =
         new DirectParserASTContentOperatorHandle(DirectParserASTType.HANDLE,
@@ -2276,6 +2543,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleSymbolVoid(Token token) {
     DirectParserASTContentSymbolVoidHandle data =
         new DirectParserASTContentSymbolVoidHandle(DirectParserASTType.HANDLE,
@@ -2283,6 +2551,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleOperatorName(Token operatorKeyword, Token token) {
     DirectParserASTContentOperatorNameHandle data =
         new DirectParserASTContentOperatorNameHandle(DirectParserASTType.HANDLE,
@@ -2290,6 +2559,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidOperatorName(Token operatorKeyword, Token token) {
     DirectParserASTContentInvalidOperatorNameHandle data =
         new DirectParserASTContentInvalidOperatorNameHandle(
@@ -2299,6 +2569,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleParenthesizedCondition(Token token) {
     DirectParserASTContentParenthesizedConditionHandle data =
         new DirectParserASTContentParenthesizedConditionHandle(
@@ -2307,6 +2578,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleParenthesizedExpression(Token token) {
     DirectParserASTContentParenthesizedExpressionHandle data =
         new DirectParserASTContentParenthesizedExpressionHandle(
@@ -2315,6 +2587,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleQualified(Token period) {
     DirectParserASTContentQualifiedHandle data =
         new DirectParserASTContentQualifiedHandle(DirectParserASTType.HANDLE,
@@ -2322,6 +2595,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleStringPart(Token token) {
     DirectParserASTContentStringPartHandle data =
         new DirectParserASTContentStringPartHandle(DirectParserASTType.HANDLE,
@@ -2329,6 +2603,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     DirectParserASTContentSuperExpressionHandle data =
         new DirectParserASTContentSuperExpressionHandle(
@@ -2338,6 +2613,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     DirectParserASTContentSwitchCaseBegin data =
         new DirectParserASTContentSwitchCaseBegin(DirectParserASTType.BEGIN,
@@ -2347,6 +2623,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -2367,6 +2644,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleThisExpression(Token token, IdentifierContext context) {
     DirectParserASTContentThisExpressionHandle data =
         new DirectParserASTContentThisExpressionHandle(
@@ -2376,6 +2654,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     DirectParserASTContentUnaryPostfixAssignmentExpressionHandle data =
         new DirectParserASTContentUnaryPostfixAssignmentExpressionHandle(
@@ -2384,6 +2663,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleUnaryPrefixExpression(Token token) {
     DirectParserASTContentUnaryPrefixExpressionHandle data =
         new DirectParserASTContentUnaryPrefixExpressionHandle(
@@ -2392,6 +2672,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     DirectParserASTContentUnaryPrefixAssignmentExpressionHandle data =
         new DirectParserASTContentUnaryPrefixAssignmentExpressionHandle(
@@ -2400,6 +2681,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginFormalParameterDefaultValueExpression() {
     DirectParserASTContentFormalParameterDefaultValueExpressionBegin data =
         new DirectParserASTContentFormalParameterDefaultValueExpressionBegin(
@@ -2407,6 +2689,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endFormalParameterDefaultValueExpression() {
     DirectParserASTContentFormalParameterDefaultValueExpressionEnd data =
         new DirectParserASTContentFormalParameterDefaultValueExpressionEnd(
@@ -2414,6 +2697,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleValuedFormalParameter(Token equals, Token token) {
     DirectParserASTContentValuedFormalParameterHandle data =
         new DirectParserASTContentValuedFormalParameterHandle(
@@ -2423,6 +2707,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleFormalParameterWithoutValue(Token token) {
     DirectParserASTContentFormalParameterWithoutValueHandle data =
         new DirectParserASTContentFormalParameterWithoutValueHandle(
@@ -2431,6 +2716,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleVoidKeyword(Token token) {
     DirectParserASTContentVoidKeywordHandle data =
         new DirectParserASTContentVoidKeywordHandle(DirectParserASTType.HANDLE,
@@ -2438,6 +2724,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleVoidKeywordWithTypeArguments(Token token) {
     DirectParserASTContentVoidKeywordWithTypeArgumentsHandle data =
         new DirectParserASTContentVoidKeywordWithTypeArgumentsHandle(
@@ -2446,6 +2733,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void beginYieldStatement(Token token) {
     DirectParserASTContentYieldStatementBegin data =
         new DirectParserASTContentYieldStatementBegin(DirectParserASTType.BEGIN,
@@ -2453,6 +2741,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endYieldStatement(Token yieldToken, Token? starToken, Token endToken) {
     DirectParserASTContentYieldStatementEnd data =
         new DirectParserASTContentYieldStatementEnd(DirectParserASTType.END,
@@ -2460,6 +2749,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void endInvalidYieldStatement(Token beginToken, Token? starToken,
       Token endToken, MessageCode errorCode) {
     DirectParserASTContentInvalidYieldStatementEnd data =
@@ -2472,6 +2762,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     DirectParserASTContentRecoverableErrorHandle data =
@@ -2483,6 +2774,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleErrorToken(ErrorToken token) {
     DirectParserASTContentErrorTokenHandle data =
         new DirectParserASTContentErrorTokenHandle(DirectParserASTType.HANDLE,
@@ -2490,6 +2782,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleUnescapeError(
       Message message, Token location, int stringOffset, int length) {
     DirectParserASTContentUnescapeErrorHandle data =
@@ -2502,6 +2795,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleInvalidStatement(Token token, Message message) {
     DirectParserASTContentInvalidStatementHandle data =
         new DirectParserASTContentInvalidStatementHandle(
@@ -2511,6 +2805,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleScript(Token token) {
     DirectParserASTContentScriptHandle data =
         new DirectParserASTContentScriptHandle(DirectParserASTType.HANDLE,
@@ -2518,6 +2813,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     DirectParserASTContentCommentReferenceTextHandle data =
         new DirectParserASTContentCommentReferenceTextHandle(
@@ -2527,6 +2823,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleCommentReference(
       Token? newKeyword, Token? prefix, Token? period, Token token) {
     DirectParserASTContentCommentReferenceHandle data =
@@ -2539,6 +2836,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNoCommentReference() {
     DirectParserASTContentNoCommentReferenceHandle data =
         new DirectParserASTContentNoCommentReferenceHandle(
@@ -2546,6 +2844,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
     DirectParserASTContentTypeArgumentApplicationHandle data =
         new DirectParserASTContentTypeArgumentApplicationHandle(
@@ -2554,6 +2853,7 @@ abstract class AbstractDirectParserASTListener implements Listener {
     seen(data);
   }
 
+  @override
   void handleNewAsIdentifier(Token token) {
     DirectParserASTContentNewAsIdentifierHandle data =
         new DirectParserASTContentNewAsIdentifierHandle(
@@ -2570,6 +2870,7 @@ class DirectParserASTContentArgumentsBegin extends DirectParserASTContent {
       {required this.token})
       : super("Arguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2584,6 +2885,7 @@ class DirectParserASTContentArgumentsEnd extends DirectParserASTContent {
       {required this.count, required this.beginToken, required this.endToken})
       : super("Arguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -2599,6 +2901,7 @@ class DirectParserASTContentAsyncModifierHandle extends DirectParserASTContent {
       {this.asyncToken, this.starToken})
       : super("AsyncModifier", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "asyncToken": asyncToken,
         "starToken": starToken,
@@ -2613,6 +2916,7 @@ class DirectParserASTContentAwaitExpressionBegin
       {required this.token})
       : super("AwaitExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2626,6 +2930,7 @@ class DirectParserASTContentAwaitExpressionEnd extends DirectParserASTContent {
       {required this.beginToken, required this.endToken})
       : super("AwaitExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -2644,6 +2949,7 @@ class DirectParserASTContentInvalidAwaitExpressionEnd
       required this.errorCode})
       : super("InvalidAwaitExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -2659,6 +2965,7 @@ class DirectParserASTContentBlockBegin extends DirectParserASTContent {
       {required this.token, required this.blockKind})
       : super("Block", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "blockKind": blockKind,
@@ -2678,6 +2985,7 @@ class DirectParserASTContentBlockEnd extends DirectParserASTContent {
       required this.blockKind})
       : super("Block", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -2694,6 +3002,7 @@ class DirectParserASTContentInvalidTopLevelBlockHandle
       {required this.token})
       : super("InvalidTopLevelBlock", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2706,6 +3015,7 @@ class DirectParserASTContentCascadeBegin extends DirectParserASTContent {
       {required this.token})
       : super("Cascade", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2715,6 +3025,7 @@ class DirectParserASTContentCascadeEnd extends DirectParserASTContent {
   DirectParserASTContentCascadeEnd(DirectParserASTType type)
       : super("Cascade", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -2725,6 +3036,7 @@ class DirectParserASTContentCaseExpressionBegin extends DirectParserASTContent {
       {required this.caseKeyword})
       : super("CaseExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
       };
@@ -2737,6 +3049,7 @@ class DirectParserASTContentCaseExpressionEnd extends DirectParserASTContent {
       {required this.colon})
       : super("CaseExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
@@ -2751,6 +3064,7 @@ class DirectParserASTContentClassOrMixinBodyBegin
       {required this.kind, required this.token})
       : super("ClassOrMixinBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "kind": kind,
         "token": token,
@@ -2770,6 +3084,7 @@ class DirectParserASTContentClassOrMixinBodyEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ClassOrMixinBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "kind": kind,
         "memberCount": memberCount,
@@ -2787,6 +3102,7 @@ class DirectParserASTContentClassOrNamedMixinApplicationPreludeBegin
       {required this.token})
       : super("ClassOrNamedMixinApplicationPrelude", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2802,6 +3118,7 @@ class DirectParserASTContentClassDeclarationBegin
       {required this.begin, this.abstractToken, required this.name})
       : super("ClassDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
@@ -2817,6 +3134,7 @@ class DirectParserASTContentClassExtendsHandle extends DirectParserASTContent {
       {this.extendsKeyword, required this.typeCount})
       : super("ClassExtends", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "extendsKeyword": extendsKeyword,
         "typeCount": typeCount,
@@ -2832,6 +3150,7 @@ class DirectParserASTContentClassOrMixinImplementsHandle
       {this.implementsKeyword, required this.interfacesCount})
       : super("ClassOrMixinImplements", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "implementsKeyword": implementsKeyword,
         "interfacesCount": interfacesCount,
@@ -2847,6 +3166,7 @@ class DirectParserASTContentClassHeaderHandle extends DirectParserASTContent {
       {required this.begin, required this.classKeyword, this.nativeToken})
       : super("ClassHeader", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "classKeyword": classKeyword,
@@ -2859,6 +3179,7 @@ class DirectParserASTContentRecoverClassHeaderHandle
   DirectParserASTContentRecoverClassHeaderHandle(DirectParserASTType type)
       : super("RecoverClassHeader", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -2870,6 +3191,7 @@ class DirectParserASTContentClassDeclarationEnd extends DirectParserASTContent {
       {required this.beginToken, required this.endToken})
       : super("ClassDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -2885,6 +3207,7 @@ class DirectParserASTContentMixinDeclarationBegin
       {required this.mixinKeyword, required this.name})
       : super("MixinDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
         "name": name,
@@ -2899,6 +3222,7 @@ class DirectParserASTContentMixinOnHandle extends DirectParserASTContent {
       {this.onKeyword, required this.typeCount})
       : super("MixinOn", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "onKeyword": onKeyword,
         "typeCount": typeCount,
@@ -2912,6 +3236,7 @@ class DirectParserASTContentMixinHeaderHandle extends DirectParserASTContent {
       {required this.mixinKeyword})
       : super("MixinHeader", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
       };
@@ -2922,6 +3247,7 @@ class DirectParserASTContentRecoverMixinHeaderHandle
   DirectParserASTContentRecoverMixinHeaderHandle(DirectParserASTType type)
       : super("RecoverMixinHeader", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -2933,6 +3259,7 @@ class DirectParserASTContentMixinDeclarationEnd extends DirectParserASTContent {
       {required this.mixinKeyword, required this.endToken})
       : super("MixinDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "mixinKeyword": mixinKeyword,
         "endToken": endToken,
@@ -2948,6 +3275,7 @@ class DirectParserASTContentUncategorizedTopLevelDeclarationBegin
       {required this.token})
       : super("UncategorizedTopLevelDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -2962,6 +3290,7 @@ class DirectParserASTContentExtensionDeclarationPreludeBegin
       {required this.extensionKeyword})
       : super("ExtensionDeclarationPrelude", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
       };
@@ -2976,6 +3305,7 @@ class DirectParserASTContentExtensionDeclarationBegin
       {required this.extensionKeyword, this.name})
       : super("ExtensionDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
         "name": name,
@@ -2996,6 +3326,7 @@ class DirectParserASTContentExtensionDeclarationEnd
       required this.endToken})
       : super("ExtensionDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
         "typeKeyword": typeKeyword,
@@ -3011,6 +3342,7 @@ class DirectParserASTContentCombinatorsBegin extends DirectParserASTContent {
       {required this.token})
       : super("Combinators", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3023,6 +3355,7 @@ class DirectParserASTContentCombinatorsEnd extends DirectParserASTContent {
       {required this.count})
       : super("Combinators", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
@@ -3036,6 +3369,7 @@ class DirectParserASTContentCompilationUnitBegin
       {required this.token})
       : super("CompilationUnit", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3046,6 +3380,7 @@ class DirectParserASTContentDirectivesOnlyHandle
   DirectParserASTContentDirectivesOnlyHandle(DirectParserASTType type)
       : super("DirectivesOnly", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -3057,6 +3392,7 @@ class DirectParserASTContentCompilationUnitEnd extends DirectParserASTContent {
       {required this.count, required this.token})
       : super("CompilationUnit", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "token": token,
@@ -3070,6 +3406,7 @@ class DirectParserASTContentConstLiteralBegin extends DirectParserASTContent {
       {required this.token})
       : super("ConstLiteral", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3082,6 +3419,7 @@ class DirectParserASTContentConstLiteralEnd extends DirectParserASTContent {
       {required this.token})
       : super("ConstLiteral", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3095,6 +3433,7 @@ class DirectParserASTContentConstructorReferenceBegin
       {required this.start})
       : super("ConstructorReference", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "start": start,
       };
@@ -3114,6 +3453,7 @@ class DirectParserASTContentConstructorReferenceEnd
       required this.constructorReferenceContext})
       : super("ConstructorReference", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "start": start,
         "periodBeforeName": periodBeforeName,
@@ -3130,6 +3470,7 @@ class DirectParserASTContentDoWhileStatementBegin
       {required this.token})
       : super("DoWhileStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3146,6 +3487,7 @@ class DirectParserASTContentDoWhileStatementEnd extends DirectParserASTContent {
       required this.endToken})
       : super("DoWhileStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "doKeyword": doKeyword,
         "whileKeyword": whileKeyword,
@@ -3161,6 +3503,7 @@ class DirectParserASTContentDoWhileStatementBodyBegin
       {required this.token})
       : super("DoWhileStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3174,6 +3517,7 @@ class DirectParserASTContentDoWhileStatementBodyEnd
       {required this.token})
       : super("DoWhileStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3187,6 +3531,7 @@ class DirectParserASTContentWhileStatementBodyBegin
       {required this.token})
       : super("WhileStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3200,6 +3545,7 @@ class DirectParserASTContentWhileStatementBodyEnd
       {required this.token})
       : super("WhileStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3212,6 +3558,7 @@ class DirectParserASTContentEnumBegin extends DirectParserASTContent {
       {required this.enumKeyword})
       : super("Enum", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
       };
@@ -3226,6 +3573,7 @@ class DirectParserASTContentEnumEnd extends DirectParserASTContent {
       {required this.enumKeyword, required this.leftBrace, required this.count})
       : super("Enum", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "enumKeyword": enumKeyword,
         "leftBrace": leftBrace,
@@ -3240,6 +3588,7 @@ class DirectParserASTContentExportBegin extends DirectParserASTContent {
       {required this.token})
       : super("Export", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3253,6 +3602,7 @@ class DirectParserASTContentExportEnd extends DirectParserASTContent {
       {required this.exportKeyword, required this.semicolon})
       : super("Export", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "exportKeyword": exportKeyword,
         "semicolon": semicolon,
@@ -3268,6 +3618,7 @@ class DirectParserASTContentExtraneousExpressionHandle
       {required this.token, required this.message})
       : super("ExtraneousExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "message": message,
@@ -3282,6 +3633,7 @@ class DirectParserASTContentExpressionStatementHandle
       {required this.token})
       : super("ExpressionStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3296,6 +3648,7 @@ class DirectParserASTContentFactoryMethodBegin extends DirectParserASTContent {
       {required this.lastConsumed, this.externalToken, this.constToken})
       : super("FactoryMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
         "externalToken": externalToken,
@@ -3315,6 +3668,7 @@ class DirectParserASTContentClassFactoryMethodEnd
       required this.endToken})
       : super("ClassFactoryMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
@@ -3334,6 +3688,7 @@ class DirectParserASTContentMixinFactoryMethodEnd
       required this.endToken})
       : super("MixinFactoryMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
@@ -3353,6 +3708,7 @@ class DirectParserASTContentExtensionFactoryMethodEnd
       required this.endToken})
       : super("ExtensionFactoryMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "factoryKeyword": factoryKeyword,
@@ -3376,6 +3732,7 @@ class DirectParserASTContentFormalParameterBegin
       this.varFinalOrConst})
       : super("FormalParameter", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
@@ -3404,6 +3761,7 @@ class DirectParserASTContentFormalParameterEnd extends DirectParserASTContent {
       required this.memberKind})
       : super("FormalParameter", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "thisKeyword": thisKeyword,
         "periodAfterThis": periodAfterThis,
@@ -3424,6 +3782,7 @@ class DirectParserASTContentNoFormalParametersHandle
       {required this.token, required this.kind})
       : super("NoFormalParameters", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
@@ -3439,6 +3798,7 @@ class DirectParserASTContentFormalParametersBegin
       {required this.token, required this.kind})
       : super("FormalParameters", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "kind": kind,
@@ -3458,6 +3818,7 @@ class DirectParserASTContentFormalParametersEnd extends DirectParserASTContent {
       required this.kind})
       : super("FormalParameters", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -3489,6 +3850,7 @@ class DirectParserASTContentClassFieldsEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ClassFields", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
@@ -3525,6 +3887,7 @@ class DirectParserASTContentMixinFieldsEnd extends DirectParserASTContent {
       required this.endToken})
       : super("MixinFields", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
@@ -3561,6 +3924,7 @@ class DirectParserASTContentExtensionFieldsEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ExtensionFields", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "abstractToken": abstractToken,
         "externalToken": externalToken,
@@ -3583,6 +3947,7 @@ class DirectParserASTContentForInitializerEmptyStatementHandle
       {required this.token})
       : super("ForInitializerEmptyStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3599,6 +3964,7 @@ class DirectParserASTContentForInitializerExpressionStatementHandle
       required this.forIn})
       : super("ForInitializerExpressionStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "forIn": forIn,
@@ -3616,6 +3982,7 @@ class DirectParserASTContentForInitializerLocalVariableDeclarationHandle
       required this.forIn})
       : super("ForInitializerLocalVariableDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "forIn": forIn,
@@ -3629,6 +3996,7 @@ class DirectParserASTContentForStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("ForStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3647,6 +4015,7 @@ class DirectParserASTContentForLoopPartsHandle extends DirectParserASTContent {
       required this.updateExpressionCount})
       : super("ForLoopParts", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "forKeyword": forKeyword,
         "leftParen": leftParen,
@@ -3662,6 +4031,7 @@ class DirectParserASTContentForStatementEnd extends DirectParserASTContent {
       {required this.endToken})
       : super("ForStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -3675,6 +4045,7 @@ class DirectParserASTContentForStatementBodyBegin
       {required this.token})
       : super("ForStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3687,6 +4058,7 @@ class DirectParserASTContentForStatementBodyEnd extends DirectParserASTContent {
       {required this.token})
       : super("ForStatementBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3706,6 +4078,7 @@ class DirectParserASTContentForInLoopPartsHandle
       required this.inKeyword})
       : super("ForInLoopParts", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "awaitToken": awaitToken,
         "forToken": forToken,
@@ -3721,6 +4094,7 @@ class DirectParserASTContentForInEnd extends DirectParserASTContent {
       {required this.endToken})
       : super("ForIn", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -3734,6 +4108,7 @@ class DirectParserASTContentForInExpressionBegin
       {required this.token})
       : super("ForInExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3746,6 +4121,7 @@ class DirectParserASTContentForInExpressionEnd extends DirectParserASTContent {
       {required this.token})
       : super("ForInExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3758,6 +4134,7 @@ class DirectParserASTContentForInBodyBegin extends DirectParserASTContent {
       {required this.token})
       : super("ForInBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3770,6 +4147,7 @@ class DirectParserASTContentForInBodyEnd extends DirectParserASTContent {
       {required this.token})
       : super("ForInBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3783,6 +4161,7 @@ class DirectParserASTContentNamedFunctionExpressionBegin
       {required this.token})
       : super("NamedFunctionExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3796,6 +4175,7 @@ class DirectParserASTContentNamedFunctionExpressionEnd
       {required this.endToken})
       : super("NamedFunctionExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -3809,6 +4189,7 @@ class DirectParserASTContentLocalFunctionDeclarationBegin
       {required this.token})
       : super("LocalFunctionDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3822,6 +4203,7 @@ class DirectParserASTContentLocalFunctionDeclarationEnd
       {required this.endToken})
       : super("LocalFunctionDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -3835,6 +4217,7 @@ class DirectParserASTContentBlockFunctionBodyBegin
       {required this.token})
       : super("BlockFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3850,6 +4233,7 @@ class DirectParserASTContentBlockFunctionBodyEnd
       {required this.count, required this.beginToken, required this.endToken})
       : super("BlockFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -3865,6 +4249,7 @@ class DirectParserASTContentNoFunctionBodyHandle
       {required this.token})
       : super("NoFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3879,6 +4264,7 @@ class DirectParserASTContentFunctionBodySkippedHandle
       {required this.token, required this.isExpressionBody})
       : super("FunctionBodySkipped", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "isExpressionBody": isExpressionBody,
@@ -3892,6 +4278,7 @@ class DirectParserASTContentFunctionNameBegin extends DirectParserASTContent {
       {required this.token})
       : super("FunctionName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3905,6 +4292,7 @@ class DirectParserASTContentFunctionNameEnd extends DirectParserASTContent {
       {required this.beginToken, required this.token})
       : super("FunctionName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "token": token,
@@ -3919,6 +4307,7 @@ class DirectParserASTContentFunctionTypeAliasBegin
       {required this.token})
       : super("FunctionTypeAlias", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -3934,6 +4323,7 @@ class DirectParserASTContentFunctionTypeAliasEnd
       {required this.typedefKeyword, this.equals, required this.endToken})
       : super("FunctionTypeAlias", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "typedefKeyword": typedefKeyword,
         "equals": equals,
@@ -3949,6 +4339,7 @@ class DirectParserASTContentClassWithClauseHandle
       {required this.withKeyword})
       : super("ClassWithClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
@@ -3959,6 +4350,7 @@ class DirectParserASTContentClassNoWithClauseHandle
   DirectParserASTContentClassNoWithClauseHandle(DirectParserASTType type)
       : super("ClassNoWithClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -3972,6 +4364,7 @@ class DirectParserASTContentNamedMixinApplicationBegin
       {required this.begin, this.abstractToken, required this.name})
       : super("NamedMixinApplication", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
@@ -3988,6 +4381,7 @@ class DirectParserASTContentNamedMixinApplicationWithClauseHandle
       {required this.withKeyword})
       : super("NamedMixinApplicationWithClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "withKeyword": withKeyword,
       };
@@ -4009,6 +4403,7 @@ class DirectParserASTContentNamedMixinApplicationEnd
       required this.endToken})
       : super("NamedMixinApplication", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "classKeyword": classKeyword,
@@ -4025,6 +4420,7 @@ class DirectParserASTContentHideBegin extends DirectParserASTContent {
       {required this.hideKeyword})
       : super("Hide", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
@@ -4037,6 +4433,7 @@ class DirectParserASTContentHideEnd extends DirectParserASTContent {
       {required this.hideKeyword})
       : super("Hide", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hideKeyword": hideKeyword,
       };
@@ -4050,6 +4447,7 @@ class DirectParserASTContentIdentifierListHandle
       {required this.count})
       : super("IdentifierList", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
@@ -4062,6 +4460,7 @@ class DirectParserASTContentTypeListBegin extends DirectParserASTContent {
       {required this.token})
       : super("TypeList", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4074,6 +4473,7 @@ class DirectParserASTContentTypeListEnd extends DirectParserASTContent {
       {required this.count})
       : super("TypeList", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
@@ -4086,6 +4486,7 @@ class DirectParserASTContentIfStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("IfStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4099,6 +4500,7 @@ class DirectParserASTContentIfStatementEnd extends DirectParserASTContent {
       {required this.ifToken, this.elseToken})
       : super("IfStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
         "elseToken": elseToken,
@@ -4112,6 +4514,7 @@ class DirectParserASTContentThenStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("ThenStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4124,6 +4527,7 @@ class DirectParserASTContentThenStatementEnd extends DirectParserASTContent {
       {required this.token})
       : super("ThenStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4136,6 +4540,7 @@ class DirectParserASTContentElseStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("ElseStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4148,6 +4553,7 @@ class DirectParserASTContentElseStatementEnd extends DirectParserASTContent {
       {required this.token})
       : super("ElseStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4160,6 +4566,7 @@ class DirectParserASTContentImportBegin extends DirectParserASTContent {
       {required this.importKeyword})
       : super("Import", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
       };
@@ -4173,6 +4580,7 @@ class DirectParserASTContentImportPrefixHandle extends DirectParserASTContent {
       {this.deferredKeyword, this.asKeyword})
       : super("ImportPrefix", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "deferredKeyword": deferredKeyword,
         "asKeyword": asKeyword,
@@ -4187,6 +4595,7 @@ class DirectParserASTContentImportEnd extends DirectParserASTContent {
       {required this.importKeyword, this.semicolon})
       : super("Import", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "importKeyword": importKeyword,
         "semicolon": semicolon,
@@ -4200,6 +4609,7 @@ class DirectParserASTContentRecoverImportHandle extends DirectParserASTContent {
       {this.semicolon})
       : super("RecoverImport", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
@@ -4213,6 +4623,7 @@ class DirectParserASTContentConditionalUrisBegin
       {required this.token})
       : super("ConditionalUris", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4225,6 +4636,7 @@ class DirectParserASTContentConditionalUrisEnd extends DirectParserASTContent {
       {required this.count})
       : super("ConditionalUris", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
@@ -4237,6 +4649,7 @@ class DirectParserASTContentConditionalUriBegin extends DirectParserASTContent {
       {required this.ifKeyword})
       : super("ConditionalUri", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "ifKeyword": ifKeyword,
       };
@@ -4251,6 +4664,7 @@ class DirectParserASTContentConditionalUriEnd extends DirectParserASTContent {
       {required this.ifKeyword, required this.leftParen, this.equalSign})
       : super("ConditionalUri", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "ifKeyword": ifKeyword,
         "leftParen": leftParen,
@@ -4266,6 +4680,7 @@ class DirectParserASTContentDottedNameHandle extends DirectParserASTContent {
       {required this.count, required this.firstIdentifier})
       : super("DottedName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "firstIdentifier": firstIdentifier,
@@ -4281,6 +4696,7 @@ class DirectParserASTContentImplicitCreationExpressionBegin
       {required this.token})
       : super("ImplicitCreationExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4294,6 +4710,7 @@ class DirectParserASTContentImplicitCreationExpressionEnd
       {required this.token})
       : super("ImplicitCreationExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4307,6 +4724,7 @@ class DirectParserASTContentInitializedIdentifierBegin
       {required this.token})
       : super("InitializedIdentifier", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4320,6 +4738,7 @@ class DirectParserASTContentInitializedIdentifierEnd
       {required this.nameToken})
       : super("InitializedIdentifier", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nameToken": nameToken,
       };
@@ -4333,6 +4752,7 @@ class DirectParserASTContentFieldInitializerBegin
       {required this.token})
       : super("FieldInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4346,6 +4766,7 @@ class DirectParserASTContentFieldInitializerEnd extends DirectParserASTContent {
       {required this.assignment, required this.token})
       : super("FieldInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "assignment": assignment,
         "token": token,
@@ -4360,6 +4781,7 @@ class DirectParserASTContentNoFieldInitializerHandle
       {required this.token})
       : super("NoFieldInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4373,6 +4795,7 @@ class DirectParserASTContentVariableInitializerBegin
       {required this.token})
       : super("VariableInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4386,6 +4809,7 @@ class DirectParserASTContentVariableInitializerEnd
       {required this.assignmentOperator})
       : super("VariableInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "assignmentOperator": assignmentOperator,
       };
@@ -4399,6 +4823,7 @@ class DirectParserASTContentNoVariableInitializerHandle
       {required this.token})
       : super("NoVariableInitializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4411,6 +4836,7 @@ class DirectParserASTContentInitializerBegin extends DirectParserASTContent {
       {required this.token})
       : super("Initializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4423,6 +4849,7 @@ class DirectParserASTContentInitializerEnd extends DirectParserASTContent {
       {required this.token})
       : super("Initializer", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4435,6 +4862,7 @@ class DirectParserASTContentInitializersBegin extends DirectParserASTContent {
       {required this.token})
       : super("Initializers", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4449,6 +4877,7 @@ class DirectParserASTContentInitializersEnd extends DirectParserASTContent {
       {required this.count, required this.beginToken, required this.endToken})
       : super("Initializers", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -4461,6 +4890,7 @@ class DirectParserASTContentNoInitializersHandle
   DirectParserASTContentNoInitializersHandle(DirectParserASTType type)
       : super("NoInitializers", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -4472,6 +4902,7 @@ class DirectParserASTContentInvalidExpressionHandle
       {required this.token})
       : super("InvalidExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4485,6 +4916,7 @@ class DirectParserASTContentInvalidFunctionBodyHandle
       {required this.token})
       : super("InvalidFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4498,6 +4930,7 @@ class DirectParserASTContentInvalidTypeReferenceHandle
       {required this.token})
       : super("InvalidTypeReference", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4510,6 +4943,7 @@ class DirectParserASTContentLabelHandle extends DirectParserASTContent {
       {required this.token})
       : super("Label", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4524,6 +4958,7 @@ class DirectParserASTContentLabeledStatementBegin
       {required this.token, required this.labelCount})
       : super("LabeledStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "labelCount": labelCount,
@@ -4537,6 +4972,7 @@ class DirectParserASTContentLabeledStatementEnd extends DirectParserASTContent {
       {required this.labelCount})
       : super("LabeledStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
       };
@@ -4549,6 +4985,7 @@ class DirectParserASTContentLibraryNameBegin extends DirectParserASTContent {
       {required this.token})
       : super("LibraryName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4562,6 +4999,7 @@ class DirectParserASTContentLibraryNameEnd extends DirectParserASTContent {
       {required this.libraryKeyword, required this.semicolon})
       : super("LibraryName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "libraryKeyword": libraryKeyword,
         "semicolon": semicolon,
@@ -4577,6 +5015,7 @@ class DirectParserASTContentLiteralMapEntryHandle
       {required this.colon, required this.endToken})
       : super("LiteralMapEntry", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
         "endToken": endToken,
@@ -4590,6 +5029,7 @@ class DirectParserASTContentLiteralStringBegin extends DirectParserASTContent {
       {required this.token})
       : super("LiteralString", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4604,6 +5044,7 @@ class DirectParserASTContentInterpolationExpressionHandle
       {required this.leftBracket, this.rightBracket})
       : super("InterpolationExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "leftBracket": leftBracket,
         "rightBracket": rightBracket,
@@ -4618,6 +5059,7 @@ class DirectParserASTContentLiteralStringEnd extends DirectParserASTContent {
       {required this.interpolationCount, required this.endToken})
       : super("LiteralString", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "interpolationCount": interpolationCount,
         "endToken": endToken,
@@ -4633,6 +5075,7 @@ class DirectParserASTContentStringJuxtapositionHandle
       {required this.startToken, required this.literalCount})
       : super("StringJuxtaposition", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "startToken": startToken,
         "literalCount": literalCount,
@@ -4643,6 +5086,7 @@ class DirectParserASTContentMemberBegin extends DirectParserASTContent {
   DirectParserASTContentMemberBegin(DirectParserASTType type)
       : super("Member", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -4653,6 +5097,7 @@ class DirectParserASTContentInvalidMemberHandle extends DirectParserASTContent {
       {required this.endToken})
       : super("InvalidMember", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -4662,6 +5107,7 @@ class DirectParserASTContentMemberEnd extends DirectParserASTContent {
   DirectParserASTContentMemberEnd(DirectParserASTType type)
       : super("Member", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -4682,6 +5128,7 @@ class DirectParserASTContentMethodBegin extends DirectParserASTContent {
       required this.name})
       : super("Method", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "externalToken": externalToken,
         "staticToken": staticToken,
@@ -4707,6 +5154,7 @@ class DirectParserASTContentClassMethodEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ClassMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4731,6 +5179,7 @@ class DirectParserASTContentMixinMethodEnd extends DirectParserASTContent {
       required this.endToken})
       : super("MixinMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4755,6 +5204,7 @@ class DirectParserASTContentExtensionMethodEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ExtensionMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4779,6 +5229,7 @@ class DirectParserASTContentClassConstructorEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ClassConstructor", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4803,6 +5254,7 @@ class DirectParserASTContentMixinConstructorEnd extends DirectParserASTContent {
       required this.endToken})
       : super("MixinConstructor", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4828,6 +5280,7 @@ class DirectParserASTContentExtensionConstructorEnd
       required this.endToken})
       : super("ExtensionConstructor", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "getOrSet": getOrSet,
         "beginToken": beginToken,
@@ -4844,6 +5297,7 @@ class DirectParserASTContentMetadataStarBegin extends DirectParserASTContent {
       {required this.token})
       : super("MetadataStar", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4856,6 +5310,7 @@ class DirectParserASTContentMetadataStarEnd extends DirectParserASTContent {
       {required this.count})
       : super("MetadataStar", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
       };
@@ -4868,6 +5323,7 @@ class DirectParserASTContentMetadataBegin extends DirectParserASTContent {
       {required this.token})
       : super("Metadata", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4882,6 +5338,7 @@ class DirectParserASTContentMetadataEnd extends DirectParserASTContent {
       {required this.beginToken, this.periodBeforeName, required this.endToken})
       : super("Metadata", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "periodBeforeName": periodBeforeName,
@@ -4897,6 +5354,7 @@ class DirectParserASTContentOptionalFormalParametersBegin
       {required this.token})
       : super("OptionalFormalParameters", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4912,6 +5370,7 @@ class DirectParserASTContentOptionalFormalParametersEnd
       {required this.count, required this.beginToken, required this.endToken})
       : super("OptionalFormalParameters", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -4926,6 +5385,7 @@ class DirectParserASTContentPartBegin extends DirectParserASTContent {
       {required this.token})
       : super("Part", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4939,6 +5399,7 @@ class DirectParserASTContentPartEnd extends DirectParserASTContent {
       {required this.partKeyword, required this.semicolon})
       : super("Part", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "partKeyword": partKeyword,
         "semicolon": semicolon,
@@ -4952,6 +5413,7 @@ class DirectParserASTContentPartOfBegin extends DirectParserASTContent {
       {required this.token})
       : super("PartOf", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -4970,6 +5432,7 @@ class DirectParserASTContentPartOfEnd extends DirectParserASTContent {
       required this.hasName})
       : super("PartOf", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "partKeyword": partKeyword,
         "ofKeyword": ofKeyword,
@@ -4986,6 +5449,7 @@ class DirectParserASTContentRedirectingFactoryBodyBegin
       {required this.token})
       : super("RedirectingFactoryBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5000,6 +5464,7 @@ class DirectParserASTContentRedirectingFactoryBodyEnd
       {required this.beginToken, required this.endToken})
       : super("RedirectingFactoryBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5014,6 +5479,7 @@ class DirectParserASTContentReturnStatementBegin
       {required this.token})
       : super("ReturnStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5028,6 +5494,7 @@ class DirectParserASTContentNativeFunctionBodyHandle
       {required this.nativeToken, required this.semicolon})
       : super("NativeFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
@@ -5045,6 +5512,7 @@ class DirectParserASTContentNativeFunctionBodyIgnoredHandle
       required this.semicolon})
       : super("NativeFunctionBodyIgnored", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
@@ -5062,6 +5530,7 @@ class DirectParserASTContentNativeFunctionBodySkippedHandle
       required this.semicolon})
       : super("NativeFunctionBodySkipped", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "semicolon": semicolon,
@@ -5076,6 +5545,7 @@ class DirectParserASTContentEmptyFunctionBodyHandle
       {required this.semicolon})
       : super("EmptyFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "semicolon": semicolon,
       };
@@ -5090,6 +5560,7 @@ class DirectParserASTContentExpressionFunctionBodyHandle
       {required this.arrowToken, this.endToken})
       : super("ExpressionFunctionBody", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "arrowToken": arrowToken,
         "endToken": endToken,
@@ -5107,6 +5578,7 @@ class DirectParserASTContentReturnStatementEnd extends DirectParserASTContent {
       required this.endToken})
       : super("ReturnStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hasExpression": hasExpression,
         "beginToken": beginToken,
@@ -5122,6 +5594,7 @@ class DirectParserASTContentSendHandle extends DirectParserASTContent {
       {required this.beginToken, required this.endToken})
       : super("Send", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5135,6 +5608,7 @@ class DirectParserASTContentShowBegin extends DirectParserASTContent {
       {required this.showKeyword})
       : super("Show", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
@@ -5147,6 +5621,7 @@ class DirectParserASTContentShowEnd extends DirectParserASTContent {
       {required this.showKeyword})
       : super("Show", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "showKeyword": showKeyword,
       };
@@ -5160,6 +5635,7 @@ class DirectParserASTContentSwitchStatementBegin
       {required this.token})
       : super("SwitchStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5173,6 +5649,7 @@ class DirectParserASTContentSwitchStatementEnd extends DirectParserASTContent {
       {required this.switchKeyword, required this.endToken})
       : super("SwitchStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "switchKeyword": switchKeyword,
         "endToken": endToken,
@@ -5186,6 +5663,7 @@ class DirectParserASTContentSwitchBlockBegin extends DirectParserASTContent {
       {required this.token})
       : super("SwitchBlock", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5202,6 +5680,7 @@ class DirectParserASTContentSwitchBlockEnd extends DirectParserASTContent {
       required this.endToken})
       : super("SwitchBlock", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "caseCount": caseCount,
         "beginToken": beginToken,
@@ -5216,6 +5695,7 @@ class DirectParserASTContentLiteralSymbolBegin extends DirectParserASTContent {
       {required this.token})
       : super("LiteralSymbol", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5229,6 +5709,7 @@ class DirectParserASTContentLiteralSymbolEnd extends DirectParserASTContent {
       {required this.hashToken, required this.identifierCount})
       : super("LiteralSymbol", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hashToken": hashToken,
         "identifierCount": identifierCount,
@@ -5244,6 +5725,7 @@ class DirectParserASTContentThrowExpressionHandle
       {required this.throwToken, required this.endToken})
       : super("ThrowExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "throwToken": throwToken,
         "endToken": endToken,
@@ -5258,6 +5740,7 @@ class DirectParserASTContentRethrowStatementBegin
       {required this.token})
       : super("RethrowStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5271,6 +5754,7 @@ class DirectParserASTContentRethrowStatementEnd extends DirectParserASTContent {
       {required this.rethrowToken, required this.endToken})
       : super("RethrowStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "rethrowToken": rethrowToken,
         "endToken": endToken,
@@ -5285,6 +5769,7 @@ class DirectParserASTContentTopLevelDeclarationEnd
       {required this.nextToken})
       : super("TopLevelDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nextToken": nextToken,
       };
@@ -5299,6 +5784,7 @@ class DirectParserASTContentInvalidTopLevelDeclarationHandle
       {required this.endToken})
       : super("InvalidTopLevelDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "endToken": endToken,
       };
@@ -5311,6 +5797,7 @@ class DirectParserASTContentTopLevelMemberBegin extends DirectParserASTContent {
       {required this.token})
       : super("TopLevelMember", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5323,6 +5810,7 @@ class DirectParserASTContentFieldsBegin extends DirectParserASTContent {
       {required this.lastConsumed})
       : super("Fields", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
       };
@@ -5349,6 +5837,7 @@ class DirectParserASTContentTopLevelFieldsEnd extends DirectParserASTContent {
       required this.endToken})
       : super("TopLevelFields", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "externalToken": externalToken,
         "staticToken": staticToken,
@@ -5369,6 +5858,7 @@ class DirectParserASTContentTopLevelMethodBegin extends DirectParserASTContent {
       {required this.lastConsumed, this.externalToken})
       : super("TopLevelMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
         "externalToken": externalToken,
@@ -5384,6 +5874,7 @@ class DirectParserASTContentTopLevelMethodEnd extends DirectParserASTContent {
       {required this.beginToken, this.getOrSet, required this.endToken})
       : super("TopLevelMethod", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "getOrSet": getOrSet,
@@ -5398,6 +5889,7 @@ class DirectParserASTContentTryStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("TryStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5411,6 +5903,7 @@ class DirectParserASTContentCaseMatchHandle extends DirectParserASTContent {
       {required this.caseKeyword, required this.colon})
       : super("CaseMatch", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "caseKeyword": caseKeyword,
         "colon": colon,
@@ -5424,6 +5917,7 @@ class DirectParserASTContentCatchClauseBegin extends DirectParserASTContent {
       {required this.token})
       : super("CatchClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5436,6 +5930,7 @@ class DirectParserASTContentCatchClauseEnd extends DirectParserASTContent {
       {required this.token})
       : super("CatchClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5450,6 +5945,7 @@ class DirectParserASTContentCatchBlockHandle extends DirectParserASTContent {
       {this.onKeyword, this.catchKeyword, this.comma})
       : super("CatchBlock", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "onKeyword": onKeyword,
         "catchKeyword": catchKeyword,
@@ -5464,6 +5960,7 @@ class DirectParserASTContentFinallyBlockHandle extends DirectParserASTContent {
       {required this.finallyKeyword})
       : super("FinallyBlock", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "finallyKeyword": finallyKeyword,
       };
@@ -5478,6 +5975,7 @@ class DirectParserASTContentTryStatementEnd extends DirectParserASTContent {
       {required this.catchCount, required this.tryKeyword, this.finallyKeyword})
       : super("TryStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "catchCount": catchCount,
         "tryKeyword": tryKeyword,
@@ -5493,6 +5991,7 @@ class DirectParserASTContentTypeHandle extends DirectParserASTContent {
       {required this.beginToken, this.questionMark})
       : super("Type", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "questionMark": questionMark,
@@ -5507,6 +6006,7 @@ class DirectParserASTContentNonNullAssertExpressionHandle
       {required this.bang})
       : super("NonNullAssertExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "bang": bang,
       };
@@ -5519,6 +6019,7 @@ class DirectParserASTContentNoNameHandle extends DirectParserASTContent {
       {required this.token})
       : super("NoName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5531,6 +6032,7 @@ class DirectParserASTContentFunctionTypeBegin extends DirectParserASTContent {
       {required this.beginToken})
       : super("FunctionType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
       };
@@ -5544,6 +6046,7 @@ class DirectParserASTContentFunctionTypeEnd extends DirectParserASTContent {
       {required this.functionToken, this.questionMark})
       : super("FunctionType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "functionToken": functionToken,
         "questionMark": questionMark,
@@ -5557,6 +6060,7 @@ class DirectParserASTContentTypeArgumentsBegin extends DirectParserASTContent {
       {required this.token})
       : super("TypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5571,6 +6075,7 @@ class DirectParserASTContentTypeArgumentsEnd extends DirectParserASTContent {
       {required this.count, required this.beginToken, required this.endToken})
       : super("TypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "beginToken": beginToken,
@@ -5586,6 +6091,7 @@ class DirectParserASTContentInvalidTypeArgumentsHandle
       {required this.token})
       : super("InvalidTypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5599,6 +6105,7 @@ class DirectParserASTContentNoTypeArgumentsHandle
       {required this.token})
       : super("NoTypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5611,6 +6118,7 @@ class DirectParserASTContentTypeVariableBegin extends DirectParserASTContent {
       {required this.token})
       : super("TypeVariable", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5625,6 +6133,7 @@ class DirectParserASTContentTypeVariablesDefinedHandle
       {required this.token, required this.count})
       : super("TypeVariablesDefined", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "count": count,
@@ -5644,6 +6153,7 @@ class DirectParserASTContentTypeVariableEnd extends DirectParserASTContent {
       this.variance})
       : super("TypeVariable", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "index": index,
@@ -5659,6 +6169,7 @@ class DirectParserASTContentTypeVariablesBegin extends DirectParserASTContent {
       {required this.token})
       : super("TypeVariables", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5672,6 +6183,7 @@ class DirectParserASTContentTypeVariablesEnd extends DirectParserASTContent {
       {required this.beginToken, required this.endToken})
       : super("TypeVariables", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "endToken": endToken,
@@ -5686,6 +6198,7 @@ class DirectParserASTContentFunctionExpressionBegin
       {required this.token})
       : super("FunctionExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5700,6 +6213,7 @@ class DirectParserASTContentFunctionExpressionEnd
       {required this.beginToken, required this.token})
       : super("FunctionExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "token": token,
@@ -5716,6 +6230,7 @@ class DirectParserASTContentVariablesDeclarationBegin
       {required this.token, this.lateToken, this.varFinalOrConst})
       : super("VariablesDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "lateToken": lateToken,
@@ -5732,6 +6247,7 @@ class DirectParserASTContentVariablesDeclarationEnd
       {required this.count, this.endToken})
       : super("VariablesDeclaration", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "endToken": endToken,
@@ -5745,6 +6261,7 @@ class DirectParserASTContentWhileStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("WhileStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5758,6 +6275,7 @@ class DirectParserASTContentWhileStatementEnd extends DirectParserASTContent {
       {required this.whileKeyword, required this.endToken})
       : super("WhileStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "whileKeyword": whileKeyword,
         "endToken": endToken,
@@ -5771,6 +6289,7 @@ class DirectParserASTContentAsOperatorTypeBegin extends DirectParserASTContent {
       {required this.operator})
       : super("AsOperatorType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
@@ -5783,6 +6302,7 @@ class DirectParserASTContentAsOperatorTypeEnd extends DirectParserASTContent {
       {required this.operator})
       : super("AsOperatorType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
@@ -5795,6 +6315,7 @@ class DirectParserASTContentAsOperatorHandle extends DirectParserASTContent {
       {required this.operator})
       : super("AsOperator", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
@@ -5808,6 +6329,7 @@ class DirectParserASTContentAssignmentExpressionHandle
       {required this.token})
       : super("AssignmentExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5821,6 +6343,7 @@ class DirectParserASTContentBinaryExpressionBegin
       {required this.token})
       : super("BinaryExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5833,6 +6356,7 @@ class DirectParserASTContentBinaryExpressionEnd extends DirectParserASTContent {
       {required this.token})
       : super("BinaryExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5846,6 +6370,7 @@ class DirectParserASTContentEndingBinaryExpressionHandle
       {required this.token})
       : super("EndingBinaryExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5859,6 +6384,7 @@ class DirectParserASTContentConditionalExpressionBegin
       {required this.question})
       : super("ConditionalExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
       };
@@ -5870,6 +6396,7 @@ class DirectParserASTContentConditionalExpressionColonHandle
       DirectParserASTType type)
       : super("ConditionalExpressionColon", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -5882,6 +6409,7 @@ class DirectParserASTContentConditionalExpressionEnd
       {required this.question, required this.colon})
       : super("ConditionalExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
         "colon": colon,
@@ -5896,6 +6424,7 @@ class DirectParserASTContentConstExpressionBegin
       {required this.constKeyword})
       : super("ConstExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
@@ -5908,6 +6437,7 @@ class DirectParserASTContentConstExpressionEnd extends DirectParserASTContent {
       {required this.token})
       : super("ConstExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5920,6 +6450,7 @@ class DirectParserASTContentConstFactoryHandle extends DirectParserASTContent {
       {required this.constKeyword})
       : super("ConstFactory", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "constKeyword": constKeyword,
       };
@@ -5933,6 +6464,7 @@ class DirectParserASTContentForControlFlowBegin extends DirectParserASTContent {
       {this.awaitToken, required this.forToken})
       : super("ForControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "awaitToken": awaitToken,
         "forToken": forToken,
@@ -5946,6 +6478,7 @@ class DirectParserASTContentForControlFlowEnd extends DirectParserASTContent {
       {required this.token})
       : super("ForControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5958,6 +6491,7 @@ class DirectParserASTContentForInControlFlowEnd extends DirectParserASTContent {
       {required this.token})
       : super("ForInControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5970,6 +6504,7 @@ class DirectParserASTContentIfControlFlowBegin extends DirectParserASTContent {
       {required this.ifToken})
       : super("IfControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "ifToken": ifToken,
       };
@@ -5983,6 +6518,7 @@ class DirectParserASTContentThenControlFlowHandle
       {required this.token})
       : super("ThenControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -5996,6 +6532,7 @@ class DirectParserASTContentElseControlFlowHandle
       {required this.elseToken})
       : super("ElseControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "elseToken": elseToken,
       };
@@ -6008,6 +6545,7 @@ class DirectParserASTContentIfControlFlowEnd extends DirectParserASTContent {
       {required this.token})
       : super("IfControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6021,6 +6559,7 @@ class DirectParserASTContentIfElseControlFlowEnd
       {required this.token})
       : super("IfElseControlFlow", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6034,6 +6573,7 @@ class DirectParserASTContentSpreadExpressionHandle
       {required this.spreadToken})
       : super("SpreadExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "spreadToken": spreadToken,
       };
@@ -6048,6 +6588,7 @@ class DirectParserASTContentFunctionTypedFormalParameterBegin
       {required this.token})
       : super("FunctionTypedFormalParameter", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6064,6 +6605,7 @@ class DirectParserASTContentFunctionTypedFormalParameterEnd
       this.question})
       : super("FunctionTypedFormalParameter", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nameToken": nameToken,
         "question": question,
@@ -6078,6 +6620,7 @@ class DirectParserASTContentIdentifierHandle extends DirectParserASTContent {
       {required this.token, required this.context})
       : super("Identifier", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
@@ -6096,6 +6639,7 @@ class DirectParserASTContentIndexedExpressionHandle
       required this.closeSquareBracket})
       : super("IndexedExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "question": question,
         "openSquareBracket": openSquareBracket,
@@ -6110,6 +6654,7 @@ class DirectParserASTContentIsOperatorTypeBegin extends DirectParserASTContent {
       {required this.operator})
       : super("IsOperatorType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
@@ -6122,6 +6667,7 @@ class DirectParserASTContentIsOperatorTypeEnd extends DirectParserASTContent {
       {required this.operator})
       : super("IsOperatorType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operator": operator,
       };
@@ -6135,6 +6681,7 @@ class DirectParserASTContentIsOperatorHandle extends DirectParserASTContent {
       {required this.isOperator, this.not})
       : super("IsOperator", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "isOperator": isOperator,
         "not": not,
@@ -6148,6 +6695,7 @@ class DirectParserASTContentLiteralBoolHandle extends DirectParserASTContent {
       {required this.token})
       : super("LiteralBool", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6165,6 +6713,7 @@ class DirectParserASTContentBreakStatementHandle
       required this.endToken})
       : super("BreakStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hasTarget": hasTarget,
         "breakKeyword": breakKeyword,
@@ -6184,6 +6733,7 @@ class DirectParserASTContentContinueStatementHandle
       required this.endToken})
       : super("ContinueStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "hasTarget": hasTarget,
         "continueKeyword": continueKeyword,
@@ -6199,6 +6749,7 @@ class DirectParserASTContentEmptyStatementHandle
       {required this.token})
       : super("EmptyStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6212,6 +6763,7 @@ class DirectParserASTContentAssertBegin extends DirectParserASTContent {
       {required this.assertKeyword, required this.kind})
       : super("Assert", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "assertKeyword": assertKeyword,
         "kind": kind,
@@ -6233,6 +6785,7 @@ class DirectParserASTContentAssertEnd extends DirectParserASTContent {
       required this.semicolonToken})
       : super("Assert", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "assertKeyword": assertKeyword,
         "kind": kind,
@@ -6249,6 +6802,7 @@ class DirectParserASTContentLiteralDoubleHandle extends DirectParserASTContent {
       {required this.token})
       : super("LiteralDouble", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6261,6 +6815,7 @@ class DirectParserASTContentLiteralIntHandle extends DirectParserASTContent {
       {required this.token})
       : super("LiteralInt", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6279,6 +6834,7 @@ class DirectParserASTContentLiteralListHandle extends DirectParserASTContent {
       required this.rightBracket})
       : super("LiteralList", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "leftBracket": leftBracket,
@@ -6303,6 +6859,7 @@ class DirectParserASTContentLiteralSetOrMapHandle
       required this.hasSetEntry})
       : super("LiteralSetOrMap", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "count": count,
         "leftBrace": leftBrace,
@@ -6319,6 +6876,7 @@ class DirectParserASTContentLiteralNullHandle extends DirectParserASTContent {
       {required this.token})
       : super("LiteralNull", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6332,6 +6890,7 @@ class DirectParserASTContentNativeClauseHandle extends DirectParserASTContent {
       {required this.nativeToken, required this.hasName})
       : super("NativeClause", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "nativeToken": nativeToken,
         "hasName": hasName,
@@ -6345,6 +6904,7 @@ class DirectParserASTContentNamedArgumentHandle extends DirectParserASTContent {
       {required this.colon})
       : super("NamedArgument", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "colon": colon,
       };
@@ -6357,6 +6917,7 @@ class DirectParserASTContentNewExpressionBegin extends DirectParserASTContent {
       {required this.token})
       : super("NewExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6369,6 +6930,7 @@ class DirectParserASTContentNewExpressionEnd extends DirectParserASTContent {
       {required this.token})
       : super("NewExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6381,6 +6943,7 @@ class DirectParserASTContentNoArgumentsHandle extends DirectParserASTContent {
       {required this.token})
       : super("NoArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6395,6 +6958,7 @@ class DirectParserASTContentNoConstructorReferenceContinuationAfterTypeArguments
       {required this.token})
       : super("NoConstructorReferenceContinuationAfterTypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6407,6 +6971,7 @@ class DirectParserASTContentNoTypeHandle extends DirectParserASTContent {
       {required this.lastConsumed})
       : super("NoType", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "lastConsumed": lastConsumed,
       };
@@ -6420,6 +6985,7 @@ class DirectParserASTContentNoTypeVariablesHandle
       {required this.token})
       : super("NoTypeVariables", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6432,6 +6998,7 @@ class DirectParserASTContentOperatorHandle extends DirectParserASTContent {
       {required this.token})
       : super("Operator", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6444,6 +7011,7 @@ class DirectParserASTContentSymbolVoidHandle extends DirectParserASTContent {
       {required this.token})
       : super("SymbolVoid", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6457,6 +7025,7 @@ class DirectParserASTContentOperatorNameHandle extends DirectParserASTContent {
       {required this.operatorKeyword, required this.token})
       : super("OperatorName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operatorKeyword": operatorKeyword,
         "token": token,
@@ -6472,6 +7041,7 @@ class DirectParserASTContentInvalidOperatorNameHandle
       {required this.operatorKeyword, required this.token})
       : super("InvalidOperatorName", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "operatorKeyword": operatorKeyword,
         "token": token,
@@ -6486,6 +7056,7 @@ class DirectParserASTContentParenthesizedConditionHandle
       {required this.token})
       : super("ParenthesizedCondition", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6499,6 +7070,7 @@ class DirectParserASTContentParenthesizedExpressionHandle
       {required this.token})
       : super("ParenthesizedExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6511,6 +7083,7 @@ class DirectParserASTContentQualifiedHandle extends DirectParserASTContent {
       {required this.period})
       : super("Qualified", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "period": period,
       };
@@ -6523,6 +7096,7 @@ class DirectParserASTContentStringPartHandle extends DirectParserASTContent {
       {required this.token})
       : super("StringPart", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6537,6 +7111,7 @@ class DirectParserASTContentSuperExpressionHandle
       {required this.token, required this.context})
       : super("SuperExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
@@ -6554,6 +7129,7 @@ class DirectParserASTContentSwitchCaseBegin extends DirectParserASTContent {
       required this.firstToken})
       : super("SwitchCase", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
         "expressionCount": expressionCount,
@@ -6580,6 +7156,7 @@ class DirectParserASTContentSwitchCaseEnd extends DirectParserASTContent {
       required this.endToken})
       : super("SwitchCase", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "labelCount": labelCount,
         "expressionCount": expressionCount,
@@ -6600,6 +7177,7 @@ class DirectParserASTContentThisExpressionHandle
       {required this.token, required this.context})
       : super("ThisExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "context": context,
@@ -6615,6 +7193,7 @@ class DirectParserASTContentUnaryPostfixAssignmentExpressionHandle
       {required this.token})
       : super("UnaryPostfixAssignmentExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6628,6 +7207,7 @@ class DirectParserASTContentUnaryPrefixExpressionHandle
       {required this.token})
       : super("UnaryPrefixExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6642,6 +7222,7 @@ class DirectParserASTContentUnaryPrefixAssignmentExpressionHandle
       {required this.token})
       : super("UnaryPrefixAssignmentExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6653,6 +7234,7 @@ class DirectParserASTContentFormalParameterDefaultValueExpressionBegin
       DirectParserASTType type)
       : super("FormalParameterDefaultValueExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -6662,6 +7244,7 @@ class DirectParserASTContentFormalParameterDefaultValueExpressionEnd
       DirectParserASTType type)
       : super("FormalParameterDefaultValueExpression", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -6674,6 +7257,7 @@ class DirectParserASTContentValuedFormalParameterHandle
       {required this.equals, required this.token})
       : super("ValuedFormalParameter", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "equals": equals,
         "token": token,
@@ -6689,6 +7273,7 @@ class DirectParserASTContentFormalParameterWithoutValueHandle
       {required this.token})
       : super("FormalParameterWithoutValue", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6701,6 +7286,7 @@ class DirectParserASTContentVoidKeywordHandle extends DirectParserASTContent {
       {required this.token})
       : super("VoidKeyword", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6715,6 +7301,7 @@ class DirectParserASTContentVoidKeywordWithTypeArgumentsHandle
       {required this.token})
       : super("VoidKeywordWithTypeArguments", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6727,6 +7314,7 @@ class DirectParserASTContentYieldStatementBegin extends DirectParserASTContent {
       {required this.token})
       : super("YieldStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6741,6 +7329,7 @@ class DirectParserASTContentYieldStatementEnd extends DirectParserASTContent {
       {required this.yieldToken, this.starToken, required this.endToken})
       : super("YieldStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "yieldToken": yieldToken,
         "starToken": starToken,
@@ -6762,6 +7351,7 @@ class DirectParserASTContentInvalidYieldStatementEnd
       required this.errorCode})
       : super("InvalidYieldStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "beginToken": beginToken,
         "starToken": starToken,
@@ -6780,6 +7370,7 @@ class DirectParserASTContentRecoverableErrorHandle
       {required this.message, required this.startToken, required this.endToken})
       : super("RecoverableError", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "message": message,
         "startToken": startToken,
@@ -6794,6 +7385,7 @@ class DirectParserASTContentErrorTokenHandle extends DirectParserASTContent {
       {required this.token})
       : super("ErrorToken", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6812,6 +7404,7 @@ class DirectParserASTContentUnescapeErrorHandle extends DirectParserASTContent {
       required this.length})
       : super("UnescapeError", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "message": message,
         "location": location,
@@ -6829,6 +7422,7 @@ class DirectParserASTContentInvalidStatementHandle
       {required this.token, required this.message})
       : super("InvalidStatement", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "message": message,
@@ -6842,6 +7436,7 @@ class DirectParserASTContentScriptHandle extends DirectParserASTContent {
       {required this.token})
       : super("Script", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
@@ -6856,6 +7451,7 @@ class DirectParserASTContentCommentReferenceTextHandle
       {required this.referenceSource, required this.referenceOffset})
       : super("CommentReferenceText", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "referenceSource": referenceSource,
         "referenceOffset": referenceOffset,
@@ -6873,6 +7469,7 @@ class DirectParserASTContentCommentReferenceHandle
       {this.newKeyword, this.prefix, this.period, required this.token})
       : super("CommentReference", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "newKeyword": newKeyword,
         "prefix": prefix,
@@ -6886,6 +7483,7 @@ class DirectParserASTContentNoCommentReferenceHandle
   DirectParserASTContentNoCommentReferenceHandle(DirectParserASTType type)
       : super("NoCommentReference", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {};
 }
 
@@ -6897,6 +7495,7 @@ class DirectParserASTContentTypeArgumentApplicationHandle
       {required this.openAngleBracket})
       : super("TypeArgumentApplication", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "openAngleBracket": openAngleBracket,
       };
@@ -6910,6 +7509,7 @@ class DirectParserASTContentNewAsIdentifierHandle
       {required this.token})
       : super("NewAsIdentifier", type);
 
+  @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };

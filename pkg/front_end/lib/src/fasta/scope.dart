@@ -81,6 +81,7 @@ class MutableScope {
 
   Scope? get parent => _parent;
 
+  @override
   String toString() => "Scope($classNameOrDebugName, ${_local.keys})";
 }
 
@@ -604,6 +605,7 @@ class ConstructorScope {
     }
   }
 
+  @override
   String toString() => "ConstructorScope($className, ${local.keys})";
 }
 
@@ -676,14 +678,17 @@ abstract class ProblemBuilder extends BuilderImpl {
 
   final Builder builder;
 
+  @override
   final int charOffset;
 
+  @override
   final Uri fileUri;
 
   ProblemBuilder(this.name, this.builder, this.charOffset, this.fileUri);
 
   get target => null;
 
+  @override
   bool get hasProblem => true;
 
   Message get message;
@@ -778,6 +783,7 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
   @override
   Iterable<Member> get exportedMembers => const [];
 
+  @override
   bool get isNative => false;
 
   @override

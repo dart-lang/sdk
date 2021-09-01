@@ -29,6 +29,7 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,

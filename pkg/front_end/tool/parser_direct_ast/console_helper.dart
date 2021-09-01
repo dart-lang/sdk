@@ -378,7 +378,9 @@ enum BackgroundColor {
 }
 
 class _Output implements WriteOnlyOutput {
+  @override
   final int rows;
+  @override
   final int columns;
   final Uint16List _text;
   final Uint16List _modifiers;
@@ -391,6 +393,7 @@ class _Output implements WriteOnlyOutput {
     return row * columns + column;
   }
 
+  @override
   void setCell(int row, int column,
       {String? char,
       Modifier? modifier,
@@ -475,7 +478,9 @@ class WriteOnlyPartialOutput implements WriteOnlyOutput {
   final WriteOnlyOutput _output;
   final int offsetRow;
   final int offsetColumn;
+  @override
   final int rows;
+  @override
   final int columns;
   WriteOnlyPartialOutput(this._output, this.offsetRow, this.offsetColumn,
       this.rows, this.columns) {

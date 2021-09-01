@@ -47,6 +47,7 @@ class SetLiteralTransformer extends Transformer {
     _addMethodFunctionType = addMethod.getterType as FunctionType;
   }
 
+  @override
   TreeNode visitSetLiteral(SetLiteral node) {
     if (node.isConst) return node;
 

@@ -336,6 +336,7 @@ abstract class _ProcedureEtcChunk extends _SortableChunk {
   _ProcedureEtcChunk(Token startToken, Token endToken)
       : super(startToken, endToken);
 
+  @override
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     printTokenRange(startToken, endToken, sb,
         skipContentOnEndGroupUntilToToken: true);
@@ -393,6 +394,7 @@ class _UnknownChunk extends _TokenChunk {
       this.addMarkerForUnknownForTest, Token startToken, Token endToken)
       : super(startToken, endToken);
 
+  @override
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     if (addMarkerForUnknownForTest) {
       sb.write("---- unknown chunk starts ----\n");
@@ -750,12 +752,14 @@ class TextualOutlineListener extends Listener {
         new _TopLevelFieldsChunk(beginToken, endToken);
   }
 
+  @override
   void endFunctionTypeAlias(
       Token typedefKeyword, Token? equals, Token endToken) {
     elementStartToChunk[typedefKeyword] =
         new _FunctionTypeAliasChunk(typedefKeyword, endToken);
   }
 
+  @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     elementStartToChunk[enumKeyword] =
         new _EnumChunk(enumKeyword, leftBrace.endGroup!);

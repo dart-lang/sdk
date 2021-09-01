@@ -164,6 +164,7 @@ const Object invalidCollectionElement = const Object();
 
 class BodyBuilder extends ScopeListener<JumpTarget>
     implements ExpressionGeneratorHelper, EnsureLoaded, DelayedActionPerformer {
+  @override
   final Forest forest;
 
   // TODO(ahe): Rename [library] to 'part'.
@@ -307,6 +308,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
 
+  @override
   ConstantContext constantContext = ConstantContext.none;
 
   UnresolvedType? currentLocalVariableType;
@@ -445,6 +447,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return isDeclarationInstanceMember || member is ConstructorBuilder;
   }
 
+  @override
   TypeEnvironment get typeEnvironment => typeInferrer.typeSchemaEnvironment;
 
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
@@ -1248,6 +1251,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ///    transformation needed has been performed); and
   /// b) The library is correctly marked as being used to allow for proper
   ///    'dependency pruning'.
+  @override
   void ensureLoaded(Member? member) {
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
@@ -1265,6 +1269,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// This is designed for use with asserts.
   /// See [ensureLoaded] for a description of what 'loaded' means and the ideas
   /// behind that.
+  @override
   bool isLoaded(Member? member) {
     if (member == null) return true;
     Library ensureLibraryLoaded = member.enclosingLibrary;
@@ -1431,6 +1436,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// calculations in another library.  For example, a resolution of a
   /// redirecting factory invocation depends on the type inference in the
   /// redirecting factory.
+  @override
   void performDelayedActions() {
     if (delayedRedirectingFactoryInvocations.isNotEmpty) {
       _resolveRedirectingFactoryTargets(
@@ -1448,6 +1454,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  @override
   bool get hasDelayedActions {
     return delayedRedirectingFactoryInvocations.isNotEmpty;
   }
@@ -3069,6 +3076,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     // TODO(danrubel): Consider improved recovery by adding this block
     // as part of a synthetic top level function.
@@ -4575,6 +4583,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  @override
   Expression buildExtensionMethodInvocation(
       int fileOffset, Procedure target, Arguments arguments,
       {required bool isTearOff}) {
@@ -4846,6 +4855,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ]));
   }
 
+  @override
   Expression createInstantiationAndInvocation(
       Expression Function() receiverFunction,
       List<UnresolvedType>? typeArguments,
@@ -6799,12 +6809,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(
-              typeParameter.name!,
-              builder.nullabilityBuilder,
-              /* arguments = */ null,
-              unresolved.fileUri,
-              unresolved.charOffset)
+          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
+              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,
@@ -7102,6 +7108,7 @@ class Operator {
 
   Operator(this.token, this.charOffset);
 
+  @override
   String toString() => "operator($name)";
 }
 
@@ -7193,6 +7200,7 @@ class LabelTarget extends BuilderImpl implements JumpTarget {
 
   final JumpTarget continueTarget;
 
+  @override
   final int functionNestingLevel;
 
   @override
@@ -7207,40 +7215,52 @@ class LabelTarget extends BuilderImpl implements JumpTarget {
   @override
   Uri get fileUri => parent.fileUri!;
 
+  @override
   bool get hasUsers => breakTarget.hasUsers || continueTarget.hasUsers;
 
+  @override
   List<Statement> get users => unsupported("users", charOffset, fileUri);
 
+  @override
   JumpTargetKind get kind => unsupported("kind", charOffset, fileUri);
 
+  @override
   bool get isBreakTarget => true;
 
+  @override
   bool get isContinueTarget => true;
 
+  @override
   bool get isGotoTarget => false;
 
+  @override
   void addBreak(Statement statement) {
     breakTarget.addBreak(statement);
   }
 
+  @override
   void addContinue(Statement statement) {
     continueTarget.addContinue(statement);
   }
 
+  @override
   void addGoto(Statement statement) {
     unsupported("addGoto", charOffset, fileUri);
   }
 
+  @override
   void resolveBreaks(
       Forest forest, LabeledStatement target, Statement targetStatement) {
     breakTarget.resolveBreaks(forest, target, targetStatement);
   }
 
+  @override
   List<BreakStatementImpl>? resolveContinues(
       Forest forest, LabeledStatement target) {
     return continueTarget.resolveContinues(forest, target);
   }
 
+  @override
   void resolveGotos(Forest forest, SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
@@ -7330,6 +7350,7 @@ class FormalParameters {
         isModifiable: false);
   }
 
+  @override
   String toString() {
     return "FormalParameters($parameters, $charOffset, $uri)";
   }
@@ -7402,6 +7423,7 @@ class Label {
 
   Label(this.name, this.charOffset);
 
+  @override
   String toString() => "label($name)";
 }
 

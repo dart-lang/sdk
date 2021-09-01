@@ -305,6 +305,7 @@ class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
       [Uri initializeFromDillUri])
       : super(context, initializeFromDillUri);
 
+  @override
   void recordTemporaryFileForTesting(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();

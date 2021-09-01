@@ -306,6 +306,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
+  @override
   bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
   @override
@@ -321,9 +322,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return isMixinApplication && !isNamedMixinApplication;
   }
 
+  @override
   bool get declaresConstConstructor =>
       (modifiers & declaresConstConstructorMask) != 0;
 
+  @override
   void forEachConstructor(void Function(String, MemberBuilder) f,
       {bool includeInjectedConstructors: false}) {
     if (isPatch) {
@@ -369,6 +372,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   /// Registers a constructor redirection for this class and returns true if
   /// this redirection gives rise to a cycle that has not been reported before.
+  @override
   bool checkConstructorCyclic(String source, String target) {
     ConstructorRedirection? redirect = new ConstructorRedirection(target);
     _redirectingConstructors ??= <String, ConstructorRedirection>{};
@@ -426,6 +430,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     scope.forEach(f);
   }
 
+  @override
   void forEachDeclaredField(
       void Function(String name, FieldBuilder fieldBuilder) callback) {
     void callbackFilteringFieldBuilders(String name, Builder builder) {
