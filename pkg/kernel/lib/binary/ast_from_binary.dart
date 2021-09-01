@@ -183,7 +183,7 @@ class BinaryBuilder {
             (alwaysCreateNewNamedNodes == true),
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
-  fail(String message) {
+  Never fail(String message) {
     throw ParseError(message,
         byteIndex: _byteOffset, filename: filename, path: debugPath.join('::'));
   }

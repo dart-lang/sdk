@@ -6,12 +6,12 @@ import 'package:kernel/binary/ast_from_binary.dart';
 
 import 'utils.dart';
 
-main() {
-  setCompileMode(Component c, NonNullableByDefaultCompiledMode mode) {
+void main() {
+  void setCompileMode(Component c, NonNullableByDefaultCompiledMode mode) {
     c.setMainMethodAndMode(null, true, mode);
   }
 
-  verifyMode(Component c, NonNullableByDefaultCompiledMode mode) {
+  void verifyMode(Component c, NonNullableByDefaultCompiledMode mode) {
     if (c.mode != mode) {
       throw "Serialized and re-read component had change in mode: "
           "Expected $mode got ${c.mode}.";

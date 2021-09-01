@@ -22,7 +22,7 @@ void usage() {
   exit(1);
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   CommandLineHelper.requireVariableArgumentCount([1, 2], args, usage);
   CommandLineHelper.requireFileExists(args[0]);
   var binary = CommandLineHelper.tryLoadDill(args[0]);

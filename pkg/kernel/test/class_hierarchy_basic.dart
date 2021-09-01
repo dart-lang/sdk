@@ -265,5 +265,5 @@ class BasicClassHierarchy implements ClassHierarchy {
   int getSuperTypeHashTableSize() => 0;
 
   @override
-  noSuchMethod(inv) => super.noSuchMethod(inv);
+  dynamic noSuchMethod(inv) => super.noSuchMethod(inv);
 }

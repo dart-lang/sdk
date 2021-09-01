@@ -7,7 +7,8 @@ import 'dart:io';
 import 'package:kernel/kernel.dart';
 
 class CommandLineHelper {
-  static requireExactlyOneArgument(List<String> args, void Function() usage,
+  static void requireExactlyOneArgument(
+      List<String> args, void Function() usage,
       {bool requireFileExists: false}) {
     if (args.length != 1) {
       print("Expected exactly 1 argument, got ${args.length}.");
@@ -16,7 +17,7 @@ class CommandLineHelper {
     if (requireFileExists) CommandLineHelper.requireFileExists(args[0]);
   }
 
-  static requireVariableArgumentCount(
+  static void requireVariableArgumentCount(
       List<int> ok, List<String> args, void Function() usage) {
     if (!ok.contains(args.length)) {
       print("Expected the argument count to be one of ${ok}, got "
@@ -25,7 +26,7 @@ class CommandLineHelper {
     }
   }
 
-  static requireFileExists(String file) {
+  static void requireFileExists(String file) {
     if (!new File(file).existsSync()) {
       print("File $file doesn't exist.");
       exit(1);

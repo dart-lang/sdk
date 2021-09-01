@@ -10,7 +10,7 @@ import 'package:kernel/kernel.dart'
     show Component, Source, loadComponentFromBytes;
 import 'package:kernel/binary/tag.dart' show Tag;
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 1) {
     throw "Usage: dart <script> <dillfile>";
   }

@@ -31,7 +31,7 @@ class DartTypeCollector extends RecursiveVisitor {
   int numberOfTypes = 0;
 
   @override
-  defaultDartType(DartType node) {
+  void defaultDartType(DartType node) {
     if (!seenTypes.add(node)) return;
     ++numberOfTypes;
     int hash = node.hashCode;

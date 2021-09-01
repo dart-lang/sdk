@@ -106,12 +106,12 @@ class _ImportTableBuilder extends RecursiveVisitor {
   }
 
   @override
-  visitClassReference(Class node) {
+  void visitClassReference(Class node) {
     addLibraryImport(node.enclosingLibrary);
   }
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     super.visitLibrary(node);
     for (Reference exportedReference in node.additionalExports) {
       addLibraryImport(exportedReference.node!.parent as Library);
@@ -119,12 +119,12 @@ class _ImportTableBuilder extends RecursiveVisitor {
   }
 
   @override
-  defaultMemberReference(Member node) {
+  void defaultMemberReference(Member node) {
     addLibraryImport(node.enclosingLibrary);
   }
 
   @override
-  visitName(Name name) {
+  void visitName(Name name) {
     if (name.library != null) {
       addLibraryImport(name.library);
     }

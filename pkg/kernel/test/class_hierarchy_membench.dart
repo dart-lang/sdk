@@ -26,7 +26,7 @@ ${argParser.usage}
 
 /// Builds N copies of the class hierarchy for the given component.
 /// Pass --print-metrics to the Dart VM to measure the memory use.
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length == 0) {
     print(usage);
     exit(1);

@@ -63,7 +63,7 @@ TestCase testCase(String type, Map<String, TypeBound> bounds, String expected) {
   return new TestCase(type, bounds, expected);
 }
 
-main() {
+void main() {
   for (var testCase in testCases) {
     test('$testCase', () {
       var environment = new LazyTypeEnvironment();

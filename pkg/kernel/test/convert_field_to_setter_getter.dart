@@ -6,7 +6,7 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'binary/utils.dart';
 
-main() {
+void main() {
   final Uri lib1Uri = Uri.parse('org-dartlang:///lib.dart');
   final Library lib1 = new Library(lib1Uri, fileUri: lib1Uri);
   final Field field = new Field.mutable(new Name("f"), fileUri: lib1Uri);

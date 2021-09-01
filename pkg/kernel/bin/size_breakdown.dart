@@ -19,7 +19,7 @@ void usage() {
   exit(1);
 }
 
-main(args) {
+void main(args) {
   CommandLineHelper.requireExactlyOneArgument(args, usage,
       requireFileExists: true);
   List<int> bytes = new File(args[0]).readAsBytesSync();

@@ -27,7 +27,7 @@ class NormalNamer<T> extends Namer<T> {
   NormalNamer(this.prefix);
 }
 
-class ConstantNamer extends RecursiveResultVisitor<Null> with Namer<Constant> {
+class ConstantNamer extends RecursiveVisitor with Namer<Constant> {
   @override
   final String prefix;
 
@@ -65,12 +65,12 @@ class ConstantNamer extends RecursiveResultVisitor<Null> with Namer<Constant> {
   }
 
   @override
-  defaultConstantReference(Constant constant) {
+  void defaultConstantReference(Constant constant) {
     getName(constant);
   }
 
   @override
-  defaultDartType(DartType type) {
+  void defaultDartType(DartType type) {
     // No need to recurse into dart types, we only care about naming the
     // constants themselves.
   }
@@ -202,15 +202,15 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  nameVariable(VariableDeclaration node) => variables.getName(node);
-  nameMember(Member node) => members.getName(node);
-  nameClass(Class node) => classes.getName(node);
-  nameExtension(Extension node) => extensions.getName(node);
-  nameLibrary(Library node) => libraries.getName(node);
-  nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
-  nameSwitchCase(SwitchCase node) => labels.getName(node);
-  nameLabeledStatement(LabeledStatement node) => labels.getName(node);
-  nameConstant(Constant node) => constants.getName(node);
+  String nameVariable(VariableDeclaration node) => variables.getName(node);
+  String nameMember(Member node) => members.getName(node);
+  String nameClass(Class node) => classes.getName(node);
+  String nameExtension(Extension node) => extensions.getName(node);
+  String nameLibrary(Library node) => libraries.getName(node);
+  String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
+  String nameSwitchCase(SwitchCase node) => labels.getName(node);
+  String nameLabeledStatement(LabeledStatement node) => labels.getName(node);
+  String nameConstant(Constant node) => constants.getName(node);
 
   final RegExp pathSeparator = new RegExp('[\\/]');
 
@@ -238,7 +238,7 @@ class NameSystem {
     });
   }
 
-  nameCanonicalNameAsLibraryPrefix(Reference? node, CanonicalName? name,
+  String nameCanonicalNameAsLibraryPrefix(Reference? node, CanonicalName? name,
       {String? proposedName}) {
     return prefixes.disambiguate(node, name, () {
       if (proposedName != null) return proposedName;
@@ -708,7 +708,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSupertype(Supertype type) {
+  void visitSupertype(Supertype type) {
     // ignore: unnecessary_null_comparison
     if (type == null) {
       write('<No Supertype>');
@@ -723,7 +723,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypedefType(TypedefType type) {
+  void visitTypedefType(TypedefType type) {
     writeTypedefReference(type.typedefNode);
     if (type.typeArguments.isNotEmpty) {
       writeSymbol('<');
@@ -841,7 +841,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     }
   }
 
-  writeFunctionType(FunctionType node,
+  void writeFunctionType(FunctionType node,
       {List<VariableDeclaration>? typedefPositional,
       List<VariableDeclaration>? typedefNamed}) {
     if (state == WORD) {
@@ -1115,10 +1115,10 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLibrary(Library node) {}
+  void visitLibrary(Library node) {}
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isLate, 'late');
@@ -1163,7 +1163,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
@@ -1231,7 +1231,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
@@ -1255,7 +1255,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitRedirectingFactory(RedirectingFactory node) {
+  void visitRedirectingFactory(RedirectingFactory node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isExternal, 'external');
@@ -1285,7 +1285,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitClass(Class node) {
+  void visitClass(Class node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
@@ -1340,7 +1340,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitExtension(Extension node) {
+  void visitExtension(Extension node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('extension');
@@ -1399,7 +1399,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypedef(Typedef node) {
+  void visitTypedef(Typedef node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('typedef');
@@ -1418,7 +1418,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInvalidExpression(InvalidExpression node) {
+  void visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
     if (node.message != null) {
       writeWord('"${escapeString(node.message!)}"');
@@ -1447,7 +1447,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitDynamicInvocation(DynamicInvocation node) {
+  void visitDynamicInvocation(DynamicInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
     writeName(
@@ -1471,7 +1471,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitFunctionInvocation(FunctionInvocation node) {
+  void visitFunctionInvocation(FunctionInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeFunctionAccessKind(node.kind);
     writeNode(node.arguments);
@@ -1483,7 +1483,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLocalFunctionInvocation(LocalFunctionInvocation node) {
+  void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     writeVariableReference(node.variable);
     writeNode(node.arguments);
     writeSymbol('{');
@@ -1506,7 +1506,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceInvocation(InstanceInvocation node) {
+  void visitInstanceInvocation(InstanceInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -1528,7 +1528,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceGetterInvocation(InstanceGetterInvocation node) {
+  void visitInstanceGetterInvocation(InstanceGetterInvocation node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -1542,7 +1542,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitEqualsCall(EqualsCall node) {
+  void visitEqualsCall(EqualsCall node) {
     int precedence = Precedence.EQUALITY;
     writeExpression(node.left, precedence);
     writeSpace();
@@ -1556,7 +1556,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitEqualsNull(EqualsNull node) {
+  void visitEqualsNull(EqualsNull node) {
     writeExpression(node.expression, Precedence.EQUALITY);
     writeSpace();
     writeSymbol('==');
@@ -1565,7 +1565,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
+  void visitSuperMethodInvocation(SuperMethodInvocation node) {
     writeWord('super');
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -1573,33 +1573,33 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  void visitStaticInvocation(StaticInvocation node) {
     writeModifier(node.isConst, 'const');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  void visitConstructorInvocation(ConstructorInvocation node) {
     writeWord(node.isConst ? 'const' : 'new');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   @override
-  visitNot(Not node) {
+  void visitNot(Not node) {
     writeSymbol('!');
     writeExpression(node.operand, Precedence.PREFIX);
   }
 
   @override
-  visitNullCheck(NullCheck node) {
+  void visitNullCheck(NullCheck node) {
     writeExpression(node.operand, Precedence.POSTFIX);
     writeSymbol('!');
   }
 
   @override
-  visitLogicalExpression(LogicalExpression node) {
+  void visitLogicalExpression(LogicalExpression node) {
     int precedence = Precedence.binaryPrecedence[
         logicalExpressionOperatorToString(node.operatorEnum)]!;
     writeExpression(node.left, precedence);
@@ -1608,7 +1608,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  void visitConditionalExpression(ConditionalExpression node) {
     writeExpression(node.condition, Precedence.LOGICAL_OR);
     ensureSpace();
     write('?');
@@ -1620,7 +1620,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitStringConcatenation(StringConcatenation node) {
+  void visitStringConcatenation(StringConcatenation node) {
     if (state == WORD) {
       writeSpace();
     }
@@ -1639,7 +1639,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitListConcatenation(ListConcatenation node) {
+  void visitListConcatenation(ListConcatenation node) {
     bool first = true;
     for (Expression part in node.lists) {
       if (!first) writeSpaced('+');
@@ -1649,7 +1649,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSetConcatenation(SetConcatenation node) {
+  void visitSetConcatenation(SetConcatenation node) {
     bool first = true;
     for (Expression part in node.sets) {
       if (!first) writeSpaced('+');
@@ -1659,7 +1659,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitMapConcatenation(MapConcatenation node) {
+  void visitMapConcatenation(MapConcatenation node) {
     bool first = true;
     for (Expression part in node.maps) {
       if (!first) writeSpaced('+');
@@ -1669,7 +1669,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceCreation(InstanceCreation node) {
+  void visitInstanceCreation(InstanceCreation node) {
     writeClassReferenceFromReference(node.classReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
@@ -1712,12 +1712,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitFileUriExpression(FileUriExpression node) {
+  void visitFileUriExpression(FileUriExpression node) {
     writeExpression(node.expression);
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  void visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     writeSpaced(
         node.isForNonNullableByDefault ? 'is{ForNonNullableByDefault}' : 'is');
@@ -1725,7 +1725,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     List<String> flags = <String>[];
     if (node.isTypeError) {
@@ -1745,35 +1745,35 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) {
+  void visitSymbolLiteral(SymbolLiteral node) {
     writeSymbol('#');
     writeWord(node.value);
   }
 
   @override
-  visitTypeLiteral(TypeLiteral node) {
+  void visitTypeLiteral(TypeLiteral node) {
     writeType(node.type);
   }
 
   @override
-  visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     writeWord('this');
   }
 
   @override
-  visitRethrow(Rethrow node) {
+  void visitRethrow(Rethrow node) {
     writeWord('rethrow');
   }
 
   @override
-  visitThrow(Throw node) {
+  void visitThrow(Throw node) {
     writeWord('throw');
     writeSpace();
     writeExpression(node.expression);
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     if (node.isConst) {
       writeWord('const');
       writeSpace();
@@ -1790,7 +1790,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  void visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
       writeWord('const');
       writeSpace();
@@ -1807,7 +1807,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
+  void visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       writeWord('const');
       writeSpace();
@@ -1824,50 +1824,50 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitMapLiteralEntry(MapLiteralEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node) {
     writeExpression(node.key);
     writeComma(':');
     writeExpression(node.value);
   }
 
   @override
-  visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     writeWord('await');
     writeExpression(node.operand);
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     writeFunction(node.function, terminateLine: false);
   }
 
   @override
-  visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     writeWord('"${escapeString(node.value)}"');
   }
 
   @override
-  visitIntLiteral(IntLiteral node) {
+  void visitIntLiteral(IntLiteral node) {
     writeWord('${node.value}');
   }
 
   @override
-  visitDoubleLiteral(DoubleLiteral node) {
+  void visitDoubleLiteral(DoubleLiteral node) {
     writeWord('${node.value}');
   }
 
   @override
-  visitBoolLiteral(BoolLiteral node) {
+  void visitBoolLiteral(BoolLiteral node) {
     writeWord('${node.value}');
   }
 
   @override
-  visitNullLiteral(NullLiteral node) {
+  void visitNullLiteral(NullLiteral node) {
     writeWord('null');
   }
 
   @override
-  visitLet(Let node) {
+  void visitLet(Let node) {
     writeWord('let');
     writeVariableDeclaration(node.variable);
     writeSpaced('in');
@@ -1875,7 +1875,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitBlockExpression(BlockExpression node) {
+  void visitBlockExpression(BlockExpression node) {
     writeSpaced('block');
     writeBlockBody(node.body.statements, asExpression: true);
     writeSymbol(' =>');
@@ -1883,7 +1883,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstantiation(Instantiation node) {
+  void visitInstantiation(Instantiation node) {
     writeExpression(node.expression);
     writeSymbol('<');
     writeList(node.typeArguments, writeType);
@@ -1891,7 +1891,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) {
+  void visitLoadLibrary(LoadLibrary node) {
     writeWord('LoadLibrary');
     writeSymbol('(');
     writeWord(node.import.name!);
@@ -1900,7 +1900,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+  void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     writeWord('CheckLibraryIsLoaded');
     writeSymbol('(');
     writeWord(node.import.name!);
@@ -1909,7 +1909,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLibraryPart(LibraryPart node) {
+  void visitLibraryPart(LibraryPart node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeWord('part');
@@ -1918,7 +1918,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLibraryDependency(LibraryDependency node) {
+  void visitLibraryDependency(LibraryDependency node) {
     writeIndentation();
     writeWord(node.isImport ? 'import' : 'export');
     String uriString;
@@ -1961,12 +1961,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     writeWord('${node.runtimeType}');
   }
 
   @override
-  visitVariableGet(VariableGet node) {
+  void visitVariableGet(VariableGet node) {
     writeVariableReference(node.variable);
     DartType? promotedType = node.promotedType;
     if (promotedType != null) {
@@ -1978,7 +1978,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitVariableSet(VariableSet node) {
+  void visitVariableSet(VariableSet node) {
     writeVariableReference(node.variable);
     writeSpaced('=');
     writeExpression(node.value);
@@ -2004,21 +2004,21 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitDynamicGet(DynamicGet node) {
+  void visitDynamicGet(DynamicGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
     writeName(node.name);
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
+  void visitFunctionTearOff(FunctionTearOff node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeSymbol('call');
   }
 
   @override
-  visitInstanceGet(InstanceGet node) {
+  void visitInstanceGet(InstanceGet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -2029,7 +2029,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceTearOff(InstanceTearOff node) {
+  void visitInstanceTearOff(InstanceTearOff node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -2040,7 +2040,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitDynamicSet(DynamicSet node) {
+  void visitDynamicSet(DynamicSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     _writeDynamicAccessKind(node.kind);
     writeName(node.name);
@@ -2049,7 +2049,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceSet(InstanceSet node) {
+  void visitInstanceSet(InstanceSet node) {
     writeExpression(node.receiver, Precedence.PRIMARY);
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -2059,14 +2059,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSuperPropertyGet(SuperPropertyGet node) {
+  void visitSuperPropertyGet(SuperPropertyGet node) {
     writeWord('super');
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
   }
 
   @override
-  visitSuperPropertySet(SuperPropertySet node) {
+  void visitSuperPropertySet(SuperPropertySet node) {
     writeWord('super');
     writeSymbol('.');
     writeInterfaceTarget(node.name, node.interfaceTargetReference);
@@ -2075,34 +2075,34 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitStaticTearOff(StaticTearOff node) {
+  void visitStaticTearOff(StaticTearOff node) {
     writeMemberReferenceFromReference(node.targetReference);
   }
 
   @override
-  visitStaticGet(StaticGet node) {
+  void visitStaticGet(StaticGet node) {
     writeMemberReferenceFromReference(node.targetReference);
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  void visitStaticSet(StaticSet node) {
     writeMemberReferenceFromReference(node.targetReference);
     writeSpaced('=');
     writeExpression(node.value);
   }
 
   @override
-  visitConstructorTearOff(ConstructorTearOff node) {
+  void visitConstructorTearOff(ConstructorTearOff node) {
     writeMemberReferenceFromReference(node.targetReference);
   }
 
   @override
-  visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+  void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
     writeMemberReferenceFromReference(node.targetReference);
   }
 
   @override
-  visitTypedefTearOff(TypedefTearOff node) {
+  void visitTypedefTearOff(TypedefTearOff node) {
     writeTypeParameterList(node.typeParameters);
     state = SYMBOL;
     writeSymbol('.(');
@@ -2117,7 +2117,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  void visitExpressionStatement(ExpressionStatement node) {
     writeIndentation();
     writeExpression(node.expression);
     endLine(';');
@@ -2137,26 +2137,26 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     writeIndentation();
     writeBlockBody(node.statements);
   }
 
   @override
-  visitAssertBlock(AssertBlock node) {
+  void visitAssertBlock(AssertBlock node) {
     writeIndentation();
     writeSpaced('assert');
     writeBlockBody(node.statements);
   }
 
   @override
-  visitEmptyStatement(EmptyStatement node) {
+  void visitEmptyStatement(EmptyStatement node) {
     writeIndentation();
     endLine(';');
   }
 
   @override
-  visitAssertStatement(AssertStatement node, {bool asExpression = false}) {
+  void visitAssertStatement(AssertStatement node, {bool asExpression = false}) {
     if (!asExpression) {
       writeIndentation();
     }
@@ -2176,7 +2176,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  void visitLabeledStatement(LabeledStatement node) {
     writeIndentation();
     writeWord(syntheticNames.nameLabeledStatement(node));
     endLine(':');
@@ -2184,7 +2184,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  void visitBreakStatement(BreakStatement node) {
     writeIndentation();
     writeWord('break');
     writeWord(syntheticNames.nameLabeledStatement(node.target));
@@ -2192,7 +2192,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  void visitWhileStatement(WhileStatement node) {
     writeIndentation();
     writeSpaced('while');
     writeSymbol('(');
@@ -2202,7 +2202,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitDoStatement(DoStatement node) {
+  void visitDoStatement(DoStatement node) {
     writeIndentation();
     writeWord('do');
     writeBody(node.body);
@@ -2214,7 +2214,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     writeIndentation();
     writeSpaced('for');
     writeSymbol('(');
@@ -2231,7 +2231,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitForInStatement(ForInStatement node) {
+  void visitForInStatement(ForInStatement node) {
     writeIndentation();
     if (node.isAsync) {
       writeSpaced('await');
@@ -2246,7 +2246,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     writeIndentation();
     writeWord('switch');
     writeSymbol('(');
@@ -2260,7 +2260,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     String label = syntheticNames.nameSwitchCase(node);
     writeIndentation();
     writeWord(label);
@@ -2282,7 +2282,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     writeIndentation();
     writeWord('continue');
     writeWord(syntheticNames.nameSwitchCase(node.target));
@@ -2290,7 +2290,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     writeIndentation();
     writeWord('if');
     writeSymbol('(');
@@ -2306,7 +2306,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     writeIndentation();
     writeWord('return');
     Expression? expression = node.expression;
@@ -2318,7 +2318,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  void visitTryCatch(TryCatch node) {
     writeIndentation();
     writeWord('try');
     writeBody(node.body);
@@ -2326,7 +2326,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitCatch(Catch node) {
+  void visitCatch(Catch node) {
     writeIndentation();
     // ignore: unnecessary_null_comparison
     if (node.guard != null) {
@@ -2352,7 +2352,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  void visitTryFinally(TryFinally node) {
     writeIndentation();
     writeWord('try');
     writeBody(node.body);
@@ -2362,7 +2362,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  void visitYieldStatement(YieldStatement node) {
     writeIndentation();
     if (node.isYieldStar) {
       writeWord('yield*');
@@ -2376,14 +2376,14 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     writeIndentation();
     writeVariableDeclaration(node, useVarKeyword: true);
     endLine(';');
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
     writeWord('function');
@@ -2425,7 +2425,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitArguments(Arguments node) {
+  void visitArguments(Arguments node) {
     if (node.types.isNotEmpty) {
       writeSymbol('<');
       writeList(node.types, writeType);
@@ -2439,56 +2439,56 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitNamedExpression(NamedExpression node) {
+  void visitNamedExpression(NamedExpression node) {
     writeWord(node.name);
     writeComma(':');
     writeExpression(node.value);
   }
 
   @override
-  defaultStatement(Statement node) {
+  void defaultStatement(Statement node) {
     writeIndentation();
     endLine('${node.runtimeType}');
   }
 
   @override
-  visitInvalidInitializer(InvalidInitializer node) {
+  void visitInvalidInitializer(InvalidInitializer node) {
     writeWord('invalid-initializer');
   }
 
   @override
-  visitFieldInitializer(FieldInitializer node) {
+  void visitFieldInitializer(FieldInitializer node) {
     writeMemberReferenceFromReference(node.fieldReference);
     writeSpaced('=');
     writeExpression(node.value);
   }
 
   @override
-  visitSuperInitializer(SuperInitializer node) {
+  void visitSuperInitializer(SuperInitializer node) {
     writeWord('super');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   @override
-  visitRedirectingInitializer(RedirectingInitializer node) {
+  void visitRedirectingInitializer(RedirectingInitializer node) {
     writeWord('this');
     writeMemberReferenceFromReference(node.targetReference);
     writeNode(node.arguments);
   }
 
   @override
-  visitLocalInitializer(LocalInitializer node) {
+  void visitLocalInitializer(LocalInitializer node) {
     writeVariableDeclaration(node.variable);
   }
 
   @override
-  visitAssertInitializer(AssertInitializer node) {
+  void visitAssertInitializer(AssertInitializer node) {
     visitAssertStatement(node.statement, asExpression: true);
   }
 
   @override
-  defaultInitializer(Initializer node) {
+  void defaultInitializer(Initializer node) {
     writeIndentation();
     endLine(': ${node.runtimeType}');
   }
@@ -2530,33 +2530,33 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInvalidType(InvalidType node) {
+  void visitInvalidType(InvalidType node) {
     writeWord('invalid-type');
   }
 
   @override
-  visitDynamicType(DynamicType node) {
+  void visitDynamicType(DynamicType node) {
     writeWord('dynamic');
   }
 
   @override
-  visitVoidType(VoidType node) {
+  void visitVoidType(VoidType node) {
     writeWord('void');
   }
 
   @override
-  visitNeverType(NeverType node) {
+  void visitNeverType(NeverType node) {
     writeWord('Never');
     writeNullability(node.nullability);
   }
 
   @override
-  visitNullType(NullType node) {
+  void visitNullType(NullType node) {
     writeWord('Null');
   }
 
   @override
-  visitInterfaceType(InterfaceType node) {
+  void visitInterfaceType(InterfaceType node) {
     writeClassReferenceFromReference(node.className);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
@@ -2568,7 +2568,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitExtensionType(ExtensionType node) {
+  void visitExtensionType(ExtensionType node) {
     writeExtensionReferenceFromReference(node.extensionReference);
     if (node.typeArguments.isNotEmpty) {
       writeSymbol('<');
@@ -2580,7 +2580,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitFutureOrType(FutureOrType node) {
+  void visitFutureOrType(FutureOrType node) {
     writeWord('FutureOr');
     writeSymbol('<');
     writeNode(node.typeArgument);
@@ -2589,12 +2589,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitFunctionType(FunctionType node) {
+  void visitFunctionType(FunctionType node) {
     writeFunctionType(node);
   }
 
   @override
-  visitNamedType(NamedType node) {
+  void visitNamedType(NamedType node) {
     writeModifier(node.isRequired, 'required');
     writeWord(node.name);
     writeSymbol(':');
@@ -2603,7 +2603,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypeParameterType(TypeParameterType node) {
+  void visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
     writeNullability(node.declaredNullability);
     DartType? promotedBound = node.promotedBound;
@@ -2622,7 +2622,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(TypeParameter node) {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeAnnotationList(node.annotations, separateLines: false);
     if (node.variance != Variance.covariant) {
@@ -2648,12 +2648,12 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitConstantExpression(ConstantExpression node) {
+  void visitConstantExpression(ConstantExpression node) {
     writeConstantReference(node.constant);
   }
 
   @override
-  defaultConstant(Constant node) {
+  void defaultConstant(Constant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2661,7 +2661,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitNullConstant(NullConstant node) {
+  void visitNullConstant(NullConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2669,7 +2669,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitBoolConstant(BoolConstant node) {
+  void visitBoolConstant(BoolConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2677,7 +2677,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitIntConstant(IntConstant node) {
+  void visitIntConstant(IntConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2685,7 +2685,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitDoubleConstant(DoubleConstant node) {
+  void visitDoubleConstant(DoubleConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2693,7 +2693,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSymbolConstant(SymbolConstant node) {
+  void visitSymbolConstant(SymbolConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2705,7 +2705,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitListConstant(ListConstant node) {
+  void visitListConstant(ListConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2717,7 +2717,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitSetConstant(SetConstant node) {
+  void visitSetConstant(SetConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2729,7 +2729,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitMapConstant(MapConstant node) {
+  void visitMapConstant(MapConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2745,7 +2745,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypeLiteralConstant(TypeLiteralConstant node) {
+  void visitTypeLiteralConstant(TypeLiteralConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2756,7 +2756,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstanceConstant(InstanceConstant node) {
+  void visitInstanceConstant(InstanceConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2781,7 +2781,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitInstantiationConstant(InstantiationConstant node) {
+  void visitInstantiationConstant(InstantiationConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2801,7 +2801,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitStringConstant(StringConstant node) {
+  void visitStringConstant(StringConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2809,7 +2809,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitStaticTearOffConstant(StaticTearOffConstant node) {
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2820,7 +2820,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2841,7 +2841,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitUnevaluatedConstant(UnevaluatedConstant node) {
+  void visitUnevaluatedConstant(UnevaluatedConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2852,7 +2852,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
@@ -2863,7 +2863,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  visitRedirectingFactoryTearOffConstant(
+  void visitRedirectingFactoryTearOffConstant(
       RedirectingFactoryTearOffConstant node) {
     writeIndentation();
     writeConstantReference(node);
@@ -2875,7 +2875,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  defaultNode(Node node) {
+  void defaultNode(Node node) {
     write('<${node.runtimeType}>');
   }
 }

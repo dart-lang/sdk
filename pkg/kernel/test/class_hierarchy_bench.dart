@@ -26,7 +26,7 @@ Options:
 ${argParser.usage}
 ''';
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length == 0) {
     print(usage);
     exit(1);

@@ -159,111 +159,111 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitInvalidExpression(InvalidExpression node) {
+  TreeNode visitInvalidExpression(InvalidExpression node) {
     return new InvalidExpression(
         node.message, node.expression != null ? clone(node.expression!) : null);
   }
 
   @override
-  visitVariableGet(VariableGet node) {
+  TreeNode visitVariableGet(VariableGet node) {
     return new VariableGet(
         getVariableClone(node.variable)!, visitOptionalType(node.promotedType));
   }
 
   @override
-  visitVariableSet(VariableSet node) {
+  TreeNode visitVariableSet(VariableSet node) {
     return new VariableSet(getVariableClone(node.variable)!, clone(node.value));
   }
 
   @override
-  visitSuperPropertyGet(SuperPropertyGet node) {
+  TreeNode visitSuperPropertyGet(SuperPropertyGet node) {
     return new SuperPropertyGet.byReference(
         node.name, node.interfaceTargetReference);
   }
 
   @override
-  visitSuperPropertySet(SuperPropertySet node) {
+  TreeNode visitSuperPropertySet(SuperPropertySet node) {
     return new SuperPropertySet.byReference(
         node.name, clone(node.value), node.interfaceTargetReference);
   }
 
   @override
-  visitStaticGet(StaticGet node) {
+  TreeNode visitStaticGet(StaticGet node) {
     return new StaticGet.byReference(node.targetReference);
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  TreeNode visitStaticSet(StaticSet node) {
     return new StaticSet.byReference(node.targetReference, clone(node.value));
   }
 
   @override
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
+  TreeNode visitSuperMethodInvocation(SuperMethodInvocation node) {
     return new SuperMethodInvocation.byReference(
         node.name, clone(node.arguments), node.interfaceTargetReference);
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  TreeNode visitStaticInvocation(StaticInvocation node) {
     return new StaticInvocation.byReference(
         node.targetReference, clone(node.arguments),
         isConst: node.isConst);
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     return new ConstructorInvocation.byReference(
         node.targetReference, clone(node.arguments),
         isConst: node.isConst);
   }
 
   @override
-  visitNot(Not node) {
+  TreeNode visitNot(Not node) {
     return new Not(clone(node.operand));
   }
 
   @override
-  visitNullCheck(NullCheck node) {
+  TreeNode visitNullCheck(NullCheck node) {
     return new NullCheck(clone(node.operand));
   }
 
   @override
-  visitLogicalExpression(LogicalExpression node) {
+  TreeNode visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
         clone(node.left), node.operatorEnum, clone(node.right));
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  TreeNode visitConditionalExpression(ConditionalExpression node) {
     return new ConditionalExpression(clone(node.condition), clone(node.then),
         clone(node.otherwise), visitType(node.staticType));
   }
 
   @override
-  visitStringConcatenation(StringConcatenation node) {
+  TreeNode visitStringConcatenation(StringConcatenation node) {
     return new StringConcatenation(node.expressions.map(clone).toList());
   }
 
   @override
-  visitListConcatenation(ListConcatenation node) {
+  TreeNode visitListConcatenation(ListConcatenation node) {
     return new ListConcatenation(node.lists.map(clone).toList(),
         typeArgument: visitType(node.typeArgument));
   }
 
   @override
-  visitSetConcatenation(SetConcatenation node) {
+  TreeNode visitSetConcatenation(SetConcatenation node) {
     return new SetConcatenation(node.sets.map(clone).toList(),
         typeArgument: visitType(node.typeArgument));
   }
 
   @override
-  visitMapConcatenation(MapConcatenation node) {
+  TreeNode visitMapConcatenation(MapConcatenation node) {
     return new MapConcatenation(node.maps.map(clone).toList(),
         keyType: visitType(node.keyType), valueType: visitType(node.valueType));
   }
 
   @override
-  visitInstanceCreation(InstanceCreation node) {
+  TreeNode visitInstanceCreation(InstanceCreation node) {
     final Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     node.fieldValues.forEach((Reference fieldRef, Expression value) {
       fieldValues[fieldRef] = clone(value);
@@ -277,61 +277,61 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitFileUriExpression(FileUriExpression node) {
+  TreeNode visitFileUriExpression(FileUriExpression node) {
     return new FileUriExpression(clone(node.expression), _activeFileUri!);
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  TreeNode visitIsExpression(IsExpression node) {
     return new IsExpression(clone(node.operand), visitType(node.type))
       ..flags = node.flags;
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  TreeNode visitAsExpression(AsExpression node) {
     return new AsExpression(clone(node.operand), visitType(node.type))
       ..flags = node.flags;
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) {
+  TreeNode visitSymbolLiteral(SymbolLiteral node) {
     return new SymbolLiteral(node.value);
   }
 
   @override
-  visitTypeLiteral(TypeLiteral node) {
+  TreeNode visitTypeLiteral(TypeLiteral node) {
     return new TypeLiteral(visitType(node.type));
   }
 
   @override
-  visitThisExpression(ThisExpression node) {
+  TreeNode visitThisExpression(ThisExpression node) {
     return new ThisExpression();
   }
 
   @override
-  visitRethrow(Rethrow node) {
+  TreeNode visitRethrow(Rethrow node) {
     return new Rethrow();
   }
 
   @override
-  visitThrow(Throw node) {
+  TreeNode visitThrow(Throw node) {
     return new Throw(clone(node.expression));
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
+  TreeNode visitListLiteral(ListLiteral node) {
     return new ListLiteral(node.expressions.map(clone).toList(),
         typeArgument: visitType(node.typeArgument), isConst: node.isConst);
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  TreeNode visitSetLiteral(SetLiteral node) {
     return new SetLiteral(node.expressions.map(clone).toList(),
         typeArgument: visitType(node.typeArgument), isConst: node.isConst);
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
+  TreeNode visitMapLiteral(MapLiteral node) {
     return new MapLiteral(node.entries.map(clone).toList(),
         keyType: visitType(node.keyType),
         valueType: visitType(node.valueType),
@@ -339,85 +339,85 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitMapLiteralEntry(MapLiteralEntry node) {
+  TreeNode visitMapLiteralEntry(MapLiteralEntry node) {
     return new MapLiteralEntry(clone(node.key), clone(node.value));
   }
 
   @override
-  visitAwaitExpression(AwaitExpression node) {
+  TreeNode visitAwaitExpression(AwaitExpression node) {
     return new AwaitExpression(clone(node.operand));
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  TreeNode visitFunctionExpression(FunctionExpression node) {
     return new FunctionExpression(clone(node.function));
   }
 
   @override
-  visitConstantExpression(ConstantExpression node) {
+  TreeNode visitConstantExpression(ConstantExpression node) {
     return new ConstantExpression(
         visitConstant(node.constant), visitType(node.type));
   }
 
   @override
-  visitStringLiteral(StringLiteral node) {
+  TreeNode visitStringLiteral(StringLiteral node) {
     return new StringLiteral(node.value);
   }
 
   @override
-  visitIntLiteral(IntLiteral node) {
+  TreeNode visitIntLiteral(IntLiteral node) {
     return new IntLiteral(node.value);
   }
 
   @override
-  visitDoubleLiteral(DoubleLiteral node) {
+  TreeNode visitDoubleLiteral(DoubleLiteral node) {
     return new DoubleLiteral(node.value);
   }
 
   @override
-  visitBoolLiteral(BoolLiteral node) {
+  TreeNode visitBoolLiteral(BoolLiteral node) {
     return new BoolLiteral(node.value);
   }
 
   @override
-  visitNullLiteral(NullLiteral node) {
+  TreeNode visitNullLiteral(NullLiteral node) {
     return new NullLiteral();
   }
 
   @override
-  visitLet(Let node) {
+  TreeNode visitLet(Let node) {
     VariableDeclaration newVariable = clone(node.variable);
     return new Let(newVariable, clone(node.body));
   }
 
   @override
-  visitBlockExpression(BlockExpression node) {
+  TreeNode visitBlockExpression(BlockExpression node) {
     return new BlockExpression(clone(node.body), clone(node.value));
   }
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  TreeNode visitExpressionStatement(ExpressionStatement node) {
     return new ExpressionStatement(clone(node.expression));
   }
 
   @override
-  visitBlock(Block node) {
+  TreeNode visitBlock(Block node) {
     return new Block(node.statements.map(clone).toList())
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
   @override
-  visitAssertBlock(AssertBlock node) {
+  TreeNode visitAssertBlock(AssertBlock node) {
     return new AssertBlock(node.statements.map(clone).toList());
   }
 
   @override
-  visitEmptyStatement(EmptyStatement node) {
+  TreeNode visitEmptyStatement(EmptyStatement node) {
     return new EmptyStatement();
   }
 
   @override
-  visitAssertStatement(AssertStatement node) {
+  TreeNode visitAssertStatement(AssertStatement node) {
     return new AssertStatement(clone(node.condition),
         conditionStartOffset: node.conditionStartOffset,
         conditionEndOffset: node.conditionEndOffset,
@@ -425,7 +425,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  TreeNode visitLabeledStatement(LabeledStatement node) {
     LabeledStatement newNode = new LabeledStatement(null);
     labels[node] = newNode;
     newNode.body = clone(node.body)..parent = newNode;
@@ -433,29 +433,29 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  TreeNode visitBreakStatement(BreakStatement node) {
     return new BreakStatement(labels[node.target]!);
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  TreeNode visitWhileStatement(WhileStatement node) {
     return new WhileStatement(clone(node.condition), clone(node.body));
   }
 
   @override
-  visitDoStatement(DoStatement node) {
+  TreeNode visitDoStatement(DoStatement node) {
     return new DoStatement(clone(node.body), clone(node.condition));
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  TreeNode visitForStatement(ForStatement node) {
     List<VariableDeclaration> variables = node.variables.map(clone).toList();
     return new ForStatement(variables, cloneOptional(node.condition),
         node.updates.map(clone).toList(), clone(node.body));
   }
 
   @override
-  visitForInStatement(ForInStatement node) {
+  TreeNode visitForInStatement(ForInStatement node) {
     VariableDeclaration newVariable = clone(node.variable);
     return new ForInStatement(
         newVariable, clone(node.iterable), clone(node.body),
@@ -464,7 +464,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  TreeNode visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase switchCase in node.cases) {
       switchCases[switchCase] = new SwitchCase(
           switchCase.expressions.map(clone).toList(),
@@ -477,36 +477,36 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
+  TreeNode visitSwitchCase(SwitchCase node) {
     SwitchCase switchCase = switchCases[node]!;
     switchCase.body = clone(node.body)..parent = switchCase;
     return switchCase;
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
+  TreeNode visitContinueSwitchStatement(ContinueSwitchStatement node) {
     return new ContinueSwitchStatement(switchCases[node.target]!);
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  TreeNode visitIfStatement(IfStatement node) {
     return new IfStatement(
         clone(node.condition), clone(node.then), cloneOptional(node.otherwise));
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  TreeNode visitReturnStatement(ReturnStatement node) {
     return new ReturnStatement(cloneOptional(node.expression));
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  TreeNode visitTryCatch(TryCatch node) {
     return new TryCatch(clone(node.body), node.catches.map(clone).toList(),
         isSynthetic: node.isSynthetic);
   }
 
   @override
-  visitCatch(Catch node) {
+  TreeNode visitCatch(Catch node) {
     VariableDeclaration? newException = cloneOptional(node.exception);
     VariableDeclaration? newStackTrace = cloneOptional(node.stackTrace);
     return new Catch(newException, clone(node.body),
@@ -514,17 +514,17 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  TreeNode visitTryFinally(TryFinally node) {
     return new TryFinally(clone(node.body), clone(node.finalizer));
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  TreeNode visitYieldStatement(YieldStatement node) {
     return new YieldStatement(clone(node.expression))..flags = node.flags;
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  TreeNode visitVariableDeclaration(VariableDeclaration node) {
     return setVariableClone(
         node,
         new VariableDeclaration(node.name,
@@ -538,7 +538,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  TreeNode visitFunctionDeclaration(FunctionDeclaration node) {
     VariableDeclaration newVariable = clone(node.variable);
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
@@ -587,7 +587,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  TreeNode visitFunctionNode(FunctionNode node) {
     prepareTypeParameters(node.typeParameters);
     List<TypeParameter> typeParameters =
         node.typeParameters.map(clone).toList();
@@ -606,119 +606,119 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   @override
-  visitArguments(Arguments node) {
+  TreeNode visitArguments(Arguments node) {
     return new Arguments(node.positional.map(clone).toList(),
         types: node.types.map(visitType).toList(),
         named: node.named.map(clone).toList());
   }
 
   @override
-  visitNamedExpression(NamedExpression node) {
+  TreeNode visitNamedExpression(NamedExpression node) {
     return new NamedExpression(node.name, clone(node.value));
   }
 
   @override
-  defaultBasicLiteral(BasicLiteral node) {
+  TreeNode defaultBasicLiteral(BasicLiteral node) {
     return defaultExpression(node);
   }
 
   @override
-  defaultExpression(Expression node) {
+  TreeNode defaultExpression(Expression node) {
     throw 'Unimplemented clone for Kernel expression: $node';
   }
 
   @override
-  defaultInitializer(Initializer node) {
+  TreeNode defaultInitializer(Initializer node) {
     throw 'Unimplemented clone for Kernel initializer: $node';
   }
 
   @override
-  defaultMember(Member node) {
+  TreeNode defaultMember(Member node) {
     throw 'Unimplemented clone for Kernel member: $node';
   }
 
   @override
-  defaultStatement(Statement node) {
+  TreeNode defaultStatement(Statement node) {
     throw 'Unimplemented clone for Kernel statement: $node';
   }
 
   @override
-  defaultTreeNode(TreeNode node) {
+  TreeNode defaultTreeNode(TreeNode node) {
     throw 'Cloning Kernel non-members is not supported.  '
         'Tried cloning $node';
   }
 
   @override
-  visitAssertInitializer(AssertInitializer node) {
+  TreeNode visitAssertInitializer(AssertInitializer node) {
     return new AssertInitializer(clone(node.statement));
   }
 
   @override
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+  TreeNode visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     return new CheckLibraryIsLoaded(node.import);
   }
 
   @override
-  visitCombinator(Combinator node) {
+  TreeNode visitCombinator(Combinator node) {
     return defaultTreeNode(node);
   }
 
   @override
-  visitFieldInitializer(FieldInitializer node) {
+  TreeNode visitFieldInitializer(FieldInitializer node) {
     return new FieldInitializer.byReference(
         node.fieldReference, clone(node.value));
   }
 
   @override
-  visitInstantiation(Instantiation node) {
+  TreeNode visitInstantiation(Instantiation node) {
     return new Instantiation(
         clone(node.expression), node.typeArguments.map(visitType).toList());
   }
 
   @override
-  visitInvalidInitializer(InvalidInitializer node) {
+  TreeNode visitInvalidInitializer(InvalidInitializer node) {
     return new InvalidInitializer();
   }
 
   @override
-  visitLibraryDependency(LibraryDependency node) {
+  TreeNode visitLibraryDependency(LibraryDependency node) {
     return defaultTreeNode(node);
   }
 
   @override
-  visitLibraryPart(LibraryPart node) {
+  TreeNode visitLibraryPart(LibraryPart node) {
     return defaultTreeNode(node);
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) {
+  TreeNode visitLoadLibrary(LoadLibrary node) {
     return new LoadLibrary(node.import);
   }
 
   @override
-  visitLocalInitializer(LocalInitializer node) {
+  TreeNode visitLocalInitializer(LocalInitializer node) {
     return new LocalInitializer(clone(node.variable));
   }
 
   @override
-  visitComponent(Component node) {
+  TreeNode visitComponent(Component node) {
     return defaultTreeNode(node);
   }
 
   @override
-  visitRedirectingInitializer(RedirectingInitializer node) {
+  TreeNode visitRedirectingInitializer(RedirectingInitializer node) {
     return new RedirectingInitializer.byReference(
         node.targetReference, clone(node.arguments));
   }
 
   @override
-  visitSuperInitializer(SuperInitializer node) {
+  TreeNode visitSuperInitializer(SuperInitializer node) {
     return new SuperInitializer.byReference(
         node.targetReference, clone(node.arguments));
   }
 
   @override
-  visitTypedef(Typedef node) {
+  TreeNode visitTypedef(Typedef node) {
     return defaultTreeNode(node);
   }
 

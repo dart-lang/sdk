@@ -655,49 +655,20 @@ List<ParsedTypeVariable> parseTypeVariables(String text) {
   return result;
 }
 
-abstract class DefaultAction<R, A> {
-  R defaultAction(ParsedType node, A a);
-
-  static perform<R, A>(Visitor<R, A> visitor, ParsedType node, A a) {
-    if (visitor is DefaultAction<R, A>) {
-      DefaultAction<R, A> defaultAction = visitor as DefaultAction<R, A>;
-      return defaultAction.defaultAction(node, a);
-    } else {
-      return null;
-    }
-  }
-}
-
 abstract class Visitor<R, A> {
-  R visitInterfaceType(ParsedInterfaceType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitInterfaceType(ParsedInterfaceType node, A a);
 
-  R visitClass(ParsedClass node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitClass(ParsedClass node, A a);
 
-  R visitExtension(ParsedExtension node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitExtension(ParsedExtension node, A a);
 
-  R visitTypedef(ParsedTypedef node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitTypedef(ParsedTypedef node, A a);
 
-  R visitFunctionType(ParsedFunctionType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitFunctionType(ParsedFunctionType node, A a);
 
-  R visitVoidType(ParsedVoidType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitVoidType(ParsedVoidType node, A a);
 
-  R visitTypeVariable(ParsedTypeVariable node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitTypeVariable(ParsedTypeVariable node, A a);
 
-  R visitIntersectionType(ParsedIntersectionType node, A a) {
-    return DefaultAction.perform<R, A>(this, node, a);
-  }
+  R visitIntersectionType(ParsedIntersectionType node, A a);
 }

@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 ///
 /// We mostly test negative cases here, as we get plenty of positive cases by
 /// compiling the Dart test suite with the verifier enabled.
-main() {
+void main() {
   positiveTest(
     'Test harness has no errors',
     (TestHarness test) {
@@ -672,7 +672,7 @@ main() {
   );
 }
 
-checkHasError(Component component, Matcher matcher) {
+void checkHasError(Component component, Matcher matcher) {
   try {
     verifyComponent(component);
   } on VerificationError catch (e) {
@@ -802,7 +802,7 @@ class TestHarness {
   }
 }
 
-negative1Test(String name, Node? Function(TestHarness test) nodeProvider,
+void negative1Test(String name, Node? Function(TestHarness test) nodeProvider,
     dynamic Function(Node? node) matcher) {
   TestHarness testHarness = new TestHarness();
   Node? node = nodeProvider(testHarness);
@@ -818,7 +818,9 @@ negative1Test(String name, Node? Function(TestHarness test) nodeProvider,
   );
 }
 
-negative2Test(String name, List<Node?> Function(TestHarness test) nodeProvider,
+void negative2Test(
+    String name,
+    List<Node?> Function(TestHarness test) nodeProvider,
     dynamic Function(Node? node, Node? other) matcher) {
   TestHarness testHarness = new TestHarness();
   List<Node?> nodes = nodeProvider(testHarness);
@@ -835,7 +837,7 @@ negative2Test(String name, List<Node?> Function(TestHarness test) nodeProvider,
   );
 }
 
-simpleNegativeTest(String name, dynamic matcher,
+void simpleNegativeTest(String name, dynamic matcher,
     void Function(TestHarness test) makeTestCase) {
   TestHarness testHarness = new TestHarness();
   test(
@@ -850,7 +852,7 @@ simpleNegativeTest(String name, dynamic matcher,
   );
 }
 
-positiveTest(String name, void makeTestCase(TestHarness test)) {
+void positiveTest(String name, void makeTestCase(TestHarness test)) {
   test(
     name,
     () {

@@ -100,7 +100,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   }
 
   @override
-  visitField(Field node, TreeNode? removalSentinel) {
+  TreeNode visitField(Field node, TreeNode? removalSentinel) {
     staticTypeContext.enterMember(node);
     final result = super.visitField(node, removalSentinel);
     staticTypeContext.leaveMember(node);
@@ -108,7 +108,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   }
 
   @override
-  visitConstructor(Constructor node, TreeNode? removalSentinel) {
+  TreeNode visitConstructor(Constructor node, TreeNode? removalSentinel) {
     staticTypeContext.enterMember(node);
     final result = super.visitConstructor(node, removalSentinel);
     staticTypeContext.leaveMember(node);
@@ -116,7 +116,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   }
 
   @override
-  visitProcedure(Procedure node, TreeNode? removalSentinel) {
+  TreeNode visitProcedure(Procedure node, TreeNode? removalSentinel) {
     staticTypeContext.enterMember(node);
     final result =
         node.isAbstract ? node : super.visitProcedure(node, removalSentinel);
@@ -125,7 +125,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   }
 
   @override
-  visitLibrary(Library node, TreeNode? removalSentinel) {
+  TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
     staticTypeContext.enterLibrary(node);
     Library result = super.visitLibrary(node, removalSentinel) as Library;
     staticTypeContext.leaveLibrary(node);
@@ -133,7 +133,7 @@ class RecursiveContinuationRewriter extends RemovingTransformer {
   }
 
   @override
-  visitFunctionNode(FunctionNode node, TreeNode? removalSentinel) {
+  TreeNode visitFunctionNode(FunctionNode node, TreeNode? removalSentinel) {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
       case AsyncMarker.SyncYielding:
@@ -497,7 +497,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
   }
 
   @override
-  visitYieldStatement(YieldStatement node, TreeNode? removalSentinel) {
+  TreeNode visitYieldStatement(YieldStatement node, TreeNode? removalSentinel) {
     Expression transformedExpression = transform(node.expression);
 
     var statements = <Statement>[];
@@ -1194,7 +1194,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   @override
-  defaultExpression(TreeNode node, TreeNode? removalSentinel) =>
+  TreeNode defaultExpression(TreeNode node, TreeNode? removalSentinel) =>
       throw 'unreachable $node';
 }
 
@@ -1447,7 +1447,8 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   }
 
   @override
-  visitReturnStatement(ReturnStatement node, TreeNode? removalSentinel) {
+  TreeNode visitReturnStatement(
+      ReturnStatement node, TreeNode? removalSentinel) {
     var expr = node.expression == null
         ? new NullLiteral()
         : expressionRewriter!.rewrite(node.expression!, statements);

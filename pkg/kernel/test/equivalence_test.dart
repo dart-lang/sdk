@@ -125,7 +125,7 @@ Inequivalent references:
 '''),
 ];
 
-main() {
+void main() {
   for (Test test in tests) {
     EquivalenceResult result =
         checkEquivalence(test.a, test.b, strategy: test.strategy);

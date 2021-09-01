@@ -42,7 +42,7 @@ class Indentation {
 
   /// Calls [f] with one more indentation level, restoring indentation context
   /// upon return of [f] and returning its result.
-  indentBlock(Function f) {
+  void indentBlock(Function f) {
     indentMore();
     dynamic result = f();
     indentLess();

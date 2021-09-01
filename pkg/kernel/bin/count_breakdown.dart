@@ -17,7 +17,7 @@ void usage() {
   exit(1);
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   CommandLineHelper.requireExactlyOneArgument(args, usage,
       requireFileExists: true);
   Component component = CommandLineHelper.tryLoadDill(args[0]);
@@ -30,13 +30,13 @@ class TypeCounter extends RecursiveVisitor {
   Map<String, int> _typeCounts = <String, int>{};
 
   @override
-  defaultNode(Node node) {
+  void defaultNode(Node node) {
     String key = node.runtimeType.toString();
     _typeCounts[key] = (_typeCounts[key] ??= 0) + 1;
     super.defaultNode(node);
   }
 
-  printStats() {
+  void printStats() {
     List<List<Object>> data = [];
     _typeCounts.forEach((type, count) {
       data.add([type, count]);

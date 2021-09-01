@@ -21,7 +21,7 @@ void usage() {
   exit(1);
 }
 
-main(args) async {
+void main(args) async {
   CommandLineHelper.requireExactlyOneArgument(args, usage,
       requireFileExists: true);
   Component binary = CommandLineHelper.tryLoadDill(args[0]);
