@@ -153,7 +153,7 @@ vars = {
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
-  "sse_rev": "d505b383768889a1e3e90097684e929a9e6d6b8f",
+  "sse_rev": "9084339389eb441d0c0518cddac211a097e78657",
   "stack_trace_rev": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
   "stream_channel_rev": "d7251e61253ec389ee6e045ee1042311bced8f1d",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
