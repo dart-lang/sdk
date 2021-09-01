@@ -100,13 +100,7 @@ const uint8_t* Image::build_id() const {
   if (extra_info_->build_id_offset_ != kNoBuildId) {
     auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    // Check that we have a final build ID. A non-final build ID will either
-    // have a description length of 0 or an initial byte of 0.
-    auto const description = note->data + note->name_size;
-    auto const length = note->description_size;
-    if (length != 0 && description[0] != 0) {
-      return description;
-    }
+    return note->data + note->name_size;
   }
 #endif
   return nullptr;
@@ -118,13 +112,7 @@ intptr_t Image::build_id_length() const {
   if (extra_info_->build_id_offset_ != kNoBuildId) {
     auto const note = reinterpret_cast<elf::Note*>(
         raw_memory_ + extra_info_->build_id_offset_);
-    // Check that we have a final build ID. A non-final build ID will either
-    // have a description length of 0 or an initial byte of 0.
-    auto const description = note->data + note->name_size;
-    auto const length = note->description_size;
-    if (length != 0 && description[0] != 0) {
-      return length;
-    }
+    return note->description_size;
   }
 #endif
   return 0;
