@@ -160,7 +160,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     // Determine output file name.
     String outputFile = argResults[commonOptions['outputFile'].flag];
     if (outputFile == null) {
-      final inputWithoutDart = sourcePath.replaceFirst(RegExp(r'\.dart$'), '');
+      final inputWithoutDart = sourcePath.endsWith('.dart')
+          ? sourcePath.substring(0, sourcePath.length - 5)
+          : sourcePath;
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
