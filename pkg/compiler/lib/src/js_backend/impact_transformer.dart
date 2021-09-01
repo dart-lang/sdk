@@ -179,8 +179,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.TYPE_LITERAL:
           _customElementsResolutionAnalysis.registerTypeLiteral(type);
-          var typeWithoutNullability = type.withoutNullability;
-          if (typeWithoutNullability is TypeVariableType) {
+          type.forEachTypeVariable((TypeVariableType variable) {
+            TypeVariableType typeWithoutNullability =
+                variable.withoutNullability;
             Entity typeDeclaration =
                 typeWithoutNullability.element.typeDeclaration;
             if (typeDeclaration is ClassEntity) {
@@ -194,7 +195,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
                   typeDeclaration);
             }
             registerImpact(_impacts.typeVariableExpression);
-          }
+          });
           hasTypeLiteral = true;
           break;
         case TypeUseKind.RTI_VALUE:
