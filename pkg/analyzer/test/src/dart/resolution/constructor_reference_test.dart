@@ -230,14 +230,7 @@ void bar() {
   A<int>.foo<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 42,
-          10),
-      // TODO(srawlins): Stop reporting the error below; the code is not
-      // precise, and it is duplicate with the code above.
-      error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          52,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
           5),
     ]);
 

@@ -102,8 +102,8 @@ main() {
   Foo.bar<int>.baz();
 //    ^
 // [cfe] Couldn't find constructor 'bar'.
-//             ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+//       ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar.baz<int>();
 //    ^
 // [cfe] Member not found: 'bar'.

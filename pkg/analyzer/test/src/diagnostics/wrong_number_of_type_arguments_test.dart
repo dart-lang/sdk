@@ -123,8 +123,6 @@ f(void Function<T, U>() foo, void Function<T, U>() bar) {
   (1 == 2 ? foo : bar)<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 60,
-          20),
       error(
           CompileTimeErrorCode
               .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
