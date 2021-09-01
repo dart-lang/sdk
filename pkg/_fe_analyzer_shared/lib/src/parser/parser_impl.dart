@@ -4486,9 +4486,7 @@ class Parser {
         begin = next = token.next!;
         // Fall through to parse the block.
       } else {
-        token = ensureBlock(
-            token,
-            codes.templateExpectedFunctionBody,
+        token = ensureBlock(token, codes.templateExpectedFunctionBody,
             /* missingBlockName = */ null);
         listener.handleInvalidFunctionBody(token);
         return token.endGroup!;
@@ -4951,6 +4949,19 @@ class Parser {
           // Right associative, so we recurse at the same precedence
           // level.
           Token next = token.next!;
+          if (optional(">=", next.next!)) {
+            // Special case use of triple-shift in cases where it isn't
+            // enabled.
+            reportRecoverableErrorWithEnd(
+                next,
+                next.next!,
+                codes.templateExperimentNotEnabled
+                    .withArguments("triple-shift", "2.14"));
+            assert(next == operator);
+            next = rewriter.replaceNextTokensWithSyntheticToken(
+                token, 2, TokenType.GT_GT_GT_EQ);
+            operator = next;
+          }
           token = optional('throw', next.next!)
               ? parseThrowExpression(next, /* allowCascades = */ false)
               : parsePrecedenceExpression(next, level, allowCascades);
@@ -5041,18 +5052,10 @@ class Parser {
                   next.next!,
                   codes.templateExperimentNotEnabled
                       .withArguments("triple-shift", "2.14"));
+              assert(next == operator);
               next = rewriter.replaceNextTokensWithSyntheticToken(
                   token, 2, TokenType.GT_GT_GT);
-            } else if (optional(">=", next.next!)) {
-              // Special case use of triple-shift in cases where it isn't
-              // enabled.
-              reportRecoverableErrorWithEnd(
-                  next,
-                  next.next!,
-                  codes.templateExperimentNotEnabled
-                      .withArguments("triple-shift", "2.14"));
-              next = rewriter.replaceNextTokensWithSyntheticToken(
-                  token, 2, TokenType.GT_GT_GT_EQ);
+              operator = next;
             }
           }
           listener.beginBinaryExpression(next);
@@ -5201,6 +5204,14 @@ class Parser {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
+    } else if (identical(type, TokenType.GT_GT)) {
+      // ">>" followed by ">=" (without space between tokens) should for
+      // recovery be seen as ">>>=".
+      TokenType nextType = token.next!.type;
+      if (identical(nextType, TokenType.GT_EQ) &&
+          token.charEnd == token.next!.offset) {
+        return TokenType.GT_GT_GT_EQ.precedence;
+      }
     } else if (identical(type, TokenType.QUESTION) &&
         optional('[', token.next!)) {
       // "?[" can be a null-aware bracket or a conditional. If it's a
