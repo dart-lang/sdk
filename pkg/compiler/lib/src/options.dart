@@ -268,6 +268,10 @@ class CompilerOptions implements DiagnosticOptions {
   // Whether or not to stop compilation after splitting the
   bool stopAfterProgramSplit = false;
 
+  /// Reads a program split json file and applies the parsed constraints to
+  /// deferred loading.
+  Uri? readProgramSplit;
+
   /// Diagnostic option: If `true`, warnings cause the compilation to fail.
   @override
   bool fatalWarnings = false;
@@ -631,6 +635,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
+      ..readProgramSplit =
+          _extractUriOption(options, '${Flags.readProgramSplit}=')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
       ..noClosedWorldInData = _hasOption(options, Flags.noClosedWorldInData)

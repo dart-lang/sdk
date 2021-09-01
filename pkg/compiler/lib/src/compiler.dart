@@ -20,6 +20,9 @@ import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
+import 'deferred_load/program_split_constraints/nodes.dart' as psc
+    show ConstraintData;
+import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
@@ -120,6 +123,8 @@ abstract class Compiler {
   int phase;
 
   bool compilationFailed = false;
+
+  psc.ConstraintData programSplitConstraintsData;
 
   // Callback function used for testing resolution enqueuing.
   void Function() onResolutionQueueEmptyForTesting;
@@ -241,6 +246,12 @@ abstract class Compiler {
     clearState();
     assert(uri != null);
     reporter.log('Compiling $uri (${options.buildId})');
+
+    if (options.readProgramSplit != null) {
+      var constraintParser = psc.Parser();
+      programSplitConstraintsData =
+          await constraintParser.read(provider, options.readProgramSplit);
+    }
 
     if (onlyPerformGlobalTypeInference) {
       ir.Component component =
