@@ -38,9 +38,11 @@ class ViewFooterElement extends CustomElement implements Renderable {
   void render() {
     children = <Element>[
       new AnchorElement()
+        // ignore: unsafe_html
         ..href = 'https://dart-lang.github.io/observatory/'
         ..text = 'View documentation',
       new AnchorElement()
+        // ignore: unsafe_html
         ..href =
             'https://github.com/dart-lang/sdk/issues/new?title=Observatory:&amp;body=Observatory%20Feedback'
         ..text = 'File a bug report'

@@ -642,6 +642,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     var blob = new Blob(_snapshotA.chunks, 'application/octet-stream');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
+    // ignore: unsafe_html
     link.href = blobUrl;
     var now = new DateTime.now();
     link.download = 'dart-heap-${now.year}-${now.month}-${now.day}.bin';
