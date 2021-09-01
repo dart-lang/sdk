@@ -18,13 +18,13 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-static method _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#new#tearOff::Y%>
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#new#tearOff::Y%>
   return new typ::A::•<self::_#H#new#tearOff::Y%>();
-static method _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → typ::A<self::_#H#named#tearOff::Y%>
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → typ::A<self::_#H#named#tearOff::Y%>
   return new typ::A::named<self::_#H#named#tearOff::Y%>(a, b);
-static method _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → typ::A<self::_#H#fact#tearOff::Y%>
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → typ::A<self::_#H#fact#tearOff::Y%>
   return typ::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
-static method _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
 
 library /*isNonNullableByDefault*/;

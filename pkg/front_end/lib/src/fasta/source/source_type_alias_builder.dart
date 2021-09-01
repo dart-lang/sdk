@@ -316,8 +316,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           Name targetName =
               new Name(constructorName, declaration.library.library);
           Procedure tearOff = tearOffs![targetName] =
-              createTypedefTearOffProcedure(
-                  name, constructorName, library, fileUri, charOffset);
+              createTypedefTearOffProcedure(name, constructorName, library,
+                  target.fileUri, target.fileOffset);
           _tearOffDependencies![tearOff] = target;
 
           buildTypedefTearOffProcedure(tearOff, target, declaration.cls,
