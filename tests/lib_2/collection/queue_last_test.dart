@@ -4,19 +4,19 @@
 
 // @dart = 2.9
 
-library queue.single.test;
+library queue.last.test;
 
 import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 main() {
   Queue<int> queue1 = new Queue<int>();
-  queue1.add(42);
+  queue1
+    ..add(11)
+    ..add(12)
+    ..add(13);
   Queue queue2 = new Queue();
-  queue2..add(11)..add(12)..add(13);
-  Queue queue3 = new Queue();
 
-  Expect.equals(42, queue1.single);
-  Expect.throwsStateError(() => queue2.single);
-  Expect.throwsStateError(() => queue3.single);
+  Expect.equals(13, queue1.last);
+  Expect.throwsStateError(() => queue2.last);
 }

@@ -53,11 +53,27 @@ class FunctionReferenceResolver {
       _resolvePrefixedIdentifierFunction(node, function);
     } else if (function is PropertyAccessImpl) {
       _resolvePropertyAccessFunction(node, function);
+    } else if (function is ConstructorReferenceImpl) {
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        // Something like `List.filled<int>`.
+        function.accept(_resolver);
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          typeArguments,
+          [function.constructorName.type.name, function.constructorName.name],
+        );
+        _resolve(node: node, rawType: function.staticType);
+      }
     } else {
       // TODO(srawlins): Handle `function` being a [SuperExpression].
 
       function.accept(_resolver);
-      _resolveDisallowedExpression(node, node.function.staticType);
+      if (function.staticType is FunctionType) {
+        _resolve(node: node, rawType: function.staticType);
+      } else {
+        _resolveDisallowedExpression(node, function.staticType);
+      }
     }
   }
 
@@ -144,16 +160,33 @@ class FunctionReferenceResolver {
     }
 
     if (rawType is FunctionType) {
-      var typeArguments = _checkTypeArguments(
-        // `node.typeArguments`, coming from the parser, is never null.
-        node.typeArguments!, name, rawType.typeFormals,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-      );
+      // A FunctionReference with type arguments and with a
+      // ConstructorReference child is invalid. E.g. `List.filled<int>`.
+      // [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR] is
+      // reported elsewhere; don't check type arguments here.
+      if (node.function is ConstructorReference) {
+        node.staticType = DynamicTypeImpl.instance;
+      } else {
+        var typeArguments = _checkTypeArguments(
+          // `node.typeArguments`, coming from the parser, is never null.
+          node.typeArguments!, name, rawType.typeFormals,
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+        );
 
-      var invokeType = rawType.instantiate(typeArguments);
-      node.typeArgumentTypes = typeArguments;
-      node.staticType = invokeType;
+        var invokeType = rawType.instantiate(typeArguments);
+        node.typeArgumentTypes = typeArguments;
+        node.staticType = invokeType;
+      }
     } else {
+      if (_resolver.isConstructorTearoffsEnabled) {
+        // Only report constructor tearoff-related errors if the constructor
+        // tearoff feature is enabled.
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          node.function,
+          [],
+        );
+      }
       node.staticType = DynamicTypeImpl.instance;
     }
   }
@@ -186,11 +219,15 @@ class FunctionReferenceResolver {
   /// with what the user may be intending.
   void _resolveDisallowedExpression(
       FunctionReferenceImpl node, DartType? rawType) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
-      node.function,
-      [],
-    );
+    if (_resolver.isConstructorTearoffsEnabled) {
+      // Only report constructor tearoff-related errors if the constructor
+      // tearoff feature is enabled.
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        node.function,
+        [],
+      );
+    }
     _resolve(node: node, rawType: rawType);
   }
 
@@ -227,7 +264,7 @@ class FunctionReferenceResolver {
 
     if (member is PropertyAccessorElement) {
       function.accept(_resolver);
-      _resolveDisallowedExpression(node, member.returnType);
+      _resolve(node: node, rawType: member.returnType);
       return;
     }
 
@@ -367,6 +404,15 @@ class FunctionReferenceResolver {
       return;
     } else {
       targetType = target.typeOrThrow;
+      if (targetType.isDynamic) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          node,
+          [],
+        );
+        node.staticType = DynamicTypeImpl.instance;
+        return;
+      }
     }
 
     var propertyElement = _resolver.typePropertyResolver
@@ -380,7 +426,7 @@ class FunctionReferenceResolver {
         .getter;
 
     if (propertyElement is TypeParameterElement) {
-      _resolveDisallowedExpression(node, propertyElement!.type);
+      _resolve(node: node, rawType: propertyElement!.type);
       return;
     }
 
@@ -480,7 +526,7 @@ class FunctionReferenceResolver {
         }
 
         if (method is PropertyAccessorElement) {
-          _resolveDisallowedExpression(node, method.returnType);
+          _resolve(node: node, rawType: method.returnType);
           return;
         }
 
@@ -532,17 +578,17 @@ class FunctionReferenceResolver {
     } else if (element is PropertyAccessorElement) {
       function.staticElement = element;
       function.staticType = element.returnType;
-      _resolveDisallowedExpression(node, element.returnType);
+      _resolve(node: node, rawType: element.returnType);
       return;
     } else if (element is ExecutableElement) {
       function.staticElement = element;
       function.staticType = element.type;
-      _resolveDisallowedExpression(node, element.type);
+      _resolve(node: node, rawType: element.type);
       return;
     } else if (element is VariableElement) {
       function.staticElement = element;
       function.staticType = element.type;
-      _resolveDisallowedExpression(node, element.type);
+      _resolve(node: node, rawType: element.type);
       return;
     } else {
       _resolveDisallowedExpression(node, DynamicTypeImpl.instance);

@@ -586,6 +586,7 @@ class ElementKindTest {
     expect(ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
     expect(ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
+    expect(ElementKind(ElementKind.TYPE_ALIAS.name), ElementKind.TYPE_ALIAS);
     expect(ElementKind(ElementKind.TYPE_PARAMETER.name),
         ElementKind.TYPE_PARAMETER);
     expect(ElementKind(ElementKind.UNIT_TEST_TEST.name),

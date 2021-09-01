@@ -10,6 +10,7 @@ type: newworld
 modules:
   moduleB:
     moduleB/b.dart: |
+      // @dart=2.9
       import 'package:moduleC/c.dart';
       export 'package:moduleC/c.dart' show baz;
 
@@ -24,6 +25,7 @@ modules:
       moduleD:../moduleD
   moduleC:
     moduleC/c.dart: |
+      // @dart=2.9
       import 'package:moduleD/d.dart';
 
       String baz = "42";
@@ -37,6 +39,7 @@ modules:
       moduleD:../moduleD
   moduleD:
     moduleD/d.dart: |
+      // @dart=2.9
       String baz3 = "baz3";
     moduleD/.packages: |
       moduleD:.
@@ -45,6 +48,7 @@ worlds:
     fromComponent: true
     sources:
       a.dart: |
+        // @dart=2.9
         import "package:moduleB/b.dart";
 
         String foo = baz;

@@ -22,7 +22,7 @@ class SourceMapBuilder {
   final Uri targetFileUri;
 
   final LocationProvider locationProvider;
-  final List<SourceMapEntry> entries = <SourceMapEntry>[];
+  final List<SourceMapEntry> entries = [];
 
   /// Extension used to deobfuscate minified names in error messages.
   final Map<String, String> minifiedGlobalNames;
@@ -58,10 +58,8 @@ class SourceMapBuilder {
   }
 
   String build() {
-    LineColumnMap<SourceMapEntry> lineColumnMap =
-        LineColumnMap<SourceMapEntry>();
-    Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap =
-        <Uri, LineColumnMap<SourceMapEntry>>{};
+    LineColumnMap<SourceMapEntry> lineColumnMap = LineColumnMap();
+    Map<Uri, LineColumnMap<SourceMapEntry>> sourceLocationMap = {};
     entries.forEach((SourceMapEntry sourceMapEntry) {
       Location kernelLocation =
           locationProvider.getLocation(sourceMapEntry.targetOffset);
@@ -364,12 +362,12 @@ class SourceMapEntry {
 
 /// Map from line/column pairs to lists of [T] elements.
 class LineColumnMap<T> {
-  Map<int, Map<int, List<T>>> _map = <int, Map<int, List<T>>>{};
+  Map<int, Map<int, List<T>>> _map = {};
 
   /// Returns the list of elements associated with ([line],[column]).
   List<T> _getList(int line, int column) {
-    Map<int, List<T>> lineMap = _map[line] ??= <int, List<T>>{};
-    return lineMap[column] ??= <T>[];
+    Map<int, List<T>> lineMap = _map[line] ??= {};
+    return lineMap[column] ??= [];
   }
 
   /// Adds [element] to the end of the list of elements associated with
@@ -438,7 +436,7 @@ class LineColumnMap<T> {
 
 /// Map from [T] elements to assigned indices.
 class IndexMap<T> {
-  Map<T, int> map = <T, int>{};
+  Map<T, int> map = {};
 
   /// Register [element] and returns its index.
   int register(T element) {

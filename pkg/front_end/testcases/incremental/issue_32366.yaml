@@ -8,6 +8,7 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         abstract class AIterator extends Iterator {
         }
         class Foo {
@@ -25,6 +26,7 @@ worlds:
     errors: true
     sources:
       main.dart: |
+        // @dart=2.9
         abstract class BIterator extends Iterator {
         }
         class Foo {

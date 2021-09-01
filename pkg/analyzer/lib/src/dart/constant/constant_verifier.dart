@@ -801,6 +801,11 @@ class _ConstLiteralVerifier {
       return false;
     }
 
+    final setConfig = this.setConfig;
+    if (setConfig == null) {
+      return true;
+    }
+
     if (listValue != null) {
       var type = value.type;
       if (type is InterfaceType) {
@@ -816,16 +821,13 @@ class _ConstLiteralVerifier {
       }
     }
 
-    final setConfig = this.setConfig;
-    if (setConfig != null) {
-      for (var item in iterableValue) {
-        Expression expression = element.expression;
-        var existingValue = setConfig.uniqueValues[item];
-        if (existingValue != null) {
-          setConfig.duplicateElements[expression] = existingValue;
-        } else {
-          setConfig.uniqueValues[item] = expression;
-        }
+    for (var item in iterableValue) {
+      Expression expression = element.expression;
+      var existingValue = setConfig.uniqueValues[item];
+      if (existingValue != null) {
+        setConfig.duplicateElements[expression] = existingValue;
+      } else {
+        setConfig.uniqueValues[item] = expression;
       }
     }
 

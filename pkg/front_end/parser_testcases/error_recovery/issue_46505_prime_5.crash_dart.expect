@@ -8,9 +8,9 @@ parser/error_recovery/issue_46505_prime_5.crash:5:1: Expected an identifier, but
 }
 ^
 
-parser/error_recovery/issue_46505_prime_5.crash:5:1: Expected ';' after this.
-}
-^
+parser/error_recovery/issue_46505_prime_5.crash:4:48: Expected ';' after this.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                               ^
 
 parser/error_recovery/issue_46505_prime_5.crash:11:45: Expected a type, but got '>>>'.
   Stream<List<Set<List</* user curser here*/>>>>
@@ -20,9 +20,9 @@ parser/error_recovery/issue_46505_prime_5.crash:12:1: Expected an identifier, bu
 }
 ^
 
-parser/error_recovery/issue_46505_prime_5.crash:12:1: Expected ';' after this.
-}
-^
+parser/error_recovery/issue_46505_prime_5.crash:11:48: Expected ';' after this.
+  Stream<List<Set<List</* user curser here*/>>>>
+                                               ^
 
 parser/error_recovery/issue_46505_prime_5.crash:19:45: Expected a type, but got '>>>'.
   Stream<List<Set<List</* user curser here*/>>>>
@@ -72,9 +72,9 @@ parser/error_recovery/issue_46505_prime_5.crash:32:43: Expected a type, but got 
 Stream<List<Set<List</* user curser here*/>>>>
                                           ^^^
 
-parser/error_recovery/issue_46505_prime_5.crash:33:1: Expected ';' after this.
-
-WARNING: Reporting at eof --- see below for details.
+parser/error_recovery/issue_46505_prime_5.crash:32:46: Expected ';' after this.
+Stream<List<Set<List</* user curser here*/>>>>
+                                             ^
 
 beginCompilationUnit(class)
   beginMetadataStar(class)
@@ -116,7 +116,7 @@ beginCompilationUnit(class)
             handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
             handleIdentifier(, fieldDeclaration)
             handleNoFieldInitializer(})
-            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
           endClassFields(null, null, null, null, null, null, 1, Stream, ;)
         endMember()
       endClassOrMixinBody(DeclarationKind.Class, 1, {, })
@@ -188,7 +188,7 @@ beginCompilationUnit(class)
             handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
             handleIdentifier(, fieldDeclaration)
             handleNoFieldInitializer(})
-            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
+            handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
           endClassFields(null, null, null, null, null, null, 1, Stream, ;)
         endMember()
       endClassOrMixinBody(DeclarationKind.Class, 2, {, })
@@ -371,8 +371,7 @@ beginCompilationUnit(class)
       handleType(Stream, null)
       handleIdentifier(, topLevelVariableDeclaration)
       handleNoFieldInitializer()
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-      // WARNING: Reporting at eof for .
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], >, >)
     endTopLevelFields(null, null, null, null, null, 1, Stream, ;)
   endTopLevelDeclaration()
 endCompilationUnit(6, )

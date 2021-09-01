@@ -7,13 +7,14 @@
 
 #include "bin/platform.h"
 
-#include <errno.h>        // NOLINT
-#include <signal.h>       // NOLINT
-#include <string.h>       // NOLINT
+#include <errno.h>
+#include <signal.h>
+#include <string.h>
+#include <sys/prctl.h>
 #include <sys/resource.h>
 #include <sys/system_properties.h>
-#include <sys/utsname.h>  // NOLINT
-#include <unistd.h>       // NOLINT
+#include <sys/utsname.h>
+#include <unistd.h>
 
 #include "bin/console.h"
 #include "bin/file.h"
@@ -156,6 +157,10 @@ const char* Platform::ResolveExecutablePath() {
 
 intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   return File::ReadLinkInto("/proc/self/exe", result, result_size);
+}
+
+void Platform::SetProcessName(const char* name) {
+  prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name), 0, 0, 0);  // NOLINT
 }
 
 void Platform::Exit(int exit_code) {

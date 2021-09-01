@@ -434,10 +434,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         initializer = wrapper.operand;
       }
       buildBody(coreTypes, initializer);
-      bodyBuilder.resolveRedirectingFactoryTargets();
-      if (bodyBuilder.hasDelayedActions) {
-        delayedActionPerformers.add(bodyBuilder);
-      }
+      bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     _constInitializerToken = null;
   }

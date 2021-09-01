@@ -12,14 +12,17 @@ worlds:
       - b.dart
     sources:
       a.dart: |
+        // @dart=2.9
         a() {
           print("hello a");
         }
       b.dart: |
+        // @dart=2.9
         b() {
           print("hello b");
         }
       c.dart: |
+        // @dart=2.9
         b() {
           print("hello c (I'm not included!)");
         }

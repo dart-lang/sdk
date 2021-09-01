@@ -2,7 +2,7 @@ main = <No Member>;
 //
 // Problems in component:
 //
-// org-dartlang-test:///mypackage/c.dart:3:7: Error: 'Baz' can't implement both 'Foo<int>' and 'Foo<String>'
+// org-dartlang-test:///mypackage/c.dart:4:7: Error: 'Baz' can't implement both 'Foo<int>' and 'Foo<String>'
 //  - 'Foo' is from 'package:mypackage/a.dart' ('org-dartlang-test:///mypackage/a.dart').
 // class Baz extends Bar<int> implements Foo<String> {}
 //       ^

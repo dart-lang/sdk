@@ -1065,8 +1065,7 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 #if !defined(PRODUCT)
   ServiceIsolate::MaybeMakeServiceIsolate(I);
-  if (!ServiceIsolate::IsServiceIsolate(I) &&
-      !KernelIsolate::IsKernelIsolate(I)) {
+  if (!Isolate::IsSystemIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);

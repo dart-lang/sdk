@@ -11,18 +11,18 @@ library;
 // }
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:7:1: Error: Expected ';' after this.
-// }
-// ^
+// pkg/front_end/testcases/rasta/issue_000032.dart:6:4: Error: Expected ';' after this.
+//   C<
+//    ^
 //
 // pkg/front_end/testcases/rasta/issue_000032.dart:11:1: Error: Expected an identifier, but got '}'.
 // Try inserting an identifier before '}'.
 // }
 // ^
 //
-// pkg/front_end/testcases/rasta/issue_000032.dart:11:1: Error: Expected ';' after this.
-// }
-// ^
+// pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: Expected ';' after this.
+//   C<
+//    ^
 //
 // pkg/front_end/testcases/rasta/issue_000032.dart:10:4: Error: The operator '<' isn't defined for the class 'Type'.
 //  - 'Type' is from 'dart:core'.

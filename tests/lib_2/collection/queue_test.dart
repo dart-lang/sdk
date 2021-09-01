@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.9
+
 library queue.test;
 
 import "package:expect/expect.dart";
@@ -38,11 +40,11 @@ abstract class QueueTest {
     queue.removeFirst();
     checkQueue(queue, 3, 1110);
 
-    dynamic mapTest(dynamic value) {
+    int mapTest(Object value) {
       return (value as int) ~/ 10;
     }
 
-    bool is10(dynamic value) {
+    bool is10(Object value) {
       return (value == 10);
     }
 
@@ -56,41 +58,29 @@ abstract class QueueTest {
     Queue other = newQueueFrom(queue.where(is10));
     checkQueue(other, 1, 10);
 
-    Expect.equals(true, queue.any(is10));
+    Expect.isTrue(queue.any(is10));
 
-    bool isInstanceOfInt(dynamic value) {
+    bool isInstanceOfInt(Object value) {
       return (value is int);
     }
 
-    Expect.equals(true, queue.every(isInstanceOfInt));
+    Expect.isTrue(queue.every(isInstanceOfInt));
 
-    Expect.equals(false, queue.every(is10));
+    Expect.isFalse(queue.every(is10));
 
-    bool is1(dynamic value) {
+    bool is1(Object value) {
       return (value == 1);
     }
 
-    Expect.equals(false, queue.any(is1));
+    Expect.isFalse(queue.any(is1));
 
     queue.clear();
     Expect.equals(0, queue.length);
 
-    var exception = null;
-    try {
-      queue.removeFirst();
-    } on StateError catch (e) {
-      exception = e;
-    }
-    Expect.equals(true, exception != null);
+    Expect.throws<StateError>(queue.removeFirst);
     Expect.equals(0, queue.length);
 
-    exception = null;
-    try {
-      queue.removeLast();
-    } on StateError catch (e) {
-      exception = e;
-    }
-    Expect.equals(true, exception != null);
+    Expect.throws<StateError>(queue.removeLast);
     Expect.equals(0, queue.length);
 
     queue.addFirst(1);
@@ -100,7 +90,7 @@ abstract class QueueTest {
 
     queue.addLast(3);
     Expect.equals(3, queue.last);
-    bool isGreaterThanOne(dynamic value) {
+    bool isGreaterThanOne(Object value) {
       return ((value as int) > 1);
     }
 
@@ -126,7 +116,7 @@ abstract class QueueTest {
   void checkQueue(Queue queue, int expectedSize, int expectedSum) {
     testLength(expectedSize, queue);
     int sum = 0;
-    void sumElements(dynamic value) {
+    void sumElements(Object value) {
       sum += value as int;
     }
 
@@ -134,7 +124,7 @@ abstract class QueueTest {
     Expect.equals(expectedSum, sum);
   }
 
-  testLength(int length, Queue queue) {
+  void testLength(int length, Queue queue) {
     Expect.equals(length, queue.length);
     ((length == 0) ? Expect.isTrue : Expect.isFalse)(queue.isEmpty);
     ((length != 0) ? Expect.isTrue : Expect.isFalse)(queue.isNotEmpty);
@@ -158,8 +148,8 @@ abstract class QueueTest {
     testLength(3, queue3);
 
     int sum = 0;
-    void f(dynamic e) {
-      sum += (e as int);
+    void f(e) {
+      sum += e;
     }
 
     set.forEach(f);
@@ -242,9 +232,12 @@ abstract class QueueTest {
         queue.toList());
 
     // Regression test: http://dartbug.com/16270
-    // This should do nothing, and should not throw.
+    // These should all do nothing, and should not throw.
     Queue emptyQueue = newQueue();
     emptyQueue.remove(0);
+    emptyQueue.removeWhere((x) => throw "unreachable");
+    emptyQueue.retainWhere((x) => throw "unreachable");
+    Expect.equals(0, emptyQueue.length);
   }
 
   void testLarge() {
@@ -411,18 +404,18 @@ class DoubleLinkedQueueTest extends QueueTest {
     queue2.addAll(queue1);
 
     Expect.equals(queue1.length, queue2.length);
-    DoubleLinkedQueueEntry<int>? entry1 = queue1.firstEntry();
-    DoubleLinkedQueueEntry<int>? entry2 = queue2.firstEntry();
+    DoubleLinkedQueueEntry<int> entry1 = queue1.firstEntry();
+    DoubleLinkedQueueEntry<int> entry2 = queue2.firstEntry();
     while (entry1 != null) {
-      Expect.equals(true, !identical(entry1, entry2));
+      Expect.notIdentical(entry1, entry2);
       entry1 = entry1.nextEntry();
-      entry2 = entry2!.nextEntry();
+      entry2 = entry2.nextEntry();
     }
-    Expect.equals(null, entry2);
+    Expect.isNull(entry2);
 
-    var firstEntry = queue1.firstEntry()!;
-    var secondEntry = queue1.firstEntry()!.nextEntry()!;
-    var thirdEntry = queue1.lastEntry()!;
+    var firstEntry = queue1.firstEntry();
+    var secondEntry = queue1.firstEntry().nextEntry();
+    var thirdEntry = queue1.lastEntry();
     firstEntry.prepend(4);
     firstEntry.append(5);
     secondEntry.prepend(6);
@@ -430,31 +423,39 @@ class DoubleLinkedQueueTest extends QueueTest {
     thirdEntry.prepend(8);
     thirdEntry.append(9);
     Expect.equals(9, queue1.length);
-    Expect.listEquals(queue1.toList(), [4, 1, 5, 6, 2, 7, 8, 3, 9]);
+    Expect.listEquals([4, 1, 5, 6, 2, 7, 8, 3, 9], queue1.toList());
     Expect.equals(1, firstEntry.remove());
     Expect.equals(2, secondEntry.remove());
     Expect.equals(3, thirdEntry.remove());
     Expect.equals(6, queue1.length);
-    Expect.listEquals(queue1.toList(), [4, 5, 6, 7, 8, 9]);
+    Expect.listEquals([4, 5, 6, 7, 8, 9], queue1.toList());
+
+    var elements = [];
+    queue1.forEachEntry((entry) {
+      elements.add(entry.element);
+      entry.remove(); // Can remove while iterating.
+    });
+    Expect.listEquals([4, 5, 6, 7, 8, 9], elements);
+    Expect.isTrue(queue1.isEmpty);
   }
 }
 
 void linkEntryTest() {
   var entry = new DoubleLinkedQueueEntry(42);
-  Expect.equals(null, entry.previousEntry());
-  Expect.equals(null, entry.nextEntry());
+  Expect.isNull(entry.previousEntry());
+  Expect.isNull(entry.nextEntry());
 
   entry.append(37);
   entry.prepend(87);
-  var prev = entry.previousEntry()!;
-  var next = entry.nextEntry()!;
+  var prev = entry.previousEntry();
+  var next = entry.nextEntry();
   Expect.equals(42, entry.element);
   Expect.equals(37, next.element);
   Expect.equals(87, prev.element);
   Expect.identical(entry, prev.nextEntry());
   Expect.identical(entry, next.previousEntry());
-  Expect.equals(null, next.nextEntry());
-  Expect.equals(null, prev.previousEntry());
+  Expect.isNull(next.nextEntry());
+  Expect.isNull(prev.previousEntry());
 
   entry.element = 117;
   Expect.equals(117, entry.element);
@@ -464,15 +465,15 @@ void linkEntryTest() {
   Expect.equals(117, entry.remove());
   Expect.identical(next, prev.nextEntry());
   Expect.identical(prev, next.previousEntry());
-  Expect.equals(null, next.nextEntry());
-  Expect.equals(null, prev.previousEntry());
+  Expect.isNull(next.nextEntry());
+  Expect.isNull(prev.previousEntry());
   Expect.equals(37, next.element);
   Expect.equals(87, prev.element);
 
   Expect.equals(37, next.remove());
   Expect.equals(87, prev.element);
-  Expect.equals(null, prev.nextEntry());
-  Expect.equals(null, prev.previousEntry());
+  Expect.isNull(prev.nextEntry());
+  Expect.isNull(prev.previousEntry());
 
   Expect.equals(87, prev.remove());
 }

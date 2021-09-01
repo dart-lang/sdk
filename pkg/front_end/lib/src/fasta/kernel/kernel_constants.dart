@@ -33,7 +33,7 @@ class KernelConstantErrorReporter extends ErrorReporter {
     if (builder == null) {
       // TODO(jensj): Probably a part or something.
       loader.addProblem(message.messageObject, message.charOffset,
-          message.length, message.uri!,
+          message.length, message.uri,
           context: context);
     } else {
       builder.addProblem(message.messageObject, message.charOffset,

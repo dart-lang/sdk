@@ -1697,7 +1697,7 @@ class PatchableCallHandler {
 
   void DoUnlinkedCallAOT(const UnlinkedCall& unlinked,
                          const Function& target_function);
-  void DoMonomorphicMissAOT(const Object& data,
+  void DoMonomorphicMissAOT(const Object& old_data,
                             const Function& target_function);
   void DoSingleTargetMissAOT(const SingleTargetCache& data,
                              const Function& target_function);
@@ -1712,7 +1712,7 @@ class PatchableCallHandler {
                      const Code& old_target,
                      const Function& target_function);
 
-  void DoMonomorphicMissJIT(const Object& data,
+  void DoMonomorphicMissJIT(const Object& old_data,
                             const Function& target_function);
   void DoICDataMissJIT(const ICData& data,
                        const Object& old_data,
@@ -1839,14 +1839,14 @@ bool PatchableCallHandler::CanExtendSingleTargetRange(
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 void PatchableCallHandler::DoMonomorphicMissAOT(
-    const Object& data,
+    const Object& old_data,
     const Function& target_function) {
   classid_t old_expected_cid;
-  if (data.IsSmi()) {
-    old_expected_cid = Smi::Cast(data).Value();
+  if (old_data.IsSmi()) {
+    old_expected_cid = Smi::Cast(old_data).Value();
   } else {
-    RELEASE_ASSERT(data.IsMonomorphicSmiableCall());
-    old_expected_cid = MonomorphicSmiableCall::Cast(data).expected_cid();
+    RELEASE_ASSERT(old_data.IsMonomorphicSmiableCall());
+    old_expected_cid = MonomorphicSmiableCall::Cast(old_data).expected_cid();
   }
   const bool is_monomorphic_hit = old_expected_cid == receiver().GetClassId();
   const auto& old_receiver_class = Class::Handle(
@@ -1900,20 +1900,17 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void PatchableCallHandler::DoMonomorphicMissJIT(
-    const Object& data,
+    const Object& old_data,
     const Function& target_function) {
   // Monomorphic calls use the ICData::entries() as their data.
-  const auto& ic_data_entries = Array::Cast(data);
+  const auto& old_ic_data_entries = Array::Cast(old_data);
   // Any non-empty ICData::entries() has a backref to it's ICData.
   const auto& ic_data =
-      ICData::Handle(zone_, ICData::ICDataOfEntriesArray(ic_data_entries));
-
-  const classid_t current_cid = receiver().GetClassId();
-  const classid_t old_cid = Smi::Value(Smi::RawCast(ic_data_entries.At(0)));
-  const bool same_receiver = current_cid == old_cid;
+      ICData::Handle(zone_, ICData::ICDataOfEntriesArray(old_ic_data_entries));
 
   // The target didn't change, so we can stay inside monomorphic state.
-  if (same_receiver) {
+  if (ic_data.NumberOfChecksIs(1) &&
+      (ic_data.GetReceiverClassIdAt(0) == receiver().GetClassId())) {
     // We got a miss because the old target code got disabled.
     // Notice the reverse is not true: If the old code got disabled, the call
     // might still have a different receiver then last time and possibly a
@@ -1929,10 +1926,10 @@ void PatchableCallHandler::DoMonomorphicMissJIT(
                    caller_frame_->pc());
     }
 
-    // We stay in monomorphic state, patch the code object and keep the same
-    // data (old ICData entries array).
+    // We stay in monomorphic state, patch the code object and reload the icdata
+    // entries array.
     const auto& code = Code::Handle(zone_, target_function.EnsureHasCode());
-    ASSERT(data.ptr() == ic_data.entries());
+    const auto& data = Object::Handle(zone_, ic_data.entries());
     CodePatcher::PatchInstanceCallAt(caller_frame_->pc(), caller_code_, data,
                                      code);
     ReturnJIT(code, data, target_function);

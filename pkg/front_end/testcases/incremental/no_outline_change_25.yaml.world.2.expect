@@ -3,16 +3,16 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:5:8: Error: 'bar' is already declared in this scope.
-//   void bar() {
-//        ^^^
-// org-dartlang-test:///main.dart:2:8: Context: Previous declaration of 'bar'.
-//   void bar() {
-//        ^^^
-//
-// org-dartlang-test:///main.dart:9:5: Error: Can't use 'bar' because it is declared more than once.
+// org-dartlang-test:///main.dart:10:5: Error: Can't use 'bar' because it is declared more than once.
 //     bar();
 //     ^
+//
+// org-dartlang-test:///main.dart:6:8: Error: 'bar' is already declared in this scope.
+//   void bar() {
+//        ^^^
+// org-dartlang-test:///main.dart:3:8: Context: Previous declaration of 'bar'.
+//   void bar() {
+//        ^^^
 //
 
   class Foo extends dart.core::Object {
@@ -23,7 +23,7 @@ library from "org-dartlang-test:///main.dart" as main {
       dart.core::print("bar 1");
     }
     method callBar() → void {
-      invalid-expression "org-dartlang-test:///main.dart:9:5: Error: Can't use 'bar' because it is declared more than once.\n    bar();\n    ^"{dynamic}.call();
+      invalid-expression "org-dartlang-test:///main.dart:10:5: Error: Can't use 'bar' because it is declared more than once.\n    bar();\n    ^"{dynamic}.call();
     }
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
     abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf

@@ -18,7 +18,7 @@ abstract class LocationProvider {
 /// [CodeOutputListener] that collects line information.
 class LocationCollector extends CodeOutputListener implements LocationProvider {
   int length = 0;
-  List<int> lineStarts = <int>[0];
+  List<int> lineStarts = [0];
 
   void _collect(String text) {
     int index = 0;

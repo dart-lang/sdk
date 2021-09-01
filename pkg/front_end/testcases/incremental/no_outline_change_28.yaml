@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         abstract class A {
           a() {
             print("Class A method a");
@@ -52,6 +53,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         abstract class A {
           a() {
             print("Class A method a!");

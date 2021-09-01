@@ -11,6 +11,7 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         class Foo {
           String get x { return "x #1"; }
           void set x(String x) {}
@@ -30,6 +31,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         class Foo {
           String get x { return "x #2"; }
           void set x(String x) {}

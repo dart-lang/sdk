@@ -30,7 +30,6 @@ import 'package:front_end/src/fasta/scope.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
-import 'package:front_end/src/fasta/source/stack_listener_impl.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart';
@@ -158,7 +157,7 @@ class DietListenerTest extends DietListener {
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
 
   @override
-  StackListenerImpl createListenerInternal(
+  BodyBuilder createListenerInternal(
       ModifierBuilder builder,
       Scope memberScope,
       Scope formalParameterScope,

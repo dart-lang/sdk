@@ -251,14 +251,12 @@ abstract class StatsPrinter {
   void end(String id) {}
 
   /// Start a stat entry for [id] with additional [data].
-  void open(String id,
-      [Map<String, dynamic> data = const <String, dynamic>{}]) {}
+  void open(String id, [Map<String, dynamic> data = const {}]) {}
 
   /// Create a stat entry for [id] with additional [data] and content created by
   /// [createChildContent].
   void child(String id,
-      [Map<String, dynamic> data = const <String, dynamic>{},
-      void createChildContent()]) {
+      [Map<String, dynamic> data = const {}, void createChildContent()]) {
     open(id, data);
     if (createChildContent != null) createChildContent();
     close(id);
@@ -293,8 +291,7 @@ class ConsolePrinter extends BasePrinter {
       : super(output: output, examples: examples);
 
   @override
-  void open(String id,
-      [Map<String, dynamic> data = const <String, dynamic>{}]) {
+  void open(String id, [Map<String, dynamic> data = const {}]) {
     if (extraLevel > 0) return;
 
     StringBuffer sb = StringBuffer();
@@ -364,8 +361,7 @@ class XMLPrinter extends BasePrinter {
   }
 
   @override
-  void open(String id,
-      [Map<String, dynamic> data = const <String, dynamic>{}]) {
+  void open(String id, [Map<String, dynamic> data = const {}]) {
     StringBuffer sb = StringBuffer();
     sb.write(indentation);
     sb.write('<$id');
@@ -534,8 +530,7 @@ class ActiveStats implements Stats {
   Map<dynamic, Map> maps = {};
   Map<dynamic, Map<dynamic, List>> frequencyMaps = {};
   Map<dynamic, Map> setsMap = {};
-  Map<dynamic, Map<dynamic, List>> countersMap =
-      <dynamic, Map<dynamic, List>>{};
+  Map<dynamic, Map<dynamic, List>> countersMap = {};
   Map<dynamic, _StackTraceTree> traceMap = {};
   @override
   int stackTraceSampleFrequency = 1;
@@ -812,7 +807,7 @@ Map<K, V> trySortMap<K, V>(Map<K, V> map) {
 Map<K, V> sortMap<K, V>(Map<K, V> map, [int compare(K a, K b)]) {
   List<K> keys = map.keys.toList();
   keys.sort(compare);
-  Map<K, V> sortedMap = Map<K, V>();
+  Map<K, V> sortedMap = {};
   keys.forEach((K k) => sortedMap[k] = map[k]);
   return sortedMap;
 }

@@ -162,24 +162,12 @@ bool StackFrame::IsStubFrame() const {
 const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
-  if (IsDartFrame()) {
-    const Code& code = Code::Handle(zone, LookupDartCode());
-    ASSERT(!code.IsNull());
-    const auto& owner = Object::Handle(
-        zone, WeakSerializationReference::UnwrapIfTarget(code.owner()));
-    ASSERT(!owner.IsNull());
-    auto const opt = code.IsFunctionCode() && code.is_optimized() ? "*" : "";
-    auto const owner_name =
-        owner.IsFunction() ? Function::Cast(owner).ToFullyQualifiedCString()
-                           : owner.ToCString();
-    return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
-                               ") %s%s ]",
-                               GetName(), sp(), fp(), pc(), opt, owner_name);
-  } else {
-    return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
-                               ")]",
-                               GetName(), sp(), fp(), pc());
-  }
+  const Code& code = Code::Handle(zone, GetCodeObject());
+  ASSERT(!code.IsNull());
+  const char* name =
+      code.QualifiedName(NameFormattingParams(Object::kInternalName));
+  return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
+                             pc(), fp(), sp(), name);
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {

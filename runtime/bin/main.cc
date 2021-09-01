@@ -369,10 +369,15 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
+  if (Options::gen_snapshot_kind() == kAppJIT && !isolate_run_app_snapshot) {
     // If we sort, we must do it for all isolates, not just the main isolate,
     // otherwise isolates related by spawnFunction will disagree on CIDs and
-    // cannot correctly send each other messages.
+    // cannot correctly send each other messages. If we run from an app
+    // snapshot, things are already sorted, and other isolate created by
+    // spawnFunction will also load from the same snapshot. Sorting such isolate
+    // is counter-productive because it invalidates their code.
+    // After we switch to always using isolate groups, this be changed to
+    // `generating-app-jit && is_main_isolate`.
     result = Dart_SortClasses();
     CHECK_RESULT(result);
   }
@@ -928,6 +933,19 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
+  if (script_name != NULL) {
+    const char* base_name = strrchr(script_name, '/');
+    if (base_name == NULL) {
+      base_name = script_name;
+    } else {
+      base_name++;  // Skip '/'.
+    }
+    const intptr_t kMaxNameLength = 64;
+    char name[kMaxNameLength];
+    Utils::SNPrint(name, kMaxNameLength, "dart:%s", base_name);
+    Platform::SetProcessName(name);
+  }
+
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;

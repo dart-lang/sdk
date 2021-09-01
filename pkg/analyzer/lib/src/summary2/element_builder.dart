@@ -350,12 +350,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultFieldFormalParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultFieldFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
       _enclosingContext.addParameter(name, element);
     } else {
-      element = FieldFormalParameterElementImpl(name, nameOffset);
+      element = FieldFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
@@ -363,7 +370,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     nameNode.staticElement = element;
@@ -497,17 +503,23 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
     } else {
-      element = ParameterElementImpl(name, nameOffset);
+      element = ParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
     }
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     nameNode.staticElement = element;
@@ -764,12 +776,19 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     ParameterElementImpl element;
     var parent = node.parent;
     if (parent is DefaultFormalParameter) {
-      element = DefaultParameterElementImpl(name, nameOffset)
-        ..constantInitializer = parent.defaultValue;
+      element = DefaultParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
       _linker.elementNodes[element] = parent;
       _enclosingContext.addParameter(name, element);
     } else {
-      element = ParameterElementImpl(name, nameOffset);
+      element = ParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
       _linker.elementNodes[element] = node;
       _enclosingContext.addParameter(null, element);
     }
@@ -778,7 +797,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
-    element.parameterKind = node.kind;
     _setCodeRange(element, node);
 
     node.declaredElement = element;

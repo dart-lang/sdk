@@ -344,9 +344,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       var nameOffset = nameNode?.offset ?? -1;
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
-        element = DefaultFieldFormalParameterElementImpl(name, nameOffset);
+        element = DefaultFieldFormalParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        );
       } else {
-        element = DefaultParameterElementImpl(name, nameOffset);
+        element = DefaultParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        );
       }
       _elementHolder.addParameter(element);
 
@@ -354,7 +362,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isConst = node.isConst;
       element.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
       element.isFinal = node.isFinal;
-      element.parameterKind = node.kind;
 
       if (normalParameter is SimpleFormalParameterImpl &&
           normalParameter.type == null) {
@@ -459,14 +466,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       } else {
         // Only for recovery, this should not happen in valid code.
         element = FieldFormalParameterElementImpl(
-          nameNode.name,
-          nameNode.offset,
+          name: nameNode.name,
+          nameOffset: nameNode.offset,
+          parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         _setCodeRange(element, node);
       }
       nameNode.staticElement = element;
@@ -638,12 +645,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (_elementWalker != null) {
         element = _elementWalker!.getParameter();
       } else {
-        element = ParameterElementImpl(nameNode.name, nameNode.offset);
+        element = ParameterElementImpl(
+          name: nameNode.name,
+          nameOffset: nameNode.offset,
+          parameterKind: node.kind,
+        );
         _elementHolder.addParameter(element);
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         _setCodeRange(element, node);
       }
       nameNode.staticElement = element;
@@ -751,6 +761,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var newNode = _astRewriter.instanceCreationExpression(_nameScope, node);
     if (newNode != node) {
+      if (node.constructorName.type.typeArguments != null &&
+          newNode is MethodInvocation &&
+          newNode.target is FunctionReference &&
+          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
+        // A function reference with explicit type arguments (an expression of
+        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
+        // refer to a class name, nor a type alias), is illegal without the
+        // constructor tearoff feature.
+        //
+        // This is a case where the parser does not report an error, because the
+        // parser thinks this could be an InstanceCreationExpression.
+        _errorReporter.reportErrorForNode(
+            HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+      }
       return newNode.accept(this);
     }
 
@@ -904,9 +928,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = _elementWalker!.getParameter();
       } else {
         if (nameNode != null) {
-          element = ParameterElementImpl(nameNode.name, nameNode.offset);
+          element = ParameterElementImpl(
+            name: nameNode.name,
+            nameOffset: nameNode.offset,
+            parameterKind: node.kind,
+          );
         } else {
-          element = ParameterElementImpl('', -1);
+          element = ParameterElementImpl(
+            name: '',
+            nameOffset: -1,
+            parameterKind: node.kind,
+          );
         }
         _elementHolder.addParameter(element);
 
@@ -914,7 +946,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isConst = node.isConst;
         element.isExplicitlyCovariant = node.covariantKeyword != null;
         element.isFinal = node.isFinal;
-        element.parameterKind = node.kind;
         if (node.type == null) {
           element.hasImplicitType = true;
         }

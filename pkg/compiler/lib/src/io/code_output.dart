@@ -53,9 +53,9 @@ class _SourceLocationsImpl implements SourceLocations {
   @override
   final String name;
   final AbstractCodeOutput codeOutput;
-  Map<int, List<SourceLocation>> markers = <int, List<SourceLocation>>{};
+  Map<int, List<SourceLocation>> markers = {};
   @override
-  Map<int, List<FrameEntry>> frameMarkers = <int, List<FrameEntry>>{};
+  Map<int, List<FrameEntry>> frameMarkers = {};
 
   _SourceLocationsImpl(this.name, this.codeOutput);
 
@@ -63,7 +63,7 @@ class _SourceLocationsImpl implements SourceLocations {
   void addSourceLocation(int targetOffset, SourceLocation sourceLocation) {
     assert(targetOffset <= codeOutput.length);
     List<SourceLocation> sourceLocations =
-        markers.putIfAbsent(targetOffset, () => <SourceLocation>[]);
+        markers.putIfAbsent(targetOffset, () => []);
     sourceLocations.add(sourceLocation);
   }
 
@@ -98,14 +98,13 @@ class _SourceLocationsImpl implements SourceLocations {
     if (other.markers.length > 0) {
       other.markers
           .forEach((int targetOffset, List<SourceLocation> sourceLocations) {
-        (markers[length + targetOffset] ??= <SourceLocation>[])
-            .addAll(sourceLocations);
+        (markers[length + targetOffset] ??= []).addAll(sourceLocations);
       });
     }
 
     if (other.frameMarkers.length > 0) {
       other.frameMarkers.forEach((int targetOffset, List<FrameEntry> frames) {
-        (frameMarkers[length + targetOffset] ??= <FrameEntry>[]).addAll(frames);
+        (frameMarkers[length + targetOffset] ??= []).addAll(frames);
       });
     }
   }

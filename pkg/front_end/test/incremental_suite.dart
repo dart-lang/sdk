@@ -541,17 +541,13 @@ class NewWorldTest {
               parseExperimentalArguments([world["experiments"]]);
           // Ensure that we run with non-nullable turned off even when the
           // flag is on by default.
-          // TODO(johnniwinther,jensj): Update tests to explicitly opt out.
-          flagsFromOptions['non-nullable'] ??= false;
           Map<ExperimentalFlag, bool> explicitExperimentalFlags =
               parseExperimentalFlags(flagsFromOptions,
                   onError: (e) =>
                       throw "Error on parsing experiments flags: $e");
           options.explicitExperimentalFlags = explicitExperimentalFlags;
         } else {
-          options.explicitExperimentalFlags = {
-            ExperimentalFlag.nonNullable: false
-          };
+          options.explicitExperimentalFlags = {};
         }
         // A separate "world" can also change nnbd mode ---
         // notice that the platform is not updated though!

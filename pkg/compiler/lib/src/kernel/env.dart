@@ -8,8 +8,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart'
     show isRedirectingFactory, isRedirectingFactoryField;
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/clone.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
 
@@ -403,47 +401,9 @@ class KClassEnvImpl implements KClassEnv {
     int mixinMemberCount = 0;
 
     if (cls.mixedInClass != null) {
-      Map<ir.Name, ir.Procedure> existingNonSetters;
-      Map<ir.Name, ir.Procedure> existingSetters;
-
-      void ensureExistingProcedureMaps() {
-        if (existingNonSetters == null) {
-          existingNonSetters = {};
-          existingSetters = {};
-          for (ir.Procedure procedure in cls.procedures) {
-            if (procedure.kind == ir.ProcedureKind.Setter) {
-              existingSetters[procedure.name] = procedure;
-            } else {
-              existingNonSetters[procedure.name] = procedure;
-            }
-          }
-        }
-      }
-
-      CloneVisitorWithMembers cloneVisitor;
       for (ir.Field field in cls.mixedInClass.mixin.fields) {
         if (field.containsSuperCalls) {
           _isMixinApplicationWithMembers = true;
-          cloneVisitor ??= new MixinApplicationCloner(cls,
-              typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          // TODO(jensj): Provide a "referenceFrom" if we need to support
-          // the incremental compiler.
-          ensureExistingProcedureMaps();
-          ir.Procedure existingGetter = existingNonSetters[field.name];
-          ir.Procedure existingSetter = existingSetters[field.name];
-          cls.addField(cloneVisitor.cloneField(
-              field, existingGetter?.reference, existingSetter?.reference));
-          // TODO(johnniwinther): We need to unbind the canonical names before
-          // serializing these references since the canonical names refer to
-          // @getters and @setters instead of @fields and @fields=. This will
-          // not be needed if stop using @fields/@fields= in favor of
-          // @getters/@setters in general.
-          if (existingGetter != null) {
-            cls.procedures.remove(existingGetter);
-          }
-          if (existingSetter != null) {
-            cls.procedures.remove(existingSetter);
-          }
           continue;
         }
         addField(field, includeStatic: false);
@@ -451,20 +411,6 @@ class KClassEnvImpl implements KClassEnv {
       for (ir.Procedure procedure in cls.mixedInClass.mixin.procedures) {
         if (procedure.containsSuperCalls) {
           _isMixinApplicationWithMembers = true;
-          cloneVisitor ??= new MixinApplicationCloner(cls,
-              typeSubstitution: getSubstitutionMap(cls.mixedInType));
-          // TODO(jensj): Provide a "referenceFrom" if we need to support
-          // the incremental compiler.
-          ensureExistingProcedureMaps();
-          ir.Procedure existingProcedure =
-              procedure.kind == ir.ProcedureKind.Setter
-                  ? existingSetters[procedure.name]
-                  : existingNonSetters[procedure.name];
-          if (existingProcedure != null) {
-            cls.procedures.remove(existingProcedure);
-          }
-          cls.addProcedure(cloneVisitor.cloneProcedure(
-              procedure, existingProcedure?.reference));
           continue;
         }
         addProcedure(procedure,

@@ -108,6 +108,8 @@ class Platform {
   static int GetScriptIndex() { return script_index_; }
   static char** GetArgv() { return argv_; }
 
+  static void SetProcessName(const char* name);
+
   DART_NORETURN static void Exit(int exit_code);
 
   static void SetCoreDumpResourceLimit(int value);

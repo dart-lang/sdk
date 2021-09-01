@@ -405,10 +405,10 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredElement!;
     var element = DefaultParameterElementImpl(
-      nonDefaultElement.name,
-      nonDefaultElement.nameOffset,
+      name: nonDefaultElement.name,
+      nameOffset: nonDefaultElement.nameOffset,
+      parameterKind: kind,
     );
-    element.parameterKind = kind;
     if (parameter is SimpleFormalParameterImpl) {
       parameter.declaredElement = element;
     }
@@ -1037,8 +1037,11 @@ class AstBinaryReader {
     var actualType = _reader.readRequiredType();
     _reader.readByte(); // TODO(scheglov) inherits covariant
 
-    var element = ParameterElementImpl(identifier?.name ?? '', -1);
-    element.parameterKind = node.kind;
+    var element = ParameterElementImpl(
+      name: identifier?.name ?? '',
+      nameOffset: -1,
+      parameterKind: node.kind,
+    );
     element.type = actualType;
     node.declaredElement = element;
     identifier?.staticElement = element;

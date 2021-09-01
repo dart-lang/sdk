@@ -6,9 +6,9 @@ library;
 // typedef F = Map<String, dynamic> Function();
 // ^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_31171.dart:8:1: Error: Expected ';' after this.
-// typedef F = Map<String, dynamic> Function();
-// ^^^^^^^
+// pkg/front_end/testcases/regress/issue_31171.dart:7:11: Error: Expected ';' after this.
+// typedef T =
+//           ^
 //
 // pkg/front_end/testcases/regress/issue_31171.dart:7:11: Error: Can't create typedef from non-function type.
 // typedef T =

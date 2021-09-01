@@ -250,8 +250,8 @@ main() { // missing async
     parseCompilationUnit("const enum E {ONE}", errors: [
       // Fasta interprets the `const` as a malformed top level const
       // and `enum` as the start of an enum declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
     ]);
   }
 
@@ -370,9 +370,9 @@ main() { // missing async
     createParser('class C { C< }');
     parser.parseCompilationUnit2();
     listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 13, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
     ]);
   }
 
@@ -381,9 +381,9 @@ main() { // missing async
     parser.parseCompilationUnit2();
     listener.assertErrors([
       expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 12, 4),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 3),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 17, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
     ]);
   }
 
@@ -393,9 +393,9 @@ main() { // missing async
     listener.assertErrors([
       expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 12, 4),
       expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 17, 6),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 24, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
     ]);
   }
 
@@ -420,8 +420,8 @@ main() { // missing async
     parseCompilationUnit("const typedef F();", errors: [
       // Fasta interprets the `const` as a malformed top level const
       // and `typedef` as the start of an typedef declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 7),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 7),
     ]);
   }
 
@@ -761,9 +761,9 @@ class Foo {
   void test_expectedExecutable_inClass_afterVoid() {
     parseCompilationUnit('class C { void 2 void }', errors: [
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 15, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 4),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 22, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1)
     ]);
   }
 
@@ -780,11 +780,11 @@ class Foo {
 
   void test_expectedExecutable_topLevel_afterVoid() {
     CompilationUnit unit = parseCompilationUnit('void 2 void', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 4),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 5, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 4),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 0),
     ]);
     expect(unit, isNotNull);
   }
@@ -832,7 +832,7 @@ class Foo {
   void test_expectedToken_parseStatement_afterVoid() {
     parseStatement("void}", expectedEndOffset: 4);
     listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 4),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 1)
     ]);
   }
@@ -875,8 +875,8 @@ class Foo {
 
   void test_expectedToken_uriAndSemicolonMissingAfterExport() {
     CompilationUnit unit = parseCompilationUnit("export class A {}", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 6),
       expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 5),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 5),
     ]);
     ExportDirective directive = unit.directives[0] as ExportDirective;
     expect(directive.uri, isNotNull);
@@ -1177,8 +1177,8 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 0)
     ]);
   }
 
@@ -1194,8 +1194,8 @@ class Foo {
     parseCompilationUnit("final enum E {ONE}", errors: [
       // Fasta interprets the `final` as a malformed top level final
       // and `enum` as the start of a enum declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 4),
     ]);
   }
 
@@ -1211,8 +1211,8 @@ class Foo {
     parseCompilationUnit("final typedef F();", errors: [
       // Fasta interprets the `final` as a malformed top level final
       // and `typedef` as the start of an typedef declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 7),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 7),
     ]);
   }
 
@@ -1434,8 +1434,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(statement);
     listener.assertErrors([
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)
     ]);
   }
 
@@ -1696,8 +1696,8 @@ class Wrong<T> {
     parseCompilationUnit(
         "typedef T = typedef F = Map<String, dynamic> Function();",
         errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
           expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 7),
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 7),
         ]);
   }
 
@@ -2180,9 +2180,9 @@ class Wrong<T> {
   void test_missingStatement() {
     parseStatement("is");
     listener.assertErrors([
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 2),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 2),
       expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 2, 0)
     ]);
   }
 
@@ -2353,8 +2353,8 @@ class Wrong<T> {
 
   void test_nonIdentifierLibraryName_partOf() {
     CompilationUnit unit = parseCompilationUnit("part of 3;", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 5, 2),
       expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 8, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 8, 1),
       expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 1)
     ]);
@@ -2758,8 +2758,8 @@ main() {
     // https://github.com/Dart-Code/Dart-Code/issues/1548
     parseCompilationUnit(r"main() { String s = 'a' 'b', 'c$foo'; return s; }",
         errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
           expectedError(ParserErrorCode.MISSING_IDENTIFIER, 29, 2),
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
         ]);
   }
 
@@ -2945,8 +2945,8 @@ void main() {
     parseCompilationUnit("var class C {}", errors: [
       // Fasta interprets the `var` as a malformed top level var
       // and `class` as the start of a class declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 5),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 5),
     ]);
   }
 
@@ -2954,8 +2954,8 @@ void main() {
     parseCompilationUnit("var enum E {ONE}", errors: [
       // Fasta interprets the `var` as a malformed top level var
       // and `enum` as the start of an enum declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 4),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 4),
     ]);
   }
 
@@ -2971,8 +2971,8 @@ void main() {
     parseCompilationUnit("var typedef F();", errors: [
       // Fasta interprets the `var` as a malformed top level var
       // and `typedef` as the start of an typedef declaration.
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 3),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 7),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 7),
     ]);
   }
 

@@ -52,6 +52,7 @@ break_on_function_child_isolate_test: SkipByDesign # Debugger is disabled in AOT
 break_on_function_many_child_isolates_test: SkipByDesign # Debugger is disabled in AOT mode.
 break_on_function_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_async_break_test: SkipByDesign # Debugger is disabled in AOT mode.
+breakpoint_gc_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_package_parts_class_test: SkipByDesign # Debugger is disabled in AOT mode.
 breakpoint_in_parts_class_test: SkipByDesign # Debugger is disabled in AOT mode.

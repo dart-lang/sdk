@@ -773,7 +773,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    if (node.question != null) {
+    var question = node.question;
+    if (question != null) {
       var name = node.name.name;
       var type = node.typeOrThrow;
       // Only report non-aliased, non-user-defined `Null?` and `dynamic?`. Do
@@ -781,8 +782,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if ((type.element == _nullType.element ||
               (type.isDynamic && name == 'dynamic')) &&
           type.alias == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.UNNECESSARY_QUESTION_MARK, node, [name]);
+        _errorReporter.reportErrorForToken(
+            HintCode.UNNECESSARY_QUESTION_MARK, question, [name]);
       }
     }
     super.visitTypeName(node);

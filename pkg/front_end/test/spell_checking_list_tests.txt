@@ -851,6 +851,7 @@ sheets
 shipped
 shortest
 shot
+sidebar
 sigint
 signaling
 signalled

@@ -4,17 +4,17 @@ parser/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
   for () {}
        ^
 
-parser/error_recovery/empty_for:2:8: Expected ';' after this.
+parser/error_recovery/empty_for:2:7: Expected ';' after this.
   for () {}
-       ^
+      ^
 
 parser/error_recovery/empty_for:2:8: Expected an identifier, but got ')'.
   for () {}
        ^
 
-parser/error_recovery/empty_for:2:8: Expected ';' after this.
+parser/error_recovery/empty_for:2:7: Expected ';' after this.
   for () {}
-       ^
+      ^
 
 beginCompilationUnit(main)
   beginMetadataStar(main)
@@ -35,13 +35,13 @@ beginCompilationUnit(main)
           handleNoArguments())
           handleSend(, ))
           handleForInitializerExpressionStatement(, false)
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
           handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {lexeme: )}], ), ))
           handleIdentifier(, expression)
           handleNoTypeArguments())
           handleNoArguments())
           handleSend(, ))
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ), ))
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], (, ()
           handleExpressionStatement(;)
           handleForLoopParts(for, (, ;, 0)
           beginForStatementBody({)

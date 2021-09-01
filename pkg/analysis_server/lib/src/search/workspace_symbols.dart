@@ -50,6 +50,7 @@ enum DeclarationKind {
   METHOD,
   MIXIN,
   SETTER,
+  TYPE_ALIAS,
   VARIABLE
 }
 
@@ -186,6 +187,8 @@ class WorkspaceSymbols {
         return DeclarationKind.GETTER;
       case ad.DeclarationKind.SETTER:
         return DeclarationKind.SETTER;
+      case ad.DeclarationKind.TYPE_ALIAS:
+        return DeclarationKind.TYPE_ALIAS;
       case ad.DeclarationKind.VARIABLE:
         return DeclarationKind.VARIABLE;
       default:

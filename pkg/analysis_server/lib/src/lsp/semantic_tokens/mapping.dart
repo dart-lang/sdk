@@ -135,6 +135,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.TOP_LEVEL_VARIABLE: SemanticTokenTypes.variable,
   HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION:
       SemanticTokenTypes.variable,
+  HighlightRegionType.TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_NAME_DYNAMIC: SemanticTokenTypes.type,
   HighlightRegionType.TYPE_PARAMETER: SemanticTokenTypes.typeParameter,
   HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE:

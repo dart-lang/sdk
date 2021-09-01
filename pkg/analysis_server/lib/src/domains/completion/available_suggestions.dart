@@ -166,6 +166,8 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.MIXIN;
     case DeclarationKind.SETTER:
       return protocol.ElementKind.SETTER;
+    case DeclarationKind.TYPE_ALIAS:
+      return protocol.ElementKind.TYPE_ALIAS;
     case DeclarationKind.VARIABLE:
       return protocol.ElementKind.TOP_LEVEL_VARIABLE;
   }

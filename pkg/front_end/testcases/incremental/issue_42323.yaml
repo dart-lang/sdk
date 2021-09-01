@@ -12,7 +12,6 @@ type: newworld
 nnbdMode: strong
 worlds:
   - entry: bin/runMe.dart
-    experiments: non-nullable
     enableStringReplacement: true
     sources:
       .dart_tool/package_config.json: |

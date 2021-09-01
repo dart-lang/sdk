@@ -10,7 +10,6 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: non-nullable
     errors: true
     warnings: false
     sources:
@@ -21,7 +20,6 @@ worlds:
         }
     expectedLibraryCount: 1
   - entry: main.dart
-    experiments: non-nullable
     invalidate:
       - main.dart
     errors: false

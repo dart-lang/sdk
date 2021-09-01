@@ -11,9 +11,11 @@ worlds:
       .packages: |
         foo:.
       main.dart: |
+        // @dart=2.9
         part of 'lib.dart';
         partMethod() {}
       lib.dart: |
+        // @dart=2.9
         part 'main.dart';
         main() {}
     expectedLibraryCount: 1

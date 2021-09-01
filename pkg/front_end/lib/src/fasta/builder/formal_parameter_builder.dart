@@ -225,10 +225,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
             bodyBuilder.transformCollections,
             library.library);
         initializerWasInferred = true;
-        bodyBuilder.resolveRedirectingFactoryTargets();
-        if (bodyBuilder.hasDelayedActions) {
-          delayedActionPerformers.add(bodyBuilder);
-        }
+        bodyBuilder.performBacklogComputations(delayedActionPerformers);
       }
     }
     initializerToken = null;

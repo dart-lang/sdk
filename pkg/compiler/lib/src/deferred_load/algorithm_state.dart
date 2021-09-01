@@ -81,6 +81,9 @@ class AlgorithmState {
   }
 
   /// Returns the [EntityDataInfo] associated with a given [EntityData].
+  /// Note: In the event of a cache miss, i.e. the first time we ever see a new
+  /// [EntityData], we will add all reachable deferred roots to the queue for
+  /// processing.
   EntityDataInfo getInfo(EntityData data) {
     // Check for cached [EntityDataInfo], otherwise create a new one and
     // collect dependencies.
@@ -92,18 +95,17 @@ class AlgorithmState {
       data.accept(visitor);
       info = infoBuilder.info;
       entityDataToInfo[data] = info;
+
+      // This is the first time we have seen this [EntityData] before so process
+      // all deferred roots.
+      info.deferredRoots.forEach((entity, imports) {
+        for (ImportEntity deferredImport in imports) {
+          queue.addEntityData(entity, importSets.singleton(deferredImport));
+        }
+      });
     }
     return info;
   }
-
-  /// Whether to enqueue a deferred entityData.
-  ///
-  /// Due to the nature of the algorithm, some dependencies may be visited more
-  /// than once. However, we know that new deferred-imports are only discovered
-  /// when we are visiting the main output unit (size == 0) or code reachable
-  /// from a deferred import (size == 1). After that, we are rediscovering the
-  /// same nodes we have already seen.
-  bool _shouldAddDeferredEntity(ImportSet newSet) => newSet.length <= 1;
 
   /// Updates the dependencies of a given [EntityData] from [oldSet] to
   /// [newSet].
@@ -111,16 +113,7 @@ class AlgorithmState {
       EntityData entityData, ImportSet oldSet, ImportSet newSet) {
     var info = getInfo(entityData);
 
-    // Process all [DeferredEntityDataInfo]s.
-    if (_shouldAddDeferredEntity(newSet)) {
-      info.deferredRoots.forEach((entity, imports) {
-        for (ImportEntity deferredImport in imports) {
-          queue.addEntityData(entity, importSets.singleton(deferredImport));
-        }
-      });
-    }
-
-    // Process all [directEntityData].
+    // Process all direct dependencies.
     for (var entity in info.directDependencies) {
       update(entity, oldSet, newSet);
     }

@@ -11,16 +11,19 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         abstract class Foo implements Bar {
           @override
           Foo get x;
         }
       lib1.dart: |
+        // @dart=2.9
         import "lib2.dart";
         abstract class Bar implements Baz {
         }
       lib2.dart: |
+        // @dart=2.9
         abstract class Baz {
           Baz get x;
         }
@@ -33,6 +36,7 @@ worlds:
       - lib2.dart
     sources:
       lib2.dart: |
+        // @dart=2.9
         abstract class Baz {
           Baz get x;
         }
@@ -46,6 +50,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         abstract class Foo implements Bar {
           @override

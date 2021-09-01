@@ -11,12 +11,14 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         abstract class C extends B implements A<int> {}
         main() {
           print("#1");
         }
       lib1.dart: |
+        // @dart=2.9
         class A<T> {
           foo(T t) {
             print("foo T $t");
@@ -37,6 +39,7 @@ worlds:
       - main.dart
     sources:
       main.dart: |
+        // @dart=2.9
         import "lib1.dart";
         abstract class C extends B implements A<int> {}
         main() {

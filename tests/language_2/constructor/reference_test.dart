@@ -102,12 +102,10 @@ main() {
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
-//^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
 //    ^
 // [cfe] Couldn't find constructor 'bar'.
-//             ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+//       ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar.baz<int>();
 //    ^
 // [cfe] Member not found: 'bar'.

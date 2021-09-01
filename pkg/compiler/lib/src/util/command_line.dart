@@ -29,7 +29,7 @@ const Map<String, String> ESCAPE_MAPPING = {
 ///     // abc
 ///     // with " 'spaces
 List<String> splitLine(String line, {bool windows = false}) {
-  List<String> result = <String>[];
+  List<String> result = [];
   bool inQuotes = false;
   String? openingQuote;
   StringBuffer buffer = StringBuffer();

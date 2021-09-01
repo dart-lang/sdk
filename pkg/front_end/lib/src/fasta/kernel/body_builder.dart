@@ -708,8 +708,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next!.next!;
         Generator generator = expression as Generator;
-        expression = generator.buildPropertyAccess(
-            new IncompletePropertyAccessGenerator(
+        expression = generator.buildSelectorAccess(
+            new PropertySelector(
                 this, period.next!, new Name(name!, libraryBuilder.nameOrigin)),
             period.next!.offset,
             false);
@@ -797,7 +797,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
 
-  @override
   void finishFields() {
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
@@ -872,9 +871,34 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     pop(); // Annotations.
 
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
+    performBacklogComputations();
     assert(stack.length == 0);
+  }
+
+  /// Perform delayed computations that were put on back log during body
+  /// building.
+  ///
+  /// Back logged computations include resolution of redirecting factory
+  /// invocations and checking of typedef types.
+  void performBacklogComputations(
+      [List<DelayedActionPerformer>? delayedActionPerformers]) {
+    _finishVariableMetadata();
+    _unaliasTypeAliasedConstructorInvocations();
+    _unaliasTypeAliasedFactoryInvocations();
+    _resolveRedirectingFactoryTargets(
+        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
+    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
+    if (hasDelayedActions) {
+      assert(
+          delayedActionPerformers != null,
+          "Body builder has delayed actions that cannot be performed: "
+          "$delayedRedirectingFactoryInvocations");
+      delayedActionPerformers?.add(this);
+    }
+  }
+
+  void finishRedirectingFactoryBody() {
+    performBacklogComputations();
   }
 
   @override
@@ -1023,7 +1047,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  @override
   void finishFunction(
       FormalParameters? formals, AsyncMarker asyncModifier, Statement? body) {
     debugEvent("finishFunction");
@@ -1159,9 +1182,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
-    libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
+    performBacklogComputations();
   }
 
   void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
@@ -1255,14 +1276,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return builder.isBuiltAndMarked;
     }
     return true;
-  }
-
-  // TODO(eernst): Rename this method now that it handles more tasks.
-  void resolveRedirectingFactoryTargets() {
-    _unaliasTypeAliasedConstructorInvocations();
-    _unaliasTypeAliasedFactoryInvocations();
-    _resolveRedirectingFactoryTargets(
-        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
   }
 
   /// Return an [Expression] resolving the argument invocation.
@@ -1439,7 +1452,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return delayedRedirectingFactoryInvocations.isNotEmpty;
   }
 
-  void finishVariableMetadata() {
+  void _finishVariableMetadata() {
     List<VariableDeclaration>? variablesWithMetadata =
         this.variablesWithMetadata;
     this.variablesWithMetadata = null;
@@ -1488,8 +1501,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       temporaryParent = new ListLiteral(expressions);
     }
-    resolveRedirectingFactoryTargets();
-    finishVariableMetadata();
+    performBacklogComputations();
     return temporaryParent != null ? temporaryParent.expressions : expressions;
   }
 
@@ -1554,7 +1566,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         "Previously implicit assumption about inferFunctionBody "
         "not returning anything different.");
 
-    resolveRedirectingFactoryTargets();
+    performBacklogComputations();
     libraryBuilder.loader.transformPostInference(fakeReturn,
         transformSetLiterals, transformCollections, libraryBuilder.library);
 
@@ -1815,9 +1827,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (receiver is Identifier) {
       Name name = new Name(receiver.name, libraryBuilder.nameOrigin);
       if (arguments == null) {
-        push(new IncompletePropertyAccessGenerator(this, beginToken, name));
+        push(new PropertySelector(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(
+        push(new InvocationSelector(
             this, beginToken, name, typeArguments, arguments as Arguments,
             isTypeArgumentsInForest: isInForest));
       }
@@ -1833,7 +1845,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Selector,
       ])
     ]));
   }
@@ -1962,6 +1975,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
+        ValueKinds.Selector,
       ]),
     ]));
     debugEvent("BinaryExpression");
@@ -2102,6 +2116,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.Selector,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
@@ -2111,7 +2126,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ]),
     ]));
     Object? send = pop();
-    if (send is IncompleteSendGenerator) {
+    if (send is Selector) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
     } else {
       pop();
@@ -2130,24 +2145,28 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void doDotOrCascadeExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      unionOfKinds([
+      /* after . or .. */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+      /* before . or .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Initializer,
       ]),
     ]));
     Object? send = pop();
-    if (send is IncompleteSendGenerator) {
-      assert(checkState(token, <ValueKind>[
-        unionOfKinds([
-          ValueKinds.Expression,
-          ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
-          ValueKinds.Initializer,
-        ]),
-      ]));
+    if (send is Selector) {
       Object? receiver = optional(".", token) ? pop() : popForValue();
       push(send.withReceiver(receiver, token.charOffset));
+    } else if (send is IncompleteErrorGenerator) {
+      // Pop the "receiver" and push the error.
+      pop();
+      push(send);
     } else {
+      // Pop the "receiver" and push the error.
       pop();
       token = token.next!;
       push(buildProblem(fasta.templateExpectedIdentifier.withArguments(token),
@@ -4420,8 +4439,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ConstructorReferenceContext.Implicit) {
           type = qualifier.qualifiedLookup(qualified.token);
         } else {
-          type = qualifier.buildPropertyAccess(
-              new IncompletePropertyAccessGenerator(this, qualified.token,
+          type = qualifier.buildSelectorAccess(
+              new PropertySelector(this, qualified.token,
                   new Name(qualified.name, libraryBuilder.nameOrigin)),
               qualified.token.charOffset,
               false);
@@ -6780,8 +6799,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           allowPotentiallyConstantType: allowPotentiallyConstantType);
       if (message == null) return unresolved;
       return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name!, builder.nullabilityBuilder,
-              /* arguments = */ null, unresolved.fileUri, unresolved.charOffset)
+          new NamedTypeBuilder(
+              typeParameter.name!,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(new InvalidTypeDeclarationBuilder(
                 typeParameter.name!, message)),
           unresolved.charOffset,

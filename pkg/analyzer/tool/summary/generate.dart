@@ -28,6 +28,7 @@ main(List<String> args) async {
   if (args.length != 1) {
     print('Error: IDL path is required');
     print('usage: dart generate.dart path/to/idl.dart');
+    return;
   }
   String idlPath = args[0];
   await GeneratedContent.generateAll(

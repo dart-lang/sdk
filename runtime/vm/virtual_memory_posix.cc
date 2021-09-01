@@ -35,6 +35,10 @@ namespace dart {
 #undef MAP_FAILED
 #define MAP_FAILED reinterpret_cast<void*>(-1)
 
+#if defined(DART_HOST_OS_IOS)
+#define LARGE_RESERVATIONS_MAY_FAIL
+#endif
+
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
@@ -76,12 +80,56 @@ intptr_t VirtualMemory::CalculatePageSize() {
   return page_size;
 }
 
+#if defined(DART_COMPRESSED_POINTERS) && defined(LARGE_RESERVATIONS_MAY_FAIL)
+// Truncate to the largest subregion in [region] that doesn't cross an
+// [alignment] boundary.
+static MemoryRegion ClipToAlignedRegion(MemoryRegion region, size_t alignment) {
+  uword base = region.start();
+  uword aligned_base = Utils::RoundUp(base, alignment);
+  uword size_below =
+      region.end() >= aligned_base ? aligned_base - base : region.size();
+  uword size_above =
+      region.end() >= aligned_base ? region.end() - aligned_base : 0;
+  ASSERT(size_below + size_above == region.size());
+  if (size_below >= size_above) {
+    unmap(aligned_base, aligned_base + size_above);
+    return MemoryRegion(reinterpret_cast<void*>(base), size_below);
+  }
+  unmap(base, base + size_below);
+  if (size_above > alignment) {
+    unmap(aligned_base + alignment, aligned_base + size_above);
+    size_above = alignment;
+  }
+  return MemoryRegion(reinterpret_cast<void*>(aligned_base), size_above);
+}
+#endif  // LARGE_RESERVATIONS_MAY_FAIL
+
 void VirtualMemory::Init() {
   page_size_ = CalculatePageSize();
 
 #if defined(DART_COMPRESSED_POINTERS)
   ASSERT(compressed_heap_ == nullptr);
+#if defined(LARGE_RESERVATIONS_MAY_FAIL)
+  // Try to reserve a region for the compressed heap by requesting decreasing
+  // powers-of-two until one succeeds, and use the largest subregion that does
+  // not cross a 4GB boundary. The subregion itself is not necessarily
+  // 4GB-aligned.
+  for (size_t allocated_size = kCompressedHeapSize + kCompressedHeapAlignment;
+       allocated_size >= kCompressedHeapPageSize; allocated_size >>= 1) {
+    void* address = GenericMapAligned(
+        nullptr, PROT_NONE, allocated_size, kCompressedHeapPageSize,
+        allocated_size + kCompressedHeapPageSize,
+        MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE);
+    if (address == MAP_FAILED) continue;
+
+    MemoryRegion region(address, allocated_size);
+    region = ClipToAlignedRegion(region, kCompressedHeapAlignment);
+    compressed_heap_ = new VirtualMemory(region, region);
+    break;
+  }
+#else
   compressed_heap_ = Reserve(kCompressedHeapSize, kCompressedHeapAlignment);
+#endif
   if (compressed_heap_ == nullptr) {
     int error = errno;
     const int kBufferSize = 1024;
@@ -89,7 +137,8 @@ void VirtualMemory::Init() {
     FATAL("Failed to reserve region for compressed heap: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
-  VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
+  VirtualMemoryCompressedHeap::Init(compressed_heap_->address(),
+                                    compressed_heap_->size());
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
 #if defined(DUAL_MAPPING_SUPPORTED)
@@ -248,6 +297,25 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     MemoryRegion region =
         VirtualMemoryCompressedHeap::Allocate(size, alignment);
     if (region.pointer() == nullptr) {
+#if defined(LARGE_RESERVATIONS_MAY_FAIL)
+      // Try a fresh allocation and hope it ends up in the right region. On
+      // macOS/iOS, this works surprisingly often.
+      void* address =
+          GenericMapAligned(nullptr, PROT_READ | PROT_WRITE, size, alignment,
+                            size + alignment, MAP_PRIVATE | MAP_ANONYMOUS);
+      if (address != nullptr) {
+        uword ok_start = Utils::RoundDown(compressed_heap_->start(),
+                                          kCompressedHeapAlignment);
+        uword ok_end = ok_start + kCompressedHeapSize;
+        uword start = reinterpret_cast<uword>(address);
+        uword end = start + size;
+        if ((start >= ok_start) && (end <= ok_end)) {
+          MemoryRegion region(address, size);
+          return new VirtualMemory(region, region);
+        }
+        munmap(address, size);
+      }
+#endif
       return nullptr;
     }
     Commit(region.pointer(), region.size());
@@ -372,7 +440,10 @@ void VirtualMemory::Commit(void* address, intptr_t size) {
                       MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
   if (result == MAP_FAILED) {
     int error = errno;
-    FATAL("Failed to commit: %d\n", error);
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("Failed to commit: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
   }
 }
 
@@ -384,7 +455,10 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
            MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0);
   if (result == MAP_FAILED) {
     int error = errno;
-    FATAL("Failed to decommit: %d\n", error);
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("Failed to decommit: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
   }
 }
 

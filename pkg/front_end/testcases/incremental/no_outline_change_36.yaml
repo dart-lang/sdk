@@ -10,16 +10,19 @@ worlds:
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
+        // @dart=2.9
         import 'file1.dart';
 
         class Class1 extends Class2 {}
       file1.dart: |
+        // @dart=2.9
         import 'file2.dart';
 
         class Class2 extends Class3 {
           Class3 foo;
         }
       file2.dart: |
+        // @dart=2.9
         abstract class Class3 {
           Class3 foo;
         }

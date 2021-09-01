@@ -118,7 +118,7 @@ class StackTraceLines {
     int maxColumnNoLength = 0;
 
     String stackTrace = '$s';
-    List<StackTraceLine> lines = <StackTraceLine>[];
+    List<StackTraceLine> lines = [];
     // Parse each line in the stack trace. The supported line formats from the
     // Dart VM are:
     //    #n     <method-name> (<uri>:<line-no>:<column-no>)

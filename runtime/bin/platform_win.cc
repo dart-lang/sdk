@@ -302,6 +302,8 @@ intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
   return -1;
 }
 
+void Platform::SetProcessName(const char* name) {}
+
 void Platform::Exit(int exit_code) {
   // Restore the console's output code page
   Console::RestoreConfig();

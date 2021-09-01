@@ -271,7 +271,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
               library, classBuilder!, this, classBuilder!.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!);
-      bodyBuilder.resolveRedirectingFactoryTargets();
+      bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     beginInitializers = null;
     if (isConst && isPatch) {

@@ -13,9 +13,11 @@ worlds:
     sources:
       .packages: example:pkg/example
       main.dart: |
+        // @dart=2.9
         import "package:example/b.dart";
         main() { b(); }
       pkg/example/b.dart: |
+        // @dart=2.9
         b() {}
     expectedLibraryCount: 2
   - entry: main.dart
@@ -27,6 +29,7 @@ worlds:
     sources:
       .packages: 
       main.dart: |
+        // @dart=2.9
         main() {}
     expectedLibraryCount: 1
     uriToSourcesDoesntInclude:

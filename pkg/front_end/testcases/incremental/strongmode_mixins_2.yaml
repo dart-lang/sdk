@@ -10,9 +10,11 @@ invalidate:
   - a.dart
 sources:
   a.dart: |
+    // @dart=2.9
     import 'b.dart';
     class A extends Object with B<C>, D {}
   b.dart: |
+    // @dart=2.9
     mixin B<ChildType extends Object> {
       ChildType get child => null;
       set child(ChildType value) {}

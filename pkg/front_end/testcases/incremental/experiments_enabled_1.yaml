@@ -8,7 +8,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    experiments: triple-shift,non-nullable
+    experiments: triple-shift
     sources:
       main.dart: |
         main() {

@@ -7,7 +7,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //
 // Problems in library:
 //
-// org-dartlang-test:///main.dart:1:6: Error: Can't use 'org-dartlang-test:///lib.dart' as a part, because it has no 'part of' declaration.
+// org-dartlang-test:///main.dart:2:6: Error: Can't use 'org-dartlang-test:///lib.dart' as a part, because it has no 'part of' declaration.
 // part 'lib.dart';
 //      ^
 //

@@ -163,7 +163,11 @@ class ElementFactory {
 
   static FieldFormalParameterElementImpl fieldFormalParameter(
           Identifier name) =>
-      FieldFormalParameterElementImpl(name.name, name.offset);
+      FieldFormalParameterElementImpl(
+        name: name.name,
+        nameOffset: name.offset,
+        parameterKind: ParameterKind.REQUIRED,
+      );
 
   /// Destroy any static state retained by [ElementFactory].  This should be
   /// called from the `setUp` method of any tests that use [ElementFactory], in
@@ -266,27 +270,37 @@ class ElementFactory {
   }
 
   static ParameterElementImpl namedParameter(String name) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
-    return parameter;
+    return ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
   }
 
   static ParameterElementImpl namedParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.NAMED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.NAMED,
+    );
     parameter.type = type;
     return parameter;
   }
 
   static ParameterElementImpl positionalParameter(String name) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
-    return parameter;
+    return ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
   }
 
   static ParameterElementImpl positionalParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.POSITIONAL;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.POSITIONAL,
+    );
     parameter.type = type;
     return parameter;
   }
@@ -294,14 +308,19 @@ class ElementFactory {
   static PrefixElementImpl prefix(String name) => PrefixElementImpl(name, 0);
 
   static ParameterElementImpl requiredParameter(String name) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
-    return parameter;
+    return ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
   }
 
   static ParameterElementImpl requiredParameter2(String name, DartType type) {
-    ParameterElementImpl parameter = ParameterElementImpl(name, 0);
-    parameter.parameterKind = ParameterKind.REQUIRED;
+    var parameter = ParameterElementImpl(
+      name: name,
+      nameOffset: 0,
+      parameterKind: ParameterKind.REQUIRED,
+    );
     parameter.type = type;
     return parameter;
   }
@@ -383,9 +402,12 @@ class ElementFactory {
   static List<ParameterElementImpl> _requiredParameters(
       List<DartType> argumentTypes) {
     var parameters = argumentTypes.mapIndexed((index, type) {
-      var parameter = ParameterElementImpl("a$index", index);
+      var parameter = ParameterElementImpl(
+        name: 'a$index',
+        nameOffset: index,
+        parameterKind: ParameterKind.REQUIRED,
+      );
       parameter.type = type;
-      parameter.parameterKind = ParameterKind.REQUIRED;
       return parameter;
     }).toList();
     return parameters;

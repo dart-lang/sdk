@@ -230,14 +230,7 @@ void bar() {
   A<int>.foo<int>;
 }
 ''', [
-      error(CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION, 42,
-          10),
-      // TODO(srawlins): Stop reporting the error below; the code is not
-      // precise, and it is duplicate with the code above.
-      error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
-          52,
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 52,
           5),
     ]);
 
@@ -805,6 +798,29 @@ bar() {
 @reflectiveTest
 class ConstructorReferenceResolutionWithoutConstructorTearoffsTest
     extends PubPackageResolutionTest with WithoutConstructorTearoffsMixin {
+  test_class_generic_nonConstructor() async {
+    await assertErrorsInCode('''
+class A<T> {
+  static int i = 1;
+}
+
+void bar() {
+  A<int>.i;
+}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5),
+    ]);
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('A<int>.i;'),
+      null,
+      classElement,
+      'dynamic',
+      expectedTypeNameType: 'A<int>',
+    );
+  }
+
   test_constructorTearoff() async {
     await assertErrorsInCode('''
 class A {

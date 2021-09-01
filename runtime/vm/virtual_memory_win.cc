@@ -62,7 +62,8 @@ void VirtualMemory::Init() {
     int error = GetLastError();
     FATAL("Failed to reserve region for compressed heap: %d", error);
   }
-  VirtualMemoryCompressedHeap::Init(compressed_heap_->address());
+  VirtualMemoryCompressedHeap::Init(compressed_heap_->address(),
+                                    compressed_heap_->size());
 #endif  // defined(DART_COMPRESSED_POINTERS)
 }
 
