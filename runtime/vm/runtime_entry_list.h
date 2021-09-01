@@ -22,6 +22,7 @@ namespace dart {
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
+  V(DoubleToInteger)                                                           \
   V(FixCallersTarget)                                                          \
   V(FixCallersTargetMonomorphic)                                               \
   V(FixAllocationStubTarget)                                                   \

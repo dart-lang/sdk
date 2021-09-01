@@ -444,6 +444,9 @@ class BaseFlowGraphBuilder {
   // kDoubleFloor or kDoubleCeil).
   Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
 
+  // Pops double value and converts it to int.
+  Fragment DoubleToInteger();
+
   // Pops double value and applies unary math operation.
   Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
 

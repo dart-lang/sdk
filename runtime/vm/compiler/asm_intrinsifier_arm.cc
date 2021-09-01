@@ -992,31 +992,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   }
 }
 
-void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    Label fall_through;
-
-    __ ldr(R0, Address(SP, 0 * target::kWordSize));
-    __ LoadDFromOffset(D0, R0, target::Double::value_offset() - kHeapObjectTag);
-
-    // Explicit NaN check, since ARM gives an FPU exception if you try to
-    // convert NaN to an int.
-    __ vcmpd(D0, D0);
-    __ vmstat();
-    __ b(normal_ir_body, VS);
-
-    __ vcvtid(S0, D0);
-    __ vmovrs(R0, S0);
-    // Overflow is signaled with minint.
-    // Check for overflow and that it fits into Smi.
-    __ CompareImmediate(R0, 0xC0000000);
-    __ SmiTag(R0, PL);
-    READS_RETURN_ADDRESS_FROM_LR(__ bx(LR, PL));
-    __ Bind(normal_ir_body);
-  }
-}
-
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.

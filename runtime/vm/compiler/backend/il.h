@@ -8317,31 +8317,39 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(Int64ToDoubleInstr);
 };
 
-class DoubleToIntegerInstr : public TemplateDefinition<1, Throws> {
+class DoubleToIntegerInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
-      : TemplateDefinition(instance_call->deopt_id()),
-        instance_call_(instance_call) {
+  DoubleToIntegerInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  InstanceCallInstr* instance_call() const { return instance_call_; }
 
   DECLARE_INSTRUCTION(DoubleToInteger)
   virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kNotSpeculative;
+  }
 
   virtual bool ComputeCanDeoptimize() const {
     return !CompilerState::Current().is_aot();
   }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
   virtual bool HasUnknownSideEffects() const { return false; }
 
-  virtual bool CanCallDart() const { return true; }
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
 
  private:
-  InstanceCallInstr* instance_call_;
-
   DISALLOW_COPY_AND_ASSIGN(DoubleToIntegerInstr);
 };
 

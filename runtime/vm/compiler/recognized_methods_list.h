@@ -91,6 +91,7 @@ namespace dart {
   V(_Double, ceilToDouble, DoubleCeil, 0x5f1bced9)                             \
   V(_Double, floorToDouble, DoubleFloor, 0x54b4cb48)                           \
   V(_Double, roundToDouble, DoubleRound, 0x5649ca00)                           \
+  V(_Double, toInt, DoubleToInteger, 0x676f20a9)                               \
   V(_Double, truncateToDouble, DoubleTruncate, 0x62d48659)                     \
   V(::, min, MathMin, 0x504a28df)                                              \
   V(::, max, MathMax, 0xead7161a)                                              \
@@ -282,7 +283,6 @@ namespace dart {
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0xb6764495)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xfecba6b3)          \
   V(_IntegerImplementation, <<, Integer_shl, 0x2d855b02)                       \
-  V(_Double, toInt, DoubleToInteger, 0x676f1ce8)                               \
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
   V(_Random, _nextState, Random_nextState, 0x7207677d)                         \

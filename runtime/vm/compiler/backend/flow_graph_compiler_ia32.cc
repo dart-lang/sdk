@@ -369,9 +369,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
       // In unoptimized code at instruction epilogue the only
       // live register is an output register.
       instr->locs()->live_registers()->Clear();
-      if (value.fpu_reg() != BoxDoubleStubABI::kValueReg) {
-        __ movaps(BoxDoubleStubABI::kValueReg, value.fpu_reg());
-      }
+      __ MoveUnboxedDouble(BoxDoubleStubABI::kValueReg, value.fpu_reg());
       GenerateNonLazyDeoptableStubCall(
           InstructionSource(),  // No token position.
           StubCode::BoxDouble(), UntaggedPcDescriptors::kOther, instr->locs());

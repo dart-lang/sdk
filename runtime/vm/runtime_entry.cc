@@ -14,6 +14,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
@@ -284,6 +285,12 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   int64_t unboxed_value = arguments.thread()->unboxed_int64_runtime_arg();
   const Integer& value = Integer::Handle(zone, Integer::New(unboxed_value));
   Exceptions::ThrowArgumentError(value);
+}
+
+DEFINE_RUNTIME_ENTRY(DoubleToInteger, 0) {
+  // Unboxed value is passed through a dedicated slot in Thread.
+  const double val = arguments.thread()->unboxed_double_runtime_arg();
+  arguments.SetReturn(Integer::Handle(zone, DoubleToInteger(zone, val)));
 }
 
 DEFINE_RUNTIME_ENTRY(IntegerDivisionByZeroException, 0) {

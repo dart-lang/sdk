@@ -298,6 +298,17 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
   const Register result_;
 };
 
+class DoubleToIntegerSlowPath : public TemplateSlowPathCode<Instruction> {
+ public:
+  DoubleToIntegerSlowPath(Instruction* instruction, FpuRegister value_reg)
+      : TemplateSlowPathCode(instruction), value_reg_(value_reg) {}
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  FpuRegister value_reg_;
+};
+
 // Slow path code which calls runtime entry to throw an exception.
 class ThrowErrorSlowPathCode : public TemplateSlowPathCode<Instruction> {
  public:

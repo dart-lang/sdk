@@ -5010,45 +5010,28 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::RegisterLocation(ECX));
-  result->set_out(0, Location::RegisterLocation(EAX));
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out(0).reg();
-  Register value_obj = locs()->in(0).reg();
-  XmmRegister value_double = FpuTMP;
-  ASSERT(result == EAX);
-  ASSERT(result != value_obj);
-  __ movsd(value_double,
-           compiler::FieldAddress(value_obj, Double::value_offset()));
+  const Register result = locs()->out(0).reg();
+  const XmmRegister value_double = locs()->in(0).fpu_reg();
+
+  DoubleToIntegerSlowPath* slow_path =
+      new DoubleToIntegerSlowPath(this, value_double);
+  compiler->AddSlowPathCode(slow_path);
+
   __ cvttsd2si(result, value_double);
   // Overflow is signalled with minint.
-  compiler::Label do_call, done;
   // Check for overflow and that it fits into Smi.
   __ cmpl(result, compiler::Immediate(0xC0000000));
-  __ j(NEGATIVE, &do_call, compiler::Assembler::kNearJump);
+  __ j(NEGATIVE, slow_path->entry_label());
   __ SmiTag(result);
-  __ jmp(&done);
-  __ Bind(&do_call);
-  __ pushl(value_obj);
-  ASSERT(instance_call()->HasICData());
-  const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT(ic_data.NumberOfChecksIs(1));
-  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
-  __ Bind(&done);
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,

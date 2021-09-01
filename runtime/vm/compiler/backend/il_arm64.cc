@@ -4894,57 +4894,41 @@ LocationSummary* DoubleToIntegerInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::RegisterLocation(R1));
-  result->set_out(0, Location::RegisterLocation(R0));
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
 void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  const Register value_obj = locs()->in(0).reg();
-  ASSERT(result == R0);
-  ASSERT(result != value_obj);
-  __ LoadDFieldFromOffset(VTMP, value_obj, Double::value_offset());
+  const VRegister value_double = locs()->in(0).fpu_reg();
 
-  compiler::Label do_call, done;
+  DoubleToIntegerSlowPath* slow_path =
+      new DoubleToIntegerSlowPath(this, value_double);
+  compiler->AddSlowPathCode(slow_path);
+
   // First check for NaN. Checking for minint after the conversion doesn't work
   // on ARM64 because fcvtzds gives 0 for NaN.
-  __ fcmpd(VTMP, VTMP);
-  __ b(&do_call, VS);
+  __ fcmpd(value_double, value_double);
+  __ b(slow_path->entry_label(), VS);
 
-  __ fcvtzdsx(result, VTMP);
+  __ fcvtzdsx(result, value_double);
   // Overflow is signaled with minint.
 
 #if !defined(DART_COMPRESSED_POINTERS)
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC000000000000000);
-  __ b(&do_call, MI);
+  __ b(slow_path->entry_label(), MI);
 #else
   // Check for overflow and that it fits into Smi.
   __ AsrImmediate(TMP, result, 30);
   __ cmp(TMP, compiler::Operand(result, ASR, 63));
-  __ b(&do_call, NE);
+  __ b(slow_path->entry_label(), NE);
 #endif
   __ SmiTag(result);
-  __ b(&done);
-  __ Bind(&do_call);
-  __ Push(value_obj);
-  ASSERT(instance_call()->HasICData());
-  const ICData& ic_data = *instance_call()->ic_data();
-  ASSERT(ic_data.NumberOfChecksIs(1));
-  const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
-  const int kTypeArgsLen = 0;
-  const int kNumberOfArguments = 1;
-  constexpr int kSizeOfArguments = 1;
-  const Array& kNoArgumentNames = Object::null_array();
-  ArgumentsInfo args_info(kTypeArgsLen, kNumberOfArguments, kSizeOfArguments,
-                          kNoArgumentNames);
-  compiler->GenerateStaticCall(deopt_id(), instance_call()->source(), target,
-                               args_info, locs(), ICData::Handle(),
-                               ICData::kStatic);
-  __ Bind(&done);
+  __ Bind(slow_path->exit_label());
 }
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary(Zone* zone,

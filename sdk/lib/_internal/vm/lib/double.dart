@@ -216,7 +216,8 @@ class _Double implements double {
     return this;
   }
 
-  @pragma("vm:recognized", "asm-intrinsic")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
   @pragma("vm:non-nullable-result-type")
   int toInt() native "Double_toInt";
 

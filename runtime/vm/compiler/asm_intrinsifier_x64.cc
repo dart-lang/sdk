@@ -1006,21 +1006,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-void AsmIntrinsifier::DoubleToInteger(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
-  __ movsd(XMM0, FieldAddress(RAX, target::Double::value_offset()));
-  __ OBJ(cvttsd2si)(RAX, XMM0);
-  // Overflow is signalled with minint.
-  // Check for overflow and that it fits into Smi.
-  __ movq(RCX, RAX);
-  __ OBJ(shl)(RCX, Immediate(1));
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
                                       Label* normal_ir_body) {
   // TODO(dartbug.com/31174): Convert this to a graph intrinsic.

@@ -1213,6 +1213,13 @@ Fragment BaseFlowGraphBuilder::DoubleToDouble(
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::DoubleToInteger() {
+  Value* value = Pop();
+  auto* instr = new (Z) DoubleToIntegerInstr(value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
   Value* value = Pop();
   auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());

@@ -1814,6 +1814,11 @@ class Assembler : public AssemblerBase {
   void StoreUnboxedDouble(FpuRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset);
   }
+  void MoveUnboxedDouble(FpuRegister dst, FpuRegister src) {
+    if (src != dst) {
+      fmovdd(dst, src);
+    }
+  }
 
   void LoadCompressed(Register dest, const Address& slot);
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset);

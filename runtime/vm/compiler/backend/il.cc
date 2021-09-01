@@ -5603,6 +5603,29 @@ void BoxAllocationSlowPath::Allocate(FlowGraphCompiler* compiler,
   }
 }
 
+void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Comment("DoubleToIntegerSlowPath");
+  __ Bind(entry_label());
+
+  LocationSummary* locs = instruction()->locs();
+  locs->live_registers()->Remove(locs->out(0));
+
+  compiler->SaveLiveRegisters(locs);
+
+  auto slow_path_env =
+      compiler->SlowPathEnvironmentFor(instruction(), /*num_slow_path_args=*/0);
+
+  __ MoveUnboxedDouble(DoubleToIntegerStubABI::kInputReg, value_reg_);
+  compiler->GenerateStubCall(instruction()->source(),
+                             StubCode::DoubleToInteger(),
+                             UntaggedPcDescriptors::kOther, locs,
+                             instruction()->deopt_id(), slow_path_env);
+  __ MoveRegister(instruction()->locs()->out(0).reg(),
+                  DoubleToIntegerStubABI::kResultReg);
+  compiler->RestoreLiveRegisters(instruction()->locs());
+  __ Jump(exit_label());
+}
+
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                             bool save_fpu_registers) {
 #if defined(TARGET_ARCH_IA32)
