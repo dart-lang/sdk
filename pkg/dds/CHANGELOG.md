@@ -1,3 +1,6 @@
+# 2.1.2
+- Silently handle exceptions that occur within RPC request handlers.
+
 # 2.1.1
 - Fix another possibility of `LateInitializationError` being thrown when trying to
   cleanup after an error during initialization.
