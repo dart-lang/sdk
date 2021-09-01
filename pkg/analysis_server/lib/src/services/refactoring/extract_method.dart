@@ -658,7 +658,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     var originalSource = utils.getText(range.offset, range.length);
     var pattern = _SourcePattern();
     var replaceEdits = <SourceEdit>[];
-    resolveResult.unit.accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
+    resolveResult.unit
+        .accept(_GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     var source = SourceEdit.applySequence(originalSource, replaceEdits);
     pattern.normalizedSource =

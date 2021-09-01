@@ -44,7 +44,7 @@ abstract class AbstractClient {
     required this.testFilePath,
     required String sdkPath,
     required this.serverOptions,
-  })   : serverChannel = MockServerChannel(),
+  })  : serverChannel = MockServerChannel(),
         pluginManager = TestPluginManager() {
     server = createAnalysisServer(sdkPath);
     var notificationStream = serverChannel.notificationController.stream;

@@ -146,7 +146,6 @@ Iterable<String> f() sync {}
     await assertNoAssistAt('{}');
   }
 
-
   Future<void> test_syncStar() async {
     await resolveTestCode('''
 Iterable<String> f() sync* {}

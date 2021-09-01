@@ -82,7 +82,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     required MemoryResourceProvider resourceProvider,
     required String projectPath,
     required String testFilePath,
-  })   : _resourceProvider = resourceProvider,
+  })  : _resourceProvider = resourceProvider,
         super(
             serverOptions: serverOptions ?? AnalysisServerOptions(),
             projectPath: resourceProvider.convertPath(projectPath),
