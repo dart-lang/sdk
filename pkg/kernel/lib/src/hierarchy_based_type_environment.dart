@@ -13,6 +13,7 @@ import '../core_types.dart' show CoreTypes;
 import '../type_environment.dart' show TypeEnvironment;
 
 class HierarchyBasedTypeEnvironment extends TypeEnvironment {
+  @override
   final ClassHierarchyBase hierarchy;
 
   HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy)

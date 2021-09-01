@@ -31,6 +31,7 @@ class TargetFlags {
           ConstructorTearOffLowering.none,
       this.enableNullSafety = false});
 
+  @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
@@ -45,6 +46,7 @@ class TargetFlags {
         enableNullSafety == other.enableNullSafety;
   }
 
+  @override
   int get hashCode {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
@@ -451,6 +453,7 @@ abstract class Target {
   // Configure environment defines in a target-specific way.
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
 
+  @override
   String toString() => 'Target($name)';
 
   Class? concreteListLiteralClass(CoreTypes coreTypes) => null;
@@ -474,6 +477,7 @@ class NoneConstantsBackend extends ConstantsBackend {
 }
 
 class NoneTarget extends Target {
+  @override
   final TargetFlags flags;
 
   NoneTarget(this.flags);

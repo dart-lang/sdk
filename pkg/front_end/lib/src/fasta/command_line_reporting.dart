@@ -114,7 +114,7 @@ PlainAndColorizedString format(LocatedMessage message, Severity severity,
 }
 
 String formatErrorMessage(String? sourceLine, Location? location,
-    int squigglyLength, String path, String messageText) {
+    int squigglyLength, String? path, String messageText) {
   if (sourceLine == null || location == null) {
     sourceLine = "";
   } else if (sourceLine.isNotEmpty) {

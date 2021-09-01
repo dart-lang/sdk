@@ -15,12 +15,14 @@ import './scanner.dart';
 class ValueClassScanner extends ClassScanner<Null> {
   ValueClassScanner() : super(null);
 
+  @override
   bool predicate(Class node) => isValueClass(node);
 }
 
 class JenkinsClassScanner extends ClassScanner<Procedure> {
   JenkinsClassScanner(Scanner<Procedure, TreeNode?> next) : super(next);
 
+  @override
   bool predicate(Class node) {
     return node.name == "JenkinsSmiHash";
   }
@@ -29,6 +31,7 @@ class JenkinsClassScanner extends ClassScanner<Procedure> {
 class HashCombineMethodsScanner extends ProcedureScanner<Null> {
   HashCombineMethodsScanner() : super(null);
 
+  @override
   bool predicate(Procedure node) {
     return node.name.text == "combine" || node.name.text == "finish";
   }
@@ -38,6 +41,7 @@ class AllMemberScanner extends MemberScanner<InstanceInvocationExpression> {
   AllMemberScanner(Scanner<InstanceInvocationExpression, TreeNode?> next)
       : super(next);
 
+  @override
   bool predicate(Member member) => true;
 }
 
@@ -50,6 +54,7 @@ class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
   // @valueClass V {}
   // V v;
   // (v as dynamic).copyWith() as V
+  @override
   bool predicate(InstanceInvocationExpression node) {
     return node.name.text == "copyWith" &&
         _isValueClassAsConstruct(node.receiver);
@@ -346,8 +351,8 @@ List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
       .map<VariableDeclaration>(
           (f) => VariableDeclaration(f.name, type: f.type))
       .toList()
-        ..addAll(cls.fields.map<VariableDeclaration>(
-            (f) => VariableDeclaration(f.name.text, type: f.type)));
+    ..addAll(cls.fields.map<VariableDeclaration>(
+        (f) => VariableDeclaration(f.name.text, type: f.type)));
 }
 
 void removeValueClassAnnotation(Class cls) {

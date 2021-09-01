@@ -24,6 +24,7 @@ class Types with StandardBounds {
   @override
   CoreTypes get coreTypes => hierarchy.coreTypes;
 
+  @override
   bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
     IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
     switch (mode) {

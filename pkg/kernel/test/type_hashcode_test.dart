@@ -65,6 +65,7 @@ class TestCase {
 
   bool get shouldSucceed => expectedSubstitution != null;
 
+  @override
   String toString() => '∃ ${quantifiedVariables.join(',')}. $type1 = $type2';
 }
 

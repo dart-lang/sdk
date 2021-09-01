@@ -34,5 +34,6 @@ main() {
 }
 
 class _intHeap extends Heap<int> {
+  @override
   bool sortsBefore(int a, int b) => a < b;
 }

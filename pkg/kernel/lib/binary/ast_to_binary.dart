@@ -83,15 +83,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     return index!;
   }
 
+  @override
   void writeByte(int byte) {
     assert((byte & 0xFF) == byte);
     _sink.addByte(byte);
   }
 
+  @override
   void writeBytes(List<int> bytes) {
     _sink.addBytes(bytes);
   }
 
+  @override
   @pragma("vm:prefer-inline")
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
@@ -105,16 +108,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  @override
   void writeUInt32(int value) {
     _sink.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
         (value >> 8) & 0xFF, value & 0xFF);
   }
 
+  @override
   void writeByteList(List<int> bytes) {
     writeUInt30(bytes.length);
     writeBytes(bytes);
   }
 
+  @override
   int getBufferOffset() {
     return _sink.offset;
   }
@@ -166,6 +172,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  @override
   void writeStringReference(String string) {
     writeUInt30(stringIndexer.put(string));
   }
@@ -174,6 +181,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeList(strings, writeStringReference);
   }
 
+  @override
   void writeConstantReference(Constant constant) {
     writeUInt30(_constantIndexer.put(constant));
   }
@@ -296,6 +304,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _typeParameterIndexer = oldTypeParameterIndexer;
   }
 
+  @override
   void writeDartType(DartType type) {
     type.accept(this);
   }
@@ -413,6 +422,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  @override
   void writeNode(Node node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
@@ -951,6 +961,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _canonicalNameList.add(node);
   }
 
+  @override
   void writeNullAllowedCanonicalNameReference(CanonicalName? name) {
     if (name == null) {
       writeUInt30(0);
@@ -999,6 +1010,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNonNullCanonicalNameReference(getCanonicalNameOfClass(class_));
   }
 
+  @override
   void writeName(Name node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
@@ -1119,6 +1131,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNodeList(node.combinators);
   }
 
+  @override
   void visitCombinator(Combinator node) {
     writeByte(node.isShow ? 1 : 0);
     writeStringReferenceList(node.names);
@@ -1140,6 +1153,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeStringReference(node.partUri);
   }
 
+  @override
   void visitTypedef(Typedef node) {
     enterScope(memberScope: true);
     writeNonNullCanonicalNameReference(getCanonicalNameOfTypedef(node));
@@ -2843,6 +2857,7 @@ class ConstantIndexer extends RecursiveResultVisitor {
     return index[constant] = newIndex;
   }
 
+  @override
   defaultConstantReference(Constant node) {
     put(node);
   }

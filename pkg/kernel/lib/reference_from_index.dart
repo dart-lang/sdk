@@ -79,6 +79,7 @@ class IndexedLibrary extends IndexedContainer {
   final Map<String, IndexedClass> _indexedClasses =
       new Map<String, IndexedClass>();
   final Map<String, Extension> _extensions = new Map<String, Extension>();
+  @override
   final Library library;
 
   IndexedLibrary(this.library) {
@@ -112,6 +113,7 @@ class IndexedLibrary extends IndexedContainer {
 class IndexedClass extends IndexedContainer {
   final Class cls;
   final Map<Name, Member> _constructors = new Map<Name, Member>();
+  @override
   final Library library;
 
   IndexedClass._(this.cls, this.library) {

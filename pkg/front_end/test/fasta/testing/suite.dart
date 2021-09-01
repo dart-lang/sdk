@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.testing.suite;
 
 import 'dart:convert' show jsonDecode, utf8;
@@ -18,7 +16,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
-import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/kernel/target.dart';
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
@@ -269,10 +267,10 @@ class FolderOptions {
   final bool forceNoExplicitGetterCalls;
   final int forceConstructorTearOffLowering;
   final bool nnbdAgnosticMode;
-  final Map<String, String> defines;
+  final Map<String, String>? defines;
   final bool noVerify;
   final String target;
-  final String overwriteCurrentSdkVersion;
+  final String? overwriteCurrentSdkVersion;
 
   FolderOptions(this._explicitExperimentalFlags,
       {this.forceLateLowerings: LateLowering.none,
@@ -286,16 +284,23 @@ class FolderOptions {
       this.target: "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
+      // ignore: unnecessary_null_comparison
       : assert(forceLateLowerings != null),
+        // ignore: unnecessary_null_comparison
         assert(forceLateLoweringSentinel != null),
+        // ignore: unnecessary_null_comparison
         assert(forceStaticFieldLowering != null),
+        // ignore: unnecessary_null_comparison
         assert(forceNoExplicitGetterCalls != null),
+        // ignore: unnecessary_null_comparison
         assert(nnbdAgnosticMode != null),
         assert(
             // no this doesn't make any sense but left to underline
             // that this is allowed to be null!
             defines != null || defines == null),
+        // ignore: unnecessary_null_comparison
         assert(noVerify != null),
+        // ignore: unnecessary_null_comparison
         assert(target != null);
 
   Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
@@ -313,18 +318,19 @@ class FolderOptions {
 /// setting up custom experimental flag defaults for a single test.
 class TestOptions {
   final Set<Uri> linkDependencies;
-  final NnbdMode nnbdMode;
-  final AllowedExperimentalFlags allowedExperimentalFlags;
-  final Map<ExperimentalFlag, Version> experimentEnabledVersion;
-  final Map<ExperimentalFlag, Version> experimentReleasedVersion;
-  Component component;
-  List<Iterable<String>> errors;
+  final NnbdMode? nnbdMode;
+  final AllowedExperimentalFlags? allowedExperimentalFlags;
+  final Map<ExperimentalFlag, Version>? experimentEnabledVersion;
+  final Map<ExperimentalFlag, Version>? experimentReleasedVersion;
+  Component? component;
+  List<Iterable<String>>? errors;
 
   TestOptions(this.linkDependencies,
-      {this.nnbdMode,
-      this.allowedExperimentalFlags,
-      this.experimentEnabledVersion,
-      this.experimentReleasedVersion})
+      {required this.nnbdMode,
+      required this.allowedExperimentalFlags,
+      required this.experimentEnabledVersion,
+      required this.experimentReleasedVersion})
+      // ignore: unnecessary_null_comparison
       : assert(linkDependencies != null);
 }
 
@@ -342,7 +348,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<UriConfiguration, UriTranslator> _uriTranslators = {};
   final Map<Uri, FolderOptions> _folderOptions = {};
   final Map<Uri, TestOptions> _testOptions = {};
-  final Map<Uri, Uri> _librariesJson = {};
+  final Map<Uri, Uri?> _librariesJson = {};
 
   @override
   final bool updateExpectations;
@@ -440,7 +446,7 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   FolderOptions _computeFolderOptions(Directory directory) {
-    FolderOptions folderOptions = _folderOptions[directory.uri];
+    FolderOptions? folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
       int forceLateLowering = LateLowering.none;
       bool forceLateLoweringSentinel = false;
@@ -449,7 +455,7 @@ class FastaContext extends ChainContext with MatchContext {
       int forceConstructorTearOffLowering = ConstructorTearOffLowering.none;
       bool nnbdAgnosticMode = false;
       bool noVerify = false;
-      Map<String, String> defines = {};
+      Map<String, String>? defines = {};
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
@@ -531,7 +537,7 @@ class FastaContext extends ChainContext with MatchContext {
   Future<UriTranslator> computeUriTranslator(
       TestDescription description) async {
     UriConfiguration uriConfiguration = computeUriConfiguration(description);
-    UriTranslator uriTranslator = _uriTranslators[uriConfiguration];
+    UriTranslator? uriTranslator = _uriTranslators[uriConfiguration];
     if (uriTranslator == null) {
       Uri sdk = Uri.base.resolve("sdk/");
       Uri packages = Uri.base.resolve(".packages");
@@ -554,7 +560,7 @@ class FastaContext extends ChainContext with MatchContext {
             uriConfiguration.librariesSpecificationUri;
       if (folderOptions.overwriteCurrentSdkVersion != null) {
         compilerOptions.currentSdkVersion =
-            folderOptions.overwriteCurrentSdkVersion;
+            folderOptions.overwriteCurrentSdkVersion!;
       }
       ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
       uriTranslator = await options.getUriTranslator();
@@ -566,15 +572,15 @@ class FastaContext extends ChainContext with MatchContext {
   /// Computes the test for [description].
   TestOptions computeTestOptions(TestDescription description) {
     Directory directory = new File.fromUri(description.uri).parent;
-    TestOptions testOptions = _testOptions[directory.uri];
+    TestOptions? testOptions = _testOptions[directory.uri];
     if (testOptions == null) {
       File optionsFile =
           new File.fromUri(directory.uri.resolve('test.options'));
       Set<Uri> linkDependencies = new Set<Uri>();
-      NnbdMode nnbdMode;
-      AllowedExperimentalFlags allowedExperimentalFlags;
-      Map<ExperimentalFlag, Version> experimentEnabledVersion;
-      Map<ExperimentalFlag, Version> experimentReleasedVersion;
+      NnbdMode? nnbdMode;
+      AllowedExperimentalFlags? allowedExperimentalFlags;
+      Map<ExperimentalFlag, Version>? experimentEnabledVersion;
+      Map<ExperimentalFlag, Version>? experimentReleasedVersion;
       if (optionsFile.existsSync()) {
         List<String> arguments =
             ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
@@ -639,12 +645,12 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   /// Libraries json for [description].
-  Uri computeLibrariesSpecificationUri(TestDescription description) {
+  Uri? computeLibrariesSpecificationUri(TestDescription description) {
     Directory directory = new File.fromUri(description.uri).parent;
     if (_librariesJson.containsKey(directory.uri)) {
       return _librariesJson[directory.uri];
     } else {
-      Uri librariesJson;
+      Uri? librariesJson;
       File jsonFile = new File.fromUri(directory.uri.resolve('libraries.json'));
       if (jsonFile.existsSync()) {
         librariesJson = jsonFile.uri;
@@ -654,16 +660,16 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   /// Custom package config used for [description].
-  Uri computePackageConfigUri(TestDescription description) {
+  Uri? computePackageConfigUri(TestDescription description) {
     Uri packageConfig =
         description.uri.resolve(".dart_tool/package_config.json");
     return new File.fromUri(packageConfig).existsSync() ? packageConfig : null;
   }
 
   UriConfiguration computeUriConfiguration(TestDescription description) {
-    Uri librariesSpecificationUri =
+    Uri? librariesSpecificationUri =
         computeLibrariesSpecificationUri(description);
-    Uri packageConfigUri = computePackageConfigUri(description);
+    Uri? packageConfigUri = computePackageConfigUri(description);
     return new UriConfiguration(librariesSpecificationUri, packageConfigUri);
   }
 
@@ -674,7 +680,7 @@ class FastaContext extends ChainContext with MatchContext {
         target,
         nnbdMode,
         () => throw new UnsupportedError(
-            "No platform dill for target '${target.name}' with $nnbdMode."));
+            "No platform dill for target '${target.name}' with $nnbdMode."))!;
     return platformBinaries.resolve(fileName);
   }
 
@@ -708,7 +714,7 @@ class FastaContext extends ChainContext with MatchContext {
       Set<Expectation> outcomes, TestDescription description) {
     // Remove outcomes related to phases not currently in effect.
 
-    Set<Expectation> result;
+    Set<Expectation>? result;
 
     // If skipping VM we can't get a runtime error.
     if (skipVm && outcomes.contains(runtimeError)) {
@@ -782,7 +788,7 @@ class FastaContext extends ChainContext with MatchContext {
     bool verify = environment["verify"] != "false";
     bool kernelTextSerialization =
         environment.containsKey(KERNEL_TEXT_SERIALIZATION);
-    String platformBinaries = environment["platformBinaries"];
+    String? platformBinaries = environment["platformBinaries"];
     if (platformBinaries != null && !platformBinaries.endsWith('/')) {
       platformBinaries = '$platformBinaries/';
     }
@@ -825,7 +831,7 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         if (context._platforms.isEmpty) {
           throw "Executed `Run` step before initializing the context.";
         }
-        File generated = new File.fromUri(result.outputUri);
+        File generated = new File.fromUri(result.outputUri!);
         StdioProcess process;
         try {
           var args = <String>[];
@@ -905,15 +911,15 @@ class StressConstantEvaluatorStep
 
 class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     implements ErrorReporter {
-  ConstantEvaluator constantEvaluator;
-  ConstantEvaluator constantEvaluatorWithEmptyEnvironment;
+  late ConstantEvaluator constantEvaluator;
+  late ConstantEvaluator constantEvaluatorWithEmptyEnvironment;
   int tries = 0;
   int success = 0;
   List<String> output = [];
 
   StressConstantEvaluatorVisitor(
       ConstantsBackend backend,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       bool enableTripleShift,
       TypeEnvironment typeEnvironment,
       bool desugarSets,
@@ -931,7 +937,8 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
         evaluationMode: evaluationMode);
   }
 
-  Library currentLibrary;
+  Library? currentLibrary;
+
   Library visitLibrary(Library node) {
     currentLibrary = node;
     node.visitChildren(this);
@@ -939,10 +946,10 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     return node;
   }
 
-  Member currentMember;
+  Member? currentMember;
 
   Node defaultMember(Member node) {
-    Member prevCurrentMember = currentMember;
+    Member? prevCurrentMember = currentMember;
     currentMember = node;
     node.visitChildren(this);
     currentMember = prevCurrentMember;
@@ -954,9 +961,9 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     if (node is InvalidExpression) return node;
     if (node is ConstantExpression) {
       bool evaluate = false;
-      if (node.constant is UnevaluatedConstant) {
-        UnevaluatedConstant unevaluatedConstant = node.constant;
-        if (unevaluatedConstant.expression is! InvalidExpression) {
+      Constant constant = node.constant;
+      if (constant is UnevaluatedConstant) {
+        if (constant.expression is! InvalidExpression) {
           evaluate = true;
         }
       }
@@ -972,10 +979,10 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     StaticTypeContext staticTypeContext;
     if (currentMember == null) {
       staticTypeContext = new StaticTypeContext.forAnnotations(
-          currentLibrary, constantEvaluator.typeEnvironment);
+          currentLibrary!, constantEvaluator.typeEnvironment);
     } else {
       staticTypeContext = new StaticTypeContext(
-          currentMember, constantEvaluator.typeEnvironment);
+          currentMember!, constantEvaluator.typeEnvironment);
     }
     Constant x = constantEvaluator.evaluate(staticTypeContext, node);
     bool evaluatedWithEmptyEnvironment = false;
@@ -987,7 +994,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
       }
       x = constantEvaluatorWithEmptyEnvironment.evaluate(
           new StaticTypeContext(
-              currentMember, constantEvaluator.typeEnvironment),
+              currentMember!, constantEvaluator.typeEnvironment),
           new ConstantExpression(x));
       evaluatedWithEmptyEnvironment = true;
     }
@@ -1019,18 +1026,18 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     try {
       return node.location.toString();
     } catch (e) {
-      TreeNode n = node;
+      TreeNode? n = node;
       while (n != null && n is! FileUriNode) {
         n = n.parent;
       }
       if (n == null) return "(unknown location)";
-      FileUriNode fileUriNode = n;
+      FileUriNode fileUriNode = n as FileUriNode;
       return ("(unknown position in ${fileUriNode.fileUri})");
     }
   }
 
   @override
-  void report(LocatedMessage message, [List<LocatedMessage> context]) {
+  void report(LocatedMessage message, [List<LocatedMessage>? context]) {
     // ignored.
   }
 }
@@ -1043,9 +1050,9 @@ class CompilationSetup {
   final List<Iterable<String>> errors;
   final CompilerOptions Function(
           NnbdMode nnbdMode,
-          AllowedExperimentalFlags allowedExperimentalFlags,
-          Map<ExperimentalFlag, Version> experimentEnabledVersion,
-          Map<ExperimentalFlag, Version> experimentReleasedVersion)
+          AllowedExperimentalFlags? allowedExperimentalFlags,
+          Map<ExperimentalFlag, Version>? experimentEnabledVersion,
+          Map<ExperimentalFlag, Version>? experimentReleasedVersion)
       createCompilerOptions;
 
   final ProcessedOptions Function(CompilerOptions compilerOptions)
@@ -1065,7 +1072,7 @@ CompilationSetup createCompilationSetup(
     TestDescription description, FastaContext context) {
   List<Iterable<String>> errors = <Iterable<String>>[];
 
-  Uri librariesSpecificationUri =
+  Uri? librariesSpecificationUri =
       context.computeLibrariesSpecificationUri(description);
   TestOptions testOptions = context.computeTestOptions(description);
   FolderOptions folderOptions = context.computeFolderOptions(description);
@@ -1080,9 +1087,9 @@ CompilationSetup createCompilationSetup(
 
   CompilerOptions createCompilerOptions(
       NnbdMode nnbdMode,
-      AllowedExperimentalFlags allowedExperimentalFlags,
-      Map<ExperimentalFlag, Version> experimentEnabledVersion,
-      Map<ExperimentalFlag, Version> experimentReleasedVersion) {
+      AllowedExperimentalFlags? allowedExperimentalFlags,
+      Map<ExperimentalFlag, Version>? experimentEnabledVersion,
+      Map<ExperimentalFlag, Version>? experimentReleasedVersion) {
     CompilerOptions compilerOptions = new CompilerOptions()
       ..onDiagnostic = (DiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
@@ -1098,7 +1105,7 @@ CompilationSetup createCompilationSetup(
       ..target = createTarget(folderOptions, context);
     if (folderOptions.overwriteCurrentSdkVersion != null) {
       compilerOptions.currentSdkVersion =
-          folderOptions.overwriteCurrentSdkVersion;
+          folderOptions.overwriteCurrentSdkVersion!;
     }
     return compilerOptions;
   }
@@ -1131,7 +1138,7 @@ class FuzzCompiles
 
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
-    bool originalFlag = context.explicitExperimentalFlags[
+    bool? originalFlag = context.explicitExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy];
     context.explicitExperimentalFlags[
         ExperimentalFlag.alternativeInvalidationStrategy] = true;
@@ -1151,7 +1158,7 @@ class FuzzCompiles
 
     Component platform = await context.loadPlatform(
         backendTarget, compilationSetup.options.nnbdMode);
-    Result<ComponentResult> passResult = await performFileInvalidation(
+    Result<ComponentResult>? passResult = await performFileInvalidation(
         compilationSetup,
         platform,
         uriTranslator,
@@ -1171,13 +1178,13 @@ class FuzzCompiles
   /// one at a time, and the code recompiled after each invalidation.
   /// Verifies that either it's an error in all cases or in no cases.
   /// Verifies that the same libraries comes out as a result.
-  Future<Result<ComponentResult>> performFileInvalidation(
+  Future<Result<ComponentResult>?> performFileInvalidation(
       CompilationSetup compilationSetup,
       Component platform,
       UriTranslator uriTranslator,
       ComponentResult result,
       FastaContext context,
-      bool originalFlag) async {
+      bool? originalFlag) async {
     compilationSetup.errors.clear();
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
@@ -1253,8 +1260,13 @@ class FuzzCompiles
       }
     }
 
-    context.explicitExperimentalFlags[
-        ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
+    if (originalFlag != null) {
+      context.explicitExperimentalFlags[
+          ExperimentalFlag.alternativeInvalidationStrategy] = originalFlag;
+    } else {
+      context.explicitExperimentalFlags
+          .remove(ExperimentalFlag.alternativeInvalidationStrategy);
+    }
 
     return null;
   }
@@ -1264,13 +1276,13 @@ class FuzzCompiles
   /// etc are sorted).
   /// Verifies that either it's an error in all cases or in no cases.
   /// Verifies that the same libraries comes out as a result.
-  Future<Result<ComponentResult>> performChunkReordering(
+  Future<Result<ComponentResult>?> performChunkReordering(
       CompilationSetup compilationSetup,
       Component platform,
       UriTranslator uriTranslator,
       ComponentResult result,
       FastaContext context,
-      bool originalFlag) async {
+      bool? originalFlag) async {
     compilationSetup.errors.clear();
 
     FileSystem orgFileSystem = compilationSetup.options.fileSystem;
@@ -1290,14 +1302,14 @@ class FuzzCompiles
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
     for (LibraryBuilder builder
-        in incrementalCompiler.userCode.loader.builders.values) {
+        in incrementalCompiler.userCode!.loader.builders.values) {
       if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
         Uri thisPartUri = builder.importUri.resolve(part.partUri);
         if (thisPartUri.scheme == "package") {
-          thisPartUri =
-              incrementalCompiler.userCode.uriTranslator.translate(thisPartUri);
+          thisPartUri = incrementalCompiler.userCode!.uriTranslator
+              .translate(thisPartUri)!;
         }
         builders[thisPartUri] = builder;
       }
@@ -1305,12 +1317,12 @@ class FuzzCompiles
 
     for (Uri uri in fs.data.keys) {
       print("Work on $uri");
-      LibraryBuilder builder = builders[uri];
+      LibraryBuilder? builder = builders[uri];
       if (builder == null) {
         print("Skipping $uri -- couldn't find builder for it.");
         continue;
       }
-      Uint8List orgData = fs.data[uri];
+      Uint8List orgData = fs.data[uri] as Uint8List;
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
         fuzzAstVisitorSorter =
@@ -1334,7 +1346,7 @@ class FuzzCompiles
         for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
           sb.writeln(chunk.getSource());
         }
-        Uint8List sortedData = utf8.encode(sb.toString());
+        Uint8List sortedData = utf8.encode(sb.toString()) as Uint8List;
         fs.data[uri] = sortedData;
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
@@ -1388,7 +1400,7 @@ class FuzzCompiles
 
 class FuzzAstVisitorSorterChunk {
   final String data;
-  final String metadataAndComments;
+  final String? metadataAndComments;
   final int layer;
 
   FuzzAstVisitorSorterChunk(this.data, this.metadataAndComments, this.layer);
@@ -1421,7 +1433,7 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
     accept(ast);
     if (metadataStart != null) {
       String metadata = asString.substring(
-          metadataStart.charOffset, metadataEndInclusive.charEnd);
+          metadataStart!.charOffset, metadataEndInclusive!.charEnd);
       layer++;
       chunks.add(new FuzzAstVisitorSorterChunk(
         "",
@@ -1455,25 +1467,25 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   List<FuzzAstVisitorSorterChunk> chunks = [];
-  Token metadataStart;
-  Token metadataEndInclusive;
+  Token? metadataStart;
+  Token? metadataEndInclusive;
   int layer = 0;
-  FuzzSorterState state = null;
+  FuzzSorterState? state = null;
 
   /// If there's any LanguageVersionToken in the comment preceding the given
   /// token add it as a separate chunk to keep it in place.
   void _chunkOutLanguageVersionComment(Token fromToken) {
-    Token comment = fromToken.precedingComments;
+    Token comment = fromToken.precedingComments!;
     bool hasLanguageVersion = comment is LanguageVersionToken;
     while (comment.next != null) {
-      comment = comment.next;
+      comment = comment.next!;
       hasLanguageVersion |= comment is LanguageVersionToken;
     }
     if (hasLanguageVersion) {
       layer++;
       chunks.add(new FuzzAstVisitorSorterChunk(
         asString.substring(
-            fromToken.precedingComments.charOffset, comment.charEnd),
+            fromToken.precedingComments!.charOffset, comment.charEnd),
         null,
         layer,
       ));
@@ -1498,19 +1510,19 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
     // anyway, so possibly allowing it to be sorted (and put in another place)
     // won't make it more or less illegal.
     if (metadataStart != null &&
-        metadataStart.precedingComments != null &&
+        metadataStart!.precedingComments != null &&
         chunks.isEmpty) {
-      _chunkOutLanguageVersionComment(metadataStart);
+      _chunkOutLanguageVersionComment(metadataStart!);
     } else if (metadataStart == null &&
         startInclusive.precedingComments != null &&
         chunks.isEmpty) {
       _chunkOutLanguageVersionComment(startInclusive);
     }
 
-    String metadata;
+    String? metadata;
     if (metadataStart != null || metadataEndInclusive != null) {
       metadata = asString.substring(
-          metadataStart.charOffset, metadataEndInclusive.charEnd);
+          metadataStart!.charOffset, metadataEndInclusive!.charEnd);
     }
     chunks.add(new FuzzAstVisitorSorterChunk(
       asString.substring(startInclusive.charOffset, endInclusive.charEnd),
@@ -1530,9 +1542,9 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
 
   @override
   void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
-      Token endInclusive) {
+      Token? endInclusive) {
     handleData(
-        FuzzSorterState.importExportSortable, startInclusive, endInclusive);
+        FuzzSorterState.importExportSortable, startInclusive, endInclusive!);
   }
 
   @override
@@ -1619,7 +1631,7 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
 
 class _FakeFileSystem extends FileSystem {
   bool redirectAndRecord = true;
-  final Map<Uri, Uint8List> data = {};
+  final Map<Uri, Uint8List?> data = {};
   final FileSystem fs;
   _FakeFileSystem(this.fs);
 
@@ -1645,13 +1657,13 @@ class _FakeFileSystemEntity extends FileSystemEntity {
       fs.data[uri] = null;
       return;
     }
-    fs.data[uri] = await f.readAsBytes();
+    fs.data[uri] = (await f.readAsBytes()) as Uint8List;
   }
 
   @override
   Future<bool> exists() async {
     await _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) return false;
     return true;
   }
@@ -1662,7 +1674,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   @override
   Future<List<int>> readAsBytes() async {
     await _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return data;
   }
@@ -1673,7 +1685,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
   @override
   Future<String> readAsString() async {
     await _ensureCachedIfOk();
-    Uint8List data = fs.data[uri];
+    Uint8List? data = fs.data[uri];
     if (data == null) throw new FileSystemException(uri, "File doesn't exist.");
     return utf8.decode(data);
   }
@@ -1758,7 +1770,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       if (compilationSetup.testOptions.nnbdMode != null) {
         linkOptions = compilationSetup.createProcessedOptions(
             compilationSetup.createCompilerOptions(
-                compilationSetup.testOptions.nnbdMode,
+                compilationSetup.testOptions.nnbdMode!,
                 compilationSetup.testOptions.allowedExperimentalFlags,
                 compilationSetup.testOptions.experimentEnabledVersion,
                 compilationSetup.testOptions.experimentReleasedVersion));
@@ -1770,14 +1782,14 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
             linkOptions,
             compilationSetup.testOptions.linkDependencies.toList());
         if (compilationSetup.testOptions.errors != null) {
-          compilationSetup.errors.addAll(compilationSetup.testOptions.errors);
+          compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
-        Component p = await sourceTarget.buildOutlines();
+        Component p = (await sourceTarget.buildOutlines())!;
         if (fullCompile) {
-          p = await sourceTarget.buildComponent(
+          p = (await sourceTarget.buildComponent(
               verify: compilationSetup.folderOptions.noVerify
                   ? false
-                  : context.verify);
+                  : context.verify))!;
         }
 
         // To avoid possible crash in mixin transformation in the transformation
@@ -1788,6 +1800,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           backendTarget.performModularTransformations = true;
         }
         try {
+          // ignore: unnecessary_null_comparison
           if (sourceTarget.loader.coreTypes != null) {
             sourceTarget.runBuildTransformations();
           }
@@ -1814,7 +1827,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
     return await CompilerContext.runWithOptions(compilationSetup.options,
         (_) async {
-      Component alsoAppend = compilationSetup.testOptions.component;
+      Component? alsoAppend = compilationSetup.testOptions.component;
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
@@ -1825,14 +1838,14 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           new ValidatingInstrumentation();
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
-      Component p = await sourceTarget.buildOutlines();
+      Component p = (await sourceTarget.buildOutlines())!;
       Set<Uri> userLibraries =
           createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
       if (fullCompile) {
-        p = await sourceTarget.buildComponent(
+        p = (await sourceTarget.buildComponent(
             verify: compilationSetup.folderOptions.noVerify
                 ? false
-                : context.verify);
+                : context.verify))!;
         instrumentation.finish();
         if (instrumentation.hasProblems) {
           if (updateComments) {
@@ -1858,7 +1871,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       TestDescription description,
       ProcessedOptions options,
       List<Uri> entryPoints,
-      {Component alsoAppend}) async {
+      {Component? alsoAppend}) async {
     Component platform =
         await context.loadPlatform(options.target, options.nnbdMode);
     Ticker ticker = new Ticker();
@@ -1897,6 +1910,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
         backendTarget.performModularTransformations = true;
       }
       try {
+        // ignore: unnecessary_null_comparison
         if (sourceTarget.loader.coreTypes != null) {
           sourceTarget.runBuildTransformations();
         }
@@ -2008,11 +2022,11 @@ mixin TestTarget on Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
-      Map<String, String> environmentDefines,
+      Map<String, String>? environmentDefines,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
-      ChangedStructureNotifier changedStructureNotifier}) {
+      ReferenceFromIndex? referenceFromIndex,
+      {void Function(String msg)? logger,
+      ChangedStructureNotifier? changedStructureNotifier}) {
     if (performModularTransformations) {
       super.performModularTransformationsOnLibraries(
           component,
@@ -2065,7 +2079,7 @@ class MatchHierarchy
       ComponentResult result, FastaContext context) async {
     Component component = result.component;
     Uri uri =
-        component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
+        component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
     KernelTarget target = result.sourceTarget;
     ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
@@ -2078,8 +2092,8 @@ class MatchHierarchy
 }
 
 class UriConfiguration {
-  final Uri librariesSpecificationUri;
-  final Uri packageConfigUri;
+  final Uri? librariesSpecificationUri;
+  final Uri? packageConfigUri;
 
   UriConfiguration(this.librariesSpecificationUri, this.packageConfigUri);
 
@@ -2097,7 +2111,7 @@ class UriConfiguration {
 }
 
 class NoneConstantsBackendWithJs extends NoneConstantsBackend {
-  const NoneConstantsBackendWithJs({bool supportsUnevaluatedConstants})
+  const NoneConstantsBackendWithJs({required bool supportsUnevaluatedConstants})
       : super(supportsUnevaluatedConstants: supportsUnevaluatedConstants);
 
   @override

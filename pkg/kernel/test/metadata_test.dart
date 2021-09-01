@@ -56,10 +56,13 @@ DartType getTypeForMetadata(TreeNode node) {
 class TestMetadataRepository extends MetadataRepository<Metadata> {
   static const kTag = 'kernel.metadata.test';
 
+  @override
   final String tag = kTag;
 
+  @override
   final Map<TreeNode, Metadata> mapping = <TreeNode, Metadata>{};
 
+  @override
   void writeToBinary(Metadata metadata, Node node, BinarySink sink) {
     expect(metadata, equals(mapping[node]));
     sink.writeByteList(utf8.encode(metadata.string));
@@ -69,6 +72,7 @@ class TestMetadataRepository extends MetadataRepository<Metadata> {
     sink.writeDartType(metadata.type);
   }
 
+  @override
   Metadata readFromBinary(Node node, BinarySource source) {
     final string1 = utf8.decode(source.readByteList());
     final string2 = source.readStringReference();
@@ -101,6 +105,7 @@ class Visitor extends RecursiveVisitor {
 
   Visitor(this.predicate, this.handle);
 
+  @override
   defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
     if (MetadataRepository.isSupported(node) && predicate(node)) {

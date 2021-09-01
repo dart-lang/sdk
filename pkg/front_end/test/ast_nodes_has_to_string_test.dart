@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, Platform, stdin, exitCode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -32,7 +30,7 @@ main(List<String> args) async {
             /*Uri initializeFrom*/ null,
             /*bool outlineOnly*/ true);
     c = await compiler.computeDelta();
-    classHierarchy = compiler.getClassHierarchy();
+    classHierarchy = compiler.getClassHierarchy()!;
     List<Library> libraries = c.libraries
         .where((Library lib) =>
             (lib.importUri.toString() == "package:kernel/ast.dart"))
@@ -63,13 +61,13 @@ main(List<String> args) async {
           if (toStringList.length > 1) throw "What?";
           if (toStringList.length == 1) {
             classMapWithOne[c.fileUri] ??= <Class>[];
-            classMapWithOne[c.fileUri].add(c);
+            classMapWithOne[c.fileUri]!.add(c);
             continue;
           }
           toGo++;
 
           classMap[c.fileUri] ??= <Class>[];
-          classMap[c.fileUri].add(c);
+          classMap[c.fileUri]!.add(c);
         }
       }
     }
@@ -85,7 +83,7 @@ main(List<String> args) async {
 
     if (args.length == 1 && args.single == "--interactive") {
       for (Uri uri in classMap.keys) {
-        List<Class> classes = classMap[uri];
+        List<Class> classes = classMap[uri]!;
         print("Would you like to update ${classes.length} classes in ${uri}?"
             " (y/n)");
         if (stdin.readLineSync() != "y") {
@@ -132,7 +130,7 @@ main(List<String> args) async {
 
   if (args.length == 1 && args.single == "--interactive") {
     for (Uri uri in classMapWithOne.keys) {
-      List<Class> classes = classMapWithOne[uri];
+      List<Class> classes = classMapWithOne[uri]!;
       print("Would you like to update toString for ${classes.length} "
           "classes in ${uri}? (y/n)");
       if (stdin.readLineSync() != "y") {

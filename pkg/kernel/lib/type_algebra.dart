@@ -298,6 +298,7 @@ class _NullSubstitution extends Substitution {
 
   const _NullSubstitution();
 
+  @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
     return new TypeParameterType.forAlphaRenaming(parameter, parameter);
   }
@@ -318,6 +319,7 @@ class _MapSubstitution extends Substitution {
 
   _MapSubstitution(this.upper, this.lower);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
@@ -335,10 +337,12 @@ class _TopSubstitutor extends _TypeSubstitutor {
     }
   }
 
+  @override
   DartType? lookup(TypeParameter parameter, bool upperBound) {
     return substitution.getSubstitute(parameter, upperBound);
   }
 
+  @override
   TypeParameter freshTypeParameter(TypeParameter node) {
     throw 'Create a fresh environment first';
   }
@@ -349,6 +353,7 @@ class _ClassBottomSubstitution extends Substitution {
 
   _ClassBottomSubstitution(this.class_);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     if (parameter.parent == class_) {
       return upperBound ? const NeverType.nonNullable() : const DynamicType();
@@ -362,6 +367,7 @@ class _CombinedSubstitution extends Substitution {
 
   _CombinedSubstitution(this.first, this.second);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return first.getSubstitute(parameter, upperBound) ??
         second.getSubstitute(parameter, upperBound);
@@ -376,6 +382,7 @@ class _FilteredSubstitution extends Substitution {
 
   _FilteredSubstitution(this.base, this.filterFn);
 
+  @override
   DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
     return filterFn(parameter)
         ? base.getSubstitute(parameter, upperBound)
@@ -388,10 +395,12 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
 
   _InnerTypeSubstitutor(_TypeSubstitutor? outer) : super(outer);
 
+  @override
   DartType? lookup(TypeParameter parameter, bool upperBound) {
     return substitution[parameter];
   }
 
+  @override
   TypeParameter freshTypeParameter(TypeParameter node) {
     TypeParameter fresh = new TypeParameter(node.name)..flags = node.flags;
     TypeParameterType typeParameterType = substitution[node] =
@@ -578,13 +587,20 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   DartType visit(DartType node) => node.accept(this);
 
+  @override
   DartType defaultDartType(DartType node) => node;
+  @override
   DartType visitInvalidType(InvalidType node) => node;
+  @override
   DartType visitDynamicType(DynamicType node) => node;
+  @override
   DartType visitVoidType(VoidType node) => node;
+  @override
   DartType visitNeverType(NeverType node) => node;
+  @override
   DartType visitNullType(NullType node) => node;
 
+  @override
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -593,6 +609,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new InterfaceType(node.classNode, node.nullability, typeArguments);
   }
 
+  @override
   DartType visitFutureOrType(FutureOrType node) {
     int before = useCounter;
     DartType typeArgument = node.typeArgument.accept(this);
@@ -600,6 +617,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new FutureOrType(typeArgument, node.declaredNullability);
   }
 
+  @override
   DartType visitTypedefType(TypedefType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -615,6 +633,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   TypeParameter freshTypeParameter(TypeParameter node);
 
+  @override
   DartType visitFunctionType(FunctionType node) {
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
@@ -682,6 +701,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return null;
   }
 
+  @override
   DartType visitTypeParameterType(TypeParameterType node) {
     DartType? replacement = getSubstitute(node.parameter);
     if (replacement is InvalidType) return replacement;
@@ -749,6 +769,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool defaultDartType(DartType node) {
     if (unhandledTypeHandler == null) {
       throw new UnsupportedError("Unsupported type '${node.runtimeType}'.");
@@ -757,28 +778,38 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
     }
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     return node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
@@ -786,6 +817,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
         visit(node.returnType);
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return variables.contains(node.parameter);
   }
@@ -806,6 +838,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool visit(DartType node) => node.accept(this);
 
+  @override
   bool defaultDartType(DartType node) {
     throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
   }
@@ -814,28 +847,38 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     variables.addAll(node.typeParameters);
     bool result = node.typeParameters.any(handleTypeParameter) ||
@@ -846,6 +889,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
     return result;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return node.parameter.parent == null && !variables.contains(node.parameter);
   }
@@ -866,6 +910,7 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   bool visit(DartType node) => node.accept(this);
 
+  @override
   bool defaultDartType(DartType node) {
     throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
   }
@@ -874,28 +919,38 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  @override
   bool visitNeverType(NeverType node) => false;
+  @override
   bool visitNullType(NullType node) => false;
+  @override
   bool visitInvalidType(InvalidType node) => false;
+  @override
   bool visitDynamicType(DynamicType node) => false;
+  @override
   bool visitVoidType(VoidType node) => false;
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFutureOrType(FutureOrType node) {
     return visit(node.typeArgument);
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.typeArguments.any(visit);
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     variables.addAll(node.typeParameters);
     bool result = node.typeParameters.any(handleTypeParameter) ||
@@ -906,6 +961,7 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
     return result;
   }
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return !variables.contains(node.parameter);
   }

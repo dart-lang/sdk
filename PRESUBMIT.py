@@ -14,6 +14,7 @@ import os.path
 from typing import Callable
 import scm
 import subprocess
+import tempfile
 import platform
 
 USE_PYTHON3 = True
@@ -139,7 +140,23 @@ def _CheckDartFormat(input_api, output_api):
             '--output=none',
             '--summary=none',
         ]
-        if contents:
+
+        # TODO(https://github.com/dart-lang/sdk/issues/46947): Remove this hack.
+        if windows and contents:
+            f = tempfile.NamedTemporaryFile(
+                encoding='utf-8',
+                delete=False,
+                mode='w',
+                suffix='.dart',
+            )
+            try:
+                f.write(contents)
+                f.close()
+                args.append(f.name)
+                process = subprocess.run(args)
+            finally:
+                os.unlink(f.name)
+        elif contents:
             process = subprocess.run(args, input=contents, text=True)
         else:
             args.append(filename)
