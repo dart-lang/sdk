@@ -227,22 +227,16 @@ Map<String, YamlNode> _getOptionsFromString(String? optionsSource) {
     throw Exception(
         'Bad options file format (expected map, got ${doc.runtimeType})');
   }
-  if (doc is YamlMap) {
-    doc.nodes.forEach((k, YamlNode v) {
-      Object? key;
-      if (k is YamlScalar) {
-        key = k.value;
-      }
-      if (key is! String) {
-        throw Exception('Bad options file format (expected String scope key, '
-            'got ${k.runtimeType})');
-      }
-      if (v is! YamlNode) {
-        throw Exception('Bad options file format (expected Node value, '
-            'got ${v.runtimeType}: `${v.toString()}`)');
-      }
-      options[key] = v;
-    });
-  }
+  doc.nodes.forEach((k, YamlNode v) {
+    Object? key;
+    if (k is YamlScalar) {
+      key = k.value;
+    }
+    if (key is! String) {
+      throw Exception('Bad options file format (expected String scope key, '
+          'got ${k.runtimeType})');
+    }
+    options[key] = v;
+  });
   return options;
 }
