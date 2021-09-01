@@ -157,13 +157,21 @@ class ExpressionLifter extends Transformer {
 
   // Simple literals.  These are pure expressions so they can be evaluated after
   // an await to their right.
+  @override
   TreeNode visitSymbolLiteral(SymbolLiteral expr) => expr;
+  @override
   TreeNode visitTypeLiteral(TypeLiteral expr) => expr;
+  @override
   TreeNode visitThisExpression(ThisExpression expr) => expr;
+  @override
   TreeNode visitStringLiteral(StringLiteral expr) => expr;
+  @override
   TreeNode visitIntLiteral(IntLiteral expr) => expr;
+  @override
   TreeNode visitDoubleLiteral(DoubleLiteral expr) => expr;
+  @override
   TreeNode visitBoolLiteral(BoolLiteral expr) => expr;
+  @override
   TreeNode visitNullLiteral(NullLiteral expr) => expr;
 
   // Nullary expressions with effects.
@@ -175,13 +183,18 @@ class ExpressionLifter extends Transformer {
     return expr;
   }
 
+  @override
   TreeNode visitSuperPropertyGet(SuperPropertyGet expr) => nullary(expr);
+  @override
   TreeNode visitStaticGet(StaticGet expr) => nullary(expr);
+  @override
   TreeNode visitStaticTearOff(StaticTearOff expr) => nullary(expr);
+  @override
   TreeNode visitRethrow(Rethrow expr) => nullary(expr);
 
   // Getting a final or const variable is not an effect so it can be evaluated
   // after an await to its right.
+  @override
   TreeNode visitVariableGet(VariableGet expr) {
     Expression result = expr;
     if (seenAwait && !expr.variable.isFinal && !expr.variable.isConst) {
@@ -271,6 +284,7 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
   TreeNode visitArguments(Arguments args) {
     for (var named in args.named.reversed) {
       named.value = transform(named.value)..parent = named;
@@ -326,24 +340,28 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
   TreeNode visitSuperMethodInvocation(SuperMethodInvocation expr) {
     return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
+  @override
   TreeNode visitStaticInvocation(StaticInvocation expr) {
     return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
+  @override
   TreeNode visitConstructorInvocation(ConstructorInvocation expr) {
     return transformTreeNode(expr, () {
       visitArguments(expr.arguments);
     });
   }
 
+  @override
   TreeNode visitStringConcatenation(StringConcatenation expr) {
     return transformTreeNode(expr, () {
       var expressions = expr.expressions;
@@ -353,6 +371,7 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
   TreeNode visitListLiteral(ListLiteral expr) {
     return transformTreeNode(expr, () {
       var expressions = expr.expressions;
@@ -362,6 +381,7 @@ class ExpressionLifter extends Transformer {
     });
   }
 
+  @override
   TreeNode visitMapLiteral(MapLiteral expr) {
     return transformTreeNode(expr, () {
       for (var entry in expr.entries.reversed) {
@@ -372,6 +392,7 @@ class ExpressionLifter extends Transformer {
   }
 
   // Control flow.
+  @override
   TreeNode visitLogicalExpression(LogicalExpression expr) {
     var shouldName = seenAwait;
 
@@ -437,6 +458,7 @@ class ExpressionLifter extends Transformer {
     return unsafeCastVariableGet(result, type);
   }
 
+  @override
   TreeNode visitConditionalExpression(ConditionalExpression expr) {
     // Then and otherwise are delimited because they are conditionally
     // evaluated.
@@ -502,6 +524,7 @@ class ExpressionLifter extends Transformer {
   }
 
   // Others.
+  @override
   TreeNode visitAwaitExpression(AwaitExpression expr) {
     final R = continuationRewriter;
     var shouldName = seenAwait;
@@ -558,11 +581,13 @@ class ExpressionLifter extends Transformer {
     return result;
   }
 
+  @override
   TreeNode visitFunctionExpression(FunctionExpression expr) {
     expr.transformChildren(this);
     return expr;
   }
 
+  @override
   TreeNode visitLet(Let expr) {
     var body = transform(expr.body);
 
@@ -604,12 +629,14 @@ class ExpressionLifter extends Transformer {
     }
   }
 
+  @override
   visitFunctionNode(FunctionNode node) {
     var nestedRewriter = new RecursiveContinuationRewriter(
         continuationRewriter.helper, _staticTypeContext);
     return nestedRewriter.transform(node);
   }
 
+  @override
   TreeNode visitBlockExpression(BlockExpression expr) {
     return transformTreeNode(expr, () {
       expr.value = transform(expr.value)..parent = expr;
@@ -648,6 +675,7 @@ class ExpressionLifter extends Transformer {
     return null;
   }
 
+  @override
   TreeNode defaultStatement(Statement stmt) {
     throw new UnsupportedError(
         "Use _rewriteStatement to transform statement: ${stmt}");

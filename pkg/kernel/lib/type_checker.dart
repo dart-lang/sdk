@@ -170,24 +170,30 @@ class TypeCheckingVisitor
     node.accept(this);
   }
 
+  @override
   defaultMember(Member node) => throw 'Unused';
 
+  @override
   DartType defaultBasicLiteral(BasicLiteral node) {
     return defaultExpression(node);
   }
 
+  @override
   DartType defaultExpression(Expression node) {
     throw 'Unexpected expression ${node.runtimeType}';
   }
 
+  @override
   defaultStatement(Statement node) {
     throw 'Unexpected statement ${node.runtimeType}';
   }
 
+  @override
   defaultInitializer(Initializer node) {
     throw 'Unexpected initializer ${node.runtimeType}';
   }
 
+  @override
   visitField(Field node) {
     if (node.initializer != null) {
       node.initializer =
@@ -195,6 +201,7 @@ class TypeCheckingVisitor
     }
   }
 
+  @override
   visitConstructor(Constructor node) {
     currentReturnType = null;
     currentYieldType = null;
@@ -202,12 +209,14 @@ class TypeCheckingVisitor
     handleFunctionNode(node.function);
   }
 
+  @override
   visitProcedure(Procedure node) {
     currentReturnType = _getInternalReturnType(node.function);
     currentYieldType = _getYieldType(node.function);
     handleFunctionNode(node.function);
   }
 
+  @override
   visitRedirectingFactory(RedirectingFactory node) {
     currentReturnType = null;
     currentYieldType = null;

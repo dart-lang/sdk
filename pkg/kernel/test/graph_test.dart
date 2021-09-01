@@ -13,8 +13,10 @@ class TestGraph implements Graph<String> {
 
   TestGraph(this.graph);
 
+  @override
   Iterable<String> get vertices => graph.keys;
 
+  @override
   Iterable<String> neighborsOf(String vertex) => graph[vertex]!;
 }
 

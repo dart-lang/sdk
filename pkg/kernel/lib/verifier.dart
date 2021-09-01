@@ -22,6 +22,7 @@ class VerificationError {
 
   VerificationError(this.context, this.node, this.details);
 
+  @override
   toString() {
     Location? location;
     try {
@@ -209,6 +210,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   visitComponent(Component component) {
     try {
       for (Library library in component.libraries) {
@@ -239,12 +241,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   void visitLibrary(Library node) {
     currentLibrary = node;
     super.visitLibrary(node);
     currentLibrary = null;
   }
 
+  @override
   visitExtension(Extension node) {
     currentExtension = node;
     declareTypeParameters(node.typeParameters);
@@ -276,12 +280,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     typedefState[node] = TypedefState.Done;
   }
 
+  @override
   visitTypedef(Typedef node) {
     checkTypedef(node);
     // Enter and exit the node to check the parent pointer on the typedef node.
     exitParent(enterParent(node));
   }
 
+  @override
   visitField(Field node) {
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
@@ -324,6 +330,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
+  @override
   visitProcedure(Procedure node) {
     currentMember = node;
     TreeNode? oldParent = enterParent(node);
@@ -374,6 +381,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
+  @override
   visitConstructor(Constructor node) {
     currentMember = node;
     classTypeParametersAreInScope = true;
@@ -394,6 +402,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentMember = null;
   }
 
+  @override
   visitClass(Class node) {
     currentClass = node;
     declareTypeParameters(node.typeParameters);
@@ -410,6 +419,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentClass = null;
   }
 
+  @override
   visitFunctionNode(FunctionNode node) {
     declareTypeParameters(node.typeParameters);
     bool savedInCatchBlock = inCatchBlock;
@@ -429,6 +439,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.typeParameters);
   }
 
+  @override
   visitFunctionType(FunctionType node) {
     for (int i = 1; i < node.namedParameters.length; ++i) {
       if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
@@ -450,18 +461,22 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     undeclareTypeParameters(node.typeParameters);
   }
 
+  @override
   visitBlock(Block node) {
     visitWithLocalScope(node);
   }
 
+  @override
   visitForStatement(ForStatement node) {
     visitWithLocalScope(node);
   }
 
+  @override
   visitForInStatement(ForInStatement node) {
     visitWithLocalScope(node);
   }
 
+  @override
   visitLet(Let node) {
     if (_isCompileTimeErrorEncoding(node)) return;
     visitWithLocalScope(node);
@@ -472,6 +487,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     return;
   }
 
+  @override
   visitBlockExpression(BlockExpression node) {
     int stackHeight = enterLocalScope();
     // Do not visit the block directly because the value expression needs to
@@ -487,6 +503,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitLocalScope(stackHeight);
   }
 
+  @override
   visitCatch(Catch node) {
     bool savedInCatchBlock = inCatchBlock;
     inCatchBlock = true;
@@ -539,6 +556,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   visitVariableDeclaration(VariableDeclaration node) {
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -567,6 +585,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   visitVariableGet(VariableGet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -575,6 +594,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
   }
 
+  @override
   visitVariableSet(VariableSet node) {
     checkVariableInScope(node.variable, node);
     visitChildren(node);
@@ -999,6 +1019,7 @@ class CheckParentPointers extends Visitor<void> with VisitorVoidMixin {
 
   CheckParentPointers([this.parent]);
 
+  @override
   defaultTreeNode(TreeNode node) {
     if (node.parent != parent) {
       throw new VerificationError(

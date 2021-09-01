@@ -13,6 +13,7 @@ abstract class State {
 
 /// State for visiting two AST nodes in [EquivalenceVisitor].
 class NodeState extends State {
+  @override
   final State? parent;
   final Node a;
   final Node b;
@@ -22,6 +23,7 @@ class NodeState extends State {
 
 /// State for visiting an AST property in [EquivalenceVisitor]
 class PropertyState extends State {
+  @override
   final State? parent;
   final String name;
 

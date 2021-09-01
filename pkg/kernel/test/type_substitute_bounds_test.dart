@@ -41,6 +41,7 @@ class TestCase {
 
   TestCase(this.type, this.bounds, this.expected);
 
+  @override
   String toString() {
     var substitution = bounds.keys.map((key) {
       var bound = bounds[key]!;

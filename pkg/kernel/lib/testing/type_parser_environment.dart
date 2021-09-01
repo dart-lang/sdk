@@ -243,6 +243,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         as InterfaceType?;
   }
 
+  @override
   DartType visitInterfaceType(
       ParsedInterfaceType node, TypeParserEnvironment environment) {
     String name = node.name;
@@ -338,6 +339,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     }
   }
 
+  @override
   Class visitClass(ParsedClass node, TypeParserEnvironment environment) {
     String name = node.name;
     Class cls = environment.lookupDeclaration(name) as Class;
@@ -373,6 +375,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     return cls;
   }
 
+  @override
   Extension visitExtension(
       ParsedExtension node, TypeParserEnvironment environment) {
     String name = node.name;
@@ -393,6 +396,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     return ext;
   }
 
+  @override
   Typedef visitTypedef(ParsedTypedef node, TypeParserEnvironment environment) {
     String name = node.name;
     Typedef def = environment._registerDeclaration(
@@ -423,6 +427,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     return def..type = type;
   }
 
+  @override
   FunctionType visitFunctionType(
       ParsedFunctionType node, TypeParserEnvironment environment) {
     ParameterEnvironment parameterEnvironment =
@@ -453,16 +458,19 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
         typeParameters: parameterEnvironment.parameters);
   }
 
+  @override
   VoidType visitVoidType(
       ParsedVoidType node, TypeParserEnvironment environment) {
     return const VoidType();
   }
 
+  @override
   TypeParameter visitTypeVariable(
       ParsedTypeVariable node, TypeParserEnvironment environment) {
     throw "not implemented: $node";
   }
 
+  @override
   TypeParameterType visitIntersectionType(
       ParsedIntersectionType node, TypeParserEnvironment environment) {
     TypeParameterType type =

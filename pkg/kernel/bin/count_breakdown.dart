@@ -28,6 +28,8 @@ main(List<String> args) {
 
 class TypeCounter extends RecursiveVisitor {
   Map<String, int> _typeCounts = <String, int>{};
+
+  @override
   defaultNode(Node node) {
     String key = node.runtimeType.toString();
     _typeCounts[key] = (_typeCounts[key] ??= 0) + 1;
