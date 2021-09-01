@@ -26,7 +26,7 @@ class ReturnTypeVerifier {
     required TypeProviderImpl typeProvider,
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
-  })   : _typeProvider = typeProvider,
+  })  : _typeProvider = typeProvider,
         _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 

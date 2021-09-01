@@ -89,6 +89,6 @@ class InstrumentationServiceAttachment {
   InstrumentationServiceAttachment.string({
     required String id,
     required String value,
-  })   : id = id,
+  })  : id = id,
         stringValue = value;
 }

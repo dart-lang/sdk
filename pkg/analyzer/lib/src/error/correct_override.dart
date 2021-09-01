@@ -26,7 +26,7 @@ class CorrectOverrideHelper {
   CorrectOverrideHelper({
     required LibraryElementImpl library,
     required ExecutableElement thisMember,
-  })   : _library = library,
+  })  : _library = library,
         _typeSystem = library.typeSystem,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -106,7 +106,7 @@ class CovariantParametersVerifier {
 
   CovariantParametersVerifier({
     required ExecutableElement thisMember,
-  })   : _session = thisMember.library.session as AnalysisSessionImpl,
+  })  : _session = thisMember.library.session as AnalysisSessionImpl,
         _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
         _thisMember = thisMember;
 

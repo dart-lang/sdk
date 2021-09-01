@@ -27,7 +27,7 @@ class PrefixExpressionResolver {
 
   PrefixExpressionResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -210,8 +210,7 @@ class PrefixExpressionResolver {
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
           if (element is PromotableElement) {
-            _resolver.flowAnalysis.flow
-                ?.write(node, element, staticType, null);
+            _resolver.flowAnalysis.flow?.write(node, element, staticType, null);
           }
         }
       }

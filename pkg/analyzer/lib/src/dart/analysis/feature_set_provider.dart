@@ -28,7 +28,7 @@ class FeatureSetProvider {
     required FeatureSet packageDefaultFeatureSet,
     required Version nonPackageDefaultLanguageVersion,
     required FeatureSet nonPackageDefaultFeatureSet,
-  })   : _sdkLanguageVersion = sdkLanguageVersion,
+  })  : _sdkLanguageVersion = sdkLanguageVersion,
         _allowedExperiments = allowedExperiments,
         _resourceProvider = resourceProvider,
         _packages = packages,

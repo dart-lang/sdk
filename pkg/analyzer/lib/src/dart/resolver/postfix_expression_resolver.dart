@@ -27,7 +27,7 @@ class PostfixExpressionResolver {
 
   PostfixExpressionResolver({
     required ResolverVisitor resolver,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
