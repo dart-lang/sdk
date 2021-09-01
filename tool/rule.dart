@@ -14,8 +14,12 @@ import '../test/test_constants.dart';
 void main(List<String> args) {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
-    ..addOption('name',
-        abbr: 'n', help: 'Specifies lower_underscore rule name.');
+    ..addOption(
+      'name',
+      abbr: 'n',
+      help: 'Specifies lower_underscore rule name.',
+      mandatory: true,
+    );
 
   ArgResults options;
   try {
@@ -25,14 +29,11 @@ void main(List<String> args) {
     return;
   }
 
-  var outDir = options['out'];
-
-  if (outDir != null) {
-    var d = Directory(outDir as String);
-    if (!d.existsSync()) {
-      print("Directory '${d.path}' does not exist");
-      return;
-    }
+  var outDir = options['out'] ?? '.';
+  var d = Directory(outDir as String);
+  if (!d.existsSync()) {
+    print("Directory '${d.path}' does not exist");
+    return;
   }
 
   var ruleName = options['name'];
@@ -43,7 +44,7 @@ void main(List<String> args) {
   }
 
   // Generate rule stub.
-  generateRule(ruleName as String, outDir: outDir as String?);
+  generateRule(ruleName as String, outDir: outDir);
 }
 
 String get _thisYear => DateTime.now().year.toString();
