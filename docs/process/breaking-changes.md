@@ -43,8 +43,7 @@ abide by the following basic conditions:
   not intended to be used as a mixin).
 
 Compatibility is only considered between stable releases (i.e. releases from the
-[Dart stable
-channel](https://dart.dev/tools/sdk/archive#stable-channel)).
+[Dart stable channel](https://dart.dev/tools/sdk/archive#stable-channel)).
 
 ## Breaking change notification
 
@@ -78,8 +77,8 @@ to a change being released in a dev channel release.
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
 
-* Once you have sent the announce email, please let 'frankyow@google.com` know
-as he will help drive the request through approval review process.
+Once you have sent the announce email, please let @devoncarew know in order
+to start the review and approval process.
 
 ### Step 2: Approval
 
@@ -88,6 +87,7 @@ cost of the change, a set of Dart SDK approvers will approve the change.
 Adequate time must be allowed after step 1, at a minimum 24 hours during the
 work week for smaller impact changes, and proportionally longer for higher
 impact changes.
+
 ### Step 3: Execution
 
 If approved, the change may be made.
@@ -107,6 +107,7 @@ requestor must:
 
 * Reply to the original announcement email, and make a note that the change is
   has been rejected, with a quick summary of the rationale for that.
+
 ## Unexpected breaking changes & roll-back requests
 
 If a developer notices a breaking change has been made in the dev or stable
