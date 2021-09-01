@@ -890,6 +890,9 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
   TodoCode.TODO,
+  TodoCode.FIXME,
+  TodoCode.HACK,
+  TodoCode.UNDONE,
 ];
 
 /// The lazy initialized map from [ErrorCode.uniqueName] to the [ErrorCode]

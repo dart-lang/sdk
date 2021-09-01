@@ -65,7 +65,7 @@ class TodoFinder {
   /// Returns the next comment token to begin searching from (skipping over
   /// any continuations).
   Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
-    Iterable<Match> matches =
+    Iterable<RegExpMatch> matches =
         TodoCode.TODO_REGEX.allMatches(commentToken.lexeme);
     // Track the comment that will be returned for looking for the next todo.
     // This will be moved along if additional comments are consumed by multiline
@@ -73,11 +73,12 @@ class TodoFinder {
     var nextComment = commentToken.next;
     final commentLocation = lineInfo.getLocation(commentToken.offset);
 
-    for (Match match in matches) {
+    for (RegExpMatch match in matches) {
       int offset = commentToken.offset + match.start + match.group(1)!.length;
       int column =
           commentLocation.columnNumber + match.start + match.group(1)!.length;
       String todoText = match.group(2)!;
+      String todoKind = match.namedGroup('kind1') ?? match.namedGroup('kind2')!;
       int end = offset + todoText.length;
 
       if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
@@ -126,7 +127,7 @@ class TodoFinder {
       }
 
       _errorReporter.reportErrorForOffset(
-          TodoCode.TODO, offset, end - offset, [todoText]);
+          TodoCode.forKind(todoKind), offset, end - offset, [todoText]);
     }
 
     return nextComment;
