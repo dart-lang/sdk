@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:path/path.dart' as path;
@@ -681,7 +682,11 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    _process = await Process.start(dartBinary, arguments);
+    _process = await Process.start(
+      dartBinary,
+      arguments,
+      environment: {PubCommand.disablePubCommandEnvironmentKey: 'true'},
+    );
     _process.exitCode.then((int code) {
       if (code != 0) {
         _badDataFromServer('server terminated with exit code $code');

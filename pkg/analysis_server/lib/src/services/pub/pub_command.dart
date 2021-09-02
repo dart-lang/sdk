@@ -15,6 +15,15 @@ import 'package:path/path.dart' as path;
 /// `pub` commands will be queued and not run concurrently.
 class PubCommand {
   static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
+
+  /// An environment variable that can be set to prevent a [PubCommand] from
+  /// being created/used by the analysis server.
+  ///
+  /// This is generally intended for integration tests to prevent them spawning
+  /// pub commands while testing other functionality.
+  static const String disablePubCommandEnvironmentKey =
+      'DART_SERVER_DISABLE_PUB_COMMAND';
+
   final InstrumentationService _instrumentationService;
   late final ProcessRunner _processRunner;
   late final String _pubPath;
