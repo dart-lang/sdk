@@ -28,7 +28,7 @@ abstract class CompilerTask {
   Map _zoneValues;
 
   CompilerTask(this._measurer)
-      : _watch = _measurer.enableTaskMeasurements ? new Stopwatch() : null;
+      : _watch = _measurer.enableTaskMeasurements ? Stopwatch() : null;
 
   /// Whether measurement is disabled. The functions [measure] and [measureIo]
   /// only measure time if measurements are enabled.
@@ -107,7 +107,7 @@ abstract class CompilerTask {
 
     return runZoned(action,
         zoneValues: _zoneValues ??= {_measurer: this},
-        zoneSpecification: _zoneSpecification ??= new ZoneSpecification(
+        zoneSpecification: _zoneSpecification ??= ZoneSpecification(
             run: _run, runUnary: _runUnary, runBinary: _runBinary));
   }
 
@@ -183,7 +183,7 @@ abstract class CompilerTask {
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
-    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, _measurer);
+    GenericTask subtask = _subtasks[name] ??= GenericTask(name, _measurer);
     return subtask.measure(action);
   }
 
@@ -200,7 +200,7 @@ abstract class CompilerTask {
     // Use a nested CompilerTask for the measurement to ensure nested [measure]
     // calls work correctly. The subtasks will never themselves have nested
     // subtasks because they are not accessible outside.
-    GenericTask subtask = _subtasks[name] ??= new GenericTask(name, _measurer);
+    GenericTask subtask = _subtasks[name] ??= GenericTask(name, _measurer);
     return subtask.measureIo(action);
   }
 
@@ -225,12 +225,12 @@ class Measurer {
   ///
   /// Note: MUST be the first field of this class to ensure [wallclock] is
   /// started before other computations.
-  final Stopwatch _wallClock = new Stopwatch()..start();
+  final Stopwatch _wallClock = Stopwatch()..start();
 
   Duration get elapsedWallClock => _wallClock.elapsed;
 
   /// Measures gaps between zoned closures due to asynchronicity.
-  final Stopwatch _asyncWallClock = new Stopwatch();
+  final Stopwatch _asyncWallClock = Stopwatch();
 
   Duration get elapsedAsyncWallClock => _asyncWallClock.elapsed;
 
@@ -241,7 +241,7 @@ class Measurer {
   @override
   final int hashCode = _hashCodeGenerator++;
 
-  Measurer({this.enableTaskMeasurements: false});
+  Measurer({this.enableTaskMeasurements = false});
 
   /// The currently running task, that is, the task whose [Stopwatch] is
   /// currently running.

@@ -10,7 +10,7 @@ class HasCapturedPlaceholders extends js.BaseVisitor {
   HasCapturedPlaceholders._();
 
   static bool check(js.Node node) {
-    HasCapturedPlaceholders visitor = new HasCapturedPlaceholders._();
+    HasCapturedPlaceholders visitor = HasCapturedPlaceholders._();
     node.accept(visitor);
     return visitor.found;
   }
