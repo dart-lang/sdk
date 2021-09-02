@@ -9,7 +9,8 @@
 // VMOptions=--no-enable-isolate-groups
 
 // Dart test program for testing serialization of messages.
-// VMOptions=--enable_type_checks --enable_asserts
+// VMOptions=--enable_type_checks --enable_asserts --enable-isolate-groups
+// VMOptions=--enable_type_checks --enable_asserts --no-enable-isolate-groups
 
 library MessageTest;
 
