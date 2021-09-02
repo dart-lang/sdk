@@ -2,54 +2,54 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue46719.dart:25:12: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   a.m<int>.applyAndPrint([2]);
 //            ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:26:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   a.m<String>.applyAndPrint(['three']);
 //               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'n.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:29:12: Error: Couldn't find constructor 'n.applyAndPrint'.
 //   A.n<int>.applyAndPrint([2]);
 //            ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'n.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:30:15: Error: Couldn't find constructor 'n.applyAndPrint'.
 //   A.n<String>.applyAndPrint(['three']);
 //               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:29:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:31:15: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   self.m<int>.applyAndPrint([2]);
 //               ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:30:18: Error: Couldn't find constructor 'm.applyAndPrint'.
+// pkg/front_end/testcases/general/issue46719.dart:32:18: Error: Couldn't find constructor 'm.applyAndPrint'.
 //   self.m<String>.applyAndPrint(['three']);
 //                  ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:31:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// pkg/front_end/testcases/general/issue46719.dart:33:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
 //   self.A.n<int>.applyAndPrint([2]);
 //           ^
 //
-// pkg/front_end/testcases/general/issue46719.dart:32:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// pkg/front_end/testcases/general/issue46719.dart:34:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
 //   self.A.n<String>.applyAndPrint(['three']);
 //           ^
 //
-// pkg/front_end/testcases/general/issue46719.dart:33:5: Error: Member not found: 'named'.
+// pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
 //   A.named.toString();
 //     ^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:34:4: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// pkg/front_end/testcases/general/issue46719.dart:36:4: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
 // Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
 //   A<int>.named.toString();
 //    ^
 //
-// pkg/front_end/testcases/general/issue46719.dart:34:10: Error: Member not found: 'named'.
+// pkg/front_end/testcases/general/issue46719.dart:36:10: Error: Member not found: 'named'.
 //   A<int>.named.toString();
 //          ^^^^^
 //
-// pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Couldn't find constructor 'named'.
+// pkg/front_end/testcases/general/issue46719.dart:37:5: Error: Couldn't find constructor 'named'.
 //   A.named<int>.toString();
 //     ^^^^^
 //
@@ -82,33 +82,33 @@ static method FunctionApplier|get#applyAndPrint(lowered final core::Function #th
   return (core::List<core::Object?> positionalArguments) → void => self::FunctionApplier|applyAndPrint(#this, positionalArguments);
 static method test() → dynamic {
   self::A<dynamic> a = new self::A::•<dynamic>();
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:25:12: Error: Couldn't find constructor 'm.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'm.applyAndPrint'.
   a.m<int>.applyAndPrint([2]);
            ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:26:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'm.applyAndPrint'.
   a.m<String>.applyAndPrint(['three']);
               ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:27:12: Error: Couldn't find constructor 'n.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:29:12: Error: Couldn't find constructor 'n.applyAndPrint'.
   A.n<int>.applyAndPrint([2]);
            ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:28:15: Error: Couldn't find constructor 'n.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:30:15: Error: Couldn't find constructor 'n.applyAndPrint'.
   A.n<String>.applyAndPrint(['three']);
               ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:29:15: Error: Couldn't find constructor 'm.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:31:15: Error: Couldn't find constructor 'm.applyAndPrint'.
   self.m<int>.applyAndPrint([2]);
               ^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:30:18: Error: Couldn't find constructor 'm.applyAndPrint'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:32:18: Error: Couldn't find constructor 'm.applyAndPrint'.
   self.m<String>.applyAndPrint(['three']);
                  ^^^^^^^^^^^^^";
   self::FunctionApplier|applyAndPrint(#C3, core::_GrowableList::_literal1<core::Object?>(2));
   self::FunctionApplier|applyAndPrint(#C3, core::_GrowableList::_literal1<core::Object?>("three"));
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:33:5: Error: Member not found: 'named'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Member not found: 'named'.
   A.named.toString();
     ^^^^^".{core::Object::toString}(){() → core::String};
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:34:10: Error: Member not found: 'named'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:36:10: Error: Member not found: 'named'.
   A<int>.named.toString();
          ^^^^^".{core::Object::toString}(){() → core::String};
-  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:35:5: Error: Couldn't find constructor 'named'.
+  invalid-expression "pkg/front_end/testcases/general/issue46719.dart:37:5: Error: Couldn't find constructor 'named'.
   A.named<int>.toString();
     ^^^^^";
 }

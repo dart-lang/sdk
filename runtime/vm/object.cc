@@ -13148,35 +13148,7 @@ NamespacePtr Library::ImportAt(intptr_t index) const {
 }
 
 void Library::DropDependenciesAndCaches() const {
-  // We need to preserve the "dart-ext:" imports because they are used by
-  // Loader::ReloadNativeExtensions().
-  intptr_t native_import_count = 0;
-  Array& imports = Array::Handle(untag()->imports());
-  Namespace& ns = Namespace::Handle();
-  Library& lib = Library::Handle();
-  String& url = String::Handle();
-  for (int i = 0; i < imports.Length(); ++i) {
-    ns = Namespace::RawCast(imports.At(i));
-    if (ns.IsNull()) continue;
-    lib = ns.target();
-    url = lib.url();
-    if (url.StartsWith(Symbols::DartExtensionScheme())) {
-      native_import_count++;
-    }
-  }
-  Array& new_imports =
-      Array::Handle(Array::New(native_import_count, Heap::kOld));
-  for (int i = 0, j = 0; i < imports.Length(); ++i) {
-    ns = Namespace::RawCast(imports.At(i));
-    if (ns.IsNull()) continue;
-    lib = ns.target();
-    url = lib.url();
-    if (url.StartsWith(Symbols::DartExtensionScheme())) {
-      new_imports.SetAt(j++, ns);
-    }
-  }
-
-  untag()->set_imports(new_imports.ptr());
+  untag()->set_imports(Object::empty_array().ptr());
   untag()->set_exports(Object::empty_array().ptr());
   StoreNonPointer(&untag()->num_imports_, 0);
   untag()->set_resolved_names(Array::null());

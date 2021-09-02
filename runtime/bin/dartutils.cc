@@ -6,7 +6,6 @@
 
 #include "bin/crypto.h"
 #include "bin/directory.h"
-#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
 #include "bin/namespace.h"
@@ -34,7 +33,6 @@ namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
 const char* const DartUtils::kDartScheme = "dart:";
-const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* const DartUtils::kAsyncLibURL = "dart:async";
 const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
 const char* const DartUtils::kCoreLibURL = "dart:core";
@@ -225,14 +223,6 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
 bool DartUtils::IsHttpSchemeURL(const char* url_name) {
   static const intptr_t kHttpSchemeLen = strlen(kHttpScheme);
   return (strncmp(url_name, kHttpScheme, kHttpSchemeLen) == 0);
-}
-
-bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
-  static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
-  // If the URL starts with "dart-ext:" then it is considered as a special
-  // extension library URL which is handled differently from other URLs.
-  return (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) ==
-          0);
 }
 
 bool DartUtils::IsDartIOLibURL(const char* url_name) {

@@ -7,6 +7,11 @@
 #include "platform/allocation.h"
 #include "platform/globals.h"
 
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+#include <dlfcn.h>
+#endif
+
 namespace dart {
 
 // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
@@ -345,6 +350,97 @@ char* Utils::VSCreate(const char* format, va_list args) {
 
 Utils::CStringUniquePtr Utils::CreateCStringUniquePtr(char* str) {
   return std::unique_ptr<char, decltype(std::free)*>{str, std::free};
+}
+
+static void GetLastErrorAsString(char** error) {
+  if (error == nullptr) return;  // Nothing to do.
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  const char* status = dlerror();
+  *error = status != nullptr ? strdup(status) : nullptr;
+#elif defined(DART_HOST_OS_WINDOWS)
+  const int status = GetLastError();
+  *error = status != 0 ? Utils::SCreate("error code %i", error) : nullptr;
+#else
+  *error = Utils::StrDup("loading dynamic libraries is not supported");
+#endif
+}
+
+void* Utils::LoadDynamicLibrary(const char* library_path, char** error) {
+  void* handle = nullptr;
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  handle = dlopen(library_path, RTLD_LAZY);
+#elif defined(DART_HOST_OS_WINDOWS)
+  SetLastError(0);  // Clear any errors.
+
+  if (library_path == nullptr) {
+    handle = GetModuleHandle(nullptr);
+  } else {
+    // Convert to wchar_t string.
+    const int name_len = MultiByteToWideChar(
+        CP_UTF8, /*dwFlags=*/0, library_path, /*cbMultiByte=*/-1, nullptr, 0);
+    if (name_len != 0) {
+      std::unique_ptr<wchar_t[]> name(new wchar_t[name_len]);
+      const int written_len =
+          MultiByteToWideChar(CP_UTF8, /*dwFlags=*/0, library_path,
+                              /*cbMultiByte=*/-1, name.get(), name_len);
+      RELEASE_ASSERT(written_len == name_len);
+      handle = LoadLibraryW(name.get());
+    }
+  }
+#endif
+
+  if (handle == nullptr) {
+    GetLastErrorAsString(error);
+  }
+
+  return handle;
+}
+
+void* Utils::ResolveSymbolInDynamicLibrary(void* library_handle,
+                                           const char* symbol,
+                                           char** error) {
+  void* result = nullptr;
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  dlerror();  // Clear any errors.
+  result = dlsym(library_handle, symbol);
+  // Note: nullptr might be a valid return from dlsym. Must call dlerror
+  // to differentiate.
+  GetLastErrorAsString(error);
+  return result;
+#elif defined(DART_HOST_OS_WINDOWS)
+  SetLastError(0);
+  result = reinterpret_cast<void*>(
+      GetProcAddress(reinterpret_cast<HMODULE>(library_handle), symbol));
+#endif
+
+  if (result == nullptr) {
+    GetLastErrorAsString(error);
+  }
+
+  return result;
+}
+
+void Utils::UnloadDynamicLibrary(void* library_handle, char** error) {
+  bool ok = false;
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  ok = dlclose(library_handle) == 0;
+#elif defined(DART_HOST_OS_WINDOWS)
+  SetLastError(0);  // Clear any errors.
+
+  ok = FreeLibrary(reinterpret_cast<HMODULE>(library_handle));
+#endif
+
+  if (!ok) {
+    GetLastErrorAsString(error);
+  }
 }
 
 }  // namespace dart

@@ -16,7 +16,6 @@
 #include "bin/dfe.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
-#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/isolate_data.h"
@@ -238,11 +237,6 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     }
   }
 
-  if (isolate_run_app_snapshot) {
-    result = Loader::ReloadNativeExtensions();
-    if (Dart_IsError(result)) goto failed;
-  }
-
   Dart_ExitScope();
   return true;
 
@@ -323,11 +317,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (isolate_run_app_snapshot) {
-    Dart_Handle result = Loader::ReloadNativeExtensions();
-    CHECK_RESULT(result);
-  }
 
   if (isolate_run_app_snapshot) {
     Dart_Handle result = Loader::InitForSnapshot(script_uri, isolate_data);

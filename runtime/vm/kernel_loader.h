@@ -227,8 +227,6 @@ class KernelLoader : public ValueObject {
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
   void AnnotateNativeProcedures();
-  void LoadNativeExtensionLibraries();
-  void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(const Library& library,

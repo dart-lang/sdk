@@ -369,6 +369,10 @@ dart_2/thread_priority_windows_test: SkipByDesign
 dart/thread_priority_linux_test: SkipByDesign
 dart_2/thread_priority_linux_test: SkipByDesign
 
+[ $arch != x64 || $system != linux || $hot_reload || $compiler != dartk && $compiler != dartkp ]
+dart/entrypoints_verification_test: SkipByDesign # Enough to test on x64 Linux.
+dart_2/entrypoints_verification_test: SkipByDesign # Enough to test on x64 Linux.
+
 [ $builder_tag == crossword || $builder_tag == crossword_ast ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot.

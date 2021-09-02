@@ -695,7 +695,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(arguments);
       _buildConstructorReferenceInvocation(
           beginToken.next!, beginToken.offset, Constness.explicitConst,
-          inMetadata: true);
+          inMetadata: true, inImplicitCreationContext: false);
       push(popForValue());
     } else {
       pop(); // Name last identifier
@@ -4792,12 +4792,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NewExpression");
     _buildConstructorReferenceInvocation(
         token.next!, token.offset, Constness.explicitNew,
-        inMetadata: false);
+        inMetadata: false, inImplicitCreationContext: false);
   }
 
   void _buildConstructorReferenceInvocation(
       Token nameToken, int offset, Constness constness,
-      {required bool inMetadata}) {
+      {required bool inMetadata, required bool inImplicitCreationContext}) {
     assert(checkState(nameToken, [
       /*arguments*/ ValueKinds.Arguments,
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
@@ -4828,7 +4828,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     ConstantContext savedConstantContext = pop() as ConstantContext;
     if (type is Generator) {
       push(type.invokeConstructor(
-          typeArguments, name, arguments, nameToken, nameLastToken, constness));
+          typeArguments, name, arguments, nameToken, nameLastToken, constness,
+          inImplicitCreationContext: inImplicitCreationContext));
     } else if (type is ParserRecovery) {
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
@@ -4836,7 +4837,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(createInstantiationAndInvocation(
           () => type, typeArguments, name, name, arguments,
           instantiationOffset: offset,
-          invocationOffset: nameLastToken.charOffset));
+          invocationOffset: nameLastToken.charOffset,
+          inImplicitCreationContext: inImplicitCreationContext));
     } else {
       String? typeName;
       if (type is ProblemBuilder) {
@@ -4863,8 +4865,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       String constructorName,
       Arguments arguments,
       {required int instantiationOffset,
-      required int invocationOffset}) {
-    if (enableConstructorTearOffsInLibrary) {
+      required int invocationOffset,
+      required bool inImplicitCreationContext}) {
+    if (enableConstructorTearOffsInLibrary && inImplicitCreationContext) {
       Expression receiver = receiverFunction();
       if (typeArguments != null) {
         receiver = forest.createInstantiation(instantiationOffset, receiver,
@@ -4892,7 +4895,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ImplicitCreationExpression");
     _buildConstructorReferenceInvocation(
         token.next!, token.offset, Constness.implicit,
-        inMetadata: false);
+        inMetadata: false, inImplicitCreationContext: true);
   }
 
   @override
@@ -5159,7 +5162,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endConstExpression");
     _buildConstructorReferenceInvocation(
         token.next!, token.offset, Constness.explicitConst,
-        inMetadata: false);
+        inMetadata: false, inImplicitCreationContext: false);
   }
 
   @override

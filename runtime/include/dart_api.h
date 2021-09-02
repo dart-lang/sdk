@@ -3136,7 +3136,6 @@ typedef enum {
   Dart_kCanonicalizeUrl = 0,
   Dart_kImportTag,
   Dart_kKernelTag,
-  Dart_kImportExtensionTag,
 } Dart_LibraryTag;
 
 /**
@@ -3171,10 +3170,6 @@ typedef enum {
  * script tags. The return value should be an error or a TypedData containing
  * the kernel bytes.
  *
- * Dart_kImportExtensionTag
- *
- * This tag is used to load an external import (shared object file). The
- * extension path must have the scheme 'dart-ext:'.
  */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(
     Dart_LibraryTag tag,
