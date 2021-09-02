@@ -314,6 +314,10 @@ class DeferredLoadTask extends CompilerTask {
   /// The OutputUnit that will be loaded when the program starts.
   OutputUnit _mainOutputUnit;
 
+  /// A sentinel used only by the [ImportSet] corresponding to the
+  /// [_mainOutputUnit].
+  final ImportEntity _mainImport = ImportEntity(true, 'main#main', null, null);
+
   /// A set containing (eventually) all output units that will result from the
   /// program.
   final List<OutputUnit> _allOutputUnits = [];
@@ -350,7 +354,6 @@ class DeferredLoadTask extends CompilerTask {
 
   DeferredLoadTask(this.compiler, this._elementMap) : super(compiler.measurer) {
     _mainOutputUnit = OutputUnit(true, 'main', {});
-    importSets.mainSet.unit = _mainOutputUnit;
     _allOutputUnits.add(_mainOutputUnit);
   }
 
@@ -535,6 +538,10 @@ class DeferredLoadTask extends CompilerTask {
         var transitions = builder.buildTransitionsMap(_allDeferredImports);
         importSets.buildInitialSets(transitions);
       }
+
+      // Build the [ImportSet] representing the [_mainOutputUnit].
+      importSets.buildMainSet(
+          _mainImport, _mainOutputUnit, _allDeferredImports);
     });
   }
 

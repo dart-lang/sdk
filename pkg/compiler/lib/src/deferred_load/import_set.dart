@@ -41,9 +41,12 @@ class ImportSetLattice {
   /// The canonical instance representing the empty import set.
   ImportSet _emptySet = ImportSet.empty();
 
-  /// The import set representing the main output unit, which happens to be
-  /// implemented as an empty set in our algorithm.
-  ImportSet get mainSet => _emptySet;
+  /// The [ImportSet] representing the main output unit.
+  ImportSet _mainSet;
+  ImportSet get mainSet {
+    assert(_mainSet != null && _mainSet.unit != null);
+    return _mainSet;
+  }
 
   /// Get the smallest [ImportSet] that contains [import]. When
   /// unconstrained, this [ImportSet] is a singleton [ImportSet] containing
@@ -59,17 +62,31 @@ class ImportSetLattice {
     return _emptySet._add(_wrap(import));
   }
 
+  /// A helper method to convert a [Set<ImportEntity>] to an [ImportSet].
+  ImportSet setOfImportsToImportSet(Set<ImportEntity> setOfImports) {
+    List<_DeferredImport> imports = setOfImports.map(_wrap).toList();
+    imports.sort((a, b) => a.index - b.index);
+    var result = _emptySet;
+    for (var import in imports) {
+      result = result._add(import);
+    }
+    return result;
+  }
+
+  /// Builds the [mainSet] which contains transitions for all other deferred
+  /// imports as well as [mainImport].
+  void buildMainSet(ImportEntity mainImport, OutputUnit mainOutputUnit,
+      Iterable<ImportEntity> allDeferredImports) {
+    _mainSet = setOfImportsToImportSet({mainImport, ...allDeferredImports});
+    _mainSet.unit = mainOutputUnit;
+    initialSets[mainImport] = _mainSet;
+  }
+
   /// Initializes the [initialSet] map.
   void buildInitialSets(
       Map<ImportEntity, Set<ImportEntity>> initialTransitions) {
     initialTransitions.forEach((import, setOfImports) {
-      List<_DeferredImport> imports = setOfImports.map(_wrap).toList();
-      imports.sort((a, b) => a.index - b.index);
-      var result = _emptySet;
-      for (var import in imports) {
-        result = result._add(import);
-      }
-      initialSets[import] = result;
+      initialSets[import] = setOfImportsToImportSet(setOfImports);
     });
   }
 
