@@ -375,8 +375,9 @@ abstract class WebSocket
           {Iterable<String>? protocols,
           Map<String, dynamic>? headers,
           CompressionOptions compression =
-              CompressionOptions.compressionDefault}) =>
-      _WebSocketImpl.connect(url, protocols, headers, compression: compression);
+              CompressionOptions.compressionDefault,
+      HttpClient? customClient}) =>
+      _WebSocketImpl.connect(url, protocols, headers, compression: compression, customClient: customClient;
 
   @Deprecated('This constructor will be removed in Dart 2.0. Use `implements`'
       ' instead of `extends` if implementing this abstract class.')

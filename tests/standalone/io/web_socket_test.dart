@@ -44,9 +44,10 @@ class SecurityConfiguration {
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
       : HttpServer.bind(HOST_NAME, 0, backlog: backlog);
 
-  Future<WebSocket> createClient(int port) =>
+  Future<WebSocket> createClient(int port, {HttpClient? customClient}) =>
       // TODO(whesse): Add client context argument to WebSocket.connect
-      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
+      WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/',
+          customClient: customClient);
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
     Expect.equals(
@@ -554,6 +555,23 @@ class SecurityConfiguration {
     });
   }
 
+  void testStaticClientUserAgentStaysTheSame() {
+    asyncStart();
+    createServer().then((server) {
+      server.transform(new WebSocketTransformer()).listen((webSocket) {
+        Expect.equals('Default User Agent', WebSocket.userAgent);
+        server.close();
+        webSocket.close();
+        asyncEnd();
+      });
+      var client = HttpClient()..userAgent = 'New User Agent';
+      WebSocket.userAgent = 'Default User Agent';
+      createClient(server.port, customClient: client).then((webSocket) {
+        webSocket.close();
+      });
+    });
+  }
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null, 1);
     testRequestResponseClientCloses(2, 3001, null, 2);
@@ -582,6 +600,7 @@ class SecurityConfiguration {
     testAdditionalHeaders();
     testBasicAuthentication();
     testShouldSetUserAgent();
+    testStaticClientUserAgentStaysTheSame();
   }
 }
 

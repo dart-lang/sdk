@@ -995,16 +995,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Timer? _closeTimer;
   _WebSocketPerMessageDeflate? _deflate;
 
-  static HttpClient _httpClient = new HttpClient();
+  static final HttpClient _httpClient = new HttpClient();
 
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
       {CompressionOptions compression = CompressionOptions.compressionDefault,
-      HttpClient customClient}) {
-    //overriding _httpClient if user specifies a custom http client.
-    if (customClient != null) {
-      _httpClient = customClient..userAgent ??= _httpClient.userAgent;
-    }
+      HttpClient? customClient}) {
     Uri uri = Uri.parse(url);
     if (uri.scheme != "ws" && uri.scheme != "wss") {
       throw new WebSocketException("Unsupported URL scheme '${uri.scheme}'");
@@ -1026,7 +1022,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         path: uri.path,
         query: uri.query,
         fragment: uri.fragment);
-    return _httpClient.openUrl("GET", uri).then((request) {
+        // Use Custom HTTP Client first is it exists, else
+        // default to static client
+    return (customClient ?? _httpClient).openUrl("GET", uri).then((request) {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
