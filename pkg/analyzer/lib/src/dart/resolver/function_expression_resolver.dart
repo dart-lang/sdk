@@ -23,7 +23,7 @@ class FunctionExpressionResolver {
   FunctionExpressionResolver({
     required ResolverVisitor resolver,
     required MigrationResolutionHooks? migrationResolutionHooks,
-  })   : _resolver = resolver,
+  })  : _resolver = resolver,
         _migrationResolutionHooks = migrationResolutionHooks,
         _inferenceHelper = resolver.inferenceHelper;
 

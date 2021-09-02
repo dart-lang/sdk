@@ -892,6 +892,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
       return true;
+    case MethodRecognizer::kDoubleToInteger:
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoubleRound:
     case MethodRecognizer::kDoubleTruncate:
@@ -1523,6 +1524,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntConstant(0);  // Index.
       body += LoadIndexed(kIntPtrCid);
       body += Box(kUnboxedIntPtr);
+    } break;
+    case MethodRecognizer::kDoubleToInteger: {
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += DoubleToInteger();
     } break;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kDoubleRound:

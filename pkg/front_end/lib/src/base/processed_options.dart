@@ -858,6 +858,7 @@ class HermeticFileSystem implements FileSystem {
 
   HermeticFileSystem(this.includedFiles, this._realFileSystem);
 
+  @override
   FileSystemEntity entityForUri(Uri uri) {
     if (includedFiles.contains(uri)) return _realFileSystem.entityForUri(uri);
     throw new HermeticAccessException(uri);

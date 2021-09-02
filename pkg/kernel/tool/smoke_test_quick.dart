@@ -8,7 +8,7 @@ final String repoDir = _computeRepoDir();
 
 String get dartVm => Platform.executable;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = <Future>[];
   futures.add(run("pkg/front_end/test/spelling_test_src_suite.dart",

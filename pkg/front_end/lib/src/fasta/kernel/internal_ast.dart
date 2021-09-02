@@ -87,12 +87,14 @@ abstract class TypeArgumentsInfo {
 class AllInferredTypeArgumentsInfo extends TypeArgumentsInfo {
   const AllInferredTypeArgumentsInfo();
 
+  @override
   bool isInferred(int index) => true;
 }
 
 class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
   const NoneInferredTypeArgumentsInfo();
 
+  @override
   bool isInferred(int index) => false;
 }
 
@@ -101,6 +103,7 @@ class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
 
   ExtensionMethodTypeArgumentsInfo(this.arguments);
 
+  @override
   bool isInferred(int index) {
     if (index < arguments._extensionTypeParameterCount) {
       // The index refers to a type argument for a type parameter declared on
@@ -114,6 +117,7 @@ class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
         arguments._explicitTypeArgumentCount;
   }
 
+  @override
   int getOffsetForIndex(int index, int offset) {
     if (index < arguments._extensionTypeParameterCount) {
       return arguments._extensionTypeArgumentOffset ?? offset;
@@ -696,6 +700,7 @@ class DeferredCheck extends InternalExpression {
     return visitor.visitDeferredCheck(this, typeContext);
   }
 
+  @override
   InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
 
   @override
@@ -1032,6 +1037,7 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
 class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   final String literal;
+  @override
   final int fileOffset;
   bool isParenthesized = false;
 

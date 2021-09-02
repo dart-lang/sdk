@@ -295,6 +295,7 @@ class ResultLogger implements Logger {
     }
   }
 
+  @override
   void logTestStart(int completed, int failed, int total, testing.Suite suite,
       TestDescription description) {
     String name = getTestName(description);
@@ -308,6 +309,7 @@ class ResultLogger implements Logger {
   @override
   void logUncaughtError(error, StackTrace stackTrace) {}
 
+  @override
   void logExpectedResult(testing.Suite suite, TestDescription description,
       Result result, Set<Expectation> expectedOutcomes) {
     handleTestResult(

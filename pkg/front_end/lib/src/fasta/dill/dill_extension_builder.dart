@@ -21,6 +21,7 @@ import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 
 class DillExtensionBuilder extends ExtensionBuilderImpl {
+  @override
   final Extension extension;
   List<TypeVariableBuilder>? _typeParameters;
   TypeBuilder? _onType;

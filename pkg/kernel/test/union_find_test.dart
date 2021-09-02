@@ -4,11 +4,11 @@
 
 import 'package:kernel/src/union_find.dart';
 
-testSame<T>(UnionFind<T> unionFind, T a, T b, bool expected) {
+void testSame<T>(UnionFind<T> unionFind, T a, T b, bool expected) {
   expect(expected, unionFind.nodesInSameSet(unionFind[a], unionFind[b]));
 }
 
-testSets<T>(UnionFind<T> unionFind, Set<Set<T>> sets) {
+void testSets<T>(UnionFind<T> unionFind, Set<Set<T>> sets) {
   for (Set<T> set in sets) {
     UnionFindNode<T> root = unionFind.findNode(unionFind[set.first]);
     for (T value in unionFind.values) {
@@ -17,15 +17,15 @@ testSets<T>(UnionFind<T> unionFind, Set<Set<T>> sets) {
   }
 }
 
-testFind<T>(UnionFind<T> unionFind, T value, T expected) {
+void testFind<T>(UnionFind<T> unionFind, T value, T expected) {
   expect(expected, unionFind.findNode(unionFind[value]).value);
 }
 
-testUnion<T>(UnionFind<T> unionFind, T a, T b, T expected) {
+void testUnion<T>(UnionFind<T> unionFind, T a, T b, T expected) {
   expect(expected, unionFind.unionOfNodes(unionFind[a], unionFind[b]).value);
 }
 
-main() {
+void main() {
   UnionFind<int> unionFind = new UnionFind();
   // {0}
   testFind(unionFind, 0, 0);
@@ -103,6 +103,6 @@ main() {
   });
 }
 
-expect(expected, actual) {
+void expect(expected, actual) {
   if (expected != actual) throw 'Expected $expected, actual $actual';
 }

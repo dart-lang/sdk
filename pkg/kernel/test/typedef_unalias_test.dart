@@ -14,7 +14,7 @@ void harnessTest(String name, void doTest(TestHarness harness)) {
   });
 }
 
-main() {
+void main() {
   harnessTest('`Foo` where typedef Foo = C', (TestHarness harness) {
     var foo = new Typedef('Foo', harness.otherLegacyRawType, fileUri: dummyUri);
     harness.enclosingLibrary.addTypedef(foo);

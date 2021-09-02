@@ -11,7 +11,7 @@ import 'dart:io';
 import 'dart:math';
 import 'self_check_util.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   runSelfCheck(args, (String filename) {
     testClassHierarchyOnComponent(loadComponentFromBinary(filename));
   });

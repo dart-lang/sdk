@@ -28,8 +28,7 @@ abstract class DartEditBuilder implements EditBuilder {
   /// types.
   ///
   /// The logic is the same as the one used in [writeType]
-  bool canWriteType(DartType? type,
-      {ExecutableElement? methodBeingCopied});
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
 
   /// Write the code for a declaration of a class with the given [name]. If a
   /// list of [interfaces] is provided, then the class will implement those
@@ -316,8 +315,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
-  bool canWriteType(DartType? type,
-      {ExecutableElement? methodBeingCopied});
+  bool canWriteType(DartType? type, {ExecutableElement? methodBeingCopied});
 
   /// Create one or more edits that will convert the given function [body] from
   /// being synchronous to be asynchronous. This includes adding the `async`

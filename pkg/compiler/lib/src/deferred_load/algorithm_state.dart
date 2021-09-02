@@ -100,7 +100,7 @@ class AlgorithmState {
       // all deferred roots.
       info.deferredRoots.forEach((entity, imports) {
         for (ImportEntity deferredImport in imports) {
-          queue.addEntityData(entity, importSets.singleton(deferredImport));
+          queue.addEntityData(entity, importSets.initialSetOf(deferredImport));
         }
       });
     }

@@ -106,7 +106,7 @@ class Visitor extends RecursiveVisitor {
   Visitor(this.predicate, this.handle);
 
   @override
-  defaultTreeNode(TreeNode node) {
+  void defaultTreeNode(TreeNode node) {
     super.defaultTreeNode(node);
     if (MetadataRepository.isSupported(node) && predicate(node)) {
       handle(node);
@@ -154,7 +154,7 @@ List<int> toBinary(Component p) {
   return sink.builder.takeBytes();
 }
 
-main() async {
+void main() async {
   bool anyNode(TreeNode node) => true;
   bool onlyMethods(TreeNode node) =>
       node is Procedure &&

@@ -51,7 +51,7 @@ import 'package:front_end/src/scheme_based_file_system.dart'
     show SchemeBasedFileSystem;
 
 import 'package:kernel/target/targets.dart'
-    show Target, TargetFlags, getTarget, targets;
+    show Target, TargetFlags, TestTargetFlags, getTarget, targets;
 
 // Before adding new options here, you must:
 //  * Document the option.
@@ -125,7 +125,7 @@ ProcessedOptions analyzeCommandLine(String programName,
           onError: throwCommandLineProblem,
           onWarning: print);
 
-  final TargetFlags flags = new TargetFlags(
+  final TargetFlags flags = new TestTargetFlags(
       forceLateLoweringsForTesting:
           Options.forceLateLowering.read(parsedOptions),
       forceStaticFieldLoweringForTesting:

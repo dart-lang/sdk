@@ -268,6 +268,8 @@
 // contains a bigger delta.)
 library deferred_load;
 
+import 'program_split_constraints/builder.dart' as psc show Builder;
+
 import 'algorithm_state.dart';
 import 'entity_data.dart';
 import 'import_set.dart';
@@ -524,6 +526,14 @@ class DeferredLoadTask extends CompilerTask {
             }
           }
         });
+      }
+
+      // If program split constraints are provided, then parse and interpret
+      // them now.
+      if (compiler.programSplitConstraintsData != null) {
+        var builder = psc.Builder(compiler.programSplitConstraintsData);
+        var transitions = builder.buildTransitionsMap(_allDeferredImports);
+        importSets.buildInitialSets(transitions);
       }
     });
   }

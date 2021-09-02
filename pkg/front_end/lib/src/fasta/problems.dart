@@ -34,6 +34,7 @@ class DebugAbort {
                 .withArguments(severityTexts[severity]!, "$trace")
                 .withoutLocation();
 
+  @override
   toString() => "DebugAbort: ${message.message}";
 }
 

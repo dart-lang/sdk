@@ -283,13 +283,18 @@ abstract class _BaseTest {
 }
 
 class _BaseTestNative extends _BaseTest {
+  @override
   final pathos.Context context = pathos.context;
+  @override
   MemoryFileSystem fileSystem;
+  @override
   String tempPath;
 
+  @override
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.join(path1, path2, path3, path4);
 
+  @override
   _baseSetUp() {
     tempPath = pathos.join(io.Directory.systemTemp.path, 'test_file_system');
     fileSystem = new MemoryFileSystem(pathos.toUri(io.Directory.current.path));
@@ -297,13 +302,18 @@ class _BaseTestNative extends _BaseTest {
 }
 
 class _BaseTestPosix extends _BaseTest {
+  @override
   final pathos.Context context = pathos.posix;
+  @override
   MemoryFileSystem fileSystem;
+  @override
   String tempPath;
 
+  @override
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.posix.join(path1, path2, path3, path4);
 
+  @override
   void _baseSetUp() {
     tempPath = '/test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///cwd'));
@@ -311,13 +321,18 @@ class _BaseTestPosix extends _BaseTest {
 }
 
 class _BaseTestWindows extends _BaseTest {
+  @override
   final pathos.Context context = pathos.windows;
+  @override
   MemoryFileSystem fileSystem;
+  @override
   String tempPath;
 
+  @override
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.windows.join(path1, path2, path3, path4);
 
+  @override
   void _baseSetUp() {
     tempPath = r'c:\test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///c:/cwd'));

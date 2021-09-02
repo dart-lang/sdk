@@ -39,10 +39,12 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   String get debugName;
 
+  @override
   LibraryBuilder get parent;
 
   LibraryBuilder get library;
 
+  @override
   Uri get fileUri;
 
   List<TypeVariableBuilder>? get typeVariables;
@@ -54,6 +56,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   DartType buildThisType();
 
   /// [arguments] have already been built.
+  @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments);
 
@@ -145,13 +148,17 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       : fileUri = parent.fileUri,
         super(metadata, 0, name, parent, charOffset);
 
+  @override
   String get debugName => "TypeAliasBuilder";
 
+  @override
   LibraryBuilder get parent => super.parent as LibraryBuilder;
 
+  @override
   LibraryBuilder get library => super.parent as LibraryBuilder;
 
   /// [arguments] have already been built.
+  @override
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType>? arguments) {
     DartType thisType = buildThisType();
@@ -259,6 +266,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// `const InvalidType()`). If `this` type alias expands to a
   /// [TypeVariableBuilder] then the type alias cannot be used as a class, in
   /// which case an error is emitted and `this` is returned.
+  @override
   TypeDeclarationBuilder? unaliasDeclaration(List<TypeBuilder>? typeArguments,
       {bool isUsedAsClass = false,
       int? usedAsClassCharOffset,
@@ -453,6 +461,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   /// [this], such that the returned [TypeBuilder]s are appropriate type
   /// arguments for passing to the [ClassBuilder] which is the end of the
   /// unaliasing chain.
+  @override
   List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments) {
     TypeDeclarationBuilder? currentDeclarationBuilder = this;
     List<TypeBuilder>? currentTypeArguments = typeArguments;
@@ -513,6 +522,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   Map<Name, Procedure>? get tearOffs;
 
+  @override
   Procedure? findConstructorOrFactory(
       String text, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (tearOffs != null) {

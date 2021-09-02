@@ -88,6 +88,7 @@ class Modifier {
     return unhandled(string, "Modifier.fromString", -1, null);
   }
 
+  @override
   toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 
   static int toMask(List<Modifier>? modifiers) {

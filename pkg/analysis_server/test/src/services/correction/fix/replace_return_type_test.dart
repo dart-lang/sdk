@@ -90,7 +90,8 @@ void top() {
   }
 }
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
     });
   }
 
@@ -130,7 +131,8 @@ class B extends A {
   B m() => this;
 }
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
     });
   }
 
@@ -204,7 +206,8 @@ num f() {
   return 2.4;
 }
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
     });
   }
 
@@ -229,7 +232,8 @@ class A {
   }
 }
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+      return error.errorCode ==
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
     });
   }
 }

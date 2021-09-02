@@ -12129,7 +12129,7 @@ class Supertype extends Node {
   R accept1<R, A>(Visitor1<R, A> v, A arg) => v.visitSupertype(this, arg);
 
   @override
-  visitChildren(Visitor v) {
+  void visitChildren(Visitor v) {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
   }
@@ -12690,7 +12690,7 @@ class InstanceConstant extends Constant {
   Class get classNode => classReference.asClass;
 
   @override
-  visitChildren(Visitor v) {
+  void visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
     visitList(typeArguments, v);
     for (final Reference reference in fieldValues.keys) {

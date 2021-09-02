@@ -374,6 +374,7 @@ class AstClass {
     return sb.toString();
   }
 
+  @override
   String toString() => '${runtimeType}(${name})';
 }
 
@@ -420,6 +421,7 @@ class FieldType {
 
   FieldType(this.type, this.kind);
 
+  @override
   String toString() => 'FieldType($type,$kind)';
 }
 
@@ -429,6 +431,7 @@ class ListFieldType extends FieldType {
   ListFieldType(DartType type, this.elementType)
       : super(type, AstFieldKind.list);
 
+  @override
   String toString() => 'ListFieldType($type,$elementType)';
 }
 
@@ -437,6 +440,7 @@ class SetFieldType extends FieldType {
 
   SetFieldType(DartType type, this.elementType) : super(type, AstFieldKind.set);
 
+  @override
   String toString() => 'SetFieldType($type,$elementType)';
 }
 
@@ -447,6 +451,7 @@ class MapFieldType extends FieldType {
   MapFieldType(DartType type, this.keyType, this.valueType)
       : super(type, AstFieldKind.map);
 
+  @override
   String toString() => 'MapFieldType($type,$keyType,$valueType)';
 }
 
@@ -456,6 +461,7 @@ class UtilityFieldType extends FieldType {
   UtilityFieldType(DartType type, this.astClass)
       : super(type, AstFieldKind.utility);
 
+  @override
   String toString() => 'UtilityFieldType($type,$astClass)';
 }
 
@@ -474,6 +480,7 @@ class AstField {
     return sb.toString();
   }
 
+  @override
   String toString() => '${runtimeType}(${name})';
 }
 

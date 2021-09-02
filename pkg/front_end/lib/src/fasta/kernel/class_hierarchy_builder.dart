@@ -504,6 +504,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   final List<ClassMember> _delayedMemberComputations = <ClassMember>[];
 
+  @override
   final CoreTypes coreTypes;
 
   late Types types;
@@ -639,6 +640,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     return null;
   }
 
+  @override
   InterfaceType getTypeAsInstanceOf(
       InterfaceType type, Class superclass, Library clientLibrary) {
     if (type.classNode == superclass) return type;
@@ -647,6 +649,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         .withDeclaredNullability(type.nullability);
   }
 
+  @override
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass) {
     if (type.classNode == superclass) return type.typeArguments;
@@ -718,6 +721,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         uniteNullabilities(type1.nullability, type2.nullability));
   }
 
+  @override
   Member? getInterfaceMember(Class cls, Name name, {bool setter: false}) {
     return getNodeFromClass(cls)
         .getInterfaceMember(name, setter)
@@ -3409,6 +3413,7 @@ class ClassHierarchyNode {
     return result;
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb
@@ -3555,6 +3560,7 @@ class BuilderMixinInferrer extends MixinInferrer {
       this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
       : super(coreTypes, gatherer);
 
+  @override
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
     List<DartType>? arguments =
         gatherer.getTypeArgumentsAsInstanceOf(type.asInterfaceType, superclass);
@@ -3562,6 +3568,7 @@ class BuilderMixinInferrer extends MixinInferrer {
     return new Supertype(superclass, arguments);
   }
 
+  @override
   void reportProblem(Message message, Class kernelClass) {
     int length = cls.isMixinApplication ? 1 : cls.fullNameForErrors.length;
     cls.addProblem(message, cls.charOffset, length);
@@ -3570,6 +3577,7 @@ class BuilderMixinInferrer extends MixinInferrer {
 
 class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
     with StandardBounds, TypeSchemaStandardBounds {
+  @override
   final ClassHierarchyBuilder hierarchy;
 
   TypeBuilderConstraintGatherer(this.hierarchy,
@@ -3640,6 +3648,7 @@ class DelayedOverrideCheck implements DelayedCheck {
   DelayedOverrideCheck(
       this._classBuilder, this._declaredMember, this._overriddenMembers);
 
+  @override
   void check(ClassHierarchyBuilder hierarchy) {
     Member declaredMember = _declaredMember.getMember(hierarchy);
 
@@ -3694,6 +3703,7 @@ class DelayedGetterSetterCheck implements DelayedCheck {
 
   const DelayedGetterSetterCheck(this.classBuilder, this.getter, this.setter);
 
+  @override
   void check(ClassHierarchyBuilder hierarchy) {
     classBuilder.checkGetterSetter(hierarchy.types, getter.getMember(hierarchy),
         setter.getMember(hierarchy));
@@ -4167,7 +4177,9 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         SourceLibraryBuilder library =
             classBuilder.library as SourceLibraryBuilder;
         if (canonicalMember is Procedure) {
-          library.forwardersOrigins..add(stub)..add(canonicalMember);
+          library.forwardersOrigins
+            ..add(stub)
+            ..add(canonicalMember);
         }
         _member = stub;
         _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;
@@ -4230,6 +4242,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
     return "${fullNameForErrors}$suffix";
   }
 
+  @override
   String toString() => 'SynthesizedInterfaceMember($classBuilder,$name,'
       '$declarations,forSetter=$forSetter)';
 }
@@ -4373,6 +4386,7 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   @override
   String get fullNameForErrors => inheritedClassMember.fullNameForErrors;
 
+  @override
   String get fullName => inheritedClassMember.fullName;
 
   @override

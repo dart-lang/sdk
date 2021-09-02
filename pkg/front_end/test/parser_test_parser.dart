@@ -52,6 +52,7 @@ class TestParser extends Parser {
     sb.writeln(("  " * indent) + s + traceString);
   }
 
+  @override
   Uri? get uri {
     doPrint('uri()');
     indent++;
@@ -60,6 +61,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   TokenStreamRewriter get rewriter {
     doPrint('rewriter()');
     indent++;
@@ -68,6 +70,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get inGenerator {
     doPrint('inGenerator()');
     indent++;
@@ -76,6 +79,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get inAsync {
     doPrint('inAsync()');
     indent++;
@@ -84,6 +88,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get inPlainSync {
     doPrint('inPlainSync()');
     indent++;
@@ -92,6 +97,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get isBreakAllowed {
     doPrint('isBreakAllowed()');
     indent++;
@@ -100,6 +106,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get isContinueAllowed {
     doPrint('isContinueAllowed()');
     indent++;
@@ -108,6 +115,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool get isContinueWithLabelAllowed {
     doPrint('isContinueWithLabelAllowed()');
     indent++;
@@ -116,6 +124,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseUnit(Token token) {
     doPrint('parseUnit(' '$token)');
     indent++;
@@ -124,6 +133,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseDirectives(Token token) {
     doPrint('parseDirectives(' '$token)');
     indent++;
@@ -132,6 +142,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelDeclaration(Token token) {
     doPrint('parseTopLevelDeclaration(' '$token)');
     indent++;
@@ -140,6 +151,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelDeclarationImpl(
       Token token, DirectiveContext? directiveState) {
     doPrint('parseTopLevelDeclarationImpl(' '$token, ' '$directiveState)');
@@ -149,6 +161,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token? parseClassDeclarationModifiers(Token start, Token keyword) {
     doPrint('parseClassDeclarationModifiers(' '$start, ' '$keyword)');
     indent++;
@@ -157,6 +170,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void parseTopLevelKeywordModifiers(Token start, Token keyword) {
     doPrint('parseTopLevelKeywordModifiers(' '$start, ' '$keyword)');
     indent++;
@@ -165,6 +179,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void reportTopLevelModifierError(Token modifier, Token afterModifiers) {
     doPrint('reportTopLevelModifierError(' '$modifier, ' '$afterModifiers)');
     indent++;
@@ -173,6 +188,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelKeywordDeclaration(
       Token start, Token keyword, DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
@@ -186,6 +202,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLibraryName(Token libraryKeyword) {
     doPrint('parseLibraryName(' '$libraryKeyword)');
     indent++;
@@ -194,6 +211,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseImportPrefixOpt(Token token) {
     doPrint('parseImportPrefixOpt(' '$token)');
     indent++;
@@ -202,6 +220,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseImport(Token importKeyword) {
     doPrint('parseImport(' '$importKeyword)');
     indent++;
@@ -210,6 +229,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseImportRecovery(Token token) {
     doPrint('parseImportRecovery(' '$token)');
     indent++;
@@ -218,6 +238,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConditionalUriStar(Token token) {
     doPrint('parseConditionalUriStar(' '$token)');
     indent++;
@@ -226,6 +247,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConditionalUri(Token token) {
     doPrint('parseConditionalUri(' '$token)');
     indent++;
@@ -234,6 +256,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseDottedName(Token token) {
     doPrint('parseDottedName(' '$token)');
     indent++;
@@ -242,6 +265,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExport(Token exportKeyword) {
     doPrint('parseExport(' '$exportKeyword)');
     indent++;
@@ -250,6 +274,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseCombinatorStar(Token token) {
     doPrint('parseCombinatorStar(' '$token)');
     indent++;
@@ -258,6 +283,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseHide(Token token) {
     doPrint('parseHide(' '$token)');
     indent++;
@@ -266,6 +292,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseShow(Token token) {
     doPrint('parseShow(' '$token)');
     indent++;
@@ -274,6 +301,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseIdentifierList(Token token) {
     doPrint('parseIdentifierList(' '$token)');
     indent++;
@@ -282,6 +310,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTypeList(Token token) {
     doPrint('parseTypeList(' '$token)');
     indent++;
@@ -290,6 +319,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parsePartOrPartOf(Token partKeyword, DirectiveContext? directiveState) {
     doPrint('parsePartOrPartOf(' '$partKeyword, ' '$directiveState)');
     indent++;
@@ -298,6 +328,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parsePart(Token partKeyword) {
     doPrint('parsePart(' '$partKeyword)');
     indent++;
@@ -306,6 +337,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parsePartOf(Token partKeyword) {
     doPrint('parsePartOf(' '$partKeyword)');
     indent++;
@@ -314,6 +346,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMetadataStar(Token token) {
     doPrint('parseMetadataStar(' '$token)');
     indent++;
@@ -322,6 +355,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMetadata(Token token) {
     doPrint('parseMetadata(' '$token)');
     indent++;
@@ -330,6 +364,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseScript(Token token) {
     doPrint('parseScript(' '$token)');
     indent++;
@@ -338,6 +373,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTypedef(Token typedefKeyword) {
     doPrint('parseTypedef(' '$typedefKeyword)');
     indent++;
@@ -346,6 +382,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinApplicationRest(Token token) {
     doPrint('parseMixinApplicationRest(' '$token)');
     indent++;
@@ -354,6 +391,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseWithClauseOpt(Token token) {
     doPrint('parseWithClauseOpt(' '$token)');
     indent++;
@@ -362,6 +400,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseGetterOrFormalParameters(
       Token token, Token name, bool isGetter, MemberKind kind) {
     doPrint('parseGetterOrFormalParameters('
@@ -376,6 +415,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
     doPrint('parseFormalParametersOpt(' '$token, ' '$kind)');
     indent++;
@@ -384,6 +424,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipFormalParameters(Token token, MemberKind kind) {
     doPrint('skipFormalParameters(' '$token, ' '$kind)');
     indent++;
@@ -392,6 +433,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipFormalParametersRest(Token token, MemberKind kind) {
     doPrint('skipFormalParametersRest(' '$token, ' '$kind)');
     indent++;
@@ -400,6 +442,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
     doPrint('parseFormalParametersRequiredOpt(' '$token, ' '$kind)');
     indent++;
@@ -408,6 +451,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFormalParameters(Token token, MemberKind kind) {
     doPrint('parseFormalParameters(' '$token, ' '$kind)');
     indent++;
@@ -416,6 +460,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFormalParametersRest(Token token, MemberKind kind) {
     doPrint('parseFormalParametersRest(' '$token, ' '$kind)');
     indent++;
@@ -424,6 +469,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   codes.Message missingParameterMessage(MemberKind kind) {
     doPrint('missingParameterMessage(' '$kind)');
     indent++;
@@ -432,6 +478,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     doPrint(
@@ -442,6 +489,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseOptionalPositionalParameters(Token token, MemberKind kind) {
     doPrint('parseOptionalPositionalParameters(' '$token, ' '$kind)');
     indent++;
@@ -450,6 +498,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseOptionalNamedParameters(Token token, MemberKind kind) {
     doPrint('parseOptionalNamedParameters(' '$token, ' '$kind)');
     indent++;
@@ -458,6 +507,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseQualified(Token token, IdentifierContext context,
       IdentifierContext continuationContext) {
     doPrint('parseQualified(' '$token, ' '$context, ' '$continuationContext)');
@@ -467,6 +517,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseQualifiedRestOpt(
       Token token, IdentifierContext continuationContext) {
     doPrint('parseQualifiedRestOpt(' '$token, ' '$continuationContext)');
@@ -476,6 +527,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseQualifiedRest(Token token, IdentifierContext context) {
     doPrint('parseQualifiedRest(' '$token, ' '$context)');
     indent++;
@@ -484,6 +536,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipBlock(Token token) {
     doPrint('skipBlock(' '$token)');
     indent++;
@@ -492,6 +545,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseEnum(Token enumKeyword) {
     doPrint('parseEnum(' '$enumKeyword)');
     indent++;
@@ -500,6 +554,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken, Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
@@ -512,6 +567,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseNamedMixinApplication(
       Token token, Token begin, Token classKeyword) {
     doPrint(
@@ -522,6 +578,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClass(
       Token token, Token begin, Token classKeyword, String className) {
     doPrint(
@@ -532,6 +589,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     doPrint('parseClassHeaderOpt(' '$token, ' '$begin, ' '$classKeyword)');
     indent++;
@@ -540,6 +598,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
     doPrint('parseClassHeaderRecovery(' '$token, ' '$begin, ' '$classKeyword)');
     indent++;
@@ -548,6 +607,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassExtendsOpt(Token token) {
     doPrint('parseClassExtendsOpt(' '$token)');
     indent++;
@@ -556,6 +616,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
     doPrint(
         'parseClassExtendsSeenExtendsClause(' '$extendsKeyword, ' '$token)');
@@ -566,6 +627,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassOrMixinImplementsOpt(Token token) {
     doPrint('parseClassOrMixinImplementsOpt(' '$token)');
     indent++;
@@ -574,6 +636,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixin(Token mixinKeyword) {
     doPrint('parseMixin(' '$mixinKeyword)');
     indent++;
@@ -582,6 +645,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinHeaderOpt(Token token, Token mixinKeyword) {
     doPrint('parseMixinHeaderOpt(' '$token, ' '$mixinKeyword)');
     indent++;
@@ -590,6 +654,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinHeaderRecovery(
       Token token, Token mixinKeyword, Token headerStart) {
     doPrint('parseMixinHeaderRecovery('
@@ -603,6 +668,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinOnOpt(Token token) {
     doPrint('parseMixinOnOpt(' '$token)');
     indent++;
@@ -611,6 +677,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinOn(Token token) {
     doPrint('parseMixinOn(' '$token)');
     indent++;
@@ -619,6 +686,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExtension(Token extensionKeyword) {
     doPrint('parseExtension(' '$extensionKeyword)');
     indent++;
@@ -627,6 +695,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseStringPart(Token token) {
     doPrint('parseStringPart(' '$token)');
     indent++;
@@ -635,6 +704,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
       {codes.Message? message, Token? messageOnToken}) {
     doPrint('insertSyntheticIdentifier('
@@ -649,6 +719,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureIdentifier(Token token, IdentifierContext context) {
     doPrint('ensureIdentifier(' '$token, ' '$context)');
     indent++;
@@ -657,6 +728,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool isNextIdentifier(Token token) {
     doPrint('isNextIdentifier(' '$token)');
     indent++;
@@ -665,6 +737,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureIdentifierPotentiallyRecovered(
       Token token, IdentifierContext context, bool isRecovered) {
     doPrint('ensureIdentifierPotentiallyRecovered('
@@ -678,6 +751,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool notEofOrValue(String value, Token token) {
     doPrint('notEofOrValue(' '$value, ' '$token)');
     indent++;
@@ -686,6 +760,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTypeVariablesOpt(Token token) {
     doPrint('parseTypeVariablesOpt(' '$token)');
     indent++;
@@ -694,6 +769,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelMember(Token token) {
     doPrint('parseTopLevelMember(' '$token)');
     indent++;
@@ -702,6 +778,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelMemberImpl(Token token) {
     doPrint('parseTopLevelMemberImpl(' '$token)');
     indent++;
@@ -710,6 +787,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFields(
       Token beforeStart,
       Token? abstractToken,
@@ -757,6 +835,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTopLevelMethod(
       Token beforeStart,
       Token? externalToken,
@@ -780,6 +859,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMethodTypeVar(Token name) {
     doPrint('parseMethodTypeVar(' '$name)');
     indent++;
@@ -788,6 +868,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFieldInitializerOpt(
       Token token,
       Token name,
@@ -820,6 +901,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseVariableInitializerOpt(Token token) {
     doPrint('parseVariableInitializerOpt(' '$token)');
     indent++;
@@ -828,6 +910,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInitializersOpt(Token token) {
     doPrint('parseInitializersOpt(' '$token)');
     indent++;
@@ -836,6 +919,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInitializers(Token token) {
     doPrint('parseInitializers(' '$token)');
     indent++;
@@ -844,6 +928,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInitializer(Token token) {
     doPrint('parseInitializer(' '$token)');
     indent++;
@@ -852,6 +937,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSuperInitializerExpression(final Token start) {
     doPrint('parseSuperInitializerExpression(' '$start)');
     indent++;
@@ -860,6 +946,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInitializerExpressionRest(Token token) {
     doPrint('parseInitializerExpressionRest(' '$token)');
     indent++;
@@ -868,6 +955,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureBlock(
       Token token,
       codes.Template<codes.Message Function(Token token)>? template,
@@ -879,6 +967,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token insertBlock(Token token) {
     doPrint('insertBlock(' '$token)');
     indent++;
@@ -887,6 +976,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureCloseParen(Token token, Token openParen) {
     doPrint('ensureCloseParen(' '$token, ' '$openParen)');
     indent++;
@@ -895,6 +985,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureColon(Token token) {
     doPrint('ensureColon(' '$token)');
     indent++;
@@ -903,6 +994,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureLiteralString(Token token) {
     doPrint('ensureLiteralString(' '$token)');
     indent++;
@@ -911,6 +1003,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureSemicolon(Token token) {
     doPrint('ensureSemicolon(' '$token)');
     indent++;
@@ -919,6 +1012,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token rewriteAndRecover(Token token, codes.Message message, Token newToken) {
     doPrint('rewriteAndRecover(' '$token, ' '$message, ' '$newToken)');
     indent++;
@@ -927,6 +1021,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token rewriteSquareBrackets(Token token) {
     doPrint('rewriteSquareBrackets(' '$token)');
     indent++;
@@ -935,6 +1030,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipUnexpectedTokenOpt(Token token, List<String> expectedNext) {
     doPrint('skipUnexpectedTokenOpt(' '$token, ' '$expectedNext)');
     indent++;
@@ -943,6 +1039,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseNativeClause(Token token) {
     doPrint('parseNativeClause(' '$token)');
     indent++;
@@ -951,6 +1048,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipClassOrMixinOrExtensionBody(Token token) {
     doPrint('skipClassOrMixinOrExtensionBody(' '$token)');
     indent++;
@@ -959,6 +1057,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassOrMixinOrExtensionBody(
       Token token, DeclarationKind kind, String? enclosingDeclarationName) {
     doPrint('parseClassOrMixinOrExtensionBody('
@@ -972,6 +1071,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool isUnaryMinus(Token token) {
     doPrint('isUnaryMinus(' '$token)');
     indent++;
@@ -980,6 +1080,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassMember(Token token, String? className) {
     doPrint('parseClassMember(' '$token, ' '$className)');
     indent++;
@@ -988,6 +1089,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMixinMember(Token token, String mixinName) {
     doPrint('parseMixinMember(' '$token, ' '$mixinName)');
     indent++;
@@ -996,6 +1098,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExtensionMember(Token token, String extensionName) {
     doPrint('parseExtensionMember(' '$token, ' '$extensionName)');
     indent++;
@@ -1004,6 +1107,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool isReservedKeyword(Token token) {
     doPrint('isReservedKeyword(' '$token)');
     indent++;
@@ -1012,6 +1116,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool indicatesMethodOrField(Token token) {
     doPrint('indicatesMethodOrField(' '$token)');
     indent++;
@@ -1020,6 +1125,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseClassOrMixinOrExtensionMemberImpl(
       Token token, DeclarationKind kind, String? enclosingDeclarationName) {
     doPrint('parseClassOrMixinOrExtensionMemberImpl('
@@ -1033,6 +1139,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMethod(
       Token beforeStart,
       Token? abstractToken,
@@ -1083,6 +1190,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
       Token? externalToken, Token? staticOrCovariant, Token? varFinalOrConst) {
     doPrint('parseFactoryMethod('
@@ -1099,6 +1207,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseOperatorName(Token token) {
     doPrint('parseOperatorName(' '$token)');
     indent++;
@@ -1107,6 +1216,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFunctionExpression(Token token) {
     doPrint('parseFunctionExpression(' '$token)');
     indent++;
@@ -1115,6 +1225,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFunctionLiteral(
       Token start,
       Token beforeName,
@@ -1136,6 +1247,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseNamedFunctionRest(
       Token beforeName, Token begin, Token formals, bool isFunctionExpression) {
     doPrint('parseNamedFunctionRest('
@@ -1150,6 +1262,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAsyncOptBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
     doPrint('parseAsyncOptBody('
@@ -1163,6 +1276,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConstructorReference(
       Token token, ConstructorReferenceContext constructorReferenceContext,
       [TypeParamOrArgInfo? typeArg]) {
@@ -1177,6 +1291,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseRedirectingFactoryBody(Token token) {
     doPrint('parseRedirectingFactoryBody(' '$token)');
     indent++;
@@ -1185,6 +1300,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     doPrint('skipFunctionBody(' '$token, ' '$isExpression, ' '$allowAbstract)');
     indent++;
@@ -1193,6 +1309,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
     doPrint('parseFunctionBody('
@@ -1206,6 +1323,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionFunctionBody(Token token, bool ofFunctionExpression) {
     doPrint('parseExpressionFunctionBody(' '$token, ' '$ofFunctionExpression)');
     indent++;
@@ -1214,6 +1332,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipAsyncModifier(Token token) {
     doPrint('skipAsyncModifier(' '$token)');
     indent++;
@@ -1222,6 +1341,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAsyncModifierOpt(Token token) {
     doPrint('parseAsyncModifierOpt(' '$token)');
     indent++;
@@ -1230,6 +1350,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseStatement(Token token) {
     doPrint('parseStatement(' '$token)');
     indent++;
@@ -1238,6 +1359,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseStatementX(Token token) {
     doPrint('parseStatementX(' '$token)');
     indent++;
@@ -1246,6 +1368,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseYieldStatement(Token token) {
     doPrint('parseYieldStatement(' '$token)');
     indent++;
@@ -1254,6 +1377,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseReturnStatement(Token token) {
     doPrint('parseReturnStatement(' '$token)');
     indent++;
@@ -1262,6 +1386,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLabel(Token token) {
     doPrint('parseLabel(' '$token)');
     indent++;
@@ -1270,6 +1395,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLabeledStatement(Token token) {
     doPrint('parseLabeledStatement(' '$token)');
     indent++;
@@ -1278,6 +1404,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionStatement(Token token) {
     doPrint('parseExpressionStatement(' '$token)');
     indent++;
@@ -1286,6 +1413,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpression(Token token) {
     doPrint('parseExpression(' '$token)');
     indent++;
@@ -1294,6 +1422,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionWithoutCascade(Token token) {
     doPrint('parseExpressionWithoutCascade(' '$token)');
     indent++;
@@ -1302,6 +1431,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool canParseAsConditional(Token question) {
     doPrint('canParseAsConditional(' '$question)');
     indent++;
@@ -1310,6 +1440,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConditionalExpressionRest(Token token) {
     doPrint('parseConditionalExpressionRest(' '$token)');
     indent++;
@@ -1318,6 +1449,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parsePrecedenceExpression(
       Token token, int precedence, bool allowCascades) {
     doPrint('parsePrecedenceExpression('
@@ -1331,6 +1463,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseCascadeExpression(Token token) {
     doPrint('parseCascadeExpression(' '$token)');
     indent++;
@@ -1339,6 +1472,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseUnaryExpression(Token token, bool allowCascades) {
     doPrint('parseUnaryExpression(' '$token, ' '$allowCascades)');
     indent++;
@@ -1347,6 +1481,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseArgumentOrIndexStar(
       Token token, TypeParamOrArgInfo typeArg, bool checkedNullAware) {
     doPrint('parseArgumentOrIndexStar('
@@ -1360,6 +1495,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parsePrimary(Token token, IdentifierContext context) {
     doPrint('parsePrimary(' '$token, ' '$context)');
     indent++;
@@ -1368,6 +1504,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
     doPrint('parseParenthesizedExpressionOrFunctionLiteral(' '$token)');
     indent++;
@@ -1376,6 +1513,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureParenthesizedCondition(Token token) {
     doPrint('ensureParenthesizedCondition(' '$token)');
     indent++;
@@ -1384,6 +1522,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseParenthesizedExpression(Token token) {
     doPrint('parseParenthesizedExpression(' '$token)');
     indent++;
@@ -1392,6 +1531,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionInParenthesis(Token token) {
     doPrint('parseExpressionInParenthesis(' '$token)');
     indent++;
@@ -1400,6 +1540,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionInParenthesisRest(Token token) {
     doPrint('parseExpressionInParenthesisRest(' '$token)');
     indent++;
@@ -1408,6 +1549,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseThisExpression(Token token, IdentifierContext context) {
     doPrint('parseThisExpression(' '$token, ' '$context)');
     indent++;
@@ -1416,6 +1558,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSuperExpression(Token token, IdentifierContext context) {
     doPrint('parseSuperExpression(' '$token, ' '$context)');
     indent++;
@@ -1424,6 +1567,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralListSuffix(Token token, Token? constKeyword) {
     doPrint('parseLiteralListSuffix(' '$token, ' '$constKeyword)');
     indent++;
@@ -1432,6 +1576,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralSetOrMapSuffix(Token token, Token? constKeyword) {
     doPrint('parseLiteralSetOrMapSuffix(' '$token, ' '$constKeyword)');
     indent++;
@@ -1440,6 +1585,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralFunctionSuffix(Token token) {
     doPrint('parseLiteralFunctionSuffix(' '$token)');
     indent++;
@@ -1448,6 +1594,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralListSetMapOrFunction(
       final Token start, Token? constKeyword) {
     doPrint('parseLiteralListSetMapOrFunction(' '$start, ' '$constKeyword)');
@@ -1457,6 +1604,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseMapLiteralEntry(Token token) {
     doPrint('parseMapLiteralEntry(' '$token)');
     indent++;
@@ -1465,6 +1613,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     doPrint('parseSendOrFunctionLiteral(' '$token, ' '$context)');
     indent++;
@@ -1473,6 +1622,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token ensureArguments(Token token) {
     doPrint('ensureArguments(' '$token)');
     indent++;
@@ -1481,6 +1631,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConstructorInvocationArguments(Token token) {
     doPrint('parseConstructorInvocationArguments(' '$token)');
     indent++;
@@ -1489,6 +1640,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseNewExpression(Token token) {
     doPrint('parseNewExpression(' '$token)');
     indent++;
@@ -1497,6 +1649,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseImplicitCreationExpression(
       Token token, TypeParamOrArgInfo typeArg) {
     doPrint('parseImplicitCreationExpression(' '$token, ' '$typeArg)');
@@ -1506,6 +1659,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseConstExpression(Token token) {
     doPrint('parseConstExpression(' '$token)');
     indent++;
@@ -1514,6 +1668,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralInt(Token token) {
     doPrint('parseLiteralInt(' '$token)');
     indent++;
@@ -1522,6 +1677,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralDouble(Token token) {
     doPrint('parseLiteralDouble(' '$token)');
     indent++;
@@ -1530,6 +1686,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralString(Token token) {
     doPrint('parseLiteralString(' '$token)');
     indent++;
@@ -1538,6 +1695,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralSymbol(Token token) {
     doPrint('parseLiteralSymbol(' '$token)');
     indent++;
@@ -1546,6 +1704,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSingleLiteralString(Token token) {
     doPrint('parseSingleLiteralString(' '$token)');
     indent++;
@@ -1554,6 +1713,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseIdentifierExpression(Token token) {
     doPrint('parseIdentifierExpression(' '$token)');
     indent++;
@@ -1562,6 +1722,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralBool(Token token) {
     doPrint('parseLiteralBool(' '$token)');
     indent++;
@@ -1570,6 +1731,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseLiteralNull(Token token) {
     doPrint('parseLiteralNull(' '$token)');
     indent++;
@@ -1578,6 +1740,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSend(Token token, IdentifierContext context) {
     doPrint('parseSend(' '$token, ' '$context)');
     indent++;
@@ -1586,6 +1749,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipArgumentsOpt(Token token) {
     doPrint('skipArgumentsOpt(' '$token)');
     indent++;
@@ -1594,6 +1758,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseArgumentsOpt(Token token) {
     doPrint('parseArgumentsOpt(' '$token)');
     indent++;
@@ -1602,6 +1767,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseArguments(Token token) {
     doPrint('parseArguments(' '$token)');
     indent++;
@@ -1610,6 +1776,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseArgumentsRest(Token token) {
     doPrint('parseArgumentsRest(' '$token)');
     indent++;
@@ -1618,6 +1785,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseIsOperatorRest(Token token) {
     doPrint('parseIsOperatorRest(' '$token)');
     indent++;
@@ -1626,6 +1794,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   TypeInfo computeTypeAfterIsOrAs(Token token) {
     doPrint('computeTypeAfterIsOrAs(' '$token)');
     indent++;
@@ -1634,6 +1803,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAsOperatorRest(Token token) {
     doPrint('parseAsOperatorRest(' '$token)');
     indent++;
@@ -1642,6 +1812,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipChainedAsIsOperators(Token token) {
     doPrint('skipChainedAsIsOperators(' '$token)');
     indent++;
@@ -1650,6 +1821,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool looksLikeLocalFunction(Token token) {
     doPrint('looksLikeLocalFunction(' '$token)');
     indent++;
@@ -1658,6 +1830,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool looksLikeFunctionBody(Token token) {
     doPrint('looksLikeFunctionBody(' '$token)');
     indent++;
@@ -1666,6 +1839,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionStatementOrConstDeclaration(final Token start) {
     doPrint('parseExpressionStatementOrConstDeclaration(' '$start)');
     indent++;
@@ -1674,6 +1848,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionStatementOrDeclaration(final Token start,
       [bool onlyParseVariableDeclarationStart = false]) {
     doPrint('parseExpressionStatementOrDeclaration('
@@ -1686,6 +1861,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseExpressionStatementOrDeclarationAfterModifiers(
       Token beforeType,
       Token start,
@@ -1712,6 +1888,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseVariablesDeclarationRest(Token token, bool endWithSemicolon) {
     doPrint('parseVariablesDeclarationRest(' '$token, ' '$endWithSemicolon)');
     indent++;
@@ -1720,6 +1897,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseOptionallyInitializedIdentifier(Token token) {
     doPrint('parseOptionallyInitializedIdentifier(' '$token)');
     indent++;
@@ -1728,6 +1906,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseIfStatement(Token token) {
     doPrint('parseIfStatement(' '$token)');
     indent++;
@@ -1736,6 +1915,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForStatement(Token token, Token? awaitToken) {
     doPrint('parseForStatement(' '$token, ' '$awaitToken)');
     indent++;
@@ -1744,6 +1924,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForLoopPartsStart(Token? awaitToken, Token forToken) {
     doPrint('parseForLoopPartsStart(' '$awaitToken, ' '$forToken)');
     indent++;
@@ -1752,6 +1933,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForLoopPartsMid(Token token, Token? awaitToken, Token forToken) {
     doPrint('parseForLoopPartsMid(' '$token, ' '$awaitToken, ' '$forToken)');
     indent++;
@@ -1760,6 +1942,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForRest(Token? awaitToken, Token token, Token forToken) {
     doPrint('parseForRest(' '$awaitToken, ' '$token, ' '$forToken)');
     indent++;
@@ -1768,6 +1951,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForLoopPartsRest(Token token, Token forToken, Token? awaitToken) {
     doPrint('parseForLoopPartsRest(' '$token, ' '$forToken, ' '$awaitToken)');
     indent++;
@@ -1776,6 +1960,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForInRest(
       Token token, Token? awaitToken, Token forToken, Token identifier) {
     doPrint('parseForInRest('
@@ -1789,6 +1974,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseForInLoopPartsRest(
       Token token, Token? awaitToken, Token forToken, Token identifier) {
     doPrint('parseForInLoopPartsRest('
@@ -1803,6 +1989,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseWhileStatement(Token token) {
     doPrint('parseWhileStatement(' '$token)');
     indent++;
@@ -1811,6 +1998,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseDoWhileStatement(Token token) {
     doPrint('parseDoWhileStatement(' '$token)');
     indent++;
@@ -1819,6 +2007,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseBlock(Token token, BlockKind blockKind) {
     doPrint('parseBlock(' '$token, ' '$blockKind)');
     indent++;
@@ -1827,6 +2016,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInvalidBlock(Token token) {
     doPrint('parseInvalidBlock(' '$token)');
     indent++;
@@ -1835,6 +2025,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool looksLikeExpression(Token token) {
     doPrint('looksLikeExpression(' '$token)');
     indent++;
@@ -1843,6 +2034,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool looksLikeAwaitExpression(Token token) {
     doPrint('looksLikeAwaitExpression(' '$token)');
     indent++;
@@ -1851,6 +2043,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool looksLikeYieldStatement(Token token) {
     doPrint('looksLikeYieldStatement(' '$token)');
     indent++;
@@ -1859,6 +2052,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAwaitExpression(Token token, bool allowCascades) {
     doPrint('parseAwaitExpression(' '$token, ' '$allowCascades)');
     indent++;
@@ -1867,6 +2061,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseThrowExpression(Token token, bool allowCascades) {
     doPrint('parseThrowExpression(' '$token, ' '$allowCascades)');
     indent++;
@@ -1875,6 +2070,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseRethrowStatement(Token token) {
     doPrint('parseRethrowStatement(' '$token)');
     indent++;
@@ -1883,6 +2079,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseTryStatement(Token token) {
     doPrint('parseTryStatement(' '$token)');
     indent++;
@@ -1891,6 +2088,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSwitchStatement(Token token) {
     doPrint('parseSwitchStatement(' '$token)');
     indent++;
@@ -1899,6 +2097,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseSwitchBlock(Token token) {
     doPrint('parseSwitchBlock(' '$token)');
     indent++;
@@ -1907,6 +2106,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token peekPastLabels(Token token) {
     doPrint('peekPastLabels(' '$token)');
     indent++;
@@ -1915,6 +2115,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseStatementsInSwitchCase(
       Token token,
       Token peek,
@@ -1938,6 +2139,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseBreakStatement(Token token) {
     doPrint('parseBreakStatement(' '$token)');
     indent++;
@@ -1946,6 +2148,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAssert(Token token, Assert kind) {
     doPrint('parseAssert(' '$token, ' '$kind)');
     indent++;
@@ -1954,6 +2157,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseAssertStatement(Token token) {
     doPrint('parseAssertStatement(' '$token)');
     indent++;
@@ -1962,6 +2166,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseContinueStatement(Token token) {
     doPrint('parseContinueStatement(' '$token)');
     indent++;
@@ -1970,6 +2175,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseEmptyStatement(Token token) {
     doPrint('parseEmptyStatement(' '$token)');
     indent++;
@@ -1978,6 +2184,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token previousToken(Token beforeToken, Token token) {
     doPrint('previousToken(' '$beforeToken, ' '$token)');
     indent++;
@@ -1986,6 +2193,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInvalidOperatorDeclaration(
       Token beforeStart,
       Token? abstractToken,
@@ -2024,6 +2232,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token recoverFromInvalidMember(
       Token token,
       Token beforeStart,
@@ -2071,6 +2280,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token recoverFromStackOverflow(Token token) {
     doPrint('recoverFromStackOverflow(' '$token)');
     indent++;
@@ -2079,6 +2289,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void reportRecoverableError(Token token, codes.Message message) {
     doPrint('reportRecoverableError(' '$token, ' '$message)');
     indent++;
@@ -2087,6 +2298,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void reportRecoverableErrorWithEnd(
       Token startToken, Token endToken, codes.Message message) {
     doPrint('reportRecoverableErrorWithEnd('
@@ -2100,6 +2312,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void reportRecoverableErrorWithToken(Token token, dynamic template) {
     doPrint('reportRecoverableErrorWithToken(' '$token, ' '$template)');
     indent++;
@@ -2108,6 +2321,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token reportAllErrorTokens(Token token) {
     doPrint('reportAllErrorTokens(' '$token)');
     indent++;
@@ -2116,6 +2330,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token skipErrorTokens(Token token) {
     doPrint('skipErrorTokens(' '$token)');
     indent++;
@@ -2124,6 +2339,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token parseInvalidTopLevelDeclaration(Token token) {
     doPrint('parseInvalidTopLevelDeclaration(' '$token)');
     indent++;
@@ -2132,6 +2348,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token reportAndSkipClassInClass(Token token) {
     doPrint('reportAndSkipClassInClass(' '$token)');
     indent++;
@@ -2140,6 +2357,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token reportAndSkipEnumInClass(Token token) {
     doPrint('reportAndSkipEnumInClass(' '$token)');
     indent++;
@@ -2148,6 +2366,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token reportAndSkipTypedefInClass(Token token) {
     doPrint('reportAndSkipTypedefInClass(' '$token)');
     indent++;
@@ -2156,6 +2375,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token link(BeginToken beginToken, Token endToken) {
     doPrint('link(' '$beginToken, ' '$endToken)');
     indent++;
@@ -2164,6 +2384,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token syntheticPreviousToken(Token token) {
     doPrint('syntheticPreviousToken(' '$token)');
     indent++;
@@ -2172,6 +2393,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   Token? findDartDoc(Token token) {
     doPrint('findDartDoc(' '$token)');
     indent++;
@@ -2180,6 +2402,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   int parseCommentReferences(Token dartdoc) {
     doPrint('parseCommentReferences(' '$dartdoc)');
     indent++;
@@ -2188,6 +2411,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   int parseReferencesInMultiLineComment(Token multiLineDoc) {
     doPrint('parseReferencesInMultiLineComment(' '$multiLineDoc)');
     indent++;
@@ -2196,6 +2420,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   int parseReferencesInSingleLineComments(Token? token) {
     doPrint('parseReferencesInSingleLineComments(' '$token)');
     indent++;
@@ -2204,6 +2429,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   int parseCommentReferencesInText(Token commentToken, int start, int end) {
     doPrint(
         'parseCommentReferencesInText(' '$commentToken, ' '$start, ' '$end)');
@@ -2213,6 +2439,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   int findReferenceEnd(String comment, int index, int end) {
     doPrint('findReferenceEnd(' '$comment, ' '$index, ' '$end)');
     indent++;
@@ -2221,6 +2448,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool parseOneCommentReference(Token token, int referenceOffset) {
     doPrint('parseOneCommentReference(' '$token, ' '$referenceOffset)');
     indent++;
@@ -2229,6 +2457,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   void parseOneCommentReferenceRest(
       Token begin,
       int referenceOffset,
@@ -2250,6 +2479,7 @@ class TestParser extends Parser {
     return result;
   }
 
+  @override
   bool isLinkText(String comment, int rightIndex) {
     doPrint('isLinkText(' '$comment, ' '$rightIndex)');
     indent++;

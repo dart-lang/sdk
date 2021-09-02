@@ -24,6 +24,8 @@ StringPtr DoubleToStringAsPrecision(double d, int precision);
 
 bool CStringToDouble(const char* str, intptr_t length, double* result);
 
+IntegerPtr DoubleToInteger(Zone* zone, double val);
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_DOUBLE_CONVERSION_H_

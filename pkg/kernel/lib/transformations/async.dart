@@ -630,7 +630,7 @@ class ExpressionLifter extends Transformer {
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  TreeNode visitFunctionNode(FunctionNode node) {
     var nestedRewriter = new RecursiveContinuationRewriter(
         continuationRewriter.helper, _staticTypeContext);
     return nestedRewriter.transform(node);

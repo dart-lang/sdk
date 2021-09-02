@@ -1100,6 +1100,7 @@ class TestInfoListener implements Listener {
     calls.add('handleUnaryPrefixAssignmentExpression $token');
   }
 
+  @override
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }

@@ -40,6 +40,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -169,6 +170,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
       isNewReachabilityErrorArgument(object) ||
       isNewReachabilityError(object);
 
+  @override
   ActualData<String> mergeData(
       ActualData<String> value1, ActualData<String> value2) {
     if (value1.object is NullLiteral && value2.object is! NullLiteral) {

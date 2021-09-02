@@ -35,6 +35,7 @@ class Context extends ChainContext {
 
   Context(this.suiteName);
 
+  @override
   final List<Step> steps = const <Step>[
     const ListenerCompareStep(),
   ];
@@ -44,8 +45,10 @@ class ListenerCompareStep
     extends Step<TestDescription, TestDescription, Context> {
   const ListenerCompareStep();
 
+  @override
   String get name => "listenerCompare";
 
+  @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
     Uri uri = description.uri;

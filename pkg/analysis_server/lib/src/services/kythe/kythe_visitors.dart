@@ -1379,7 +1379,9 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
       buffer.write(e.name);
     }
     if (enclosingElt is ExecutableElement) {
-      buffer..write('@')..write(e.nameOffset - enclosingElt.nameOffset);
+      buffer
+        ..write('@')
+        ..write(e.nameOffset - enclosingElt.nameOffset);
     }
     return buffer;
   }
@@ -1394,6 +1396,8 @@ class SignatureElementVisitor extends GeneralizingElementVisitor<StringBuffer> {
     // It is legal to have a named constructor with the same name as a type
     // parameter.  So we distinguish them by using '.' between the class (or
     // typedef) name and the type parameter name.
-    return e.enclosingElement!.accept(this)!..write('.')..write(e.name);
+    return e.enclosingElement!.accept(this)!
+      ..write('.')
+      ..write(e.name);
   }
 }

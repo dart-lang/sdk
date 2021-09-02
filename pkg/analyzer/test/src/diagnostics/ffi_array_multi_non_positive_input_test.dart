@@ -16,8 +16,7 @@ main() {
 @reflectiveTest
 class FfiArrayMultiNonPositiveInput extends PubPackageResolutionTest {
   test_multi() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import "dart:ffi";
 
 class MyStruct extends Struct {
@@ -32,8 +31,7 @@ void main() {}
   }
 
   test_negative() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import "dart:ffi";
 
 class MyStruct extends Struct {
@@ -48,8 +46,7 @@ void main() {}
   }
 
   test_non_error() async {
-    await assertNoErrorsInCode(
-'''
+    await assertNoErrorsInCode('''
 import "dart:ffi";
 
 class MyStruct extends Struct {
@@ -62,8 +59,7 @@ void main() {}
   }
 
   test_zero() async {
-    await assertErrorsInCode(
-'''
+    await assertErrorsInCode('''
 import "dart:ffi";
 
 class MyStruct extends Struct {

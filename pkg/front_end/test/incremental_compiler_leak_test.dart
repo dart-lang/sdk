@@ -167,6 +167,7 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
   }
 
   Completer<String> cProcessExited = new Completer();
+  @override
   void processExited(int exitCode) {
     cProcessExited.complete("Exit");
   }

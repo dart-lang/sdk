@@ -186,21 +186,25 @@ api.CompilerOptions getOptions() {
 }
 
 class InvocationVisitor extends RecursiveVisitor {
+  @override
   void visitProcedure(Procedure node) {
     if (node.isNoSuchMethodForwarder) return;
     super.visitProcedure(node);
   }
 
+  @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
     note(node.interfaceTargetReference.node, node.arguments, node);
   }
 
+  @override
   void visitStaticInvocation(StaticInvocation node) {
     super.visitStaticInvocation(node);
     note(node.targetReference.node, node.arguments, node);
   }
 
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     super.visitConstructorInvocation(node);
     note(node.targetReference.node, node.arguments, node);
@@ -337,6 +341,7 @@ class Edit implements Comparable<Edit> {
     throw "Why did this happen?";
   }
 
+  @override
   String toString() {
     return "Edit[$editType @ $offset]";
   }
@@ -345,6 +350,7 @@ class Edit implements Comparable<Edit> {
 class TestIncrementalCompiler extends IncrementalCompiler {
   TestIncrementalCompiler(CompilerContext context) : super(context);
 
+  @override
   IncrementalKernelTarget createIncrementalKernelTarget(
       api.FileSystem fileSystem,
       bool includeComments,
@@ -360,9 +366,11 @@ class TestIncrementalKernelTarget extends IncrementalKernelTarget {
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
+  @override
   SourceLoader createLoader() =>
       new TestSourceLoader(fileSystem, includeComments, this);
 
+  @override
   void runBuildTransformations() {
     // Don't do any transformations!
   }
@@ -373,6 +381,7 @@ class TestSourceLoader extends SourceLoader {
       api.FileSystem fileSystem, bool includeComments, KernelTarget target)
       : super(fileSystem, includeComments, target);
 
+  @override
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Token result = await super

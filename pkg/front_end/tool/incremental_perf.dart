@@ -226,6 +226,7 @@ class OverlayFileSystem implements FileSystem {
 }
 
 class OverlayFileSystemEntity implements FileSystemEntity {
+  @override
   final Uri uri;
   FileSystemEntity? _delegate;
   final OverlayFileSystem _fs;
@@ -272,6 +273,7 @@ class Edit {
   Edit(String uriString, this.original, this.replacement)
       : uri = _resolveOverlayUri(uriString);
 
+  @override
   String toString() => 'Edit($uri, "$original" -> "$replacement")';
 }
 
@@ -282,6 +284,7 @@ class ChangeSet {
 
   ChangeSet(this.name, this.edits);
 
+  @override
   String toString() => 'ChangeSet($name, $edits)';
 }
 

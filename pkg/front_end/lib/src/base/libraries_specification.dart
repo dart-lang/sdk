@@ -265,5 +265,6 @@ class LibrariesSpecificationException {
   Object error;
   LibrariesSpecificationException(this.error);
 
+  @override
   String toString() => '$error';
 }

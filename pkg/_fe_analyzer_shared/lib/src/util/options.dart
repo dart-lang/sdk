@@ -199,8 +199,8 @@ class StringValue extends ValueSpecification<String?> {
   }
 }
 
-class BoolValue extends ValueSpecification<bool> {
-  final bool defaultValue;
+class BoolValue extends ValueSpecification<bool?> {
+  final bool? defaultValue;
 
   const BoolValue(this.defaultValue);
 

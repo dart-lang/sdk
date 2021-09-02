@@ -31,6 +31,9 @@ class _DeferredImport {
 /// specific order. This ensures that we have a unique and canonical
 /// representation for each subset.
 class ImportSetLattice {
+  /// A map of [ImportEntity] to its initial [ImportSet].
+  final Map<ImportEntity, ImportSet> initialSets = {};
+
   /// Index of deferred imports that defines the canonical order used by the
   /// operations below.
   Map<ImportEntity, _DeferredImport> _importIndex = {};
@@ -42,10 +45,32 @@ class ImportSetLattice {
   /// implemented as an empty set in our algorithm.
   ImportSet get mainSet => _emptySet;
 
-  /// Get the singleton import set that only contains [import].
-  ImportSet singleton(ImportEntity import) {
+  /// Get the smallest [ImportSet] that contains [import]. When
+  /// unconstrained, this [ImportSet] is a singleton [ImportSet] containing
+  /// only the supplied [ImportEntity]. However, when constrained the returned
+  /// [ImportSet] may contain multiple [ImportEntity]s.
+  ImportSet initialSetOf(ImportEntity import) =>
+      initialSets[import] ??= _singleton(import);
+
+  /// A private method to generate a true singleton [ImportSet] for a given
+  /// [ImportEntity].
+  ImportSet _singleton(ImportEntity import) {
     // Ensure we have import in the index.
     return _emptySet._add(_wrap(import));
+  }
+
+  /// Initializes the [initialSet] map.
+  void buildInitialSets(
+      Map<ImportEntity, Set<ImportEntity>> initialTransitions) {
+    initialTransitions.forEach((import, setOfImports) {
+      List<_DeferredImport> imports = setOfImports.map(_wrap).toList();
+      imports.sort((a, b) => a.index - b.index);
+      var result = _emptySet;
+      for (var import in imports) {
+        result = result._add(import);
+      }
+      initialSets[import] = result;
+    });
   }
 
   /// Get the import set that includes the union of [a] and [b].

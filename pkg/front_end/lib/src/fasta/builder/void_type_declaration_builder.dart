@@ -14,5 +14,6 @@ class VoidTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("void", type, compilationUnit, charOffset);
 
+  @override
   String get debugName => "VoidTypeDeclarationBuilder";
 }

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
 
-main() {
+void main() {
   File exe = new File(Platform.resolvedExecutable).absolute;
   int steps = 0;
   Directory parent = exe.parent.parent;

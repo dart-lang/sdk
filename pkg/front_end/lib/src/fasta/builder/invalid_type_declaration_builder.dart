@@ -16,6 +16,7 @@ import 'type_declaration_builder.dart';
 
 class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin {
+  @override
   String get debugName => "InvalidTypeBuilder";
 
   final LocatedMessage message;

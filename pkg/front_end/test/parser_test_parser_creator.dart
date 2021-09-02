@@ -112,19 +112,23 @@ class ParserCreatorListener extends Listener {
 
   ParserCreatorListener(this.out);
 
+  @override
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     if (name.lexeme == "Parser") insideParserClass = true;
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     insideParserClass = false;
   }
 
+  @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token getOrSet, Token name) {
     currentMethodName = name.lexeme;
   }
 
+  @override
   void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     parameters.clear();
@@ -132,11 +136,13 @@ class ParserCreatorListener extends Listener {
     currentMethodName = null;
   }
 
+  @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     if (insideParserClass && !currentMethodName.startsWith("_")) {
       Token token = beginToken;
       Token latestToken;
+      out.writeln("  @override");
       out.write("  ");
       while (true) {
         if (troubleParameterTokens.containsKey(token)) {
@@ -221,10 +227,12 @@ class ParserCreatorListener extends Listener {
   }
 
   int formalParametersNestLevel = 0;
+  @override
   void beginFormalParameters(Token token, MemberKind kind) {
     formalParametersNestLevel++;
   }
 
+  @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     formalParametersNestLevel--;
@@ -232,6 +240,7 @@ class ParserCreatorListener extends Listener {
 
   Token currentFormalParameterToken;
 
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
     if (formalParametersNestLevel == 1) {
@@ -241,12 +250,14 @@ class ParserCreatorListener extends Listener {
 
   Map<Token, Token> troubleParameterTokens = {};
 
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (formalParametersNestLevel > 0 && token.lexeme.startsWith("_")) {
       troubleParameterTokens[currentFormalParameterToken] = null;
     }
   }
 
+  @override
   void endFormalParameter(
       Token thisKeyword,
       Token periodAfterThis,

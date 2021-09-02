@@ -17,6 +17,7 @@ Future<ChainContext> createContext(
 }
 
 class ScannerContext extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const Read(),
     const Scan(),
@@ -27,8 +28,10 @@ class ScannerContext extends ChainContext {
 class Parse extends Step<ScannedFile, Null, ChainContext> {
   const Parse();
 
+  @override
   String get name => "parse";
 
+  @override
   Future<Result<Null>> run(ScannedFile file, ChainContext context) async {
     try {
       List<ParserError> errors = parse(file.result.tokens,

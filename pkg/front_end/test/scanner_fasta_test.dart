@@ -742,6 +742,7 @@ abstract class ScannerTest_Fasta_Base {
 /// Scanner tests that exercise the Fasta scanner directly.
 @reflectiveTest
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
+  @override
   ScannerResult scanSource(source, {includeComments: true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner

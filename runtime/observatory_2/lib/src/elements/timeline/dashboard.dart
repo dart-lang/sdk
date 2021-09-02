@@ -91,6 +91,7 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
     if (_content == null) {
       _content = new DivElement()..classes = ['content-centered-big'];
     }
+    // ignore: unsafe_html
     _frame.src = _makeFrameUrl();
     _content.children = <Element>[
       new HeadingElement.h2()

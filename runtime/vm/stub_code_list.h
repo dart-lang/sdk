@@ -120,6 +120,7 @@ namespace dart {
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)                                         \
+  V(DoubleToInteger)                                                           \
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \

@@ -55,6 +55,7 @@ class SubtypeCheck {
 
   SubtypeCheck(this.s, this.t, this.isSubtype);
 
+  @override
   String toString() {
     return (new StringBuffer()
           ..write(s)

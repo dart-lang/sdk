@@ -32,6 +32,7 @@ class DillLoader extends Loader {
 
   DillLoader(TargetImplementation target) : super(target);
 
+  @override
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateDillOutlineSummary;
 
@@ -83,6 +84,7 @@ class DillLoader extends Loader {
         as DillLibraryBuilder;
   }
 
+  @override
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     // ignore: unnecessary_null_comparison
     if (builder.library == null) {
@@ -91,6 +93,7 @@ class DillLoader extends Loader {
     builder.markAsReadyToBuild();
   }
 
+  @override
   Future<Null> buildBody(DillLibraryBuilder builder) {
     return buildOutline(builder);
   }

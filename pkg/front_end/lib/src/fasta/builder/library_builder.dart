@@ -444,8 +444,10 @@ class LibraryLocalDeclarationIterator implements Iterator<Builder> {
   LibraryLocalDeclarationIterator(this.library)
       : iterator = library.scope.iterator;
 
+  @override
   Builder get current => iterator.current;
 
+  @override
   bool moveNext() {
     while (iterator.moveNext()) {
       if (current.parent == library) return true;
@@ -461,10 +463,13 @@ class LibraryLocalDeclarationNameIterator implements NameIterator {
   LibraryLocalDeclarationNameIterator(this.library)
       : iterator = library.scope.nameIterator;
 
+  @override
   Builder get current => iterator.current;
 
+  @override
   String get name => iterator.name;
 
+  @override
   bool moveNext() {
     while (iterator.moveNext()) {
       if (current.parent == library) return true;

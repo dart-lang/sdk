@@ -6,7 +6,7 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/src/tool/find_referenced_libraries.dart';
 import 'utils.dart';
 
-main() {
+void main() {
   Library lib;
   {
     /// Create a library with two classes (A and B) where class A - in its

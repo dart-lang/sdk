@@ -9,7 +9,7 @@ import 'package:kernel/src/coverage.dart';
 import 'package:kernel/src/equivalence.dart';
 import 'package:kernel/src/node_creator.dart';
 
-main() {
+void main() {
   testBodyCloning();
   testBodyCloningInContext();
   testMemberCloning();

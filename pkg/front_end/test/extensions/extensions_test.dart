@@ -59,6 +59,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,

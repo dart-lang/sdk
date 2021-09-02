@@ -31,8 +31,10 @@ class ScannedFile {
 class Read extends Step<TestDescription, ReadFile, ChainContext> {
   const Read();
 
+  @override
   String get name => "read";
 
+  @override
   Future<Result<ReadFile>> run(
       TestDescription input, ChainContext context) async {
     return pass(new ReadFile(input.uri, await readBytesFromFile(input.uri)));
@@ -42,8 +44,10 @@ class Read extends Step<TestDescription, ReadFile, ChainContext> {
 class Scan extends Step<ReadFile, ScannedFile, ChainContext> {
   const Scan();
 
+  @override
   String get name => "scan";
 
+  @override
   Future<Result<ScannedFile>> run(ReadFile file, ChainContext context) async {
     return pass(new ScannedFile(file, scan(file.bytes)));
   }

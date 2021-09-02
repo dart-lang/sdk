@@ -143,6 +143,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
+  @override
   SourceLibraryBuilder get library => super.library as SourceLibraryBuilder;
 
   @override
@@ -154,6 +155,7 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
   @override
   Member get invokeTarget => constructor;
 
+  @override
   FunctionNode get function => _constructor.function;
 
   @override

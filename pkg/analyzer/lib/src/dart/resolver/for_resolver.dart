@@ -130,8 +130,7 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      _resolver.flowAnalysis.flow
-          ?.declare(loopVariable.declaredElement!, true);
+      _resolver.flowAnalysis.flow?.declare(loopVariable.declaredElement!, true);
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);

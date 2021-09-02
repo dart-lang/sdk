@@ -874,22 +874,27 @@ class _VariablesDeclaration extends Statement {
     setParents(declarations, this);
   }
 
+  @override
   R accept<R>(v) {
     throw unsupported("accept", fileOffset, uri);
   }
 
+  @override
   R accept1<R, A>(v, arg) {
     throw unsupported("accept1", fileOffset, uri);
   }
 
+  @override
   visitChildren(v) {
     throw unsupported("visitChildren", fileOffset, uri);
   }
 
+  @override
   transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
   }
 
+  @override
   transformOrRemoveChildren(v) {
     throw unsupported("transformOrRemoveChildren", fileOffset, uri);
   }

@@ -86,6 +86,7 @@ class DillTarget extends TargetImplementation {
         new DillLibraryBuilder(library, loader);
   }
 
+  @override
   void releaseAncillaryResources() {
     libraryBuilders.clear();
   }

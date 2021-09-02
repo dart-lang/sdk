@@ -3018,6 +3018,7 @@ class TypeInfoListener implements Listener {
     calls.add('handleVoidKeywordWithTypeArguments $token');
   }
 
+  @override
   noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }

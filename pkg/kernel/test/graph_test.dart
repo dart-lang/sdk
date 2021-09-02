@@ -35,7 +35,7 @@ void checkGraph(Map<String, List<String>> graph, String startingNodeName,
   Expect.stringEquals(expectedReversed.join(", "), result.join(", "));
 }
 
-main() {
+void main() {
   test("[[B, A], [C], [D]]", {
     "A": ["B"],
     "B": ["A"],

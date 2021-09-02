@@ -101,14 +101,17 @@ class ParserCreatorListener extends Listener {
 
   ParserCreatorListener(this.out);
 
+  @override
   void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     insideListenerClass = false;
   }
 
+  @override
   void beginMethod(
       Token? externalToken,
       Token? staticToken,
@@ -119,6 +122,7 @@ class ParserCreatorListener extends Listener {
     currentMethodName = name.lexeme;
   }
 
+  @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     void end() {
@@ -131,6 +135,7 @@ class ParserCreatorListener extends Listener {
             currentMethodName!.startsWith("end") ||
             currentMethodName!.startsWith("handle"))) {
       StringBuffer sb = new StringBuffer();
+      sb.writeln("  @override");
       sb.write("  ");
       Token token = beginToken;
       Token? latestToken;
@@ -222,6 +227,7 @@ class ParserCreatorListener extends Listener {
           newClasses.write('}');
         }
         newClasses.write(') : super("$name", type);\n\n');
+        newClasses.writeln("@override");
         newClasses.write("Map<String, Object?> get deprecatedArguments => {");
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
@@ -249,11 +255,13 @@ class ParserCreatorListener extends Listener {
     latestSeenParameterTypeTokenQuestion = null;
   }
 
+  @override
   void handleType(Token beginToken, Token? questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
     latestSeenParameterTypeTokenQuestion = questionMark?.lexeme;
   }
 
+  @override
   void endFormalParameter(
       Token? thisKeyword,
       Token? periodAfterThis,

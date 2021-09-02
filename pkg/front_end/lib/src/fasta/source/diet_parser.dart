@@ -17,6 +17,7 @@ class DietParser extends ClassMemberParser {
       : super(listener,
             useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
 
+  @override
   Token parseFormalParametersRest(Token token, MemberKind kind) {
     return skipFormalParametersRest(token, kind);
   }

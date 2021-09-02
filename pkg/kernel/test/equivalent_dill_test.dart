@@ -10,7 +10,7 @@ import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/src/equivalence.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   String resolvedExecutable = Platform.environment['resolvedExecutable'];
   File exe =
       new File(resolvedExecutable ?? Platform.resolvedExecutable).absolute;

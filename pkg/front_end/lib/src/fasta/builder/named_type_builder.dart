@@ -48,10 +48,12 @@ import 'type_variable_builder.dart';
 import 'void_type_declaration_builder.dart';
 
 class NamedTypeBuilder extends TypeBuilder {
+  @override
   final Object name;
 
   List<TypeBuilder>? arguments;
 
+  @override
   final NullabilityBuilder nullabilityBuilder;
 
   @override
@@ -71,6 +73,7 @@ class NamedTypeBuilder extends TypeBuilder {
       [this.arguments, this.fileUri, this.charOffset])
       : this.name = declaration.name;
 
+  @override
   bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
   @override
@@ -174,8 +177,10 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  @override
   String get debugName => "NamedTypeBuilder";
 
+  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(flattenName(name, charOffset ?? TreeNode.noOffset, fileUri));
     if (arguments?.isEmpty ?? true) return buffer;
@@ -313,6 +318,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  @override
   Supertype? buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration!;
@@ -385,6 +391,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
+  @override
   Supertype? buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration!;
@@ -410,6 +417,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return handleInvalidSupertype(library, charOffset, fileUri);
   }
 
+  @override
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
     TypeBuilder? result = substitution[declaration];
     if (result != null) {
@@ -440,6 +448,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return this;
   }
 
+  @override
   NamedTypeBuilder clone(
       List<TypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
@@ -462,6 +471,7 @@ class NamedTypeBuilder extends TypeBuilder {
     return newType;
   }
 
+  @override
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
     return new NamedTypeBuilder(

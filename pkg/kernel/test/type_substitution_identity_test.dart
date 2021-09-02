@@ -8,7 +8,7 @@ import 'type_parser.dart';
 import 'type_hashcode_test.dart' show testCases;
 import 'package:test/test.dart';
 
-checkType(DartType type) {
+void checkType(DartType type) {
   var map = {new TypeParameter(): const DynamicType()};
   var other = substitute(type, map);
   if (!identical(type, other)) {
@@ -20,7 +20,7 @@ checkType(DartType type) {
   }
 }
 
-main() {
+void main() {
   for (var testCase in testCases) {
     test('$testCase', () {
       var env = new LazyTypeEnvironment();

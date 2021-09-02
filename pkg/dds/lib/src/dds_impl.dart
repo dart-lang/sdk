@@ -149,8 +149,17 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     }
     pipeline = pipeline.addMiddleware(_authCodeMiddleware);
     final handler = pipeline.addHandler(_handlers().handler);
-    // Start the DDS server.
-    _server = await io.serve(handler, host, port);
+    // Start the DDS server. Run in an error Zone to ensure that asynchronous
+    // exceptions encountered during request handling are handled, as exceptions
+    // thrown during request handling shouldn't take down the entire service.
+    _server = await runZonedGuarded(
+      () async => await io.serve(handler, host, port),
+      (error, stack) {
+        if (shouldLogRequests) {
+          print('Asynchronous error: $error\n$stack');
+        }
+      },
+    )!;
 
     final tmpUri = Uri(
       scheme: 'http',

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -30,6 +31,22 @@ class ConvertIntoBlockBody extends CorrectionProducer {
       return;
     }
 
+    DartType? getFunctionReturnType() {
+      var parent = body.parent;
+      if (parent is MethodDeclaration) {
+        return parent.declaredElement?.returnType;
+      } else if (parent is ConstructorDeclaration) {
+        return parent.declaredElement?.returnType;
+      } else if (parent is FunctionExpression) {
+        return parent.declaredElement?.returnType;
+      }
+      return null;
+    }
+
+    var functionReturnType = getFunctionReturnType();
+    if (functionReturnType == null) {
+      return;
+    }
     var returnValueType = returnValue.typeOrThrow;
     var returnValueCode = utils.getNodeText(returnValue);
     // prepare prefix
@@ -42,7 +59,9 @@ class ConvertIntoBlockBody extends CorrectionProducer {
           builder.write('async ');
         }
         builder.write('{$eol$prefix$indent');
-        if (!returnValueType.isVoid && !returnValueType.isBottom) {
+        if (!returnValueType.isVoid &&
+            !returnValueType.isBottom &&
+            !functionReturnType.isVoid) {
           builder.write('return ');
         }
         builder.write(returnValueCode);

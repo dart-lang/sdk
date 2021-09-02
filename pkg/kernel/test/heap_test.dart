@@ -5,8 +5,8 @@
 import 'package:kernel/src/heap.dart';
 import 'package:test/test.dart';
 
-main() {
-  check_sort(Iterable<int> initialOrder) {
+void main() {
+  void check_sort(Iterable<int> initialOrder) {
     var values = initialOrder.toList();
     var heap = new _intHeap();
     values.forEach(heap.add);

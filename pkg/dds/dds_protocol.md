@@ -16,16 +16,22 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [IDs and Names](#ids-and-names)
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
+  - [getAvailableCachedCpuSamples](#getavailablecachedcpusamples)
+  - [getCachedCpuSamples](#getcachedcpusamples)[
   - [getClientName](#getclientname)
   - [getDartDevelopmentServiceVersion](#getdartdevelopmentserviceversion)
   - [getLogHistorySize](#getloghistorysize)
+  - [getStreamHistory](#getstreamhistory)[
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
   - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
+  - [AvailableCachedCpuSamples](#availablecachedcpusamples)[
+  - [CachedCpuSamples](#cachedcpusamples)
   - [ClientName](#clientname)
   - [DartDevelopmentServiceVersion](#dartdevelopmentserviceversion)
   - [Size](#size)
+  - [StreamHistory](#streamhistory)[
 
 ## RPCs, Requests, and Responses
 

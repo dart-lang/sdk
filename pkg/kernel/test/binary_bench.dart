@@ -38,7 +38,7 @@ late File sourceDill;
 bool forGolem = false;
 bool forRaw = false;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   if (!_parseArgs(args)) {
     print(usage);
     exit(-1);
@@ -111,7 +111,7 @@ class BenchmarkResult {
   void report() {
     runsUs.sort();
 
-    P(int p) => runsUs[((runsUs.length - 1) * (p / 100)).ceil()];
+    int P(int p) => runsUs[((runsUs.length - 1) * (p / 100)).ceil()];
 
     final sum = runsUs.reduce(add);
     final avg = sum / runsUs.length;

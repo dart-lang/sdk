@@ -234,6 +234,7 @@ class IntPair {
 
   IntPair(this.key, this.value);
 
+  @override
   String toString() {
     return "IntPair[$key: $value]";
   }
@@ -361,6 +362,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
   RegisterCallTransformer(this.registerCallProcedure);
   List<Procedure> procedures = [];
 
+  @override
   visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
@@ -368,6 +370,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
     }
   }
 
+  @override
   visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     int procedureNum = procedures.length;
@@ -391,6 +394,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
 
   List<Procedure> procedures = [];
 
+  @override
   visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
@@ -398,6 +402,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
     }
   }
 
+  @override
   visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     if (node.function.dartAsyncMarker != AsyncMarker.Sync) return;

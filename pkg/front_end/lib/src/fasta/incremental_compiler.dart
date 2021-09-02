@@ -2331,6 +2331,7 @@ class InitializeFromComponentError {
 
   const InitializeFromComponentError(this.message);
 
+  @override
   String toString() => message;
 }
 
@@ -2400,6 +2401,7 @@ class IncrementalKernelTarget extends KernelTarget
       DillTarget dillTarget, UriTranslator uriTranslator)
       : super(fileSystem, includeComments, dillTarget, uriTranslator);
 
+  @override
   ChangedStructureNotifier get changedStructureNotifier => this;
 
   @override

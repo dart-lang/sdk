@@ -64,7 +64,7 @@ class MixinFullResolution {
         hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
   }
 
-  transformClass(
+  void transformClass(
       List<Library> librariesToBeTransformed,
       Set<Class> processedClasses,
       Set<Class> transformedClasses,

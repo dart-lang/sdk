@@ -59,7 +59,13 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy, ForTestingClassInfo;
 
 import 'package:kernel/target/targets.dart'
-    show NoneTarget, LateLowering, Target, TargetFlags;
+    show
+        LateLowering,
+        NoneTarget,
+        Target,
+        TargetFlags,
+        TestTargetFlags,
+        TestTargetWrapper;
 
 import 'package:kernel/text/ast_to_text.dart'
     show NameSystem, Printer, componentToString;
@@ -128,6 +134,7 @@ Future<Context> createContext(
 }
 
 class Context extends ChainContext {
+  @override
   final List<Step> steps = const <Step>[
     const ReadTest(),
     const RunCompilations(),
@@ -161,8 +168,10 @@ class TestData {
 class ReadTest extends Step<TestDescription, TestData, Context> {
   const ReadTest();
 
+  @override
   String get name => "read test";
 
+  @override
   Future<Result<TestData>> run(
       TestDescription description, Context context) async {
     Uri uri = description.uri;
@@ -179,8 +188,10 @@ class ReadTest extends Step<TestDescription, TestData, Context> {
 class RunCompilations extends Step<TestData, TestData, Context> {
   const RunCompilations();
 
+  @override
   String get name => "run compilations";
 
+  @override
   Future<Result<TestData>> run(TestData data, Context context) async {
     Result<TestData>? result;
     YamlMap map = data.map;
@@ -387,9 +398,9 @@ class NewWorldTest {
       NnbdMode nnbdMode) async {
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
 
-    TargetFlags targetFlags = new TargetFlags(
+    TestTargetFlags targetFlags = new TestTargetFlags(
         forceLateLoweringsForTesting:
-            forceLateLoweringForTesting ? LateLowering.all : LateLowering.none,
+            forceLateLoweringForTesting ? LateLowering.all : null,
         trackWidgetCreation: trackWidgetCreation);
     Target target = new VmTarget(targetFlags);
     if (targetName != null) {
@@ -405,6 +416,7 @@ class NewWorldTest {
         throw "Unknown target name '$targetName'";
       }
     }
+    target = new TestTargetWrapper(target, targetFlags);
 
     String sdkSummary = computePlatformDillName(
         target,
@@ -1933,6 +1945,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
     return result;
   }
 
+  @override
   void recordTemporaryFileForTesting(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();

@@ -77,6 +77,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
+  @override
   final SourceLibraryBuilder libraryBuilder;
 
   final ClassHierarchy hierarchy;

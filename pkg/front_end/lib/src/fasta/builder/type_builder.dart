@@ -43,6 +43,7 @@ abstract class TypeBuilder {
 
   StringBuffer printOn(StringBuffer buffer);
 
+  @override
   String toString() => "$debugName(${printOn(new StringBuffer())})";
 
   /// Returns the [TypeBuilder] for this type in which [TypeVariableBuilder]s

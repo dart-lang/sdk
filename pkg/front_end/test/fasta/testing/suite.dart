@@ -123,14 +123,14 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 import 'package:kernel/target/targets.dart'
     show
         ConstantsBackend,
-        ConstructorTearOffLowering,
         DiagnosticReporter,
-        LateLowering,
-        NumberSemantics,
         NoneConstantsBackend,
         NoneTarget,
+        NumberSemantics,
         Target,
-        TargetFlags;
+        TestTargetFlags,
+        TestTargetMixin,
+        TestTargetWrapper;
 
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
@@ -261,11 +261,11 @@ final Expectation semiFuzzCrash = staticExpectationSet["SemiFuzzCrash"];
 /// test folders.
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _explicitExperimentalFlags;
-  final int forceLateLowerings;
-  final bool forceLateLoweringSentinel;
-  final bool forceStaticFieldLowering;
-  final bool forceNoExplicitGetterCalls;
-  final int forceConstructorTearOffLowering;
+  final int? forceLateLowerings;
+  final bool? forceLateLoweringSentinel;
+  final bool? forceStaticFieldLowering;
+  final bool? forceNoExplicitGetterCalls;
+  final int? forceConstructorTearOffLowering;
   final bool nnbdAgnosticMode;
   final Map<String, String>? defines;
   final bool noVerify;
@@ -273,11 +273,11 @@ class FolderOptions {
   final String? overwriteCurrentSdkVersion;
 
   FolderOptions(this._explicitExperimentalFlags,
-      {this.forceLateLowerings: LateLowering.none,
-      this.forceLateLoweringSentinel: false,
-      this.forceStaticFieldLowering: false,
-      this.forceNoExplicitGetterCalls: false,
-      this.forceConstructorTearOffLowering: ConstructorTearOffLowering.none,
+      {this.forceLateLowerings,
+      this.forceLateLoweringSentinel,
+      this.forceStaticFieldLowering,
+      this.forceNoExplicitGetterCalls,
+      this.forceConstructorTearOffLowering,
       this.nnbdAgnosticMode: false,
       this.defines: const {},
       this.noVerify: false,
@@ -285,15 +285,7 @@ class FolderOptions {
       // can be null
       this.overwriteCurrentSdkVersion})
       // ignore: unnecessary_null_comparison
-      : assert(forceLateLowerings != null),
-        // ignore: unnecessary_null_comparison
-        assert(forceLateLoweringSentinel != null),
-        // ignore: unnecessary_null_comparison
-        assert(forceStaticFieldLowering != null),
-        // ignore: unnecessary_null_comparison
-        assert(forceNoExplicitGetterCalls != null),
-        // ignore: unnecessary_null_comparison
-        assert(nnbdAgnosticMode != null),
+      : assert(nnbdAgnosticMode != null),
         assert(
             // no this doesn't make any sense but left to underline
             // that this is allowed to be null!
@@ -336,6 +328,7 @@ class TestOptions {
 
 class FastaContext extends ChainContext with MatchContext {
   final Uri baseUri;
+  @override
   final List<Step> steps;
   final Uri vm;
   final bool onlyCrashes;
@@ -448,11 +441,11 @@ class FastaContext extends ChainContext with MatchContext {
   FolderOptions _computeFolderOptions(Directory directory) {
     FolderOptions? folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
-      int forceLateLowering = LateLowering.none;
-      bool forceLateLoweringSentinel = false;
-      bool forceStaticFieldLowering = false;
-      bool forceNoExplicitGetterCalls = false;
-      int forceConstructorTearOffLowering = ConstructorTearOffLowering.none;
+      int? forceLateLowering;
+      bool? forceLateLoweringSentinel;
+      bool? forceStaticFieldLowering;
+      bool? forceNoExplicitGetterCalls;
+      int? forceConstructorTearOffLowering;
       bool nnbdAgnosticMode = false;
       bool noVerify = false;
       Map<String, String>? defines = {};
@@ -815,11 +808,14 @@ class FastaContext extends ChainContext with MatchContext {
 class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Run();
 
+  @override
   String get name => "run";
 
   /// WARNING: Every subsequent step in this test will run async as well!
+  @override
   bool get isAsync => true;
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
@@ -876,8 +872,10 @@ class StressConstantEvaluatorStep
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const StressConstantEvaluatorStep();
 
+  @override
   String get name => "stress constant evaluator";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     KernelTarget target = result.sourceTarget;
@@ -939,6 +937,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
 
   Library? currentLibrary;
 
+  @override
   Library visitLibrary(Library node) {
     currentLibrary = node;
     node.visitChildren(this);
@@ -948,6 +947,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
 
   Member? currentMember;
 
+  @override
   Node defaultMember(Member node) {
     Member? prevCurrentMember = currentMember;
     currentMember = node;
@@ -956,6 +956,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     return node;
   }
 
+  @override
   Node defaultExpression(Expression node) {
     if (node is BasicLiteral) return node;
     if (node is InvalidExpression) return node;
@@ -1132,10 +1133,12 @@ class FuzzCompiles
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const FuzzCompiles();
 
+  @override
   String get name {
     return "semifuzz";
   }
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     bool? originalFlag = context.explicitExperimentalFlags[
@@ -1405,6 +1408,7 @@ class FuzzAstVisitorSorterChunk {
 
   FuzzAstVisitorSorterChunk(this.data, this.metadataAndComments, this.layer);
 
+  @override
   String toString() {
     return "FuzzAstVisitorSorterChunk[${getSource()}]";
   }
@@ -1643,6 +1647,7 @@ class _FakeFileSystem extends FileSystem {
 
 class _FakeFileSystemEntity extends FileSystemEntity {
   final _FakeFileSystem fs;
+  @override
   final Uri uri;
   _FakeFileSystemEntity(this.fs, this.uri);
 
@@ -1692,7 +1697,7 @@ class _FakeFileSystemEntity extends FileSystemEntity {
 }
 
 Target createTarget(FolderOptions folderOptions, FastaContext context) {
-  TargetFlags targetFlags = new TargetFlags(
+  TestTargetFlags targetFlags = new TestTargetFlags(
     forceLateLoweringsForTesting: folderOptions.forceLateLowerings,
     forceLateLoweringSentinelForTesting:
         folderOptions.forceLateLoweringSentinel,
@@ -1709,7 +1714,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
       target = new TestVmTarget(targetFlags);
       break;
     case "none":
-      target = new NoneTarget(targetFlags);
+      target = new TestTargetWrapper(new NoneTarget(targetFlags), targetFlags);
       break;
     case "dart2js":
       target = new TestDart2jsTarget('dart2js', targetFlags);
@@ -1752,12 +1757,14 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 
   final bool updateComments;
 
+  @override
   String get name {
     return fullCompile ? "compile" : "outline";
   }
 
   bool get isCompiler => fullCompile;
 
+  @override
   Future<Result<ComponentResult>> run(
       TestDescription description, FastaContext context) async {
     CompilationSetup compilationSetup =
@@ -1898,8 +1905,10 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
 class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
   const Transform();
 
+  @override
   String get name => "transform component";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     return await CompilerContext.runWithOptions(result.options, (_) async {
@@ -1947,8 +1956,10 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 
   const Verify(this.fullCompile);
 
+  @override
   String get name => "verify";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     FolderOptions folderOptions =
@@ -2047,16 +2058,20 @@ mixin TestTarget on Target {
       component;
 }
 
-class TestVmTarget extends VmTarget with TestTarget {
-  TestVmTarget(TargetFlags flags) : super(flags);
+class TestVmTarget extends VmTarget with TestTarget, TestTargetMixin {
+  final TestTargetFlags flags;
+
+  TestVmTarget(this.flags) : super(flags);
 }
 
 class EnsureNoErrors
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const EnsureNoErrors();
 
+  @override
   String get name => "check errors";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     List<Iterable<String>> errors = result.compilationSetup.errors;
@@ -2073,8 +2088,10 @@ class MatchHierarchy
     extends Step<ComponentResult, ComponentResult, FastaContext> {
   const MatchHierarchy();
 
+  @override
   String get name => "check hierarchy";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) async {
     Component component = result.component;
@@ -2118,10 +2135,15 @@ class NoneConstantsBackendWithJs extends NoneConstantsBackend {
   NumberSemantics get numberSemantics => NumberSemantics.js;
 }
 
-class TestDart2jsTarget extends Dart2jsTarget with TestTarget {
-  TestDart2jsTarget(String name, TargetFlags flags) : super(name, flags);
+class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
+  final TestTargetFlags flags;
+
+  TestDart2jsTarget(String name, this.flags) : super(name, flags);
 }
 
-class TestDevCompilerTarget extends DevCompilerTarget with TestTarget {
-  TestDevCompilerTarget(TargetFlags flags) : super(flags);
+class TestDevCompilerTarget extends DevCompilerTarget
+    with TestTarget, TestTargetMixin {
+  final TestTargetFlags flags;
+
+  TestDevCompilerTarget(this.flags) : super(flags);
 }

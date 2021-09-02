@@ -70,6 +70,7 @@ abstract class MatchContext implements ChainContext {
 
   bool get canBeFixWithUpdateExpectations;
 
+  @override
   ExpectationSet get expectationSet;
 
   Expectation get expectationFileMismatch =>
@@ -143,8 +144,10 @@ $actual""",
 class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
   const Print();
 
+  @override
   String get name => "print";
 
+  @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
 
@@ -168,8 +171,10 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
 class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
   const TypeCheck();
 
+  @override
   String get name => "typeCheck";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, ChainContext context) async {
     Component component = result.component;
@@ -205,8 +210,10 @@ class MatchExpectation
       // ignore: unnecessary_null_comparison
       : assert(isLastMatchStep != null);
 
+  @override
   String get name => "match expectations";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, MatchContext context) {
     Component component = result.component;
@@ -354,8 +361,10 @@ class KernelTextSerialization
 
   const KernelTextSerialization();
 
+  @override
   String get name => "kernel text serialization";
 
+  @override
   Future<Result<ComponentResult>> run(
       ComponentResult result, ChainContext context) async {
     Component component = result.component;
@@ -415,8 +424,10 @@ class KernelTextSerialization
 class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
   const WriteDill();
 
+  @override
   String get name => "write .dill";
 
+  @override
   Future<Result<ComponentResult>> run(ComponentResult result, _) async {
     Component component = result.component;
     Directory tmp = await Directory.systemTemp.createTemp();
@@ -445,8 +456,10 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
 class ReadDill extends Step<Uri, Uri, ChainContext> {
   const ReadDill();
 
+  @override
   String get name => "read .dill";
 
+  @override
   Future<Result<Uri>> run(Uri uri, _) async {
     try {
       loadComponentFromBinary(uri.toFilePath());
@@ -462,6 +475,7 @@ class BytesCollector implements Sink<List<int>> {
 
   int length = 0;
 
+  @override
   void add(List<int> data) {
     lists.add(data);
     length += data.length;
@@ -478,6 +492,7 @@ class BytesCollector implements Sink<List<int>> {
     return result;
   }
 
+  @override
   void close() {}
 }
 

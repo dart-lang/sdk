@@ -121,7 +121,7 @@ const Map<String, dynamic> data = {
   '<T>(T) -> void vs <T>(invalid) -> void': '<T>(invalid) -> void',
 };
 
-main() {
+void main() {
   Env env = new Env('', isNonNullableByDefault: true);
   data.forEach((String input, dynamic output) {
     List<String> parts = input.split(' vs ');

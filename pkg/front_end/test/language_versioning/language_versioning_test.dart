@@ -83,6 +83,7 @@ class Tags {
 class LanguageVersioningDataComputer extends DataComputer<Features> {
   const LanguageVersioningDataComputer();
 
+  @override
   Future<void> inspectComponent(Component component) async {
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
@@ -103,6 +104,7 @@ Language version API (import URI): ${lvImportUri}
     }
   }
 
+  @override
   void computeLibraryData(
       TestConfig config,
       InternalCompilerResult compilerResult,
@@ -116,6 +118,7 @@ Language version API (import URI): ${lvImportUri}
   @override
   bool get supportsErrors => true;
 
+  @override
   Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
       Id id, List<FormattedMessage> errors) {
     Features features = new Features();

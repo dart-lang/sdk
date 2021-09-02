@@ -1043,9 +1043,26 @@ void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject()); /* Make room for result. */
   __ StoreUnboxedDouble(BoxDoubleStubABI::kValueReg, THR,
-                        Thread::unboxed_double_runtime_arg_offset());
+                        target::Thread::unboxed_double_runtime_arg_offset());
   __ CallRuntime(kBoxDoubleRuntimeEntry, 0);
   __ PopRegister(BoxDoubleStubABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
+#if defined(TARGET_ARCH_ARM)
+  if (!TargetCPUFeatures::vfp_supported()) {
+    __ Breakpoint();
+    return;
+  }
+#endif  // defined(TARGET_ARCH_ARM)
+  __ EnterStubFrame();
+  __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
+                        target::Thread::unboxed_double_runtime_arg_offset());
+  __ PushObject(NullObject()); /* Make room for result. */
+  __ CallRuntime(kDoubleToIntegerRuntimeEntry, 0);
+  __ PopRegister(DoubleToIntegerStubABI::kResultReg);
   __ LeaveStubFrame();
   __ Ret();
 }

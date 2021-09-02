@@ -47,7 +47,9 @@ Future<Context> createContext(
 }
 
 class LintTestDescription extends TestDescription {
+  @override
   final String shortName;
+  @override
   final Uri uri;
   final LintTestCache cache;
   final LintListener listener;
@@ -81,6 +83,7 @@ class Context extends ChainContext {
   final bool onlyInGit;
   Context({this.onlyInGit});
 
+  @override
   final List<Step> steps = const <Step>[
     const LintStep(),
   ];
@@ -92,6 +95,7 @@ class Context extends ChainContext {
     return result;
   }
 
+  @override
   Stream<LintTestDescription> list(Chain suite) async* {
     Set<Uri> gitFiles;
     if (onlyInGit) {
@@ -148,8 +152,10 @@ class Context extends ChainContext {
 class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
   const LintStep();
 
+  @override
   String get name => "lint";
 
+  @override
   Future<Result<LintTestDescription>> run(
       LintTestDescription description, Context context) async {
     if (description.cache.rawBytes == null) {
@@ -201,6 +207,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
 class LintListener extends Listener {
   List<String> problems = <String>[];
   LintTestDescription description;
+  @override
   Uri uri;
 
   onProblem(int offset, int squigglyLength, String message) {
@@ -235,6 +242,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.add(new LatestType(functionToken, true));
   }
 
+  @override
   void endTopLevelFields(
       Token externalToken,
       Token staticToken,
@@ -250,6 +258,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.removeLast();
   }
 
+  @override
   void endClassFields(
       Token abstractToken,
       Token externalToken,
@@ -267,6 +276,7 @@ class ExplicitTypeLintListener extends LintListener {
     _latestTypes.removeLast();
   }
 
+  @override
   void endFormalParameter(
       Token thisKeyword,
       Token periodAfterThis,
@@ -289,6 +299,7 @@ class LatestType {
 class ImportsTwiceLintListener extends LintListener {
   Set<Uri> seenImports = new Set<Uri>();
 
+  @override
   void endImport(Token importKeyword, Token semicolon) {
     Token importUriToken = importKeyword.next;
     String importUri = importUriToken.lexeme;
@@ -311,6 +322,7 @@ class ImportsTwiceLintListener extends LintListener {
 }
 
 class ExportsLintListener extends LintListener {
+  @override
   void endExport(Token exportKeyword, Token semicolon) {
     Token exportUriToken = exportKeyword.next;
     String exportUri = exportUriToken.lexeme;

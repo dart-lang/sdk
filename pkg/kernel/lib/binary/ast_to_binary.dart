@@ -990,7 +990,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNullAllowedCanonicalNameReference(node.reference.canonicalName);
   }
 
-  writeOffset(int offset) {
+  void writeOffset(int offset) {
     // TODO(jensj): Delta-encoding.
     // File offset ranges from -1 and up,
     // but is here saved as unsigned (thus the +1)
@@ -1867,7 +1867,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeInteger(node.value);
   }
 
-  writeInteger(int value) {
+  void writeInteger(int value) {
     int biasedValue = value + Tag.SpecializedIntLiteralBias;
     if (biasedValue >= 0 &&
         biasedValue & Tag.SpecializedPayloadMask == biasedValue) {
@@ -1893,7 +1893,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeDouble(node.value);
   }
 
-  writeDouble(double value) {
+  void writeDouble(double value) {
     _sink.addDouble(value);
   }
 
@@ -2024,7 +2024,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryDependencyReference(node.import);
   }
 
-  writeStatementOrEmpty(Statement? node) {
+  void writeStatementOrEmpty(Statement? node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
     } else {
@@ -2858,7 +2858,7 @@ class ConstantIndexer extends RecursiveResultVisitor {
   }
 
   @override
-  defaultConstantReference(Constant node) {
+  void defaultConstantReference(Constant node) {
     put(node);
   }
 }

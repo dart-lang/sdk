@@ -42,15 +42,19 @@ import '../util/helpers.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
+  @override
   final TypeBuilder? type;
 
   final List<TypeVariableBuilder>? _typeVariables;
 
   /// The [Typedef] built by this builder.
+  @override
   final Typedef typedef;
 
+  @override
   DartType? thisType;
 
+  @override
   Map<Name, Procedure>? tearOffs;
 
   SourceTypeAliasBuilder(
@@ -133,6 +137,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     return typedef;
   }
 
+  @override
   DartType buildThisType() {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
