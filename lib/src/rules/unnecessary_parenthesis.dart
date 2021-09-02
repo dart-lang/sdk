@@ -48,8 +48,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    if (node.expression is SimpleIdentifier) {
-      var parent = node.parent;
+    var parent = node.parent;
+    var expression = node.expression;
+    if (expression is SimpleIdentifier) {
       if (parent is PropertyAccess) {
         if (parent.propertyName.name == 'hashCode' ||
             parent.propertyName.name == 'runtimeType') {
@@ -67,7 +68,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parent = node.parent;
+    if (expression is ConstructorReference) {
+      if (parent is! FunctionExpressionInvocation ||
+          parent.typeArguments == null) {
+        rule.reportLint(node);
+        return;
+      }
+    }
 
     if (parent is ParenthesizedExpression) {
       rule.reportLint(node);
@@ -75,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // `a..b=(c..d)` is OK.
-    if (node.expression is CascadeExpression ||
+    if (expression is CascadeExpression ||
         node.thisOrAncestorMatching(
                 (n) => n is Statement || n is CascadeExpression)
             is CascadeExpression) {
