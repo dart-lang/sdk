@@ -168,7 +168,9 @@ abstract class AbstractAnalysisServer {
     if (baseResourceProvider is PhysicalResourceProvider) {
       processRunner ??= ProcessRunner();
     }
-    final pubCommand = processRunner != null
+    final pubCommand = processRunner != null &&
+            Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
+                null
         ? PubCommand(instrumentationService, processRunner)
         : null;
 
