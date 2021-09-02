@@ -177,9 +177,9 @@ class ParameterAdditional extends C {
   @override
   num m(int v, [int v2]) => super.m(v); // OK
   @override
-  num m1({int v = 20, int v2}) => super.m1(v: v); // OK
+  num m1({int v = 20, int? v2}) => super.m1(v: v); // OK
   @override
-  num m2([int v = 20, int v2]) => super.m2(v); // OK
+  num m2([int v = 20, int? v2]) => super.m2(v); // OK
 }
 class ParameterDefaultChange extends C {
   @override

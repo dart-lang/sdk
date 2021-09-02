@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
@@ -84,7 +83,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.constructorName.staticElement;
     if (!node.isConst && element != null && element.isConst) {
       // Handled by analyzer hint.
-      if (hasLiteralAnnotation(element)) {
+      if (element.hasLiteral) {
         return;
       }
 

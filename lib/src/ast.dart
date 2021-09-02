@@ -81,26 +81,12 @@ bool hasConstantError(LinterContext context, Expression node) {
 }
 
 /// Returns `true` if this [element] has a `@literal` annotation.
-bool hasLiteralAnnotation(Element element) {
-  var metadata = element.metadata;
-  for (var i = 0; i < metadata.length; i++) {
-    if (metadata[i].isLiteral) {
-      return true;
-    }
-  }
-  return false;
-}
+@Deprecated('prefer: element.hasLiteral')
+bool hasLiteralAnnotation(Element element) => element.hasLiteral;
 
 /// Returns `true` if this [element] has an `@override` annotation.
-bool hasOverrideAnnotation(Element element) {
-  var metadata = element.metadata;
-  for (var i = 0; i < metadata.length; i++) {
-    if (metadata[i].isOverride) {
-      return true;
-    }
-  }
-  return false;
-}
+@Deprecated('prefer: element.hasOverride')
+bool hasOverrideAnnotation(Element element) => element.hasOverride;
 
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
