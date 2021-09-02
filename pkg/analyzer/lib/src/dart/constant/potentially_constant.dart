@@ -351,7 +351,8 @@ class _ConstantTypeChecker {
       if (node is TypeName) {
         var element = node.name.staticElement;
         if (element is TypeParameterElement) {
-          return true;
+          var enclosing = element.enclosingElement;
+          return enclosing is ClassElement && !enclosing.isMixin;
         }
       }
     }
