@@ -670,8 +670,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
     void* child_isolate_data = nullptr;
     const bool success = initialize_callback(&child_isolate_data, &error);
     if (!success) {
-      Dart_ShutdownIsolate();
       FailedSpawn(error);
+      Dart_ShutdownIsolate();
       free(error);
       return;
     }
