@@ -244,5 +244,5 @@ Future<Context> createContext(
   return new Context(new CompilerContext(options), errors);
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");

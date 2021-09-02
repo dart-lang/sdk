@@ -179,7 +179,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   }
 
   @override
-  problem(TreeNode? node, String details,
+  void problem(TreeNode? node, String details,
       {TreeNode? context, TreeNode? origin}) {
     node ??= (context ?? currentClassOrExtensionOrMember);
     int offset = node?.fileOffset ?? -1;
@@ -446,7 +446,7 @@ class FastaVerifyGetStaticType extends VerifyGetStaticType {
   FastaVerifyGetStaticType(TypeEnvironment env, this.skipPlatform) : super(env);
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     // 'dart:test' is used in the unit tests and isn't an actual part of the
     // platform.
     if (skipPlatform &&

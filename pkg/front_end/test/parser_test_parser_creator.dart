@@ -14,7 +14,7 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> args) {
+void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestParser(repoDir);
   new File.fromUri(computeTestParserUri(repoDir))

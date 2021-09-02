@@ -26,7 +26,7 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 
 import 'package:kernel/ast.dart' show Component, Library, Version;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
   // This config sets it to 2.8.
   TestConfigWithLanguageVersion cfeConfig =

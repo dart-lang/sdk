@@ -4,4 +4,4 @@
 
 import 'entry_points.dart' show batchEntryPoint;
 
-main(List<String> arguments) => batchEntryPoint(arguments);
+void main(List<String> arguments) => batchEntryPoint(arguments);

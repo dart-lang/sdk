@@ -40,7 +40,7 @@ import 'kernel_type_parser_test.dart' show parseSdk;
 
 import "shared_type_tests.dart" show SubtypeTest;
 
-main() {
+void main() {
   final Ticker ticker = new Ticker(isVerbose: false);
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()

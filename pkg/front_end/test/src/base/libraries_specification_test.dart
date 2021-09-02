@@ -7,7 +7,7 @@
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('parse', () {
     test('top-level must be a map', () async {
       var jsonString = '[]';

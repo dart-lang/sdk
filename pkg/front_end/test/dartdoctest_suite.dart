@@ -9,7 +9,7 @@ import 'package:testing/testing.dart'
 
 import '../tool/dart_doctest_impl.dart';
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(

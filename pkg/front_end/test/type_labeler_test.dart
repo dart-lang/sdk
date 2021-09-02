@@ -10,7 +10,7 @@ import 'package:front_end/src/fasta/kernel/type_labeler.dart';
 
 import 'package:expect/expect.dart';
 
-main() {
+void main() {
   void check(Map<Node, String> expectations, int bulletCount) {
     TypeLabeler labeler = new TypeLabeler(false);
     Map<Node, List<Object>> conversions = {};

@@ -30,7 +30,7 @@ int inputSize = 0;
 /// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
@@ -152,7 +152,7 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
 
 /// Add to [files] all sources reachable from [start].
 Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
-  helper(Uri uri) {
+  void helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
     // ignore: unnecessary_null_comparison
     if (uri == null) return;
@@ -202,7 +202,7 @@ void parseFiles(Map<Uri, List<int>> files) {
 }
 
 /// Parse the full body of [source].
-parseFull(Uri uri, List<int> source) {
+void parseFull(Uri uri, List<int> source) {
   var tokens = tokenize(source);
   Parser parser = new Parser(new _PartialAstBuilder(uri),
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
@@ -217,7 +217,8 @@ class _PartialAstBuilder extends AstBuilder {
 }
 
 // Invoke the fasta kernel generator for the program starting in [entryUri]
-generateKernel(Uri entryUri, {bool compileSdk: true}) async {
+Future<CompilerResult> generateKernel(Uri entryUri,
+    {bool compileSdk: true}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   await scanReachableFiles(entryUri);

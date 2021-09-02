@@ -12,7 +12,7 @@ import "vm_service_helper.dart" as vmService;
 
 const int limit = 10;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   LeakFinder heapHelper = new LeakFinder();
 
   heapHelper.start([

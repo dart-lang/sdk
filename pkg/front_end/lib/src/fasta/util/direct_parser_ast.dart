@@ -1152,7 +1152,7 @@ extension InitializerExtension on DirectParserASTContentInitializerEnd {
   }
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
   DirectParserASTContent ast = getAST(data);

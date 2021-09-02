@@ -11,7 +11,8 @@ import 'package:front_end/src/fasta/kernel/internal_ast.dart';
 import 'package:kernel/ast.dart';
 import 'text_representation_test.dart';
 
-testStatement(Statement node, String normal, {String verbose, String limited}) {
+void testStatement(Statement node, String normal,
+    {String verbose, String limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -20,7 +21,7 @@ testStatement(Statement node, String normal, {String verbose, String limited}) {
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-testExpression(Expression node, String normal,
+void testExpression(Expression node, String normal,
     {String verbose, String limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
@@ -32,7 +33,7 @@ testExpression(Expression node, String normal,
 
 final Uri dummyUri = Uri.parse('test:dummy');
 
-main() {
+void main() {
   _testVariableDeclarations();
   _testTryStatement();
   _testForInStatementWithSynthesizedVariable();
@@ -399,15 +400,13 @@ void _testInternalMethodInvocation() {
 }
 
 void _testInternalPropertyGet() {
-  testExpression(
-      new PropertyGet(new IntLiteral(0), new Name('boz')), '''
+  testExpression(new PropertyGet(new IntLiteral(0), new Name('boz')), '''
 0.boz''');
 }
 
 void _testInternalPropertySet() {
   testExpression(
-      new PropertySet(
-          new IntLiteral(0), new Name('boz'), new IntLiteral(1),
+      new PropertySet(new IntLiteral(0), new Name('boz'), new IntLiteral(1),
           forEffect: false, readOnlyReceiver: false),
       '''
 0.boz = 1''');

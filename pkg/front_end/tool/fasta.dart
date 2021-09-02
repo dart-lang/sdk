@@ -15,7 +15,7 @@ final String kernelBin = '$repoDir/pkg/kernel/bin';
 String get dartVm =>
     Platform.isWindows ? '$repoDir/sdk/bin/dart.bat' : '$repoDir/sdk/bin/dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   List<String> extraVmArguments = [];
   String script;
   List<String> scriptArguments = [];

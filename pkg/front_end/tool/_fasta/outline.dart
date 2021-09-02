@@ -4,4 +4,4 @@
 
 import 'entry_points.dart' show outlineEntryPoint;
 
-main(List<String> arguments) => outlineEntryPoint(arguments);
+void main(List<String> arguments) => outlineEntryPoint(arguments);

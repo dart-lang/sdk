@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart' hide Variance;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/nullability/data'));
   await runTests<String>(dataDir,

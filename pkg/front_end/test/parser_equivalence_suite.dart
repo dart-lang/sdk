@@ -16,7 +16,7 @@ import 'testing_utils.dart' show checkEnvironment;
 import 'parser_suite.dart'
     show ListenerStep, ParserTestListenerWithMessageFormatting;
 
-main([List<String> arguments = const []]) => runMe(
+void main([List<String> arguments = const []]) => runMe(
       arguments,
       createContext,
       configurationPath: "../testing.json",

@@ -19,4 +19,5 @@ linter:
     - lines_longer_than_80_chars
     - unrelated_type_equality_checks
     - annotate_overrides
+    - always_declare_return_types
     # - always_specify_types

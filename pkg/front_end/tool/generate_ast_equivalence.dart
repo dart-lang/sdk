@@ -11,7 +11,7 @@ Uri computeEquivalenceUri(Uri repoDir) {
   return repoDir.resolve('pkg/kernel/lib/src/equivalence.dart');
 }
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Uri output = args.isEmpty
       ? computeEquivalenceUri(Uri.base)
       : new File(args[0]).absolute.uri;

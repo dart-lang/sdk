@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-main() {
+void main() {
   // TODO(dacoharkes): implement dart:ffi tests
   Expect.isTrue(true);
 }

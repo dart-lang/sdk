@@ -8,5 +8,5 @@ import "dart:io" show Platform;
 
 import "subtypes_benchmark.dart" show run;
 
-main() =>
+void main() =>
     run(Platform.script.resolve("benchmark_data/dart2js.json.gz"), "Dart2js");

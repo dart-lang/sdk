@@ -15,6 +15,6 @@ import 'unit_test_suites_impl.dart' as impl;
 /// TODO(paulberry): once #45192 is fixed, we can switch the `import` directive
 /// above to an `export` and remove this method, and this file will still be
 /// considered by the analysis server to be runnable.
-main(List<String> args) {
+void main(List<String> args) {
   impl.main(args);
 }

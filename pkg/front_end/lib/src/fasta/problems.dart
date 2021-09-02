@@ -35,7 +35,7 @@ class DebugAbort {
                 .withoutLocation();
 
   @override
-  toString() => "DebugAbort: ${message.message}";
+  String toString() => "DebugAbort: ${message.message}";
 }
 
 /// Used to report an internal error.

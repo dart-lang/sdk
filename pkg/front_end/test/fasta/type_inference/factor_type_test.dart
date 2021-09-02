@@ -102,7 +102,7 @@ class FactorTypeTest extends FactorTypeTestMixin<DartType> {
       typeToText(type, TypeRepresentation.analyzerNonNullableByDefault);
 }
 
-main() async {
+void main() async {
   CompilerOptions options = new CompilerOptions()
     ..explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
   InternalCompilerResult result = await compileScript('',

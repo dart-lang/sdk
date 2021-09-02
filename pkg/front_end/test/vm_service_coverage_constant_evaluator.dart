@@ -6,7 +6,7 @@
 
 import 'vm_service_coverage.dart' as helper;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   CoverageHelper coverageHelper = new CoverageHelper();
 
   List<String> allArgs = <String>[];

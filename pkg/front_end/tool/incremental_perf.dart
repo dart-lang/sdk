@@ -55,7 +55,7 @@ import 'package:front_end/src/fasta/uri_translator.dart';
 
 import 'perf_common.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
     throw """
@@ -155,7 +155,7 @@ Future benchmark(
 
 /// Apply all edits of a single iteration by updating the copy of the file in
 /// the memory file system.
-applyEdits(
+Future<void> applyEdits(
     List<Edit> edits,
     OverlayFileSystem fs,
     IncrementalKernelGenerator generator,
@@ -288,7 +288,7 @@ class ChangeSet {
   String toString() => 'ChangeSet($name, $edits)';
 }
 
-_resolveOverlayUri(String uriString) {
+Uri _resolveOverlayUri(String uriString) {
   Uri result = Uri.base.resolve(uriString);
   return result.isScheme("file")
       ? result.replace(scheme: 'org-dartlang-overlay')

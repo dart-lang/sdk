@@ -13,7 +13,7 @@ import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,

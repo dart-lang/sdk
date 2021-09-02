@@ -4,4 +4,4 @@
 
 import 'entry_points.dart' show depsEntryPoint;
 
-main(List<String> arguments) => depsEntryPoint(arguments);
+void main(List<String> arguments) => depsEntryPoint(arguments);

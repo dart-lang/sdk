@@ -656,7 +656,7 @@ void outputUnknownChunk(
   _currentUnknown.interimEnd = null;
 }
 
-main(List<String> args) {
+void main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
@@ -822,12 +822,12 @@ class TextualOutlineListener extends Listener {
   List<String>? _combinatorNames;
 
   @override
-  beginExport(Token export) {
+  void beginExport(Token export) {
     _combinators = <_NamespaceCombinator>[];
   }
 
   @override
-  beginImport(Token import) {
+  void beginImport(Token import) {
     _combinators = <_NamespaceCombinator>[];
   }
 

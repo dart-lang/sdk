@@ -7,7 +7,7 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart';
 
 import 'incremental_suite.dart' show TestIncrementalCompiler, getOptions;
 
-main() async {
+void main() async {
   await compile("import 'foo.dart' if (dart.library.bar) 'baz.dart';");
 }
 

@@ -4,4 +4,4 @@
 
 import 'entry_points.dart' show compileEntryPoint;
 
-main(List<String> arguments) => compileEntryPoint(arguments);
+void main(List<String> arguments) => compileEntryPoint(arguments);

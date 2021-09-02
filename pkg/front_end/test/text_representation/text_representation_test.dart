@@ -64,7 +64,7 @@ AstTextStrategy getStrategy(String marker) {
   throw new UnsupportedError("Unexpected marker '${marker}'.");
 }
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<String>(dataDir,
       args: args,
@@ -137,7 +137,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     if (!node.name.text.startsWith(expressionMarker) &&
         !node.name.text.startsWith(statementMarker)) {
       node.function.accept(this);
@@ -146,7 +146,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     if (!node.name.text.startsWith(expressionMarker) &&
         !node.name.text.startsWith(statementMarker)) {
       node.initializer?.accept(this);

@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TokenStreamRewriterTest_NoPrevious);
     defineReflectiveTests(TokenStreamRewriterTest_UsingPrevious);

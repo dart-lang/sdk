@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
 
 Uri base;
 
-main(List<String> args) {
+void main(List<String> args) {
   File script = new File.fromUri(Platform.script);
   base = script.parent.uri;
 

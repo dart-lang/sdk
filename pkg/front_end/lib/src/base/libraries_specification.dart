@@ -137,20 +137,19 @@ class LibrariesSpecification {
       if (targetName.startsWith("comment:")) return null;
       Map<String, LibraryInfo> libraries = <String, LibraryInfo>{};
       if (targetData is! Map) {
-        return _reportError(
-            "target specification for '$targetName' is not a map");
+        _reportError("target specification for '$targetName' is not a map");
       }
       if (!targetData.containsKey("libraries")) {
-        return _reportError("target specification "
+        _reportError("target specification "
             "for '$targetName' doesn't have a libraries entry");
       }
       dynamic librariesData = targetData["libraries"];
       if (librariesData is! Map<String, dynamic>) {
-        return _reportError("libraries entry for '$targetName' is not a map");
+        _reportError("libraries entry for '$targetName' is not a map");
       }
       librariesData.forEach((String name, data) {
         if (data is! Map<String, dynamic>) {
-          return _reportError(
+          _reportError(
               "library data for '$name' in target '$targetName' is not a map");
         }
         Uri checkAndResolve(uriString) {
@@ -175,13 +174,12 @@ class LibrariesSpecification {
         } else if (data['patches'] == null) {
           patches = const [];
         } else {
-          return _reportError(
-              "patches entry for '$name' is not a list or a string");
+          _reportError("patches entry for '$name' is not a list or a string");
         }
 
         dynamic supported = data['supported'] ?? true;
         if (supported is! bool) {
-          return _reportError("\"supported\" entry: expected a 'bool' but "
+          _reportError("\"supported\" entry: expected a 'bool' but "
               "got a '${supported.runtimeType}' ('$supported')");
         }
         libraries[name] =
@@ -193,7 +191,7 @@ class LibrariesSpecification {
     return new LibrariesSpecification(targets);
   }
 
-  static _reportError(String error) =>
+  static Never _reportError(String error) =>
       throw new LibrariesSpecificationException(error);
 
   /// Serialize this specification to json.

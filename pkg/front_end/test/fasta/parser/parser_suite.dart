@@ -46,5 +46,5 @@ class Parse extends Step<ScannedFile, Null, ChainContext> {
   }
 }
 
-main(List<String> arguments) =>
+void main(List<String> arguments) =>
     runMe(arguments, createContext, configurationPath: "../../../testing.json");

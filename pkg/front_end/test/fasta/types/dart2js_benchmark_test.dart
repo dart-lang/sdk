@@ -6,4 +6,4 @@
 
 import "dart2js_benchmark.dart" as bench show main;
 
-main() => bench.main();
+void main() => bench.main();

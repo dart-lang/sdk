@@ -50,7 +50,7 @@ void resetCrashReporting() {
 
 Future<T> reportCrash<T>(error, StackTrace trace,
     [Uri? uri, int? charOffset]) async {
-  note(String note) async {
+  Future<void> note(String note) async {
     stderr.write(note);
     await stderr.flush();
   }

@@ -89,7 +89,7 @@ class Modifier {
   }
 
   @override
-  toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
+  String toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 
   static int toMask(List<Modifier>? modifiers) {
     int result = 0;

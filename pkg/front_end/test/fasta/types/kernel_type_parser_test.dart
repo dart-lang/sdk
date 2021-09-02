@@ -114,7 +114,7 @@ Component parseSdk(Uri uri, TypeParserEnvironment environment) {
   return new Component(libraries: <Library>[library]);
 }
 
-main() {
+void main() {
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Component component = parseSdk(uri, environment);
