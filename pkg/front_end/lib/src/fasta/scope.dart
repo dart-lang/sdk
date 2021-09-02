@@ -686,8 +686,6 @@ abstract class ProblemBuilder extends BuilderImpl {
 
   ProblemBuilder(this.name, this.builder, this.charOffset, this.fileUri);
 
-  get target => null;
-
   @override
   bool get hasProblem => true;
 

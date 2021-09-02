@@ -885,17 +885,17 @@ class _VariablesDeclaration extends Statement {
   }
 
   @override
-  visitChildren(v) {
+  Never visitChildren(v) {
     throw unsupported("visitChildren", fileOffset, uri);
   }
 
   @override
-  transformChildren(v) {
+  Never transformChildren(v) {
     throw unsupported("transformChildren", fileOffset, uri);
   }
 
   @override
-  transformOrRemoveChildren(v) {
+  Never transformOrRemoveChildren(v) {
     throw unsupported("transformOrRemoveChildren", fileOffset, uri);
   }
 

@@ -22,7 +22,7 @@ import "simple_stats.dart";
 final Uri benchmarkHelper =
     Platform.script.resolve("compile_benchmark_helper.dart");
 
-main(List<String> args) {
+void main(List<String> args) {
   List<String> arguments;
   bool tryToAnnotate = false;
   bool tryToSlowDown = false;
@@ -363,7 +363,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
   List<Procedure> procedures = [];
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
@@ -371,7 +371,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     int procedureNum = procedures.length;
     procedures.add(node);
@@ -395,7 +395,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
   List<Procedure> procedures = [];
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     if (node.importUri.scheme == "package" &&
         node.importUri.pathSegments.first == "front_end") {
       super.visitLibrary(node);
@@ -403,7 +403,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     if (node.function.body == null) return;
     if (node.function.dartAsyncMarker != AsyncMarker.Sync) return;
     int procedureNum = procedures.length;

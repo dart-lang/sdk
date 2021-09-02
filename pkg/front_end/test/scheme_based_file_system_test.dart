@@ -9,7 +9,7 @@ import 'package:front_end/src/scheme_based_file_system.dart';
 
 import 'package:test/test.dart';
 
-main() {
+void main() {
   test('lookup of registered schemes is handled', () {
     var fs1 = new MockFileSystem('scheme1');
     var fs2 = new MockFileSystem('scheme2');
@@ -50,5 +50,5 @@ class MockFileSystemEntity implements FileSystemEntity {
   MockFileSystemEntity(this.uri, this.fileSystem);
 
   @override
-  noSuchMethod(m) => super.noSuchMethod(m);
+  dynamic noSuchMethod(m) => super.noSuchMethod(m);
 }

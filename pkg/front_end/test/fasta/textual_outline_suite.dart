@@ -52,7 +52,7 @@ Future<Context> createContext(
   return new Context(environment["updateExpectations"] == "true");
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");
 
 class Context extends ChainContext with MatchContext {

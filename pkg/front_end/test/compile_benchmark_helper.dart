@@ -4,7 +4,7 @@
 
 import '../tool/_fasta/entry_points.dart' show compileEntryPoint;
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   await compileEntryPoint(arguments);
   if (numCalls.isNotEmpty) {
     print("[");

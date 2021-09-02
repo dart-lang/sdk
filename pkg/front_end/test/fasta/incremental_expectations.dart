@@ -41,7 +41,7 @@ class IncrementalExpectation {
         hasCompileTimeError: extractHasCompileTimeError(data));
   }
 
-  toJson() {
+  dynamic toJson() {
     if (!commitChangesShouldFail && !hasCompileTimeError) {
       return messages.length == 1 ? messages.first : messages;
     }

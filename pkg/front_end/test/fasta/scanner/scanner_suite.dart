@@ -21,5 +21,5 @@ class ScannerContext extends ChainContext {
   ];
 }
 
-main(List<String> arguments) =>
+void main(List<String> arguments) =>
     runMe(arguments, createContext, configurationPath: "../../../testing.json");

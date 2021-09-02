@@ -110,7 +110,7 @@ Future<void> throwOnInsufficientUriToSource(Component component,
 class UriFinder extends RecursiveVisitor {
   Set<Uri> seenUris = new Set<Uri>();
   @override
-  defaultNode(Node node) {
+  void defaultNode(Node node) {
     super.defaultNode(node);
     if (node is FileUriNode) {
       seenUris.add(node.fileUri);

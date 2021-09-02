@@ -439,5 +439,5 @@ Future<Context> createContext(
   return new Context(compilerContext, errors, updateExpectations);
 }
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../../testing.json");

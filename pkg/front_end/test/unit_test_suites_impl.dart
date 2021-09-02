@@ -209,7 +209,7 @@ class ResultLogger implements Logger {
   @override
   void logSuiteComplete(testing.Suite suite) {}
 
-  handleTestResult(
+  void handleTestResult(
       testing.Suite suite,
       TestDescription testDescription,
       Result result,
@@ -531,7 +531,7 @@ Future<void> writeLinesToFile(Uri uri, List<String> lines) async {
   await File.fromUri(uri).writeAsString(lines.map((line) => "$line\n").join());
 }
 
-main([List<String> arguments = const <String>[]]) async {
+void main([List<String> arguments = const <String>[]]) async {
   Stopwatch totalRuntime = new Stopwatch()..start();
 
   List<String> results = [];

@@ -83,7 +83,7 @@ import "incremental_utils.dart" as util;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 const Expectation ExpectationFileMismatch =
@@ -916,7 +916,7 @@ class NewWorldTest {
       Set<String> prevFormattedErrors = formattedErrors.toSet();
       Set<String> prevFormattedWarnings = formattedWarnings.toSet();
 
-      clearPrevErrorsEtc() {
+      void clearPrevErrorsEtc() {
         gotError = false;
         formattedErrors.clear();
         gotWarning = false;

@@ -44,6 +44,15 @@ import 'kernel_ast_api.dart'
         Typedef,
         VariableDeclaration;
 
+/// Alias for Expression | Generator
+typedef Expression_Generator = dynamic;
+
+/// Alias for Expression | Generator | Builder
+typedef Expression_Generator_Builder = dynamic;
+
+/// Alias for Expression | Generator | Initializer
+typedef Expression_Generator_Initializer = dynamic;
+
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   SourceLibraryBuilder get libraryBuilder;
 
@@ -66,11 +75,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool get enableConstructorTearOffsInLibrary;
 
-  /* Generator | Expression | Builder */ scopeLookup(
+  Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder? prefix});
 
-  /* Expression | Generator | Initializer */ finishSend(Object receiver,
+  Expression_Generator_Initializer finishSend(Object receiver,
       List<UnresolvedType>? typeArguments, Arguments arguments, int offset,
       {bool isTypeArgumentsInForest = false});
 

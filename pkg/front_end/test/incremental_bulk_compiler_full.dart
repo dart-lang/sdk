@@ -28,7 +28,7 @@ import 'package:testing/testing.dart'
 
 import 'incremental_utils.dart' as util;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(

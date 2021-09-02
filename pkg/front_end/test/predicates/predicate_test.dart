@@ -23,7 +23,7 @@ import 'package:kernel/target/targets.dart';
 const String isNullMarker = 'is-null';
 const String sentinelMarker = 'sentinel';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,

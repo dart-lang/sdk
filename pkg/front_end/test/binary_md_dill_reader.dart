@@ -167,7 +167,7 @@ class BinaryMdDillReader {
   /// Initial setup of a "class definition" in the binary.md file.
   /// This includes parsing the name, setting up any "extends"-relationship,
   /// generics etc.
-  _binaryMdHandlePossibleClassStart(String s) {
+  void _binaryMdHandlePossibleClassStart(String s) {
     if (s.startsWith("type Byte =")) return;
     if (s.startsWith("type UInt32 =")) return;
 

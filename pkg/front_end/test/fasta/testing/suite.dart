@@ -2059,6 +2059,7 @@ mixin TestTarget on Target {
 }
 
 class TestVmTarget extends VmTarget with TestTarget, TestTargetMixin {
+  @override
   final TestTargetFlags flags;
 
   TestVmTarget(this.flags) : super(flags);
@@ -2136,6 +2137,7 @@ class NoneConstantsBackendWithJs extends NoneConstantsBackend {
 }
 
 class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
+  @override
   final TestTargetFlags flags;
 
   TestDart2jsTarget(String name, this.flags) : super(name, flags);
@@ -2143,6 +2145,7 @@ class TestDart2jsTarget extends Dart2jsTarget with TestTarget, TestTargetMixin {
 
 class TestDevCompilerTarget extends DevCompilerTarget
     with TestTarget, TestTargetMixin {
+  @override
   final TestTargetFlags flags;
 
   TestDevCompilerTarget(this.flags) : super(flags);

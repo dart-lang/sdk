@@ -132,7 +132,7 @@ class TestMinimizerSettings {
     };
   }
 
-  initializeFromJson(Map<String, dynamic> json) {
+  void initializeFromJson(Map<String, dynamic> json) {
     mainUri = Uri.parse(json["mainUri"]);
     platformUri = Uri.parse(json["platformUri"]);
     noPlatform = json["noPlatform"];
@@ -2109,7 +2109,7 @@ class _FakeFileSystem extends FileSystem {
     return new _FakeFileSystemEntity(this, uri);
   }
 
-  initializeFromJson(Map<String, dynamic> json) {
+  void initializeFromJson(Map<String, dynamic> json) {
     _initialized = true;
     _redirectAndRecord = json['_redirectAndRecord'];
     data.clear();

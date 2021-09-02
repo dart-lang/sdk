@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import 'incremental_suite.dart' as helper;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   exitCode = 1;
   Map<Uri, List<Class>> classMap = {};
   Map<Uri, List<Class>> classMapWithOne = {};
@@ -24,11 +24,8 @@ main(List<String> args) async {
     Uri input = Platform.script.resolve("../tool/_fasta/compile.dart");
     CompilerOptions options = helper.getOptions();
     helper.TestIncrementalCompiler compiler =
-        new helper.TestIncrementalCompiler(
-            options,
-            input,
-            /*Uri initializeFrom*/ null,
-            /*bool outlineOnly*/ true);
+        new helper.TestIncrementalCompiler(options, input,
+            /*Uri initializeFrom*/ null, /*bool outlineOnly*/ true);
     c = await compiler.computeDelta();
     classHierarchy = compiler.getClassHierarchy()!;
     List<Library> libraries = c.libraries

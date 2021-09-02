@@ -99,7 +99,7 @@ class Application {
 
   _Output? _prevOutput;
 
-  _printOutput() {
+  void _printOutput() {
     int currentPosRow = -1;
     int currentPosColumn = -1;
     StringBuffer buffer = new StringBuffer();

@@ -21,7 +21,7 @@ FunctionType createTTo_VoidToR() {
       typeParameters: [T]);
 }
 
-test1() {
+void test1() {
   DartType voidToR1 = createVoidToR();
   DartType voidToR2 = createVoidToR();
   DartType voidToR3 = createTTo_VoidToR().returnType;
@@ -48,7 +48,7 @@ FunctionType createVoidTo_VoidToR() {
       typeParameters: [R]);
 }
 
-test2() {
+void test2() {
   FunctionType outer1 = createVoidTo_VoidToR();
   FunctionType outer2 = createVoidTo_VoidToR();
   DartType voidToR1 = outer1.returnType;
@@ -61,6 +61,6 @@ test2() {
       "Hash code mismatch for outer1 vs outer2."); // false, on no!
 }
 
-main() {
+void main() {
   test2();
 }

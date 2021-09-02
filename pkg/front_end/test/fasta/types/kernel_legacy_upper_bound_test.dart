@@ -30,6 +30,6 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   }
 }
 
-main() {
+void main() {
   new KernelLegacyUpperBoundTest().test();
 }

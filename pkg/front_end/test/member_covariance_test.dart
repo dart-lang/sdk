@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'package:front_end/src/fasta/kernel/member_covariance.dart';
 
-main() {
+void main() {
   void checkEquals(Covariance a, Covariance b) {
     Expect.equals(a, b);
     Expect.equals(a.hashCode, b.hashCode);

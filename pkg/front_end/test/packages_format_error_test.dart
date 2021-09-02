@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/messages.dart'
     show codeCantReadFile, codePackagesFileFormat;
 
-main() {
+void main() {
   Uri root = Uri.parse("org-dartlang-test:///");
   MemoryFileSystem fs = new MemoryFileSystem(root);
   Uri packages = root.resolve(".packages");

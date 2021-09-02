@@ -59,7 +59,7 @@ const bool summary = const bool.fromEnvironment("summary", defaultValue: false);
 
 const int iterations = const int.fromEnvironment("iterations", defaultValue: 1);
 
-compileEntryPoint(List<String> arguments) async {
+Future<void> compileEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
   // Timing results for each iteration
@@ -86,7 +86,7 @@ compileEntryPoint(List<String> arguments) async {
   }
 }
 
-outlineEntryPoint(List<String> arguments) async {
+void outlineEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
   for (int i = 0; i < iterations; i++) {
@@ -97,7 +97,7 @@ outlineEntryPoint(List<String> arguments) async {
   }
 }
 
-depsEntryPoint(List<String> arguments) async {
+void depsEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
 
   for (int i = 0; i < iterations; i++) {
@@ -108,7 +108,7 @@ depsEntryPoint(List<String> arguments) async {
   }
 }
 
-compilePlatformEntryPoint(List<String> arguments) async {
+void compilePlatformEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
@@ -118,7 +118,7 @@ compilePlatformEntryPoint(List<String> arguments) async {
   }
 }
 
-batchEntryPoint(List<String> arguments) {
+void batchEntryPoint(List<String> arguments) {
   installAdditionalTargets();
   return new BatchCompiler(
           stdin.transform(utf8.decoder).transform(new LineSplitter()))
@@ -136,7 +136,7 @@ class BatchCompiler {
 
   BatchCompiler(this.lines);
 
-  run() async {
+  void run() async {
     await for (String line in lines) {
       try {
         if (await batchCompileArguments(
@@ -207,7 +207,7 @@ class BatchCompiler {
   }
 }
 
-incrementalEntryPoint(List<String> arguments) async {
+void incrementalEntryPoint(List<String> arguments) async {
   installAdditionalTargets();
   await withGlobalOptions("incremental", arguments, true,
       (CompilerContext c, _) {

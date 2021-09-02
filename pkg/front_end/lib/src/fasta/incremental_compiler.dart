@@ -2097,7 +2097,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return false;
     }
 
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
+    void addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
       if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
         if (seenUris.add(libraryBuilder.importUri)) {
           reusedLibraries.add(libraryBuilder);

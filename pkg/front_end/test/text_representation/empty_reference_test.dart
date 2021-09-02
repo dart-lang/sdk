@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'text_representation_test.dart';
 
-testExpression(Expression node, String normal,
+void testExpression(Expression node, String normal,
     {String verbose, String limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
@@ -18,7 +18,7 @@ testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-testType(DartType node, String normal, {String verbose, String limited}) {
+void testType(DartType node, String normal, {String verbose, String limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -27,7 +27,7 @@ testType(DartType node, String normal, {String verbose, String limited}) {
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-main() {
+void main() {
   testTypes();
   testMembers();
 }

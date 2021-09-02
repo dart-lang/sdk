@@ -1859,7 +1859,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  /* Expression | Generator | Initializer */ finishSend(Object receiver,
+  Expression_Generator_Initializer finishSend(Object receiver,
       List<UnresolvedType>? typeArguments, Arguments arguments, int charOffset,
       {bool isTypeArgumentsInForest = false}) {
     if (receiver is Generator) {
@@ -2445,7 +2445,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
   /// if the name doesn't resolve in the scope).
   @override
-  /*Generator|Expression|Builder*/ scopeLookup(
+  Expression_Generator_Builder scopeLookup(
       Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder? prefix}) {
     int charOffset = offsetForToken(token);
@@ -7444,7 +7444,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
   _BodyBuilderCloner(this.bodyBuilder);
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  TreeNode visitStaticInvocation(StaticInvocation node) {
     if (node is FactoryConstructorInvocation) {
       FactoryConstructorInvocation result = new FactoryConstructorInvocation(
           node.target, clone(node.arguments),
@@ -7464,7 +7464,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     if (node is TypeAliasedConstructorInvocation) {
       TypeAliasedConstructorInvocation result =
           new TypeAliasedConstructorInvocation(
@@ -7478,7 +7478,7 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
   }
 
   @override
-  visitArguments(Arguments node) {
+  TreeNode visitArguments(Arguments node) {
     if (node is ArgumentsImpl) {
       return ArgumentsImpl.clone(node, node.positional.map(clone).toList(),
           node.named.map(clone).toList(), node.types.map(visitType).toList());

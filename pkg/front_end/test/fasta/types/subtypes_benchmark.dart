@@ -178,4 +178,4 @@ Future<void> run(Uri benchmarkInput, String name) async {
       "${fastaWatch.elapsedMilliseconds / runs} ms");
 }
 
-main() => run(Uri.base.resolve("type_checks.json"), "***");
+void main() => run(Uri.base.resolve("type_checks.json"), "***");

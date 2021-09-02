@@ -48,7 +48,7 @@ abstract class ImplicitFieldType extends DartType {
   }
 
   @override
-  visitChildren(Visitor<dynamic> v) {
+  Never visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fieldBuilder.charOffset, fieldBuilder.fileUri);
   }
 

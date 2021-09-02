@@ -19,7 +19,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 
 /// Test that turning a message into json and back again retains the wanted
 /// information.
-main() {
+void main() {
   for (int i = 0; i < Severity.values.length; i++) {
     Severity severity = Severity.values[i];
     Code code = new Code("MyCodeName");

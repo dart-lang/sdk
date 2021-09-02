@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-08-23T16:52:51.727804",
+  "generated": "2021-09-01T12:41:37.776425",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -316,7 +316,7 @@
       "name": "front_end",
       "rootUri": "../pkg/front_end",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.13"
     },
     {
       "name": "front_end_testcases",

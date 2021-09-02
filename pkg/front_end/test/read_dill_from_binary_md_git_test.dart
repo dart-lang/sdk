@@ -14,7 +14,7 @@ import 'incremental_suite.dart' show getOptions, normalCompileToBytes;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 
-main() async {
+void main() async {
   await testDart2jsCompile();
 }
 

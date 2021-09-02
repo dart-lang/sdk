@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
   new File.fromUri(computeCfeGeneratedFile(repoDir))
       .writeAsStringSync(generateCfeFile(repoDir), flush: true);
@@ -273,7 +273,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   return new DartFormatter().format("$sb");
 }
 
-keyToIdentifier(String key, {bool upperCaseFirst = false}) {
+String keyToIdentifier(String key, {bool upperCaseFirst = false}) {
   StringBuffer identifier = StringBuffer();
   bool first = true;
   for (int index = 0; index < key.length; ++index) {

@@ -793,7 +793,7 @@ class ProcessedOptions {
 
   String debugString() {
     StringBuffer sb = new StringBuffer();
-    writeList(String name, List elements) {
+    void writeList(String name, List elements) {
       if (elements.isEmpty) {
         sb.writeln('$name: <empty>');
         return;

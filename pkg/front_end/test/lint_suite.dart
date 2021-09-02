@@ -34,7 +34,7 @@ import 'package:testing/testing.dart'
 
 import 'testing_utils.dart' show checkEnvironment, getGitFiles;
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
@@ -210,7 +210,7 @@ class LintListener extends Listener {
   @override
   Uri uri;
 
-  onProblem(int offset, int squigglyLength, String message) {
+  void onProblem(int offset, int squigglyLength, String message) {
     problems.add(description.getErrorMessage(offset, squigglyLength, message));
   }
 }

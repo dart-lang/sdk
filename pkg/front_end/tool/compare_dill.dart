@@ -8,7 +8,7 @@ import '../test/binary_md_dill_reader.dart' show DillComparer;
 
 import '../test/utils/io_utils.dart' show computeRepoDir;
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.length != 2) {
     throw "Expects two arguments: The two files to compare";
   }

@@ -17,4 +17,5 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-main([List<String> arguments = const []]) => runMe(arguments, createContext);
+void main([List<String> arguments = const []]) =>
+    runMe(arguments, createContext);

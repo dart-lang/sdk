@@ -130,7 +130,7 @@ class SilentErrorReporter implements constants.ErrorReporter {
 
 late IncrementalCompiler incrementalCompiler;
 
-main(List<String> arguments) async {
+void main(List<String> arguments) async {
   Uri? platformUri;
   Uri mainUri;
   bool nnbd = false;

@@ -22,7 +22,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
-run(Uri entryPoint, String allowedListPath,
+void run(Uri entryPoint, String allowedListPath,
     {bool verbose = false,
     bool generate = false,
     bool analyzedUrisFilter(Uri uri)}) async {

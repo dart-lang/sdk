@@ -12,7 +12,7 @@ import 'package:front_end/src/fasta/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CollectionElementTest);
     defineReflectiveTests(MapElementTest);
@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class CollectionElementTest {
-  test_closingBrace() {
+  void test_closingBrace() {
     parseEntry(
       '[ }',
       [
@@ -36,7 +36,7 @@ class CollectionElementTest {
     );
   }
 
-  test_comma() {
+  void test_comma() {
     parseEntry(
       '[ ,',
       [
@@ -50,7 +50,7 @@ class CollectionElementTest {
     );
   }
 
-  test_expression() {
+  void test_expression() {
     parseEntry(
       '[ x',
       [
@@ -63,7 +63,7 @@ class CollectionElementTest {
     );
   }
 
-  test_for() {
+  void test_for() {
     parseEntry(
       '[ for (var i = 0; i < 10; ++i) 2',
       [
@@ -101,7 +101,7 @@ class CollectionElementTest {
     );
   }
 
-  test_forForFor() {
+  void test_forForFor() {
     parseEntry(
       '[ for (var i = 0; i < 10; ++i) for (x in y) for (var a in [6]) 2',
       [
@@ -178,7 +178,7 @@ class CollectionElementTest {
     );
   }
 
-  test_forIfForElse() {
+  void test_forIfForElse() {
     parseEntry(
       '[ await for (var x in y) if (a) for (b in c) 2 else 7',
       [
@@ -241,7 +241,7 @@ class CollectionElementTest {
     );
   }
 
-  test_forIn() {
+  void test_forIn() {
     parseEntry(
       '[ await for (var x in y) 2',
       [
@@ -271,7 +271,7 @@ class CollectionElementTest {
     );
   }
 
-  test_forInSpread() {
+  void test_forInSpread() {
     parseEntry(
       '[ for (var x in y) ...[2]',
       [
@@ -303,7 +303,7 @@ class CollectionElementTest {
     );
   }
 
-  test_forSpreadQ() {
+  void test_forSpreadQ() {
     parseEntry(
       '[ for (i = 0; i < 10; ++i) ...[2]',
       [
@@ -339,7 +339,7 @@ class CollectionElementTest {
     );
   }
 
-  test_if() {
+  void test_if() {
     parseEntry(
       '[ if (true) 2',
       [
@@ -354,7 +354,7 @@ class CollectionElementTest {
     );
   }
 
-  test_ifElse() {
+  void test_ifElse() {
     parseEntry(
       '[ if (true) 2 else 5',
       [
@@ -371,7 +371,7 @@ class CollectionElementTest {
     );
   }
 
-  test_ifFor() {
+  void test_ifFor() {
     parseEntry(
       '[ if (true) for (x in y) 2',
       [
@@ -405,7 +405,7 @@ class CollectionElementTest {
     );
   }
 
-  test_ifForElseIfFor() {
+  void test_ifForElseIfFor() {
     parseEntry(
       '[ if (true) for (a in b) 2 else if (c) for (d in e) 5',
       [
@@ -469,7 +469,7 @@ class CollectionElementTest {
     );
   }
 
-  test_ifSpreadQ() {
+  void test_ifSpreadQ() {
     parseEntry(
       '[ if (true) ...?[2]',
       [
@@ -487,7 +487,7 @@ class CollectionElementTest {
     );
   }
 
-  test_ifElseSpreadQ() {
+  void test_ifElseSpreadQ() {
     parseEntry(
       '[ if (true) ...?[2] else ... const {5}',
       [
@@ -512,14 +512,14 @@ class CollectionElementTest {
     );
   }
 
-  test_intLiteral() {
+  void test_intLiteral() {
     parseEntry('[ 1', [
       'handleLiteralInt 1',
       'handleLiteralList 1, [, null, ]',
     ]);
   }
 
-  test_spread() {
+  void test_spread() {
     parseEntry('[ ...[1]', [
       'handleNoTypeArguments [',
       'handleLiteralInt 1',
@@ -529,7 +529,7 @@ class CollectionElementTest {
     ]);
   }
 
-  test_spreadQ() {
+  void test_spreadQ() {
     parseEntry('[ ...?[1]', [
       'handleNoTypeArguments [',
       'handleLiteralInt 1',
@@ -565,7 +565,7 @@ class CollectionElementTest {
 
 @reflectiveTest
 class MapElementTest {
-  test_closingBrace() {
+  void test_closingBrace() {
     parseEntry(
       'before }',
       [
@@ -588,7 +588,7 @@ class MapElementTest {
     );
   }
 
-  test_comma() {
+  void test_comma() {
     parseEntry(
       'before ,',
       [
@@ -611,7 +611,7 @@ class MapElementTest {
     );
   }
 
-  test_expression() {
+  void test_expression() {
     parseEntry(
       'before x:y',
       [
@@ -628,7 +628,7 @@ class MapElementTest {
     );
   }
 
-  test_for() {
+  void test_for() {
     parseEntry(
       'before for (var i = 0; i < 10; ++i) 2:3',
       [
@@ -667,7 +667,7 @@ class MapElementTest {
     );
   }
 
-  test_forIn() {
+  void test_forIn() {
     parseEntry(
       'before await for (var x in y) 2:3',
       [
@@ -698,7 +698,7 @@ class MapElementTest {
     );
   }
 
-  test_forInSpread() {
+  void test_forInSpread() {
     parseEntry(
       'before for (var x in y) ...{2:3}',
       [
@@ -731,7 +731,7 @@ class MapElementTest {
     );
   }
 
-  test_forSpreadQ() {
+  void test_forSpreadQ() {
     parseEntry(
       'before for (i = 0; i < 10; ++i) ...?{2:7}',
       [
@@ -768,7 +768,7 @@ class MapElementTest {
     );
   }
 
-  test_if() {
+  void test_if() {
     parseEntry(
       'before if (true) 2:3',
       [
@@ -784,7 +784,7 @@ class MapElementTest {
     );
   }
 
-  test_ifSpread() {
+  void test_ifSpread() {
     parseEntry(
       'before if (true) ...{2:3}',
       [
@@ -803,7 +803,7 @@ class MapElementTest {
     );
   }
 
-  test_intLiteral() {
+  void test_intLiteral() {
     parseEntry('before 1:2', [
       'handleLiteralInt 1',
       'handleLiteralInt 2',
@@ -811,7 +811,7 @@ class MapElementTest {
     ]);
   }
 
-  test_spread() {
+  void test_spread() {
     parseEntry('before ...const {1:2}', [
       'beginConstLiteral {',
       'handleNoTypeArguments {',
@@ -824,7 +824,7 @@ class MapElementTest {
     ]);
   }
 
-  test_spreadQ() {
+  void test_spreadQ() {
     parseEntry('before ...?const {1:3}', [
       'beginConstLiteral {',
       'handleNoTypeArguments {',
@@ -1101,7 +1101,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }
 }

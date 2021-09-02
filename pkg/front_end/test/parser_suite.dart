@@ -66,7 +66,7 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-main([List<String> arguments = const []]) =>
+void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(

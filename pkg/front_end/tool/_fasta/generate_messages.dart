@@ -13,7 +13,7 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 import '../../test/utils/io_utils.dart' show computeRepoDirUri;
 
-main(List<String> arguments) {
+void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
   Messages message = generateMessagesFiles(repoDir);
   if (message.sharedMessages.trim().isEmpty ||

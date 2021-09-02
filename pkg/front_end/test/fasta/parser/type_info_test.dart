@@ -15,7 +15,7 @@ import 'package:front_end/src/fasta/source/diet_parser.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NoTypeInfoTest);
     defineReflectiveTests(PrefixedTypeInfoTest);
@@ -304,7 +304,7 @@ class PrefixedTypeInfoTest {
     expect(prefixedType.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd, expectedEnd);
       expect(listener.calls, [
         'handleIdentifier C prefixedTypeReference',
@@ -380,7 +380,7 @@ class SimpleNullableTypeTest {
     expect(simpleNullableType.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd, expectedEnd);
       expect(listener.calls, [
         'handleIdentifier C typeReference',
@@ -431,7 +431,7 @@ class SimpleNullableTypeWith1ArgumentTest {
     expect(simpleNullableTypeWith1Argument.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd, expectedEnd);
       expect(listener.calls, [
         'handleIdentifier C typeReference',
@@ -501,7 +501,7 @@ class SimpleTypeTest {
     expect(simpleType.couldBeExpression, isTrue);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd, expectedEnd);
       expect(listener.calls, [
         'handleIdentifier C typeReference',
@@ -575,7 +575,7 @@ class SimpleTypeWith1ArgumentTest {
     expect(simpleTypeWith1Argument.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd, expectedEnd);
       expect(listener.calls, [
         'handleIdentifier C typeReference',
@@ -619,7 +619,7 @@ class SimpleTypeWith1ArgumentTest {
     expect(simpleTypeWith1ArgumentGtEq.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd.lexeme, '>');
       expect(actualEnd.next.lexeme, '=');
       expect(actualEnd.next.next, semicolon);
@@ -664,7 +664,7 @@ class SimpleTypeWith1ArgumentTest {
     expect(simpleTypeWith1ArgumentGtGt.couldBeExpression, isFalse);
 
     TypeInfoListener listener;
-    assertResult(Token actualEnd) {
+    void assertResult(Token actualEnd) {
       expect(actualEnd.lexeme, '>');
       expect(actualEnd.next.lexeme, '>');
       expect(actualEnd.next.next, semicolon);
@@ -3019,11 +3019,11 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     throw '${invocation.memberName} should not be called.';
   }
 
-  assertTokenInStream(Token match) {
+  void assertTokenInStream(Token match) {
     if (firstToken != null && match != null && !match.isEof) {
       Token token = firstToken;
       while (!token.isEof) {

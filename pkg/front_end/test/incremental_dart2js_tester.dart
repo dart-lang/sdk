@@ -18,7 +18,7 @@ import 'incremental_suite.dart' as helper;
 
 import "incremental_utils.dart" as util;
 
-main(List<String> args) async {
+void main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
   bool addDebugBreaks = false;

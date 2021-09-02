@@ -9,7 +9,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'incremental_perf.dart' as m show main;
 
-main() async {
+void main() async {
   var sdkOutline = computePlatformBinariesLocation(forceBuildDir: true).resolve(
       // TODO(sigmund): switch to `vm_outline.dill` (issue #29881).
       "vm_platform_strong.dill");

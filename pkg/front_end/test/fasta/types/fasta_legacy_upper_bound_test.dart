@@ -63,7 +63,7 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
   }
 }
 
-main() {
+void main() {
   final Ticker ticker = new Ticker();
   final CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()

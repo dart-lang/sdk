@@ -8,12 +8,14 @@ import 'package:_fe_analyzer_shared/src/util/link.dart' show Link, LinkBuilder;
 
 import 'package:expect/expect.dart' show Expect;
 
-main() {
+void main() {
   Link<String> strings = const Link<String>().prepend("B").prepend("A");
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
 
-  strings = (new LinkBuilder<String>()..addLast("A")..addLast("B"))
+  strings = (new LinkBuilder<String>()
+        ..addLast("A")
+        ..addLast("B"))
       .toLink(const Link<String>());
 
   Expect.stringEquals("[ A, B ]", "${strings}");
@@ -34,7 +36,9 @@ main() {
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
 
-  strings = (new LinkBuilder<String>()..addLast("A")..addLast("B"))
+  strings = (new LinkBuilder<String>()
+        ..addLast("A")
+        ..addLast("B"))
       .toLink(const Link<String>());
 
   Expect.stringEquals("[ A, B ]", "${strings}");
