@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -111,10 +112,13 @@ class _FinalExpressionChecker {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  final bool constructorTearOffsEnabled;
   final LintRule rule;
   final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+      : constructorTearOffsEnabled =
+            context.isEnabled(Feature.constructor_tearoffs);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -124,7 +128,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var body = node.body;
     if (body is BlockFunctionBody && body.block.statements.length == 1) {
       var statement = body.block.statements.single;
-
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
         _visitInvocationExpression(
@@ -137,9 +140,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     } else if (body is ExpressionFunctionBody) {
-      if (body.expression is InvocationExpression) {
-        _visitInvocationExpression(
-            body.expression as InvocationExpression, node);
+      var expression = body.expression;
+      if (expression is InvocationExpression) {
+        _visitInvocationExpression(expression, node);
+      } else if (constructorTearOffsEnabled &&
+          expression is InstanceCreationExpression) {
+        if (expression.argumentList.arguments.isEmpty) {
+          rule.reportLint(node);
+        }
       }
     }
   }
