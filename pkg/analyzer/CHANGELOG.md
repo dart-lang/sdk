@@ -1,3 +1,6 @@
+## 2.2.0
+* Improvements in constructors tear-off implementation.
+
 ## 2.1.0
 * Changed `AnalysisResult.path` to be non-nullable.
 * Changed `ParsedLibraryResult.units` to be non-nullable.
