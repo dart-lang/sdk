@@ -135,7 +135,7 @@ static int32_t Load16Aligned(const uint8_t* pc) {
 // matching terminates.
 class BacktrackStack {
  public:
-  explicit BacktrackStack(Zone* zone) {
+  BacktrackStack() {
     memory_ = Isolate::Current()->TakeRegexpBacktrackStack();
     // Note: using malloc here has a potential of triggering jemalloc/tcmalloc
     // bugs which cause application to leak memory and eventually OOM.
@@ -147,14 +147,15 @@ class BacktrackStack {
           sizeof(intptr_t) * kBacktrackStackSize, /*is_executable=*/false,
           "regexp-backtrack-stack"));
     }
-    if (memory_ == nullptr) {
-      OUT_OF_MEMORY();
-    }
   }
 
   ~BacktrackStack() {
-    Isolate::Current()->CacheRegexpBacktrackStack(std::move(memory_));
+    if (memory_ != nullptr) {
+      Isolate::Current()->CacheRegexpBacktrackStack(std::move(memory_));
+    }
   }
+
+  bool out_of_memory() const { return memory_ == nullptr; }
 
   intptr_t* data() const {
     return reinterpret_cast<intptr_t*>(memory_->address());
@@ -177,13 +178,15 @@ static ObjectPtr RawMatch(const TypedData& bytecode,
                           const String& subject,
                           int32_t* registers,
                           intptr_t current,
-                          uint32_t current_char,
-                          Zone* zone) {
-  const auto thread = Thread::Current();
+                          uint32_t current_char) {
   // BacktrackStack ensures that the memory allocated for the backtracking stack
   // is returned to the system or cached if there is no stack being cached at
   // the moment.
-  BacktrackStack backtrack_stack(zone);
+  BacktrackStack backtrack_stack;
+  if (backtrack_stack.out_of_memory()) {
+    Exceptions::ThrowOOM();
+    UNREACHABLE();
+  }
   intptr_t* backtrack_stack_base = backtrack_stack.data();
   intptr_t* backtrack_sp = backtrack_stack_base;
   intptr_t backtrack_stack_space = backtrack_stack.max_size();
@@ -199,6 +202,7 @@ static ObjectPtr RawMatch(const TypedData& bytecode,
     OS::PrintErr("Start irregexp bytecode interpreter\n");
   }
 #endif
+  const auto thread = Thread::Current();
   const uint8_t* code_base;
   const uint8_t* pc;
   {
@@ -683,8 +687,7 @@ static ObjectPtr RawMatch(const TypedData& bytecode,
 ObjectPtr IrregexpInterpreter::Match(const TypedData& bytecode,
                                      const String& subject,
                                      int32_t* registers,
-                                     intptr_t start_position,
-                                     Zone* zone) {
+                                     intptr_t start_position) {
   uint16_t previous_char = '\n';
   if (start_position != 0) {
     previous_char = subject.CharAt(start_position - 1);
@@ -692,10 +695,10 @@ ObjectPtr IrregexpInterpreter::Match(const TypedData& bytecode,
 
   if (subject.IsOneByteString() || subject.IsExternalOneByteString()) {
     return RawMatch<uint8_t>(bytecode, subject, registers, start_position,
-                             previous_char, zone);
+                             previous_char);
   } else if (subject.IsTwoByteString() || subject.IsExternalTwoByteString()) {
     return RawMatch<uint16_t>(bytecode, subject, registers, start_position,
-                              previous_char, zone);
+                              previous_char);
   } else {
     UNREACHABLE();
     return Bool::False().ptr();
