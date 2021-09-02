@@ -236,7 +236,9 @@ abstract class AbstractAnalysisServerIntegrationTest
     int? servicesPort,
   }) {
     return server.start(
-        diagnosticPort: diagnosticPort, servicesPort: servicesPort);
+      diagnosticPort: diagnosticPort,
+      servicesPort: servicesPort,
+    );
   }
 
   /// After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -606,6 +608,7 @@ class Server {
   Future start({
     int? diagnosticPort,
     String? instrumentationLogFile,
+    String? packagesFile,
     bool profileServer = false,
     String? sdkPath,
     int? servicesPort,
@@ -675,6 +678,9 @@ class Server {
     }
     if (instrumentationLogFile != null) {
       arguments.add('--instrumentation-log-file=$instrumentationLogFile');
+    }
+    if (packagesFile != null) {
+      arguments.add('--packages=$packagesFile');
     }
     if (sdkPath != null) {
       arguments.add('--sdk=$sdkPath');

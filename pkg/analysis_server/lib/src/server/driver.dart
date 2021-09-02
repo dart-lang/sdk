@@ -98,6 +98,9 @@ class Driver implements ServerStarter {
   /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
 
+  /// The path to the package config file override.
+  static const String PACKAGES_FILE = 'packages';
+
   /// The name of the flag specifying the server protocol to use.
   static const String SERVER_PROTOCOL = 'protocol';
   static const String PROTOCOL_ANALYZER = 'analyzer';
@@ -156,6 +159,7 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
+    analysisServerOptions.packagesFile = results[PACKAGES_FILE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
     var sdkConfig = SdkConfiguration.readFromSdk();
@@ -602,6 +606,12 @@ class Driver implements ServerStarter {
     parser.addOption(CACHE_FOLDER,
         valueHelp: 'path',
         help: 'Override the location of the analysis server\'s cache.');
+    parser.addOption(
+      PACKAGES_FILE,
+      valueHelp: 'path',
+      help: 'The path to the package resolution configuration file, which '
+          'supplies a mapping of package names\ninto paths.',
+    );
 
     parser.addOption(
       SERVER_PROTOCOL,

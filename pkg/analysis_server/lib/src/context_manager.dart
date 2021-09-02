@@ -142,6 +142,10 @@ class ContextManagerImpl implements ContextManager {
   /// particular context.
   final DartSdkManager sdkManager;
 
+  /// The path to the package config file override.
+  /// If `null`, then the default discovery mechanism is used.
+  final String? packagesFile;
+
   /// The storage for cached results.
   final ByteStore _byteStore;
 
@@ -213,6 +217,7 @@ class ContextManagerImpl implements ContextManager {
   ContextManagerImpl(
       this.resourceProvider,
       this.sdkManager,
+      this.packagesFile,
       this._byteStore,
       this._fileContentCache,
       this._performanceLog,
@@ -428,6 +433,7 @@ class ContextManagerImpl implements ContextManager {
       resourceProvider: resourceProvider,
       scheduler: _scheduler,
       sdkPath: sdkManager.defaultSdkDirectory,
+      packagesFile: packagesFile,
       fileContentCache: _fileContentCache,
     );
 
