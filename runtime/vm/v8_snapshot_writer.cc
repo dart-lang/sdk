@@ -398,13 +398,13 @@ void V8SnapshotProfileWriter::Write(const char* filename) {
   auto file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
-    OS::PrintErr("Could not access file callbacks to write snapshot profile.");
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
   auto file = file_open(filename, /*write=*/true);
   if (file == nullptr) {
-    OS::PrintErr("Failed to open file %s\n", filename);
+    OS::PrintErr("warning: Failed to write snapshot profile: %s\n", filename);
   } else {
     char* output = nullptr;
     intptr_t output_length = 0;

@@ -174,15 +174,20 @@ class RetainedReasonsWriter : public ValueObject {
   explicit RetainedReasonsWriter(Zone* zone)
       : zone_(zone), retained_reasons_map_(zone) {}
 
-  void Init(const char* filename) {
-    if (filename == nullptr) return;
-    const auto file_open = Dart::file_open_callback();
-    if (file_open == nullptr) return;
+  bool Init(const char* filename) {
+    if (filename == nullptr) return false;
 
-    const auto file = file_open(filename, /*write=*/true);
+    if ((Dart::file_write_callback() == nullptr) ||
+        (Dart::file_open_callback() == nullptr) ||
+        (Dart::file_close_callback() == nullptr)) {
+      OS::PrintErr("warning: Could not access file callbacks.");
+      return false;
+    }
+
+    void* file = Dart::file_open_callback()(filename, /*write=*/true);
     if (file == nullptr) {
-      OS::PrintErr("Failed to open file %s\n", filename);
-      return;
+      OS::PrintErr("warning: Failed to write retained reasons: %s\n", filename);
+      return false;
     }
 
     file_ = file;
@@ -191,6 +196,7 @@ class RetainedReasonsWriter : public ValueObject {
     // and printed at one point. This avoids having to keep otherwise
     // unneeded information around.
     writer_.OpenArray();
+    return true;
   }
 
   void AddDropped(const Object& obj) {
@@ -446,8 +452,7 @@ void Precompiler::DoCompileAll() {
     zone_ = stack_zone.GetZone();
     RetainedReasonsWriter reasons_writer(zone_);
 
-    if (FLAG_write_retained_reasons_to != nullptr) {
-      reasons_writer.Init(FLAG_write_retained_reasons_to);
+    if (reasons_writer.Init(FLAG_write_retained_reasons_to)) {
       retained_reasons_writer_ = &reasons_writer;
     }
 
@@ -652,7 +657,7 @@ void Precompiler::DoCompileAll() {
       ProgramVisitor::Dedup(T);
     }
 
-    if (FLAG_write_retained_reasons_to != nullptr) {
+    if (retained_reasons_writer_ != nullptr) {
       reasons_writer.Write();
       retained_reasons_writer_ = nullptr;
     }
