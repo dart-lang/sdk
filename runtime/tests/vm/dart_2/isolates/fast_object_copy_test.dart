@@ -26,7 +26,9 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-class ClassWithNativeFields extends NativeFieldWrapperClass1 {}
+class ClassWithNativeFields extends NativeFieldWrapperClass1 {
+  void m() {}
+}
 
 final Uint8List largeExternalTypedData =
     File(Platform.resolvedExecutable).readAsBytesSync()..[0] = 42;
@@ -223,6 +225,8 @@ class SendReceiveTest extends SendReceiveTestBase {
     await testSlowOnly();
 
     await testWeakProperty();
+
+    await testForbiddenClosures();
   }
 
   Future testTransferrable() async {
@@ -644,6 +648,38 @@ class SendReceiveTest extends SendReceiveTestBase {
       final expando3Copy = expando2Copy[expando2Copy] as Expando;
       final expando4Copy = expando3Copy[expando3Copy] as Expando;
       Expect.equals('bar', (expando4Copy[expando4Copy] as Map)['foo']);
+    }
+  }
+
+  Future testForbiddenClosures() async {
+    print('testForbiddenClosures');
+    final nonCopyableClosures = <dynamic>[
+      (() {
+        final a = ClassWithNativeFields();
+        return a.m;
+      })(),
+      (() {
+        final a = ClassWithNativeFields();
+        dynamic inner() => a;
+        return inner;
+      })(),
+      (() {
+        foo(var arg) {
+          return () => arg;
+        }
+
+        return foo(ClassWithNativeFields());
+      })(),
+    ];
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send(closure));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(() => sendPort.send([closure]));
+    }
+    for (final closure in nonCopyableClosures) {
+      Expect.throwsArgumentError(
+          () => sendPort.send([notAllocatableInTLAB, closure]));
     }
   }
 }

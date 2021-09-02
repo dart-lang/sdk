@@ -3066,22 +3066,20 @@ void MessageSerializer::Trace(Object* object) {
   }
 
     ILLEGAL(FunctionType)
-    ILLEGAL(DynamicLibrary)
     ILLEGAL(MirrorReference)
-    ILLEGAL(Pointer)
     ILLEGAL(ReceivePort)
     ILLEGAL(StackTrace)
     ILLEGAL(UserTag)
-#undef ILLEGAL
 
-    switch (cid) {
-#define ILLEGAL(type) case kFfi##type##Cid:
-      CLASS_LIST_FFI(ILLEGAL)
+    // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
+    // those are the only non-abstract classes (so we avoid checking more cids
+    // here that cannot happen in reality)
+    ILLEGAL(DynamicLibrary)
+    ILLEGAL(Pointer)
+    ILLEGAL(FfiDynamicLibrary)
+    ILLEGAL(FfiPointer)
+
 #undef ILLEGAL
-      IllegalObject(*object,
-                    "Native objects (from dart:ffi) such as Pointers and "
-                    "Structs cannot be passed between isolates.");
-    }
 
     if (cid >= kNumPredefinedCids || cid == kInstanceCid ||
         cid == kByteBufferCid) {

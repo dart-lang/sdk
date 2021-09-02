@@ -7,9 +7,14 @@
 // VMOptions=--no-enable-isolate-groups
 
 import "dart:isolate";
+import "dart:io";
 import "dart:async";
+
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
+
+final bool isolateGroupsEnabled =
+    Platform.executableArguments.contains('--enable-isolate-groups');
 
 void toplevel(port, message) {
   port.send("toplevel:$message");
@@ -175,6 +180,9 @@ void _call(initPort) {
 }
 
 void testUnsendable(name, func) {
+  // Isolate group support does allow sending closures.
+  if (isolateGroupsEnabled) return;
+
   asyncStart();
   Isolate.spawn(nop, func).then<void>((v) => throw "allowed spawn direct?",
       onError: (e, s) {
