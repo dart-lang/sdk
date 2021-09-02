@@ -4198,14 +4198,14 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   ASSERT(value == result);
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxw(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
+  __ movsxd(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
 #else
   ASSERT(value != result);
   // Cannot speculatively untag with value == result because it erases the
   // upper bits needed to dereference when it is a Mint.
   __ SmiUntagAndSignExtend(result, value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxw(result, compiler::FieldAddress(value, Mint::value_offset()));
+  __ movsxd(result, compiler::FieldAddress(value, Mint::value_offset()));
 #endif
   __ Bind(&done);
 }
