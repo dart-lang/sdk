@@ -479,6 +479,33 @@ class Utils {
 
   // Returns str in a unique_ptr with free used as its deleter.
   static CStringUniquePtr CreateCStringUniquePtr(char* str);
+
+  // Load dynamic library from the given |library_path| and return the
+  // library handle. |library_path| can be |nullptr| in which case
+  // library handle representing the executable is returned.
+  // If an error occurs returns |nullptr| and populates
+  // |error| (if provided) with an error message (caller must free this message
+  // when it is no longer needed).
+  static void* LoadDynamicLibrary(const char* library_path,
+                                  char** error = nullptr);
+
+  // Resolve the given |symbol| within the library referenced by the
+  // given |library_handle|.
+  // If an error occurs populates |error| (if provided) with an error message
+  // (caller must free this message when it is no longer needed).
+  // Note: on some platforms |nullptr| is a valid value for a symbol, so to
+  // check if resolution succeeded one must instead provide non-null |error|
+  // and then check if it was populated with an error message.
+  static void* ResolveSymbolInDynamicLibrary(void* library_handle,
+                                             const char* symbol,
+                                             char** error = nullptr);
+
+  // Unload the library referenced by the given |library_handle|.
+  // If an error occurs returns |nullptr| and populates
+  // |error| (if provided) with an error message (caller must free this message
+  // when it is no longer needed).
+  static void UnloadDynamicLibrary(void* library_handle,
+                                   char** error = nullptr);
 };
 
 }  // namespace dart

@@ -5,8 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./include/dart_api.h"
-#include "./include/dart_native_api.h"
+
+// TODO(dartbug.com/40579): This requires static linking to either link
+// dart.exe or dart_precompiled_runtime.exe on Windows.
+// The sample currently fails on Windows in AOT mode.
+#include "include/dart_api.h"
+#include "include/dart_native_api.h"
 
 #define CHECK(H)                                                               \
   do {                                                                         \
@@ -25,12 +29,12 @@
     abort();                                                                   \
   }
 
-bool isDartPrecompiledRuntime = true;
+static bool is_dart_precompiled_runtime = true;
 
 // Some invalid accesses are allowed in AOT since we don't retain @pragma
 // annotations. Therefore we skip the negative tests in AOT.
 #define FAIL(name, result)                                                     \
-  if (!isDartPrecompiledRuntime) {                                             \
+  if (!is_dart_precompiled_runtime) {                                          \
     Fail(name, result);                                                        \
   }
 
@@ -42,25 +46,25 @@ void Fail(const char* name, Dart_Handle result) {
 }
 
 #define FAIL_INVOKE_FIELD(name, result)                                        \
-  if (!isDartPrecompiledRuntime) {                                             \
+  if (!is_dart_precompiled_runtime) {                                          \
     FailInvokeField(name, result);                                             \
   }
 
-void FailInvokeField(const char* name, Dart_Handle result) {
+static void FailInvokeField(const char* name, Dart_Handle result) {
   ASSERT(Dart_IsApiError(result));
   const char* error = Dart_GetError(result);
   ASSERT(strstr(error, name));
   ASSERT(strstr(error, "Entry-points do not allow invoking fields"));
 }
 
-void FailClosurizeConstructor(const char* name, Dart_Handle result) {
+static void FailClosurizeConstructor(const char* name, Dart_Handle result) {
   ASSERT(Dart_IsUnhandledExceptionError(result));
   const char* error = Dart_GetError(result);
   ASSERT(strstr(error, name));
   ASSERT(strstr(error, "No static getter"));
 }
 
-void TestFields(Dart_Handle target) {
+static void TestFields(Dart_Handle target) {
   FAIL("fld0", Dart_GetField(target, Dart_NewStringFromCString("fld0")));
   FAIL("fld0",
        Dart_SetField(target, Dart_NewStringFromCString("fld0"), Dart_Null()));
@@ -89,7 +93,9 @@ void TestFields(Dart_Handle target) {
       Dart_Invoke(target, Dart_NewStringFromCString("fld3"), 0, nullptr));
 }
 
-void RunTests(Dart_NativeArguments arguments) {
+DART_EXPORT void RunTests() {
+  is_dart_precompiled_runtime = Dart_IsPrecompiledRuntime();
+
   Dart_Handle lib = Dart_RootLibrary();
 
   //////// Test allocation and constructor invocation.
@@ -164,31 +170,4 @@ void RunTests(Dart_NativeArguments arguments) {
   TestFields(F_class);
 
   TestFields(lib);
-}
-
-Dart_NativeFunction ResolveName(Dart_Handle name,
-                                int argc,
-                                bool* auto_setup_scope) {
-  if (auto_setup_scope == NULL) {
-    return NULL;
-  }
-  *auto_setup_scope = true;
-  return RunTests;
-}
-
-DART_EXPORT Dart_Handle
-entrypoints_verification_test_extension_Init(Dart_Handle parent_library) {
-  isDartPrecompiledRuntime = Dart_IsPrecompiledRuntime();
-
-  if (Dart_IsError(parent_library)) {
-    return parent_library;
-  }
-
-  Dart_Handle result_code =
-      Dart_SetNativeResolver(parent_library, ResolveName, NULL);
-  if (Dart_IsError(result_code)) {
-    return result_code;
-  }
-
-  return Dart_Null();
 }

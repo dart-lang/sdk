@@ -80,6 +80,12 @@
   `dart compile exe` and `dart compile aot-snapshot` commands, which offer the
   same functionality.
 
+#### Dart VM
+
+- **Breaking Change** [#45451][]: Support for `dart-ext:`-style native
+  extensions has been removed as previously announced. Use `dart:ffi` to bind
+  to native libraries instead.
+
 ## 2.14.0
 
 ### Language

@@ -3,18 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=--verify-entry-points=true
+// SharedObjects=entrypoints_verification_test
 
-import 'dart:io';
-import 'dart:convert';
-import 'dart:math';
-import 'package:path/path.dart';
-import 'package:expect/expect.dart';
-import 'dart-ext:entrypoints_verification_test_extension';
+// @dart = 2.9
 
-void RunTest() native "RunTest";
+import 'dart:ffi';
+import './dylib_utils.dart';
 
 main() {
-  RunTest();
+  final helper = dlopenPlatformSpecific('entrypoints_verification_test');
+  final runTest =
+      helper.lookupFunction<Void Function(), void Function()>('RunTests');
+  runTest();
 
   new C();
   new D();
@@ -54,16 +54,16 @@ class D {
   @pragma("vm:entry-point", "get")
   static void fn3_get() {}
 
-  void Function()? fld0;
+  void Function() fld0;
 
   @pragma("vm:entry-point")
-  void Function()? fld1;
+  void Function() fld1;
 
   @pragma("vm:entry-point", "get")
-  void Function()? fld2;
+  void Function() fld2;
 
   @pragma("vm:entry-point", "set")
-  void Function()? fld3;
+  void Function() fld3;
 }
 
 void fn0() {}
@@ -83,25 +83,25 @@ class E extends D {
 
 @pragma("vm:entry-point")
 class F {
-  static void Function()? fld0;
+  static void Function() fld0;
 
   @pragma("vm:entry-point")
-  static void Function()? fld1;
+  static void Function() fld1;
 
   @pragma("vm:entry-point", "get")
-  static void Function()? fld2;
+  static void Function() fld2;
 
   @pragma("vm:entry-point", "set")
-  static void Function()? fld3;
+  static void Function() fld3;
 }
 
-void Function()? fld0;
+void Function() fld0;
 
 @pragma("vm:entry-point")
-void Function()? fld1;
+void Function() fld1;
 
 @pragma("vm:entry-point", "get")
-void Function()? fld2;
+void Function() fld2;
 
 @pragma("vm:entry-point", "set")
-void Function()? fld3;
+void Function() fld3;

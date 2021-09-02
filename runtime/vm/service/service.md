@@ -429,7 +429,7 @@ mode and will no longer accept incoming web socket connections, instead forwardi
 the web socket connection request to DDS. If DDS disconnects from the VM service,
 the VM service will once again start accepting incoming web socket connections.
 
-The VM service forwards the web socket connection by issuing a redirect 
+The VM service forwards the web socket connection by issuing a redirect
 
 ### Protocol Extensions
 
@@ -3298,9 +3298,8 @@ class MemoryUsage extends Response {
   // example, memory associated with Dart objects through APIs such as
   // Dart_NewFinalizableHandle, Dart_NewWeakPersistentHandle and
   // Dart_NewExternalTypedData.  This usage is only as accurate as the values
-  // supplied to these APIs from the VM embedder or native extensions. This
-  // external memory applies GC pressure, but is separate from heapUsage and
-  // heapCapacity.
+  // supplied to these APIs from the VM embedder. This external memory applies
+  // GC pressure, but is separate from heapUsage and heapCapacity.
   int externalUsage;
 
   // The total capacity of the heap in bytes. This is the amount of memory used

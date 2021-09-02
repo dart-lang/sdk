@@ -18,7 +18,7 @@ class NativeArguments;
 //  - bootstrap natives, which are called directly from stub code. The callee is
 //    responsible for safepoint transitions and setting up handle scopes as
 //    needed. Only VM-defined natives are bootstrap natives; they cannot be
-//    defined by embedders or native extensions.
+//    defined by embedders.
 //  - no scope natives, which are called through a wrapper function. The wrapper
 //    function handles the safepoint transition. The callee is responsible for
 //    setting up API scopes as needed.

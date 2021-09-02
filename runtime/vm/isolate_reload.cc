@@ -722,18 +722,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   //
   // If loading the hot-reload diff succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  auto& result = Object::Handle(Z);
-  {
-    // We need to set an active isolate while loading kernel. The kernel loader
-    // itself is independent of the current isolate, but if the application
-    // needs native extensions, the kernel loader calls out to the embedder to
-    // load those, which requires currently an active isolate (since embedder
-    // will callback into VM using Dart API).
-    DisabledNoActiveIsolateScope active_isolate_scope(&no_active_isolate_scope);
-
-    result = IG->program_reload_context()->ReloadPhase2LoadKernel(
-        kernel_program.get(), root_lib_url_);
-  }
+  const auto& result =
+      Object::Handle(Z, IG->program_reload_context()->ReloadPhase2LoadKernel(
+                            kernel_program.get(), root_lib_url_));
 
   if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
@@ -937,9 +928,7 @@ void IsolateGroupReloadContext::BuildModifiedLibrariesClosure(
       if (!ns.IsNull()) {
         target = ns.target();
         target_url = target.url();
-        if (!target_url.StartsWith(Symbols::DartExtensionScheme())) {
-          (*imported_by)[target.index()]->Add(lib.index());
-        }
+        (*imported_by)[target.index()]->Add(lib.index());
       }
     }
 
