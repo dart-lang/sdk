@@ -194,7 +194,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   TypeEnvironment get typeEnvironment;
 
-  /// If explicit instantiations are support in this library, create an
+  /// If explicit instantiations are supported in this library, create an
   /// instantiation of the result of [receiverFunction] using
   /// [typeArguments] followed by an invocation of [name] with [arguments].
   /// Otherwise create the errors for the corresponding invalid implicit
@@ -209,6 +209,10 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// class `b` with prefix `a` with type arguments `<c>`, but with explicit
   /// instantiation it could instead be the explicit instantiation of expression
   /// `a.b` with type arguments `<c>` followed by and invocation of `d()`.
+  ///
+  /// If [inImplicitCreationContext] is `false`, then the expression is
+  /// preceded by `new` or `const`, and an error should be reported instead of
+  /// creating the instantiation and invocation.
   Expression createInstantiationAndInvocation(
       Expression Function() receiverFunction,
       List<UnresolvedType>? typeArguments,
@@ -216,7 +220,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       String constructorName,
       Arguments arguments,
       {required int instantiationOffset,
-      required int invocationOffset});
+      required int invocationOffset,
+      required bool inImplicitCreationContext});
 }
 
 /// Checks that a generic [typedef] for a generic class.

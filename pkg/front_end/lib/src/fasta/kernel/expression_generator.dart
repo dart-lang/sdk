@@ -295,11 +295,13 @@ abstract class Generator {
       Arguments arguments,
       Token nameToken,
       Token nameLastToken,
-      Constness constness) {
+      Constness constness,
+      {required bool inImplicitCreationContext}) {
     return _helper.createInstantiationAndInvocation(() => buildSimpleRead(),
         typeArguments, _plainNameForRead, name, arguments,
         instantiationOffset: fileOffset,
-        invocationOffset: nameLastToken.charOffset);
+        invocationOffset: nameLastToken.charOffset,
+        inImplicitCreationContext: inImplicitCreationContext);
   }
 
   void printOn(StringSink sink);
@@ -2939,10 +2941,12 @@ class DeferredAccessGenerator extends Generator {
       Arguments arguments,
       Token nameToken,
       Token nameLastToken,
-      Constness constness) {
+      Constness constness,
+      {required bool inImplicitCreationContext}) {
     return _helper.wrapInDeferredCheck(
-        suffixGenerator.invokeConstructor(typeArguments, name, arguments,
-            nameToken, nameLastToken, constness),
+        suffixGenerator.invokeConstructor(
+            typeArguments, name, arguments, nameToken, nameLastToken, constness,
+            inImplicitCreationContext: inImplicitCreationContext),
         prefixGenerator.prefix,
         offsetForToken(suffixGenerator.token));
   }
@@ -3055,7 +3059,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       Arguments arguments,
       Token nameToken,
       Token nameLastToken,
-      Constness constness) {
+      Constness constness,
+      {required bool inImplicitCreationContext}) {
     return _helper.buildConstructorInvocation(
         declaration,
         nameToken,
@@ -3651,7 +3656,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
       Arguments arguments,
       Token nameToken,
       Token nameLastToken,
-      Constness constness) {
+      Constness constness,
+      {required bool inImplicitCreationContext}) {
     if (typeArguments != null) {
       assert(_forest.argumentsTypeArguments(arguments).isEmpty);
       _forest.argumentsSetTypeArguments(
@@ -4280,7 +4286,8 @@ class ParserErrorGenerator extends Generator {
       Arguments arguments,
       Token nameToken,
       Token nameLastToken,
-      Constness constness) {
+      Constness constness,
+      {required bool inImplicitCreationContext}) {
     return buildProblem();
   }
 
