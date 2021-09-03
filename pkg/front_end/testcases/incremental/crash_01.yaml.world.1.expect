@@ -12,6 +12,8 @@ library from "package:flutter/src/cupertino/interface_level.dart" as int {
     synthetic constructor •() → int::CupertinoUserInterfaceLevel
       : super fra::InheritedWidget::•()
       ;
+    static method _#new#tearOff() → int::CupertinoUserInterfaceLevel
+      return new int::CupertinoUserInterfaceLevel::•();
   }
 }
 library from "package:flutter/src/widgets/framework.dart" as fra {

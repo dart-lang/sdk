@@ -7,6 +7,8 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
   method _privateMethod(core::int i) → dynamic {}
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
 }
 static method main() → dynamic {
   new self::Class::•().{self::Class::_privateMethod}(0){(core::int) → dynamic};
