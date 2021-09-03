@@ -7,7 +7,7 @@
 # Use ./main.star to regenerate the Luci configuration based on this file.
 #
 # Documentation for lucicfg is here:
-# https://chromium.googlesource.com/infra/luci/luci-go/+/master/lucicfg/doc/
+# https://chromium.googlesource.com/infra/luci/luci-go/+/main/lucicfg/doc/
 """
 Generates the Luci configuration for the Dart project.
 """
@@ -472,7 +472,7 @@ luci.cq_group(
 
 luci.cq_group(
     name = "recipes",
-    watch = cq.refset(DART_GERRIT + "recipes", refs = ["refs/heads/master"]),
+    watch = cq.refset(DART_GERRIT + "recipes", refs = ["refs/heads/main"]),
     allow_submit_with_open_deps = True,
     tree_status_host = "dart-status.appspot.com",
     retry_config = cq.RETRY_NONE,
@@ -1793,7 +1793,7 @@ def chromium_infra_recipe(name):
         name = name,
         cipd_package =
             "infra/recipe_bundles/chromium.googlesource.com/infra/infra",
-        cipd_version = "git_revision:e1a6b1a375a07455c00cc236d2b52277aa46ea84",
+        cipd_version = "git_revision:ea071f071a42ea43d0064e3eea77d1daaaee0ecf",
         use_bbagent = True,
     )
 
@@ -1819,15 +1819,15 @@ dart_infra_builder(
     execution_timeout = 5 * time.minute,
     properties = {
         # This property controls the version of the recipe_bundler go tool:
-        #   https://chromium.googlesource.com/infra/infra/+/master/go/src/infra/tools/recipe_bundler
-        "recipe_bundler_vers": "git_revision:e1a6b1a375a07455c00cc236d2b52277aa46ea84",
+        #   https://chromium.googlesource.com/infra/infra/+/main/go/src/infra/tools/recipe_bundler
+        "recipe_bundler_vers": "git_revision:ea071f071a42ea43d0064e3eea77d1daaaee0ecf",
         # These control the prefix of the CIPD package names that the tool
         # will create.
         "package_name_prefix": "dart/recipe_bundles",
         "package_name_internal_prefix": "dart_internal/recipe_bundles",
         # Where to grab the recipes to bundle.
         "repo_specs": [
-            "dart.googlesource.com/recipes=FETCH_HEAD,refs/heads/master",
+            "dart.googlesource.com/recipes=FETCH_HEAD,refs/heads/main",
         ],
     },
     schedule = "*/30 * * * *",
@@ -1836,7 +1836,7 @@ dart_infra_builder(
             name = "recipes-dart",
             bucket = "ci",
             repo = "https://dart.googlesource.com/recipes",
-            refs = ["refs/heads/master"],
+            refs = ["refs/heads/main"],
         ),
     ],
 )
