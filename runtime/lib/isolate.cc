@@ -662,7 +662,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     parent_isolate_ = nullptr;
 
     if (isolate == nullptr) {
-      FailedSpawn(error);
+      FailedSpawn(error, false);
       free(error);
       return;
     }
@@ -701,6 +701,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
 
     if (!success) {
+      state_ = nullptr;
       Dart_ShutdownIsolate();
       return;
     }
@@ -811,11 +812,25 @@ class SpawnIsolateTask : public ThreadPool::Task {
     return true;
   }
 
-  void FailedSpawn(const char* error) {
+  void FailedSpawn(const char* error, bool has_current_isolate = true) {
     ReportError(error != nullptr
                     ? error
                     : "Unknown error occured during Isolate spawning.");
-    state_ = nullptr;
+    // Destruction of [IsolateSpawnState] may cause destruction of [Message]
+    // which make need to delete persistent handles (which requires a current
+    // isolate group).
+    if (has_current_isolate) {
+      ASSERT(IsolateGroup::Current() == state_->isolate_group());
+      state_ = nullptr;
+    } else {
+      ASSERT(IsolateGroup::Current() == nullptr);
+      const bool kBypassSafepoint = false;
+      const bool result = Thread::EnterIsolateGroupAsHelper(
+          state_->isolate_group(), Thread::kUnknownTask, kBypassSafepoint);
+      ASSERT(result);
+      state_ = nullptr;
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+    }
   }
 
   void ReportError(const char* error) {
