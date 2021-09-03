@@ -23,7 +23,7 @@ class ConstructorReferenceResolution_TypeArgsTest
   test_alias_generic_const() async {
     await assertNoErrorsInCode('''
 class A<T, U> {
-  A.foo();
+  const A.foo();
 }
 typedef TA<T, U> = A<U, T>;
 

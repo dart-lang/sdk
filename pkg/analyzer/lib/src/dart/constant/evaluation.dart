@@ -1043,7 +1043,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
     } else {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1108,7 +1109,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   DartObjectImpl? visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     if (!node.isConst) {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1209,7 +1211,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
       }
     }
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }
@@ -1220,7 +1223,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitNode(AstNode node) {
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }
@@ -1274,7 +1278,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (node.operator.type == TokenType.MINUS) {
       return _dartObjectComputer.negated(node, operand);
     } else {
-      // TODO(brianwilkerson) Figure out which error to report.
+      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+      // error code.
       _error(node, null);
       return null;
     }
@@ -1655,7 +1660,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       // Constants may not refer to type parameters.
     }
 
-    // TODO(brianwilkerson) Figure out which error to report.
+    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
+    // error code.
     _error(node, null);
     return null;
   }
