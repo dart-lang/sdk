@@ -48,7 +48,7 @@ class DevCompilerTarget extends Target {
   bool get supportsExplicitGetterCalls => false;
 
   @override
-  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.none;
+  int get enabledConstructorTearOffLowerings => ConstructorTearOffLowering.all;
 
   @override
   String get name => 'dartdevc';

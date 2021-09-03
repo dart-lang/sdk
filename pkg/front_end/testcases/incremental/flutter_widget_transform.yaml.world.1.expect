@@ -40,6 +40,8 @@ library from "package:flutter/src/widgets/widget_inspector.dart" as wid {
     const constructor •({dart.core::String* file = #C1, dart.core::int* line = #C1, dart.core::int* column = #C1, dart.core::String* name = #C1, dart.core::List<wid::_Location*>* parameterLocations = #C1}) → wid::_Location*
       : wid::_Location::file = file, wid::_Location::line = line, wid::_Location::column = column, wid::_Location::name = name, wid::_Location::parameterLocations = parameterLocations, super dart.core::Object::•()
       ;
+    static method _#new#tearOff({dart.core::String* file = #C1, dart.core::int* line = #C1, dart.core::int* column = #C1, dart.core::String* name = #C1, dart.core::List<wid::_Location*>* parameterLocations = #C1}) → wid::_Location*
+      return new wid::_Location::•(file: file, line: line, column: column, name: name, parameterLocations: parameterLocations);
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
@@ -56,8 +58,15 @@ library from "org-dartlang-test:///main.dart" as main {
     synthetic constructor •({wid::_Location* $creationLocationd_0dea112b090073317d4 = #C1}) → main::Foo*
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
+    static method _#new#tearOff() → main::Foo*
+      return new main::Foo::•($creationLocationd_0dea112b090073317d4: #C6);
   }
 }
 constants  {
   #C1 = null
+  #C2 = "org-dartlang-test:///main.dart"
+  #C3 = 5.0
+  #C4 = 7.0
+  #C5 = "Foo"
+  #C6 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C5, parameterLocations:#C1}
 }

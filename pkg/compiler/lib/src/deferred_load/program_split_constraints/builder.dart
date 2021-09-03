@@ -28,6 +28,14 @@ class Constraint {
   /// Imports which load before [import].
   final Set<Constraint> predecessors = {};
 
+  /// Whether or not this [ConstraintNode] should always apply transitions as
+  /// opposed to conditionally applying transitions.
+  bool get alwaysApplyTransitions {
+    return combinerType == null ||
+        combinerType == CombinerType.and ||
+        combinerType == CombinerType.fuse;
+  }
+
   Constraint(this.name, this.imports, this.combinerType) {
     assert((this.imports.length == 1 && combinerType == null) ||
         (this.imports.length > 1 && combinerType != null));
@@ -65,10 +73,9 @@ class Builder {
 
   Builder(this.nodes);
 
-  /// Builds a map of transitions which can be applied by an [ImportSetLattice]
-  /// when generating [ImportSet]s.
-  Map<ImportEntity, Set<ImportEntity>> buildTransitionsMap(
-      Iterable<ImportEntity> imports) {
+  /// Builds [ProgramSplitConstraints]  which can be applied by an
+  /// [ImportSetLattice] when generating [ImportSet]s.
+  ProgramSplitConstraints build(Iterable<ImportEntity> imports) {
     // 1) Create a map of uri#prefix to [ImportEntity].
     Map<Uri, Map<String, ImportEntity>> importsByUriAndPrefix = {};
     for (var import in imports) {
@@ -126,7 +133,8 @@ class Builder {
     // transitiveTransitions, where each key is a parent [ImportEntity] and each
     // value represents the transitive set of child [ImportEntity]s which are
     // always loaded after the parent.
-    Map<ImportEntity, Set<ImportEntity>> transitiveTransitions = {};
+    Map<ImportEntity, Set<ImportEntity>> singletonTransitions = {};
+    Map<Constraint, SetTransition> setTransitions = {};
     Queue<_WorkItem> queue = Queue.from(nodeToConstraintMap.values
         .where((node) => node.successors.isEmpty)
         .map((node) => _WorkItem(node)));
@@ -138,18 +146,29 @@ class Builder {
       // Update [transitiveTransitions] with reachable transitions for this
       // [_WorkItem]
       var transitiveChildren = item.transitiveChildren;
-      for (var import in imports) {
-        // We insert an implicit 'self' transition for every import.
-        var transitions = transitiveTransitions[import] ??= {import};
 
-        // In the case of [CombinerType.fuse], the nodes in the
-        // [Constraint] form a strongly connected component,
-        // i.e. [ImportEntity]s that are always part of a
-        // single [ImportSet].
-        if (constraint.combinerType == CombinerType.fuse) {
-          transitions.addAll(imports);
+      // We only add singletonTransitions for a given [ImportEntity] when it is
+      // guaranteed to dominate another [ImportEntity]. Some nodes such as 'or'
+      // nodes do not have this property.
+      if (constraint.alwaysApplyTransitions) {
+        for (var import in imports) {
+          // We insert an implicit 'self' transition for every import.
+          var transitions = singletonTransitions[import] ??= {import};
+
+          // In the case of [CombinerType.fuse], the nodes in the
+          // [Constraint] form a strongly connected component,
+          // i.e. [ImportEntity]s that are always part of a
+          // single [ImportSet].
+          if (constraint.combinerType == CombinerType.fuse) {
+            transitions.addAll(imports);
+          }
+          transitions.addAll(transitiveChildren);
         }
-        transitions.addAll(transitiveChildren);
+      } else {
+        assert(constraint.combinerType == CombinerType.or);
+        var setTransition =
+            setTransitions[constraint] ??= SetTransition(constraint.imports);
+        setTransition.transitions.addAll(transitiveChildren);
       }
 
       // Propagate constraints transitively to the parent.
@@ -162,6 +181,34 @@ class Builder {
             transitiveChildren: predecessorTransitiveChildren));
       }
     }
-    return transitiveTransitions;
+    return ProgramSplitConstraints(
+        singletonTransitions, setTransitions.values.toList());
   }
+}
+
+/// A [SetTransition] is a set of [ImportEntity] transitions which can only be
+/// applied when all of the [ImportEntity]s in a given [source] are present in a
+/// given [ImportSet].
+class SetTransition {
+  /// The [Set<ImportEntity>] which, if present in a given [ImportSet] means
+  /// [transitions] should be applied.
+  final Set<ImportEntity> source;
+
+  /// The [Set<ImportEntity>] which is applied if [source] is present in a
+  /// given [ImportSet].
+  final Set<ImportEntity> transitions = {};
+
+  SetTransition(this.source);
+}
+
+/// [ProgramSplitConstraints] is a holder for transitions which should be
+/// applied while splitting a program.
+class ProgramSplitConstraints {
+  /// Transitions which apply when a singleton [ImportEntity] is present.
+  final Map<ImportEntity, Set<ImportEntity>> singletonTransitions;
+
+  /// Transitions which apply only when a set of [ImportEntity]s is present.
+  final List<SetTransition> setTransitions;
+
+  ProgramSplitConstraints(this.singletonTransitions, this.setTransitions);
 }

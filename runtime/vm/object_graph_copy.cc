@@ -1710,7 +1710,12 @@ class ObjectGraphCopier {
     thread_->isolate()->set_forward_table_old(nullptr);
   }
 
-  // Result will be [<msg>, <objects-in-msg-to-rehash>]
+  // Result will be
+  //   [
+  //     <message>,
+  //     <collection-lib-objects-to-rehash>,
+  //     <core-lib-objects-to-rehash>,
+  //   ]
   ObjectPtr CopyObjectGraph(const Object& root) {
     const char* volatile exception_msg = nullptr;
     auto& result = Object::Handle(zone_);

@@ -2681,12 +2681,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
-  if (isolate_group_ != nullptr) {
-    if (isolate_group_->source()->loaded_blobs_ != nullptr) {
-      visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
-          &(isolate_group_->source()->loaded_blobs_)));
-    }
-  }
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<ObjectPtr*>(&pending_service_extension_calls_));
@@ -2889,6 +2883,11 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
         visitor);
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  if (source()->loaded_blobs_ != nullptr) {
+    visitor->VisitPointer(
+        reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+  }
 }
 
 void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,

@@ -145,4 +145,14 @@ class AlgorithmState {
       queue.processNextItem(this);
     }
   }
+
+  /// Processes each [ImportSet], applying [SetTransition]s if their
+  /// prerequisites are met.
+  void applySetTransitions() {
+    var imports = entityToSet.values.toSet();
+    var finalTransitions = importSets.computeFinalTransitions(imports);
+    for (var key in entityToSet.keys) {
+      entityToSet[key] = finalTransitions[entityToSet[key]];
+    }
+  }
 }

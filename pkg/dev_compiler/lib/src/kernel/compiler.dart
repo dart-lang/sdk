@@ -8,6 +8,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:math' show max, min;
 
+import 'package:front_end/src/fasta/kernel/constructor_tearoff_lowering.dart'
+    show isTearOffLowering;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -1934,11 +1936,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       fn = _emitFunction(member.function, member.name.text);
     }
 
-    return js_ast.Method(_declareMemberName(member), fn,
+    var method = js_ast.Method(_declareMemberName(member), fn,
         isGetter: member.isGetter,
         isSetter: member.isSetter,
-        isStatic: member.isStatic)
-      ..sourceInformation = _nodeEnd(member.fileEndOffset);
+        isStatic: member.isStatic);
+
+    if (isTearOffLowering(member)) {
+      // Remove all source information from static methods introduced by the
+      // constructor tearoff CFE lowering.
+      method.accept(js_ast.SourceInformationClearer());
+    } else {
+      method.sourceInformation = _nodeEnd(member.fileEndOffset);
+    }
+
+    return method;
   }
 
   js_ast.Fun _emitNativeFunctionBody(Procedure node) {
@@ -2398,7 +2409,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Static members skip the rename steps and may require JS interop renames.
     if (isStatic) {
       var memberName = _emitStaticMemberName(name, member);
-      memberNames[member] = memberName.valueWithoutQuotes;
+      if (!isTearOffLowering(member)) {
+        // No need to track the names of methods that were created by the CFE
+        // lowering and don't exist in the original source code.
+        memberNames[member] = memberName.valueWithoutQuotes;
+      }
       return memberName;
     }
 

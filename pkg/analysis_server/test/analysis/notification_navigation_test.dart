@@ -75,9 +75,10 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
   /// Validates that there is an identifier region at [regionSearch] with target
   /// at [targetSearch].
-  void assertHasRegionTarget(String regionSearch, String targetSearch) {
+  void assertHasRegionTarget(String regionSearch, String targetSearch,
+      {int targetLength = -1}) {
     assertHasRegion(regionSearch);
-    assertHasTarget(targetSearch);
+    assertHasTarget(targetSearch, targetLength);
   }
 
   /// Validates that there is a target in [testTargets]  with [testFile], at the
@@ -389,6 +390,62 @@ class BBB {}
     assertHasTarget('A(BBB', 0);
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
+  }
+
+  Future<void> test_constructorReference_named() async {
+    addTestFile('''
+class A {}
+class B<T> {
+  B.named();
+}
+void f() {
+  B<A>.named;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('B<A>.named;', 'named();');
+    assertHasRegionTarget('named;', 'named();');
+    assertHasRegionTarget('A>', 'A {}');
+  }
+
+  Future<void> test_constructorReference_unnamed_declared() async {
+    addTestFile('''
+class A {
+  A();
+}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'A();', targetLength: 0);
+    assertHasRegionTarget('new;', 'A();', targetLength: 0);
+  }
+
+  Future<void> test_constructorReference_unnamed_declared_new() async {
+    addTestFile('''
+class A {
+  A.new();
+}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'new();');
+    assertHasRegionTarget('new;', 'new();');
+  }
+
+  Future<void> test_constructorReference_unnamed_default() async {
+    addTestFile('''
+class A {}
+void f() {
+  A.new;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('A.new;', 'A {}');
+    assertHasRegionTarget('new;', 'A {}');
   }
 
   Future<void> test_enum_constant() async {
