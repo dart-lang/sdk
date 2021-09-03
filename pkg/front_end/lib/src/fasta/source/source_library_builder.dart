@@ -715,7 +715,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     String? nativePath;
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
-      addProblem(messageDeprecateDartExt, charOffset, noLength, fileUri);
+      addProblem(messageUnsupportedDartExt, charOffset, noLength, fileUri);
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
         resolvedUri = resolve(this.importUri, strippedUri,
