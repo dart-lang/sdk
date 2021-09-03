@@ -642,6 +642,92 @@ class AAA {
     assertNoRegion('fff);', 3);
   }
 
+  Future<void> test_functionReference_className_staticMethod() async {
+    addTestFile('''
+class A {
+  static void foo<T>() {}
+}
+void f() {
+  A.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_function() async {
+    addTestFile('''
+class A {}
+void foo<T>() {}
+void f() {
+  foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_importPrefix_function() async {
+    newFile(join(testFolder, 'a.dart'), content: r'''
+void foo<T>() {}
+''');
+    addTestFile('''
+import 'a.dart' as prefix;
+class A {}
+void f() {
+  prefix.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('prefix.', 'prefix;');
+    assertHasRegion('foo<A>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_instance_method() async {
+    addTestFile('''
+class A {
+  void foo<T>() {}
+}
+void f(A a) {
+  a.foo<A>;
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_method() async {
+    addTestFile('''
+class A {
+  void foo<T>() {}
+  void f() {
+    foo<A>;
+  }
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
+  Future<void> test_functionReference_staticMethod() async {
+    addTestFile('''
+class A {
+  static void foo<T>() {}
+  void f() {
+    foo<A>;
+  }
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('foo<A>', 'foo<T>');
+    assertHasRegionTarget('A>', 'A {');
+  }
+
   Future<void> test_identifier_resolved() async {
     addTestFile('''
 class AAA {}
