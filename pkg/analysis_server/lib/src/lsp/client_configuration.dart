@@ -170,4 +170,12 @@ class LspResourceClientConfiguration {
   /// If null, the formatters default will be used.
   int? get lineLength =>
       _settings['lineLength'] as int? ?? _fallback?.lineLength;
+
+  /// Whether to rename files when renaming classes inside them where the file
+  /// and class name match.
+  ///
+  /// Values are "always", "prompt", "never". Any other values should be treated
+  /// like "never".
+  String get renameFilesWithClasses =>
+      _settings['renameFilesWithClasses'] as String? ?? 'never';
 }

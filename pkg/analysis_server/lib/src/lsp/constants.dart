@@ -218,6 +218,8 @@ abstract class ServerErrorCodes {
 
 /// Strings used in user prompts (window/showMessageRequest).
 abstract class UserPromptActions {
+  static const String yes = 'Yes';
+  static const String no = 'No';
   static const String cancel = 'Cancel';
   static const String renameAnyway = 'Rename Anyway';
 }

@@ -679,7 +679,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       change.map(
         (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
         (create) => applyResourceCreate(oldFileContent, create),
-        (rename) => throw 'applyResourceChanges:Delete not currently supported',
+        (rename) => applyResourceRename(oldFileContent, rename),
         (delete) => throw 'applyResourceChanges:Delete not currently supported',
       );
     }
@@ -692,6 +692,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       throw 'Recieved create instruction for $path which already existed.';
     }
     oldFileContent[path] = '';
+  }
+
+  void applyResourceRename(
+      Map<String, String> oldFileContent, RenameFile rename) {
+    final oldPath = Uri.parse(rename.oldUri).toFilePath();
+    final newPath = Uri.parse(rename.newUri).toFilePath();
+    if (!oldFileContent.containsKey(oldPath)) {
+      throw 'Recieved rename instruction for $oldPath which did not exist.';
+    }
+    oldFileContent[newPath] = oldFileContent[oldPath]!;
+    oldFileContent.remove(oldPath);
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
@@ -1474,12 +1485,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
-  Future<ResponseMessage> provideConfig(
-    Future<ResponseMessage> Function() f,
+  Future<T> provideConfig<T>(
+    Future<T> Function() f,
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
-    return handleExpectedRequest<ResponseMessage, ConfigurationParams,
+    return handleExpectedRequest<T, ConfigurationParams,
         List<Map<String, Object?>>>(
       Method.workspace_configuration,
       ConfigurationParams.fromJson,

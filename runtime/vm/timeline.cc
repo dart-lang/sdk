@@ -1052,6 +1052,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
@@ -1062,7 +1063,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
       OS::SCreate(NULL, "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
-    OS::PrintErr("Failed to write timeline file: %s\n", filename);
+    OS::PrintErr("warning: Failed to write timeline file: %s\n", filename);
     free(filename);
     return;
   }

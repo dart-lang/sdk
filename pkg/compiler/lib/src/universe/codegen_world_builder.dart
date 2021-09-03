@@ -409,7 +409,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   void processClassMembers(ClassEntity cls, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
       _processInstantiatedClassMember(cls, member, memberUsed,
@@ -419,7 +419,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
 
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     if (!member.isInstanceMember) return;
     EnumSet<MemberUse> useSet = EnumSet<MemberUse>();
     MemberUsage usage = _getMemberUsage(member, useSet);
@@ -434,7 +434,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   MemberUsage _getMemberUsage(MemberEntity member, EnumSet<MemberUse> useSet,
-      {bool checkEnqueuerConsistency: false}) {
+      {bool checkEnqueuerConsistency = false}) {
     // TODO(johnniwinther): Change [TypeMask] to not apply to a superclass
     // member unless the class has been instantiated. Similar to
     // [StrongModeConstraint].

@@ -494,8 +494,7 @@ static ObjectPtr ExecRaw(const RegExp& regexp,
       TypedData::Handle(zone, regexp.bytecode(is_one_byte, sticky));
   ASSERT(!bytecode.IsNull());
   const Object& result = Object::Handle(
-      zone,
-      IrregexpInterpreter::Match(bytecode, subject, raw_output, index, zone));
+      zone, IrregexpInterpreter::Match(bytecode, subject, raw_output, index));
 
   if (result.ptr() == Bool::True().ptr()) {
     // Copy capture results to the start of the registers array.
@@ -503,11 +502,7 @@ static ObjectPtr ExecRaw(const RegExp& regexp,
   }
   if (result.ptr() == Object::null()) {
     // Exception during regexp processing
-    Thread* thread = Thread::Current();
-    auto isolate_group = thread->isolate_group();
-    const Instance& exception =
-        Instance::Handle(isolate_group->object_store()->stack_overflow());
-    Exceptions::Throw(thread, exception);
+    Exceptions::ThrowStackOverflow();
     UNREACHABLE();
   }
   return result.ptr();

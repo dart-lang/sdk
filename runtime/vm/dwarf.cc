@@ -650,16 +650,17 @@ void Dwarf::WriteSyntheticLineNumberProgram(LineNumberProgramWriter* writer) {
   auto file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
   TextBuffer comments_buffer(128 * KB);
 
-  auto comments_file = file_open(
-      FLAG_write_code_comments_as_synthetic_source_to, /*write=*/true);
+  const char* filename = FLAG_write_code_comments_as_synthetic_source_to;
+  void* comments_file = file_open(filename, /*write=*/true);
   if (comments_file == nullptr) {
-    OS::PrintErr("Failed to open file %s\n",
-                 FLAG_write_code_comments_as_synthetic_source_to);
+    OS::PrintErr("warning: Failed to write code comments source: %s\n",
+                 filename);
     return;
   }
 

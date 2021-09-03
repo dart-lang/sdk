@@ -221,6 +221,7 @@ abstract class AbstractAnalysisServer {
     contextManager = ContextManagerImpl(
       resourceProvider,
       sdkManager,
+      options.packagesFile,
       byteStore,
       fileContentCache,
       analysisPerformanceLogger,

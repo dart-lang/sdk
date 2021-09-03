@@ -118,7 +118,162 @@ class RenameTest extends AbstractLspAnalysisServerTest {
         content, 'MyNewClass', expectedContent);
   }
 
-  Future<void> test_rename_classNewKeyword() async {
+  Future<void> test_rename_class_doesNotRenameFileIfDisabled() async {
+    const content = '''
+    class Main {}
+    final a = new [[Ma^in]]();
+    ''';
+    const expectedContent = '''
+    class MyNewMain {}
+    final a = new MyNewMain();
+    ''';
+    final contents = await _test_rename_withDocumentChanges(
+        content, 'MyNewMain', expectedContent);
+    // Ensure the only file is still called main.dart.
+    expect(contents.keys.single, equals(mainFilePath));
+  }
+
+  Future<void> test_rename_class_doesRenameFileAfterPrompt() async {
+    const content = '''
+    class Main {}
+    final a = new [[Ma^in]]();
+    ''';
+    const expectedContent = '''
+    class MyNewMain {}
+    final a = new MyNewMain();
+    ''';
+    final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+
+    /// Helper that performs the rename and tests the results. Passed below to
+    /// provideConfig() so we can wrap this with handlers to provide the
+    /// required config.
+    Future<void> testRename() async {
+      final contents = await _test_rename_withDocumentChanges(
+        content,
+        'MyNewMain',
+        expectedContent,
+        expectedFilePath: newMainFilePath,
+        workspaceCapabilities: withConfigurationSupport(
+            withResourceOperationKinds(emptyWorkspaceClientCapabilities,
+                [ResourceOperationKind.Rename])),
+      );
+      // Ensure we now only have the newly-renamed file and not the old one
+      // (its contents will have been checked by the function above).
+      expect(contents.keys.single, equals(newMainFilePath));
+    }
+
+    /// Helper that will respond to the window/showMessageRequest request from
+    /// the server when prompted about renaming the file.
+    Future<MessageActionItem> promptHandler(
+        ShowMessageRequestParams params) async {
+      // Ensure the prompt is as expected.
+      expect(params.type, equals(MessageType.Info));
+      expect(
+          params.message, equals("Rename 'main.dart' to 'my_new_main.dart'?"));
+      expect(params.actions, hasLength(2));
+      expect(params.actions![0],
+          equals(MessageActionItem(title: UserPromptActions.yes)));
+      expect(params.actions![1],
+          equals(MessageActionItem(title: UserPromptActions.no)));
+
+      // Respond to the request with the required action.
+      return params.actions!.first;
+    }
+
+    // Run the test and provide the config + prompt handling function.
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      () => provideConfig(
+        testRename,
+        {'renameFilesWithClasses': 'prompt'},
+      ),
+      handler: promptHandler,
+    );
+  }
+
+  Future<void> test_rename_class_doesRenameFileIfAlwaysEnabled() async {
+    const content = '''
+    class Main {}
+    final a = new [[Ma^in]]();
+    ''';
+    const expectedContent = '''
+    class MyNewMain {}
+    final a = new MyNewMain();
+    ''';
+    final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+    await provideConfig(
+      () async {
+        final contents = await _test_rename_withDocumentChanges(
+          content,
+          'MyNewMain',
+          expectedContent,
+          expectedFilePath: newMainFilePath,
+          workspaceCapabilities: withConfigurationSupport(
+              withResourceOperationKinds(emptyWorkspaceClientCapabilities,
+                  [ResourceOperationKind.Rename])),
+        );
+        // Ensure we now only have the newly-renamed file and not the old one
+        // (its contents will have been checked by the function above).
+        expect(contents.keys.single, equals(newMainFilePath));
+      },
+      {'renameFilesWithClasses': 'always'},
+    );
+  }
+
+  Future<void> test_rename_class_doesRenameFileIfRenamedFromAnother() async {
+    const mainContent = '''
+    class Main {}
+    ''';
+    const otherContent = '''
+    import 'main.dart';
+
+    final a = Ma^in();
+    ''';
+    const expectedContent = '''
+    class MyNewMain {}
+    ''';
+    // Since we don't actually perform the file rename (we only include an
+    // instruction for the client to do so), the import will not be updated
+    // by us. Instead, the client will send the rename event back to the server
+    // and it would be handled normally as if the user had done it locally.
+    const expectedOtherContent = '''
+    import 'main.dart';
+
+    final a = MyNewMain();
+    ''';
+    final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    final newMainFilePath = join(projectFolderPath, 'lib', 'my_new_main.dart');
+    newFile(mainFilePath, content: withoutMarkers(mainContent));
+    await pumpEventQueue(times: 5000);
+    await provideConfig(
+      () async {
+        final contents = await _test_rename_withDocumentChanges(
+          otherContent,
+          'MyNewMain',
+          expectedOtherContent,
+          filePath: otherFilePath,
+          contents: {
+            otherFilePath: otherContent,
+            mainFilePath: mainContent,
+          },
+          workspaceCapabilities: withConfigurationSupport(
+              withResourceOperationKinds(emptyWorkspaceClientCapabilities,
+                  [ResourceOperationKind.Rename])),
+        );
+        // Expect that main was renamed to my_new_main and the other file was
+        // updated.
+        expect(contents.containsKey(mainFilePath), isFalse);
+        expect(contents.containsKey(newMainFilePath), isTrue);
+        expect(contents.containsKey(otherFilePath), isTrue);
+        expect(contents[newMainFilePath], expectedContent);
+        expect(contents[otherFilePath], expectedOtherContent);
+      },
+      {'renameFilesWithClasses': 'always'},
+    );
+  }
+
+  Future<void> test_rename_classNewKeyword() {
     const content = '''
     class MyClass {}
     final a = n^ew MyClass();
@@ -306,6 +461,30 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
     expect(contents[mainFilePath], equals(expectedMainContent));
     expect(contents[referencedFilePath], equals(expectedReferencedContent));
+  }
+
+  Future<void> test_rename_nonClass_doesNotRenameFile() async {
+    const content = '''
+    final Ma^in = 'test';
+    ''';
+    const expectedContent = '''
+    final MyNewMain = 'test';
+    ''';
+    await provideConfig(
+      () async {
+        final contents = await _test_rename_withDocumentChanges(
+          content,
+          'MyNewMain',
+          expectedContent,
+          workspaceCapabilities: withConfigurationSupport(
+              withResourceOperationKinds(emptyWorkspaceClientCapabilities,
+                  [ResourceOperationKind.Rename])),
+        );
+        // Ensure the only file is still called main.dart.
+        expect(contents.keys.single, equals(mainFilePath));
+      },
+      {'renameFilesWithClasses': 'always'},
+    );
   }
 
   Future<void> test_rename_rejectedForBadName() async {
@@ -533,44 +712,56 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  Future<void> _test_rename_withDocumentChanges(
+  Future<Map<String, String>> _test_rename_withDocumentChanges(
     String content,
     String newName,
     String? expectedContent, {
-    sendRenameVersion = true,
+    String? filePath,
+    String? expectedFilePath,
+    bool sendRenameVersion = true,
+    ClientCapabilitiesWorkspace? workspaceCapabilities,
+    Map<String, String>? contents,
   }) async {
+    contents ??= {};
+    filePath ??= mainFilePath;
+    expectedFilePath ??= filePath;
+    final fileUri = Uri.file(filePath);
+
     // The specific number doesn't matter here, it's just a placeholder to confirm
     // the values match.
     final documentVersion = 222;
+    contents[filePath] = withoutMarkers(content);
+    final documentVersions = {
+      filePath: documentVersion,
+    };
+
+    final initialAnalysis = waitForAnalysisComplete();
     await initialize(
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+      workspaceCapabilities: withDocumentChangesSupport(
+          workspaceCapabilities ?? emptyWorkspaceClientCapabilities),
     );
-    await openFile(mainFileUri, withoutMarkers(content),
-        version: documentVersion);
+    await openFile(fileUri, withoutMarkers(content), version: documentVersion);
+    await initialAnalysis;
 
     final result = await rename(
-      mainFileUri,
+      fileUri,
       sendRenameVersion ? documentVersion : null,
       positionFromMarker(content),
       newName,
     );
+
     if (expectedContent == null) {
       expect(result, isNull);
     } else {
       // Ensure applying the changes will give us the expected content.
-      final contents = {
-        mainFilePath: withoutMarkers(content),
-      };
-      final documentVersions = {
-        mainFilePath: documentVersion,
-      };
       applyDocumentChanges(
         contents,
         result!.documentChanges!,
         expectedVersions: documentVersions,
       );
-      expect(contents[mainFilePath], equals(expectedContent));
+      expect(contents[expectedFilePath], equals(expectedContent));
     }
+
+    return contents;
   }
 }

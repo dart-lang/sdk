@@ -15,7 +15,8 @@ namespace dart {
 template <typename KeyValueTrait, typename B, typename Allocator = Zone>
 class BaseDirectChainedHashMap : public B {
  public:
-  explicit BaseDirectChainedHashMap(Allocator* allocator)
+  explicit BaseDirectChainedHashMap(Allocator* allocator,
+                                    intptr_t initial_size = kInitialSize)
       : array_size_(0),
         lists_size_(0),
         count_(0),
@@ -23,8 +24,9 @@ class BaseDirectChainedHashMap : public B {
         lists_(NULL),
         free_list_head_(kNil),
         allocator_(allocator) {
-    ResizeLists(kInitialSize);
-    Resize(kInitialSize);
+    ASSERT(Utils::IsPowerOfTwo(initial_size));
+    ResizeLists(initial_size);
+    Resize(initial_size);
   }
 
   BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other);
@@ -407,9 +409,12 @@ class DirectChainedHashMap
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
             ASSERT_NOTNULL(ThreadState::Current()->zone())) {}
 
-  explicit DirectChainedHashMap(Zone* zone)
+  explicit DirectChainedHashMap(
+      Zone* zone,
+      intptr_t initial_size = DirectChainedHashMap::kInitialSize)
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-            ASSERT_NOTNULL(zone)) {}
+            ASSERT_NOTNULL(zone),
+            initial_size) {}
 
   // There is a current use of the copy constructor in CSEInstructionMap
   // (compiler/backend/redundancy_elimination.cc), so work is needed if we
@@ -425,9 +430,11 @@ template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc> {
  public:
-  MallocDirectChainedHashMap()
-      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(NULL) {
-  }
+  MallocDirectChainedHashMap(
+      intptr_t initial_size = MallocDirectChainedHashMap::kInitialSize)
+      : BaseDirectChainedHashMap<KeyValueTrait, MallocAllocated, Malloc>(
+            NULL,
+            initial_size) {}
 
   // The only use of the copy constructor seems to be in hash_map_test.cc.
   // Not disallowing it for now just in case there are other users.
@@ -446,8 +453,12 @@ class ZoneDirectChainedHashMap
   ZoneDirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
             ThreadState::Current()->zone()) {}
-  explicit ZoneDirectChainedHashMap(Zone* zone)
-      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(zone) {}
+  explicit ZoneDirectChainedHashMap(
+      Zone* zone,
+      intptr_t initial_size = ZoneDirectChainedHashMap::kInitialSize)
+      : BaseDirectChainedHashMap<KeyValueTrait, ZoneAllocated, Zone>(
+            zone,
+            initial_size) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneDirectChainedHashMap);

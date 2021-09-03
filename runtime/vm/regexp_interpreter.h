@@ -21,8 +21,7 @@ class IrregexpInterpreter : public AllStatic {
   static ObjectPtr Match(const TypedData& bytecode,
                          const String& subject,
                          int32_t* captures,
-                         intptr_t start_position,
-                         Zone* zone);
+                         intptr_t start_position);
 };
 
 }  // namespace dart

@@ -213,8 +213,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // closure cannot have parameters
     if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
       var message = format(
-          'Cannot extract closure as method, it references {0} external variable(s).',
-          _parameters.length);
+          'Cannot extract closure as method, it references {0} external variable{1}.',
+          _parameters.length,
+          _parameters.length == 1 ? '' : 's');
       return RefactoringStatus.fatal(message);
     }
     return result;

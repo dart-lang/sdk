@@ -29,7 +29,6 @@
   V(Code)                                                                      \
   V(CodeSourceMap)                                                             \
   V(CompressedStackMaps)                                                       \
-  V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(DynamicLibrary)                                                            \
   V(Error)                                                                     \
@@ -138,7 +137,7 @@ static ObjectPtr Marker() {
 }
 
 DART_FORCE_INLINE
-static bool CanShareObject(uword tags) {
+static bool CanShareObject(ObjectPtr obj, uword tags) {
   if ((tags & UntaggedObject::CanonicalBit::mask_in_place()) != 0) {
     return true;
   }
@@ -163,6 +162,11 @@ static bool CanShareObject(uword tags) {
   if (cid == kSendPortCid) return true;
   if (cid == kCapabilityCid) return true;
   if (cid == kRegExpCid) return true;
+
+  if (cid == kClosureCid) {
+    // We can share a closure iff it doesn't close over any state.
+    return Closure::RawCast(obj)->untag()->context() == Object::null();
+  }
 
   return false;
 }
@@ -259,6 +263,9 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   if (cid == kArrayCid) {
     static_cast<UntaggedArray*>(to.untag())->length_ =
         static_cast<UntaggedArray*>(from.untag())->length_;
+  } else if (cid == kContextCid) {
+    static_cast<UntaggedContext*>(to.untag())->num_variables_ =
+        static_cast<UntaggedContext*>(from.untag())->num_variables_;
   } else if (IsTypedDataClassId(cid)) {
     static_cast<UntaggedTypedDataBase*>(to.untag())->length_ =
         static_cast<UntaggedTypedDataBase*>(from.untag())->length_;
@@ -579,33 +586,18 @@ class ObjectCopyBase {
   }
 
     switch (cid) {
-      HANDLE_ILLEGAL_CASE(FunctionType)
+      // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
+      // those are the only non-abstract classes (so we avoid checking more cids
+      // here that cannot happen in reality)
       HANDLE_ILLEGAL_CASE(DynamicLibrary)
-      HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(Pointer)
+      HANDLE_ILLEGAL_CASE(FfiDynamicLibrary)
+      HANDLE_ILLEGAL_CASE(FfiPointer)
+      HANDLE_ILLEGAL_CASE(FunctionType)
+      HANDLE_ILLEGAL_CASE(MirrorReference)
       HANDLE_ILLEGAL_CASE(ReceivePort)
       HANDLE_ILLEGAL_CASE(StackTrace)
       HANDLE_ILLEGAL_CASE(UserTag)
-#define CASE(type) case kFfi##type##Cid:
-      CLASS_LIST_FFI(CASE)
-#undef CASE
-      exception_msg_ =
-          "Native objects (from dart:ffi) such as Pointers and "
-          "Structs cannot be passed between isolates.";
-      return false;
-      case kClosureCid: {
-        if (!Function::IsImplicitStaticClosureFunction(
-                Closure::FunctionOf(Closure::RawCast(object)))) {
-          exception_msg_ = OS::SCreate(
-              zone_,
-              "Illegal argument in isolate message: (object is a closure - %s)",
-              Function::Handle(Closure::FunctionOf(Closure::RawCast(object)))
-                  .ToCString());
-          return false;
-        }
-        ASSERT(Closure::ContextOf(Closure::RawCast(object)) == Object::null());
-        return true;
-      }
       default:
         return true;
     }
@@ -672,6 +664,16 @@ class FastObjectCopyBase : public ObjectCopyBase {
     }
   }
 
+  void ForwardContextPointers(intptr_t context_length,
+                              ObjectPtr src,
+                              ObjectPtr dst,
+                              intptr_t offset,
+                              intptr_t end_offset) {
+    for (; offset < end_offset; offset += kWordSize) {
+      ForwardPointer(src, dst, offset);
+    }
+  }
+
   DART_FORCE_INLINE
   void ForwardCompressedPointer(ObjectPtr src, ObjectPtr dst, intptr_t offset) {
     auto value = LoadCompressedPointer(src, offset);
@@ -681,7 +683,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
     }
     auto value_decompressed = value.Decompress(heap_base_);
     const uword tags = TagsFromUntaggedObject(value_decompressed.untag());
-    if (CanShareObject(tags)) {
+    if (CanShareObject(value_decompressed, tags)) {
       StoreCompressedPointerNoBarrier(dst, offset, value);
       return;
     }
@@ -701,6 +703,36 @@ class FastObjectCopyBase : public ObjectCopyBase {
 
     auto to = Forward(tags, value_decompressed);
     StoreCompressedPointerNoBarrier(dst, offset, to);
+  }
+
+  // TODO(rmacnak): Can be removed if Contexts are compressed.
+  DART_FORCE_INLINE
+  void ForwardPointer(ObjectPtr src, ObjectPtr dst, intptr_t offset) {
+    auto value = LoadPointer(src, offset);
+    if (!value.IsHeapObject()) {
+      StorePointerNoBarrier(dst, offset, value);
+      return;
+    }
+    const uword tags = TagsFromUntaggedObject(value.untag());
+    if (CanShareObject(value, tags)) {
+      StorePointerNoBarrier(dst, offset, value);
+      return;
+    }
+
+    ObjectPtr existing_to = fast_forward_map_.ForwardedObject(value);
+    if (existing_to != Marker()) {
+      StorePointerNoBarrier(dst, offset, existing_to);
+      return;
+    }
+
+    if (UNLIKELY(!CanCopyObject(tags, value))) {
+      ASSERT(exception_msg_ != nullptr);
+      StorePointerNoBarrier(dst, offset, Object::null());
+      return;
+    }
+
+    auto to = Forward(tags, value);
+    StorePointerNoBarrier(dst, offset, to);
   }
 
   ObjectPtr Forward(uword tags, ObjectPtr from) {
@@ -827,6 +859,16 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     }
   }
 
+  void ForwardContextPointers(intptr_t context_length,
+                              const Object& src,
+                              const Object& dst,
+                              intptr_t offset,
+                              intptr_t end_offset) {
+    for (; offset < end_offset; offset += kWordSize) {
+      ForwardPointer(src, dst, offset);
+    }
+  }
+
   DART_FORCE_INLINE
   void ForwardCompressedLargeArrayPointer(const Object& src,
                                           const Object& dst,
@@ -839,7 +881,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
 
     auto value_decompressed = value.Decompress(heap_base_);
     const uword tags = TagsFromUntaggedObject(value_decompressed.untag());
-    if (CanShareObject(tags)) {
+    if (CanShareObject(value_decompressed, tags)) {
       StoreCompressedLargeArrayPointerBarrier(dst.ptr(), offset,
                                               value_decompressed);
       return;
@@ -874,7 +916,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     }
     auto value_decompressed = value.Decompress(heap_base_);
     const uword tags = TagsFromUntaggedObject(value_decompressed.untag());
-    if (CanShareObject(tags)) {
+    if (CanShareObject(value_decompressed, tags)) {
       StoreCompressedPointerBarrier(dst.ptr(), offset, value_decompressed);
       return;
     }
@@ -895,6 +937,37 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     tmp_ = value_decompressed;
     tmp_ = Forward(tags, tmp_);  // Only this can cause allocation.
     StoreCompressedPointerBarrier(dst.ptr(), offset, tmp_.ptr());
+  }
+
+  // TODO(rmacnak): Can be removed if Contexts are compressed.
+  DART_FORCE_INLINE
+  void ForwardPointer(const Object& src, const Object& dst, intptr_t offset) {
+    auto value = LoadPointer(src.ptr(), offset);
+    if (!value.IsHeapObject()) {
+      StorePointerNoBarrier(dst.ptr(), offset, value);
+      return;
+    }
+    const uword tags = TagsFromUntaggedObject(value.untag());
+    if (CanShareObject(value, tags)) {
+      StorePointerBarrier(dst.ptr(), offset, value);
+      return;
+    }
+
+    ObjectPtr existing_to = slow_forward_map_.ForwardedObject(value);
+    if (existing_to != Marker()) {
+      StorePointerBarrier(dst.ptr(), offset, existing_to);
+      return;
+    }
+
+    if (UNLIKELY(!CanCopyObject(tags, value))) {
+      ASSERT(exception_msg_ != nullptr);
+      StorePointerNoBarrier(dst.ptr(), offset, Object::null());
+      return;
+    }
+
+    tmp_ = value;
+    tmp_ = Forward(tags, tmp_);  // Only this can cause allocation.
+    StorePointerBarrier(dst.ptr(), offset, tmp_.ptr());
   }
   ObjectPtr Forward(uword tags, const Object& from) {
     const intptr_t cid = UntaggedObject::ClassIdTag::decode(tags);
@@ -1081,6 +1154,18 @@ class ObjectCopy : public Base {
                                            OFFSET_OF(UntaggedClosure, hash_));
     ONLY_IN_PRECOMPILED(UntagClosure(to)->entry_point_ =
                             UntagClosure(from)->entry_point_);
+  }
+
+  void CopyContext(typename Types::Context from, typename Types::Context to) {
+    const intptr_t length = Context::NumVariables(Types::GetContextPtr(from));
+
+    UntagContext(to)->num_variables_ = UntagContext(from)->num_variables_;
+
+    Base::ForwardCompressedPointer(from, to,
+                                   OFFSET_OF(UntaggedContext, parent_));
+    Base::ForwardContextPointers(
+        length, from, to, Context::variable_offset(0),
+        Context::variable_offset(0) + kWordSize * length);
   }
 
   void CopyArray(typename Types::Array from, typename Types::Array to) {
@@ -1671,7 +1756,7 @@ class ObjectGraphCopier {
       return result_array.ptr();
     }
     const uword tags = TagsFromUntaggedObject(root.ptr().untag());
-    if (CanShareObject(tags)) {
+    if (CanShareObject(root.ptr(), tags)) {
       result_array.SetAt(0, root);
       return result_array.ptr();
     }

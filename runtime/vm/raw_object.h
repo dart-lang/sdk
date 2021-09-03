@@ -2179,6 +2179,9 @@ class UntaggedContext : public UntaggedObject {
   VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
   friend class Object;
+  friend void UpdateLengthField(intptr_t,
+                                ObjectPtr,
+                                ObjectPtr);  // num_variables_
 };
 
 class UntaggedContextScope : public UntaggedObject {

@@ -391,12 +391,14 @@ void ImageWriter::DumpInstructionsSizes() {
   auto file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
+    OS::PrintErr("warning: Could not access file callbacks.");
     return;
   }
 
-  auto file = file_open(FLAG_print_instructions_sizes_to, /*write=*/true);
+  const char* filename = FLAG_print_instructions_sizes_to;
+  void* file = file_open(filename, /*write=*/true);
   if (file == nullptr) {
-    OS::PrintErr("Failed to open file %s\n", FLAG_print_instructions_sizes_to);
+    OS::PrintErr("warning: Failed to write instruction sizes: %s\n", filename);
     return;
   }
 
