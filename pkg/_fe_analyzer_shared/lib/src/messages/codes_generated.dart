@@ -2223,18 +2223,6 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeDeprecateDartExt = messageDeprecateDartExt;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeprecateDartExt = const MessageCode(
-    "DeprecateDartExt",
-    severity: Severity.info,
-    message:
-        r"""Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.""",
-    tip:
-        r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
             int count, int count2, num _num1, num _num2, num _num3)>
@@ -9935,6 +9923,16 @@ Message _withArgumentsUnspecified(String string) {
   return new Message(codeUnspecified,
       message: """${string}""", arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsupportedDartExt = messageUnsupportedDartExt;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsupportedDartExt = const MessageCode(
+    "UnsupportedDartExt",
+    message: r"""Dart native extensions are no longer supported.""",
+    tip:
+        r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnsupportedOperator =

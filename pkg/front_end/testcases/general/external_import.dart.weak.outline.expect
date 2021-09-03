@@ -5,17 +5,17 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/external_import.dart:7:1: Info: Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.
+// pkg/front_end/testcases/general/external_import.dart:7:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:here';
 // ^
 //
-// pkg/front_end/testcases/general/external_import.dart:8:1: Info: Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.
+// pkg/front_end/testcases/general/external_import.dart:8:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:foo/../there';
 // ^
 //
-// pkg/front_end/testcases/general/external_import.dart:9:1: Info: Dart native extensions are deprecated and will be removed in the 2.15 release of Dart SDK.
+// pkg/front_end/testcases/general/external_import.dart:9:1: Error: Dart native extensions are no longer supported.
 // Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)
 // import 'dart-ext:/usr/local/somewhere';
 // ^

@@ -184,8 +184,6 @@ DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail
 DeferredPrefixDuplicated/example: Fail
 DeferredTypeAnnotation/example: Fail
-DeprecateDartExt/analyzerCode: Fail
-DeprecateDartExt/part_wrapped_script: Fail # Example uses import declaration.
 DillOutlineSummary/analyzerCode: Fail
 DillOutlineSummary/example: Fail
 DirectiveAfterDeclaration/part_wrapped_script1: Fail
@@ -823,6 +821,8 @@ UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
+UnsupportedDartExt/analyzerCode: Fail
+UnsupportedDartExt/part_wrapped_script: Fail # Example uses import declaration.
 UnterminatedString/part_wrapped_script2: Fail
 UnterminatedString/part_wrapped_script4: Fail
 UnterminatedString/part_wrapped_script5: Fail
