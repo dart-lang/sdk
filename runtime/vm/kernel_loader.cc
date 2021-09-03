@@ -189,7 +189,7 @@ KernelLoader::KernelLoader(Program* program,
     : program_(program),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
-      isolate_(thread_->isolate()),
+      no_active_isolate_scope_(),
       patch_classes_(Array::ZoneHandle(zone_)),
       active_class_(),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
@@ -462,7 +462,7 @@ KernelLoader::KernelLoader(const Script& script,
     : program_(NULL),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
-      isolate_(thread_->isolate()),
+      no_active_isolate_scope_(),
       patch_classes_(Array::ZoneHandle(zone_)),
       library_kernel_offset_(data_program_offset),
       kernel_binary_version_(kernel_binary_version),
@@ -646,8 +646,6 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
 }
 
 void KernelLoader::LoadLibrary(const Library& library) {
-  NoActiveIsolateScope no_active_isolate_scope;
-
   // This will be invoked by VM bootstrapping code.
   SafepointWriteRwLocker ml(thread_, thread_->isolate_group()->program_lock());
 
@@ -873,8 +871,6 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
         "Trying to load a concatenated dill file at a time where that is "
         "not allowed");
   }
-
-  NoActiveIsolateScope no_active_isolate_scope;
 
   // Read library index.
   library_kernel_offset_ = library_offset(index);
@@ -1690,8 +1686,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {
-  NoActiveIsolateScope no_active_isolate_scope;
-
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();

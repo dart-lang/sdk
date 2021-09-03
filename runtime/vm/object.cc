@@ -13639,11 +13639,13 @@ static ObjectPtr EvaluateCompiledExpressionHelper(
         zone, String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  kernel::KernelLoader loader(kernel_pgm.get(),
-                              /*uri_to_source_table=*/nullptr);
-  auto& result = Object::Handle(
-      zone, loader.LoadExpressionEvaluationFunction(library_url, klass));
-  kernel_pgm.reset();
+  auto& result = Object::Handle(zone);
+  {
+    kernel::KernelLoader loader(kernel_pgm.get(),
+                                /*uri_to_source_table=*/nullptr);
+    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
+    kernel_pgm.reset();
+  }
 
   if (result.IsError()) return result.ptr();
 
