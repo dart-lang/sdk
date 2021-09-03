@@ -126,6 +126,50 @@ class C {
     assertType(value.type, 'C');
   }
 
+  test_constructorReference_generic_named() async {
+    var result = await _getExpressionValue("C<int>.foo", context: '''
+class C<T> {
+  C.foo();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C<int> Function()');
+  }
+
+  test_constructorReference_generic_unnamed() async {
+    var result = await _getExpressionValue("C<int>.new", context: '''
+class C<T> {
+  C.new();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C<int> Function()');
+  }
+
+  test_constructorReference_nonGeneric_named() async {
+    var result = await _getExpressionValue("C.foo", context: '''
+class C {
+  const C.foo();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C Function()');
+  }
+
+  test_constructorReference_nonGeneric_unnamed() async {
+    var result = await _getExpressionValue("C.new", context: '''
+class C {
+  const C();
+}
+''');
+    expect(result.isValid, isTrue);
+    DartObject value = result.value!;
+    assertType(value.type, 'C Function()');
+  }
+
   test_divide_double_double() async {
     await _assertValueDouble(3.2 / 2.3, "3.2 / 2.3");
   }

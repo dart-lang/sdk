@@ -375,7 +375,7 @@ class KernelLoader : public ValueObject {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
+  NoActiveIsolateScope no_active_isolate_scope_;
   Array& patch_classes_;
   ActiveClass active_class_;
   // This is the offset of the current library within

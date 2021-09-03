@@ -1774,29 +1774,8 @@ class NoActiveIsolateScope : public StackResource {
   }
 
  private:
-  friend class DisabledNoActiveIsolateScope;
   Thread* thread_;
   Isolate* saved_isolate_;
-};
-
-// Can be used inside a [NoActiveIsolateScope] to set the current isolate.
-class DisabledNoActiveIsolateScope : public StackResource {
- public:
-  explicit DisabledNoActiveIsolateScope(NoActiveIsolateScope* scope)
-      : StackResource(Thread::Current()),
-        thread_(static_cast<Thread*>(thread())),
-        scope_(scope) {
-    ASSERT(thread_->isolate() == nullptr);
-    thread_->isolate_ = scope_->saved_isolate_;
-  }
-  ~DisabledNoActiveIsolateScope() {
-    ASSERT(thread_->isolate_ == scope_->saved_isolate_);
-    thread_->isolate_ = nullptr;
-  }
-
- private:
-  Thread* thread_;
-  NoActiveIsolateScope* scope_;
 };
 
 }  // namespace dart

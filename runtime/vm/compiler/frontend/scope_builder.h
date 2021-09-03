@@ -189,6 +189,15 @@ class ScopeBuildingResult : public ZoneAllocated {
         yield_context_variable(NULL),
         raw_variable_counter_(0) {}
 
+  bool IsClosureWithEmptyContext(intptr_t function_node_offset) {
+    for (intptr_t i = 0; i < closure_offsets_without_captures.length(); ++i) {
+      if (closure_offsets_without_captures[i] == function_node_offset) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   IntMap<LocalVariable*> locals;
   IntMap<LocalScope*> scopes;
   GrowableArray<FunctionScope> function_scopes;
@@ -229,6 +238,10 @@ class ScopeBuildingResult : public ZoneAllocated {
 
   // For-in iterators, one per for-in nesting level.
   GrowableArray<LocalVariable*> iterator_variables;
+
+  // Remembers closure function kernel offsets that do not capture any
+  // variables.
+  GrowableArray<intptr_t> closure_offsets_without_captures;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ScopeBuildingResult);

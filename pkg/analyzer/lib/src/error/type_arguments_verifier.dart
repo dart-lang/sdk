@@ -32,8 +32,67 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
+  void checkConstructorReference(ConstructorReference node) {
+    var classElement = node.constructorName.type.name.staticElement;
+    List<TypeParameterElement> typeParameters;
+    if (classElement is TypeAliasElement) {
+      typeParameters = classElement.typeParameters;
+    } else if (classElement is ClassElement) {
+      typeParameters = classElement.typeParameters;
+    } else {
+      return;
+    }
+
+    if (typeParameters.isEmpty) {
+      return;
+    }
+    var typeArgumentList = node.constructorName.type.typeArguments;
+    if (typeArgumentList == null) {
+      return;
+    }
+    var constructorType = node.staticType;
+    if (constructorType is DynamicType) {
+      // An erroneous constructor reference.
+      return;
+    }
+    if (constructorType is! FunctionType) {
+      return;
+    }
+    var typeArguments = [
+      for (var type in typeArgumentList.arguments) type.type!,
+    ];
+    if (typeArguments.length != typeParameters.length) {
+      // Wrong number of type arguments to be reported elsewhere.
+      return;
+    }
+    var typeArgumentListLength = typeArgumentList.arguments.length;
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    for (var i = 0; i < typeArguments.length; i++) {
+      var typeParameter = typeParameters[i];
+      var typeArgument = typeArguments[i];
+
+      var bound = typeParameter.bound;
+      if (bound == null) {
+        continue;
+      }
+
+      bound = _libraryElement.toLegacyTypeIfOptOut(bound);
+      bound = substitution.substituteType(bound);
+
+      if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
+        var errorNode =
+            i < typeArgumentListLength ? typeArgumentList.arguments[i] : node;
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          errorNode,
+          [typeArgument, typeParameter.name, bound],
+        );
+      }
+    }
+  }
+
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticInvokeType,
@@ -42,7 +101,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkFunctionReference(FunctionReference node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticType,
@@ -80,7 +139,7 @@ class TypeArgumentsVerifier {
   }
 
   void checkMethodInvocation(MethodInvocation node) {
-    _checkTypeArguments(
+    _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       node.function.staticType,
       node.staticInvokeType,
@@ -313,40 +372,9 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Checks to ensure that the given list of type [arguments] does not have a
-  /// type parameter as a type argument. The [errorCode] is either
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
-  void _checkTypeArgumentConst(
-      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
-    for (TypeAnnotation type in arguments) {
-      if (type is TypeName && type.type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
-      }
-    }
-  }
-
-  /// Verify that the given list of [typeArguments] contains exactly the
-  /// [expectedCount] of elements, reporting an error with the [errorCode]
-  /// if not.
-  void _checkTypeArgumentCount(
-    TypeArgumentList typeArguments,
-    int expectedCount,
-    ErrorCode errorCode,
-  ) {
-    int actualCount = typeArguments.arguments.length;
-    if (actualCount != expectedCount) {
-      _errorReporter.reportErrorForNode(
-        errorCode,
-        typeArguments,
-        [actualCount],
-      );
-    }
-  }
-
   /// Verify that each type argument in [typeArgumentList] is within its bounds,
   /// as defined by [genericType].
-  void _checkTypeArguments(
+  void _checkInvocationTypeArguments(
     List<TypeAnnotation>? typeArgumentList,
     DartType? genericType,
     DartType? instantiatedType,
@@ -404,6 +432,37 @@ class TypeArgumentsVerifier {
             typeArgumentList[i],
             [argType, fnTypeParam.name, bound]);
       }
+    }
+  }
+
+  /// Checks to ensure that the given list of type [arguments] does not have a
+  /// type parameter as a type argument. The [errorCode] is either
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
+  /// [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
+  void _checkTypeArgumentConst(
+      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
+    for (TypeAnnotation type in arguments) {
+      if (type is TypeName && type.type is TypeParameterType) {
+        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
+      }
+    }
+  }
+
+  /// Verify that the given list of [typeArguments] contains exactly the
+  /// [expectedCount] of elements, reporting an error with the [errorCode]
+  /// if not.
+  void _checkTypeArgumentCount(
+    TypeArgumentList typeArguments,
+    int expectedCount,
+    ErrorCode errorCode,
+  ) {
+    int actualCount = typeArguments.arguments.length;
+    if (actualCount != expectedCount) {
+      _errorReporter.reportErrorForNode(
+        errorCode,
+        typeArguments,
+        [actualCount],
+      );
     }
   }
 

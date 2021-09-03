@@ -5252,7 +5252,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
     bool has_valid_annotation,
     bool has_pragma,
     intptr_t func_decl_offset) {
-  intptr_t offset = ReaderOffset();
+  const intptr_t offset = ReaderOffset();
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
@@ -5385,7 +5385,11 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
   Fragment instructions;
   instructions += Constant(function);
-  instructions += LoadLocal(parsed_function()->current_context_var());
+  if (scopes()->IsClosureWithEmptyContext(offset)) {
+    instructions += NullConstant();
+  } else {
+    instructions += LoadLocal(parsed_function()->current_context_var());
+  }
   instructions += flow_graph_builder_->AllocateClosure();
   LocalVariable* closure = MakeTemporary();
 

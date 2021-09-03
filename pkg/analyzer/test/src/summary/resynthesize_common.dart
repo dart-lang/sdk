@@ -6332,7 +6332,7 @@ library
                   staticElement: self::@class::A
                   staticType: null
                   token: A @35
-                type: A
+                type: null
             staticType: A Function()
     accessors
       synthetic static get v @-1

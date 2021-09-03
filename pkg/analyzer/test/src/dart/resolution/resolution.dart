@@ -166,7 +166,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     Object? expectedConstructorElement,
     ClassElement expectedClassElement,
     String expectedType, {
-    required String? expectedTypeNameType,
     PrefixElement? expectedPrefix,
     Element? expectedTypeNameElement,
   }) {
@@ -184,7 +183,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     var typeName = node.constructorName.type;
     expectedTypeNameElement ??= expectedClassElement;
-    assertTypeName(typeName, expectedTypeNameElement, expectedTypeNameType,
+    assertTypeName(typeName, expectedTypeNameElement, null,
         expectedPrefix: expectedPrefix);
   }
 
