@@ -245,7 +245,9 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 DART_FORCE_INLINE
 ObjectPtr AllocateObject(intptr_t cid, intptr_t size) {
 #if defined(DART_COMPRESSED_POINTERS)
-  const bool compressed = true;
+  // TODO(rmacnak): Can be changed unconditionally to `true` once Contexts
+  // are compressed.
+  const bool compressed = cid != kContextCid;
 #else
   const bool compressed = false;
 #endif
@@ -1161,8 +1163,9 @@ class ObjectCopy : public Base {
 
     UntagContext(to)->num_variables_ = UntagContext(from)->num_variables_;
 
-    Base::ForwardCompressedPointer(from, to,
-                                   OFFSET_OF(UntaggedContext, parent_));
+    // TODO(rmacnak): Should use ForwardCompressedPointer once contexts are
+    // compressed.
+    Base::ForwardPointer(from, to, OFFSET_OF(UntaggedContext, parent_));
     Base::ForwardContextPointers(
         length, from, to, Context::variable_offset(0),
         Context::variable_offset(0) + kWordSize * length);
