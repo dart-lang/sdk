@@ -24,15 +24,25 @@ void main() {
     tearDown(() => p?.dispose());
 
     test('can start', () async {
-      AnalysisServer server = AnalysisServer(io.Directory(sdk.sdkPath), [p.dir],
-          commandName: 'testing', argResults: null);
+      AnalysisServer server = AnalysisServer(
+        null,
+        io.Directory(sdk.sdkPath),
+        [p.dir],
+        commandName: 'testing',
+        argResults: null,
+      );
       await server.start();
       await server.shutdown();
     });
 
     test('can send message', () async {
-      AnalysisServer server = AnalysisServer(io.Directory(sdk.sdkPath), [p.dir],
-          commandName: 'testing', argResults: null);
+      AnalysisServer server = AnalysisServer(
+        null,
+        io.Directory(sdk.sdkPath),
+        [p.dir],
+        commandName: 'testing',
+        argResults: null,
+      );
       await server.start();
 
       final response = await server.getVersion();

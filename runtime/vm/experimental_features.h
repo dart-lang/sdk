@@ -23,6 +23,7 @@ enum class ExperimentalFeature {
   set_literals,
   spread_collections,
   triple_shift,
+  constructor_tearoffs,
 };
 
 bool GetExperimentalFeatureDefault(ExperimentalFeature feature);

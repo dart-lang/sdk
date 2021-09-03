@@ -110,7 +110,7 @@ class ExperimentalFeatures {
     documentation:
         'Allow constructor tear-offs and explicit generic instantiations.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('2.15.0'),
   );
 
   static final control_flow_collections = ExperimentalFeature(
@@ -246,7 +246,7 @@ class IsEnabledByDefault {
   static const bool constant_update_2018 = true;
 
   /// Default state of the experiment "constructor-tearoffs"
-  static const bool constructor_tearoffs = false;
+  static const bool constructor_tearoffs = true;
 
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
