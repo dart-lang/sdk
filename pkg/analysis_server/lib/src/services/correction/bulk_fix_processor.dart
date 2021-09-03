@@ -26,8 +26,6 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
-import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -230,57 +228,6 @@ class BulkFixProcessor {
     return builder;
   }
 
-  /// Returns the potential [FixKind]s that may be available for a given diagnostic.
-  ///
-  /// The presence of a kind does not guarantee a fix will be produced, nor does
-  /// the absence of a kind mean that it definitely will not (some producers
-  /// do not provide FixKinds up-front). These results are intended as a hint
-  /// for populating something like a quick-fix menu with possible apply-all fixes.
-  Iterable<FixKind> producableFixesForError(
-    ResolvedUnitResult result,
-    AnalysisError diagnostic,
-  ) sync* {
-    final errorCode = diagnostic.errorCode;
-    if (errorCode is LintCode) {
-      yield* _producableFixesFromGenerators(
-          FixProcessor.lintProducerMap[errorCode.name]);
-      return;
-    }
-
-    yield* _producableFixesFromGenerators(
-        FixProcessor.nonLintProducerMap[errorCode]);
-
-    final multiGenerators = nonLintMultiProducerMap[errorCode];
-    if (multiGenerators != null) {
-      final fixContext = DartFixContextImpl(
-        instrumentationService,
-        workspace,
-        result,
-        diagnostic,
-        (name) => [],
-      );
-
-      var context = CorrectionProducerContext.create(
-        applyingBulkFixes: true,
-        dartFixContext: fixContext,
-        diagnostic: diagnostic,
-        resolvedResult: result,
-        selectionOffset: diagnostic.offset,
-        selectionLength: diagnostic.length,
-        workspace: workspace,
-      );
-      if (context == null) {
-        return;
-      }
-
-      for (final multiGenerator in multiGenerators) {
-        final multiProducer = multiGenerator();
-        multiProducer.configure(context);
-        yield* multiProducer.producers.map((p) => p.fixKind).whereNotNull();
-      }
-    }
-  }
-
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
@@ -384,22 +331,6 @@ class BulkFixProcessor {
           'Exception generating fix for ${errorCode.name} in ${result.path}',
           e,
           s);
-    }
-  }
-
-  Iterable<FixKind> _producableFixesFromGenerators(
-      List<ProducerGenerator>? generators) sync* {
-    if (generators == null) {
-      return;
-    }
-    for (var generator in generators) {
-      var producer = generator();
-      if (producer.canBeAppliedInBulk) {
-        var fixKind = producer.fixKind;
-        if (fixKind != null) {
-          yield fixKind;
-        }
-      }
     }
   }
 
