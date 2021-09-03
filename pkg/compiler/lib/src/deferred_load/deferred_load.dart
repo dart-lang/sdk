@@ -366,11 +366,16 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Computes a unique string for the name field for each outputUnit.
   void _createOutputUnits() {
+    // Before finalizing [OutputUnit]s, we apply [ImportSetTransition]s.
+    measureSubtask('apply set transitions', () {
+      algorithmState?.applySetTransitions();
+    });
+
+    // Add an [OutputUnit] for each [ImportSet].
     int counter = 1;
     void addUnit(ImportSet importSet) {
       if (importSet.unit != null) return;
-      var unit = OutputUnit(false, '$counter',
-          importSet.collectImports().map((i) => i.declaration).toSet());
+      var unit = OutputUnit(false, '$counter', importSet.toSet());
       counter++;
       importSet.unit = unit;
       _allOutputUnits.add(unit);
@@ -535,8 +540,9 @@ class DeferredLoadTask extends CompilerTask {
       // them now.
       if (compiler.programSplitConstraintsData != null) {
         var builder = psc.Builder(compiler.programSplitConstraintsData);
-        var transitions = builder.buildTransitionsMap(_allDeferredImports);
-        importSets.buildInitialSets(transitions);
+        var transitions = builder.build(_allDeferredImports);
+        importSets.buildInitialSets(transitions.singletonTransitions);
+        importSets.buildSetTransitions(transitions.setTransitions);
       }
 
       // Build the [ImportSet] representing the [_mainOutputUnit].

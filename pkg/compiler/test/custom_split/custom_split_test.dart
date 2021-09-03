@@ -17,6 +17,7 @@ const List<String> tests = [
   'diamond',
   'diamond_and',
   'diamond_fuse',
+  'diamond_or',
   'two_step',
   'two_branch',
 ];

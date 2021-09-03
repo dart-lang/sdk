@@ -43,6 +43,8 @@ class Parser {
         return CombinerType.fuse;
       case 'and':
         return CombinerType.and;
+      case 'or':
+        return CombinerType.or;
       default:
         throw 'Unrecognized Combiner $nodeJson';
     }
@@ -92,6 +94,7 @@ class Parser {
           break;
         case 'and':
         case 'fuse':
+        case 'or':
           combinerConstraints.add(constraint);
           break;
         case 'order':

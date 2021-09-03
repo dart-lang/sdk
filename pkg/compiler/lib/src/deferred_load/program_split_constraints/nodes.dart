@@ -28,7 +28,7 @@ class ReferenceNode extends NamedNode {
 
 /// A [CombinerType] defines how to combine multiple [ReferenceNode]s in a
 /// single step.
-enum CombinerType { fuse, and }
+enum CombinerType { fuse, and, or }
 
 /// A [CombinerNode] is a [NamedNode] with a list of [ReferenceNode] children
 /// and a [CombinerType] for combining them.
