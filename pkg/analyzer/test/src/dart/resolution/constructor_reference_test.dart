@@ -37,7 +37,27 @@ const a = TA<int, String>.foo;
           substitution: {'T': 'String', 'U': 'int'}),
       classElement,
       'A<String, int> Function()',
-      expectedTypeNameType: 'A<String, int>',
+      expectedTypeNameElement: findElement.typeAlias('TA'),
+    );
+  }
+
+  test_alias_generic_const_differingNumberOfTypeParamters() async {
+    await assertNoErrorsInCode('''
+class A<T, U> {
+  A.foo() {}
+}
+typedef TA<T> = A<T, String>;
+
+const x = TA<int>.foo;
+''');
+
+    var classElement = findElement.class_('A');
+    assertConstructorReference(
+      findNode.constructorReference('TA<int>.foo;'),
+      elementMatcher(classElement.getNamedConstructor('foo')!,
+          substitution: {'T': 'int', 'U': 'String'}),
+      classElement,
+      'A<int, String> Function()',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -61,7 +81,6 @@ void bar() {
           substitution: {'T': 'String', 'U': 'int'}),
       classElement,
       'A<String, int> Function()',
-      expectedTypeNameType: 'A<String, int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -85,7 +104,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -109,7 +127,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -135,7 +152,6 @@ void bar() {
           substitution: {'T': 'String'}),
       classElement,
       'A<String> Function()',
-      expectedTypeNameType: 'A<String>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -156,7 +172,6 @@ const a = A<int>.new;
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -178,7 +193,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -241,7 +255,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -265,7 +278,6 @@ void bar() {
       null,
       classElement,
       'dynamic',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -287,7 +299,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -309,7 +320,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -331,7 +341,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -355,7 +364,6 @@ void bar() {
           substitution: {'T': 'String'}),
       classElement,
       'A<String> Function()',
-      expectedTypeNameType: 'A<String>',
     );
   }
 
@@ -381,7 +389,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedPrefix: findElement.import('package:test/a.dart').prefix,
       expectedTypeNameElement:
           findElement.importFind('package:test/a.dart').typeAlias('TA'),
@@ -409,7 +416,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedPrefix: findElement.import('package:test/a.dart').prefix,
     );
   }
@@ -438,7 +444,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedPrefix: findElement.import('package:test/a.dart').prefix,
     );
   }
@@ -464,7 +469,6 @@ void bar() {
           substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedPrefix: findElement.import('package:test/a.dart').prefix,
     );
   }
@@ -491,7 +495,6 @@ foo() {
       classElement.unnamedConstructor,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -518,7 +521,6 @@ foo() {
       classElement.unnamedConstructor,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -547,7 +549,6 @@ foo() {
       classElement.unnamedConstructor,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -571,7 +572,6 @@ A<String> Function() bar() {
       constructorElement,
       classElement,
       'A<Never> Function()',
-      expectedTypeNameType: 'A<Never>',
     );
   }
 
@@ -593,7 +593,6 @@ A<int> Function() bar() {
       constructorElement,
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -615,7 +614,6 @@ void bar() {
       constructorElement,
       classElement,
       'A<T> Function<T>()',
-      expectedTypeNameType: null,
     );
   }
 
@@ -637,7 +635,6 @@ void bar() {
       constructorElement,
       classElement,
       'A<T> Function<T extends num>()',
-      expectedTypeNameType: null,
     );
   }
 
@@ -656,7 +653,6 @@ const a1 = A.new;
       classElement.unnamedConstructor,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -677,7 +673,6 @@ void bar() {
       classElement.getNamedConstructor('foo')!,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -698,7 +693,6 @@ bar() {
       classElement.unnamedConstructor,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 
@@ -719,7 +713,6 @@ const a = TA.new;
       constructorElement,
       classElement,
       'A<T> Function<T>()',
-      expectedTypeNameType: null,
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -743,7 +736,6 @@ bar() {
       constructorElement,
       findElement.class_('A'),
       'A<String, U> Function<U>()',
-      expectedTypeNameType: null,
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -765,7 +757,6 @@ const a = TA.new;
       elementMatcher(constructorElement, substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -789,7 +780,6 @@ bar() {
       elementMatcher(constructorElement, substitution: {'T': 'int'}),
       classElement,
       'A<int> Function()',
-      expectedTypeNameType: 'A<int>',
       expectedTypeNameElement: findElement.typeAlias('TA'),
     );
   }
@@ -817,7 +807,6 @@ void bar() {
       null,
       classElement,
       'dynamic',
-      expectedTypeNameType: 'A<int>',
     );
   }
 
@@ -840,7 +829,6 @@ void bar() {
       classElement.getNamedConstructor('foo')!,
       classElement,
       'A Function()',
-      expectedTypeNameType: 'A',
     );
   }
 }

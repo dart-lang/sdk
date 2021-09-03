@@ -558,6 +558,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _typeArgumentsVerifier.checkConstructorReference(node);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     var labelNode = node.label;
     if (labelNode != null) {

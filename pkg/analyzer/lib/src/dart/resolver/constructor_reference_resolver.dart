@@ -53,7 +53,7 @@ class ConstructorReferenceResolver {
       if (enclosingElement is TypeAliasElement) {
         enclosingElement = enclosingElement.aliasedType.element;
       }
-      // TODO(srawlins): Handle `enclosingElement` being a functio typedef:
+      // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
       // This is illegal.
       if (enclosingElement is ClassElement) {
@@ -123,16 +123,7 @@ class ConstructorReferenceResolver {
         constructorName.staticElement = constructorElement.declaration;
         constructorName.name?.staticElement = constructorElement.declaration;
         node.staticType = inferred;
-        // TODO(srawlins): Always set the TypeName's type to `null`, here, and
-        // in the "else" case below, at the very end of [_inferArgumentTypes].
-        // This requires refactoring how type arguments are checked against
-        // bounds, as this is currently always done with the [TypeName], in
-        // type_argument_verifier.dart.
-        if (inferred.typeFormals.isNotEmpty) {
-          constructorName.type.type = null;
-        } else {
-          constructorName.type.type = inferredReturnType;
-        }
+        constructorName.type.type = null;
       }
     } else {
       var constructorElement = constructorName.staticElement;
@@ -141,6 +132,7 @@ class ConstructorReferenceResolver {
       } else {
         node.staticType = constructorElement.type;
       }
+      constructorName.type.type = null;
     }
   }
 }
