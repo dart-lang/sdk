@@ -95,6 +95,36 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     ]);
   }
 
+  void test_locateRoots_link_folder_notExistingTarget() {
+    var rootFolder = newFolder('/test');
+    newFile('/test/lib/a.dart');
+    newFolder('/test/lib/foo');
+    resourceProvider.newLink(
+      convertPath('/test/lib/foo'),
+      convertPath('/test/lib/bar'),
+    );
+
+    var roots = contextLocator.locateRoots(
+      includedPaths: [rootFolder.path],
+    );
+    expect(roots, hasLength(1));
+
+    var root = findRoot(roots, rootFolder);
+    expect(root.includedPaths, unorderedEquals([rootFolder.path]));
+    expect(root.excludedPaths, isEmpty);
+    expect(root.optionsFile, isNull);
+    expect(root.packagesFile, isNull);
+
+    _assertAnalyzedFiles(root, [
+      '/test/lib/a.dart',
+    ]);
+
+    _assertAnalyzed(root, [
+      '/test/lib/a.dart',
+      '/test/lib/foo/b.dart',
+    ]);
+  }
+
   void test_locateRoots_link_folder_toParentInRoot() {
     Folder rootFolder = newFolder('/test');
     newFile('/test/lib/a.dart');
