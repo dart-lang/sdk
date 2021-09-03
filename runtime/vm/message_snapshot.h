@@ -24,6 +24,8 @@ std::unique_ptr<Message> WriteApiMessage(Zone* zone,
                                          Dart_Port dest_port,
                                          Message::Priority priority);
 
+ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle);
+
 ObjectPtr ReadMessage(Thread* thread, Message* message);
 
 Dart_CObject* ReadApiMessage(Zone* zone, Message* message);

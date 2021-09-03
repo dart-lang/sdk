@@ -3722,40 +3722,43 @@ std::unique_ptr<Message> WriteApiMessage(Zone* zone,
   return serializer.Finish(dest_port, priority);
 }
 
+ObjectPtr ReadObjectGraphCopyMessage(Thread* thread, PersistentHandle* handle) {
+  // msg_array = [
+  //     <message>,
+  //     <collection-lib-objects-to-rehash>,
+  //     <core-lib-objects-to-rehash>,
+  // ]
+  Zone* zone = thread->zone();
+  Object& msg_obj = Object::Handle(zone);
+  const auto& msg_array = Array::Handle(zone, Array::RawCast(handle->ptr()));
+  ASSERT(msg_array.Length() == 3);
+  msg_obj = msg_array.At(0);
+  if (msg_array.At(1) != Object::null()) {
+    const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
+    auto& result = Object::Handle(zone);
+    result = DartLibraryCalls::RehashObjectsInDartCollection(thread,
+                                                             objects_to_rehash);
+    if (result.ptr() != Object::null()) {
+      msg_obj = result.ptr();
+    }
+  }
+  if (msg_array.At(2) != Object::null()) {
+    const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
+    auto& result = Object::Handle(zone);
+    result =
+        DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
+    if (result.ptr() != Object::null()) {
+      msg_obj = result.ptr();
+    }
+  }
+  return msg_obj.ptr();
+}
+
 ObjectPtr ReadMessage(Thread* thread, Message* message) {
   if (message->IsRaw()) {
     return message->raw_obj();
   } else if (message->IsPersistentHandle()) {
-    // msg_array = [
-    //     <message>,
-    //     <collection-lib-objects-to-rehash>,
-    //     <core-lib-objects-to-rehash>,
-    // ]
-    Zone* zone = thread->zone();
-    Object& msg_obj = Object::Handle(zone);
-    const auto& msg_array = Array::Handle(
-        zone, Array::RawCast(message->persistent_handle()->ptr()));
-    ASSERT(msg_array.Length() == 3);
-    msg_obj = msg_array.At(0);
-    if (msg_array.At(1) != Object::null()) {
-      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(1));
-      auto& result = Object::Handle(zone);
-      result = DartLibraryCalls::RehashObjectsInDartCollection(
-          thread, objects_to_rehash);
-      if (result.ptr() != Object::null()) {
-        msg_obj = result.ptr();
-      }
-    }
-    if (msg_array.At(2) != Object::null()) {
-      const auto& objects_to_rehash = Object::Handle(zone, msg_array.At(2));
-      auto& result = Object::Handle(zone);
-      result =
-          DartLibraryCalls::RehashObjectsInDartCore(thread, objects_to_rehash);
-      if (result.ptr() != Object::null()) {
-        msg_obj = result.ptr();
-      }
-    }
-    return msg_obj.ptr();
+    return ReadObjectGraphCopyMessage(thread, message->persistent_handle());
   } else {
     RELEASE_ASSERT(message->IsSnapshot());
     MessageDeserializer deserializer(thread, message);
