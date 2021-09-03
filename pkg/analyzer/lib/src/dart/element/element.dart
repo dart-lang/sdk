@@ -1526,6 +1526,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  int get nameLength {
+    final nameEnd = this.nameEnd;
+    if (nameEnd == null || periodOffset == null) {
+      return 0;
+    } else {
+      return nameEnd - nameOffset;
+    }
+  }
+
+  @override
   Element get nonSynthetic {
     return isSynthetic ? enclosingElement : this;
   }
