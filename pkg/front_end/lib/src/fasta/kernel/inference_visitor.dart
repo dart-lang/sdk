@@ -6345,6 +6345,13 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType =
         inferrer.coreTypes.typeRawType(inferrer.library.nonNullable);
+    if (inferrer.library.enableConstructorTearOffsInLibrary) {
+      inferrer.library.checkBoundsInType(
+          node.type,
+          inferrer.typeSchemaEnvironment,
+          inferrer.library.fileUri,
+          node.fileOffset);
+    }
     return new ExpressionInferenceResult(inferredType, node);
   }
 
