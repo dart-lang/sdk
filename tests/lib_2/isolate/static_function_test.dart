@@ -11,6 +11,7 @@
 
 library static_function_test;
 
+import 'dart:io';
 import 'dart:isolate';
 import 'static_function_lib.dart' as lib;
 import 'package:async_helper/async_helper.dart';
@@ -117,6 +118,9 @@ void functionFailTest(name, function) {
 }
 
 void main([args, port]) {
+  final bool isolateGroupsEnabled =
+      Platform.executableArguments.contains('--enable-isolate-groups');
+
   asyncStart();
   // Sanity check.
   spawnTest("function", function, "TOP");
@@ -136,16 +140,31 @@ void main([args, port]) {
   spawnTest("lib._class._function", lib.privateClassFunction, "_LIB");
   spawnTest("lib._class._function", lib.privateClassAndFunction, "_LIBPRIVATE");
 
-  // Negative tests
-  functionFailTest("static closure", staticClosure);
-  functionFailTest("dynamic closure", dynamicClosure);
-  functionFailTest("named dynamic closure", namedDynamicClosure);
-  functionFailTest("instance closure", new C().instanceClosure);
-  functionFailTest(
-      "initializer closure", new C().constructorInitializerClosure);
-  functionFailTest("constructor closure", new C().constructorBodyClosure);
-  functionFailTest(
-      "named constructor closure", new C().namedConstructorBodyClosure);
-  functionFailTest("instance method", new C().instanceMethod);
+  if (isolateGroupsEnabled) {
+    spawnTest("static closure", staticClosure, "WHAT?");
+    spawnTest("dynamic closure", dynamicClosure, "WHAT??");
+    spawnTest("named dynamic closure", namedDynamicClosure, "WHAT FOO??");
+    spawnTest("instance closure", new C().instanceClosure, "C WHAT?");
+    spawnTest(
+        "initializer closure", new C().constructorInitializerClosure, "Init?");
+    spawnTest(
+        "constructor closure", new C().constructorBodyClosure, "bodyClosure?");
+    spawnTest("named constructor closure", new C().namedConstructorBodyClosure,
+        "namedBodyClosure?");
+    spawnTest("instance method", new C().instanceMethod, "INSTANCE WHAT?");
+  } else {
+    // Negative tests
+    functionFailTest("static closure", staticClosure);
+    functionFailTest("dynamic closure", dynamicClosure);
+    functionFailTest("named dynamic closure", namedDynamicClosure);
+    functionFailTest("instance closure", new C().instanceClosure);
+    functionFailTest(
+        "initializer closure", new C().constructorInitializerClosure);
+    functionFailTest("constructor closure", new C().constructorBodyClosure);
+    functionFailTest(
+        "named constructor closure", new C().namedConstructorBodyClosure);
+    functionFailTest("instance method", new C().instanceMethod);
+  }
+
   asyncEnd();
 }
