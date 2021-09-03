@@ -90,6 +90,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
     var server = AnalysisServer(
+      null,
       io.Directory(sdk.sdkPath),
       [dir],
       commandName: 'fix',
