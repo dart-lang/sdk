@@ -80,33 +80,27 @@ main() {
   Foo();
   Foo.bar();
   Foo.bar.baz();
-//    ^
-// [cfe] Member not found: 'bar'.
 //        ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [cfe] The method 'baz' isn't defined for the class 'Foo<X> Function<X>()'.
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
-  // ^^^^^
-  // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-  // [cfe] This requires the 'constructor-tearoffs' language feature to be enabled.
-  //       ^
-  // [cfe] Member not found: 'bar'.
   //           ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [cfe] The method 'baz' isn't defined for the class 'Foo<int> Function()'.
   Foo.bar<int>();
   //  ^
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
-//    ^
-// [cfe] Couldn't find constructor 'bar'.
 //       ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+//             ^
+// [cfe] The method 'baz' isn't defined for the class 'Foo<int> Function()'.
   Foo.bar.baz<int>();
-//    ^
-// [cfe] Member not found: 'bar'.
 //        ^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [cfe] The method 'baz' isn't defined for the class 'Foo<X> Function<X>()'.
 }

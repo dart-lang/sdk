@@ -122,9 +122,6 @@ features:
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
-  constructor-tearoffs:
-    help: "Allow constructor tear-offs and explicit generic instantiations."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -195,4 +192,18 @@ features:
       }
       void main() {
         if ((A() >>> 1) == 42) print('feature enabled');
+      }
+
+  constructor-tearoffs:
+    help: "Allow constructor tear-offs and explicit generic instantiations."
+    enabledIn: '2.15.0'
+    validation: |
+      class A {
+        A() {
+          print('feature enabled');
+        }
+      }
+      void main() {
+        var c = A.new;
+        c();
       }
