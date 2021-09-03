@@ -424,6 +424,22 @@ void f() {
     });
   });
 
+  test('--cache', () {
+    var cache = project(name: 'cache');
+
+    p = project(mainSrc: 'var v = 0;');
+    var result = p.runSync([
+      'analyze',
+      '--cache=${cache.dirPath}',
+      p.mainPath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('No issues found!'));
+    expect(cache.findDirectory('.analysis-driver'), isNotNull);
+  });
+
   group('display mode', () {
     final sampleInfoJson = {
       'severity': 'INFO',

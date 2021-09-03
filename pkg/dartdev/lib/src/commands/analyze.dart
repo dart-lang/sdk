@@ -45,6 +45,12 @@ class AnalyzeCommand extends DartdevCommand {
 
       // Options hidden by default.
       ..addOption(
+        'cache',
+        valueHelp: 'path',
+        help: 'Override the location of the analysis cache.',
+        hide: !verbose,
+      )
+      ..addOption(
         'format',
         valueHelp: 'value',
         help: 'Specifies the format to display errors.',
@@ -107,6 +113,7 @@ class AnalyzeCommand extends DartdevCommand {
       _packagesFile(),
       io.Directory(sdk.sdkPath),
       targets,
+      cacheDirectoryPath: argResults['cache'],
       commandName: 'analyze',
       argResults: argResults,
     );

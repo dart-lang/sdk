@@ -27,10 +27,12 @@ class AnalysisServer {
     this.packagesFile,
     this.sdkPath,
     this.analysisRoots, {
+    this.cacheDirectoryPath,
     @required this.commandName,
     @required this.argResults,
   });
 
+  final String cacheDirectoryPath;
   final File packagesFile;
   final Directory sdkPath;
   final List<FileSystemEntity> analysisRoots;
@@ -87,6 +89,7 @@ class AnalysisServer {
       '--disable-server-feature-search',
       '--sdk',
       sdkPath.path,
+      if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
       if (packagesFile != null) '--packages=${packagesFile.path}',
     ];
 
