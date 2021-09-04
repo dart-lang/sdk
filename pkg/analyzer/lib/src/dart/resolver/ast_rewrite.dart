@@ -227,6 +227,9 @@ class AstRewriter {
       // This isn't a constructor reference.
       return node;
     }
+    if (node.parent is AssignmentExpression) {
+      return node;
+    }
     var prefix = node.prefix;
     var element = nameScope.lookup(prefix.name).getter;
     if (element is ClassElement) {

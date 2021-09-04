@@ -72,6 +72,12 @@ class TypePropertyResolver {
 
     receiverType = _resolveTypeParameter(receiverType, ifLegacy: true);
 
+    if (name == 'new') {
+      _needsGetterError = true;
+      _needsSetterError = true;
+      return _toResult();
+    }
+
     if (_typeSystem.isDynamicBounded(receiverType)) {
       _lookupInterfaceType(
         _typeProvider.objectType,
