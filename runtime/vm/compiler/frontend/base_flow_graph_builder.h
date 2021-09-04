@@ -384,13 +384,20 @@ class BaseFlowGraphBuilder {
 
   // Pops the top of the stack, checks it for null, and pushes the result on
   // the stack to create a data dependency.
-  // 'function_name' is a selector which is being called (reported in
-  // NoSuchMethod message).
+  //
   // Note that the result can currently only be used in optimized code, because
   // optimized code uses FlowGraph::RemoveRedefinitions to remove the
   // redefinitions, while unoptimized code does not.
-  Fragment CheckNullOptimized(TokenPosition position,
-                              const String& function_name);
+  Fragment CheckNullOptimized(
+      const String& name,
+      CheckNullInstr::ExceptionType exception_type,
+      TokenPosition position = TokenPosition::kNoSource);
+  Fragment CheckNullOptimized(
+      const String& function_name,
+      TokenPosition position = TokenPosition::kNoSource) {
+    return CheckNullOptimized(function_name, CheckNullInstr::kNoSuchMethod,
+                              position);
+  }
 
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,

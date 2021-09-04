@@ -1280,12 +1280,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // decoder
       body += LoadLocal(parsed_function_->RawParameterVariable(1));  // bytes
       body += LoadLocal(parsed_function_->RawParameterVariable(2));  // start
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedIntPtr);
       body += LoadLocal(parsed_function_->RawParameterVariable(3));  // end
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedIntPtr);
       body += LoadLocal(parsed_function_->RawParameterVariable(4));  // table
       body += Utf8Scan();
@@ -1327,13 +1325,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
 
       body += LoadLocal(arg_offset);
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_offset_not_null = MakeTemporary();
 
       body += LoadLocal(arg_pointer);
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til LoadIndexed.
       body += LoadUntagged(compiler::target::PointerBase::data_field_offset());
       body += LoadLocal(arg_offset_not_null);
@@ -1430,8 +1426,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
         // type parameter guarantees X is an interface type.
         body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(TokenPosition::kNoSource,
-                                   String::ZoneHandle(Z, function.name()));
+        body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
         body += LoadNativeField(
             Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
         body += NullConstant();  // function_type_args.
@@ -1441,17 +1436,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       ASSERT_EQUAL(function.NumParameters(), 3);
       body += LoadLocal(arg_offset);
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_offset_not_null = MakeTemporary();
       body += LoadLocal(arg_value);
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       LocalVariable* arg_value_not_null = MakeTemporary();
 
       body += LoadLocal(arg_pointer);  // Pointer.
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // No GC from here til StoreIndexed.
       body += LoadUntagged(compiler::target::PointerBase::data_field_offset());
       body += LoadLocal(arg_offset_not_null);
@@ -1489,16 +1481,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += StoreNativeField(Slot::Pointer_data_field());
     } break;
     case MethodRecognizer::kFfiGetAddress: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
-      body += CheckNullOptimized(TokenPosition::kNoSource,
-                                 String::ZoneHandle(Z, function.name()));
+      body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
       // This can only be Pointer, so it is always safe to LoadUntagged.
       body += LoadUntagged(compiler::target::Pointer::data_field_offset());
       body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
@@ -1517,9 +1507,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // Load TypedDataArray from Instance Handle implementing
       // NativeFieldWrapper.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Object.
-      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      body += CheckNullOptimized(name);
       body += LoadNativeField(Slot::Instance_native_fields_array());  // Fields.
-      body += CheckNullOptimized(TokenPosition::kNoSource, name);
+      body += CheckNullOptimized(name);
       // Load the native field at index.
       body += IntConstant(0);  // Index.
       body += LoadIndexed(kIntPtrCid);
@@ -4362,10 +4352,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
     function_body += LoadLocal(
         parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
     // Check for 'null'.
-    // TODO(36780): Mention the param name instead of function reciever.
-    function_body +=
-        CheckNullOptimized(TokenPosition::kNoSource,
-                           String::ZoneHandle(Z, marshaller.function_name()));
+    function_body += CheckNullOptimized(
+        String::ZoneHandle(
+            Z, function.ParameterNameAt(kFirstArgumentParameterOffset + i)),
+        CheckNullInstr::kArgumentError);
     function_body += StoreLocal(
         TokenPosition::kNoSource,
         parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
@@ -4544,8 +4534,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     body += IntConstant(0);
   } else if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
     body +=
-        CheckNullOptimized(TokenPosition::kNoSource,
-                           String::ZoneHandle(Z, marshaller.function_name()));
+        CheckNullOptimized(String::ZoneHandle(Z, String::New("return_value")),
+                           CheckNullInstr::kArgumentError);
   }
 
   if (marshaller.IsCompound(compiler::ffi::kResultIndex)) {

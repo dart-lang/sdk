@@ -778,8 +778,7 @@ class Instruction : public ZoneAllocated {
   // the inlining ID to that; instead, treat it as unset.
   explicit Instruction(const InstructionSource& source,
                        intptr_t deopt_id = DeoptId::kNone)
-      : deopt_id_(deopt_id),
-        inlining_id_(source.inlining_id) {}
+      : deopt_id_(deopt_id), inlining_id_(source.inlining_id) {}
 
   explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
       : Instruction(InstructionSource(), deopt_id) {}
@@ -1507,7 +1506,6 @@ class BlockEntryInstr : public Instruction {
   InstructionsIterable instructions() { return InstructionsIterable(this); }
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
-
 
  protected:
   BlockEntryInstr(intptr_t block_id,
@@ -5301,7 +5299,6 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
-
  private:
   const TokenPosition token_pos_;
   const UntaggedPcDescriptors::Kind stub_kind_;
@@ -8802,7 +8799,6 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
                                         FlowGraphCompiler* compiler);
 
   virtual Value* RedefinedValue() const;
-
 
   PRINT_OPERANDS_TO_SUPPORT
 

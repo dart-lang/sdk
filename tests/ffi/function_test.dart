@@ -39,6 +39,7 @@ void main() {
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
+    testNativeFunctionNullableInt();
   }
 }
 
@@ -456,4 +457,17 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
+}
+
+void testNativeFunctionNullableInt() {
+  final sumPlus42 = ffiTestFunctions.lookupFunction<
+      Int32 Function(Int32, Int32), int Function(int, int?)>("SumPlus42");
+
+  try {
+    sumPlus42(3, null);
+  } catch (e) {
+    // TODO(http://dartbug.com/47098): Save param names to dwarf.
+    Expect.isTrue(e.toString().contains('ffi_param2') ||
+        e.toString().contains('<optimized out>'));
+  }
 }

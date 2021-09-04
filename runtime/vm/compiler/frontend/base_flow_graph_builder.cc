@@ -1054,11 +1054,14 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::CheckNullOptimized(TokenPosition position,
-                                                  const String& function_name) {
+Fragment BaseFlowGraphBuilder::CheckNullOptimized(
+    const String& function_name,
+    CheckNullInstr::ExceptionType exception_type,
+    TokenPosition position) {
   Value* value = Pop();
-  CheckNullInstr* check_null = new (Z) CheckNullInstr(
-      value, function_name, GetNextDeoptId(), InstructionSource(position));
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(value, function_name, GetNextDeoptId(),
+                             InstructionSource(position), exception_type);
   Push(check_null);  // Use the redefinition.
   return Fragment(check_null);
 }
