@@ -144,7 +144,19 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
-static void NullErrorHelper(Zone* zone, const String& selector) {
+static void NullErrorHelper(Zone* zone,
+                            const String& selector,
+                            bool is_param_name = false) {
+  if (is_param_name) {
+    const String& error = String::Handle(
+        selector.IsNull()
+            ? String::New("argument value is null")
+            : String::NewFormatted("argument value for '%s' is null",
+                                   selector.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+    return;
+  }
+
   // If the selector is null, this must be a null check that wasn't due to a
   // method invocation, so was due to the null check operator.
   if (selector.IsNull()) {
@@ -178,7 +190,10 @@ static void NullErrorHelper(Zone* zone, const String& selector) {
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
-static void DoThrowNullError(Isolate* isolate, Thread* thread, Zone* zone) {
+static void DoThrowNullError(Isolate* isolate,
+                             Thread* thread,
+                             Zone* zone,
+                             bool is_param) {
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   const StackFrame* caller_frame = iterator.NextFrame();
@@ -205,11 +220,11 @@ static void DoThrowNullError(Isolate* isolate, Thread* thread, Zone* zone) {
     member_name = Symbols::OptimizedOut().ptr();
   }
 
-  NullErrorHelper(zone, member_name);
+  NullErrorHelper(zone, member_name, is_param);
 }
 
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
-  DoThrowNullError(isolate, thread, zone);
+  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
 }
 
 // Collects information about pointers within the top |kMaxSlotsCollected|
@@ -258,7 +273,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
     RELEASE_ASSERT(caller_frame->IsDartFrame());
     ReportImpossibleNullError(cid.Value(), caller_frame, thread);
   }
-  DoThrowNullError(isolate, thread, zone);
+  DoThrowNullError(isolate, thread, zone, /*is_param=*/false);
 }
 
 DEFINE_RUNTIME_ENTRY(NullErrorWithSelector, 1) {
@@ -271,8 +286,7 @@ DEFINE_RUNTIME_ENTRY(NullCastError, 0) {
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentNullError, 0) {
-  const String& error = String::Handle(String::New("argument value is null"));
-  Exceptions::ThrowArgumentError(error);
+  DoThrowNullError(isolate, thread, zone, /*is_param=*/true);
 }
 
 DEFINE_RUNTIME_ENTRY(ArgumentError, 1) {
