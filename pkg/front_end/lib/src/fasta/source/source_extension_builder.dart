@@ -93,6 +93,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
+    _extension.onType = onType.build(libraryBuilder);
+
     SourceLibraryBuilder.checkMemberConflicts(library, scope,
         checkForInstanceVsStaticConflict: true,
         checkForMethodVsSetterConflict: true);
@@ -190,8 +192,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
 
     scope.forEach(buildBuilders);
-
-    _extension.onType = onType.build(libraryBuilder);
 
     return _extension;
   }

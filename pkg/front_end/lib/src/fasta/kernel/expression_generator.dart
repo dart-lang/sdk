@@ -1942,6 +1942,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
         invokeTarget = memberBuilder.invokeTarget as Procedure?;
+      } else if (getterBuilder.isField) {
+        assert(!getterBuilder.isStatic);
+        MemberBuilder memberBuilder = getterBuilder as MemberBuilder;
+        readTarget = memberBuilder.invokeTarget as Procedure?;
       } else {
         return unhandled(
             "$getterBuilder (${getterBuilder.runtimeType})",
@@ -1956,6 +1960,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       if (setterBuilder is AccessErrorBuilder) {
         // No setter.
       } else if (setterBuilder.isSetter) {
+        assert(!setterBuilder.isStatic);
+        MemberBuilder memberBuilder = setterBuilder as MemberBuilder;
+        writeTarget = memberBuilder.writeTarget as Procedure?;
+      } else if (setterBuilder.isField) {
         assert(!setterBuilder.isStatic);
         MemberBuilder memberBuilder = setterBuilder as MemberBuilder;
         writeTarget = memberBuilder.writeTarget as Procedure?;
@@ -2598,7 +2606,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   Generator _createInstanceAccess(Token token, Name name,
       {bool isNullAware: false}) {
     Builder? getter = extensionBuilder.lookupLocalMemberByName(name);
-    if (getter != null && (getter.isStatic || getter.isField)) {
+    if (getter != null && getter.isStatic) {
       getter = null;
     }
     Builder? setter =

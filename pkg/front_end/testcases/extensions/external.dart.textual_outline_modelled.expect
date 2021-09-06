@@ -1,0 +1,23 @@
+extension Extension<T extends num> on List<T> {
+  external T field;
+  external T get getter;
+  external T get property;
+  external T method();
+  external final T fieldSetter;
+  external final T finalField;
+  external static final int staticFieldSetter;
+  external static final int staticFinalField;
+  external static int get staticGetter;
+  external static int get staticProperty;
+  external static int staticField;
+  external static int staticMethod();
+  external static void set staticFieldSetter(int value);
+  external static void set staticProperty(int value);
+  external static void set staticSetter(int value);
+  external void set fieldSetter(T value);
+  external void set property(T value);
+  external void set setter(T value);
+}
+
+main() {}
+test() {}

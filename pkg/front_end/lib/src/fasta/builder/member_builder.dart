@@ -68,6 +68,7 @@ abstract class MemberBuilder implements ModifierBuilder {
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   ProcedureKind? get kind;
 
+  @override
   bool get isExternal;
 
   bool get isAbstract;

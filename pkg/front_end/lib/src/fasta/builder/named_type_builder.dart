@@ -276,7 +276,7 @@ class NamedTypeBuilder extends TypeBuilder {
   // TODO(johnniwinther): Store [origin] on the built type.
   DartType buildInternal(LibraryBuilder library,
       {TypedefType? origin,
-      bool? nonInstanceContext,
+      required bool? nonInstanceContext,
       required bool forTypeLiteral}) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
     // TODO(johnniwinther): Change `nonInstanceContext == true` to

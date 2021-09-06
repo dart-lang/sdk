@@ -1039,22 +1039,31 @@ class TypeInferrerImpl implements TypeInferrer {
 
         if (typeSchemaEnvironment.isSubtypeOf(
             receiverType, onType, SubtypeCheckMode.withNullabilities)) {
+          ObjectAccessTarget target = const ObjectAccessTarget.missing();
+          if (thisBuilder != null && !thisBuilder.isStatic) {
+            if (thisBuilder.isField) {
+              if (thisBuilder.isExternal) {
+                target = new ObjectAccessTarget.extensionMember(
+                    setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
+                    thisBuilder.readTarget,
+                    setter ? ProcedureKind.Setter : ProcedureKind.Getter,
+                    inferredTypeArguments,
+                    isPotentiallyNullable: isPotentiallyNullableAccess);
+              }
+            } else {
+              target = new ObjectAccessTarget.extensionMember(
+                  setter ? thisBuilder.writeTarget! : thisBuilder.invokeTarget!,
+                  thisBuilder.readTarget,
+                  thisBuilder.kind!,
+                  inferredTypeArguments,
+                  isPotentiallyNullable: isPotentiallyNullableAccess);
+            }
+          }
           ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
               (thisBuilder ?? otherBuilder)!,
               onType,
               onTypeInstantiateToBounds,
-              thisBuilder != null &&
-                      !thisBuilder.isField &&
-                      !thisBuilder.isStatic
-                  ? new ObjectAccessTarget.extensionMember(
-                      setter
-                          ? thisBuilder.writeTarget!
-                          : thisBuilder.invokeTarget!,
-                      thisBuilder.readTarget,
-                      thisBuilder.kind!,
-                      inferredTypeArguments,
-                      isPotentiallyNullable: isPotentiallyNullableAccess)
-                  : const ObjectAccessTarget.missing(),
+              target,
               isPlatform: extensionBuilder.library.importUri.scheme == 'dart');
           if (noneMoreSpecific.isNotEmpty) {
             bool isMostSpecific = true;

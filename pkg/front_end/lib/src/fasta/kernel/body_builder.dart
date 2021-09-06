@@ -6845,7 +6845,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           builder.declaration as TypeVariableBuilder;
       TypeParameter typeParameter = typeParameterBuilder.parameter;
       LocatedMessage message;
-      bool extensionField = member.isExtensionMember && member.isField;
+      bool extensionField =
+          member.isExtensionMember && member.isField && !member.isExternal;
       if ((extensionField || !isDeclarationInstanceContext) &&
           (typeParameter.parent is Class ||
               typeParameter.parent is Extension)) {
