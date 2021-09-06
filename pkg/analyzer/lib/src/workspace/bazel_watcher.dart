@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:core';
 import 'dart:io' as io;
 import 'dart:isolate';
 import 'dart:math';

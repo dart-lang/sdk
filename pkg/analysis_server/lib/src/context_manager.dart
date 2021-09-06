@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core';
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/listener.dart';

@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'dart:core';
 
 import 'package:vm/transformations/specializer/factory_specializer.dart';
 

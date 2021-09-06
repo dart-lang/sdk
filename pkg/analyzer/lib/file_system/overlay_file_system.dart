@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:core';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
