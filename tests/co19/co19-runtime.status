@@ -35,5 +35,4 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow on si
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported on sim architectures
 
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
-Language/Expressions/Numbers/syntax_t34: SkipByDesign # expects integer literal error that only occurs in JS
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
