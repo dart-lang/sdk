@@ -727,6 +727,18 @@ intptr_t UntaggedImmutableArray::VisitImmutableArrayPointers(
   return UntaggedArray::VisitArrayPointers(raw_obj, visitor);
 }
 
+intptr_t UntaggedImmutableLinkedHashMap::VisitImmutableLinkedHashMapPointers(
+    ImmutableLinkedHashMapPtr raw_obj,
+    ObjectPointerVisitor* visitor) {
+  return UntaggedLinkedHashMap::VisitLinkedHashMapPointers(raw_obj, visitor);
+}
+
+intptr_t UntaggedImmutableLinkedHashSet::VisitImmutableLinkedHashSetPointers(
+    ImmutableLinkedHashSetPtr raw_obj,
+    ObjectPointerVisitor* visitor) {
+  return UntaggedLinkedHashSet::VisitLinkedHashSetPointers(raw_obj, visitor);
+}
+
 void UntaggedObject::RememberCard(ObjectPtr const* slot) {
   OldPage::Of(static_cast<ObjectPtr>(this))->RememberCard(slot);
 }

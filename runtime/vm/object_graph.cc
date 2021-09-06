@@ -953,11 +953,11 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(Smi::Value(
           static_cast<GrowableObjectArrayPtr>(obj)->untag()->length()));
-    } else if (cid == kLinkedHashMapCid) {
+    } else if (cid == kLinkedHashMapCid || cid == kImmutableLinkedHashMapCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashMapPtr>(obj)->untag()->used_data()));
-    } else if (cid == kLinkedHashSetCid) {
+    } else if (cid == kLinkedHashSetCid || cid == kImmutableLinkedHashSetCid) {
       writer_->WriteUnsigned(kLengthData);
       writer_->WriteUnsigned(
           Smi::Value(static_cast<LinkedHashSetPtr>(obj)->untag()->used_data()));
@@ -1428,6 +1428,8 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
     case kExternalTwoByteStringCid:
     case kGrowableObjectArrayCid:
     case kImmutableArrayCid:
+    case kImmutableLinkedHashMapCid:
+    case kImmutableLinkedHashSetCid:
     case kInstructionsCid:
     case kInstructionsSectionCid:
     case kInstructionsTableCid:
@@ -1454,7 +1456,7 @@ uint32_t HeapSnapshotWriter::GetHeapSnapshotIdentityHash(Thread* thread,
 }
 
 // Generates a random value which can serve as an identity hash.
-// It must be a non-zero smi value (see also [Object._getObjectHash]).
+// It must be a non-zero smi value (see also [Object._objectHashCode]).
 static uint32_t GenerateHash(Random* random) {
   uint32_t hash;
   do {

@@ -883,6 +883,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashBase_setUsedData:
     case MethodRecognizer::kLinkedHashBase_getDeletedKeys:
     case MethodRecognizer::kLinkedHashBase_setDeletedKeys:
+    case MethodRecognizer::kImmutableLinkedHashBase_getData:
+    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
+    case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
     case MethodRecognizer::kWeakProperty_getKey:
     case MethodRecognizer::kWeakProperty_setKey:
     case MethodRecognizer::kWeakProperty_getValue:
@@ -1190,6 +1193,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashBase_index());
       break;
+    case MethodRecognizer::kImmutableLinkedHashBase_getIndex:
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::ImmutableLinkedHashBase_index());
+      break;
     case MethodRecognizer::kLinkedHashBase_setIndex:
       ASSERT_EQUAL(function.NumParameters(), 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1197,10 +1205,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += StoreNativeField(Slot::LinkedHashBase_index());
       body += NullConstant();
       break;
+    case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      // Uses a store-release barrier so that other isolates will see the
+      // contents of the index after seeing the index itself.
+      body +=
+          StoreNativeField(Slot::ImmutableLinkedHashBase_index(),
+                           StoreInstanceFieldInstr::Kind::kOther,
+                           kEmitStoreBarrier, compiler::Assembler::kRelease);
+      body += NullConstant();
+      break;
     case MethodRecognizer::kLinkedHashBase_getData:
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashBase_data());
+      break;
+    case MethodRecognizer::kImmutableLinkedHashBase_getData:
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadNativeField(Slot::ImmutableLinkedHashBase_data());
       break;
     case MethodRecognizer::kLinkedHashBase_setData:
       ASSERT_EQUAL(function.NumParameters(), 2);

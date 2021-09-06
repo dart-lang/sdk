@@ -266,8 +266,12 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(WeakProperty::InstanceSize(), cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
-  cls = object_store->linked_hash_set_class();
+  cls = object_store->immutable_linked_hash_map_class();
   ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
+  cls = object_store->linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
+  cls = object_store->immutable_linked_hash_set_class();
+  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.

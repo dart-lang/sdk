@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, 0x04168315)                                \
-  V(ClassID, getID, ClassIDgetID, 0xbe1d6669)                                  \
+  V(ClassID, getID, ClassIDgetID, 0xdc8b888a)                                  \
   V(Object, Object., ObjectConstructor, 0xab6d6cfa)                            \
   V(List, ., ListFactory, 0xbc820cf9)                                          \
   V(_List, ., ObjectArrayAllocate, 0xd693eee6)                                 \
@@ -174,6 +174,12 @@ namespace dart {
   V(_HashVMBase, set:_hashMask, LinkedHashBase_setHashMask, 0xbbcebb58)        \
   V(_HashVMBase, get:_deletedKeys, LinkedHashBase_getDeletedKeys, 0x510dc4a0)  \
   V(_HashVMBase, set:_deletedKeys, LinkedHashBase_setDeletedKeys, 0xbdcdb85c)  \
+  V(_HashVMImmutableBase, get:_data, ImmutableLinkedHashBase_getData,          \
+    0x780e14ad)                                                                \
+  V(_HashVMImmutableBase, get:_indexNullable,                                  \
+    ImmutableLinkedHashBase_getIndex, 0xfd877bfb)                              \
+  V(_HashVMImmutableBase, set:_index,                                          \
+    ImmutableLinkedHashBase_setIndexStoreRelease, 0xa2be9418)                  \
   V(_WeakProperty, get:key, WeakProperty_getKey, 0xde00e462)                   \
   V(_WeakProperty, set:key, WeakProperty_setKey, 0x963a095f)                   \
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \

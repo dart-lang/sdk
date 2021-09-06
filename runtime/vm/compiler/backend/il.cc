@@ -2825,6 +2825,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       switch (call->function().recognized_kind()) {
         case MethodRecognizer::kByteDataFactory:
         case MethodRecognizer::kLinkedHashBase_getData:
+        case MethodRecognizer::kImmutableLinkedHashBase_getData:
           return flow_graph->constant_null();
         default:
           break;

@@ -2498,7 +2498,7 @@ class LinkedHashMapMessageDeserializationCluster
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashMap::NewUninitialized());
+      d->AssignRef(LinkedHashMap::NewUninitialized(kLinkedHashMapCid));
     }
   }
 
@@ -2568,7 +2568,7 @@ class LinkedHashSetMessageDeserializationCluster
   void ReadNodes(MessageDeserializer* d) {
     intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      d->AssignRef(LinkedHashSet::NewUninitialized());
+      d->AssignRef(LinkedHashSet::NewUninitialized(kLinkedHashSetCid));
     }
   }
 

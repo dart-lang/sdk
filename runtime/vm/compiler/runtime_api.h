@@ -648,6 +648,12 @@ class LinkedHashBase : public AllStatic {
   static word InstanceSize();
 };
 
+class ImmutableLinkedHashBase : public LinkedHashBase {
+ public:
+  // The data slot is an immutable list and final in immutable maps and sets.
+  static word data_offset();
+};
+
 class LinkedHashMap : public LinkedHashBase {
  public:
   FINAL_CLASS();

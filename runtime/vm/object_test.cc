@@ -5029,64 +5029,6 @@ TEST_CASE(HashCode_Type_Int) {
                                         /*check_identity=*/false));
 }
 
-// Because we want to reuse CanonicalizeHash for hashCode, we should not have
-// collisions.
-TEST_CASE(CanonicalizeHash_Const_Instances) {
-  const char* kScript =
-      "class A {\n"
-      "  final int n;\n"
-      "  \n"
-      "  const A(this.n);\n"
-      "}\n"
-      "\n"
-      "class B {\n"
-      "  final int n;\n"
-      "  \n"
-      "  const B(this.n);\n"
-      "}\n"
-      "\n"
-      "valueA() {\n"
-      "  return const A(5);\n"
-      "}\n"
-      "\n"
-      "valueB() {\n"
-      "  return const B(5);\n"
-      "}\n";
-
-  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
-  EXPECT_VALID(lib);
-
-  Dart_Handle value_a_result =
-      Dart_Invoke(lib, NewString("valueA"), 0, nullptr);
-  EXPECT_VALID(value_a_result);
-  Dart_Handle value_b_result =
-      Dart_Invoke(lib, NewString("valueB"), 0, nullptr);
-  EXPECT_VALID(value_b_result);
-
-  TransitionNativeToVM transition(Thread::Current());
-
-  const auto& value_a_dart = Instance::CheckedHandle(
-      Thread::Current()->zone(), Api::UnwrapHandle(value_a_result));
-  const auto& value_b_dart = Instance::CheckedHandle(
-      Thread::Current()->zone(), Api::UnwrapHandle(value_b_result));
-
-  const uint32_t canonicalize_hash_a = value_a_dart.CanonicalizeHash();
-  const uint32_t canonicalize_hash_b = value_b_dart.CanonicalizeHash();
-
-  bool success = canonicalize_hash_a != canonicalize_hash_b;
-
-  if (!success) {
-    LogBlock lb;
-    THR_Print("Hash collision between %s and %s\n", value_a_dart.ToCString(),
-              value_b_dart.ToCString());
-    THR_Print("VM CanonicalizeHash a %" Px32 " %" Pd32 "\n",
-              canonicalize_hash_a, canonicalize_hash_a);
-    THR_Print("VM CanonicalizeHash b %" Px32 " %" Pd32 "\n",
-              canonicalize_hash_b, canonicalize_hash_b);
-  }
-  EXPECT(success);
-}
-
 TEST_CASE(LinkedHashMap_iteration) {
   const char* kScript =
       "makeMap() {\n"
@@ -5126,14 +5068,251 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT(!iterator.MoveNext());
 }
 
+template <class LinkedHashBase>
+static bool LinkedHashBaseEqual(const LinkedHashBase& map1,
+                                const LinkedHashBase& map2,
+                                bool print_diff,
+                                bool check_data = true) {
+  if (check_data) {
+    // Check data, only for non-nested.
+    const auto& data1 = Array::Handle(map1.data());
+    const auto& data2 = Array::Handle(map2.data());
+    const bool data_length_equal = data1.Length() == data2.Length();
+    bool data_equal = data_length_equal;
+    if (data_length_equal) {
+      auto& object1 = Instance::Handle();
+      auto& object2 = Instance::Handle();
+      for (intptr_t i = 0; i < data1.Length(); i++) {
+        object1 ^= data1.At(i);
+        object2 ^= data2.At(i);
+        data_equal &= object1.CanonicalizeEquals(object2);
+      }
+    }
+    if (!data_equal) {
+      if (print_diff) {
+        THR_Print("LinkedHashBaseEqual Data not equal.\n");
+        THR_Print("LinkedHashBaseEqual data1.length %" Pd " data1.length %" Pd
+                  " \n",
+                  data1.Length(), data2.Length());
+        auto& object1 = Instance::Handle();
+        for (intptr_t i = 0; i < data1.Length(); i++) {
+          object1 ^= data1.At(i);
+          THR_Print("LinkedHashBaseEqual data1[%" Pd "] %s\n", i,
+                    object1.ToCString());
+        }
+        for (intptr_t i = 0; i < data2.Length(); i++) {
+          object1 ^= data2.At(i);
+          THR_Print("LinkedHashBaseEqual data2[%" Pd "] %s\n", i,
+                    object1.ToCString());
+        }
+      }
+      return false;
+    }
+  }
+
+  // Check hashing.
+  intptr_t hash_mask1 = Smi::Value(map1.hash_mask());
+  EXPECT(!Integer::Handle(map2.hash_mask()).IsNull());
+  intptr_t hash_mask2 = Smi::Value(map2.hash_mask());
+  const bool hash_masks_equal = hash_mask1 == hash_mask2;
+  if (!hash_masks_equal) {
+    if (print_diff) {
+      THR_Print("LinkedHashBaseEqual Hash masks not equal.\n");
+      THR_Print("LinkedHashBaseEqual hash_mask1 %" Px " hash_mask2 %" Px " \n",
+                hash_mask1, hash_mask2);
+    }
+  }
+
+  // Check indices.
+  const auto& index1 = TypedData::Handle(map1.index());
+  const auto& index2 = TypedData::Handle(map2.index());
+  EXPECT(!index2.IsNull());
+  ASSERT(index1.ElementType() == kUint32ArrayElement);
+  ASSERT(index2.ElementType() == kUint32ArrayElement);
+  const intptr_t kElementSize = 4;
+  ASSERT(kElementSize == index1.ElementSizeInBytes());
+  const bool index_length_equal = index1.Length() == index2.Length();
+  bool index_equal = index_length_equal;
+  if (index_length_equal) {
+    for (intptr_t i = 0; i < index1.Length(); i++) {
+      const uint32_t index1_val = index1.GetUint32(i * kElementSize);
+      const uint32_t index2_val = index2.GetUint32(i * kElementSize);
+      index_equal &= index1_val == index2_val;
+    }
+  }
+  if (!index_equal && print_diff) {
+    THR_Print("LinkedHashBaseEqual Indices not equal.\n");
+    THR_Print("LinkedHashBaseEqual index1.length %" Pd " index2.length %" Pd
+              " \n",
+              index1.Length(), index2.Length());
+    for (intptr_t i = 0; i < index1.Length(); i++) {
+      const uint32_t index_val = index1.GetUint32(i * kElementSize);
+      THR_Print("LinkedHashBaseEqual index1[%" Pd "] %" Px32 "\n", i,
+                index_val);
+    }
+    for (intptr_t i = 0; i < index2.Length(); i++) {
+      const uint32_t index_val = index2.GetUint32(i * kElementSize);
+      THR_Print("LinkedHashBaseEqual index2[%" Pd "] %" Px32 "\n", i,
+                index_val);
+    }
+  }
+  return index_equal;
+}
+
+// Copies elements from data.
+static LinkedHashMapPtr ConstructImmutableMap(
+    const Array& input_data,
+    intptr_t used_data,
+    const TypeArguments& type_arguments) {
+  auto& map = LinkedHashMap::Handle(ImmutableLinkedHashMap::NewUninitialized());
+
+  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  for (intptr_t i = 0; i < used_data; i++) {
+    data.SetAt(i, Object::Handle(input_data.At(i)));
+  }
+  map.set_data(data);
+  map.set_used_data(used_data);
+  map.SetTypeArguments(type_arguments);
+  map.set_deleted_keys(0);
+  map.ComputeAndSetHashMask();
+  map ^= map.Canonicalize(Thread::Current());
+
+  return map.ptr();
+}
+
+// Constructs an immutable hashmap from a mutable one in this test.
+TEST_CASE(ImmutableLinkedHashMap_vm) {
+  const char* kScript = R"(
+enum ExperimentalFlag {
+  alternativeInvalidationStrategy,
+  constFunctions,
+  constantUpdate2018,
+  constructorTearoffs,
+  controlFlowCollections,
+  extensionMethods,
+  extensionTypes,
+  genericMetadata,
+  nonNullable,
+  nonfunctionTypeAliases,
+  setLiterals,
+  spreadCollections,
+  testExperiment,
+  tripleShift,
+  valueClass,
+  variance,
+}
+
+final Map<ExperimentalFlag?, bool> expiredExperimentalFlagsNonConst = {
+  ExperimentalFlag.alternativeInvalidationStrategy: false,
+  ExperimentalFlag.constFunctions: false,
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.controlFlowCollections: true,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.extensionTypes: false,
+  ExperimentalFlag.genericMetadata: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.nonfunctionTypeAliases: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.testExperiment: false,
+  ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
+  ExperimentalFlag.variance: false,
+};
+
+makeNonConstMap() {
+  return expiredExperimentalFlagsNonConst;
+}
+
+firstKey() {
+  return ExperimentalFlag.alternativeInvalidationStrategy;
+}
+
+firstKeyHashCode() {
+  return firstKey().hashCode;
+}
+
+firstKeyIdentityHashCode() {
+  return identityHashCode(firstKey());
+}
+
+bool lookupSpreadCollections(Map map) =>
+    map[ExperimentalFlag.spreadCollections];
+
+bool? lookupNull(Map map) => map[null];
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("makeNonConstMap"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+  Dart_Handle first_key_result =
+      Dart_Invoke(lib, NewString("firstKey"), 0, NULL);
+  EXPECT_VALID(first_key_result);
+  Dart_Handle first_key_hashcode_result =
+      Dart_Invoke(lib, NewString("firstKeyHashCode"), 0, NULL);
+  EXPECT_VALID(first_key_hashcode_result);
+  Dart_Handle first_key_identity_hashcode_result =
+      Dart_Invoke(lib, NewString("firstKeyIdentityHashCode"), 0, NULL);
+  EXPECT_VALID(first_key_identity_hashcode_result);
+
+  Dart_Handle const_argument;
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_map = LinkedHashMap::Cast(
+        Object::Handle(Api::UnwrapHandle(non_const_result)));
+    const auto& non_const_type_args =
+        TypeArguments::Handle(non_const_map.GetTypeArguments());
+    const auto& non_const_data = Array::Handle(non_const_map.data());
+    const auto& const_map = LinkedHashMap::Handle(ConstructImmutableMap(
+        non_const_data, Smi::Value(non_const_map.used_data()),
+        non_const_type_args));
+    ASSERT(non_const_map.GetClassId() == kLinkedHashMapCid);
+    ASSERT(const_map.GetClassId() == kImmutableLinkedHashMapCid);
+    ASSERT(!non_const_map.IsCanonical());
+    ASSERT(const_map.IsCanonical());
+
+    const_argument = Api::NewHandle(thread, const_map.ptr());
+  }
+
+  Dart_Handle lookup_result = Dart_Invoke(
+      lib, NewString("lookupSpreadCollections"), 1, &const_argument);
+  EXPECT_VALID(lookup_result);
+  EXPECT_TRUE(lookup_result);
+
+  Dart_Handle lookup_null_result =
+      Dart_Invoke(lib, NewString("lookupNull"), 1, &const_argument);
+  EXPECT_VALID(lookup_null_result);
+  EXPECT_NULL(lookup_null_result);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_map = LinkedHashMap::Cast(non_const_object);
+    const auto& const_object =
+        Object::Handle(Api::UnwrapHandle(const_argument));
+    const auto& const_map = LinkedHashMap::Cast(const_object);
+
+    EXPECT(non_const_map.GetClassId() != const_map.GetClassId());
+
+    // Check that the index is identical.
+    EXPECT(LinkedHashBaseEqual(non_const_map, const_map,
+                               /*print_diff=*/true));
+  }
+}
+
 TEST_CASE(LinkedHashSet_iteration) {
-  const char* kScript =
-      "makeSet() {\n"
-      "  var set = {'x', 'y', 'z', 'w'};\n"
-      "  set.remove('y');\n"
-      "  set.remove('w');\n"
-      "  return set;\n"
-      "}";
+  const char* kScript = R"(
+makeSet() {
+  var set = {'x', 'y', 'z', 'w'};
+  set.remove('y');
+  set.remove('w');
+  return set;
+}
+)";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeSet"), 0, NULL);
@@ -5159,6 +5338,85 @@ TEST_CASE(LinkedHashSet_iteration) {
   EXPECT_STREQ("z", object.ToCString());
 
   EXPECT(!iterator.MoveNext());
+}
+
+// Copies elements from data.
+static LinkedHashSetPtr ConstructImmutableSet(
+    const Array& input_data,
+    intptr_t used_data,
+    const TypeArguments& type_arguments) {
+  auto& set = LinkedHashSet::Handle(ImmutableLinkedHashSet::NewUninitialized());
+
+  const auto& data = Array::Handle(Array::New(input_data.Length()));
+  for (intptr_t i = 0; i < used_data; i++) {
+    data.SetAt(i, Object::Handle(input_data.At(i)));
+  }
+  set.set_data(data);
+  set.set_used_data(used_data);
+  set.SetTypeArguments(type_arguments);
+  set.set_deleted_keys(0);
+  set.ComputeAndSetHashMask();
+  set ^= set.Canonicalize(Thread::Current());
+
+  return set.ptr();
+}
+
+TEST_CASE(ImmutableLinkedHashSet_vm) {
+  const char* kScript = R"(
+makeNonConstSet() {
+  return {1, 2, 3, 5, 8, 13};
+}
+
+bool containsFive(Set set) => set.contains(5);
+)";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle non_const_result =
+      Dart_Invoke(lib, NewString("makeNonConstSet"), 0, NULL);
+  EXPECT_VALID(non_const_result);
+
+  Dart_Handle const_argument;
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    ASSERT(non_const_set.GetClassId() == kLinkedHashSetCid);
+    ASSERT(!non_const_set.IsCanonical());
+
+    const auto& non_const_data = Array::Handle(non_const_set.data());
+    const auto& non_const_type_args =
+        TypeArguments::Handle(non_const_set.GetTypeArguments());
+    const auto& const_set = LinkedHashSet::Handle(ConstructImmutableSet(
+        non_const_data, Smi::Value(non_const_set.used_data()),
+        non_const_type_args));
+    ASSERT(const_set.GetClassId() == kImmutableLinkedHashSetCid);
+    ASSERT(const_set.IsCanonical());
+
+    const_argument = Api::NewHandle(thread, const_set.ptr());
+  }
+
+  Dart_Handle contains_5_result =
+      Dart_Invoke(lib, NewString("containsFive"), 1, &const_argument);
+  EXPECT_VALID(contains_5_result);
+  EXPECT_TRUE(contains_5_result);
+
+  {
+    TransitionNativeToVM transition(thread);
+    const auto& non_const_object =
+        Object::Handle(Api::UnwrapHandle(non_const_result));
+    const auto& non_const_set = LinkedHashSet::Cast(non_const_object);
+    const auto& const_object =
+        Object::Handle(Api::UnwrapHandle(const_argument));
+    const auto& const_set = LinkedHashSet::Cast(const_object);
+
+    EXPECT(non_const_set.GetClassId() != const_set.GetClassId());
+
+    // Check that the index is identical.
+    EXPECT(LinkedHashBaseEqual(non_const_set, const_set,
+                               /*print_diff=*/true));
+  }
 }
 
 static void CheckConcatAll(const String* data[], intptr_t n) {
