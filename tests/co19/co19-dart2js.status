@@ -20,6 +20,8 @@ Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:is
 Language/Functions/External_Functions/not_connected_to_a_body_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t01: SkipByDesign # https://github.com/dart-lang/co19/issues/952
 Language/Libraries_and_Scripts/Scripts/main_optional_parameters_t03: SkipByDesign # https://github.com/dart-lang/co19/issues/952
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # Uses dart:io.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses dart:io.
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Metadata/before*: SkipByDesign # dart:mirrors not supported https://github.com/dart-lang/co19/issues/523.
